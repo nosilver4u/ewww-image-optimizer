@@ -35,6 +35,7 @@ If you need a version of this plugin for cloud use only, see [EWWW Image Optimiz
 = Support =
 
 If you need assistance using the plugin, please visit our [Support Page](https://ewww.io/contact-us/). The forums are community supported only.
+The EWWW Image Optimizer is developed at https://github.com/nosilver4u/ewww-image-optimizer
 
 = Bulk Optimize =
 
@@ -266,6 +267,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * fixed: wp-cli command skipping pdf files
 * added: ability to view API history at https://history.exactlywww.com/
 * added: abiltiy to disable set_time_limit() function with EWWW_IMAGE_OPTIMIZER_DISABLE_STL constant
+* added: plugin now on GitHub https://github.com/nosilver4u/ewww-image-optimizer
 * changed: removed baseline JPG encoding trial, since progressive compression is almost always smaller, and is always more desirable from a UX perspective
 * updated: cwebp version 0.5.1
 

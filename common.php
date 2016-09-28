@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '298.231' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '298.232' );
 
 // initialize a couple globals
 $ewww_debug = '';
@@ -1041,24 +1041,19 @@ function ewww_image_optimizer_image_sizes_advanced( $sizes ) {
 // during an upload, remove the W3TC CDN filter and add a new filter with our own wrapper around the W3TC function
 function ewww_image_optimizer_handle_upload( $params ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( function_exists( 'w3_instance' ) ) {
-		$w3_plugin_cdn = w3_instance( 'W3_Plugin_Cdn' );
-		$removed = remove_filter( 'update_attached_file', array( $w3_plugin_cdn, 'update_attached_file' ) );
-		add_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_update_attached_file_w3tc', 20, 2 );
-	}
 	global $ewww_new_image;
 	$ewww_new_image = true;
 	return $params;
 }
 
 // this is the delayed wrapper for the W3TC CDN function that runs after optimization (priority 20)
-function ewww_image_optimizer_update_attached_file_w3tc( $meta, $id ) {
+/*function ewww_image_optimizer_update_attached_file_w3tc( $meta, $id ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
 	$w3_plugin_cdn = w3_instance( 'W3_Plugin_Cdn' );
 	$w3_plugin_cdn->update_attached_file( $file_path, $id );
 	return $meta;
-}
+}*/
 
 function ewww_image_optimizer_w3tc_update_files( $files ) {
 	global $ewww_attachment;
@@ -1712,11 +1707,11 @@ function ewww_image_optimizer_manual() {
 		$new_meta = ewww_image_optimizer_resize_from_meta_data($original_meta, $attachment_ID);
 	} elseif ($_REQUEST['action'] === 'ewww_image_optimizer_manual_restore') {
 		$new_meta = ewww_image_optimizer_restore_from_meta_data($original_meta, $attachment_ID);
+		global $ewww_attachment;
+		$ewww_attachment['id'] = $attachment_ID;
+		$ewww_attachment['meta'] = $new_meta;
+		add_filter( 'w3tc_cdn_update_attachment_metadata', 'ewww_image_optimizer_w3tc_update_files' );
 	}
-	global $ewww_attachment;
-	$ewww_attachment['id'] = $attachment_ID;
-	$ewww_attachment['meta'] = $new_meta;
-	add_filter( 'w3tc_cdn_update_attachment_metadata', 'ewww_image_optimizer_w3tc_update_files' );
 	// update the attachment metadata in the database
 	wp_update_attachment_metadata( $attachment_ID, $new_meta );
 	ewww_image_optimizer_debug_log();
@@ -3524,6 +3519,10 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 	if ( ! empty( $new_image) ) {
 		$meta = ewww_image_optimizer_update_attachment_metadata( $meta, $ID );
 	}
+	global $ewww_attachment;
+	$ewww_attachment['id'] = $ID;
+	$ewww_attachment['meta'] = $meta;
+	add_filter( 'w3tc_cdn_update_attachment_metadata', 'ewww_image_optimizer_w3tc_update_files' );
 	if ( ! preg_match( '/' . __( 'Previously Optimized', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '/', $meta['ewww_image_optimizer'] ) && class_exists( 'Amazon_S3_And_CloudFront' ) ) {
  		global $as3cf;
 		if ( method_exists( $as3cf, 'wp_update_attachment_metadata' ) ) {

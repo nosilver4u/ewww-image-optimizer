@@ -549,10 +549,10 @@ function ewww_image_optimizer_bulk_loop() {
 	$elapsed = microtime( true ) - $started;
 	// output how much time has elapsed since we started
 	$output['results'] .= sprintf( esc_html__( 'Elapsed: %.3f seconds', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</p>", $elapsed );
-	global $ewww_attachment;
+/*	global $ewww_attachment; // Because we do this up the chain a bit in the resize_from_meta function
 	$ewww_attachment['id'] = $attachment;
 	$ewww_attachment['meta'] = $meta;
-	add_filter( 'w3tc_cdn_update_attachment_metadata', 'ewww_image_optimizer_w3tc_update_files' );
+	add_filter( 'w3tc_cdn_update_attachment_metadata', 'ewww_image_optimizer_w3tc_update_files' );*/
 	// update the metadata for the current attachment
 	wp_update_attachment_metadata( $attachment, $meta );
 	// store the updated list of attachment IDs back in the 'bulk_attachments' option
