@@ -140,15 +140,15 @@ At the bottom of this page, you will find a list of known working webhosts. If y
 ###EWWW IO - Getting Started
 [![Getting Started](https://img.youtube.com/vi/bwn53mhFdTs/0.jpg)](https://www.youtube.com/watch?v=bwn53mhFdTs)
 ###EWWW IO - Advanced Settings
-[youtube https://www.youtube.com/watch?v=kifGIs5Lx2U]
+[![Advanced Settings](https://img.youtube.com/vi/kifGIs5Lx2U/0.jpg)](https://www.youtube.com/watch?v=kifGIs5Lx2U)
 ###EWWW IO - Converting Images
-[youtube https://www.youtube.com/watch?v=xAGtdv3vrYg]
+[![Converting Images](https://img.youtube.com/vi/xAGtdv3vrYg/0.jpg)](https://www.youtube.com/watch?v=xAGtdv3vrYg)
 ###EWWW IO - WebP
-[youtube https://www.youtube.com/watch?v=OeYJgTy3D94]
+[![WebP](https://img.youtube.com/vi/OeYJgTy3D94/0.jpg)](https://www.youtube.com/watch?v=OeYJgTy3D94)
 ###EWWW IO - Cloud API Walkthrough
-[youtube https://www.youtube.com/watch?v=U78FFkM582E]
+[![Cloud API Walkthrough](https://img.youtube.com/vi/U78FFkM582E/0.jpg)](https://www.youtube.com/watch?v=U78FFkM582E)
 ###Using EWWW IO:
-[youtube https://www.youtube.com/watch?v=uELM25v-qgU]
+[![Using the plugin](https://img.youtube.com/vi/uELM25v-qgU/0.jpg)](https://www.youtube.com/watch?v=uELM25v-qgU)
 
 
 ### Installing pngout 
