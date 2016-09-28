@@ -3,7 +3,7 @@
 **Donate link:** https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW  
 **Tags:** image, attachment, optimize, optimization, lossless, lossy, photo, picture, seo, compression, gmagick, jpegtran, gifsicle, optipng, pngout, pngquant, jpegmini, tinyjpg, tinypng, webp, wp-cli   
 **Requires at least:** 4.4  
-**Tested up to:** 4.6  
+**Tested up to:** 4.6.1 
 **Stable tag:** 2.9.8  
 **License:** GPLv3  
 
@@ -137,17 +137,17 @@ If these steps do not work, more detailed instructions are available below the v
 
 At the bottom of this page, you will find a list of known working webhosts. If you have any contributions or corrections to these lists, please contact me via the form at https://ewww.io/contact-us/
 
-EWWW IO - Getting Started
-[youtube https://www.youtube.com/watch?v=bwn53mhFdTs]
-EWWW IO - Advanced Settings
+###EWWW IO - Getting Started
+[(http://img.youtube.com/vi/bwn53mhFdTs/0.jpg)](http://www.youtube.com/watch?v=bwn53mhFdTs)
+###EWWW IO - Advanced Settings
 [youtube https://www.youtube.com/watch?v=kifGIs5Lx2U]
-EWWW IO - Converting Images
+###EWWW IO - Converting Images
 [youtube https://www.youtube.com/watch?v=xAGtdv3vrYg]
-EWWW IO - WebP
+###EWWW IO - WebP
 [youtube https://www.youtube.com/watch?v=OeYJgTy3D94]
-EWWW IO - Cloud API Walkthrough
+###EWWW IO - Cloud API Walkthrough
 [youtube https://www.youtube.com/watch?v=U78FFkM582E]
-Using EWWW IO:
+###Using EWWW IO:
 [youtube https://www.youtube.com/watch?v=uELM25v-qgU]
 
 
