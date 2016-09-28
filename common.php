@@ -4,7 +4,6 @@
 // TODO: ADD NOTICE WHEN MULTIPLE REOPTIMIZATIONS ARE DETECTED - perhaps with a filter that tells it how many is too many
 // TODO: ajaxify one-click actions
 // TODO: implement final phase of webp - forced webp with cdn url matching
-// TODO: update cwebp to 0.5.1
 // TODO: https://wordpress.org/support/topic/lazy-load-support/
 // TODO: add support for this: https://wordpress.org/plugins/photo-gallery/ -- or write an article about how to use Scan & Optimize for it
 
@@ -12,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '298.232' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '299.0' );
 
 // initialize a couple globals
 $ewww_debug = '';
