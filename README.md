@@ -300,6 +300,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 
 
 ### 2.9.9 
+* fixed: broken uploads with W3TC CDN option enabled
 * fixed: warning when scanning Meta Slider metadata for images
 * fixed: should not check for 'nice' when exec() is disabled
 * fixed: notices for 'nice' when exec() output is empty
