@@ -138,7 +138,7 @@ If these steps do not work, more detailed instructions are available below the v
 At the bottom of this page, you will find a list of known working webhosts. If you have any contributions or corrections to these lists, please contact me via the form at https://ewww.io/contact-us/
 
 ###EWWW IO - Getting Started
-[(http://img.youtube.com/vi/bwn53mhFdTs/0.jpg)](http://www.youtube.com/watch?v=bwn53mhFdTs)
+[![Getting Started](https://img.youtube.com/vi/bwn53mhFdTs/0.jpg)](https://www.youtube.com/watch?v=bwn53mhFdTs)
 ###EWWW IO - Advanced Settings
 [youtube https://www.youtube.com/watch?v=kifGIs5Lx2U]
 ###EWWW IO - Converting Images
