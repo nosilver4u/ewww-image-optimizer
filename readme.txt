@@ -260,6 +260,10 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * feature requests are sticky at the top of the support forums, vote for the ones you like: https://wordpress.org/support/plugin/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 3.0.0 =
+* fixed: resizes not checked for existence before calling parallel/async optimization, causing the process to stall
+* fixed: background optimization disabled when settings are saved
+
 = 2.9.9 =
 * fixed: broken uploads with W3TC CDN option enabled
 * fixed: warning when scanning Meta Slider metadata for images

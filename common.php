@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '299.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '299.1' );
 
 // initialize a couple globals
 $ewww_debug = '';
@@ -595,8 +595,7 @@ function ewww_image_optimizer_enable_background_optimization() {
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_background_optimization', false );
 	ewwwio_debug_message( 'running test async handler' );
 	$ewwwio_test_async->data( array( 'ewwwio_test_verify' => '949c34123cf2a4e4ce2f985135830df4a1b2adc24905f53d2fd3f5df5b162932' ) )->dispatch();
-//	$ewwwio_test_background->push_to_queue( '949c34123cf2a4e4ce2f985135830df4a1b2adc24905f53d2fd3f5df5b162932' );
-//	$ewwwio_test_background->save()->dispatch();
+	ewww_image_optimizer_debug_log();
 }
 
 // Plugin initialization for admin area
@@ -723,7 +722,6 @@ function ewww_image_optimizer_admin_init() {
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_skip_png_size', 'intval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_import_status' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_parallel_optimization', 'boolval' );
-	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_background_optimization', 'boolval' );
 //	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_defer', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_include_media_paths', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_for_cdn', 'boolval' );
@@ -843,9 +841,9 @@ function ewww_image_optimizer_install_table() {
 		ewwwio_debug_message( 'upgrading table and checking collation for path, table exists' );
 		//$current_collate = $wpdb->get_results( "SHOW FULL COLUMNS FROM $wpdb->ewwwio_images", ARRAY_A );
 		$current_collate = $wpdb->get_col_charset( $wpdb->ewwwio_images, 'path' );
-		if ( ! empty( $current_collate ) && $current_collate == 'utf8mb4' ) {
+		if ( ! empty( $current_collate ) && $current_collate !== 'utf8mb4' ) {
 			ewwwio_debug_message( "current column collation: $current_collate" );
-			$path_index_size = 191;
+			$path_index_size = 255;
 		}
 	}
 
@@ -855,7 +853,7 @@ function ewww_image_optimizer_install_table() {
 	// if the path column doesn't yet exist, and the default collation is utf8mb4, then we need to lower the column index size
 	if ( empty( $path_index_size ) && strpos( $charset_collate, 'utf8mb4' ) ) {
 		$path_index_size = 191;
-	} elseif ( empty( $path_index_size ) ) {
+	} else {
 		$path_index_size = 255;
 	}
 	ewwwio_debug_message( "path index size: $path_index_size" );
@@ -3344,7 +3342,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 			if ( ! $dup_size ) {
 				$resize_path = $base_dir . $data['file'];
 				// run the optimization and store the results
-				if ( $parallel_opt ) {
+				if ( $parallel_opt && file_exists( $resize_path ) ) {
 					$parallel_sizes[ $size ] = $resize_path;
 				} else {
 					list( $optimized_file, $results, $resize_conv, $original ) = ewww_image_optimizer( $resize_path, $gallery_type, $conv, $new_image );
@@ -4890,7 +4888,7 @@ function ewww_image_optimizer_options () {
 			"<p>" . wp_kses( sprintf( __( 'Contribute directly via %s.',  EWWW_IMAGE_OPTIMIZER_DOMAIN ), "<a href='https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=MKMQKCBFFG3WW'>Paypal</a>" ), array( 'a' => array( 'href' => array() ) ) ) . "</p>\n" .
 			"<p>" . esc_html__( 'Use any of these referral links to show your appreciation:', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p>\n" .
 			"<p><b>" . esc_html__( 'Web Hosting:', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</b><br>\n" .
-				"<a href='https://partners.a2hosting.com/solutions.php?id=5959&url=638'>A2 Hosting:</a> " . esc_html_x( 'with automatic EWWW IO setup', 'A2 Hosting:', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "<br>\n" .
+				"<a href='http://www.a2hosting.com/?aid=b6322137'>A2 Hosting:</a> " . esc_html_x( 'with automatic EWWW IO setup', 'A2 Hosting:', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "<br>\n" .
 				"<a href='http://www.bluehost.com/track/nosilver4u'>Bluehost</a><br>\n" .
 				"<a href='http://www.dreamhost.com/r.cgi?132143'>Dreamhost</a>\n" .
 			"</p>\n" .
