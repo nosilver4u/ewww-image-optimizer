@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '299.1' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '299.11' );
 
 // initialize a couple globals
 $ewww_debug = '';
@@ -142,6 +142,7 @@ add_action( 'ewww_image_optimizer_auto', 'ewww_image_optimizer_auto' );
 //add_action( 'ewww_image_optimizer_defer', 'ewww_image_optimizer_defer' );
 add_action( 'wr2x_retina_file_added', 'ewww_image_optimizer_retina', 20, 2 );
 add_action( 'wp_ajax_ewww_webp_rewrite', 'ewww_image_optimizer_webp_rewrite' );
+add_action( 'wp_ajax_ewww_manual_optimize', 'ewww_image_optimizer_manual' );
 register_deactivation_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimizer_network_deactivate' );
 register_uninstall_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimizer_uninstall' );
 //add_action( 'shutdown', 'ewwwio_memory_output' );
@@ -250,7 +251,7 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 					$filepath = str_replace( $home_url, ABSPATH, $file );
 				}
 				ewwwio_debug_message( "the image is at $filepath" );
-				if ( file_exists( $filepath . '.webp' ) ) { //|| file_exists( $file_relative_path . '.webp' ) ) {
+				if ( file_exists( $filepath . '.webp' ) && ! strpos( $file, 'assets/images/dummy.png' ) ) { //|| file_exists( $file_relative_path . '.webp' ) ) {
 					$nscript = $html->createElement( 'noscript' );
 					$nscript->setAttribute( 'data-img', $file );
 					$nscript->setAttribute( 'data-webp', $file . '.webp' );

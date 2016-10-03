@@ -263,6 +263,8 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 = 3.0.0 =
 * fixed: resizes not checked for existence before calling parallel/async optimization, causing the process to stall
 * fixed: background optimization disabled when settings are saved
+* fixed: regression in db upgrade function throws warning on plugin upgrade
+* fixed: alt webp breaks Slider Revolution's lazyload when dummy.png.webp exists
 
 = 2.9.9 =
 * fixed: broken uploads with W3TC CDN option enabled
