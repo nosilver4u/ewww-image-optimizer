@@ -111,7 +111,7 @@ function ewww_image_optimizer_exec_init() {
 		add_action( 'load-ims_gallery_page_ewww-ims-optimize', 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-media_page_ewww-image-optimizer-unoptimized', 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-flagallery_page_flag-manage-gallery', 'ewww_image_optimizer_tool_init' );
-		add_action( 'load-galleries_page_nggallery-manage', 'ewww_image_optimizer_tool_init' );
+//		add_action( 'load-galleries_page_nggallery-manage', 'ewww_image_optimizer_tool_init' );
 //		add_action( 'load-', 'ewww_image_optimizer_tool_init' );
 	} 
 	ewwwio_memory( __FUNCTION__ );
