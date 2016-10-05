@@ -24,16 +24,16 @@ jQuery(document).ready(function($) {
 			$('#ewww-status-expand').show();
 			$('#ewww-status-collapse').hide();
 		});
-		$('#ewww-cloud-settings').hide();
+		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').show();
 		$('li.ewww-general-nav').addClass('ewww-selected');
 		$('#ewww-optimization-settings').hide();
 		$('#ewww-conversion-settings').hide();
-		$('.ewww-cloud-nav').click(function() {
+		$('.ewww-webp-nav').click(function() {
 			$('.ewww-tab-nav li').removeClass('ewww-selected');
-			$('li.ewww-cloud-nav').addClass('ewww-selected');
+			$('li.ewww-webp-nav').addClass('ewww-selected');
 			$('.ewww-tab a').blur();
-			$('#ewww-cloud-settings').show();
+			$('#ewww-webp-settings').show();
 			$('#ewww-general-settings').hide();
 			$('#ewww-optimization-settings').hide();
 			$('#ewww-conversion-settings').hide();
@@ -42,7 +42,7 @@ jQuery(document).ready(function($) {
 			$('.ewww-tab-nav li').removeClass('ewww-selected');
 			$('li.ewww-general-nav').addClass('ewww-selected');
 			$('.ewww-tab a').blur();
-			$('#ewww-cloud-settings').hide();
+			$('#ewww-webp-settings').hide();
 			$('#ewww-general-settings').show();
 			$('#ewww-optimization-settings').hide();
 			$('#ewww-conversion-settings').hide();
@@ -51,7 +51,7 @@ jQuery(document).ready(function($) {
 			$('.ewww-tab-nav li').removeClass('ewww-selected');
 			$('li.ewww-optimization-nav').addClass('ewww-selected');
 			$('.ewww-tab a').blur();
-			$('#ewww-cloud-settings').hide();
+			$('#ewww-webp-settings').hide();
 			$('#ewww-general-settings').hide();
 			$('#ewww-optimization-settings').show();
 			$('#ewww-conversion-settings').hide();
@@ -60,7 +60,7 @@ jQuery(document).ready(function($) {
 			$('.ewww-tab-nav li').removeClass('ewww-selected');
 			$('li.ewww-conversion-nav').addClass('ewww-selected');
 			$('.ewww-tab a').blur();
-			$('#ewww-cloud-settings').hide();
+			$('#ewww-webp-settings').hide();
 			$('#ewww-general-settings').hide();
 			$('#ewww-optimization-settings').hide();
 			$('#ewww-conversion-settings').show();

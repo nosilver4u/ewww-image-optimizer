@@ -2,7 +2,6 @@
 // common functions for Standard and Cloud plugins
 
 // TODO: ADD NOTICE WHEN MULTIPLE REOPTIMIZATIONS ARE DETECTED - perhaps with a filter that tells it how many is too many
-// TODO: implement final phase of webp - url matching
 // TODO: use <picture> element to serve webp
 // TODO: https://wordpress.org/support/topic/lazy-load-support/
 // TODO: add support for this: https://wordpress.org/plugins/photo-gallery/ -- or write an article about how to use Scan & Optimize for it
@@ -206,7 +205,7 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 			return $buffer;
 		}
 		$expanded_head = false;
-		preg_match( '/.+<head ?>/s', $buffer, $html_head );
+		preg_match( '/.+<head ?\>/s', $buffer, $html_head );
 		if ( empty( $html_head ) ) {
 			ewwwio_debug_message( 'did not find head tag' );
 			preg_match( '/.+<head [^>]*>/s', $buffer, $html_head );
@@ -237,8 +236,11 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 		}
 		$html->encoding = 'utf-8';
 		$home_url = get_site_url();
-		$webp_domains = explode( ',', ewww_image_optimizer_webp_domains_sanitize( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_domains' ) ) );
-		$webp_domains[] = parse_url( get_home_url(), PHP_URL_HOST );
+		$webp_paths = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' );
+		if ( ! is_array( $webp_paths ) ) {
+			$webp_paths = array();
+		}
+//		$webp_paths[] = parse_url( get_home_url(), PHP_URL_HOST );
 		$home_relative_url = preg_replace( '/https?:/', '', $home_url );
 		$images = $html->getElementsByTagName( 'img' );
 		if ( ewww_image_optimizer_iterable( $images ) ) {
@@ -249,23 +251,23 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 				$srcset = '';
 				ewwwio_debug_message( 'parsing an image' );
 				$file = $image->getAttribute( 'src' );
-				$valid_domain = false;
+				$valid_path = false;
 				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
-					$filepath = $file;
-					//check domain
-					if ( in_array( parse_url( $file, PHP_URL_HOST ), $webp_domains ) ) {
-						$valid_domain = true;
+					//check path
+					foreach ( $webp_paths as $webp_path ) {
+						if ( strpos( $file, $webp_path ) !== false ) {
+							$valid_path = true;
+						}
 					}
-				} else {
-					if ( strpos( $file, $home_relative_url ) === 0 ) {
-						$filepath = str_replace( $home_relative_url, ABSPATH, $file );
-					} else {
-						$filepath = str_replace( $home_url, ABSPATH, $file );
-					}
-					ewwwio_debug_message( "the image is at $filepath" );
 				}
+				if ( strpos( $file, $home_relative_url ) === 0 ) {
+					$filepath = str_replace( $home_relative_url, ABSPATH, $file );
+				} else {
+					$filepath = str_replace( $home_url, ABSPATH, $file );
+				}
+				ewwwio_debug_message( "the image is at $filepath" );
 				// make this pre-emptively check for the domains so that we don't bother checking file_exists()
-				if ( ( $valid_domain || file_exists( $filepath . '.webp' ) ) && ! strpos( $file, 'assets/images/dummy.png' ) ) { //|| file_exists( $file_relative_path . '.webp' ) ) {
+				if ( ( $valid_path || file_exists( $filepath . '.webp' ) ) && ! strpos( $file, 'assets/images/dummy.png' ) ) { //|| file_exists( $file_relative_path . '.webp' ) ) {
 					$nscript = $html->createElement( 'noscript' );
 					$nscript->setAttribute( 'data-img', $file );
 					$nscript->setAttribute( 'data-webp', $file . '.webp' );
@@ -277,10 +279,9 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 							$srcset_webp = $srcset;
 							if ( ! empty( $srcset_urls ) && ewww_image_optimizer_iterable( $srcset_urls[0] ) ) {
 								foreach ( $srcset_urls[0] as $srcurl ) {
-									// TODO: do domain check here too
 									$srcfilepath = ABSPATH . str_replace( $home_url, '', $srcurl );
 									ewwwio_debug_message( "looking for srcurl on disk: $srcfilepath" );
-									if ( file_exists( $srcfilepath . '.webp' ) ) {
+									if ( $valid_path || file_exists( $srcfilepath . '.webp' ) ) {
 										$srcset_webp = preg_replace( "|$srcurl|", $srcurl . '.webp', $srcset_webp );
 										ewwwio_debug_message( "replacing $srcurl in $srcset_webp" );
 									}
@@ -349,17 +350,17 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 					$nscript->appendChild( $image );
 				}
 				if ( empty( $file ) && $image->getAttribute( 'data-src' ) && $image->getAttribute( 'data-thumbnail' ) ) {
-					$file = $image->getAttribute('data-src');
-					$thumb = $image->getAttribute('data-thumbnail');
+					$file = $image->getAttribute( 'data-src' );
+					$thumb = $image->getAttribute( 'data-thumbnail' );
 					ewwwio_debug_message( "checking webp for ngg data-src: $file" );
 					$filepath = ABSPATH . str_replace( $home_url, '', $file );
 					ewwwio_debug_message( "checking webp for ngg data-thumbnail: $thumb" );
 					$thumbpath = ABSPATH . str_replace( $home_url, '', $thumb );
-					if (file_exists($filepath . '.webp')) {
+					if ( $valid_path || file_exists( $filepath . '.webp' ) ) {
 						ewwwio_debug_message( "found webp for ngg data-src: $filepath" );
-						$image->setAttribute('data-webp', $file . '.webp');
+						$image->setAttribute( 'data-webp', $file . '.webp' );
 					}
-					if (file_exists($thumbpath . '.webp')) {
+					if ( $valid_path || file_exists( $thumbpath . '.webp' ) ) {
 						ewwwio_debug_message( "found webp for ngg data-thumbnail: $thumbpath" );
 						$image->setAttribute( 'data-webp-thumbnail', $thumb . '.webp' );
 					}
@@ -368,7 +369,7 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 					$lazyload = $image->getAttribute( 'data-lazyload' );
 					if ( ! empty( $lazyload ) ) {
 						$lazyloadpath = ABSPATH . str_replace( $home_url, '', $lazyload );
-						if ( file_exists( $lazyloadpath . '.webp' ) ) {
+						if ( $valid_path || file_exists( $lazyloadpath . '.webp' ) ) {
 							ewwwio_debug_message( "found webp for data-lazyload: $filepath" );
 							$image->setAttribute( 'data-webp-lazyload', $lazyload . '.webp' );
 						}
@@ -383,15 +384,24 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 				if ( $link->getAttribute( 'data-src' ) && $link->getAttribute( 'data-thumbnail' ) ) {
 					$file = $link->getAttribute( 'data-src' );
 					$thumb = $link->getAttribute( 'data-thumbnail' );
+					$valid_path = false;
+					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
+						//check path
+						foreach ( $webp_paths as $webp_path ) {
+							if ( strpos( $file, $webp_path ) !== false ) {
+								$valid_path = true;
+							}
+						}
+					}
 					ewwwio_debug_message( "checking webp for ngg data-src: $file" );
 					$filepath = ABSPATH . str_replace( $home_url, '', $file );
 					ewwwio_debug_message( "checking webp for ngg data-thumbnail: $thumb" );
 					$thumbpath = ABSPATH . str_replace( $home_url, '', $thumb );
-					if ( file_exists( $filepath . '.webp' ) ) {
+					if ( $valid_path || file_exists( $filepath . '.webp' ) ) {
 						ewwwio_debug_message( "found webp for ngg data-src: $filepath" );
 						$link->setAttribute( 'data-webp', $file . '.webp' );
 					}
-					if ( file_exists( $thumbpath . '.webp' ) ) {
+					if ( $valid_path || file_exists( $thumbpath . '.webp' ) ) {
 						ewwwio_debug_message( "found webp for ngg data-thumbnail: $thumbpath" );
 						$link->setAttribute( 'data-webp-thumbnail', $thumb . '.webp' );
 					}
@@ -405,9 +415,18 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 				ewwwio_debug_message( 'parsing a listitem' );
 				if ( $listitem->getAttribute( 'data-title' ) === 'Slide' && ( $listitem->getAttribute( 'data-lazyload' ) || $listitem->getAttribute( 'data-thumb' ) ) ) {
 					$thumb = $listitem->getAttribute( 'data-thumb' );
+					$valid_path = false;
+					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
+						//check path
+						foreach ( $webp_paths as $webp_path ) {
+							if ( strpos( $thumb, $webp_path ) !== false ) {
+								$valid_path = true;
+							}
+						}
+					}
 					ewwwio_debug_message( "checking webp for revslider data-thumb: $thumb" );
 					$thumbpath = str_replace( $home_url, ABSPATH, $thumb );
-					if ( file_exists( $thumbpath . '.webp' ) ) {
+					if ( $valid_path || file_exists( $thumbpath . '.webp' ) ) {
 						ewwwio_debug_message( "found webp for revslider data-thumb: $thumbpath" );
 						$listitem->setAttribute( 'data-webp-thumb', $thumb . '.webp' );
 					}
@@ -420,7 +439,7 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 							if ( ! empty( $parameter ) && strpos( $parameter, 'http' ) === 0 ) {
 								$parameter_path = str_replace( $home_url, ABSPATH, $parameter );
 								ewwwio_debug_message( "looking for $parameter_path" );
-								if ( file_exists( $parameter_path . '.webp' ) ) {
+								if ( $valid_path || file_exists( $parameter_path . '.webp' ) ) {
 									ewwwio_debug_message( "found webp for data-param$param_num: $parameter_path" );
 									$listitem->setAttribute( 'data-webp-param' . $param_num, $parameter . '.webp' );
 								}
@@ -698,8 +717,8 @@ function ewww_image_optimizer_admin_init() {
 			update_site_option('ewww_image_optimizer_webp_for_cdn', $_POST['ewww_image_optimizer_webp_for_cdn']);
 			$_POST['ewww_image_optimizer_webp_force'] = ( empty( $_POST['ewww_image_optimizer_webp_force'] ) ? false : true );
 			update_site_option('ewww_image_optimizer_webp_force', $_POST['ewww_image_optimizer_webp_force']);
-			$_POST['ewww_image_optimizer_webp_domains'] = ( empty( $_POST['ewww_image_optimizer_webp_domains'] ) ? '' : $_POST['ewww_image_optimizer_webp_domains'] );
-			update_site_option( 'ewww_image_optimizer_webp_domains', ewww_image_optimizer_webp_domains_sanitize( $_POST['ewww_image_optimizer_webp_domains'] ) );
+			$_POST['ewww_image_optimizer_webp_paths'] = ( empty( $_POST['ewww_image_optimizer_webp_paths'] ) ? '' : $_POST['ewww_image_optimizer_webp_paths'] );
+			update_site_option( 'ewww_image_optimizer_webp_paths', ewww_image_optimizer_webp_paths_sanitize( $_POST['ewww_image_optimizer_webp_paths'] ) );
 			//if (empty($_POST['ewww_image_optimizer_webp_cdn_path'])) $_POST['ewww_image_optimizer_webp_cdn_path'] = '';
 			//update_site_option('ewww_image_optimizer_webp_cdn_path', $_POST['ewww_image_optimizer_webp_cdn_path']);
 			add_action('network_admin_notices', 'ewww_image_optimizer_network_settings_saved');
@@ -746,7 +765,7 @@ function ewww_image_optimizer_admin_init() {
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_include_media_paths', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_for_cdn', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_force', 'boolval' );
-	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_domains', 'ewww_image_optimizer_webp_domains_sanitize' );
+	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_paths', 'ewww_image_optimizer_webp_paths_sanitize' );
 	ewww_image_optimizer_exec_init();
 	ewww_image_optimizer_cron_setup( 'ewww_image_optimizer_auto' );
 //	ewww_image_optimizer_cron_setup( 'ewww_image_optimizer_defer' );
@@ -1489,7 +1508,7 @@ function ewww_image_optimizer_webp_inline_script() {
 	if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
 ?>
 <script>
-function check_webp_feature(t,e){var a={lossy:"UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA",lossless:"UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==",alpha:"UklGRkoAAABXRUJQVlA4WAoAAAAQAAAAAAAAAAAAQUxQSAwAAAARBxAR/Q9ERP8DAABWUDggGAAAABQBAJ0BKgEAAQAAAP4AAA3AAP7mtQAAAA==",animation:"UklGRlIAAABXRUJQVlA4WAoAAAASAAAAAAAAAAAAQU5JTQYAAAD/////AABBTk1GJgAAAAAAAAAAAAAAAAAAAGQAAABWUDhMDQAAAC8AAAAQBxAREYiI/gcA"},n=!1,r=new Image;r.onload=function(){var t=r.width>0&&r.height>0;n=!0,e(t)},r.onerror=function(){n=!1,e(!1)},r.src="data:image/webp;base64,"+a[t],jQuery(document).arrive(".ewww_webp",function(){ewww_load_images(n)})}function ewww_load_images(t){!function(e){t&&(e(".batch-image img, .image-wrapper a, .ngg-pro-masonry-item a").each(function(){var t=e(this).attr("data-webp");"undefined"!=typeof t&&t!==!1&&e(this).attr("data-src",t);var t=e(this).attr("data-webp-thumbnail");"undefined"!=typeof t&&t!==!1&&e(this).attr("data-thumbnail",t)}),e(".image-wrapper a, .ngg-pro-masonry-item a").each(function(){var t=e(this).attr("data-webp");"undefined"!=typeof t&&t!==!1&&e(this).attr("href",t)}),e(".rev_slider ul li").each(function(){var t=e(this).attr("data-webp-thumb");"undefined"!=typeof t&&t!==!1&&e(this).attr("data-thumb",t);for(var a=1;11>a;){var t=e(this).attr("data-webp-param"+a);"undefined"!=typeof t&&t!==!1&&e(this).attr("data-param"+a,t),a++}}),e(".rev_slider img").each(function(){var t=e(this).attr("data-webp-lazyload");"undefined"!=typeof t&&t!==!1&&e(this).attr("data-lazyload",t)})),e(".ewww_webp").each(function(){var a=document.createElement("img");if(t){e(a).attr("src",e(this).attr("data-webp"));var n=e(this).attr("data-srcset-webp");"undefined"!=typeof n&&n!==!1&&e(a).attr("srcset",n)}else{e(a).attr("src",e(this).attr("data-img"));var n=e(this).attr("data-srcset-img");"undefined"!=typeof n&&n!==!1&&e(a).attr("srcset",n)}var n=e(this).attr("data-align");"undefined"!=typeof n&&n!==!1&&e(a).attr("align",n);var n=e(this).attr("data-alt");"undefined"!=typeof n&&n!==!1&&e(a).attr("alt",n);var n=e(this).attr("data-border");"undefined"!=typeof n&&n!==!1&&e(a).attr("border",n);var n=e(this).attr("data-crossorigin");"undefined"!=typeof n&&n!==!1&&e(a).attr("crossorigin",n);var n=e(this).attr("data-height");"undefined"!=typeof n&&n!==!1&&e(a).attr("height",n);var n=e(this).attr("data-hspace");"undefined"!=typeof n&&n!==!1&&e(a).attr("hspace",n);var n=e(this).attr("data-ismap");"undefined"!=typeof n&&n!==!1&&e(a).attr("ismap",n);var n=e(this).attr("data-longdesc");"undefined"!=typeof n&&n!==!1&&e(a).attr("longdesc",n);var n=e(this).attr("data-usemap");"undefined"!=typeof n&&n!==!1&&e(a).attr("usemap",n);var n=e(this).attr("data-vspace");"undefined"!=typeof n&&n!==!1&&e(a).attr("vspace",n);var n=e(this).attr("data-width");"undefined"!=typeof n&&n!==!1&&e(a).attr("width",n);var n=e(this).attr("data-accesskey");"undefined"!=typeof n&&n!==!1&&e(a).attr("accesskey",n);var n=e(this).attr("data-class");"undefined"!=typeof n&&n!==!1&&e(a).attr("class",n);var n=e(this).attr("data-contenteditable");"undefined"!=typeof n&&n!==!1&&e(a).attr("contenteditable",n);var n=e(this).attr("data-contextmenu");"undefined"!=typeof n&&n!==!1&&e(a).attr("contextmenu",n);var n=e(this).attr("data-dir");"undefined"!=typeof n&&n!==!1&&e(a).attr("dir",n);var n=e(this).attr("data-draggable");"undefined"!=typeof n&&n!==!1&&e(a).attr("draggable",n);var n=e(this).attr("data-dropzone");"undefined"!=typeof n&&n!==!1&&e(a).attr("dropzone",n);var n=e(this).attr("data-hidden");"undefined"!=typeof n&&n!==!1&&e(a).attr("hidden",n);var n=e(this).attr("data-id");"undefined"!=typeof n&&n!==!1&&e(a).attr("id",n);var n=e(this).attr("data-lang");"undefined"!=typeof n&&n!==!1&&e(a).attr("lang",n);var n=e(this).attr("data-spellcheck");"undefined"!=typeof n&&n!==!1&&e(a).attr("spellcheck",n);var n=e(this).attr("data-style");"undefined"!=typeof n&&n!==!1&&e(a).attr("style",n);var n=e(this).attr("data-tabindex");"undefined"!=typeof n&&n!==!1&&e(a).attr("tabindex",n);var n=e(this).attr("data-title");"undefined"!=typeof n&&n!==!1&&e(a).attr("title",n);var n=e(this).attr("data-translate");"undefined"!=typeof n&&n!==!1&&e(a).attr("translate",n);var n=e(this).attr("data-sizes");"undefined"!=typeof n&&n!==!1&&e(a).attr("sizes",n),e(this).after(a),e(this).removeClass("ewww_webp")})}(jQuery),jQuery.fn.isotope&&jQuery.fn.imagesLoaded&&(jQuery(".fusion-posts-container-infinite").imagesLoaded(function(){jQuery(".fusion-posts-container-infinite").hasClass("isotope")&&jQuery(".fusion-posts-container-infinite").isotope()}),jQuery(".fusion-portfolio:not(.fusion-recent-works) .fusion-portfolio-wrapper").imagesLoaded(function(){jQuery(".fusion-portfolio:not(.fusion-recent-works) .fusion-portfolio-wrapper").isotope()}))}var Arrive=function(t,e,a){"use strict";function n(t,e,a){o.addMethod(e,a,t.unbindEvent),o.addMethod(e,a,t.unbindEventWithSelectorOrCallback),o.addMethod(e,a,t.unbindEventWithSelectorAndCallback)}function r(t){t.arrive=f.bindEvent,n(f,t,"unbindArrive"),t.leave=u.bindEvent,n(u,t,"unbindLeave")}if(t.MutationObserver&&"undefined"!=typeof HTMLElement){var i=0,o=function(){var e=HTMLElement.prototype.matches||HTMLElement.prototype.webkitMatchesSelector||HTMLElement.prototype.mozMatchesSelector||HTMLElement.prototype.msMatchesSelector;return{matchesSelector:function(t,a){return t instanceof HTMLElement&&e.call(t,a)},addMethod:function(t,e,a){var n=t[e];t[e]=function(){return a.length==arguments.length?a.apply(this,arguments):"function"==typeof n?n.apply(this,arguments):void 0}},callCallbacks:function(t){for(var e,a=0;e=t[a];a++)e.callback.call(e.elem)},checkChildNodesRecursively:function(t,e,a,n){for(var r,i=0;r=t[i];i++)a(r,e,n)&&n.push({callback:e.callback,elem:r}),r.childNodes.length>0&&o.checkChildNodesRecursively(r.childNodes,e,a,n)},mergeArrays:function(t,e){var a,n={};for(a in t)n[a]=t[a];for(a in e)n[a]=e[a];return n},toElementsArray:function(e){return"undefined"==typeof e||"number"==typeof e.length&&e!==t||(e=[e]),e}}}(),d=function(){var t=function(){this._eventsBucket=[],this._beforeAdding=null,this._beforeRemoving=null};return t.prototype.addEvent=function(t,e,a,n){var r={target:t,selector:e,options:a,callback:n,firedElems:[]};return this._beforeAdding&&this._beforeAdding(r),this._eventsBucket.push(r),r},t.prototype.removeEvent=function(t){for(var e,a=this._eventsBucket.length-1;e=this._eventsBucket[a];a--)t(e)&&(this._beforeRemoving&&this._beforeRemoving(e),this._eventsBucket.splice(a,1))},t.prototype.beforeAdding=function(t){this._beforeAdding=t},t.prototype.beforeRemoving=function(t){this._beforeRemoving=t},t}(),s=function(e,n){var r=new d,i=this,s={fireOnAttributesModification:!1};return r.beforeAdding(function(a){var r,o=a.target;a.selector,a.callback;(o===t.document||o===t)&&(o=document.getElementsByTagName("html")[0]),r=new MutationObserver(function(t){n.call(this,t,a)});var d=e(a.options);r.observe(o,d),a.observer=r,a.me=i}),r.beforeRemoving(function(t){t.observer.disconnect()}),this.bindEvent=function(t,e,a){e=o.mergeArrays(s,e);for(var n=o.toElementsArray(this),i=0;i<n.length;i++)r.addEvent(n[i],t,e,a)},this.unbindEvent=function(){var t=o.toElementsArray(this);r.removeEvent(function(e){for(var n=0;n<t.length;n++)if(this===a||e.target===t[n])return!0;return!1})},this.unbindEventWithSelectorOrCallback=function(t){var e,n=o.toElementsArray(this),i=t;e="function"==typeof t?function(t){for(var e=0;e<n.length;e++)if((this===a||t.target===n[e])&&t.callback===i)return!0;return!1}:function(e){for(var r=0;r<n.length;r++)if((this===a||e.target===n[r])&&e.selector===t)return!0;return!1},r.removeEvent(e)},this.unbindEventWithSelectorAndCallback=function(t,e){var n=o.toElementsArray(this);r.removeEvent(function(r){for(var i=0;i<n.length;i++)if((this===a||r.target===n[i])&&r.selector===t&&r.callback===e)return!0;return!1})},this},l=function(){function t(t){var e={attributes:!1,childList:!0,subtree:!0};return t.fireOnAttributesModification&&(e.attributes=!0),e}function e(t,e){t.forEach(function(t){var a=t.addedNodes,r=t.target,i=[];null!==a&&a.length>0?o.checkChildNodesRecursively(a,e,n,i):"attributes"===t.type&&n(r,e,i)&&i.push({callback:e.callback,elem:node}),o.callCallbacks(i)})}function n(t,e,n){if(o.matchesSelector(t,e.selector)&&(t._id===a&&(t._id=i++),-1==e.firedElems.indexOf(t._id))){if(e.options.onceOnly){if(0!==e.firedElems.length)return;e.me.unbindEventWithSelectorAndCallback.call(e.target,e.selector,e.callback)}e.firedElems.push(t._id),n.push({callback:e.callback,elem:t})}}var r={fireOnAttributesModification:!1,onceOnly:!1,existing:!1};f=new s(t,e);var d=f.bindEvent;return f.bindEvent=function(t,e,a){"undefined"==typeof a?(a=e,e=r):e=o.mergeArrays(r,e);var n=o.toElementsArray(this);if(e.existing){for(var i=[],s=0;s<n.length;s++)for(var l=n[s].querySelectorAll(t),c=0;c<l.length;c++)i.push({callback:a,elem:l[c]});if(e.onceOnly&&i.length)return a.call(i[0].elem);setTimeout(o.callCallbacks,1,i)}d.call(this,t,e,a)},f},c=function(){function t(t){var e={childList:!0,subtree:!0};return e}function e(t,e){t.forEach(function(t){var n=t.removedNodes,r=(t.target,[]);null!==n&&n.length>0&&o.checkChildNodesRecursively(n,e,a,r),o.callCallbacks(r)})}function a(t,e){return o.matchesSelector(t,e.selector)}var n={};u=new s(t,e);var r=u.bindEvent;return u.bindEvent=function(t,e,a){"undefined"==typeof a?(a=e,e=n):e=o.mergeArrays(n,e),r.call(this,t,e,a)},u},f=new l,u=new c;e&&r(e.fn),r(HTMLElement.prototype),r(NodeList.prototype),r(HTMLCollection.prototype),r(HTMLDocument.prototype),r(Window.prototype);var A={};return n(f,A,"unbindAllArrive"),n(u,A,"unbindAllLeave"),A}}(window,"undefined"==typeof jQuery?null:jQuery,void 0);"undefined"!==jQuery&&check_webp_feature("alpha",ewww_load_images);
+function check_webp_feature(a,b){var c={lossy:"UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA",lossless:"UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==",alpha:"UklGRkoAAABXRUJQVlA4WAoAAAAQAAAAAAAAAAAAQUxQSAwAAAARBxAR/Q9ERP8DAABWUDggGAAAABQBAJ0BKgEAAQAAAP4AAA3AAP7mtQAAAA==",animation:"UklGRlIAAABXRUJQVlA4WAoAAAASAAAAAAAAAAAAQU5JTQYAAAD/////AABBTk1GJgAAAAAAAAAAAAAAAAAAAGQAAABWUDhMDQAAAC8AAAAQBxAREYiI/gcA"},d=!1,e=new Image;e.onload=function(){var a=e.width>0&&e.height>0;d=!0,b(a)},e.onerror=function(){d=!1,b(!1)},e.src="data:image/webp;base64,"+c[a]}function ewww_load_images(a){jQuery(document).arrive(".ewww_webp",function(){ewww_load_images(a)}),function(b){a&&(b(".batch-image img, .image-wrapper a, .ngg-pro-masonry-item a").each(function(){var a=b(this).attr("data-webp");"undefined"!=typeof a&&a!==!1&&b(this).attr("data-src",a);var a=b(this).attr("data-webp-thumbnail");"undefined"!=typeof a&&a!==!1&&b(this).attr("data-thumbnail",a)}),b(".image-wrapper a, .ngg-pro-masonry-item a").each(function(){var a=b(this).attr("data-webp");"undefined"!=typeof a&&a!==!1&&b(this).attr("href",a)}),b(".rev_slider ul li").each(function(){var a=b(this).attr("data-webp-thumb");"undefined"!=typeof a&&a!==!1&&b(this).attr("data-thumb",a);for(var c=1;c<11;){var a=b(this).attr("data-webp-param"+c);"undefined"!=typeof a&&a!==!1&&b(this).attr("data-param"+c,a),c++}}),b(".rev_slider img").each(function(){var a=b(this).attr("data-webp-lazyload");"undefined"!=typeof a&&a!==!1&&b(this).attr("data-lazyload",a)})),b(".ewww_webp").each(function(){var c=document.createElement("img");if(a){b(c).attr("src",b(this).attr("data-webp"));var d=b(this).attr("data-srcset-webp");"undefined"!=typeof d&&d!==!1&&b(c).attr("srcset",d)}else{b(c).attr("src",b(this).attr("data-img"));var d=b(this).attr("data-srcset-img");"undefined"!=typeof d&&d!==!1&&b(c).attr("srcset",d)}var d=b(this).attr("data-align");"undefined"!=typeof d&&d!==!1&&b(c).attr("align",d);var d=b(this).attr("data-alt");"undefined"!=typeof d&&d!==!1&&b(c).attr("alt",d);var d=b(this).attr("data-border");"undefined"!=typeof d&&d!==!1&&b(c).attr("border",d);var d=b(this).attr("data-crossorigin");"undefined"!=typeof d&&d!==!1&&b(c).attr("crossorigin",d);var d=b(this).attr("data-height");"undefined"!=typeof d&&d!==!1&&b(c).attr("height",d);var d=b(this).attr("data-hspace");"undefined"!=typeof d&&d!==!1&&b(c).attr("hspace",d);var d=b(this).attr("data-ismap");"undefined"!=typeof d&&d!==!1&&b(c).attr("ismap",d);var d=b(this).attr("data-longdesc");"undefined"!=typeof d&&d!==!1&&b(c).attr("longdesc",d);var d=b(this).attr("data-usemap");"undefined"!=typeof d&&d!==!1&&b(c).attr("usemap",d);var d=b(this).attr("data-vspace");"undefined"!=typeof d&&d!==!1&&b(c).attr("vspace",d);var d=b(this).attr("data-width");"undefined"!=typeof d&&d!==!1&&b(c).attr("width",d);var d=b(this).attr("data-accesskey");"undefined"!=typeof d&&d!==!1&&b(c).attr("accesskey",d);var d=b(this).attr("data-class");"undefined"!=typeof d&&d!==!1&&b(c).attr("class",d);var d=b(this).attr("data-contenteditable");"undefined"!=typeof d&&d!==!1&&b(c).attr("contenteditable",d);var d=b(this).attr("data-contextmenu");"undefined"!=typeof d&&d!==!1&&b(c).attr("contextmenu",d);var d=b(this).attr("data-dir");"undefined"!=typeof d&&d!==!1&&b(c).attr("dir",d);var d=b(this).attr("data-draggable");"undefined"!=typeof d&&d!==!1&&b(c).attr("draggable",d);var d=b(this).attr("data-dropzone");"undefined"!=typeof d&&d!==!1&&b(c).attr("dropzone",d);var d=b(this).attr("data-hidden");"undefined"!=typeof d&&d!==!1&&b(c).attr("hidden",d);var d=b(this).attr("data-id");"undefined"!=typeof d&&d!==!1&&b(c).attr("id",d);var d=b(this).attr("data-lang");"undefined"!=typeof d&&d!==!1&&b(c).attr("lang",d);var d=b(this).attr("data-spellcheck");"undefined"!=typeof d&&d!==!1&&b(c).attr("spellcheck",d);var d=b(this).attr("data-style");"undefined"!=typeof d&&d!==!1&&b(c).attr("style",d);var d=b(this).attr("data-tabindex");"undefined"!=typeof d&&d!==!1&&b(c).attr("tabindex",d);var d=b(this).attr("data-title");"undefined"!=typeof d&&d!==!1&&b(c).attr("title",d);var d=b(this).attr("data-translate");"undefined"!=typeof d&&d!==!1&&b(c).attr("translate",d);var d=b(this).attr("data-sizes");"undefined"!=typeof d&&d!==!1&&b(c).attr("sizes",d),b(this).after(c),b(this).removeClass("ewww_webp")})}(jQuery),jQuery.fn.isotope&&jQuery.fn.imagesLoaded&&(jQuery(".fusion-posts-container-infinite").imagesLoaded(function(){jQuery(".fusion-posts-container-infinite").hasClass("isotope")&&jQuery(".fusion-posts-container-infinite").isotope()}),jQuery(".fusion-portfolio:not(.fusion-recent-works) .fusion-portfolio-wrapper").imagesLoaded(function(){jQuery(".fusion-portfolio:not(.fusion-recent-works) .fusion-portfolio-wrapper").isotope()}))}var Arrive=function(a,b,c){"use strict";function l(a,b,c){e.addMethod(b,c,a.unbindEvent),e.addMethod(b,c,a.unbindEventWithSelectorOrCallback),e.addMethod(b,c,a.unbindEventWithSelectorAndCallback)}function m(a){a.arrive=j.bindEvent,l(j,a,"unbindArrive"),a.leave=k.bindEvent,l(k,a,"unbindLeave")}if(a.MutationObserver&&"undefined"!=typeof HTMLElement){var d=0,e=function(){var b=HTMLElement.prototype.matches||HTMLElement.prototype.webkitMatchesSelector||HTMLElement.prototype.mozMatchesSelector||HTMLElement.prototype.msMatchesSelector;return{matchesSelector:function(a,c){return a instanceof HTMLElement&&b.call(a,c)},addMethod:function(a,b,c){var d=a[b];a[b]=function(){return c.length==arguments.length?c.apply(this,arguments):"function"==typeof d?d.apply(this,arguments):void 0}},callCallbacks:function(a){for(var c,b=0;c=a[b];b++)c.callback.call(c.elem)},checkChildNodesRecursively:function(a,b,c,d){for(var g,f=0;g=a[f];f++)c(g,b,d)&&d.push({callback:b.callback,elem:g}),g.childNodes.length>0&&e.checkChildNodesRecursively(g.childNodes,b,c,d)},mergeArrays:function(a,b){var d,c={};for(d in a)c[d]=a[d];for(d in b)c[d]=b[d];return c},toElementsArray:function(b){return"undefined"==typeof b||"number"==typeof b.length&&b!==a||(b=[b]),b}}}(),f=function(){var a=function(){this._eventsBucket=[],this._beforeAdding=null,this._beforeRemoving=null};return a.prototype.addEvent=function(a,b,c,d){var e={target:a,selector:b,options:c,callback:d,firedElems:[]};return this._beforeAdding&&this._beforeAdding(e),this._eventsBucket.push(e),e},a.prototype.removeEvent=function(a){for(var c,b=this._eventsBucket.length-1;c=this._eventsBucket[b];b--)a(c)&&(this._beforeRemoving&&this._beforeRemoving(c),this._eventsBucket.splice(b,1))},a.prototype.beforeAdding=function(a){this._beforeAdding=a},a.prototype.beforeRemoving=function(a){this._beforeRemoving=a},a}(),g=function(b,d){var g=new f,h=this,i={fireOnAttributesModification:!1};return g.beforeAdding(function(c){var i,e=c.target;c.selector,c.callback;e!==a.document&&e!==a||(e=document.getElementsByTagName("html")[0]),i=new MutationObserver(function(a){d.call(this,a,c)});var j=b(c.options);i.observe(e,j),c.observer=i,c.me=h}),g.beforeRemoving(function(a){a.observer.disconnect()}),this.bindEvent=function(a,b,c){b=e.mergeArrays(i,b);for(var d=e.toElementsArray(this),f=0;f<d.length;f++)g.addEvent(d[f],a,b,c)},this.unbindEvent=function(){var a=e.toElementsArray(this);g.removeEvent(function(b){for(var d=0;d<a.length;d++)if(this===c||b.target===a[d])return!0;return!1})},this.unbindEventWithSelectorOrCallback=function(a){var f,b=e.toElementsArray(this),d=a;f="function"==typeof a?function(a){for(var e=0;e<b.length;e++)if((this===c||a.target===b[e])&&a.callback===d)return!0;return!1}:function(d){for(var e=0;e<b.length;e++)if((this===c||d.target===b[e])&&d.selector===a)return!0;return!1},g.removeEvent(f)},this.unbindEventWithSelectorAndCallback=function(a,b){var d=e.toElementsArray(this);g.removeEvent(function(e){for(var f=0;f<d.length;f++)if((this===c||e.target===d[f])&&e.selector===a&&e.callback===b)return!0;return!1})},this},h=function(){function h(a){var b={attributes:!1,childList:!0,subtree:!0};return a.fireOnAttributesModification&&(b.attributes=!0),b}function i(a,b){a.forEach(function(a){var c=a.addedNodes,d=a.target,f=[];null!==c&&c.length>0?e.checkChildNodesRecursively(c,b,k,f):"attributes"===a.type&&k(d,b,f)&&f.push({callback:b.callback,elem:node}),e.callCallbacks(f)})}function k(a,b,f){if(e.matchesSelector(a,b.selector)&&(a._id===c&&(a._id=d++),b.firedElems.indexOf(a._id)==-1)){if(b.options.onceOnly){if(0!==b.firedElems.length)return;b.me.unbindEventWithSelectorAndCallback.call(b.target,b.selector,b.callback)}b.firedElems.push(a._id),f.push({callback:b.callback,elem:a})}}var f={fireOnAttributesModification:!1,onceOnly:!1,existing:!1};j=new g(h,i);var l=j.bindEvent;return j.bindEvent=function(a,b,c){"undefined"==typeof c?(c=b,b=f):b=e.mergeArrays(f,b);var d=e.toElementsArray(this);if(b.existing){for(var g=[],h=0;h<d.length;h++)for(var i=d[h].querySelectorAll(a),j=0;j<i.length;j++)g.push({callback:c,elem:i[j]});if(b.onceOnly&&g.length)return c.call(g[0].elem);setTimeout(e.callCallbacks,1,g)}l.call(this,a,b,c)},j},i=function(){function d(a){var b={childList:!0,subtree:!0};return b}function f(a,b){a.forEach(function(a){var c=a.removedNodes,f=(a.target,[]);null!==c&&c.length>0&&e.checkChildNodesRecursively(c,b,h,f),e.callCallbacks(f)})}function h(a,b){return e.matchesSelector(a,b.selector)}var c={};k=new g(d,f);var i=k.bindEvent;return k.bindEvent=function(a,b,d){"undefined"==typeof d?(d=b,b=c):b=e.mergeArrays(c,b),i.call(this,a,b,d)},k},j=new h,k=new i;b&&m(b.fn),m(HTMLElement.prototype),m(NodeList.prototype),m(HTMLCollection.prototype),m(HTMLDocument.prototype),m(Window.prototype);var n={};return l(j,n,"unbindAllArrive"),l(k,n,"unbindAllLeave"),n}}(window,"undefined"==typeof jQuery?null:jQuery,void 0);"undefined"!==jQuery&&check_webp_feature("alpha",ewww_load_images);
 </script>
 <?php	}
 }
@@ -1627,24 +1646,24 @@ function ewww_image_optimizer_aux_paths_sanitize( $input ) {
 	return $path_array;
 }
 
-function ewww_image_optimizer_webp_domains_sanitize( $domains ) {
-	$domains_entered = explode( ',', $domains );
-	$domains_saved = array();
-	if ( ewww_image_optimizer_iterable( $domains_entered ) ) {
-		foreach ( $domains_entered as $domain ) {
-			$domain = sanitize_text_field( $domain );
-			if ( stripos( $domain, 'http' ) === 0 ) {
-				$domain = parse_url( $domain, PHP_URL_HOST );
-			}
-			if ( ! substr_count( $domain, '.' ) ) {
+function ewww_image_optimizer_webp_paths_sanitize( $paths ) {
+	if ( empty( $paths ) ) {
+		return '';
+	}
+	$paths_entered = explode( "\n", $paths );
+	$paths_saved = array();
+	if ( ewww_image_optimizer_iterable( $paths_entered ) ) {
+		foreach ( $paths_entered as $path ) {
+			$path = esc_url( $path, null, 'db' );
+			if ( ! substr_count( $path, '.' ) ) {
 				continue;
 			}
-			if ( filter_var( 'http://' . $domain, FILTER_VALIDATE_URL ) ) {
-				$domains_saved[] = $domain;
+			if ( ! empty( $path ) ) {
+				$paths_saved[] = str_replace( 'http://', '', $path );
 			}
 		}
 	}
-	return implode( ',', $domains_saved );
+	return $paths_saved;
 }
 
 // replacement for escapeshellarg() that won't kill non-ASCII characters
@@ -4776,6 +4795,7 @@ function ewww_image_optimizer_options () {
 		"<li class='ewww-tab ewww-general-nav'><span class='ewww-tab-hidden'><a class='ewww-general-nav' href='#'>" . esc_html__('Basic Settings', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</a></span></li>\n" .
 		"<li class='ewww-tab ewww-optimization-nav'><span class='ewww-tab-hidden'><a class='ewww-optimization-nav' href='#'>" .  esc_html__('Advanced Settings', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</a></span></li>\n" .
 		"<li class='ewww-tab ewww-conversion-nav'><span class='ewww-tab-hidden'><a class='ewww-conversion-nav' href='#'>" . esc_html__('Conversion Settings', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</a></span></li>\n" .
+		"<li class='ewww-tab ewww-webp-nav'><span class='ewww-tab-hidden'><a class='ewww-conversion-web' href='#'>" . esc_html__('WebP Settings', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</a></span></li>\n" .
 	"</ul>\n";
 			if ( is_multisite() && is_plugin_active_for_network(EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
 				$output[] = "<form method='post' action=''>\n";
@@ -4933,17 +4953,7 @@ function ewww_image_optimizer_options () {
 			$output[] = "<table class='form-table'>\n";
 				$output[] = "<tr><th><label for='ewww_image_optimizer_disable_convert_links'>" . esc_html__('Hide Conversion Links', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label</th><td><input type='checkbox' id='ewww_image_optimizer_disable_convert_links' name='ewww_image_optimizer_disable_convert_links' " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_disable_convert_links') == TRUE ? "checked='true'" : "" ) . " /> " . esc_html__('Site or Network admins can use this to prevent other users from using the conversion links in the Media Library which bypass the settings below.', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</td></tr>\n";
 				$output[] = "<tr><th><label for='ewww_image_optimizer_delete_originals'>" . esc_html__('Delete originals', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><input type='checkbox' id='ewww_image_optimizer_delete_originals' name='ewww_image_optimizer_delete_originals' " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_delete_originals') == TRUE ? "checked='true'" : "" ) . " /> " . esc_html__('This will remove the original image from the server after a successful conversion.', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</td></tr>\n";
-				$output[] = "<tr><th><label for='ewww_image_optimizer_webp'>" . esc_html__('JPG/PNG to WebP', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><span><input type='checkbox' id='ewww_image_optimizer_webp' name='ewww_image_optimizer_webp' value='true' " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp') == TRUE ? "checked='true'" : "" ) . " /> <b>" . esc_html__('WARNING:', EWWW_IMAGE_OPTIMIZER_DOMAIN) . '</b> ' . esc_html__('JPG to WebP conversion is lossy, but quality loss is minimal. PNG to WebP conversion is lossless.', EWWW_IMAGE_OPTIMIZER_DOMAIN) .  "</span>\n" .
-				"<p class='description'>" . esc_html__('Originals are never deleted, and WebP images should only be served to supported browsers.', EWWW_IMAGE_OPTIMIZER_DOMAIN) . " <a href='#webp-rewrite'>" .  ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ? esc_html__('You can use the rewrite rules below to serve WebP images with Apache.', EWWW_IMAGE_OPTIMIZER_DOMAIN) : '' ) . "</a></td></tr>\n";
-				ewwwio_debug_message( "webp conversion: " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp') == TRUE ? "on" : "off" ) );
-				$output[] = "<tr><th><label for='ewww_image_optimizer_webp_force'>" . esc_html__('Force WebP', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><span><input type='checkbox' id='ewww_image_optimizer_webp_force' name='ewww_image_optimizer_webp_force' value='true' " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_force') == TRUE ? "checked='true'" : "" ) . " /> " . esc_html__('WebP images will be generated and saved for all JPG/PNG images regardless of their size. The Alternative WebP Rewriting will not check if a file exists, only that the domain matches the home url.', EWWW_IMAGE_OPTIMIZER_DOMAIN) .  "</span></td></tr>\n";
-				ewwwio_debug_message( "forced webp: " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_force') == TRUE ? "on" : "off" ) );	
-				ewwwio_debug_message( "webp domains: " . esc_attr( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_domains') ) );
-				if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
-					$output[] = "<tr><th><label for='ewww_image_optimizer_webp_domains'>" . esc_html__('WebP Domains', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><span><input type='text' id='ewww_image_optimizer_webp_domains' name='ewww_image_optimizer_webp_domains' size='60' value='" . esc_attr( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_domains') ) . "' /><br>" . esc_html__('If Force WebP is enabled, enter additional domains that should be permitted for Alternative WebP Rewriting. Separate domains by a comma, the home url is included by default:', EWWW_IMAGE_OPTIMIZER_DOMAIN) . ' ' . parse_url( get_home_url(), PHP_URL_HOST ) . "</span></td></tr>\n";
-					$output[] = "<tr><th><label for='ewww_image_optimizer_webp_for_cdn'>" . esc_html__('Alternative WebP Rewriting', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><span><input type='checkbox' id='ewww_image_optimizer_webp_for_cdn' name='ewww_image_optimizer_webp_for_cdn' value='true' " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_for_cdn') == TRUE ? "checked='true'" : "" ) . " /> " . esc_html__('Uses output buffering and libxml functionality from PHP. Use this if the Apache rewrite rules do not work, or if your images are served from a CDN.', EWWW_IMAGE_OPTIMIZER_DOMAIN) .  ' ' . sprintf( esc_html__( 'Sites using a CDN may also use the WebP option in the %s plugin.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), '<a href="https://wordpress.org/plugins/cache-enabler/">Cache Enabler</a>' ). "</span></td></tr>";
-				}
-				ewwwio_debug_message( "alt webp rewriting: " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_for_cdn') == TRUE ? "on" : "off" ) );
+				ewwwio_debug_message( "delete originals: " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_delete_originals') == TRUE ? "on" : "off" ) );
 //				$output[] = "<tr><th><label for='ewww_image_optimizer_webp_cdn_path'>" . esc_html__('WebP CDN URL', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><span><input type='checkbox' id='ewww_image_optimizer_webp_cdn_path' name='ewww_image_optimizer_webp_cdn_path' value='true' " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_for_cdn') == TRUE ? "checked='true'" : "" ) . " /> " . esc_html__('Uses output buffering and libxml functionality from PHP. Use this if the Apache rewrite rules do not work, or if your images are served from a CDN.', EWWW_IMAGE_OPTIMIZER_DOMAIN) .  "</span></td></tr>";
 				$output[] = "<tr><th><label for='ewww_image_optimizer_jpg_to_png'>" . sprintf(esc_html__('enable %s to %s conversion', EWWW_IMAGE_OPTIMIZER_DOMAIN), 'JPG', 'PNG') . "</label></th><td><span><input type='checkbox' id='ewww_image_optimizer_jpg_to_png' name='ewww_image_optimizer_jpg_to_png' " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_jpg_to_png') == TRUE ? "checked='true'" : "" ) . " /> <b>" . esc_html__('WARNING:', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</b> " . esc_html__('Removes metadata and increases cpu usage dramatically.', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</span>\n" .
 				"<p class='description'>" . esc_html__('PNG is generally much better than JPG for logos and other images with a limited range of colors. Checking this option will slow down JPG processing significantly, and you may want to enable it only temporarily.', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</p></td></tr>\n";
@@ -4958,6 +4968,27 @@ function ewww_image_optimizer_options () {
 				$output[] = "<tr><th><label for='ewww_image_optimizer_gif_to_png'>" . sprintf(esc_html__('enable %s to %s conversion', EWWW_IMAGE_OPTIMIZER_DOMAIN), 'GIF', 'PNG') . "</label></th><td><span><input type='checkbox' id='ewww_image_optimizer_gif_to_png' name='ewww_image_optimizer_gif_to_png' " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_gif_to_png') == TRUE ? "checked='true'" : "" ) . " /> " . esc_html__('No warnings here, just do it.', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</span>\n" .
 				"<p class='description'> " . esc_html__('PNG is generally better than GIF, but animated images cannot be converted.', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</p></td></tr>\n";
 				ewwwio_debug_message( "gif2png: " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_gif_to_png') == TRUE ? "on" : "off" ) );
+			$output[] = "</table>\n</div>\n";
+			$output[] = "<div id='ewww-webp-settings'>\n";
+			$output[] = "<table class='form-table'>\n";
+				$output[] = "<tr><th><label for='ewww_image_optimizer_webp'>" . esc_html__('JPG/PNG to WebP', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><span><input type='checkbox' id='ewww_image_optimizer_webp' name='ewww_image_optimizer_webp' value='true' " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp') == TRUE ? "checked='true'" : "" ) . " /> <b>" . esc_html__('WARNING:', EWWW_IMAGE_OPTIMIZER_DOMAIN) . '</b> ' . esc_html__('JPG to WebP conversion is lossy, but quality loss is minimal. PNG to WebP conversion is lossless.', EWWW_IMAGE_OPTIMIZER_DOMAIN) .  "</span>\n" .
+				"<p class='description'>" . esc_html__('Originals are never deleted, and WebP images should only be served to supported browsers.', EWWW_IMAGE_OPTIMIZER_DOMAIN) . " <a href='#webp-rewrite'>" .  ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ? esc_html__('You can use the rewrite rules below to serve WebP images with Apache.', EWWW_IMAGE_OPTIMIZER_DOMAIN) : '' ) . "</a></td></tr>\n";
+				ewwwio_debug_message( "webp conversion: " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp') == TRUE ? "on" : "off" ) );
+				$output[] = "<tr><th><label for='ewww_image_optimizer_webp_force'>" . esc_html__('Force WebP', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><span><input type='checkbox' id='ewww_image_optimizer_webp_force' name='ewww_image_optimizer_webp_force' value='true' " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_force') == TRUE ? "checked='true'" : "" ) . " /> " . esc_html__('WebP images will be generated and saved for all JPG/PNG images regardless of their size. The Alternative WebP Rewriting will not check if a file exists, only that the domain matches the home url.', EWWW_IMAGE_OPTIMIZER_DOMAIN) .  "</span></td></tr>\n";
+				ewwwio_debug_message( "forced webp: " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_force') == TRUE ? "on" : "off" ) );	
+//				ewwwio_debug_message( "webp paths: " . esc_attr( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_paths') ) );
+				if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
+					$output[] = "<tr><th><label for='ewww_image_optimizer_webp_paths'>" . esc_html__('WebP Paths', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td>" . esc_html__('If Force WebP is enabled, enter paths that should be permitted for Alternative WebP Rewriting. One path per line, may be partial paths, but must include the domain name.', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "<br>";
+					$output[] = "<textarea id='ewww_image_optimizer_webp_paths' name='ewww_image_optimizer_webp_paths' rows='3' cols='60'>" . ( ( $webp_paths = ewww_image_optimizer_get_option('ewww_image_optimizer_webp_paths') ) ? esc_html( implode( "\n", $webp_paths ) ) : "" ) . "</textarea></td></tr>\n";
+					if ( ewww_image_optimizer_iterable( $webp_paths ) ) {
+						ewwwio_debug_message( "webp paths:" );
+						foreach ( $webp_paths as $webp_path ) {
+							ewwwio_debug_message( $webp_path );
+						}
+					}
+					$output[] = "<tr><th><label for='ewww_image_optimizer_webp_for_cdn'>" . esc_html__('Alternative WebP Rewriting', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><span><input type='checkbox' id='ewww_image_optimizer_webp_for_cdn' name='ewww_image_optimizer_webp_for_cdn' value='true' " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_for_cdn') == TRUE ? "checked='true'" : "" ) . " /> " . esc_html__('Uses output buffering and libxml functionality from PHP. Use this if the Apache rewrite rules do not work, or if your images are served from a CDN.', EWWW_IMAGE_OPTIMIZER_DOMAIN) .  ' ' . sprintf( esc_html__( 'Sites using a CDN may also use the WebP option in the %s plugin.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), '<a href="https://wordpress.org/plugins/cache-enabler/">Cache Enabler</a>' ). "</span></td></tr>";
+				}
+				ewwwio_debug_message( "alt webp rewriting: " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_for_cdn') == TRUE ? "on" : "off" ) );
 			$output[] = "</table>\n</div>\n";
 			$output[] = "<p class='submit'><input type='submit' class='button-primary' value='" . esc_attr__('Save Changes', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "' /></p>\n";
 		$output[] = "</form>\n";
@@ -4988,6 +5019,10 @@ function ewww_image_optimizer_options () {
 
 			}
 		$output[] = "</form>\n";
+		} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_ce_webp_enabled() ) {
+				$test_webp_image = plugins_url('/images/test.png.webp', __FILE__);
+				$test_png_image = plugins_url('/images/test.png', __FILE__);
+				$output[] = "<noscript  data-img='$test_png_image' data-webp='$test_webp_image' data-style='float: right; padding: 0 0 10px 10px;' class='ewww_webp'><img src='$test_png_image' style='float: right; padding: 0 0 10px 10px;'></noscript>\n";
 		}
 		$output[] = "</div><!-- end container left -->\n";
 		$output[] = "<div id='ewww-container-right' style='border: 1px solid #e5e5e5; float: right; margin-left: -215px; padding: 0em 1.5em 1em; background-color: #fff; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04); display: inline-block; width: 174px;'>\n" .
@@ -5013,6 +5048,9 @@ function ewww_image_optimizer_options () {
 	ewww_image_optimizer_stl_check();
 
 	echo apply_filters( 'ewww_image_optimizer_settings', $output );
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_ce_webp_enabled() ) {
+		ewww_image_optimizer_webp_inline_script();
+	}
 
 	if ( ewww_image_optimizer_get_option ( 'ewww_image_optimizer_debug' ) ) {
 		?>

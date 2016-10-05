@@ -469,11 +469,11 @@ function check_webp_feature(feature, callback) {
         callback(false);
     };
     img.src = "data:image/webp;base64," + kTestImages[feature];
-	jQuery(document).arrive('.ewww_webp', function() {
-		ewww_load_images(webp_supported);
-	});
 }
 function ewww_load_images(ewww_webp_supported) {
+	jQuery(document).arrive('.ewww_webp', function() {
+		ewww_load_images(ewww_webp_supported);
+	});
 	(function($) {
 		if (ewww_webp_supported) {
 			$('.batch-image img, .image-wrapper a, .ngg-pro-masonry-item a').each(function() {
