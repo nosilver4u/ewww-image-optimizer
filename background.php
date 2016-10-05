@@ -155,12 +155,12 @@ class EWWWIO_Ngg_Background_Process extends WP_Background_Process {
 		} elseif ( empty( $image ) ) {
 			ewwwio_debug_message( "could not retrieve meta, out of attempts" );
 			ewww_image_optimizer_debug_log();
-			delete_transient( 'ewwwio-background-in-progress-flag-' . $id );
+			delete_transient( 'ewwwio-background-in-progress-ngg-' . $id );
 			return false;
 		}
-		global $ewwwflag;
-		$ewwwflag->ewww_added_new_image( $id, $image );
-		delete_transient( 'ewwwio-background-in-progress-flag-' . $id );
+		global $ewwwngg;
+		$ewwwngg->ewww_added_new_image( $id, $image );
+		delete_transient( 'ewwwio-background-in-progress-ngg-' . $id );
 		sleep( ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' ) );
 		ewww_image_optimizer_debug_log();
 		return false;

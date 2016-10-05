@@ -111,6 +111,7 @@ function ewww_image_optimizer_exec_init() {
 		add_action( 'load-ims_gallery_page_ewww-ims-optimize', 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-media_page_ewww-image-optimizer-unoptimized', 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-flagallery_page_flag-manage-gallery', 'ewww_image_optimizer_tool_init' );
+		add_action( 'load-galleries_page_nggallery-manage', 'ewww_image_optimizer_tool_init' );
 //		add_action( 'load-', 'ewww_image_optimizer_tool_init' );
 	} 
 	ewwwio_memory( __FUNCTION__ );
@@ -457,12 +458,14 @@ function ewww_image_optimizer_skip_tools() {
 
 // we check for safe mode and exec, then also direct the user where to go if they don't have the tools installed
 // this is another function called by hook usually
-function ewww_image_optimizer_notice_utils() {
+function ewww_image_optimizer_notice_utils( $verbose = true ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Check if exec is disabled
 	if ( ewww_image_optimizer_exec_check() ) {
-		//display a warning if exec() is disabled, can't run much of anything without it
-		echo "<div id='ewww-image-optimizer-warning-exec' class='error'><p>" . esc_html__( 'EWWW Image Optimizer requires exec() or an API key. Your system administrator has disabled the exec() function, ask them to enable it.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p></div>";
+		if ( $verbose ) {
+			//display a warning if exec() is disabled, can't run much of anything without it
+			echo "<div id='ewww-image-optimizer-warning-exec' class='error'><p>" . esc_html__( 'EWWW Image Optimizer requires exec() or an API key. Your system administrator has disabled the exec() function, ask them to enable it.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p></div>";
+		}
 		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
 			define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
 		}
@@ -471,8 +474,10 @@ function ewww_image_optimizer_notice_utils() {
 		return;
 		// otherwise, query the php settings for safe mode
 	} elseif ( ewww_image_optimizer_safemode_check() ) {
-		// display a warning to the user
-		echo "<div id='ewww-image-optimizer-warning-safemode' class='error'><p>" . esc_html__( 'Safe Mode is turned on for PHP. This plugin cannot operate in Safe Mode unless you have an API key.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p></div>";
+		if ( $verbose ) {
+			// display a warning to the user
+			echo "<div id='ewww-image-optimizer-warning-safemode' class='error'><p>" . esc_html__( 'Safe Mode is turned on for PHP. This plugin cannot operate in Safe Mode unless you have an API key.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p></div>";
+		}
 		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
 			define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
 		}
@@ -559,7 +564,7 @@ function ewww_image_optimizer_notice_utils() {
 	// expand the missing utilities list for use in the error message
 	$msg = implode( ', ', $missing );
 	// if there is a message, display the warning
-	if( ! empty( $msg ) ){
+	if ( ! empty( $msg ) && $verbose ) {
 		if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
 			// need to include the plugin library for the is_plugin_active function
 			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
@@ -2200,7 +2205,7 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 	}
 	$webp_size = ewww_image_optimizer_filesize( $webpfile );
 	ewwwio_debug_message( "webp is $webp_size vs. $type is $orig_size" );
-	if ( is_file( $webpfile ) && $orig_size < $webp_size ) {
+	if ( is_file( $webpfile ) && $orig_size < $webp_size && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
 		ewwwio_debug_message( 'webp file was too big, deleting' );
 		unlink( $webpfile );
 	} elseif ( is_file( $webpfile ) ) {

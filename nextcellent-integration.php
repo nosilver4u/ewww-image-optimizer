@@ -178,7 +178,11 @@ class ewwwngg {
 			$file_size = str_replace( 'B ', 'B', $file_size );
 			$valid = true;
 			// check to see if we have a tool to handle the mimetype detected
-			$skip = ewww_image_optimizer_skip_tools();
+//			$skip = ewww_image_optimizer_skip_tools();
+			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) ) {
+				ewww_image_optimizer_tool_init();
+				ewww_image_optimizer_notice_utils( false );
+			}
 	                switch ( $type ) {
         	                case 'image/jpeg':
 					// if jpegtran is missing, tell the user

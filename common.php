@@ -2,7 +2,7 @@
 // common functions for Standard and Cloud plugins
 
 // TODO: ADD NOTICE WHEN MULTIPLE REOPTIMIZATIONS ARE DETECTED - perhaps with a filter that tells it how many is too many
-// TODO: implement final phase of webp - forced webp with cdn url matching
+// TODO: implement final phase of webp - url matching
 // TODO: use <picture> element to serve webp
 // TODO: https://wordpress.org/support/topic/lazy-load-support/
 // TODO: add support for this: https://wordpress.org/plugins/photo-gallery/ -- or write an article about how to use Scan & Optimize for it
@@ -49,7 +49,7 @@ if ( ! isset( $wpdb->ewwwio_images ) ) {
 	$wpdb->ewwwio_images = $wpdb->prefix . "ewwwio_images";
 }
 
-//add_action( 'contextual_help', 'wptuts_screen_help', 10, 3 );
+add_action( 'contextual_help', 'wptuts_screen_help', 10, 3 );
 function wptuts_screen_help( $contextual_help, $screen_id, $screen ) {
  
 	global $hook_suffix;
@@ -237,6 +237,8 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 		}
 		$html->encoding = 'utf-8';
 		$home_url = get_site_url();
+		$webp_domains = explode( ',', ewww_image_optimizer_webp_domains_sanitize( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_domains' ) ) );
+		$webp_domains[] = parse_url( get_home_url(), PHP_URL_HOST );
 		$home_relative_url = preg_replace( '/https?:/', '', $home_url );
 		$images = $html->getElementsByTagName( 'img' );
 		if ( ewww_image_optimizer_iterable( $images ) ) {
@@ -247,13 +249,23 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 				$srcset = '';
 				ewwwio_debug_message( 'parsing an image' );
 				$file = $image->getAttribute( 'src' );
-				if ( strpos( $file, $home_relative_url ) === 0 ) {
-					$filepath = str_replace( $home_relative_url, ABSPATH, $file );
+				$valid_domain = false;
+				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
+					$filepath = $file;
+					//check domain
+					if ( in_array( parse_url( $file, PHP_URL_HOST ), $webp_domains ) ) {
+						$valid_domain = true;
+					}
 				} else {
-					$filepath = str_replace( $home_url, ABSPATH, $file );
+					if ( strpos( $file, $home_relative_url ) === 0 ) {
+						$filepath = str_replace( $home_relative_url, ABSPATH, $file );
+					} else {
+						$filepath = str_replace( $home_url, ABSPATH, $file );
+					}
+					ewwwio_debug_message( "the image is at $filepath" );
 				}
-				ewwwio_debug_message( "the image is at $filepath" );
-				if ( file_exists( $filepath . '.webp' ) && ! strpos( $file, 'assets/images/dummy.png' ) ) { //|| file_exists( $file_relative_path . '.webp' ) ) {
+				// make this pre-emptively check for the domains so that we don't bother checking file_exists()
+				if ( ( $valid_domain || file_exists( $filepath . '.webp' ) ) && ! strpos( $file, 'assets/images/dummy.png' ) ) { //|| file_exists( $file_relative_path . '.webp' ) ) {
 					$nscript = $html->createElement( 'noscript' );
 					$nscript->setAttribute( 'data-img', $file );
 					$nscript->setAttribute( 'data-webp', $file . '.webp' );
@@ -265,6 +277,7 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 							$srcset_webp = $srcset;
 							if ( ! empty( $srcset_urls ) && ewww_image_optimizer_iterable( $srcset_urls[0] ) ) {
 								foreach ( $srcset_urls[0] as $srcurl ) {
+									// TODO: do domain check here too
 									$srcfilepath = ABSPATH . str_replace( $home_url, '', $srcurl );
 									ewwwio_debug_message( "looking for srcurl on disk: $srcfilepath" );
 									if ( file_exists( $srcfilepath . '.webp' ) ) {
@@ -683,6 +696,10 @@ function ewww_image_optimizer_admin_init() {
 			update_site_option('ewww_image_optimizer_include_media_paths', $_POST['ewww_image_optimizer_include_media_paths']);
 			$_POST['ewww_image_optimizer_webp_for_cdn'] = ( empty( $_POST['ewww_image_optimizer_webp_for_cdn'] ) ? false : true );
 			update_site_option('ewww_image_optimizer_webp_for_cdn', $_POST['ewww_image_optimizer_webp_for_cdn']);
+			$_POST['ewww_image_optimizer_webp_force'] = ( empty( $_POST['ewww_image_optimizer_webp_force'] ) ? false : true );
+			update_site_option('ewww_image_optimizer_webp_force', $_POST['ewww_image_optimizer_webp_force']);
+			$_POST['ewww_image_optimizer_webp_domains'] = ( empty( $_POST['ewww_image_optimizer_webp_domains'] ) ? '' : $_POST['ewww_image_optimizer_webp_domains'] );
+			update_site_option( 'ewww_image_optimizer_webp_domains', ewww_image_optimizer_webp_domains_sanitize( $_POST['ewww_image_optimizer_webp_domains'] ) );
 			//if (empty($_POST['ewww_image_optimizer_webp_cdn_path'])) $_POST['ewww_image_optimizer_webp_cdn_path'] = '';
 			//update_site_option('ewww_image_optimizer_webp_cdn_path', $_POST['ewww_image_optimizer_webp_cdn_path']);
 			add_action('network_admin_notices', 'ewww_image_optimizer_network_settings_saved');
@@ -728,7 +745,8 @@ function ewww_image_optimizer_admin_init() {
 //	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_defer', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_include_media_paths', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_for_cdn', 'boolval' );
-//	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_cdn_path' );
+	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_force', 'boolval' );
+	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_domains', 'ewww_image_optimizer_webp_domains_sanitize' );
 	ewww_image_optimizer_exec_init();
 	ewww_image_optimizer_cron_setup( 'ewww_image_optimizer_auto' );
 //	ewww_image_optimizer_cron_setup( 'ewww_image_optimizer_defer' );
@@ -1607,6 +1625,26 @@ function ewww_image_optimizer_aux_paths_sanitize( $input ) {
 //	ewww_image_optimizer_debug_log();
 	ewwwio_memory( __FUNCTION__ );
 	return $path_array;
+}
+
+function ewww_image_optimizer_webp_domains_sanitize( $domains ) {
+	$domains_entered = explode( ',', $domains );
+	$domains_saved = array();
+	if ( ewww_image_optimizer_iterable( $domains_entered ) ) {
+		foreach ( $domains_entered as $domain ) {
+			$domain = sanitize_text_field( $domain );
+			if ( stripos( $domain, 'http' ) === 0 ) {
+				$domain = parse_url( $domain, PHP_URL_HOST );
+			}
+			if ( ! substr_count( $domain, '.' ) ) {
+				continue;
+			}
+			if ( filter_var( 'http://' . $domain, FILTER_VALIDATE_URL ) ) {
+				$domains_saved[] = $domain;
+			}
+		}
+	}
+	return implode( ',', $domains_saved );
 }
 
 // replacement for escapeshellarg() that won't kill non-ASCII characters
@@ -3989,9 +4027,10 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			$file_size = size_format( filesize( $file_path ), 2 );
 			$file_size = preg_replace( '/\.00 B /', ' B', $file_size );
 		}
-		$skip = ewww_image_optimizer_skip_tools();
+		//$skip = ewww_image_optimizer_skip_tools();
 		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) ) {
 			ewww_image_optimizer_tool_init();
+			ewww_image_optimizer_notice_utils( false );
 		}
 		// run the appropriate code based on the mimetype
 		switch( $type ) {
@@ -4897,7 +4936,11 @@ function ewww_image_optimizer_options () {
 				$output[] = "<tr><th><label for='ewww_image_optimizer_webp'>" . esc_html__('JPG/PNG to WebP', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><span><input type='checkbox' id='ewww_image_optimizer_webp' name='ewww_image_optimizer_webp' value='true' " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp') == TRUE ? "checked='true'" : "" ) . " /> <b>" . esc_html__('WARNING:', EWWW_IMAGE_OPTIMIZER_DOMAIN) . '</b> ' . esc_html__('JPG to WebP conversion is lossy, but quality loss is minimal. PNG to WebP conversion is lossless.', EWWW_IMAGE_OPTIMIZER_DOMAIN) .  "</span>\n" .
 				"<p class='description'>" . esc_html__('Originals are never deleted, and WebP images should only be served to supported browsers.', EWWW_IMAGE_OPTIMIZER_DOMAIN) . " <a href='#webp-rewrite'>" .  ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ? esc_html__('You can use the rewrite rules below to serve WebP images with Apache.', EWWW_IMAGE_OPTIMIZER_DOMAIN) : '' ) . "</a></td></tr>\n";
 				ewwwio_debug_message( "webp conversion: " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp') == TRUE ? "on" : "off" ) );
+				$output[] = "<tr><th><label for='ewww_image_optimizer_webp_force'>" . esc_html__('Force WebP', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><span><input type='checkbox' id='ewww_image_optimizer_webp_force' name='ewww_image_optimizer_webp_force' value='true' " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_force') == TRUE ? "checked='true'" : "" ) . " /> " . esc_html__('WebP images will be generated and saved for all JPG/PNG images regardless of their size. The Alternative WebP Rewriting will not check if a file exists, only that the domain matches the home url.', EWWW_IMAGE_OPTIMIZER_DOMAIN) .  "</span></td></tr>\n";
+				ewwwio_debug_message( "forced webp: " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_force') == TRUE ? "on" : "off" ) );	
+				ewwwio_debug_message( "webp domains: " . esc_attr( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_domains') ) );
 				if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
+					$output[] = "<tr><th><label for='ewww_image_optimizer_webp_domains'>" . esc_html__('WebP Domains', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><span><input type='text' id='ewww_image_optimizer_webp_domains' name='ewww_image_optimizer_webp_domains' size='60' value='" . esc_attr( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_domains') ) . "' /><br>" . esc_html__('If Force WebP is enabled, enter additional domains that should be permitted for Alternative WebP Rewriting. Separate domains by a comma, the home url is included by default:', EWWW_IMAGE_OPTIMIZER_DOMAIN) . ' ' . parse_url( get_home_url(), PHP_URL_HOST ) . "</span></td></tr>\n";
 					$output[] = "<tr><th><label for='ewww_image_optimizer_webp_for_cdn'>" . esc_html__('Alternative WebP Rewriting', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><span><input type='checkbox' id='ewww_image_optimizer_webp_for_cdn' name='ewww_image_optimizer_webp_for_cdn' value='true' " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_for_cdn') == TRUE ? "checked='true'" : "" ) . " /> " . esc_html__('Uses output buffering and libxml functionality from PHP. Use this if the Apache rewrite rules do not work, or if your images are served from a CDN.', EWWW_IMAGE_OPTIMIZER_DOMAIN) .  ' ' . sprintf( esc_html__( 'Sites using a CDN may also use the WebP option in the %s plugin.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), '<a href="https://wordpress.org/plugins/cache-enabler/">Cache Enabler</a>' ). "</span></td></tr>";
 				}
 				ewwwio_debug_message( "alt webp rewriting: " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_for_cdn') == TRUE ? "on" : "off" ) );
