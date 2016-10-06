@@ -7,6 +7,11 @@
 // TODO: add support for this: https://wordpress.org/plugins/photo-gallery/ -- or write an article about how to use Scan & Optimize for it
 // TODO: make percentages locale aware, which could be tricky with the decimal replacement
 
+// TODO: revamp bulk, make it pull only from table, track images by attachment ID as well, so we can pull resize data 
+// TODO: redo defer for image_editor, insert a pending record in table, and then reference by table/row ID on the backside instead of path - maybe do this for attachments as well
+// TODO: see if we can offer a rebuild option, to restore/rebuild broken meta, and also to fill in missing thumbs
+// TODO: see if we can defer resizing for new images with some sort of NEW "flag"
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -2132,10 +2137,20 @@ function ewww_image_optimizer_cloud_post_key( $ip, $transport, $key ) {
 // checks the provided api key for quota information
 function ewww_image_optimizer_cloud_quota() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	$ewww_cloud_ip = get_transient( 'ewww_image_optimizer_cloud_ip' );
+//	$ewww_cloud_ip = get_transient( 'ewww_image_optimizer_cloud_ip' );
 	$ewww_cloud_transport = get_transient( 'ewww_image_optimizer_cloud_transport' );
+	if ( empty( $ewww_cloud_transport ) ) {
+		if ( ! ewww_image_optimizer_cloud_verify() ) { 
+			return '';
+		} else {
+			$ewww_cloud_transport = get_transient( 'ewww_image_optimizer_cloud_transport' );
+		}
+	}
+	if ( empty( $ewww_cloud_transport ) ) {
+		$ewww_cloud_transport = 'https';
+	}
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
-	$url = "$ewww_cloud_transport://$ewww_cloud_ip/quota/";
+	$url = "$ewww_cloud_transport://optimize.exactlywww.com/quota/";
 	$result = wp_remote_post( $url, array(
 		'timeout' => 5,
 		'sslverify' => false,
@@ -4046,11 +4061,11 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			$file_size = size_format( filesize( $file_path ), 2 );
 			$file_size = preg_replace( '/\.00 B /', ' B', $file_size );
 		}
-		//$skip = ewww_image_optimizer_skip_tools();
 		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) ) {
 			ewww_image_optimizer_tool_init();
 			ewww_image_optimizer_notice_utils( false );
 		}
+		$skip = ewww_image_optimizer_skip_tools();
 		// run the appropriate code based on the mimetype
 		switch( $type ) {
 			case 'image/jpeg':
@@ -4978,7 +4993,7 @@ function ewww_image_optimizer_options () {
 				ewwwio_debug_message( "forced webp: " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_force') == TRUE ? "on" : "off" ) );	
 //				ewwwio_debug_message( "webp paths: " . esc_attr( ewww_image_optimizer_get_option('ewww_image_optimizer_webp_paths') ) );
 				if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
-					$output[] = "<tr><th><label for='ewww_image_optimizer_webp_paths'>" . esc_html__('WebP Paths', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td>" . esc_html__('If Force WebP is enabled, enter paths that should be permitted for Alternative WebP Rewriting. One path per line, may be partial paths, but must include the domain name.', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "<br>";
+					$output[] = "<tr><th><label for='ewww_image_optimizer_webp_paths'>" . esc_html__('WebP URLs', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td>" . esc_html__('If Force WebP is enabled, enter URL patterns that should be permitted for Alternative WebP Rewriting. One pattern per line, may be partial URLs, but must include the domain name.', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "<br>";
 					$output[] = "<textarea id='ewww_image_optimizer_webp_paths' name='ewww_image_optimizer_webp_paths' rows='3' cols='60'>" . ( ( $webp_paths = ewww_image_optimizer_get_option('ewww_image_optimizer_webp_paths') ) ? esc_html( implode( "\n", $webp_paths ) ) : "" ) . "</textarea></td></tr>\n";
 					if ( ewww_image_optimizer_iterable( $webp_paths ) ) {
 						ewwwio_debug_message( "webp paths:" );

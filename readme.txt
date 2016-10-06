@@ -268,6 +268,10 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * fixed: background optimization for nextcellent was incomplete
 * fixed: notices under Manage Gallery for nextcellent when tool constants were not defined
 * changed: one-click actions in Media Library don't require reload
+* changed: API quota check no longer requires a verification on every attempt
+* changed: webp settings moved to separate tab
+* added: forced webp mode, to generate webp for every image, regardless of final filesize
+* added: in forced webp mode, must specify allowed url patterns for rewriting
 
 = 2.9.9 =
 * fixed: broken uploads with W3TC CDN option enabled
