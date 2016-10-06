@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: image, attachment, optimize, optimization, lossless, lossy, photo, picture, seo, compression, gmagick, jpegtran, gifsicle, optipng, pngout, pngquant, jpegmini, tinyjpg, tinypng, webp, wp-cli 
 Requires at least: 4.4
 Tested up to: 4.6.1
-Stable tag: 2.9.9
+Stable tag: 3.0.0
 License: GPLv3
 
 Reduce image sizes in WordPress including NextGEN, GRAND FlAGallery, FooGallery and more using lossless/lossy methods and image format conversion.
@@ -267,7 +267,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * fixed: alt webp breaks Slider Revolution's lazyload when dummy.png.webp exists
 * fixed: background optimization for nextcellent was incomplete
 * fixed: notices under Manage Gallery for nextcellent when tool constants were not defined
-* changed: one-click actions in Media Library don't require reload
+* changed: one-click actions in Media Library don't require reload, now possible to optimize several images at the same time
 * changed: API quota check no longer requires a verification on every attempt
 * changed: webp settings moved to separate tab
 * added: forced webp mode, to generate webp for every image, regardless of final filesize

@@ -8,7 +8,7 @@
 // TODO: make percentages locale aware, which could be tricky with the decimal replacement
 
 // TODO: revamp bulk, make it pull only from table, track images by attachment ID as well, so we can pull resize data 
-// TODO: redo defer for image_editor, insert a pending record in table, and then reference by table/row ID on the backside instead of path - maybe do this for attachments as well
+// TODO: possibly redo defer for image_editor, insert a pending record in table, and then reference by table/row ID on the backside instead of path - maybe do this for attachments as well
 // TODO: see if we can offer a rebuild option, to restore/rebuild broken meta, and also to fill in missing thumbs
 // TODO: see if we can defer resizing for new images with some sort of NEW "flag"
 
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '299.11' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '300.0' );
 
 // initialize a couple globals
 $ewww_debug = '';
