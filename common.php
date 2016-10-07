@@ -11,12 +11,13 @@
 // TODO: possibly redo defer for image_editor, insert a pending record in table, and then reference by table/row ID on the backside instead of path - maybe do this for attachments as well
 // TODO: see if we can offer a rebuild option, to restore/rebuild broken meta, and also to fill in missing thumbs
 // TODO: see if we can defer resizing for new images with some sort of NEW "flag"
+// TODO: move resizing to post-background queue
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '300.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '302.0' );
 
 // initialize a couple globals
 $ewww_debug = '';
@@ -588,7 +589,7 @@ function ewww_image_optimizer_upgrade() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	ewwwio_memory( __FUNCTION__ );
 	if ( get_option( 'ewww_image_optimizer_version' ) < EWWW_IMAGE_OPTIMIZER_VERSION ) {
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX == true ) {
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
 			return;
 		}
 		ewww_image_optimizer_enable_background_optimization();
@@ -1761,7 +1762,7 @@ function ewww_image_optimizer_manual() {
 	$permissions = apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
 	if ( FALSE === current_user_can( $permissions ) ) {
 		// display error message if insufficient permissions
-		if ( ! defined( 'DOING_AJAX' ) || empty( DOING_AJAX ) ) {
+		if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
 			wp_die( esc_html__( 'You do not have permission to optimize images.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 		}
 		wp_die( json_encode( array( 'error' => esc_html__( 'You do not have permission to optimize images.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
@@ -1769,7 +1770,7 @@ function ewww_image_optimizer_manual() {
 	// make sure we didn't accidentally get to this page without an attachment to work on
 	if ( FALSE === isset( $_REQUEST['ewww_attachment_ID'] ) ) {
 		// display an error message since we don't have anything to work on
-		if ( ! defined( 'DOING_AJAX' ) || empty( DOING_AJAX ) ) {
+		if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
 			wp_die( esc_html__( 'No attachment ID was provided.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 		}
 		wp_die( json_encode( array( 'error' => esc_html__( 'No attachment ID was provided.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
@@ -1778,7 +1779,7 @@ function ewww_image_optimizer_manual() {
 	// store the attachment ID value
 	$attachment_ID = intval( $_REQUEST['ewww_attachment_ID']) ;
 	if ( empty( $_REQUEST['ewww_manual_nonce'] ) || ! wp_verify_nonce( $_REQUEST['ewww_manual_nonce'], "ewww-manual" ) ) {
-		if ( ! defined( 'DOING_AJAX' ) || empty( DOING_AJAX ) ) {
+		if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
 			wp_die( esc_html__( 'Access denied.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 		}
 		wp_die( json_encode( array( 'error' => esc_html__( 'Access denied.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
@@ -1796,7 +1797,7 @@ function ewww_image_optimizer_manual() {
 		$ewww_attachment['meta'] = $new_meta;
 		add_filter( 'w3tc_cdn_update_attachment_metadata', 'ewww_image_optimizer_w3tc_update_files' );
 	} else {
-		if ( ! defined( 'DOING_AJAX' ) || empty( DOING_AJAX ) ) {
+		if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
 			wp_die( esc_html__( 'Access denied.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 		}
 		wp_die( json_encode( array( 'error' => esc_html__( 'Access denied.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
@@ -1810,7 +1811,7 @@ function ewww_image_optimizer_manual() {
 	$success = ewww_image_optimizer_custom_column( 'ewww-image-optimizer', $attachment_ID, $new_meta, true );
 	ewww_image_optimizer_debug_log();
 	// do a redirect, if this was called via GET
-	if ( ! defined( 'DOING_AJAX' ) || empty( DOING_AJAX ) ) {
+	if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
 		// store the referring webpage location
 		$sendback = wp_get_referer();
 		// sanitize the referring webpage location
