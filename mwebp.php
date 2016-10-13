@@ -72,7 +72,7 @@ function ewww_image_optimizer_webp_script( $hook ) {
 	}	
 	add_option( 'ewww_image_optimizer_webp_images', '', '', 'no' );
 	update_option( 'ewww_image_optimizer_webp_images', $images );
-	wp_enqueue_script( 'ewwwwebpscript', plugins_url( '/includes/webp.js', __FILE__ ), array( 'jquery' ) );
+	wp_enqueue_script( 'ewwwwebpscript', plugins_url( '/includes/webp.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
 	$image_count = count( $images );
 	// submit a couple variables to the javascript to work with
 	wp_localize_script( 'ewwwwebpscript', 'ewww_vars', array(

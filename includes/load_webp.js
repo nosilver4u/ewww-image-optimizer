@@ -452,8 +452,6 @@ var Arrive = (function(window, $, undefined) {
 // webp detection borrowed from https://developers.google.com/speed/webp/faq#how_can_i_detect_browser_support_using_javascript
 function check_webp_feature(feature, callback) {
     var kTestImages = {
-        lossy: "UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA",
-        lossless: "UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==",
         alpha: "UklGRkoAAABXRUJQVlA4WAoAAAAQAAAAAAAAAAAAQUxQSAwAAAARBxAR/Q9ERP8DAABWUDggGAAAABQBAJ0BKgEAAQAAAP4AAA3AAP7mtQAAAA==",
         animation: "UklGRlIAAABXRUJQVlA4WAoAAAASAAAAAAAAAAAAQU5JTQYAAAD/////AABBTk1GJgAAAAAAAAAAAAAAAAAAAGQAAABWUDhMDQAAAC8AAAAQBxAREYiI/gcA"
     };
@@ -475,6 +473,17 @@ function ewww_load_images(ewww_webp_supported) {
 		ewww_load_images(ewww_webp_supported);
 	});
 	(function($) {
+		var attr_prefix = 'data-';
+		function ewww_copy_attrs(ewww_nscript, ewww_img) {
+			var attrs = ['align','alt','border','crossorigin','height','hspace','ismap','longdesc','usemap','vspace','width','accesskey','class','contenteditable','contextmenu','dir','draggable','dropzone','hidden','id','lang','spellcheck','style','tabindex','title','translate','sizes'];
+			for (var i = 0, len = attrs.length; i < len; i++) {
+				var ewww_attr = $(ewww_nscript).attr(attr_prefix + attrs[i]);
+				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
+					$(ewww_img).attr(attrs[i], ewww_attr);
+				}
+			}
+			return ewww_img;
+		}
 		if (ewww_webp_supported) {
 			$('.batch-image img, .image-wrapper a, .ngg-pro-masonry-item a').each(function() {
 				var ewww_attr = $(this).attr('data-webp');
@@ -513,129 +522,66 @@ function ewww_load_images(ewww_webp_supported) {
 				}
 			});
 		}
+		$('img.ewww_webp_lazy_load').each(function() {
+			if (ewww_webp_supported) {
+				$(this).attr('data-lazy-src', $(this).attr('data-lazy-webp-src'));
+				var ewww_attr = $(this).attr('data-srcset-webp');
+				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
+					$(this).attr('srcset', ewww_attr);
+				}
+				var ewww_attr = $(this).attr('data-lazy-srcset-webp');
+				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
+					$(this).attr('data-lazy-srcset', ewww_attr);
+				}
+			} else {
+				$(this).attr('data-lazy-src', $(this).attr('data-lazy-img-src'));
+				var ewww_attr = $(this).attr('data-srcset');
+				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
+						$(this).attr('srcset', ewww_attr);
+				}
+				var ewww_attr = $(this).attr('data-lazy-srcset-img');
+				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
+						$(ewww_img).attr('data-lazy-srcset', ewww_attr);
+				}
+			}
+			$(this).removeClass('ewww_webp_lazy_load');
+		});
+		$('.ewww_webp_lazy_hueman').each(function() {
+			var ewww_img = document.createElement('img');
+			$(ewww_img).attr('src', $(this).attr('data-src'));
+			if (ewww_webp_supported) {
+				$(ewww_img).attr('data-src', $(this).attr('data-webp-src'));
+				var ewww_attr = $(this).attr('data-srcset-webp');
+				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
+					$(ewww_img).attr('data-srcset', ewww_attr);
+				}
+			} else {
+				$(ewww_img).attr('data-src', $(this).attr('data-img'));
+				var ewww_attr = $(this).attr('data-srcset-img');
+				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
+						$(ewww_img).attr('data-srcset', ewww_attr);
+				}
+			}
+			ewww_img = ewww_copy_attrs(this, ewww_img);
+			$(this).after(ewww_img);
+			$(this).removeClass('ewww_webp_lazy_hueman');
+		});
 		$('.ewww_webp').each(function() {
 			var ewww_img = document.createElement('img');
 			if (ewww_webp_supported) {
 				$(ewww_img).attr('src', $(this).attr('data-webp'));
 				var ewww_attr = $(this).attr('data-srcset-webp');
 				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-						$(ewww_img).attr('srcset', ewww_attr);
+					$(ewww_img).attr('srcset', ewww_attr);
 				}
 			} else {
 				$(ewww_img).attr('src', $(this).attr('data-img'));
 				var ewww_attr = $(this).attr('data-srcset-img');
 				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-						$(ewww_img).attr('srcset', ewww_attr);
+					$(ewww_img).attr('srcset', ewww_attr);
 				}
 			}
-			var ewww_attr = $(this).attr('data-align');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('align', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-alt');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('alt', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-border');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('border', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-crossorigin');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('crossorigin', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-height');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('height', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-hspace');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('hspace', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-ismap');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('ismap', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-longdesc');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('longdesc', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-usemap');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('usemap', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-vspace');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('vspace', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-width');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('width', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-accesskey');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('accesskey', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-class');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('class', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-contenteditable');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('contenteditable', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-contextmenu');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('contextmenu', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-dir');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('dir', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-draggable');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('draggable', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-dropzone');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('dropzone', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-hidden');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('hidden', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-id');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('id', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-lang');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('lang', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-spellcheck');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('spellcheck', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-style');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('style', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-tabindex');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('tabindex', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-title');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('title', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-translate');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('translate', ewww_attr);
-			}
-			var ewww_attr = $(this).attr('data-sizes');
-			if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-				$(ewww_img).attr('sizes', ewww_attr);
-			}
+			ewww_img = ewww_copy_attrs(this, ewww_img);
 			$(this).after(ewww_img);
 			$(this).removeClass('ewww_webp');
 		});

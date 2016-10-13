@@ -203,7 +203,7 @@ class ewwwflag {
 		// store the IDs to optimize in the options table of the db
 		update_option( 'ewww_image_optimizer_bulk_flag_attachments', $ids );
 		// add the EWWW IO javascript
-		wp_enqueue_script( 'ewwwbulkscript', plugins_url( '/includes/eio.js', __FILE__ ), array( 'jquery', 'jquery-ui-progressbar', 'jquery-ui-slider', 'postbox', 'dashboard' ) );
+		wp_enqueue_script( 'ewwwbulkscript', plugins_url( '/includes/eio.js', __FILE__ ), array( 'jquery', 'jquery-ui-progressbar', 'jquery-ui-slider', 'postbox', 'dashboard' ), EWWW_IMAGE_OPTIMIZER_VERSION );
 		// add the styling for the progressbar
 		wp_enqueue_style( 'jquery-ui-progressbar', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ) );
 		// prepare a few variables to be used by the javascript code

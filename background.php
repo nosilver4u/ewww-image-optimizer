@@ -236,7 +236,7 @@ class EWWWIO_Async_Request extends WP_Async_Request {
 		if ( ! empty( $_POST['ewwwio_path'] ) && $size == 'full' ) {
 			$file_path = $this->find_file( $_POST['ewwwio_path'] );
 			if ( ! empty( $file_path ) ) {
-				ewwwio_debug_message( 'processing async optimization request' );
+				ewwwio_debug_message( "processing async optimization request for {$_POST['ewwwio_path']}" );
 				list( $file, $msg, $conv, $original ) = ewww_image_optimizer( $file_path, 1, false, false, true );
 			} else {
 				ewwwio_debug_message( "could not process async optimization request for {$_POST['ewwwio_path']}" );
@@ -244,7 +244,7 @@ class EWWWIO_Async_Request extends WP_Async_Request {
 		} elseif ( ! empty( $_POST['ewwwio_path'] ) ) {
 			$file_path = $this->find_file( $_POST['ewwwio_path'] );
 			if ( ! empty( $file_path ) ) {
-				ewwwio_debug_message( 'processing async optimization request' );
+				ewwwio_debug_message( "processing async optimization request for {$_POST['ewwwio_path']}" );
 				list( $file, $msg, $conv, $original ) = ewww_image_optimizer( $file_path );
 			} else {
 				ewwwio_debug_message( "could not process async optimization request for {$_POST['ewwwio_path']}" );
