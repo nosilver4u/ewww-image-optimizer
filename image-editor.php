@@ -31,8 +31,8 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 						$ewwwio_image_background->push_to_queue( $filename );
 						$ewwwio_image_background->save()->dispatch();
 						ewwwio_debug_message( "image editor (AGR gd) queued: $filename" );
-					}
-				}*/
+					}*/
+				}
 				ewww_image_optimizer_debug_log();
 			}
 			ewwwio_memory( __FUNCTION__ );
