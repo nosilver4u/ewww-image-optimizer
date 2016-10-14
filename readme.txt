@@ -266,6 +266,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * added: Alt WebP supports Lazy Load plugin and Cherry Lazy modifications
 * added: Alt WebP supports BJ Lazy Load plugin
 * added: Alt WebP supports Retina Lazysizes
+* added: ability to defer resizing of uploaded image using ewww_image_optimizer_defer_resizing filter, "other" dimensions will apply regardless of upload method
 * changed: wp_image_editor integration does not use background optimization, reverting to inline processing, holler if you want it back
 * changed: all scripts have proper version numbers to avoid caching issues
 * changed: inline webp script moved to head element to work better with lazy loading

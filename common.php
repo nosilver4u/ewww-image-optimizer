@@ -7,8 +7,6 @@
 // TODO: revamp bulk, make it pull only from table, track images by attachment ID as well, so we can pull resize data
 // TODO: maybe move percentages to be built on-demand too, with a dedicated function for portability
 // TODO: see if we can offer a rebuild option, to restore/rebuild broken meta, and also to fill in missing thumbs
-// TODO: see if we can defer resizing for new images with some sort of NEW "flag"
-// TODO: move resizing to post-background queue
 // TODO: look at simple_html_dom_node that wp retina uses for parsing
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -3424,7 +3422,9 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 				));
 		}
 	}
-	if ( ( ! empty( $new_image ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) ) && ! function_exists( 'imsanity_get_max_width_height' ) ) {
+	// NOTE: if you use the ewww_image_optimizer_defer_resizing filter to defer the resize operation, only the "other" dimensions will apply
+	// resize here unless the user chose to defer resizing, we have a new image OR resize existing is enabled, and imsanity isn't enabled with a max size
+	if ( ! apply_filters( 'ewww_image_optimizer_defer_resizing', false ) && ( ! empty( $new_image ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) ) && ! function_exists( 'imsanity_get_max_width_height' ) ) {
 		$new_dimensions = ewww_image_optimizer_resize_upload( $file_path );
 		if ( is_array( $new_dimensions ) ) {
 			$meta['width'] = $new_dimensions[0];
@@ -3455,6 +3455,14 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 	}
 	if ( $background_new ) {
 		$new_image = true;
+	}
+	// resize here if the user has used the filter to defer resizing, we have a new image OR resize existing is enabled, and imsanity isn't enabled with a max size
+	if ( apply_filters( 'ewww_image_optimizer_defer_resizing', false ) && ( ! empty( $new_image ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) ) && ! function_exists( 'imsanity_get_max_width_height' ) ) {
+		$new_dimensions = ewww_image_optimizer_resize_upload( $file_path );
+		if ( is_array( $new_dimensions ) ) {
+			$meta['width'] = $new_dimensions[0];
+			$meta['height'] = $new_dimensions[1];
+		}
 	}
 	// this gets a bit long, so here goes:
 	// we run in parallel if we didn't detect breakage (test_parallel_opt), if the type isn't pdf (there's only one file to optimize anyway), and there are enough resizes to make it worthwhile (or if the API is enabled)
