@@ -1,24 +1,21 @@
 <?php
 // common functions for Standard and Cloud plugins
 
-// TODO: ADD NOTICE WHEN MULTIPLE REOPTIMIZATIONS ARE DETECTED - perhaps with a filter that tells it how many is too many
-// TODO: and add columns for media attachment ID and size (full,thumb,etc.)
 // TODO: use <picture> element to serve webp
-// TODO: https://wordpress.org/support/topic/lazy-load-support/ and maybe BJ lazy
 // TODO: add support for this: https://wordpress.org/plugins/photo-gallery/ -- or write an article about how to use Scan & Optimize for it
-// TODO: make percentages locale aware, which could be tricky with the decimal replacement
 
-// TODO: revamp bulk, make it pull only from table, track images by attachment ID as well, so we can pull resize data 
+// TODO: revamp bulk, make it pull only from table, track images by attachment ID as well, so we can pull resize data
+// TODO: maybe move percentages to be built on-demand too, with a dedicated function for portability
 // TODO: see if we can offer a rebuild option, to restore/rebuild broken meta, and also to fill in missing thumbs
 // TODO: see if we can defer resizing for new images with some sort of NEW "flag"
 // TODO: move resizing to post-background queue
-// TODO: use explode instead of regex to parse srcset attribute
+// TODO: look at simple_html_dom_node that wp retina uses for parsing
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '302.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '302.1' );
 
 // initialize a couple globals
 $ewww_debug = '';
@@ -200,10 +197,35 @@ function ewww_image_optimizer_webp_attr_copy( $image, &$nscript, $prefix = 'data
 	if ( ! is_object( $image ) || ! is_object( $nscript ) ) {
 		return;
 	}
-	$attributes = array( 'align', 'alt', 'border', 'crossorigin', 'height', 'hspace', 'ismap', 'longdesc', 'usemap', 'vspace', 'width', 'accesskey', 'class', 'contenteditable', 'contextmenu', 'dir', 'draggable', 'dropzone', 'hidden', 'id', 'lang', 'spellcheck', 'style', 'tabindex', 'title', 'translate', 'sizes' );
+	$attributes = array( 'align', 'alt', 'border', 'crossorigin', 'height', 'hspace', 'ismap', 'longdesc', 'usemap', 'vspace', 'width', 'accesskey', 'class', 'contenteditable', 'contextmenu', 'dir', 'draggable', 'dropzone', 'hidden', 'id', 'lang', 'spellcheck', 'style', 'tabindex', 'title', 'translate', 'sizes', 'data-lazy-type' );
 	foreach ( $attributes as $attribute ) {
 		if ( $image->getAttribute( $attribute ) )
 			$nscript->setAttribute( $prefix . $attribute, $image->getAttribute( $attribute ) );
+	}
+}
+
+function ewww_image_optimizer_webp_srcset_replace( $srcset, $home_url, $valid_path ) {
+	$srcset_urls = explode( ' ', $srcset );
+	$found_webp = false;
+	if ( ewww_image_optimizer_iterable( $srcset_urls ) ) {
+		ewwwio_debug_message( 'found srcset urls' );
+		foreach ( $srcset_urls as $srcurl ) {
+			if ( is_numeric( substr( $srcurl, 0, 1 ) ) ) {
+				continue;
+			}
+			$srcfilepath = ABSPATH . str_replace( $home_url, '', $srcurl );
+			ewwwio_debug_message( "looking for srcurl on disk: $srcfilepath" );
+			if ( $valid_path || file_exists( $srcfilepath . '.webp' ) ) {
+				$srcset = preg_replace( "|$srcurl|", $srcurl . '.webp', $srcset );
+				$found_webp = true;
+				ewwwio_debug_message( "replacing $srcurl in $srcset" );
+			}
+		}
+	}
+	if ( $found_webp ) {
+		return $srcset;
+	} else {
+		return false;
 	}
 }
 
@@ -294,26 +316,14 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 					$nscript->setAttribute( 'data-webp', $file . '.webp' );
 					if ( $image->getAttribute( 'srcset' ) ) {
 						$srcset = $image->getAttribute( 'srcset' );
-						preg_match_all( '/http\S+/', $srcset, $srcset_urls );
-						if ( ! empty( $srcset_urls ) ) {
-							ewwwio_debug_message( 'found srcset urls' );
-							$srcset_webp = $srcset;
-							if ( ! empty( $srcset_urls ) && ewww_image_optimizer_iterable( $srcset_urls[0] ) ) {
-								foreach ( $srcset_urls[0] as $srcurl ) {
-									$srcfilepath = ABSPATH . str_replace( $home_url, '', $srcurl );
-									ewwwio_debug_message( "looking for srcurl on disk: $srcfilepath" );
-									if ( $valid_path || file_exists( $srcfilepath . '.webp' ) ) {
-										$srcset_webp = preg_replace( "|$srcurl|", $srcurl . '.webp', $srcset_webp );
-										ewwwio_debug_message( "replacing $srcurl in $srcset_webp" );
-									}
-								}
-							}
+						$srcset_webp = ewww_image_optimizer_webp_srcset_replace( $srcset, $home_url, $valid_path );
+						if ( $srcset_webp ) {
 							$nscript->setAttribute( 'data-srcset-webp', $srcset_webp );
 						}
-						$nscript->setAttribute( 'data-srcset-img', $image->getAttribute( 'srcset' ) );
+						$nscript->setAttribute( 'data-srcset-img', $srcset );
 					}
 					ewww_image_optimizer_webp_attr_copy( $image, $nscript );
-					$nscript->setAttribute('class', 'ewww_webp');
+					$nscript->setAttribute( 'class', 'ewww_webp' );
 					$image->parentNode->replaceChild($nscript, $image);
 					$nscript->appendChild( $image );
 				}
@@ -342,6 +352,27 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 						$image->setAttribute( 'data-webp-thumbnail', $thumb . '.webp' );
 					}
 				}
+				// WP Retina 2x
+				if ( empty( $file ) && $image->getAttribute( 'data-srcset' ) && strpos( $image->getAttribute( 'class' ), 'lazyload' ) ) {
+					$srcset = $image->getAttribute( 'data-srcset' );
+					if ( ! $valid_path && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
+						//check path
+						foreach ( $webp_paths as $webp_path ) {
+							if ( strpos( $srcset, $webp_path ) !== false ) {
+								$valid_path = true;
+							}
+						}
+					}
+					$srcset_webp = ewww_image_optimizer_webp_srcset_replace( $srcset, $home_url, $valid_path );
+					if ( $srcset_webp ) {
+						$nimage = $html->createElement( 'img' );
+						$nimage->setAttribute( 'data-srcset-webp', $srcset_webp );
+						$nimage->setAttribute( 'data-srcset-img', $srcset );
+						ewww_image_optimizer_webp_attr_copy( $image, $nimage, '' );
+						$nimage->setAttribute( 'class', $image->getAttribute( 'class' ) . ' ewww_webp_lazy_retina' );
+						$image->parentNode->replaceChild( $nimage, $image );
+					}
+				}
 				// Hueman theme
 				if ( ! empty( $file ) && strpos( $file, 'image/gif;base64,R0lGOD' ) && $image->getAttribute( 'data-src' ) && $image->getAttribute( 'data-srcset' ) ) {
 					$dummy = $file;
@@ -365,21 +396,8 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 						$image->setAttribute( 'src', $file );
 						if ( $image->getAttribute( 'data-srcset' ) ) {
 							$srcset = $image->getAttribute( 'data-srcset' );
-							$srcset_urls = explode( ' ', $srcset );
-							if ( ewww_image_optimizer_iterable( $srcset_urls ) ) {
-								ewwwio_debug_message( 'found srcset urls' );
-								$srcset_webp = $srcset;
-								foreach ( $srcset_urls as $srcurl ) {
-									if ( is_numeric( substr( $srcurl, 0, 1 ) ) ) {
-										continue;
-									}
-									$srcfilepath = ABSPATH . str_replace( $home_url, '', $srcurl );
-									ewwwio_debug_message( "looking for srcurl on disk: $srcfilepath" );
-									if ( $valid_path || file_exists( $srcfilepath . '.webp' ) ) {
-										$srcset_webp = preg_replace( "|$srcurl|", $srcurl . '.webp', $srcset_webp );
-										ewwwio_debug_message( "replacing $srcurl in $srcset_webp" );
-									}
-								}
+							$srcset_webp = ewww_image_optimizer_webp_srcset_replace( $srcset, $home_url, $valid_path );
+							if ( $srcset_webp ) {
 								$nscript->setAttribute( 'data-srcset-webp', $srcset_webp );
 							}
 							$nscript->setAttribute( 'data-srcset-img', $srcset );
@@ -390,7 +408,7 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 						$nscript->appendChild( $image );
 					}
 				}
-				// Lazy Load plugin (and hopefully Cherry variant)
+				// Lazy Load plugin (and hopefully Cherry variant) and BJ Lazy Load
 				if ( ! empty( $file ) && ( strpos( $file, 'image/gif;base64,R0lGOD' ) || strpos( $file, 'lazy-load/images/1x1' ) ) && $image->getAttribute( 'data-lazy-src' ) && ! empty( $image->nextSibling ) && $image->nextSibling->nodeName == 'noscript' ) {
 					$dummy = $file;
 					$nimage = $html->createElement( 'img' );
@@ -415,48 +433,22 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 						$nimage->setAttribute( 'data-lazy-webp-src', $file . '.webp' );
 						if ( $image->getAttribute( 'srcset' ) ) {
 							$srcset = $image->getAttribute( 'srcset' );
-							$srcset_urls = explode( ' ', $srcset );
-							if ( ewww_image_optimizer_iterable( $srcset_urls ) ) {
-								ewwwio_debug_message( 'found lazy load srcset urls' );
-								$srcset_webp = $srcset;
-								foreach ( $srcset_urls as $srcurl ) {
-									if ( is_numeric( substr( $srcurl, 0, 1 ) ) ) {
-										continue;
-									}
-									$srcfilepath = ABSPATH . str_replace( $home_url, '', $srcurl );
-									ewwwio_debug_message( "looking for srcurl on disk: $srcfilepath" );
-									if ( $valid_path || file_exists( $srcfilepath . '.webp' ) ) {
-										$srcset_webp = preg_replace( "|$srcurl|", $srcurl . '.webp', $srcset_webp );
-										ewwwio_debug_message( "replacing $srcurl in $srcset_webp" );
-									}
-								}
+							$srcset_webp = ewww_image_optimizer_webp_srcset_replace( $srcset, $home_url, $valid_path );
+							if ( $srcset_webp ) {
 								$nimage->setAttribute( 'data-srcset-webp', $srcset_webp );
 							}
 							$nimage->setAttribute( 'data-srcset', $srcset );
 						}
 						if ( $image->getAttribute( 'data-lazy-srcset' ) ) {
 							$srcset = $image->getAttribute( 'data-lazy-srcset' );
-							$srcset_urls = explode( ' ', $srcset );
-							if ( ewww_image_optimizer_iterable( $srcset_urls ) ) {
-								ewwwio_debug_message( 'found lazy load srcset urls' );
-								$srcset_webp = $srcset;
-								foreach ( $srcset_urls as $srcurl ) {
-									if ( is_numeric( substr( $srcurl, 0, 1 ) ) ) {
-										continue;
-									}
-									$srcfilepath = ABSPATH . str_replace( $home_url, '', $srcurl );
-									ewwwio_debug_message( "looking for srcurl on disk: $srcfilepath" );
-									if ( $valid_path || file_exists( $srcfilepath . '.webp' ) ) {
-										$srcset_webp = preg_replace( "|$srcurl|", $srcurl . '.webp', $srcset_webp );
-										ewwwio_debug_message( "replacing $srcurl in $srcset_webp" );
-									}
-								}
+							$srcset_webp = ewww_image_optimizer_webp_srcset_replace( $srcset, $home_url, $valid_path );
+							if ( $srcset_webp ) {
 								$nimage->setAttribute( 'data-lazy-srcset-webp', $srcset_webp );
 							}
 							$nimage->setAttribute( 'data-lazy-srcset-img', $srcset );
 						}
 						ewww_image_optimizer_webp_attr_copy( $image, $nimage, '' );
-						$nimage->setAttribute( 'class', 'ewww_webp_lazy_load' );
+						$nimage->setAttribute( 'class', $image->getAttribute( 'class' ) . ' ewww_webp_lazy_load' );
 						$image->parentNode->replaceChild( $nimage, $image );
 					}
 				}
@@ -879,7 +871,10 @@ function ewww_image_optimizer_admin_init() {
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'aux-optimize.php' );
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'mwebp.php' );
 	// queue the function that contains custom styling for our progressbars
-	add_action('admin_enqueue_scripts', 'ewww_image_optimizer_progressbar_style'); 
+	add_action('admin_enqueue_scripts', 'ewww_image_optimizer_progressbar_style');
+	// alert user if multiple re-optimizations detected
+	add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
+	add_action( 'admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
 	ewwwio_memory( __FUNCTION__ );
 //	ewww_image_optimizer_debug_log();
 }
@@ -1006,6 +1001,8 @@ function ewww_image_optimizer_install_table() {
 	// create a table with 4 columns: an id, the file path, the md5sum, and the optimization results
 	$sql = "CREATE TABLE $wpdb->ewwwio_images (
 		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		attachment_id bigint(20) unsigned,
+		resize varchar(55),
 		path text NOT NULL,
 		results varchar(55) NOT NULL,
 		image_size int(10) unsigned,
@@ -1103,6 +1100,25 @@ function ewww_image_optimizer_migrate_settings_to_levels() {
 function ewww_image_optimizer_network_settings_saved() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	echo "<div id='ewww-image-optimizer-settings-saved' class='updated fade'><p><strong>" . esc_html__('Settings saved', EWWW_IMAGE_OPTIMIZER_DOMAIN) . ".</strong></p></div>";
+}
+
+// alert the user when 10 or more re-optimizations detected, and do a reset if they say so back to 1 across the board
+function ewww_image_optimizer_notice_reoptimization() {
+	// do a reset
+	if ( ! empty( $_GET['ewww_reset_reopt_nonce'] ) && wp_verify_nonce( $_GET['ewww_reset_reopt_nonce'], 'reset_reoptimization_counters' ) ) {
+		global $wpdb;
+		$debug_images = $wpdb->query( "UPDATE $wpdb->ewwwio_images SET updates=1 WHERE updates > 1" );
+	} else {
+		global $wpdb;
+		$reoptimized = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->ewwwio_images WHERE updates > 10 LIMIT 10" );
+		// do a check for 10+ optimizations on 5+ images
+		if ( ! empty( $reoptimized ) && $reoptimized > 5 ) {
+			$debugging_page = admin_url( 'upload.php?page=ewww-image-optimizer-dynamic-debug' );
+			$reset_page = wp_nonce_url( $_SERVER['REQUEST_URI'], 'reset_reoptimization_counters', 'ewww_reset_reopt_nonce' );
+			// display an alert
+			echo "<div id='ewww-image-optimizer-warning-reoptimizations' class='error'><p>" . sprintf( esc_html__( 'The EWWW Image Optimizer has detected excessive re-optimization of multiple images. Please turn on the Debugging setting, wait for approximately 12 hours, and then visit the %s page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), "<a href='$debugging_page'>" . esc_html__( 'Dynamic Image Debugging', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</a>' ) . " <a href='$reset_page'>" . esc_html__( 'Reset Counters' ) . '</a></p></div>';
+		}
+	}
 }
 
 // load the class to extend WP_Image_Editor
@@ -1613,9 +1629,9 @@ function ewww_image_optimizer_webp_inline_script() {
 	if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
 ?>
 <script>
-function check_webp_feature(a,b){var c={alpha:"UklGRkoAAABXRUJQVlA4WAoAAAAQAAAAAAAAAAAAQUxQSAwAAAARBxAR/Q9ERP8DAABWUDggGAAAABQBAJ0BKgEAAQAAAP4AAA3AAP7mtQAAAA==",animation:"UklGRlIAAABXRUJQVlA4WAoAAAASAAAAAAAAAAAAQU5JTQYAAAD/////AABBTk1GJgAAAAAAAAAAAAAAAAAAAGQAAABWUDhMDQAAAC8AAAAQBxAREYiI/gcA"},d=!1,e=new Image;e.onload=function(){var a=e.width>0&&e.height>0;d=!0,b(a)},e.onerror=function(){d=!1,b(!1)},e.src="data:image/webp;base64,"+c[a]}function ewww_load_images(a){jQuery(document).arrive(".ewww_webp",function(){ewww_load_images(a)}),function(b){function d(a,d){for(var e=["align","alt","border","crossorigin","height","hspace","ismap","longdesc","usemap","vspace","width","accesskey","class","contenteditable","contextmenu","dir","draggable","dropzone","hidden","id","lang","spellcheck","style","tabindex","title","translate","sizes"],f=0,g=e.length;f<g;f++){var h=b(a).attr(c+e[f]);"undefined"!=typeof h&&h!==!1&&b(d).attr(e[f],h)}return d}var c="data-";a&&(b(".batch-image img, .image-wrapper a, .ngg-pro-masonry-item a").each(function(){var a=b(this).attr("data-webp");"undefined"!=typeof a&&a!==!1&&b(this).attr("data-src",a);var a=b(this).attr("data-webp-thumbnail");"undefined"!=typeof a&&a!==!1&&b(this).attr("data-thumbnail",a)}),b(".image-wrapper a, .ngg-pro-masonry-item a").each(function(){var a=b(this).attr("data-webp");"undefined"!=typeof a&&a!==!1&&b(this).attr("href",a)}),b(".rev_slider ul li").each(function(){var a=b(this).attr("data-webp-thumb");"undefined"!=typeof a&&a!==!1&&b(this).attr("data-thumb",a);for(var c=1;c<11;){var a=b(this).attr("data-webp-param"+c);"undefined"!=typeof a&&a!==!1&&b(this).attr("data-param"+c,a),c++}}),b(".rev_slider img").each(function(){var a=b(this).attr("data-webp-lazyload");"undefined"!=typeof a&&a!==!1&&b(this).attr("data-lazyload",a)})),b("img.ewww_webp_lazy_load").each(function(){if(a){b(this).attr("data-lazy-src",b(this).attr("data-lazy-webp-src"));var c=b(this).attr("data-srcset-webp");"undefined"!=typeof c&&c!==!1&&b(this).attr("srcset",c);var c=b(this).attr("data-lazy-srcset-webp");"undefined"!=typeof c&&c!==!1&&b(this).attr("data-lazy-srcset",c)}else{b(this).attr("data-lazy-src",b(this).attr("data-lazy-img-src"));var c=b(this).attr("data-srcset");"undefined"!=typeof c&&c!==!1&&b(this).attr("srcset",c);var c=b(this).attr("data-lazy-srcset-img");"undefined"!=typeof c&&c!==!1&&b(ewww_img).attr("data-lazy-srcset",c)}b(this).removeClass("ewww_webp_lazy_load")}),b(".ewww_webp_lazy_hueman").each(function(){var c=document.createElement("img");if(b(c).attr("src",b(this).attr("data-src")),a){b(c).attr("data-src",b(this).attr("data-webp-src"));var e=b(this).attr("data-srcset-webp");"undefined"!=typeof e&&e!==!1&&b(c).attr("data-srcset",e)}else{b(c).attr("data-src",b(this).attr("data-img"));var e=b(this).attr("data-srcset-img");"undefined"!=typeof e&&e!==!1&&b(c).attr("data-srcset",e)}c=d(this,c),b(this).after(c),b(this).removeClass("ewww_webp_lazy_hueman")}),b(".ewww_webp").each(function(){var c=document.createElement("img");if(a){b(c).attr("src",b(this).attr("data-webp"));var e=b(this).attr("data-srcset-webp");"undefined"!=typeof e&&e!==!1&&b(c).attr("srcset",e)}else{b(c).attr("src",b(this).attr("data-img"));var e=b(this).attr("data-srcset-img");"undefined"!=typeof e&&e!==!1&&b(c).attr("srcset",e)}c=d(this,c),b(this).after(c),b(this).removeClass("ewww_webp")})}(jQuery),jQuery.fn.isotope&&jQuery.fn.imagesLoaded&&(jQuery(".fusion-posts-container-infinite").imagesLoaded(function(){jQuery(".fusion-posts-container-infinite").hasClass("isotope")&&jQuery(".fusion-posts-container-infinite").isotope()}),jQuery(".fusion-portfolio:not(.fusion-recent-works) .fusion-portfolio-wrapper").imagesLoaded(function(){jQuery(".fusion-portfolio:not(.fusion-recent-works) .fusion-portfolio-wrapper").isotope()}))}var Arrive=function(a,b,c){"use strict";function l(a,b,c){e.addMethod(b,c,a.unbindEvent),e.addMethod(b,c,a.unbindEventWithSelectorOrCallback),e.addMethod(b,c,a.unbindEventWithSelectorAndCallback)}function m(a){a.arrive=j.bindEvent,l(j,a,"unbindArrive"),a.leave=k.bindEvent,l(k,a,"unbindLeave")}if(a.MutationObserver&&"undefined"!=typeof HTMLElement){var d=0,e=function(){var b=HTMLElement.prototype.matches||HTMLElement.prototype.webkitMatchesSelector||HTMLElement.prototype.mozMatchesSelector||HTMLElement.prototype.msMatchesSelector;return{matchesSelector:function(a,c){return a instanceof HTMLElement&&b.call(a,c)},addMethod:function(a,b,c){var d=a[b];a[b]=function(){return c.length==arguments.length?c.apply(this,arguments):"function"==typeof d?d.apply(this,arguments):void 0}},callCallbacks:function(a){for(var c,b=0;c=a[b];b++)c.callback.call(c.elem)},checkChildNodesRecursively:function(a,b,c,d){for(var g,f=0;g=a[f];f++)c(g,b,d)&&d.push({callback:b.callback,elem:g}),g.childNodes.length>0&&e.checkChildNodesRecursively(g.childNodes,b,c,d)},mergeArrays:function(a,b){var d,c={};for(d in a)c[d]=a[d];for(d in b)c[d]=b[d];return c},toElementsArray:function(b){return"undefined"==typeof b||"number"==typeof b.length&&b!==a||(b=[b]),b}}}(),f=function(){var a=function(){this._eventsBucket=[],this._beforeAdding=null,this._beforeRemoving=null};return a.prototype.addEvent=function(a,b,c,d){var e={target:a,selector:b,options:c,callback:d,firedElems:[]};return this._beforeAdding&&this._beforeAdding(e),this._eventsBucket.push(e),e},a.prototype.removeEvent=function(a){for(var c,b=this._eventsBucket.length-1;c=this._eventsBucket[b];b--)a(c)&&(this._beforeRemoving&&this._beforeRemoving(c),this._eventsBucket.splice(b,1))},a.prototype.beforeAdding=function(a){this._beforeAdding=a},a.prototype.beforeRemoving=function(a){this._beforeRemoving=a},a}(),g=function(b,d){var g=new f,h=this,i={fireOnAttributesModification:!1};return g.beforeAdding(function(c){var i,e=c.target;c.selector,c.callback;e!==a.document&&e!==a||(e=document.getElementsByTagName("html")[0]),i=new MutationObserver(function(a){d.call(this,a,c)});var j=b(c.options);i.observe(e,j),c.observer=i,c.me=h}),g.beforeRemoving(function(a){a.observer.disconnect()}),this.bindEvent=function(a,b,c){b=e.mergeArrays(i,b);for(var d=e.toElementsArray(this),f=0;f<d.length;f++)g.addEvent(d[f],a,b,c)},this.unbindEvent=function(){var a=e.toElementsArray(this);g.removeEvent(function(b){for(var d=0;d<a.length;d++)if(this===c||b.target===a[d])return!0;return!1})},this.unbindEventWithSelectorOrCallback=function(a){var f,b=e.toElementsArray(this),d=a;f="function"==typeof a?function(a){for(var e=0;e<b.length;e++)if((this===c||a.target===b[e])&&a.callback===d)return!0;return!1}:function(d){for(var e=0;e<b.length;e++)if((this===c||d.target===b[e])&&d.selector===a)return!0;return!1},g.removeEvent(f)},this.unbindEventWithSelectorAndCallback=function(a,b){var d=e.toElementsArray(this);g.removeEvent(function(e){for(var f=0;f<d.length;f++)if((this===c||e.target===d[f])&&e.selector===a&&e.callback===b)return!0;return!1})},this},h=function(){function h(a){var b={attributes:!1,childList:!0,subtree:!0};return a.fireOnAttributesModification&&(b.attributes=!0),b}function i(a,b){a.forEach(function(a){var c=a.addedNodes,d=a.target,f=[];null!==c&&c.length>0?e.checkChildNodesRecursively(c,b,k,f):"attributes"===a.type&&k(d,b,f)&&f.push({callback:b.callback,elem:node}),e.callCallbacks(f)})}function k(a,b,f){if(e.matchesSelector(a,b.selector)&&(a._id===c&&(a._id=d++),b.firedElems.indexOf(a._id)==-1)){if(b.options.onceOnly){if(0!==b.firedElems.length)return;b.me.unbindEventWithSelectorAndCallback.call(b.target,b.selector,b.callback)}b.firedElems.push(a._id),f.push({callback:b.callback,elem:a})}}var f={fireOnAttributesModification:!1,onceOnly:!1,existing:!1};j=new g(h,i);var l=j.bindEvent;return j.bindEvent=function(a,b,c){"undefined"==typeof c?(c=b,b=f):b=e.mergeArrays(f,b);var d=e.toElementsArray(this);if(b.existing){for(var g=[],h=0;h<d.length;h++)for(var i=d[h].querySelectorAll(a),j=0;j<i.length;j++)g.push({callback:c,elem:i[j]});if(b.onceOnly&&g.length)return c.call(g[0].elem);setTimeout(e.callCallbacks,1,g)}l.call(this,a,b,c)},j},i=function(){function d(a){var b={childList:!0,subtree:!0};return b}function f(a,b){a.forEach(function(a){var c=a.removedNodes,f=(a.target,[]);null!==c&&c.length>0&&e.checkChildNodesRecursively(c,b,h,f),e.callCallbacks(f)})}function h(a,b){return e.matchesSelector(a,b.selector)}var c={};k=new g(d,f);var i=k.bindEvent;return k.bindEvent=function(a,b,d){"undefined"==typeof d?(d=b,b=c):b=e.mergeArrays(c,b),i.call(this,a,b,d)},k},j=new h,k=new i;b&&m(b.fn),m(HTMLElement.prototype),m(NodeList.prototype),m(HTMLCollection.prototype),m(HTMLDocument.prototype),m(Window.prototype);var n={};return l(j,n,"unbindAllArrive"),l(k,n,"unbindAllLeave"),n}}(window,"undefined"==typeof jQuery?null:jQuery,void 0);"undefined"!==jQuery&&check_webp_feature("alpha",ewww_load_images);
+function check_webp_feature(a,b){var c={alpha:"UklGRkoAAABXRUJQVlA4WAoAAAAQAAAAAAAAAAAAQUxQSAwAAAARBxAR/Q9ERP8DAABWUDggGAAAABQBAJ0BKgEAAQAAAP4AAA3AAP7mtQAAAA==",animation:"UklGRlIAAABXRUJQVlA4WAoAAAASAAAAAAAAAAAAQU5JTQYAAAD/////AABBTk1GJgAAAAAAAAAAAAAAAAAAAGQAAABWUDhMDQAAAC8AAAAQBxAREYiI/gcA"},d=!1,e=new Image;e.onload=function(){var a=e.width>0&&e.height>0;d=!0,b(a)},e.onerror=function(){d=!1,b(!1)},e.src="data:image/webp;base64,"+c[a]}function ewww_load_images(a){jQuery(document).arrive(".ewww_webp",function(){ewww_load_images(a)}),function(b){function d(a,d){for(var e=["align","alt","border","crossorigin","height","hspace","ismap","longdesc","usemap","vspace","width","accesskey","class","contenteditable","contextmenu","dir","draggable","dropzone","hidden","id","lang","spellcheck","style","tabindex","title","translate","sizes"],f=0,g=e.length;f<g;f++){var h=b(a).attr(c+e[f]);"undefined"!=typeof h&&h!==!1&&b(d).attr(e[f],h)}return d}var c="data-";a&&(b(".batch-image img, .image-wrapper a, .ngg-pro-masonry-item a").each(function(){var a=b(this).attr("data-webp");"undefined"!=typeof a&&a!==!1&&b(this).attr("data-src",a);var a=b(this).attr("data-webp-thumbnail");"undefined"!=typeof a&&a!==!1&&b(this).attr("data-thumbnail",a)}),b(".image-wrapper a, .ngg-pro-masonry-item a").each(function(){var a=b(this).attr("data-webp");"undefined"!=typeof a&&a!==!1&&b(this).attr("href",a)}),b(".rev_slider ul li").each(function(){var a=b(this).attr("data-webp-thumb");"undefined"!=typeof a&&a!==!1&&b(this).attr("data-thumb",a);for(var c=1;c<11;){var a=b(this).attr("data-webp-param"+c);"undefined"!=typeof a&&a!==!1&&b(this).attr("data-param"+c,a),c++}}),b(".rev_slider img").each(function(){var a=b(this).attr("data-webp-lazyload");"undefined"!=typeof a&&a!==!1&&b(this).attr("data-lazyload",a)})),b("img.ewww_webp_lazy_retina").each(function(){if(a){var c=b(this).attr("data-srcset-webp");"undefined"!=typeof c&&c!==!1&&b(this).attr("data-srcset",c)}else{var c=b(this).attr("data-srcset-img");"undefined"!=typeof c&&c!==!1&&b(this).attr("data-srcset",c)}b(this).removeClass("ewww_webp_lazy_retina")}),b("img.ewww_webp_lazy_load").each(function(){if(a){b(this).attr("data-lazy-src",b(this).attr("data-lazy-webp-src"));var c=b(this).attr("data-srcset-webp");"undefined"!=typeof c&&c!==!1&&b(this).attr("srcset",c);var c=b(this).attr("data-lazy-srcset-webp");"undefined"!=typeof c&&c!==!1&&b(this).attr("data-lazy-srcset",c)}else{b(this).attr("data-lazy-src",b(this).attr("data-lazy-img-src"));var c=b(this).attr("data-srcset");"undefined"!=typeof c&&c!==!1&&b(this).attr("srcset",c);var c=b(this).attr("data-lazy-srcset-img");"undefined"!=typeof c&&c!==!1&&b(ewww_img).attr("data-lazy-srcset",c)}b(this).removeClass("ewww_webp_lazy_load")}),b(".ewww_webp_lazy_hueman").each(function(){var c=document.createElement("img");if(b(c).attr("src",b(this).attr("data-src")),a){b(c).attr("data-src",b(this).attr("data-webp-src"));var e=b(this).attr("data-srcset-webp");"undefined"!=typeof e&&e!==!1&&b(c).attr("data-srcset",e)}else{b(c).attr("data-src",b(this).attr("data-img"));var e=b(this).attr("data-srcset-img");"undefined"!=typeof e&&e!==!1&&b(c).attr("data-srcset",e)}c=d(this,c),b(this).after(c),b(this).removeClass("ewww_webp_lazy_hueman")}),b(".ewww_webp").each(function(){var c=document.createElement("img");if(a){b(c).attr("src",b(this).attr("data-webp"));var e=b(this).attr("data-srcset-webp");"undefined"!=typeof e&&e!==!1&&b(c).attr("srcset",e)}else{b(c).attr("src",b(this).attr("data-img"));var e=b(this).attr("data-srcset-img");"undefined"!=typeof e&&e!==!1&&b(c).attr("srcset",e)}c=d(this,c),b(this).after(c),b(this).removeClass("ewww_webp")})}(jQuery),jQuery.fn.isotope&&jQuery.fn.imagesLoaded&&(jQuery(".fusion-posts-container-infinite").imagesLoaded(function(){jQuery(".fusion-posts-container-infinite").hasClass("isotope")&&jQuery(".fusion-posts-container-infinite").isotope()}),jQuery(".fusion-portfolio:not(.fusion-recent-works) .fusion-portfolio-wrapper").imagesLoaded(function(){jQuery(".fusion-portfolio:not(.fusion-recent-works) .fusion-portfolio-wrapper").isotope()}))}var Arrive=function(a,b,c){"use strict";function l(a,b,c){e.addMethod(b,c,a.unbindEvent),e.addMethod(b,c,a.unbindEventWithSelectorOrCallback),e.addMethod(b,c,a.unbindEventWithSelectorAndCallback)}function m(a){a.arrive=j.bindEvent,l(j,a,"unbindArrive"),a.leave=k.bindEvent,l(k,a,"unbindLeave")}if(a.MutationObserver&&"undefined"!=typeof HTMLElement){var d=0,e=function(){var b=HTMLElement.prototype.matches||HTMLElement.prototype.webkitMatchesSelector||HTMLElement.prototype.mozMatchesSelector||HTMLElement.prototype.msMatchesSelector;return{matchesSelector:function(a,c){return a instanceof HTMLElement&&b.call(a,c)},addMethod:function(a,b,c){var d=a[b];a[b]=function(){return c.length==arguments.length?c.apply(this,arguments):"function"==typeof d?d.apply(this,arguments):void 0}},callCallbacks:function(a){for(var c,b=0;c=a[b];b++)c.callback.call(c.elem)},checkChildNodesRecursively:function(a,b,c,d){for(var g,f=0;g=a[f];f++)c(g,b,d)&&d.push({callback:b.callback,elem:g}),g.childNodes.length>0&&e.checkChildNodesRecursively(g.childNodes,b,c,d)},mergeArrays:function(a,b){var d,c={};for(d in a)c[d]=a[d];for(d in b)c[d]=b[d];return c},toElementsArray:function(b){return"undefined"==typeof b||"number"==typeof b.length&&b!==a||(b=[b]),b}}}(),f=function(){var a=function(){this._eventsBucket=[],this._beforeAdding=null,this._beforeRemoving=null};return a.prototype.addEvent=function(a,b,c,d){var e={target:a,selector:b,options:c,callback:d,firedElems:[]};return this._beforeAdding&&this._beforeAdding(e),this._eventsBucket.push(e),e},a.prototype.removeEvent=function(a){for(var c,b=this._eventsBucket.length-1;c=this._eventsBucket[b];b--)a(c)&&(this._beforeRemoving&&this._beforeRemoving(c),this._eventsBucket.splice(b,1))},a.prototype.beforeAdding=function(a){this._beforeAdding=a},a.prototype.beforeRemoving=function(a){this._beforeRemoving=a},a}(),g=function(b,d){var g=new f,h=this,i={fireOnAttributesModification:!1};return g.beforeAdding(function(c){var i,e=c.target;c.selector,c.callback;e!==a.document&&e!==a||(e=document.getElementsByTagName("html")[0]),i=new MutationObserver(function(a){d.call(this,a,c)});var j=b(c.options);i.observe(e,j),c.observer=i,c.me=h}),g.beforeRemoving(function(a){a.observer.disconnect()}),this.bindEvent=function(a,b,c){b=e.mergeArrays(i,b);for(var d=e.toElementsArray(this),f=0;f<d.length;f++)g.addEvent(d[f],a,b,c)},this.unbindEvent=function(){var a=e.toElementsArray(this);g.removeEvent(function(b){for(var d=0;d<a.length;d++)if(this===c||b.target===a[d])return!0;return!1})},this.unbindEventWithSelectorOrCallback=function(a){var f,b=e.toElementsArray(this),d=a;f="function"==typeof a?function(a){for(var e=0;e<b.length;e++)if((this===c||a.target===b[e])&&a.callback===d)return!0;return!1}:function(d){for(var e=0;e<b.length;e++)if((this===c||d.target===b[e])&&d.selector===a)return!0;return!1},g.removeEvent(f)},this.unbindEventWithSelectorAndCallback=function(a,b){var d=e.toElementsArray(this);g.removeEvent(function(e){for(var f=0;f<d.length;f++)if((this===c||e.target===d[f])&&e.selector===a&&e.callback===b)return!0;return!1})},this},h=function(){function h(a){var b={attributes:!1,childList:!0,subtree:!0};return a.fireOnAttributesModification&&(b.attributes=!0),b}function i(a,b){a.forEach(function(a){var c=a.addedNodes,d=a.target,f=[];null!==c&&c.length>0?e.checkChildNodesRecursively(c,b,k,f):"attributes"===a.type&&k(d,b,f)&&f.push({callback:b.callback,elem:node}),e.callCallbacks(f)})}function k(a,b,f){if(e.matchesSelector(a,b.selector)&&(a._id===c&&(a._id=d++),b.firedElems.indexOf(a._id)==-1)){if(b.options.onceOnly){if(0!==b.firedElems.length)return;b.me.unbindEventWithSelectorAndCallback.call(b.target,b.selector,b.callback)}b.firedElems.push(a._id),f.push({callback:b.callback,elem:a})}}var f={fireOnAttributesModification:!1,onceOnly:!1,existing:!1};j=new g(h,i);var l=j.bindEvent;return j.bindEvent=function(a,b,c){"undefined"==typeof c?(c=b,b=f):b=e.mergeArrays(f,b);var d=e.toElementsArray(this);if(b.existing){for(var g=[],h=0;h<d.length;h++)for(var i=d[h].querySelectorAll(a),j=0;j<i.length;j++)g.push({callback:c,elem:i[j]});if(b.onceOnly&&g.length)return c.call(g[0].elem);setTimeout(e.callCallbacks,1,g)}l.call(this,a,b,c)},j},i=function(){function d(a){var b={childList:!0,subtree:!0};return b}function f(a,b){a.forEach(function(a){var c=a.removedNodes,f=(a.target,[]);null!==c&&c.length>0&&e.checkChildNodesRecursively(c,b,h,f),e.callCallbacks(f)})}function h(a,b){return e.matchesSelector(a,b.selector)}var c={};k=new g(d,f);var i=k.bindEvent;return k.bindEvent=function(a,b,d){"undefined"==typeof d?(d=b,b=c):b=e.mergeArrays(c,b),i.call(this,a,b,d)},k},j=new h,k=new i;b&&m(b.fn),m(HTMLElement.prototype),m(NodeList.prototype),m(HTMLCollection.prototype),m(HTMLDocument.prototype),m(Window.prototype);var n={};return l(j,n,"unbindAllArrive"),l(k,n,"unbindAllLeave"),n}}(window,"undefined"==typeof jQuery?null:jQuery,void 0);"undefined"!=typeof jQuery&&check_webp_feature("alpha",ewww_load_images);
 </script>
-<?php	} // current length 8759
+<?php	} // current length 9069
 }
 
 // enqueue custom jquery stylesheet for bulk optimizer
@@ -2679,9 +2695,9 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 		$savings_str = preg_replace( '/\.0 B /', ' B', $savings_str );
 		$savings_str = str_replace( ' ', '&nbsp;', $savings_str );
 		// determine the percentage savings
-		$percent = 100 - ( 100 * ( $opt_size / $orig_size ) );
+		$percent = number_format_i18n( 100 - ( 100 * ( $opt_size / $orig_size ) ), 1 ) . '%';
 		// use the percentage and the savings size to output a nice message to the user
-		$results_msg = sprintf( __( "Reduced by %01.1f%% (%s)", EWWW_IMAGE_OPTIMIZER_DOMAIN ),
+		$results_msg = sprintf( __( 'Reduced by %1$s (%2$s)', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
 			$percent,
 			$savings_str
 		) . $prev_string;

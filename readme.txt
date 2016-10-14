@@ -260,12 +260,16 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * feature requests are sticky at the top of the support forums, vote for the ones you like: https://wordpress.org/support/plugin/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
-= 3.0.3 =
+= 3.1.0 =
+* added: warning when excessive re-optimizations have been detected
+* added: Alt WebP supports lazy loading in Hueman theme
+* added: Alt WebP supports Lazy Load plugin and Cherry Lazy modifications
+* added: Alt WebP supports BJ Lazy Load plugin
+* added: Alt WebP supports Retina Lazysizes
 * changed: wp_image_editor integration does not use background optimization, reverting to inline processing, holler if you want it back
 * changed: all scripts have proper version numbers to avoid caching issues
 * changed: inline webp script moved to head element to work better with lazy loading
-* added: Alt Webp supports lazy loading in Hueman theme
-* added: Alt Webp supports Lazy Load plugin and Cherry Lazy modifications
+* changed: optimized Alt WebP code for smaller size
 
 = 3.0.2 =
 * fixed: fatal error running empty() on a constant in PHP less than 5.5

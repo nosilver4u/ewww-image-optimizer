@@ -522,6 +522,20 @@ function ewww_load_images(ewww_webp_supported) {
 				}
 			});
 		}
+		$('img.ewww_webp_lazy_retina').each(function() {
+			if (ewww_webp_supported) {
+				var ewww_attr = $(this).attr('data-srcset-webp');
+				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
+					$(this).attr('data-srcset', ewww_attr);
+				}
+			} else {
+				var ewww_attr = $(this).attr('data-srcset-img');
+				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
+						$(this).attr('data-srcset', ewww_attr);
+				}
+			}
+			$(this).removeClass('ewww_webp_lazy_retina');
+		});
 		$('img.ewww_webp_lazy_load').each(function() {
 			if (ewww_webp_supported) {
 				$(this).attr('data-lazy-src', $(this).attr('data-lazy-webp-src'));
@@ -586,7 +600,7 @@ function ewww_load_images(ewww_webp_supported) {
 			$(this).removeClass('ewww_webp');
 		});
 	})(jQuery);
-  	if( jQuery.fn.isotope && jQuery.fn.imagesLoaded ) {
+  	if ( jQuery.fn.isotope && jQuery.fn.imagesLoaded ) {
 		jQuery('.fusion-posts-container-infinite').imagesLoaded( function() {
 			if ( jQuery( '.fusion-posts-container-infinite' ).hasClass( 'isotope' ) ) {
 				jQuery( '.fusion-posts-container-infinite' ).isotope();
@@ -597,6 +611,6 @@ function ewww_load_images(ewww_webp_supported) {
 		});
 	}
 }
-if ( jQuery !== 'undefined' ) {
+if ( typeof jQuery !== 'undefined' ) {
 	check_webp_feature('alpha', ewww_load_images);
 }
