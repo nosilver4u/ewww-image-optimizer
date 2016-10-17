@@ -1,3 +1,15 @@
+= 2.9.9 =
+* fixed: broken uploads with W3TC CDN option enabled
+* fixed: warning when scanning Meta Slider metadata for images
+* fixed: should not check for 'nice' when exec() is disabled
+* fixed: notices for 'nice' when exec() output is empty
+* fixed: wp-cli command skipping pdf files
+* added: ability to view API history at https://history.exactlywww.com/
+* added: abiltiy to disable set_time_limit() function with EWWW_IMAGE_OPTIMIZER_DISABLE_STL constant
+* added: plugin now on GitHub https://github.com/nosilver4u/ewww-image-optimizer
+* changed: removed baseline JPG encoding trial, since progressive compression is almost always smaller, and is always more desirable from a UX perspective
+* updated: cwebp version 0.5.1
+
 = 2.9.8 =
 * fixed: also disable parallel mode iternally if background testing is not successful
 * fixed: fatal error when WP Retina 2x is enabled with EWWW's parallel mode
