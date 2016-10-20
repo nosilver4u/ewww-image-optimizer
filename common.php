@@ -1519,7 +1519,7 @@ function ewww_image_optimizer_retina( $id, $retina_path ) {
 				'id' => $optimized_query['id'],
 			));
 	} else {
-		if ( ewww_image_optimizer_test_parallel_opt( $id ) ) {
+		if ( ewww_image_optimizer_test_parallel_opt( '', $id ) ) {
 			if ( ! empty( $_REQUEST['ewww_force'] ) ) {
 				$force = true;
 			} else {
@@ -3251,8 +3251,8 @@ function ewww_image_optimizer_find_already_optimized( $attachment ) {
 	return false;
 }
 
-// used only for background WP_Image_Editor requests, not for processing uploaded image attachments, that one uses the wpsf_location_lock function directly
-function ewww_image_optimizer_test_background_opt() {
+// WAS used only for background WP_Image_Editor requests, not for processing uploaded image attachments, that one uses the wpsf_location_lock function directly
+/*function ewww_image_optimizer_test_background_opt() {
 	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ) {
 		return false;
 	}
@@ -3263,9 +3263,30 @@ function ewww_image_optimizer_test_background_opt() {
 		return false;
 	}
 	return true;
+}*/
+
+// WAS used only for background WP_Image_Editor requests, not for processing uploaded image attachments, that one uses the wpsf_location_lock function directly
+function ewww_image_optimizer_test_background_opt( $type ) {
+	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ) {
+		return false;
+	}
+	if ( ewww_image_optimizer_detect_wpsf_location_lock() ) {
+		return false;
+	}
+	if ( $type == 'image/jpeg' && ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) ) {
+		return apply_filters( 'ewww_image_optimizer_defer_conversion', false );
+	}
+	if ( $type == 'image/png' && ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' ) ) {
+		return apply_filters( 'ewww_image_optimizer_defer_conversion', false );
+	}
+	if ( $type == 'image/gif' && ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_to_png' ) ) {
+		return apply_filters( 'ewww_image_optimizer_defer_conversion', false );
+	}
+	global $ewww_defer;
+	return (bool) $ewww_defer;
 }
 
-function ewww_image_optimizer_test_parallel_opt( $id = 0 ) {
+function ewww_image_optimizer_test_parallel_opt( $type = '', $id = 0 ) {
 	if ( ewww_image_optimizer_detect_wpsf_location_lock() ) {
 		return false;
 	}
@@ -3281,7 +3302,9 @@ function ewww_image_optimizer_test_parallel_opt( $id = 0 ) {
 	if ( ! empty( $_REQUEST['ewww_convert'] ) ) {
 		return false;
 	}
-	$type = get_post_mime_type( $id );
+	if ( empty( $type ) ) {
+		$type = get_post_mime_type( $id );
+	}
 	if ( $type == 'image/jpeg' && ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) ) {
 		return false;
 	}
@@ -3347,7 +3370,6 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 				$meta = $new_meta;
 			}
 		} else {
-			ewwwio_debug_message( '------' . print_r( $meta, true ) . '-----' );
 			ewwwio_debug_message( 'attachment meta is not a usable array' );
 			return $meta;
 		}
@@ -3436,7 +3458,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 			$meta['height'] = $new_dimensions[1];
 		}
 	}
-	if ( $ewww_defer && ! ewww_image_optimizer_detect_wpsf_location_lock() && ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ) {
+	if ( ewww_image_optimizer_test_background_opt( $type ) ) {
 		add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 		global $ewwwio_media_background;
 		if ( ! class_exists( 'WP_Background_Process' ) ) {
@@ -3470,8 +3492,8 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 		}
 	}
 	// this gets a bit long, so here goes:
-	// we run in parallel if we didn't detect breakage (test_parallel_opt), if the type isn't pdf (there's only one file to optimize anyway), and there are enough resizes to make it worthwhile (or if the API is enabled)
-	if ( ewww_image_optimizer_test_parallel_opt( $ID ) && $type != 'application/pdf' && isset( $meta['sizes'] ) && ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) || count( $meta['sizes'] ) > 5 ) ) {
+	// we run in parallel if we didn't detect breakage (test_parallel_opt), and there are enough resizes to make it worthwhile (or if the API is enabled)
+	if ( ewww_image_optimizer_test_parallel_opt( $type ) && isset( $meta['sizes'] ) && ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) || count( $meta['sizes'] ) > 5 ) ) {
 //	if ( ewww_image_optimizer_test_parallel_opt( $ID ) && $type != 'application/pdf' ) {
 		ewwwio_debug_message( 'running in parallel' );
 		$parallel_opt = true;
