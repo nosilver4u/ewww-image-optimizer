@@ -181,7 +181,7 @@ class ewwwngg {
 //			$skip = ewww_image_optimizer_skip_tools();
 			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) ) {
 				ewww_image_optimizer_tool_init();
-				ewww_image_optimizer_notice_utils( false );
+				ewww_image_optimizer_notice_utils( 'quiet' );
 			}
 	                switch ( $type ) {
         	                case 'image/jpeg':

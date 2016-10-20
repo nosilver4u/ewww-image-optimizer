@@ -361,6 +361,9 @@ jQuery(document).ready(function($) {
 			}
 			else {
 				if ( ewww_response.results ) {
+				$('#ewww-bulk-widgets').show();
+				$('#ewww-bulk-status h2').show();
+				//$('#ewww-bulk-last h2').show();
 		                	$('#ewww-bulk-status .inside').append( ewww_response.results );
 				}
 				clearInterval(ewww_quota_update);

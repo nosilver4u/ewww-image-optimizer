@@ -9,11 +9,13 @@
 // TODO: see if we can offer a rebuild option, to restore/rebuild broken meta, and also to fill in missing thumbs
 // TODO: look at simple_html_dom_node that wp retina uses for parsing
 
+// TODO: prevent background optimization when conversion is on, with a filter for override
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '310.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '311.1' );
 
 // initialize a couple globals
 $ewww_debug = '';
@@ -50,7 +52,7 @@ if ( ! isset( $wpdb->ewwwio_images ) ) {
 	$wpdb->ewwwio_images = $wpdb->prefix . "ewwwio_images";
 }
 
-add_action( 'contextual_help', 'wptuts_screen_help', 10, 3 );
+//add_action( 'contextual_help', 'wptuts_screen_help', 10, 3 );
 function wptuts_screen_help( $contextual_help, $screen_id, $screen ) {
  
 	global $hook_suffix;
@@ -1905,10 +1907,9 @@ function ewww_image_optimizer_manual() {
 		$new_meta = ewww_image_optimizer_resize_from_meta_data( $original_meta, $attachment_ID );
 	} elseif ( $_REQUEST['action'] === 'ewww_image_optimizer_manual_restore' || $_REQUEST['action'] === 'ewww_manual_restore' ) {
 		$new_meta = ewww_image_optimizer_restore_from_meta_data( $original_meta, $attachment_ID );
-		global $ewww_attachment;
+	/*	global $ewww_attachment;
 		$ewww_attachment['id'] = $attachment_ID;
-		$ewww_attachment['meta'] = $new_meta;
-		add_filter( 'w3tc_cdn_update_attachment_metadata', 'ewww_image_optimizer_w3tc_update_files' );
+		$ewww_attachment['meta'] = $new_meta;*/
 	} else {
 		if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
 			wp_die( esc_html__( 'Access denied.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
@@ -1920,7 +1921,10 @@ function ewww_image_optimizer_manual() {
 		$basename = basename( $new_meta['file'] );
 	}
 	// update the attachment metadata in the database
-	wp_update_attachment_metadata( $attachment_ID, $new_meta );
+	$meta_saved = wp_update_attachment_metadata( $attachment_ID, $new_meta );
+	if ( ! $meta_saved ) {
+		ewwwio_debug_message( 'failed to save meta' );
+	}
 	$success = ewww_image_optimizer_custom_column( 'ewww-image-optimizer', $attachment_ID, $new_meta, true );
 	ewww_image_optimizer_debug_log();
 	// do a redirect, if this was called via GET
@@ -3333,7 +3337,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 	if ( ! is_array( $meta ) && empty( $meta ) ) {
 		$meta = array();
 	} elseif ( ! is_array( $meta ) ) {
-		if ( is_string( $meta )  && is_int( $ID ) && 'processing' == $meta ) {
+		if ( is_string( $meta )  && is_numeric( $ID ) && 'processing' == $meta ) {
 			ewwwio_debug_message( "attempting to rebuild attachment meta for $ID" );
 			$new_meta = ewww_image_optimizer_rebuild_meta( $ID );
 			if ( ! is_array( $new_meta ) ) {
@@ -3343,6 +3347,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 				$meta = $new_meta;
 			}
 		} else {
+			ewwwio_debug_message( '------' . print_r( $meta, true ) . '-----' );
 			ewwwio_debug_message( 'attachment meta is not a usable array' );
 			return $meta;
 		}
@@ -4187,7 +4192,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 		}
 		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) ) {
 			ewww_image_optimizer_tool_init();
-			ewww_image_optimizer_notice_utils( false );
+			ewww_image_optimizer_notice_utils( 'quiet' );
 		}
 		$skip = ewww_image_optimizer_skip_tools();
 		// run the appropriate code based on the mimetype

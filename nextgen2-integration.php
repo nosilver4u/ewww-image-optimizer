@@ -228,7 +228,7 @@ class ewwwngg {
 			// check to see if we have a tool to handle the mimetype detected
 			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) ) {
 				ewww_image_optimizer_tool_init();
-				ewww_image_optimizer_notice_utils( false );
+				ewww_image_optimizer_notice_utils( 'quiet' );
 			}
 //			$skip = ewww_image_optimizer_skip_tools();
 	                switch ( $type ) {

@@ -1,7 +1,7 @@
 <?php
 /**
  * Integrate image optimizers into WordPress.
- * @version 3.1.0
+ * @version 3.1.1
  * @package EWWW_Image_Optimizer
  */
 /*
@@ -10,7 +10,7 @@ Plugin URI: https://wordpress.org/extend/plugins/ewww-image-optimizer/
 Description: Reduce file sizes for images within WordPress including NextGEN Gallery and GRAND FlAGallery. Uses jpegtran, optipng/pngout, and gifsicle.
 Author: Shane Bishop
 Text Domain: ewww-image-optimizer
-Version: 3.1.0
+Version: 3.1.1
 Author URI: https://ewww.io/
 License: GPLv3
 */
@@ -458,11 +458,12 @@ function ewww_image_optimizer_skip_tools() {
 
 // we check for safe mode and exec, then also direct the user where to go if they don't have the tools installed
 // this is another function called by hook usually
-function ewww_image_optimizer_notice_utils( $verbose = true ) {
+function ewww_image_optimizer_notice_utils( $quiet = null ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Check if exec is disabled
 	if ( ewww_image_optimizer_exec_check() ) {
-		if ( $verbose ) {
+		// need to be a little particular with the quiet parameter
+		if ( $quiet !== 'quiet' ) {
 			//display a warning if exec() is disabled, can't run much of anything without it
 			echo "<div id='ewww-image-optimizer-warning-exec' class='error'><p>" . esc_html__( 'EWWW Image Optimizer requires exec() or an API key. Your system administrator has disabled the exec() function, ask them to enable it.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p></div>";
 		}
@@ -474,7 +475,7 @@ function ewww_image_optimizer_notice_utils( $verbose = true ) {
 		return;
 		// otherwise, query the php settings for safe mode
 	} elseif ( ewww_image_optimizer_safemode_check() ) {
-		if ( $verbose ) {
+		if ( $quiet !== 'quiet' ) {
 			// display a warning to the user
 			echo "<div id='ewww-image-optimizer-warning-safemode' class='error'><p>" . esc_html__( 'Safe Mode is turned on for PHP. This plugin cannot operate in Safe Mode unless you have an API key.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p></div>";
 		}
@@ -564,7 +565,7 @@ function ewww_image_optimizer_notice_utils( $verbose = true ) {
 	// expand the missing utilities list for use in the error message
 	$msg = implode( ', ', $missing );
 	// if there is a message, display the warning
-	if ( ! empty( $msg ) && $verbose ) {
+	if ( ! empty( $msg ) && $quiet !== 'quiet' ) {
 		if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
 			// need to include the plugin library for the is_plugin_active function
 			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );

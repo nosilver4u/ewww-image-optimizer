@@ -359,8 +359,12 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 	// check the 'bulk resume' option
 	$resume = get_option('ewww_image_optimizer_bulk_resume');
 	// see if we were given attachment IDs to work with via GET/POST
-        if ( ! empty( $_REQUEST['ids'] ) && preg_match( '/^[\d,]+$/', $_REQUEST['ids'], $request_ids ) ) {
-		$ids = explode( ',', $request_ids[0] );
+        if ( ! empty( $_REQUEST['ids'] ) && ( preg_match( '/^[\d,]+$/', $_REQUEST['ids'], $request_ids ) || is_numeric( $_REQUEST['ids'] ) ) ) {
+		if ( is_numeric( $_REQUEST['ids'] ) ) {
+			$ids = (int) $_REQUEST['ids'];
+		} else {
+			$ids = explode( ',', $request_ids[0] );
+		}
 		$sample_post_type = get_post_type( $ids[0] );
 		//ewwwio_debug_message( "ids: " . $request_ids[0] );
 		ewwwio_debug_message( "post type (checking for ims_gallery): $sample_post_type" );
@@ -515,15 +519,14 @@ function ewww_image_optimizer_bulk_loop() {
 	}
 	// get the 'bulk attachments' with a list of IDs remaining
 	$attachments = get_option( 'ewww_image_optimizer_bulk_attachments' );
-	$attachment = array_shift( $attachments );
+	$attachment = (int) array_shift( $attachments );
 	$meta = wp_get_attachment_metadata( $attachment, true );
 	// do the optimization for the current attachment (including resizes)
 	$meta = ewww_image_optimizer_resize_from_meta_data( $meta, $attachment, false );
 	$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
 	if ( ! empty ( $ewww_status ) && preg_match( '/exceeded/', $ewww_status ) ) {
 		$output['error'] = esc_html__( 'License Exceeded', EWWW_IMAGE_OPTIMIZER_DOMAIN );
-		echo json_encode( $output );
-		die();
+		die( json_encode( $output ) );
 	}
 	if ( ! empty ( $meta['file'] ) ) {
 		// output the filename (and path relative to 'uploads' folder)
@@ -554,7 +557,10 @@ function ewww_image_optimizer_bulk_loop() {
 	$ewww_attachment['meta'] = $meta;
 	add_filter( 'w3tc_cdn_update_attachment_metadata', 'ewww_image_optimizer_w3tc_update_files' );*/
 	// update the metadata for the current attachment
-	wp_update_attachment_metadata( $attachment, $meta );
+	$meta_saved = wp_update_attachment_metadata( $attachment, $meta );
+	if ( ! $meta_saved ) {
+		ewwwio_debug_message( 'failed to save meta' );
+	}
 	// store the updated list of attachment IDs back in the 'bulk_attachments' option
 	update_option( 'ewww_image_optimizer_bulk_attachments', $attachments, false );
 	if ( ewww_image_optimizer_get_option ( 'ewww_image_optimizer_debug' ) ) {
