@@ -3283,7 +3283,7 @@ function ewww_image_optimizer_test_background_opt( $type ) {
 		return apply_filters( 'ewww_image_optimizer_defer_conversion', false );
 	}
 	global $ewww_defer;
-	return (bool) $ewww_defer;
+	return (bool) apply_filters( 'ewww_image_optimizer_background_optimization', $ewww_defer );
 }
 
 function ewww_image_optimizer_test_parallel_opt( $type = '', $id = 0 ) {

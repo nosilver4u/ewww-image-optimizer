@@ -261,6 +261,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 3.1.2 =
+* added: ability to disable background optimization via ewww_image_optimizer_background_optimization filter
 * changed: conversion operations are not run in background, override with ewww_image_optimizer_defer_conversion filter
 * fixed: bulk operation handles attachment ID as a string instead of an integer
 * fixed: bulk optimizing a single image displays no results
