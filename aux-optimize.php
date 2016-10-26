@@ -182,6 +182,8 @@ function ewww_image_optimizer_aux_images_table_count_pending() {
 function ewww_image_optimizer_image_scan( $dir ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
+	// TODO: use a global to store the already optimized images, so we don't have to requery every time we call the image_scan() function
+	global $optimized_list;
 	$images = array();
 	$reset_images = array();
 	if ( ! is_dir( $dir ) ) {
@@ -190,13 +192,16 @@ function ewww_image_optimizer_image_scan( $dir ) {
 	ewwwio_debug_message( "scanning folder for images: $dir" );
 	$iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $dir ), RecursiveIteratorIterator::CHILD_FIRST, RecursiveIteratorIterator::CATCH_GET_CHILD );
 	$start = microtime( true );
-	$query = "SELECT id,path,image_size FROM $wpdb->ewwwio_images";
-	$already_optimized = $wpdb->get_results( $query, ARRAY_A );
-	$optimized_list = array();
-	foreach( $already_optimized as $optimized ) {
-		$optimized_path = $optimized['path'];
-		$optimized_list[ $optimized_path ]['image_size'] = $optimized['image_size'];
-		$optimized_list[ $optimized_path ]['id'] = $optimized['id'];
+	if ( empty( $optimized_list ) || ! is_array( $optimized_list ) ) {
+		ewwwio_debug_message( 'building optimized list' );
+		$query = "SELECT id,path,image_size FROM $wpdb->ewwwio_images";
+		$already_optimized = $wpdb->get_results( $query, ARRAY_A );
+		$optimized_list = array();
+		foreach( $already_optimized as $optimized ) {
+			$optimized_path = $optimized['path'];
+			$optimized_list[ $optimized_path ]['image_size'] = $optimized['image_size'];
+			$optimized_list[ $optimized_path ]['id'] = $optimized['id'];
+		}
 	}
 	$file_counter = 0; // track total files
 	$image_count = 0; // track number of files since last queue update

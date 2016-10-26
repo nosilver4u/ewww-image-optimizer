@@ -5,7 +5,6 @@
 // TODO: add support for this: https://wordpress.org/plugins/photo-gallery/ -- or write an article about how to use Scan & Optimize for it
 
 // TODO: revamp bulk, make it pull only from table, track images by attachment ID as well, so we can pull resize data
-// TODO: not sure about the bukl revamp, but let's build the scan & optimize to store images in the table instead of in a single 'option' value and see how it scales
 // TODO: maybe move percentages to be built on-demand too, with a dedicated function for portability
 // TODO: see if we can offer a rebuild option, to restore/rebuild broken meta, and also to fill in missing thumbs
 // TODO: look at simple_html_dom_node that wp retina uses for parsing
@@ -1302,7 +1301,7 @@ function ewww_image_optimizer_auto() {
 		if ( ! empty( $count ) ) {
 			global $wpdb;
 			$i = 0;
-			while ( $i < $count && $attachment = $wpdb->get_var( "SELECT path FROM $wpdb->ewwwio_images WHERE image_size IS NULL LIMIT 1", ARRAY_A ) ) {
+			while ( $i < $count && $attachment = $wpdb->get_var( "SELECT path FROM $wpdb->ewwwio_images WHERE image_size IS NULL LIMIT 1" ) ) {
 //			foreach ( $attachments as $attachment ) {
 				// if the nonce has changed since we started, bail out, since that means another aux scan/optimize is running
 				// we do a query using $wpdb, because get_option() is cached
@@ -1319,6 +1318,7 @@ function ewww_image_optimizer_auto() {
 					sleep( $delay );
 				}
 				ewww_image_optimizer_debug_log();
+				$i++;
 			}
 		}
 		ewww_image_optimizer_aux_images_cleanup( true );
