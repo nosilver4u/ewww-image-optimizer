@@ -265,7 +265,9 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * changed: scan and optimize rewritten to store images in batches, with auto-retry for very large sites
 * changed: conversion operations are not run in background, override with ewww_image_optimizer_defer_conversion filter
 * changed: reverted Alt WebP support for lazy load, as it does not work consistently
+* changed: cache query results for excessive reoptimization up to an hour
 * fixed: ensure disabled resizes are not optimized during Enable Media Replace uploader
+* fixed: images were not optimized after editing with Post Thumbnail Editor
 * fixed: bulk operation handles attachment ID as a string instead of an integer
 * fixed: bulk optimizing a single image displays no results
 * fixed: bulk optimizing images with corrupted metadata does not result in a repair operation

@@ -491,7 +491,9 @@ class ewwwngg {
 			die();
 		}
 		// output the results of the optimization
-		$output['results'] = sprintf( "<p>" . esc_html__('Optimized image:', EWWW_IMAGE_OPTIMIZER_DOMAIN) . " <strong>%s</strong><br>", esc_html( $fres[0] ) );
+		if ( $fres[0] ) {
+			$output['results'] = sprintf( "<p>" . esc_html__('Optimized image:', EWWW_IMAGE_OPTIMIZER_DOMAIN) . " <strong>%s</strong><br>", esc_html( $fres[0] ) );
+		}
 		$output['results'] .= sprintf( esc_html__( 'Full size - %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "<br>", esc_html( $fres[1] ) );
 		// output the results of the thumb optimization
 		$output['results'] .= sprintf( esc_html__( 'Thumbnail - %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "<br>", esc_html( $tres[1] ) );

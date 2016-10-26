@@ -18,6 +18,7 @@ class EWWWIO_Media_Background_Process extends WP_Background_Process {
 		$id = $item['id'];
 		if ( empty( $item['attempts'] ) ) {
 			$item['attempts'] = 0;
+			sleep(4); // on the first attempt, hold off and wait for the db to catchup
 		}
 		ewwwio_debug_message( "background processing $id, type: " . $item['type'] );
 		$type = $item['type'];

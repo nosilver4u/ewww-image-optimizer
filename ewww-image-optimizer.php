@@ -1382,7 +1382,8 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		$msg = __( "Optimization skipped", EWWW_IMAGE_OPTIMIZER_DOMAIN );
 		ewwwio_debug_message( "optimization bypassed due to filesize: $file" );
 		// send back the above message
-		return array( $file, $msg, $converted, $file );
+		//return array( $file, $msg, $converted, $file );
+		return array( false, $msg, $converted, $file );
 	}
 	// initialize $new_size with the original size, HOW ABOUT A ZERO...
 	//$new_size = $orig_size;
@@ -2154,14 +2155,14 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			break;
 		default:
 			// if not a JPG, PNG, or GIF, tell the user we don't work with strangers
-			return array( $file, __( 'Unknown type: ' . $type, EWWW_IMAGE_OPTIMIZER_DOMAIN ), $converted, $original );
+			return array( false, __( 'Unknown type: ' . $type, EWWW_IMAGE_OPTIMIZER_DOMAIN ), $converted, $original );
 	}
 	// allow other plugins to run operations on the images after optimization.
 	// NOTE: it is recommended to do any image modifications prior to optimization, otherwise you risk un-optimizing your images here.
 	do_action( 'ewww_image_optimizer_post_optimization', $file, $type );
 	// if their cloud api license limit has been exceeded
 	if ( $result == 'exceeded' ) {
-		return array( $file, __( 'License exceeded', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $converted, $original );
+		return array( false, __( 'License exceeded', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $converted, $original );
 	}
 	if ( ! empty( $new_size ) ) {
 		// Set correct file permissions
@@ -2175,7 +2176,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	}
 	ewwwio_memory( __FUNCTION__ );
 	// otherwise, send back the filename, the results (some sort of error message), the $converted flag, and the name of the original image
-	return array( $file, $result, $converted, $original );
+	return array( false, $result, $converted, $original );
 }
 
 // creates webp images alongside JPG and PNG files

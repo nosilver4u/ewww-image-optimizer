@@ -102,16 +102,16 @@ class ewwwngg {
 				$file_path = $storage->get_image_abspath($image, $size);
 				ewwwio_debug_message( "optimizing (nextgen): $file_path" );
 				// optimize the image and grab the results
-				$res = ewww_image_optimizer($file_path, 2, false, false, $full_size);
+				$res = ewww_image_optimizer( $file_path, 2, false, false, $full_size );
 				ewwwio_debug_message( "results {$res[1]}" );
 				// only if we're dealing with the full-size original
-				if ($size === 'full') {
+				if ( $size === 'full' ) {
 					// update the metadata for the optimized image
 					$image->meta_data['ewww_image_optimizer'] = $res[1];
 				} else {
-					$image->meta_data[$size]['ewww_image_optimizer'] = $res[1];
+					$image->meta_data[ $size ]['ewww_image_optimizer'] = $res[1];
 				}
-				nggdb::update_image_meta($image_id, $image->meta_data);
+				nggdb::update_image_meta( $image_id, $image->meta_data );
 				ewwwio_debug_message( 'storing results for full size image' );
 			}
 		}
