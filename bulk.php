@@ -346,16 +346,17 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 		// set the 'bulk resume' option to an empty string to reset the bulk operation
 		update_option( 'ewww_image_optimizer_bulk_resume', '' );
 	}
+	global $wpdb;
         // check to see if we are supposed to reset the bulk operation and verify we are authorized to do so
 	if ( ! empty( $_REQUEST['ewww_reset_aux'] ) && wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-aux-images-reset' ) ) {
 		// set the 'bulk resume' option to an empty string to reset the bulk operation
 		update_option( 'ewww_image_optimizer_aux_resume', '' );
+		$wpdb->query( "DELETE from $wpdb->ewwwio_images WHERE image_size IS NULL" );
 	}
         // check to see if we are supposed to convert the auxiliary images table and verify we are authorized to do so
 	if ( ! empty( $_REQUEST['ewww_convert'] ) && wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-aux-images-convert' ) ) {
 		ewww_image_optimizer_aux_images_convert();
 	}
-	global $wpdb;
 	// check the 'bulk resume' option
 	$resume = get_option('ewww_image_optimizer_bulk_resume');
 	// see if we were given attachment IDs to work with via GET/POST
@@ -404,6 +405,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 			'image_count' => $image_count,
 			'count_string' => sprintf( esc_html__( '%d images', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $image_count ),
 			'scan_fail' => esc_html__( 'Operation timed out, you may need to increase the max_execution_time for PHP', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
+			'scan_incomplete' => esc_html__( 'Scan did not complete, will try again', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
 			'operation_stopped' => esc_html__( 'Optimization stopped, reload page to resume.', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
 			'operation_interrupted' => esc_html__( 'Operation Interrupted', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
 			'temporary_failure' => esc_html__( 'Temporary failure, seconds left to retry:', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
@@ -420,7 +422,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 // find the number of images in the ewwwio_images table
 function ewww_image_optimizer_aux_images_table_count() {
 	global $wpdb;
-	$count = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->ewwwio_images" );
+	$count = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->ewwwio_images WHERE image_size IS NOT NULL" );
 	if ( ! empty( $_REQUEST['ewww_inline'] ) ) {
 		echo $count;
 		ewwwio_memory( __FUNCTION__ );

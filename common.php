@@ -5,17 +5,20 @@
 // TODO: add support for this: https://wordpress.org/plugins/photo-gallery/ -- or write an article about how to use Scan & Optimize for it
 
 // TODO: revamp bulk, make it pull only from table, track images by attachment ID as well, so we can pull resize data
+// TODO: not sure about the bukl revamp, but let's build the scan & optimize to store images in the table instead of in a single 'option' value and see how it scales
 // TODO: maybe move percentages to be built on-demand too, with a dedicated function for portability
 // TODO: see if we can offer a rebuild option, to restore/rebuild broken meta, and also to fill in missing thumbs
 // TODO: look at simple_html_dom_node that wp retina uses for parsing
 
-// TODO: prevent background optimization when conversion is on, with a filter for override
+// TODO: so, if lazy loading support sucks, can we roll our own? that's an image "optimization", right?...
+
+// TODO: make the re-optimize counter cacheable via transients (and make sure to clear/update the transient when they do a reset)
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '311.1' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '311.2' );
 
 // initialize a couple globals
 $ewww_debug = '';
@@ -105,6 +108,8 @@ if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
 	add_filter( 'wp_handle_upload', 'ewww_image_optimizer_handle_upload' );
 	// used to turn off ewwwio_image_editor during uploads
 	add_action( 'add_attachment', 'ewww_image_optimizer_add_attachment' );
+	// turn off ewwwio_image_editor during Enable Media Replace
+	add_filter( 'emr_unfiltered_get_attached_file', 'ewww_image_optimizer_image_sizes' );
 	add_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
 	add_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
 }
@@ -310,7 +315,7 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 				}
 				ewwwio_debug_message( "the image is at $filepath" );
 				// make this pre-emptively check for the domains so that we don't bother checking file_exists()
-				if ( ( $valid_path || file_exists( $filepath . '.webp' ) ) && ! strpos( $file, 'assets/images/dummy.png' ) ) { //|| file_exists( $file_relative_path . '.webp' ) ) {
+				if ( ( $valid_path || file_exists( $filepath . '.webp' ) ) && ! strpos( $file, 'assets/images/dummy.png' ) && ! strpos( $file, 'base64,R0lGOD' ) && ! strpos( $file, 'lazy-load/images/1x1' ) ) {
 					$nscript = $html->createElement( 'noscript' );
 					$nscript->setAttribute( 'data-img', $file );
 					$nscript->setAttribute( 'data-webp', $file . '.webp' );
@@ -352,8 +357,9 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 						$image->setAttribute( 'data-webp-thumbnail', $thumb . '.webp' );
 					}
 				}
+				// NOTE: lazy loads are shutoff for now, since they don't work consistently
 				// WP Retina 2x
-				if ( empty( $file ) && $image->getAttribute( 'data-srcset' ) && strpos( $image->getAttribute( 'class' ), 'lazyload' ) ) {
+				if ( false && empty( $file ) && $image->getAttribute( 'data-srcset' ) && strpos( $image->getAttribute( 'class' ), 'lazyload' ) ) {
 					$srcset = $image->getAttribute( 'data-srcset' );
 					if ( ! $valid_path && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
 						//check path
@@ -374,7 +380,7 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 					}
 				}
 				// Hueman theme
-				if ( ! empty( $file ) && strpos( $file, 'image/gif;base64,R0lGOD' ) && $image->getAttribute( 'data-src' ) && $image->getAttribute( 'data-srcset' ) ) {
+				if ( false && ! empty( $file ) && strpos( $file, 'image/gif;base64,R0lGOD' ) && $image->getAttribute( 'data-src' ) && $image->getAttribute( 'data-srcset' ) ) {
 					$dummy = $file;
 					$file = $image->getAttribute( 'data-src' );
 					ewwwio_debug_message( "checking webp for hueman data-src: $file" );
@@ -409,7 +415,7 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 					}
 				}
 				// Lazy Load plugin (and hopefully Cherry variant) and BJ Lazy Load
-				if ( ! empty( $file ) && ( strpos( $file, 'image/gif;base64,R0lGOD' ) || strpos( $file, 'lazy-load/images/1x1' ) ) && $image->getAttribute( 'data-lazy-src' ) && ! empty( $image->nextSibling ) && $image->nextSibling->nodeName == 'noscript' ) {
+				if ( false && ! empty( $file ) && ( strpos( $file, 'image/gif;base64,R0lGOD' ) || strpos( $file, 'lazy-load/images/1x1' ) ) && $image->getAttribute( 'data-lazy-src' ) && ! empty( $image->nextSibling ) && $image->nextSibling->nodeName == 'noscript' ) {
 					$dummy = $file;
 					$nimage = $html->createElement( 'img' );
 					$nimage->setAttribute( 'src', $dummy );
@@ -1291,10 +1297,13 @@ function ewww_image_optimizer_auto() {
 		$nonce = wp_hash( time() . '|' . 'ewww-image-optimizer-auto' );
 		update_option( 'ewww_image_optimizer_aux_resume', $nonce );
 		$delay = ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' );		
-		$attachments = get_option( 'ewww_image_optimizer_aux_attachments' );
-		if ( ! empty( $attachments ) && ewww_image_optimizer_iterable( $attachments ) ) {
+		$count = ewww_image_optimizer_aux_images_table_count_pending();
+		//$attachments = get_option( 'ewww_image_optimizer_aux_attachments' );
+		if ( ! empty( $count ) ) {
 			global $wpdb;
-			foreach ( $attachments as $attachment ) {
+			$i = 0;
+			while ( $i < $count && $attachment = $wpdb->get_var( "SELECT path FROM $wpdb->ewwwio_images WHERE image_size IS NULL LIMIT 1", ARRAY_A ) ) {
+//			foreach ( $attachments as $attachment ) {
 				// if the nonce has changed since we started, bail out, since that means another aux scan/optimize is running
 				// we do a query using $wpdb, because get_option() is cached
 				$current_nonce = $wpdb->get_var( "SELECT option_value FROM $wpdb->options WHERE option_name = 'ewww_image_optimizer_aux_resume'" );
@@ -2745,6 +2754,7 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 // called to process each image in the loop for images outside of media library
 function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	global $wpdb;
 	global $ewww_defer;
 	$ewww_defer = false;
 	$output = array();
@@ -2773,9 +2783,12 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 		set_time_limit( 0 );
 	}
 	// get the 'aux attachments' with a list of attachments remaining
-	$attachments = get_option( 'ewww_image_optimizer_aux_attachments' );
+/*	$attachments = get_option( 'ewww_image_optimizer_aux_attachments' );
 	if ( empty( $attachment ) ) {
 		$attachment = array_shift( $attachments );
+	}*/
+	if ( empty( $attachment ) ) {
+		$attachment = $wpdb->get_var( "SELECT path FROM $wpdb->ewwwio_images WHERE image_size IS NULL LIMIT 1" );
 	}
 	// do the optimization for the current image
 	$results = ewww_image_optimizer( $attachment );
@@ -2789,7 +2802,7 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 		die();
 	}
 	// store the updated list of attachment IDs back in the 'bulk_attachments' option
-	update_option( 'ewww_image_optimizer_aux_attachments', $attachments, false );
+//	update_option( 'ewww_image_optimizer_aux_attachments', $attachments, false );
 	if ( ! $auto ) {
 		// output the path
 		$output['results'] = sprintf( "<p>" . esc_html__( 'Optimized', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . " <strong>%s</strong><br>", esc_html( $attachment ) );
@@ -2803,8 +2816,9 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 			global $ewww_debug;
 			$output['results'] .= '<div style="background-color:#ffff99;">' . $ewww_debug . '</div>';
 		}
-		if ( ! empty( $attachments ) ) {
-			$next_file = array_shift( $attachments );
+		$next_file = $wpdb->get_var( "SELECT path FROM $wpdb->ewwwio_images WHERE image_size IS NULL LIMIT 1" );
+		if ( ! empty( $next_file ) ) {
+//			$next_file = array_shift( $attachments );
 			$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
 			$output['next_file'] = "<p>" . esc_html__( 'Optimizing', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . ' <b>' . esc_html( $next_file ) . "</b>&nbsp;<img src='$loading_image' alt='loading'/></p>";
 		}

@@ -8,10 +8,11 @@ function ewww_image_optimizer_aux_images () {
 	global $wpdb;
 	// Retrieve the value of the 'aux resume' option and set the button text for the form to use
 	$aux_resume = get_option( 'ewww_image_optimizer_aux_resume' );
-	if ( empty( $aux_resume ) ) {
-		$button_text = esc_attr__( 'Scan and optimize', EWWW_IMAGE_OPTIMIZER_DOMAIN );
-	} else {
+//	if ( empty( $aux_resume ) ) {
+	if ( ! empty( $aux_resume ) && $aux_resume !== 'scanning' ) {
 		$button_text = esc_attr__( 'Resume previous optimization', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+	} else {
+		$button_text = esc_attr__( 'Scan and optimize', EWWW_IMAGE_OPTIMIZER_DOMAIN );
 	}
 	// find out if the auxiliary image table has anything in it
 	$already_optimized = ewww_image_optimizer_aux_images_table_count();
@@ -55,7 +56,7 @@ function ewww_image_optimizer_aux_images () {
 				<input id="ewww-aux-again" type="submit" class="button-secondary action" style="display:none" value="<?php esc_attr_e( 'Optimize Again', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>" />
 			</form>
 <?php		// if the 'bulk resume' option was not empty, offer to reset it so the user can start back from the beginning
-		if ( ! empty( $aux_resume ) ) {
+		if ( ! empty( $aux_resume ) && $aux_resume !== 'scanning' ) {
 ?>
 			<p id="ewww-aux-reset-desc" class="ewww-bulk-info"><?php esc_html_e( 'If you would like to start over again, press the Reset Status button to reset the bulk operation status.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>
 			<form id="ewww-aux-reset" class="ewww-bulk-form" method="post" action="">
@@ -166,31 +167,46 @@ function ewww_image_optimizer_aux_images_remove() {
 	die();
 }
 
+// find the number of un-optimized images in the s3io_images table
+function ewww_image_optimizer_aux_images_table_count_pending() {
+	global $wpdb;
+	$count = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->ewwwio_images WHERE image_size IS NULL" );
+/*	if ( ! empty( $_REQUEST['ewww_inline'] ) ) {
+		echo $count;
+		die();
+	}*/
+	return $count;
+}
+
 // scan a folder for images and return them as an array
 function ewww_image_optimizer_image_scan( $dir ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
 	$images = array();
+	$reset_images = array();
 	if ( ! is_dir( $dir ) ) {
-		return $images;
+		return; //$images;
 	}
 	ewwwio_debug_message( "scanning folder for images: $dir" );
 	$iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $dir ), RecursiveIteratorIterator::CHILD_FIRST, RecursiveIteratorIterator::CATCH_GET_CHILD );
 	$start = microtime( true );
-	$query = "SELECT path,image_size FROM $wpdb->ewwwio_images";
+	$query = "SELECT id,path,image_size FROM $wpdb->ewwwio_images";
 	$already_optimized = $wpdb->get_results( $query, ARRAY_A );
 	$optimized_list = array();
 	foreach( $already_optimized as $optimized ) {
 		$optimized_path = $optimized['path'];
-		$optimized_list[ $optimized_path ] = $optimized['image_size'];
+		$optimized_list[ $optimized_path ]['image_size'] = $optimized['image_size'];
+		$optimized_list[ $optimized_path ]['id'] = $optimized['id'];
 	}
-	$file_counter = 0;
+	$file_counter = 0; // track total files
+	$image_count = 0; // track number of files since last queue update
 	if ( ewww_image_optimizer_stl_check() ) {
 		set_time_limit( 0 );
 	}
 	foreach ( $iterator as $file ) {
 		$file_counter++;
 		$skip_optimized = false;
+//		$pending = false;
 		if ( $file->isFile() ) {
 			$path = $file->getPathname();
 			if ( preg_match( '/(\/|\\\\)\./', $path ) && apply_filters( 'ewww_image_optimizer_ignore_hidden_files', true ) ) {
@@ -199,26 +215,49 @@ function ewww_image_optimizer_image_scan( $dir ) {
 			if ( ! ewww_image_optimizer_quick_mimetype( $path ) ) {
 				continue;
 			}
-			if ( isset( $optimized_list[$path] ) ) {
-				$image_size = $file->getSize();
-				if ( $optimized_list[ $path ] == $image_size ) {
-					ewwwio_debug_message( "match found for $path" );
-					$skip_optimized = true;
-				} else {
-					ewwwio_debug_message( "mismatch found for $path, db says " . $optimized_list[ $path ] . " vs. current $image_size" );
+			if ( isset( $optimized_list[ $path ] ) ) {
+				if ( empty( $optimized_list[ $path ]['image_size'] ) ) {
+					ewwwio_debug_message( "pending record for $path" );
+					//$pending = true;
+					continue;
 				}
+				$image_size = $file->getSize();
+				if ( $optimized_list[ $path ]['image_size'] == $image_size && empty( $_REQUEST['ewww_force'] ) ) {
+					ewwwio_debug_message( "match found for $path" );
+					continue;
+//					$skip_optimized = true;
+				} else {
+					$reset_images[] = (int) $optimized_list[ $path ]['id'];
+					ewwwio_debug_message( "mismatch found for $path, db says " . $optimized_list[ $path ]['image_size'] . " vs. current $image_size" );
+				}
+			} else {
+			//if ( ! $pending && ( empty( $skip_optimized ) || ! empty( $_REQUEST['ewww_force'] ) ) ) {
+				ewwwio_debug_message( "queuing $path" );
+				$image_size = $file->getSize();
+				$images[] = "('" . utf8_encode( $path ) . "',$image_size)";
+				$image_count++;
 			}
-			if ( empty( $skip_optimized ) || ! empty( $_REQUEST['ewww_force'] ) ) {
-				ewwwio_debug_message( "queued $path" );
-				$images[] = utf8_encode( $path );
+			if ( $image_count > 5000 ) {
+				// let's dump what we have so far to the db
+				$image_count = 0;
+				$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,orig_size) VALUES" . implode( ',', $images );
+				$wpdb->query( $insert_query );
+				$images = array();
 			}
 		}
 //		ewww_image_optimizer_debug_log();
 	}
+	if ( ! empty( $images ) ) {
+		$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,orig_size) VALUES" . implode( ',', $images );
+		$wpdb->query( $insert_query );
+	}
+	if ( ! empty( $reset_images ) ) {
+		$wpdb->query( "UPDATE $wpdb->ewwwio_images SET image_size = NULL WHERE id IN (" . implode( ',', $reset_images ) . ')' );
+	}
 	$end = microtime( true ) - $start;
         ewwwio_debug_message( "query time for $file_counter files (seconds): $end" );
 	ewwwio_memory( __FUNCTION__ );
-	return $images;
+//	return $images;
 }
 
 // convert all records in table to use filesize rather than md5sum
@@ -263,23 +302,27 @@ function ewww_image_optimizer_aux_images_script( $hook ) {
 		ewwwio_debug_message( 'forcing re-optimize: true' );
 	}
 	// initialize the $attachments variable for auxiliary images
-	$attachments = null;
+//	$attachments = null;
 	// check the 'bulk resume' option
 	$resume = get_option( 'ewww_image_optimizer_aux_resume' );
-        // check if there is a previous bulk operation to resume
-        if ( ! empty( $resume ) ) {
+        // check if there is a previous bulk operation to resume and that the scanner wasn't interrupted (otherwise we need to scan again)
+        if ( ! empty( $resume ) && $resume !== 'scanning' ) {
 		ewwwio_debug_message( 'resuming from where we left off, no scanning needed' );
+		$image_count = ewww_image_optimizer_aux_images_table_count_pending();
 		// retrieve the attachment IDs that have not been finished from the 'bulk attachments' option
-		$attachments = get_option( 'ewww_image_optimizer_aux_attachments' );
+//		$attachments = get_option( 'ewww_image_optimizer_aux_attachments' );
 	} else {
+		update_option( 'ewww_image_optimizer_aux_resume', 'scanning' );
 		ewwwio_debug_message( 'getting fresh list of files to optimize' );
-		$attachments = array();
+//		$attachments = array();
 		// collect a list of images from the current theme
 		$child_path = get_stylesheet_directory();
 		$parent_path = get_template_directory();
-		$attachments = ewww_image_optimizer_image_scan( $child_path ); 
+		//$attachments = ewww_image_optimizer_image_scan( $child_path ); 
+		ewww_image_optimizer_image_scan( $child_path ); 
 		if ( $child_path !== $parent_path ) {
-			$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( $parent_path ) );
+			//$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( $parent_path ) );
+			ewww_image_optimizer_image_scan( $parent_path );
 		}
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			// need to include the plugin library for the is_plugin_active function
@@ -290,20 +333,24 @@ function ewww_image_optimizer_aux_images_script( $hook ) {
 			// get the value of the wordpress upload directory
 		        $upload_dir = wp_upload_dir();
 			// scan the 'avatars' and 'group-avatars' folders for images
-			$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/avatars' ), ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/group-avatars' ) );
+			//$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/avatars' ), ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/group-avatars' ) );
+			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/avatars' );
+			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/group-avatars' );
 		}
 		if ( is_plugin_active( 'buddypress-activity-plus/bpfb.php' ) || is_plugin_active_for_network( 'buddypress-activity-plus/bpfb.php' ) ) {
 			// get the value of the wordpress upload directory
 		        $upload_dir = wp_upload_dir();
-			// scan the 'avatars' and 'group-avatars' folders for images
-			$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/bpfb' ) );
+			//$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/bpfb' ) );
+			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/bpfb' );
 		}
 		if ( is_plugin_active( 'grand-media/grand-media.php' ) || is_plugin_active_for_network( 'grand-media/grand-media.php' ) ) {
 			// scan the grand media folder for images
-			$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( WP_CONTENT_DIR . '/grand-media' ) );
+			//$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( WP_CONTENT_DIR . '/grand-media' ) );
+			ewww_image_optimizer_image_scan( WP_CONTENT_DIR . '/grand-media' );
 		}
 		if ( is_plugin_active( 'wp-symposium/wp-symposium.php' ) || is_plugin_active_for_network( 'wp-symposium/wp-symposium.php' ) ) {
-			$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( get_option( 'symposium_img_path' ) ) );
+			//$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( get_option( 'symposium_img_path' ) ) );
+			ewww_image_optimizer_image_scan( get_option( 'symposium_img_path' ) );
 		}
 		if ( is_plugin_active( 'ml-slider/ml-slider.php' ) || is_plugin_active_for_network( 'ml-slider/ml-slider.php' ) ) {
 			$slide_paths = array();
@@ -338,22 +385,35 @@ function ewww_image_optimizer_aux_images_script( $hook ) {
 									continue;
 								}
 								$already_optimized = ewww_image_optimizer_find_already_optimized( $path );
+								// pending record already present
+								if ( ! empty( $already_optimized ) && empty( $already_optimized['image_size'] ) ) {
+									continue;
+								}
 								$mimetype = ewww_image_optimizer_mimetype( $path, 'i' );
+								// brand new image
 								if ( preg_match( '/^image\/(jpeg|png|gif)/', $mimetype ) && empty( $already_optimized ) ) {
-									$slide_paths[] = $path;
+									$slide_paths[] = "('$path',$image_size)";
+								// changed image
+								} elseif ( preg_match( '/^image\/(jpeg|png|gif)/', $mimetype ) && ! empty( $already_optimized ) && $already_optimized['image_size'] != $image_size ) {
+									$wpdb->query( "UPDATE $wpdb->ewwwio_images SET image_size = NULL WHERE id = {$already_optimized['id']}" );
 								}
 							}
 						}
 					}
 				}
 			}
-			$attachments = array_merge( $attachments, $slide_paths );
+			if ( ! empty( $slide_paths ) ) {
+				$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,orig_size) VALUES " . implode( ',', $slide_paths );
+				$wpdb->query( $insert_query );
+			}
+//			$attachments = array_merge( $attachments, $slide_paths );
 		}
 		// collect a list of images in auxiliary folders provided by user
 		if ( $aux_paths = ewww_image_optimizer_get_option( 'ewww_image_optimizer_aux_paths' ) ) {
 			if ( ewww_image_optimizer_iterable( $aux_paths ) ) {
 				foreach ( $aux_paths as $aux_path ) {
-					$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( $aux_path ) );
+					//$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( $aux_path ) );
+					ewww_image_optimizer_image_scan( $aux_path );
 				}
 			}
 		}
@@ -365,28 +425,30 @@ function ewww_image_optimizer_aux_images_script( $hook ) {
 			$upload_path = $upload_dir['basedir'];
 			$this_month = date( 'm' );
 			$this_year = date( 'Y' );
-			$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( "$upload_path/$this_year/$this_month/" ) );
+			//$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( "$upload_path/$this_year/$this_month/" ) );
+			ewww_image_optimizer_image_scan( "$upload_path/$this_year/$this_month/" );
 			if ( class_exists( 'DateTime' ) ) {
 				$date = new DateTime();
 				$date->sub( new DateInterval( 'P1M' ) );
 				$last_year = $date->format( 'Y' );
 				$last_month = $date->format( 'm' );
-				$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( "$upload_path/$last_year/$last_month/" ) );
+				ewww_image_optimizer_image_scan( "$upload_path/$last_year/$last_month/" );
 			}
 
 		}
 		// store the filenames we retrieved in the 'bulk_attachments' option so we can keep track of our progress in the database
-		update_option( 'ewww_image_optimizer_aux_attachments', $attachments, false );
-		ewwwio_debug_message( 'found ' . count( $attachments ) . ' images to optimize while scanning' );
+//		update_option( 'ewww_image_optimizer_aux_attachments', $attachments, false );
+		$image_count = ewww_image_optimizer_aux_images_table_count_pending();
+		ewwwio_debug_message( "found $image_count images to optimize while scanning" );
 	}
 	ewww_image_optimizer_debug_log();
 	if ( ! empty( $_REQUEST['ewww_scan'] ) ) {
-		echo count( $attachments );
+		echo $image_count;
 		ewwwio_memory( __FUNCTION__ );
 		die();
 	} else {
 		ewwwio_memory( __FUNCTION__ );
-		return;
+		return $image_count;
 	}
 }
 
@@ -403,13 +465,13 @@ function ewww_image_optimizer_aux_images_initialize( $auto = false ) {
 	// update the 'aux resume' option to show that an operation is in progress
 	update_option( 'ewww_image_optimizer_aux_resume', 'true' );
 	// store the time and number of images for later display
-	$count = count( get_option( 'ewww_image_optimizer_aux_attachments' ) );
+	$count = ewww_image_optimizer_aux_images_table_count_pending();
 	update_option( 'ewww_image_optimizer_aux_last', array( time(), $count ) );
 	// let the user know that we are beginning
 	if ( ! $auto ) {
 		// generate the WP spinner image for display
 		$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
-		$attachments = get_option( 'ewww_image_optimizer_aux_attachments' );
+/*		$attachments = get_option( 'ewww_image_optimizer_aux_attachments' );
 		if ( ! is_array( $attachments ) && ! empty( $attachments ) ) {
 			$attachments = unserialize( $attachments );
 		}
@@ -417,8 +479,9 @@ function ewww_image_optimizer_aux_images_initialize( $auto = false ) {
 			$output['error'] = esc_html__( 'Error retrieving list of images' );
 			echo json_encode( $output );
 			die();
-		}
-		$file = array_shift( $attachments );
+		}*/
+		global $wpdb;
+		$file = $wpdb->get_var( "SELECT path FROM $wpdb->ewwwio_images WHERE image_size IS NULL LIMIT 1" );//array_shift( $attachments );
 		$output['results'] = "<p>" . esc_html__( 'Optimizing', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . " <b>$file</b>&nbsp;<img src='$loading_image' alt='loading'/></p>";
 		echo json_encode( $output );
 		ewwwio_memory( __FUNCTION__ );
@@ -438,7 +501,7 @@ function ewww_image_optimizer_aux_images_cleanup( $auto = false ) {
 	update_option( 'ewww_image_optimizer_aux_last', array( time(), $stored_last[1] ) );
 	// all done, so we can update the bulk options with empty values
 	update_option( 'ewww_image_optimizer_aux_resume', '' );
-	update_option( 'ewww_image_optimizer_aux_attachments', '', false );
+//	update_option( 'ewww_image_optimizer_aux_attachments', '', false );
 	if ( ! $auto ) {
 		// and let the user know we are done
 		echo '<p><b>' . esc_html__( 'Finished', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</b></p>';

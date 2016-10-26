@@ -262,10 +262,14 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 
 = 3.1.2 =
 * added: ability to disable background optimization via ewww_image_optimizer_background_optimization filter
+* changed: scan and optimize rewritten to store images in batches, with auto-retry for very large sites
 * changed: conversion operations are not run in background, override with ewww_image_optimizer_defer_conversion filter
+* changed: reverted Alt WebP support for lazy load, as it does not work consistently
+* fixed: ensure disabled resizes are not optimized during Enable Media Replace uploader
 * fixed: bulk operation handles attachment ID as a string instead of an integer
 * fixed: bulk optimizing a single image displays no results
 * fixed: bulk optimizing images with corrupted metadata does not result in a repair operation
+* fixed: image scanner skips optimized metaslider images even if they have changed
 
 = 3.1.1 =
 * fixed: exec() notice surpressed when it should not be
