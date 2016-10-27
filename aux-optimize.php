@@ -182,7 +182,6 @@ function ewww_image_optimizer_aux_images_table_count_pending() {
 function ewww_image_optimizer_image_scan( $dir ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
-	// TODO: use a global to store the already optimized images, so we don't have to requery every time we call the image_scan() function
 	global $optimized_list;
 	$images = array();
 	$reset_images = array();
@@ -208,35 +207,44 @@ function ewww_image_optimizer_image_scan( $dir ) {
 	if ( ewww_image_optimizer_stl_check() ) {
 		set_time_limit( 0 );
 	}
+	$enabled_types = array();
+	if ( ewww_image_optimizer_get_option('ewww_image_optimizer_jpg_level' ) ) {
+		$enabled_types[] = 'image/jpeg';
+	}
+	if ( ewww_image_optimizer_get_option('ewww_image_optimizer_png_level' ) ) {
+		$enabled_types[] = 'image/png';
+	}
+	if ( ewww_image_optimizer_get_option('ewww_image_optimizer_gif_level' ) ) {
+		$enabled_types[] = 'image/gif';
+	}
+	if ( ewww_image_optimizer_get_option('ewww_image_optimizer_pdf_level' ) ) {
+		$enabled_types[] = 'application/pdf';
+	}
 	foreach ( $iterator as $file ) {
 		$file_counter++;
-		$skip_optimized = false;
-//		$pending = false;
 		if ( $file->isFile() ) {
 			$path = $file->getPathname();
 			if ( preg_match( '/(\/|\\\\)\./', $path ) && apply_filters( 'ewww_image_optimizer_ignore_hidden_files', true ) ) {
 				continue;
 			}
-			if ( ! ewww_image_optimizer_quick_mimetype( $path ) ) {
+			//if ( ! ewww_image_optimizer_quick_mimetype( $path ) ) {
+			if ( ! in_array( ewww_image_optimizer_quick_mimetype( $path ), $enabled_types ) ) {
 				continue;
 			}
 			if ( isset( $optimized_list[ $path ] ) ) {
 				if ( empty( $optimized_list[ $path ]['image_size'] ) ) {
 					ewwwio_debug_message( "pending record for $path" );
-					//$pending = true;
 					continue;
 				}
 				$image_size = $file->getSize();
 				if ( $optimized_list[ $path ]['image_size'] == $image_size && empty( $_REQUEST['ewww_force'] ) ) {
 					ewwwio_debug_message( "match found for $path" );
 					continue;
-//					$skip_optimized = true;
 				} else {
 					$reset_images[] = (int) $optimized_list[ $path ]['id'];
 					ewwwio_debug_message( "mismatch found for $path, db says " . $optimized_list[ $path ]['image_size'] . " vs. current $image_size" );
 				}
 			} else {
-			//if ( ! $pending && ( empty( $skip_optimized ) || ! empty( $_REQUEST['ewww_force'] ) ) ) {
 				ewwwio_debug_message( "queuing $path" );
 				$image_size = $file->getSize();
 				$images[] = "('" . utf8_encode( $path ) . "',$image_size)";

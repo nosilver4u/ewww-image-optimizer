@@ -11,8 +11,6 @@
 
 // TODO: so, if lazy loading support sucks, can we roll our own? that's an image "optimization", right?...
 
-// TODO: if a file isn't really an image, and gets queued, make sure to nuke it during scheduled opt and scan & opt
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -4115,16 +4113,12 @@ function ewww_image_optimizer_quick_mimetype( $path ) {
 		case 'jpg':
 		case 'jpeg':
 		case 'jpe':
-//			ewwwio_debug_message( 'quick type: image/jpeg' );
 			return 'image/jpeg';
 		case 'png':
-//			ewwwio_debug_message( 'quick type: image/png' );
 			return 'image/png';
 		case 'gif':
-//			ewwwio_debug_message( 'quick type: image/gif' );
 			return 'image/gif';
 		case 'pdf':
-//			ewwwio_debug_message( 'quick type: application/pdf' );
 			return 'application/pdf';
 		default:
 			return false;
