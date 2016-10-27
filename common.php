@@ -2,7 +2,6 @@
 // common functions for Standard and Cloud plugins
 
 // TODO: use <picture> element to serve webp
-// TODO: add support for this: https://wordpress.org/plugins/photo-gallery/ -- or write an article about how to use Scan & Optimize for it
 
 // TODO: revamp bulk, make it pull only from table, track images by attachment ID as well, so we can pull resize data
 // TODO: maybe move percentages to be built on-demand too, with a dedicated function for portability
@@ -1261,7 +1260,7 @@ function ewww_image_optimizer_w3tc_update_files( $files ) {
 }
 
 function ewww_image_optimizer_upload_info() {
-	$upload_info = @wp_upload_dir();
+	$upload_info = @wp_upload_dir( null, false );
 
 	if ( empty( $upload_info['error'] ) ) {
 		$parse_url = @parse_url( $upload_info['baseurl'] );
@@ -1784,11 +1783,34 @@ function ewww_image_optimizer_aux_paths_sanitize( $input ) {
 			$path = sanitize_text_field( $path );
 			ewwwio_debug_message( "validating auxiliary path: $path" );
 			// retrieve the location of the wordpress upload folder
-			$upload_dir = apply_filters( 'ewww_image_optimizer_folder_restriction', wp_upload_dir() );
+			$upload_dir = apply_filters( 'ewww_image_optimizer_folder_restriction', wp_upload_dir( null, false ) );
 			// retrieve the path of the upload folder
 			$upload_path = trailingslashit( $upload_dir['basedir'] );
 			if ( is_dir( $path ) && ( strpos( $path, ABSPATH ) === 0 || strpos( $path, $upload_path ) === 0 ) ) {
 				$path_array[] = $path;
+				continue;
+			}
+			// what if they put in a relative path
+			if ( is_dir( ABSPATH . ltrim( $path, '/' ) ) ) {
+				$path_array[] = ABSPATH . ltrim( $path, '/' );
+				continue;
+			}
+			// or a relative to the upload dir?
+			if ( is_dir( $upload_path . ltrim( $path, '/' ) ) ) {
+				$path_array[] = $upload_path . ltrim( $path, '/' );
+				continue;
+			}
+			// what if they put in a url?
+			$pathabsurl = ABSPATH . ltrim( str_replace( get_site_url(), '', $path ), '/' );
+			if ( is_dir( $pathabsurl ) ) {
+				$path_array[] = $pathabsurl;
+				continue;
+			}
+			// or a url in the uploads folder?
+			$pathupurl = $upload_path . ltrim( str_replace( $upload_dir['baseurl'], '', $path ), '/' );
+			if ( is_dir( $pathupurl ) ) {
+				$path_array[] = $pathupurl;
+				continue;
 			}
 		}
 	}
