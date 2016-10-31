@@ -2,19 +2,20 @@
 // common functions for Standard and Cloud plugins
 
 // TODO: use <picture> element to serve webp
-
 // TODO: revamp bulk, make it pull only from table, track images by attachment ID as well, so we can pull resize data
 // TODO: maybe move percentages to be built on-demand too, with a dedicated function for portability
 // TODO: see if we can offer a rebuild option, to restore/rebuild broken meta, and also to fill in missing thumbs
 // TODO: look at simple_html_dom_node that wp retina uses for parsing
-
+// TODO: track the folders scanned successfully so far, and then skip them on a subsequent scan, so that users could list multiple subdirs to complete super large folders
 // TODO: so, if lazy loading support sucks, can we roll our own? that's an image "optimization", right?...
+// TODO: add notices when a setting could not be saved properly
+// TODO: make sure wp-cli still works with 'other' images since the changes in 3.1.2
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '311.2' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '312.0' );
 
 // initialize a couple globals
 $ewww_debug = '';
@@ -49,51 +50,6 @@ if ( WP_DEBUG ) {
 global $wpdb;
 if ( ! isset( $wpdb->ewwwio_images ) ) {
 	$wpdb->ewwwio_images = $wpdb->prefix . "ewwwio_images";
-}
-
-//add_action( 'contextual_help', 'wptuts_screen_help', 10, 3 );
-function wptuts_screen_help( $contextual_help, $screen_id, $screen ) {
- 
-	global $hook_suffix;
- 
-    // List screen properties
-    $variables = '<ul style="width:50%;float:left;"> <strong>Screen variables </strong>'
-        . sprintf( '<li> Screen id : %s</li>', $screen_id )
-        . sprintf( '<li> Screen base : %s</li>', $screen->base )
-        . sprintf( '<li>Parent base : %s</li>', $screen->parent_base )
-        . sprintf( '<li> Parent file : %s</li>', $screen->parent_file )
-        . sprintf( '<li> Hook suffix : %s</li>', $hook_suffix )
-        . '</ul>';
- 
-    // Append global $hook_suffix to the hook stems
-    $hooks = array(
-        "load-$hook_suffix",
-        "admin_print_styles-$hook_suffix",
-        "admin_print_scripts-$hook_suffix",
-        "admin_head-$hook_suffix",
-        "admin_footer-$hook_suffix"
-    );
- 
-    // If add_meta_boxes or add_meta_boxes_{screen_id} is used, list these too
-    if ( did_action( 'add_meta_boxes_' . $screen_id ) )
-        $hooks[] = 'add_meta_boxes_' . $screen_id;
- 
-    if ( did_action( 'add_meta_boxes' ) )
-        $hooks[] = 'add_meta_boxes';
- 
-    // Get List HTML for the hooks
-    $hooks = '<ul style="width:50%;float:left;"> <strong>Hooks </strong> <li>' . implode( '</li><li>', $hooks ) . '</li></ul>';
- 
-    // Combine $variables list with $hooks list.
-    $help_content = $variables . $hooks;
- 
-    // Add help panel
-    $screen->add_help_tab( array(
-        'id'      => 'wptuts-screen-help',
-        'title'   => 'Screen Information',
-        'content' => $help_content,
-    ));
-    return $contextual_help;
 }
 
 /**
@@ -2795,7 +2751,7 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 }
 
 // called to process each image in the loop for images outside of media library
-function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false ) {
+function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false, $cli = false ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
 	global $ewww_defer;
@@ -2855,6 +2811,9 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 			$output['error'] = esc_html__( 'License Exceeded', EWWW_IMAGE_OPTIMIZER_DOMAIN );
 			echo json_encode( $output );
 		}
+		if ( $cli ) {
+			WP_CLI::error( __( 'License Exceeded', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
+		}
 		die();
 	}
 	// store the updated list of attachment IDs back in the 'bulk_attachments' option
@@ -2881,6 +2840,9 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 		echo json_encode( $output );
 		ewwwio_memory( __FUNCTION__ );
 		die();
+	}
+	if ( $cli ) {
+		return $results[1];
 	}
 	ewwwio_memory( __FUNCTION__ );
 }
@@ -3170,7 +3132,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
 	if ( ! $file ) {
 		return false;
 	}
-//	ewwwio_debug_message( print_r( $_SERVER, true ) );
+	ewwwio_debug_message( print_r( $_POST, true ) );
 	if ( ! empty( $_REQUEST['post_id'] ) || ( ! empty( $_REQUEST['action'] ) && $_REQUEST['action'] === 'upload-attachment' ) || ( ! empty( $_SERVER['HTTP_REFERER'] ) && strpos( $_SERVER['HTTP_REFERER'], 'media-new.php' ) ) ) {
 		$maxwidth = ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' );
 		$maxheight = ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' );

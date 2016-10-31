@@ -40,6 +40,7 @@
 * fixed: optimization being attempted via API even if license exceeded
 * added: ewwwio_images table is checked on settings page to make sure it exists
 * added: run utf8_encode() on all filenames for Scheduled Optimize and Scan & Optimize to avoid database update issues, please report any new issues with Scan & Optimize right away
+
 = 2.9.5 =
 * fixed: wrong path pre-pended using parallel optimization and wp-content or uploads folder is not within the WP root
 * fixed: absolute paths passed to async optimization are pre-pended with ABSPATH
