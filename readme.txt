@@ -261,6 +261,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 3.1.3 =
+* added: settings which require validation display appropriate errors when validation fails
 * fixed: optimizing "other" images with wp-cli was broken
 
 = 3.1.2 =

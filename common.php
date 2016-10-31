@@ -9,7 +9,6 @@
 // TODO: track the folders scanned successfully so far, and then skip them on a subsequent scan, so that users could list multiple subdirs to complete super large folders
 // TODO: so, if lazy loading support sucks, can we roll our own? that's an image "optimization", right?...
 // TODO: add notices when a setting could not be saved properly
-// TODO: make sure wp-cli still works with 'other' images since the changes in 3.1.2
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -242,7 +241,6 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 		if ( ! is_array( $webp_paths ) ) {
 			$webp_paths = array();
 		}
-//		$webp_paths[] = parse_url( get_home_url(), PHP_URL_HOST );
 		$home_relative_url = preg_replace( '/https?:/', '', $home_url );
 		$images = $html->getElementsByTagName( 'img' );
 		if ( ewww_image_optimizer_iterable( $images ) ) {
@@ -776,8 +774,6 @@ function ewww_image_optimizer_admin_init() {
 			update_site_option('ewww_image_optimizer_webp_force', $_POST['ewww_image_optimizer_webp_force']);
 			$_POST['ewww_image_optimizer_webp_paths'] = ( empty( $_POST['ewww_image_optimizer_webp_paths'] ) ? '' : $_POST['ewww_image_optimizer_webp_paths'] );
 			update_site_option( 'ewww_image_optimizer_webp_paths', ewww_image_optimizer_webp_paths_sanitize( $_POST['ewww_image_optimizer_webp_paths'] ) );
-			//if (empty($_POST['ewww_image_optimizer_webp_cdn_path'])) $_POST['ewww_image_optimizer_webp_cdn_path'] = '';
-			//update_site_option('ewww_image_optimizer_webp_cdn_path', $_POST['ewww_image_optimizer_webp_cdn_path']);
 			add_action('network_admin_notices', 'ewww_image_optimizer_network_settings_saved');
 		}
 	}
@@ -1735,7 +1731,9 @@ function ewww_image_optimizer_aux_paths_sanitize( $input ) {
 	$path_array = array();
 	$paths = explode("\n", $input);
 	if ( ewww_image_optimizer_iterable( $paths ) ) {
+		$i = 0;
 		foreach ( $paths as $path ) {
+			$i++;
 			$path = sanitize_text_field( $path );
 			ewwwio_debug_message( "validating auxiliary path: $path" );
 			// retrieve the location of the wordpress upload folder
@@ -1768,6 +1766,9 @@ function ewww_image_optimizer_aux_paths_sanitize( $input ) {
 				$path_array[] = $pathupurl;
 				continue;
 			}
+			if ( ! empty( $path ) ) {
+				add_settings_error( 'ewww_image_optimizer_aux_paths', "ewwwio-aux-paths-$i", sprintf( esc_html__( 'Could not save Folder to Optimize: %s. Please ensure that it is a valid location on the server.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), esc_html( $path ) ) );
+			}
 		}
 	}
 //	ewww_image_optimizer_debug_log();
@@ -1782,12 +1783,16 @@ function ewww_image_optimizer_webp_paths_sanitize( $paths ) {
 	$paths_entered = explode( "\n", $paths );
 	$paths_saved = array();
 	if ( ewww_image_optimizer_iterable( $paths_entered ) ) {
+		$i = 0;
 		foreach ( $paths_entered as $path ) {
+			$i++;
+			$original_path = esc_html( $path );
 			$path = esc_url( $path, null, 'db' );
-			if ( ! substr_count( $path, '.' ) ) {
-				continue;
-			}
 			if ( ! empty( $path ) ) {
+				if ( ! substr_count( $path, '.' ) ) {
+					add_settings_error( 'ewww_image_optimizer_webp_paths', "ewwwio-webp-paths-$i", sprintf( esc_html__( 'Could not save WebP URL: %s.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), esc_html( $original_path ) ) . ' ' . esc_html__( 'Please enter a valid url including the domain name.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
+					continue;
+				}
 				$paths_saved[] = str_replace( 'http://', '', $path );
 			}
 		}
@@ -1816,12 +1821,15 @@ function ewww_image_optimizer_jpg_background( $background = null ) {
 	//verify that the supplied value is in hex notation
 	if ( preg_match( '/^\#*([0-9a-fA-F]){6}$/', $background ) ) {
 		// we remove a leading # symbol, since we take care of it later
-		preg_replace( '/#/', '', $background );
+		ltrim( $background, '#' );
 		// send back the verified, cleaned-up background color
 		ewwwio_debug_message( "background: $background" );
 		ewwwio_memory( __FUNCTION__ );
 		return $background;
 	} else {
+		if ( ! empty( $background ) ) {
+			add_settings_error( 'ewww_image_optimizer_jpg_background', 'ewwwio-jpg-background', esc_html__( 'Could not save the JPG background color, please enter a six-character, hexadecimal value.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
+		}
 		// send back a blank value
 		ewwwio_memory( __FUNCTION__ );
 		return NULL;
@@ -1842,11 +1850,15 @@ function ewww_image_optimizer_jpg_quality( $quality = null ) {
 		ewwwio_memory( __FUNCTION__ );
 		return $quality;
 	} else {
+		if ( ! empty( $quality ) ) {
+			add_settings_error( 'ewww_image_optimizer_jpg_quality', 'ewwwio-jpg-quality', esc_html__( 'Could not save the JPG quality, please enter an integer between 1 and 100.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
+		}
 		// send back nothing
 		ewwwio_memory( __FUNCTION__ );
 		return NULL;
 	}
 }
+
 
 function ewww_image_optimizer_set_jpg_quality( $quality ) {
 	$new_quality = ewww_image_optimizer_jpg_quality();
@@ -2096,11 +2108,14 @@ function ewww_image_optimizer_cloud_key_sanitize( $key ) {
 	$key = trim( $key );
 	ewwwio_debug_message( print_r( $_REQUEST, true ) );
 	if ( ewww_image_optimizer_cloud_verify( false, $key ) ) {
+		add_settings_error( 'ewww_image_optimizer_cloud_key', "ewwwio-cloud-key", esc_html__( 'Successfully validated API key, happy optimizing!', EWWW_IMAGE_OPTIMIZER_DOMAIN ), 'updated' );
 		ewwwio_debug_message( 'sanitize (verification) successful' );
 		ewwwio_memory( __FUNCTION__ );
 //		ewww_image_optimizer_debug_log();
 		return $key;
 	} else {
+		if ( ! empty( $key ) )
+			add_settings_error( 'ewww_image_optimizer_cloud_key', "ewwwio-cloud-key", esc_html__( 'Could not validate API key, please copy and paste your key to ensure it is correct.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 		ewwwio_debug_message( 'sanitize (verification) failed' );
 		ewwwio_memory( __FUNCTION__ );
 //		ewww_image_optimizer_debug_log();
