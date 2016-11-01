@@ -8,13 +8,12 @@
 // TODO: look at simple_html_dom_node that wp retina uses for parsing
 // TODO: track the folders scanned successfully so far, and then skip them on a subsequent scan, so that users could list multiple subdirs to complete super large folders
 // TODO: so, if lazy loading support sucks, can we roll our own? that's an image "optimization", right?...
-// TODO: add notices when a setting could not be saved properly
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '312.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '313.0' );
 
 // initialize a couple globals
 $ewww_debug = '';
@@ -66,6 +65,7 @@ if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
 	// add hook for PTE confirmation
 	add_filter( 'wp_get_attachment_metadata', 'ewww_image_optimizer_pte_check' );
 }
+add_filter( 'ewww_image_optimizer_bypass', 'ewww_image_optimizer_ignore_self', 10, 2 );
 // this filter turns off ewwwio_image_editor during save from the actual image editor
 // and ensures that we parse the resizes list during the image editor save function
 add_filter( 'load_image_to_edit_path', 'ewww_image_optimizer_editor_save_pre' );
@@ -124,6 +124,13 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'iocli.php' );
 }
 
+function ewww_image_optimizer_ignore_self( $skip, $filename ) {
+	if ( 0 === strpos( $filename, EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH ) ) {
+		return true;
+	}
+	return $skip;
+}
+
 function ewww_image_optimizer_get_plugin_version( $plugin_file ) {
         $default_headers = array(
 		'Version' => 'Version',
@@ -142,10 +149,12 @@ function ewww_image_optimizer_ce_webp_enabled() {
 	}
 	return false;
 }
+
 // functions to capture all page output, replace image urls with webp derivatives, and add webp fallback 
 function ewww_image_optimizer_buffer_start() {
 	ob_start( 'ewww_image_optimizer_filter_page_output' );
 }
+
 function ewww_image_optimizer_buffer_end() {
 	ob_end_flush();
 }
@@ -960,6 +969,7 @@ function ewww_image_optimizer_install_table() {
 		attachment_id bigint(20) unsigned,
 		resize varchar(55),
 		path text NOT NULL,
+		converted text NOT NULL,
 		results varchar(55) NOT NULL,
 		image_size int(10) unsigned,
 		orig_size int(10) unsigned,
@@ -1821,7 +1831,7 @@ function ewww_image_optimizer_jpg_background( $background = null ) {
 	//verify that the supplied value is in hex notation
 	if ( preg_match( '/^\#*([0-9a-fA-F]){6}$/', $background ) ) {
 		// we remove a leading # symbol, since we take care of it later
-		ltrim( $background, '#' );
+		$background = ltrim( $background, '#' );
 		// send back the verified, cleaned-up background color
 		ewwwio_debug_message( "background: $background" );
 		ewwwio_memory( __FUNCTION__ );
@@ -3147,7 +3157,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
 	if ( ! $file ) {
 		return false;
 	}
-	ewwwio_debug_message( print_r( $_POST, true ) );
+//	ewwwio_debug_message( print_r( $_POST, true ) );
 	if ( ! empty( $_REQUEST['post_id'] ) || ( ! empty( $_REQUEST['action'] ) && $_REQUEST['action'] === 'upload-attachment' ) || ( ! empty( $_SERVER['HTTP_REFERER'] ) && strpos( $_SERVER['HTTP_REFERER'], 'media-new.php' ) ) ) {
 		$maxwidth = ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' );
 		$maxheight = ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' );

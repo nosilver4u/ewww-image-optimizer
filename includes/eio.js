@@ -347,7 +347,11 @@ jQuery(document).ready(function($) {
 				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_response.error + '</b></p>');
 			}
 			else if (ewww_k == 9) {
-				ewww_jqxhr.abort();
+				if ( ewww_response.results ) {
+					$('#ewww-bulk-last .inside').html( ewww_response.results );
+		                	$('#ewww-bulk-status .inside').append( ewww_response.results );
+				}
+				//ewww_jqxhr.abort();
 				//ewwwAuxCleanup();
 				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.operation_stopped + '</b></p>');
 			}

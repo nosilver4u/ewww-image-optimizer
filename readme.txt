@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: image, attachment, optimize, optimization, lossless, lossy, photo, picture, seo, compression, gmagick, jpegtran, gifsicle, optipng, pngout, pngquant, jpegmini, tinyjpg, tinypng, webp, wp-cli 
 Requires at least: 4.4
 Tested up to: 4.6.1
-Stable tag: 3.1.2
+Stable tag: 3.1.3
 License: GPLv3
 
 Reduce image sizes in WordPress including NextGEN, GRAND FlAGallery, FooGallery and more using lossless/lossy methods and image format conversion.
@@ -163,7 +163,7 @@ In general, these lists only apply to shared hosting services. If the providers 
 
 Webhosts where things work (mostly) out of the box:
 
-* [A2 Hosting](https://partners.a2hosting.com/solutions.php?id=5959&url=638): EWWW IO is installed automatically for new sites, and is fully supported by A2 (referral link). Their Turbo+SSD hosting is very nice (and still cheap).
+* [A2 Hosting](https://www.a2hosting.com/): EWWW IO is installed automatically for A2 Optimized sites.
 * [aghosted](https://aghosted.com/)
 * [Arvixe](http://www.arvixe.com)
 * [Bluehost](https://www.bluehost.com)
@@ -262,6 +262,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 
 = 3.1.3 =
 * added: settings which require validation display appropriate errors when validation fails
+* added: filter to make sure test images in the ewww-image-optimizer folder never get optimized
 * fixed: optimizing "other" images with wp-cli was broken
 
 = 3.1.2 =
