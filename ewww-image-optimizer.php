@@ -902,11 +902,11 @@ function ewww_image_optimizer_mimetype( $path, $case ) {
 		ewwwio_debug_message( "finfo_file: $type" );
 	}
 	// see if we can use the getimagesize function
-	if ( empty( $type ) && function_exists( 'getimagesize' ) && $case === 'i' ) {
+	if ( empty( $type ) && function_exists( 'getimagesize' ) && $case === 'i' && strpos( ewww_image_optimizer_quick_mimetype( $path ), 'pdf' ) === false ) {
 		// run getimagesize on the file
-		$type = getimagesize($path);
+		$type = getimagesize( $path );
 		// make sure we have results
-		if(false !== $type){
+		if( false !== $type ){
 			// store the mime-type
 			$type = $type['mime'];
 		}
