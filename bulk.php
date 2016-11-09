@@ -93,7 +93,7 @@ function ewww_image_optimizer_bulk_preview() {
 			</form>
 <?php		endif;
 	echo '</div>';
-	ewww_image_optimizer_media_scan();
+	//ewww_image_optimizer_media_scan();
 	ewwwio_memory( __FUNCTION__ );
 	ewww_image_optimizer_aux_images();
 }
@@ -127,7 +127,7 @@ function ewww_image_optimizer_count_optimized( $gallery, $return_ids = false ) {
 				if ( 'scanning' == $resume ) {
 					$attachment_ids = array_merge( get_option( 'ewww_image_optimizer_scanning_attachments' ), get_option( 'ewww_image_optimizer_bulk_attachments' ) );
 				} else {
-					$attachment_ids = get_option( 'ewww_image_optimizer_bulk_attachments' );
+					$attachment_ids = get_option( 'ewww_image_optimizer_scanning_attachments' );
 				}
 				if ( ! empty( $attachment_ids ) ) {
 					$full_count = count( $attachment_ids );
@@ -334,6 +334,10 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 	if ( 'media_page_ewww-image-optimizer-bulk' != $hook ) {
 		return;
 	}
+		update_option( 'ewww_image_optimizer_bulk_resume', '' );
+		update_option( 'ewww_image_optimizer_aux_resume', '' );
+		update_option( 'ewww_image_optimizer_scanning_attachments', '' );
+		update_option( 'ewww_image_optimizer_bulk_attachments', '' );
         // initialize the $attachments variable
         $attachments = array();
         // check to see if we are supposed to reset the bulk operation and verify we are authorized to do so
@@ -360,6 +364,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 	$ids = array();
         if ( ! empty( $_REQUEST['ids'] ) && ( preg_match( '/^[\d,]+$/', $_REQUEST['ids'], $request_ids ) || is_numeric( $_REQUEST['ids'] ) ) ) {
 		ewww_image_optimizer_delete_pending();
+		set_transient( 'ewww_image_optimizer_skip_aux', true, 3 * MINUTE_IN_SECONDS );
 		if ( is_numeric( $_REQUEST['ids'] ) ) {
 			$ids[] = (int) $_REQUEST['ids'];
 		} else {
@@ -390,6 +395,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 		$attachments = array();
 	// since we aren't resuming, and weren't given a list of IDs, we will optimize everything
         } elseif ( empty( $attachments ) ) {
+		delete_transient( 'ewww_image_optimizer_scan_aux' );
                 // load up all the image attachments we can find
 		$attachments = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%') ORDER BY ID DESC" );
         }
@@ -424,6 +430,13 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 // retrieve image counts for the bulk process
 function ewww_image_optimizer_media_scan() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
+	if ( 'ewww-image-optimizer-auto' !== $hook && empty( $_REQUEST['ewww_scan'] ) ) {
+		die( json_encode( array( 'error' => esc_html__( 'Access denied.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
+	}
+	if ( ! empty( $_REQUEST['ewww_scan'] ) && ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) ) {
+		die( json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
+	}
 	global $wpdb;
 	$image_count = 0;
 	$reset_count = 0;
@@ -432,7 +445,7 @@ function ewww_image_optimizer_media_scan() {
 	$attachment_images = array();
 	$reset_images = array();
 	ewwwio_debug_message( "scanning for media attachments" );
-	// retrieve the time when the optimizer starts
+	// retrieve the time when the scan starts
 	$started = microtime( true );
 	ewwwio_debug_message( 'building optimized list' );
 	$query = "SELECT id,path,image_size,pending,attachment_id FROM $wpdb->ewwwio_images";
@@ -458,7 +471,7 @@ function ewww_image_optimizer_media_scan() {
 		ewww_image_optimizer_aux_images_script();
 	}
 	$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt' );
-	while ( microtime( true ) - $started < 20 && count( $attachment_ids ) ) {
+	while ( microtime( true ) - $started < apply_filters( 'ewww_image_optimizer_timeout', 5 ) && count( $attachment_ids ) ) {
 		if ( ! empty( $attachment_ids ) && is_array( $attachment_ids ) ) {
 			ewwwio_debug_message( 'remaining items: ' . count( $attachment_ids ) );
 			// retrieve the attachment IDs that were pre-loaded in the database
@@ -721,15 +734,21 @@ function ewww_image_optimizer_media_scan() {
 	$elapsed = microtime( true ) - $started;
 	ewwwio_debug_message( "counting images took $elapsed seconds" );
 	ewwwio_memory( __FUNCTION__ );
-	return;
-	die( json_encode( array( 'remaining' => count( $attachment_ids ) ) ) );
+	//return;
+	ewww_image_optimizer_debug_log();
+	$loading_image = plugins_url('/images/wpspin.gif', __FILE__);
+	if ( count( $attachment_ids ) ) {
+		die( json_encode( array( 'remaining' => '<p>' . sprintf( esc_html__( 'Stage 1, %d images left to scan.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), count( $attachment_ids ) ) . "&nbsp;<img src='$loading_image' /></p>" ) ) );
+	} else {
+		die( json_encode( array( 'remaining' => '<p>' . esc_html__( 'Stage 2, please wait.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "&nbsp;<img src='$loading_image' /></p>" ) ) );
+	}
 }
 
 function ewww_image_optimizer_bulk_quota_update() {
 	// verify that an authorized user has started the optimizer
 	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) {
-		wp_die( esc_html__( 'Access token has expired, please reload the page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
+		die( esc_html__( 'Access token has expired, please reload the page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 	//	ewww_image_optimizer_cloud_verify(); 
@@ -744,7 +763,7 @@ function ewww_image_optimizer_bulk_initialize() {
 	// verify that an authorized user has started the optimizer
 	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) {
-		wp_die( esc_html__( 'Access token has expired, please reload the page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
+		die( json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
 	}
 	session_write_close();
 	$output = array();
@@ -755,9 +774,7 @@ function ewww_image_optimizer_bulk_initialize() {
 		$attachments = unserialize( $attachments );
 	}
 	if ( ! is_array( $attachments ) ) {
-		$output['error'] = esc_html__( 'Error retrieving list of images', EWWW_IMAGE_OPTIMIZER_DOMAIN );
-		echo json_encode( $output );
-		die();
+		die( json_encode( array( 'error' => esc_html__( 'Error retrieving list of images', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
 	}
 	$attachment = array_shift( $attachments );
 	$file = ewww_image_optimizer_bulk_filename( $attachment );
@@ -769,9 +786,8 @@ function ewww_image_optimizer_bulk_initialize() {
 	} else {
 		$output['results'] = "<p>" . esc_html__( 'Optimizing', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "&nbsp;<img src='$loading_image' /></p>";
 	}
-	echo json_encode( $output );
 	ewwwio_memory( __FUNCTION__ );
-	die();
+	die( json_encode( $output ) );
 }
 
 // called by javascript to output filename of attachment in progress
@@ -794,9 +810,7 @@ function ewww_image_optimizer_bulk_loop() {
 	// verify that an authorized user has started the optimizer
 	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) {
-		$output['error'] = esc_html__( 'Access token has expired, please reload the page.', EWWW_IMAGE_OPTIMIZER_DOMAIN );
-		echo json_encode( $output );
-		die();
+		die( json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
 	}
 	session_write_close();
 	// retrieve the time when the optimizer starts
@@ -868,10 +882,9 @@ function ewww_image_optimizer_bulk_loop() {
 			$output['next_file'] = "<p>" . esc_html__('Optimizing', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "&nbsp;<img src='$loading_image' /></p>";
 		}
 	}
-	echo json_encode( $output );
 	ewww_image_optimizer_debug_log();
 	ewwwio_memory( __FUNCTION__ );
-	die();
+	die( json_encode( $output ) );
 }
 
 // called by javascript to cleanup after ourselves
@@ -879,17 +892,19 @@ function ewww_image_optimizer_bulk_cleanup() {
 	// verify that an authorized user has started the optimizer
 	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) {
-		wp_die( esc_html__( 'Access token has expired, please reload the page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
+		die( '<p><b>' . esc_html__( 'Access token has expired, please reload the page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</b></p>' );
 	}
 	// all done, so we can update the bulk options with empty values
 	update_option( 'ewww_image_optimizer_bulk_resume', '' );
 	update_option( 'ewww_image_optimizer_bulk_attachments', '', false );
+	delete_transient( 'ewww_image_optimizer_skip_aux' );
 	// and let the user know we are done
-	echo '<p><b>' . esc_html__( 'Finished', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</b> - <a href="upload.php">' . esc_html__( 'Return to Media Library', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</a></p>';
 	ewwwio_memory( __FUNCTION__ );
-	die();
+	die( '<p><b>' . esc_html__( 'Finished', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</b> - <a href="upload.php">' . esc_html__( 'Return to Media Library', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</a></p>' );
 }
+
 add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_bulk_script' );
+add_action( 'wp_ajax_bulk_scan', 'ewww_image_optimizer_media_scan' );
 add_action( 'wp_ajax_bulk_init', 'ewww_image_optimizer_bulk_initialize' );
 add_action( 'wp_ajax_bulk_filename', 'ewww_image_optimizer_bulk_filename' );
 add_action( 'wp_ajax_bulk_loop', 'ewww_image_optimizer_bulk_loop' );

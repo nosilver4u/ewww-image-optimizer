@@ -194,7 +194,7 @@ function ewww_image_optimizer_delete_pending() {
 }
 
 // scan a folder for images and return them as an array
-function ewww_image_optimizer_image_scan( $dir ) {
+function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$folders_completed = get_option( 'ewww_image_optimizer_aux_folders_completed' );
 	if ( ! is_array( $folders_completed ) ) {
@@ -244,6 +244,11 @@ function ewww_image_optimizer_image_scan( $dir ) {
 		$enabled_types[] = 'application/pdf';
 	}
 	foreach ( $iterator as $file ) {
+		if ( $started && ! empty( $_REQUEST['ewww_scan'] ) && microtime( true ) - $started > apply_filters( 'ewww_image_optimizer_timeout', 5 ) ) {
+			$loading_image = plugins_url('/images/wpspin.gif', __FILE__);
+			die( json_encode( array( 'remaining' => '<p>' . esc_html__( 'Stage 2, please wait.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "&nbsp;<img src='$loading_image' /></p>" ) ) );
+		//	die( json_encode( array( 'remaining' => 0 ) ) );
+		}
 		$file_counter++;
 		if ( $file->isFile() ) {
 			$path = $file->getPathname();
@@ -339,13 +344,17 @@ function ewww_image_optimizer_aux_images_script( $hook ) {
 	if ( ! empty( $_REQUEST['ewww_force'] ) ) {
 		ewwwio_debug_message( 'forcing re-optimize: true' );
 	}
+	// retrieve the time when the scan starts
+	$started = microtime( true );
 	// initialize the $attachments variable for auxiliary images
 //	$attachments = null;
 	// check the 'bulk resume' option
 	$resume = get_option( 'ewww_image_optimizer_aux_resume' );
+	if ( get_transient( 'ewww_image_optimizer_skip_aux' ) ) {
+//	}
         // check if there is a previous bulk operation to resume and that the scanner wasn't interrupted (otherwise we need to scan again)
-        if ( ! empty( $resume ) && $resume !== 'scanning' ) {
-		ewwwio_debug_message( 'resuming from where we left off, no scanning needed' );
+  //      elseif ( ! empty( $resume ) && $resume !== 'scanning' ) {
+//		ewwwio_debug_message( 'resuming from where we left off, no scanning needed' );
 		$image_count = ewww_image_optimizer_aux_images_table_count_pending();
 		// retrieve the attachment IDs that have not been finished from the 'bulk attachments' option
 //		$attachments = get_option( 'ewww_image_optimizer_aux_attachments' );
@@ -355,9 +364,9 @@ function ewww_image_optimizer_aux_images_script( $hook ) {
 		// collect a list of images from the current theme
 		$child_path = get_stylesheet_directory();
 		$parent_path = get_template_directory();
-		ewww_image_optimizer_image_scan( $child_path );
+		ewww_image_optimizer_image_scan( $child_path, $started );
 		if ( $child_path !== $parent_path ) {
-			ewww_image_optimizer_image_scan( $parent_path );
+			ewww_image_optimizer_image_scan( $parent_path, $started );
 		}
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			// need to include the plugin library for the is_plugin_active function
@@ -368,23 +377,20 @@ function ewww_image_optimizer_aux_images_script( $hook ) {
 			// get the value of the wordpress upload directory
 		        $upload_dir = wp_upload_dir();
 			// scan the 'avatars' and 'group-avatars' folders for images
-			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/avatars' );
-			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/group-avatars' );
+			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/avatars', $started );
+			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/group-avatars', $started );
 		}
 		if ( is_plugin_active( 'buddypress-activity-plus/bpfb.php' ) || is_plugin_active_for_network( 'buddypress-activity-plus/bpfb.php' ) ) {
 			// get the value of the wordpress upload directory
 		        $upload_dir = wp_upload_dir();
-			//$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/bpfb' ) );
-			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/bpfb' );
+			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/bpfb', $started );
 		}
 		if ( is_plugin_active( 'grand-media/grand-media.php' ) || is_plugin_active_for_network( 'grand-media/grand-media.php' ) ) {
 			// scan the grand media folder for images
-			//$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( WP_CONTENT_DIR . '/grand-media' ) );
-			ewww_image_optimizer_image_scan( WP_CONTENT_DIR . '/grand-media' );
+			ewww_image_optimizer_image_scan( WP_CONTENT_DIR . '/grand-media', $started );
 		}
 		if ( is_plugin_active( 'wp-symposium/wp-symposium.php' ) || is_plugin_active_for_network( 'wp-symposium/wp-symposium.php' ) ) {
-			//$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( get_option( 'symposium_img_path' ) ) );
-			ewww_image_optimizer_image_scan( get_option( 'symposium_img_path' ) );
+			ewww_image_optimizer_image_scan( get_option( 'symposium_img_path', $started ) );
 		}
 		if ( is_plugin_active( 'ml-slider/ml-slider.php' ) || is_plugin_active_for_network( 'ml-slider/ml-slider.php' ) ) {
 			$slide_paths = array();
@@ -445,8 +451,7 @@ function ewww_image_optimizer_aux_images_script( $hook ) {
 		if ( $aux_paths = ewww_image_optimizer_get_option( 'ewww_image_optimizer_aux_paths' ) ) {
 			if ( ewww_image_optimizer_iterable( $aux_paths ) ) {
 				foreach ( $aux_paths as $aux_path ) {
-					//$attachments = array_merge( $attachments, ewww_image_optimizer_image_scan( $aux_path ) );
-					ewww_image_optimizer_image_scan( $aux_path );
+					ewww_image_optimizer_image_scan( $aux_path, $started );
 				}
 			}
 		}
@@ -458,13 +463,13 @@ function ewww_image_optimizer_aux_images_script( $hook ) {
 			$upload_path = $upload_dir['basedir'];
 			$this_month = date( 'm' );
 			$this_year = date( 'Y' );
-			ewww_image_optimizer_image_scan( "$upload_path/$this_year/$this_month/" );
+			ewww_image_optimizer_image_scan( "$upload_path/$this_year/$this_month/", $started );
 			if ( class_exists( 'DateTime' ) ) {
 				$date = new DateTime();
 				$date->sub( new DateInterval( 'P1M' ) );
 				$last_year = $date->format( 'Y' );
 				$last_month = $date->format( 'm' );
-				ewww_image_optimizer_image_scan( "$upload_path/$last_year/$last_month/" );
+				ewww_image_optimizer_image_scan( "$upload_path/$last_year/$last_month/", $started );
 			}
 
 		}
@@ -541,7 +546,7 @@ function ewww_image_optimizer_aux_images_cleanup( $auto = false ) {
 }
 
 //add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_aux_images_script' );
-add_action( 'wp_ajax_bulk_aux_images_scan', 'ewww_image_optimizer_aux_images_script' );
+//add_action( 'wp_ajax_bulk_aux_images_scan', 'ewww_image_optimizer_aux_images_script' );
 add_action( 'wp_ajax_bulk_aux_images_table', 'ewww_image_optimizer_aux_images_table' );
 add_action( 'wp_ajax_bulk_aux_images_table_count', 'ewww_image_optimizer_aux_images_table_count' );
 add_action( 'wp_ajax_bulk_aux_images_remove', 'ewww_image_optimizer_aux_images_remove' );

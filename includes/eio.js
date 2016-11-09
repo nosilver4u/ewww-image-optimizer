@@ -126,7 +126,7 @@ jQuery(document).ready(function($) {
 			});
 		}
 	} else {
-		var ewww_scan_action = 'bulk_aux_images_scan';
+		var ewww_scan_action = 'bulk_scan';
 		var ewww_init_action = 'bulk_init';
 		var ewww_loop_action = 'bulk_loop';
 		var ewww_cleanup_action = 'bulk_cleanup';
@@ -142,9 +142,9 @@ jQuery(document).ready(function($) {
 	var ewww_import_loop_action = 'bulk_import_loop';
 	$('#ewww-aux-start').submit(function() {
 		ewww_aux = true;
-		ewww_init_action = 'bulk_aux_images_init';
-		ewww_loop_action = 'bulk_aux_images_loop';
-		ewww_cleanup_action = 'bulk_aux_images_cleanup';
+		//ewww_init_action = 'bulk_init';
+		//ewww_loop_action = 'bulk_aux_images_loop';
+		//ewww_cleanup_action = 'bulk_aux_images_cleanup';
 		if ($('#ewww-force:checkbox:checked').val()) {
 			ewww_force = 1;
 		}
@@ -158,19 +158,33 @@ jQuery(document).ready(function($) {
 			action: ewww_scan_action,
 			ewww_force: ewww_force,
 			ewww_scan: true,
+			ewww_wpnonce: ewww_vars._wpnonce,
 		};
 		$.post(ajaxurl, ewww_scan_data, function(response) {
-			ewww_attachments = response;
+			ewww_response = $.parseJSON(response);
 			ewww_init_data = {
 			        action: ewww_init_action,
 				ewww_wpnonce: ewww_vars._wpnonce,
 			};
-			if (ewww_attachments == 0) {
-				$('#ewww-scanning').hide();
-				$('#ewww-nothing').show();
-			}
-			else {
-				ewwwStartOpt();
+			if ( ewww_response.error ) {
+				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_response.error + '</b></p>');
+			} else if ( ewww_response.remaining ) {
+				$('.ewww-aux-table').hide();
+				//$('#ewww-bulk-stop').show();
+				$('.ewww-bulk-form').hide();
+				$('.ewww-bulk-info').hide();
+				$('h2').hide();	
+				$('#ewww-bulk-loading').html( ewww_response.remaining );
+				ewwwStartScan();
+			} else if ( ewww_response.ready ) {
+				ewww_attachments = ewww_response.ready;
+				if (ewww_attachments == 0) {
+					$('#ewww-scanning').hide();
+					$('#ewww-nothing').show();
+				}
+				else {
+				//	ewwwStartOpt();
+				}
 			}
 	        })
 		.fail(function() { 
