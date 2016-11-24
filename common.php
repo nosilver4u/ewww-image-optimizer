@@ -12,6 +12,10 @@
 // TODO: make sure IMS resizes still work
 // TODO: see if imsanity still mangles the wp_image_editor paths
 // TODO: see if we can also tell the reoptimize query to ignore plugin & theme images
+// TODO: check new Azure plugin for compatibility with bulk/remote_fetch
+// TODO: if Imsanity is active, disable the resize settings with a notice (instead of just ignoring them like we currently do)
+// TODO: see what Imsanity does different to avoid memory issues on resizing
+
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -2766,6 +2770,7 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 				'results' => $results_msg,
 				'updates' => $already_optimized['updates'] + 1,
 				'trace' => $trace,
+				'pending' => 0,
 			),
 			array(
 				'id' => $already_optimized['id'],
@@ -3532,8 +3537,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 	}
 	// this gets a bit long, so here goes:
 	// we run in parallel if we didn't detect breakage (test_parallel_opt), and there are enough resizes to make it worthwhile (or if the API is enabled)
-	if ( ewww_image_optimizer_test_parallel_opt( $type ) && isset( $meta['sizes'] ) && ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) || count( $meta['sizes'] ) > 5 ) ) {
-//	if ( ewww_image_optimizer_test_parallel_opt( $ID ) && $type != 'application/pdf' ) {
+	if ( ewww_image_optimizer_test_parallel_opt( $type, $ID ) && isset( $meta['sizes'] ) && ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) || count( $meta['sizes'] ) > 5 ) ) {
 		ewwwio_debug_message( 'running in parallel' );
 		$parallel_opt = true;
 	} else {
@@ -3561,11 +3565,6 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 		$meta['file'] = str_replace( $upload_path, '', $file );
 		// if the file was converted
 		if ( $conv !== false ) {
-			// update the filename in the metadata
-			$new_file = substr( $meta['file'], 0, -3 );
-			// change extension
-			$new_ext = substr( $file, -3 );
-			$meta['file'] = $new_file . $new_ext;
 			ewwwio_debug_message( 'image was converted' );
 			// if we don't already have the update attachment filter
 			if ( FALSE === has_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment' ) )
@@ -3593,7 +3592,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 		$processed = array();
 		foreach ( $meta['sizes'] as $size => $data ) {
 			ewwwio_debug_message( "processing size: $size" );
-			if ( strpos( $size, 'webp') === 0 ) {
+			if ( strpos( $size, 'webp' ) === 0 ) {
 				continue;
 			}
 			if ( ! empty( $disabled_sizes[ $size ] ) ) {
@@ -4093,7 +4092,10 @@ function ewww_image_optimizer_size_unformat( $formatted ) {
 function ewww_image_optimizer_unique_filename( $file, $fileext ) {
 	// strip the file extension
 	$filename = preg_replace( '/\.\w+$/', '', $file );
-	// set the increment to 1 (we always rename converted files with an increment, unless the user says different))
+	if ( ! is_file( $filename . $fileext ) ) {
+		return array( $filename . $fileext, '' );
+	}
+	// set the increment to 1 ( but allow the user to override it )
 	$filenum = apply_filters( 'ewww_image_optimizer_converted_filename_suffix', 1 );
 	//but it must be only letters, numbers, or underscores
 	$filenum = ( preg_match( '/^[\w\d]*$/', $filenum ) ? $filenum : 1 );

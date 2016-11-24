@@ -15,6 +15,7 @@ Author URI: https://ewww.io/
 License: GPLv3
 */
 
+// TODO: make sure all resizes are converted, only use an increment if there is a conflict
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -37,6 +38,7 @@ define( 'EWWW_IMAGE_OPTIMIZER_IMAGES_PATH', plugin_dir_path( __FILE__ ) . 'image
 
 require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'common.php' );
 require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
+require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/ewww-image.php' );
 
 // Hooks
 add_action( 'admin_action_ewww_image_optimizer_install_pngout', 'ewww_image_optimizer_install_pngout' );
@@ -1353,17 +1355,17 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		ewwwio_debug_message( 'full-size image was converted, need to rebuild filename for meta' );
 		$filenum = $converted;
 		// grab the file extension
-		preg_match('/\.\w+$/', $file, $fileext);
+		preg_match( '/\.\w+$/', $file, $fileext );
 		// strip the file extension
-		$filename = str_replace($fileext[0], '', $file);
+		$filename = str_replace( $fileext[0], '', $file );
 		// grab the dimensions
-		preg_match('/-\d+x\d+(-\d+)*$/', $filename, $fileresize);
+		preg_match( '/-\d+x\d+(-\d+)*$/', $filename, $fileresize );
 		// strip the dimensions
-		$filename = str_replace($fileresize[0], '', $filename);
+		$filename = str_replace( $fileresize[0], '', $filename );
 		// reconstruct the filename with the same increment (stored in $converted) as the full version
 		$refile = $filename . '-' . $filenum . $fileresize[0] . $fileext[0];
 		// rename the file
-		rename($file, $refile);
+		rename( $file, $refile );
 		ewwwio_debug_message( "moved $file to $refile" );
 		// and set $file to the new filename
 		$file = $refile;
