@@ -15,7 +15,7 @@
 // TODO: check new Azure plugin for compatibility with bulk/remote_fetch
 // TODO: if Imsanity is active, disable the resize settings with a notice (instead of just ignoring them like we currently do)
 // TODO: see what Imsanity does different to avoid memory issues on resizing
-
+// TODO: use an object to store optimizer paths/locations to avoid re-checking the binaries on every optimization, not a transient, don't want to risk corrupting something if there are changes in the meantime
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

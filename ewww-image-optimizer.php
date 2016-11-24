@@ -1280,8 +1280,9 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		// send back the above message
 		return array( false, $msg, $converted, $original );
 	}
-	if ( function_exists( 'fileperms' ) )
+	if ( function_exists( 'fileperms' ) ) {
 		$file_perms = substr( sprintf( '%o', fileperms( $file ) ), -4 );
+	}
 	$file_owner = 'unknown';
 	$file_group = 'unknown';
 	if (function_exists('posix_getpwuid')) {
@@ -1306,6 +1307,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	}
 	if ( ! EWWW_IMAGE_OPTIMIZER_CLOUD ) {
 		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
+			// TODO: this ought to be in a function that we can call
 			// Check if exec is disabled
 			if( ewww_image_optimizer_exec_check() ) {
 				define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
@@ -1384,8 +1386,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		// tell the user optimization was skipped
 		return array( false, __( "Optimization skipped", EWWW_IMAGE_OPTIMIZER_DOMAIN ), $converted, $file );
 	}
-	// initialize $new_size with the original size, HOW ABOUT A ZERO...
-	//$new_size = $orig_size;
+	// initialize $new_size with a zero
 	$new_size = 0;
 	// set the optimization process to OFF
 	$optimize = false;

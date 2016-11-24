@@ -261,6 +261,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 3.2.0 =
+* removed: ability to use the ImageMagick 'convert' binary, use Imagick extension for PHP instead
 * fixed: parallel mode prevents successful conversion
 
 = 3.1.3 =
