@@ -125,7 +125,8 @@ class ewwwngg {
 		$storage  = $registry->get_utility( 'I_Gallery_Storage' );
 		$filename = $storage->get_image_abspath( $image, $size );
 		if ( file_exists( $filename ) ) {
-			if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
+			// TODO: shouldn't we actually test for background option or use the background tester function?
+			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 				ewww_image_optimizer( $filename, 2 );
 				ewwwio_debug_message( "nextgen dynamic thumb saved: $filename" );
 				$image_size = ewww_image_optimizer_filesize( $filename );

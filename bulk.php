@@ -886,7 +886,7 @@ function ewww_image_optimizer_bulk_loop() {
 		$output['results'] .= "$msg</p>"; // TODO: make sure it looks nice, or we may want to tweak the line breaks a bit
 
 		// if this is a full size image and it was converted
-		if ( $image->resize == 'full' && $converted !== false ) {
+		if ( $image->resize == 'full' && ( $image->increment !== false || $converted !== false ) ) {
 			if ( ! $meta || ! is_array( $meta ) ) {
 				$meta = wp_get_attachment_metadata( $image->attachment_id );
 			}

@@ -16,6 +16,7 @@
 // TODO: if Imsanity is active, disable the resize settings with a notice (instead of just ignoring them like we currently do)
 // TODO: see what Imsanity does different to avoid memory issues on resizing
 // TODO: use an object to store optimizer paths/locations to avoid re-checking the binaries on every optimization, not a transient, don't want to risk corrupting something if there are changes in the meantime
+// TODO: some stuff in nextgen & nextcellent is still using background processing when maybe it should not be
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -2725,12 +2726,13 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 	ewwwio_debug_message( "savings: $opt_size (new) vs. $orig_size (orig)" );
 	if ( is_array( $already_optimized ) && ! empty( $already_optimized['results'] ) && $preserve_results && $opt_size == $orig_size) {
 		$results_msg = $already_optimized['results'];
-	} elseif ( $opt_size >= $orig_size ) {
-		ewwwio_debug_message( "original and new file are same size (or something weird made the new one larger), no savings" );
-		$results_msg = __( 'No savings', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+//	} elseif ( $opt_size >= $orig_size ) {
+//		ewwwio_debug_message( "original and new file are same size (or something weird made the new one larger), no savings" );
+//		$results_msg = __( 'No savings', EWWW_IMAGE_OPTIMIZER_DOMAIN );
 	} else {
 		// calculate how much space was saved
-		$savings = intval( $orig_size ) - intval( $opt_size );
+		$results_msg = ewww_image_optimizer_image_results( $orig_size, $opt_size, $prev_string );
+/*		$savings = intval( $orig_size ) - intval( $opt_size );
 		// convert it to human readable format
 		$savings_str = size_format( $savings, 1 );
 		// replace spaces and extra decimals with proper html entity encoding
@@ -2743,7 +2745,7 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 			$percent,
 			$savings_str
 		) . $prev_string;
-		ewwwio_debug_message( "original and new file are different size: $results_msg" );
+		ewwwio_debug_message( "original and new file are different size: $results_msg" );*/
 	}
 	if ( empty( $already_optimized ) ) {
 		ewwwio_debug_message( "creating new record, path: $attachment, size: $opt_size" );
@@ -2780,6 +2782,31 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 	ewwwio_memory( __FUNCTION__ );
 	$wpdb->flush();
 	ewwwio_memory( __FUNCTION__ );
+	return $results_msg;
+}
+
+// returns a human-readable message based on the original and optimized sizes, taking into account the possibility that the image was previously optimized
+function ewww_image_optimizer_image_results( $orig_size, $opt_size, $prev_string = '' ) {
+	if ( $opt_size >= $orig_size ) {
+		ewwwio_debug_message( "original and new file are same size (or something weird made the new one larger), no savings" );
+		$results_msg = __( 'No savings', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+	} else {
+		// calculate how much space was saved
+		$savings = intval( $orig_size ) - intval( $opt_size );
+		// convert it to human readable format
+		$savings_str = size_format( $savings, 1 );
+		// replace spaces and extra decimals with proper html entity encoding
+		$savings_str = preg_replace( '/\.0 B /', ' B', $savings_str );
+		$savings_str = str_replace( ' ', '&nbsp;', $savings_str );
+		// determine the percentage savings
+		$percent = number_format_i18n( 100 - ( 100 * ( $opt_size / $orig_size ) ), 1 ) . '%';
+		// use the percentage and the savings size to output a nice message to the user
+		$results_msg = sprintf( __( 'Reduced by %1$s (%2$s)', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
+			$percent,
+			$savings_str
+		) . $prev_string;
+		ewwwio_debug_message( "original and new file are different size: $results_msg" );
+	}
 	return $results_msg;
 }
 
