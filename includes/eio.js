@@ -161,7 +161,17 @@ jQuery(document).ready(function($) {
 			ewww_wpnonce: ewww_vars._wpnonce,
 		};
 		$.post(ajaxurl, ewww_scan_data, function(response) {
-			ewww_response = $.parseJSON(response);
+			var is_json = true;
+			try {
+				var ewww_response = $.parseJSON(response);
+			} catch (err) {
+				is_json = false;
+			}
+			if ( ! is_json ) {
+				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.invalid_response + '</b></p>');
+				return false;
+			}	
+			//ewww_response = $.parseJSON(response);
 			ewww_init_data = {
 			        action: ewww_init_action,
 				ewww_wpnonce: ewww_vars._wpnonce,
@@ -332,7 +342,17 @@ jQuery(document).ready(function($) {
 		$('.ewww-bulk-info').hide();
 		$('h2').hide();	
 	        $.post(ajaxurl, ewww_init_data, function(response) {
-			var ewww_init_response = $.parseJSON(response);
+			var is_json = true;
+			try {
+				var ewww_init_response = $.parseJSON(response);
+			} catch (err) {
+				is_json = false;
+			}
+			if ( ! is_json ) {
+				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.invalid_response + '</b></p>');
+				return false;
+			}	
+			//var ewww_init_response = $.parseJSON(response);
 			if ( ewww_init_response.error ) {
 				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_init_response.error + '</b></p>');
 			} else {
@@ -353,7 +373,16 @@ jQuery(document).ready(function($) {
 			ewww_force: ewww_force,
 	        };
 	        var ewww_jqxhr = $.post(ajaxurl, ewww_loop_data, function(response) {
-			var ewww_response = $.parseJSON(response);
+			var is_json = true;
+			try {
+				var ewww_response = $.parseJSON(response);
+			} catch (err) {
+				is_json = false;
+			}
+			if ( ! is_json ) {
+				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.invalid_response + '</b></p>');
+				return false;
+			}	
 			ewww_i += ewww_response.completed;
 			$('#ewww-bulk-progressbar').progressbar( "option", "value", ewww_i );
 			$('#ewww-bulk-counter').html(ewww_vars.optimized + ' ' + ewww_i + '/' + ewww_attachments);
@@ -387,7 +416,7 @@ jQuery(document).ready(function($) {
 					ewww_vars._wpnonce = ewww_response.new_nonce;
 				}
 				ewww_error_counter = 30;
-			//	setTimeout(ewwwProcessImage, ewww_delay * 1000); TODO - this is temporarily disabled to stop after the first image
+				setTimeout(ewwwProcessImage, ewww_delay * 1000); // TODO - this is temporarily disabled to stop after the first image
 			}
 			else {
 				if ( ewww_response.results ) {

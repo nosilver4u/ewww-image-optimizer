@@ -337,7 +337,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 		update_option( 'ewww_image_optimizer_bulk_resume', '' );
 		update_option( 'ewww_image_optimizer_aux_resume', '' );
 		update_option( 'ewww_image_optimizer_scanning_attachments', '' );
-		update_option( 'ewww_image_optimizer_bulk_attachments', '' );
+		update_option( 'ewww_image_optimizer_bulk_attachments', '', false );
         // initialize the $attachments variable
         $attachments = array();
         // check to see if we are supposed to reset the bulk operation and verify we are authorized to do so
@@ -417,6 +417,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 			'operation_stopped' => esc_html__( 'Optimization stopped, reload page to resume.', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
 			'operation_interrupted' => esc_html__( 'Operation Interrupted', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
 			'temporary_failure' => esc_html__( 'Temporary failure, seconds left to retry:', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
+			'invalid_response' => esc_html__( 'Received an invalid response from your website, please check for errors in the Developer Tools console of your browser.', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
 			'remove_failed' => esc_html__( 'Could not remove image from table.', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
 			/* translators: used for Bulk Optimize progress bar, like so: Optimized 32/346 */
 			'optimized' => esc_html__( 'Optimized', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
@@ -428,7 +429,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 }
 
 // retrieve image counts for the bulk process
-function ewww_image_optimizer_media_scan() {
+function ewww_image_optimizer_media_scan( $hook = '' ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 
 	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
@@ -845,7 +846,7 @@ function ewww_image_optimizer_bulk_loop() {
 	}
 	$output['results'] = '';
 	$output['completed'] = 0;
-	while ( $image->file && microtime( true ) - $started + $time_adjustment < apply_filters( 'ewww_image_optimizer_timeout', 5 ) ) {
+	while ( $image->file && microtime( true ) - $started + $time_adjustment < apply_filters( 'ewww_image_optimizer_timeout', 15 ) ) {
 		$output['completed']++;
 		$meta = false;
 		if ( $image->resize === 'full' && ! is_file( $image->file ) ) {
@@ -880,6 +881,7 @@ function ewww_image_optimizer_bulk_loop() {
 		}
 		// delete a pending record if the optimization failed for whatever reason
 		if ( ! $file && $image->id ) {
+			global $wpdb;
 			$wpdb->delete( $wpdb->ewwwio_images, array( 'id' => $image->id ), array( '%d' ) );
 		}
 		$output['results'] .= sprintf( "<p>" . esc_html__( 'Optimized', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . " <strong>%s</strong><br>", esc_html( $file ) );
@@ -910,6 +912,8 @@ function ewww_image_optimizer_bulk_loop() {
 				if ( ! $meta_saved ) {
 					ewwwio_debug_message( 'failed to save meta' );
 				}
+			} else { // if we didn't retrieve the meta previously, thus it hasn't been modified for conversion/resizing, we just want to fire off any filters for plugins that might need to take action when an image is updated
+				$meta = apply_filters( 'wp_update_attachment_metadata', wp_get_attachment_metadata( $image->attachment_id ), $image->attachment_id );
 			}
 		}
 		// TODO: when an image (attachment) is done, pull the next attachment ID off the stack

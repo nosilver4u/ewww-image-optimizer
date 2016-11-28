@@ -333,7 +333,7 @@ function ewww_image_optimizer_aux_images_convert() {
 }
 
 // prepares the bulk operation and includes the javascript functions
-function ewww_image_optimizer_aux_images_script( $hook ) {
+function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// make sure we are being called from the proper page
 	if ( 'ewww-image-optimizer-auto' !== $hook && empty( $_REQUEST['ewww_scan'] ) ) {
