@@ -36,8 +36,8 @@ function ewww_image_optimizer_aux_images () {
 	}
 	date_default_timezone_set( $site_timezone );
 	?>
-	<h2 class="ewww-bulk-aux"><?php esc_html_e( 'Optimize Everything Else', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></h2>
-		<div id="ewww-aux-forms"><p class="ewww-aux-info ewww-bulk-info"><?php esc_html_e( 'Use this tool to optimize images outside of the Media Library and galleries where we have full integration. Examples: theme images, BuddyPress, WP Symposium, and any folders that you have specified on the settings page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>
+<!--	<h2 class="ewww-bulk-aux"><?php esc_html_e( 'Optimize Everything Else', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></h2>-->
+		<div id="ewww-aux-forms"><!--<p class="ewww-aux-info ewww-bulk-info"><?php esc_html_e( 'Use this tool to optimize images outside of the Media Library and galleries where we have full integration. Examples: theme images, BuddyPress, WP Symposium, and any folders that you have specified on the settings page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>-->
 		<?php if ( ! empty( $db_convert ) ) { ?>
 			<p class="ewww-bulk-info"><?php esc_html_e( 'The database schema has changed, you need to convert to the new format.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>
 			<form method="post" id="ewww-aux-convert" class="ewww-bulk-form" action="">
@@ -49,21 +49,21 @@ function ewww_image_optimizer_aux_images () {
 			<p id="ewww-nothing" class="ewww-bulk-info" style="display:none"><?php esc_html_e( 'There are no images to optimize.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>
 			<p id="ewww-scanning" class="ewww-bulk-info" style="display:none"><?php esc_html_e( 'Scanning, this could take a while', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>&nbsp;<img src='<?php echo $loading_image; ?>' alt='loading'/></p>
 		<?php if ( ! empty( $lastaux ) ) { ?>
-			<p id="ewww-lastaux" class="ewww-bulk-info"><?php printf( esc_html__( 'Last optimization was completed on %1$s at %2$s and optimized %3$d images', EWWW_IMAGE_OPTIMIZER_DOMAIN ), date( get_option( 'date_format' ), $lastaux[0] ), date( get_option( 'time_format' ), $lastaux[0] ), (int) $lastaux[1] ); ?></p>
+	<!--		<p id="ewww-lastaux" class="ewww-bulk-info"><?php printf( esc_html__( 'Last optimization was completed on %1$s at %2$s and optimized %3$d images', EWWW_IMAGE_OPTIMIZER_DOMAIN ), date( get_option( 'date_format' ), $lastaux[0] ), date( get_option( 'time_format' ), $lastaux[0] ), (int) $lastaux[1] ); ?></p>-->
 		<?php } ?>
-			<form id="ewww-aux-start" class="ewww-bulk-form" method="post" action="">
+<!--			<form id="ewww-aux-start" class="ewww-bulk-form" method="post" action="">
 				<input id="ewww-aux-first" type="submit" class="button-secondary action" value="<?php echo $button_text; ?>" />
 				<input id="ewww-aux-again" type="submit" class="button-secondary action" style="display:none" value="<?php esc_attr_e( 'Optimize Again', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>" />
-			</form>
+			</form>-->
 <?php		// if the 'bulk resume' option was not empty, offer to reset it so the user can start back from the beginning
 		if ( ! empty( $aux_resume ) && $aux_resume !== 'scanning' ) {
 ?>
-			<p id="ewww-aux-reset-desc" class="ewww-bulk-info"><?php esc_html_e( 'If you would like to start over again, press the Reset Status button to reset the bulk operation status.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>
+			<!--<p id="ewww-aux-reset-desc" class="ewww-bulk-info"><?php esc_html_e( 'If you would like to start over again, press the Reset Status button to reset the bulk operation status.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>
 			<form id="ewww-aux-reset" class="ewww-bulk-form" method="post" action="">
 				<?php wp_nonce_field( 'ewww-image-optimizer-aux-images-reset', 'ewww_wpnonce' ); ?>
 				<input type="hidden" name="ewww_reset_aux" value="1">
 				<button type="submit" class="button-secondary action"><?php esc_html_e( 'Reset Status', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></button>
-			</form>
+			</form>-->
 <?php		} 
 		if ( empty( $already_optimized ) ) {
 			$display = ' style="display:none"';
@@ -478,6 +478,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 		ewwwio_debug_message( "found $image_count images to optimize while scanning" );
 	}
 	update_option( 'ewww_image_optimizer_aux_folders_completed', array(), false );
+	update_option( 'ewww_image_optimizer_aux_resume', '' );
 	ewww_image_optimizer_debug_log();
 	if ( ! empty( $_REQUEST['ewww_scan'] ) ) {
 		ewwwio_memory( __FUNCTION__ );

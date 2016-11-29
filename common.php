@@ -17,6 +17,8 @@
 // TODO: see what Imsanity does different to avoid memory issues on resizing
 // TODO: use an object to store optimizer paths/locations to avoid re-checking the binaries on every optimization, not a transient, don't want to risk corrupting something if there are changes in the meantime
 // TODO: some stuff in nextgen & nextcellent is still using background processing when maybe it should not be
+// TODO: populate id, gallery, size, etc during resize_from_meta
+// TODO: prevent bad ajax errors from firing when we click the toggle on the Optimization Log
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
