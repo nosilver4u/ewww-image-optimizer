@@ -6,7 +6,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 function ewww_image_optimizer_bulk_preview() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// retrieve the attachment IDs that were pre-loaded in the database
-	list( $fullsize_count, $unoptimized_count, $resize_count, $unoptimized_resize_count ) = ewww_image_optimizer_count_optimized( 'media' );
 ?>
 	<div class="wrap"> 
 	<h1>
@@ -18,8 +17,10 @@ function ewww_image_optimizer_bulk_preview() {
 	// Retrieve the value of the 'bulk resume' option and set the button text for the form to use
 	$resume = get_option( 'ewww_image_optimizer_bulk_resume' );
 	if ( empty( $resume ) ) {
-		$button_text = esc_attr__( 'Scan and optimize', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+		$fullsize_count = ewww_image_optimizer_count_optimized( 'media' );
+		$button_text = esc_attr__( 'Start optimizing', EWWW_IMAGE_OPTIMIZER_DOMAIN );
 	} else {
+		$fullsize_count = ewww_image_optimizer_aux_images_table_count_pending();
 		$button_text = esc_attr__( 'Resume previous optimization', EWWW_IMAGE_OPTIMIZER_DOMAIN );
 	}
 	$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
@@ -65,22 +66,30 @@ function ewww_image_optimizer_bulk_preview() {
 			echo '<p>' . esc_html__( 'You do not appear to have uploaded any images yet.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</p>';
 		} else { ?>
 			<div id="ewww-bulk-forms">
-<?php			if ( ! $resize_count && ! $unoptimized_count && ! $unoptimized_resize_count ) { 
-				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-					$credits_needed = $fullsize_count * ( count( get_intermediate_image_sizes() ) + 1 );
-				} ?>
-				<p class="ewww-media-info ewww-bulk-info"><?php printf( esc_html__( '%1$d images in the Media Library have been selected, unable to determine how many resizes and how many are unoptimized.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $fullsize_count ); ?> <?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && $credits_needed > 0 ) { printf( esc_html__( 'This could require approximately %d image credits to complete.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $credits_needed ); } ?><br />
+<?php			if ( $resume ) { 
+				//if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+				//	$credits_needed = $fullsize_count * ( count( get_intermediate_image_sizes() ) + 1 );
+				//} ?>
+				<p class="ewww-media-info ewww-bulk-info"><?php printf( esc_html__( 'There are %d images ready to optimize.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $fullsize_count ); ?> <?php //if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && $credits_needed > 0 ) { printf( esc_html__( 'This could require approximately %d image credits to complete.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $credits_needed ); } ?></p>
 <?php			} else { 
-				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-					$credits_needed = $unoptimized_count + $unoptimized_resize_count;
-				} ?>
-				<p class="ewww-media-info ewww-bulk-info"><?php printf( esc_html__( '%1$d images in the Media Library have been selected (%2$d unoptimized), with %3$d resizes (%4$d unoptimized).', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $fullsize_count, $unoptimized_count, $resize_count, $unoptimized_resize_count ); ?>  <?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && $credits_needed > 0 ) { printf( esc_html__( 'This could require approximately %d image credits to complete.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $credits_needed ); } ?><br />
-<?php			}
-			esc_html_e( 'The active theme, BuddyPress, WP Symposium, and folders that you have configured will also be scanned for unoptimized images.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>
-			<?php //esc_html_e( 'Previously optimized images will be skipped by default.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>
-			<form id="ewww-bulk-start" class="ewww-bulk-form" method="post" action="">
-				<input id="ewww-bulk-first" type="submit" class="button-primary action" value="<?php echo $button_text; ?>" />
-				<input id="ewww-bulk-again" type="submit" class="button-secondary action" style="display:none" value="<?php esc_attr_e( 'Optimize Again', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>" />
+				//if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+				//	$credits_needed = $unoptimized_count + $unoptimized_resize_count;
+				//} ?>
+				<p class="ewww-media-info ewww-bulk-info"><?php printf( esc_html__( '%1$d images in the Media Library have been selected.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $fullsize_count ); ?><br />
+				<?php esc_html_e( 'The active theme, BuddyPress, WP Symposium, and folders that you have configured will also be scanned for unoptimized images.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>
+				<!--<p class="ewww-media-info ewww-bulk-info"><?php // printf( esc_html__( '%1$d images in the Media Library have been selected (%2$d unoptimized), with %3$d resizes (%4$d unoptimized).', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $fullsize_count, $unoptimized_count, $resize_count, $unoptimized_resize_count ); ?>  <?php // if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && $credits_needed > 0 ) { printf( esc_html__( 'This could require approximately %d image credits to complete.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $credits_needed ); } ?><br />-->
+<?php			} ?>
+			<?php //esc_html_e( 'Previously optimized images will be skipped by default.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>
+			<p id="ewww-nothing" class="ewww-bulk-info" style="display:none"><?php esc_html_e( 'There are no images to optimize.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>
+			<p id="ewww-scanning" class="ewww-bulk-info" style="display:none"><?php esc_html_e( 'Scanning, this could take a while', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>&nbsp;<img src='<?php echo $loading_image; ?>' alt='loading'/></p>
+			<form id="ewww-aux-start" class="ewww-bulk-form" method="post" action="">
+<?php				if ( ! $resume ) { ?>
+				<input id="ewww-aux-first" type="submit" class="button-primary action" value="<?php esc_attr_e( 'Scan for unoptimized images', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>" />
+				<?php } ?>
+				<input id="ewww-aux-again" type="submit" class="button-secondary action" style="display:none" value="<?php esc_attr_e( 'Scan Again', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>" />
+			</form>
+			<form id="ewww-bulk-start" class="ewww-bulk-form" <?php if ( ! $resume ) { ?>style="display:none" <?php } ?>method="post" action="">
+				<input id="ewww-aux-first" type="submit" class="button-primary action" value="<?php echo $button_text; ?>" />
 			</form>
 <?php		}
 		// if the 'bulk resume' option was not empty, offer to reset it so the user can start back from the beginning
@@ -141,6 +150,7 @@ function ewww_image_optimizer_count_optimized( $gallery, $return_ids = false ) {
 			} else {
 				$full_count = $wpdb->get_var( "SELECT COUNT(ID) FROM $wpdb->posts WHERE (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%')" );
 			}
+			return $full_count;
 			$offset = 0;
 			// retrieve all the image attachment metadata from the database
 			while ( $attachments = $wpdb->get_results( "SELECT metas.meta_value,post_id FROM $wpdb->postmeta metas INNER JOIN $wpdb->posts posts ON posts.ID = metas.post_id WHERE (posts.post_mime_type LIKE '%%image%%' OR posts.post_mime_type LIKE '%%pdf%%') AND metas.meta_key = '_wp_attachment_metadata' $attachment_query LIMIT $offset,$max_query", ARRAY_N ) ) {
@@ -172,6 +182,7 @@ function ewww_image_optimizer_count_optimized( $gallery, $return_ids = false ) {
 						continue;
 					}
 					if ( empty( $meta['ewww_image_optimizer'] ) ) {
+						ewwwio_debug_message( "{$attachment[1]} {$meta['file']}" );
 						$unoptimized_full++;
 						$ids[] = $attachment[1];
 					}
@@ -414,7 +425,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 	// submit a couple variables to the javascript to work with
 	wp_localize_script('ewwwbulkscript', 'ewww_vars', array(
 			'_wpnonce' => wp_create_nonce( 'ewww-image-optimizer-bulk' ),
-			'attachments' => $attachment_count,
+			'attachments' => ewww_image_optimizer_aux_images_table_count_pending(),
 			'image_count' => $image_count,
 			'count_string' => sprintf( esc_html__( '%d images', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $image_count ),
 			'scan_fail' => esc_html__( 'Operation timed out, you may need to increase the max_execution_time for PHP', EWWW_IMAGE_OPTIMIZER_DOMAIN ),

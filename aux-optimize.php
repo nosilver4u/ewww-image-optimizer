@@ -46,8 +46,6 @@ function ewww_image_optimizer_aux_images () {
 				<button id="ewww-table-convert" type="submit" class="button-secondary action"><?php esc_html_e( 'Convert Table', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></button>
 			</form>
 		<?php } ?>	
-			<p id="ewww-nothing" class="ewww-bulk-info" style="display:none"><?php esc_html_e( 'There are no images to optimize.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>
-			<p id="ewww-scanning" class="ewww-bulk-info" style="display:none"><?php esc_html_e( 'Scanning, this could take a while', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>&nbsp;<img src='<?php echo $loading_image; ?>' alt='loading'/></p>
 		<?php if ( ! empty( $lastaux ) ) { ?>
 	<!--		<p id="ewww-lastaux" class="ewww-bulk-info"><?php printf( esc_html__( 'Last optimization was completed on %1$s at %2$s and optimized %3$d images', EWWW_IMAGE_OPTIMIZER_DOMAIN ), date( get_option( 'date_format' ), $lastaux[0] ), date( get_option( 'time_format' ), $lastaux[0] ), (int) $lastaux[1] ); ?></p>-->
 		<?php } ?>
@@ -482,7 +480,8 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 	ewww_image_optimizer_debug_log();
 	if ( ! empty( $_REQUEST['ewww_scan'] ) ) {
 		ewwwio_memory( __FUNCTION__ );
-		die( json_encode( array( 'ready' => $image_count ) ) );
+		$ready_msg = sprintf( esc_html__( 'There are %d images ready to optimize.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $image_count );
+		die( json_encode( array( 'ready' => $image_count, 'message' => $ready_msg ) ) );
 	}
 	ewwwio_memory( __FUNCTION__ );
 	return $image_count;

@@ -15,7 +15,6 @@ Author URI: https://ewww.io/
 License: GPLv3
 */
 
-// TODO: make sure all resizes are converted, only use an increment if there is a conflict
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -456,6 +455,25 @@ function ewww_image_optimizer_skip_tools() {
 		}
 	}
 	return $skip;
+}
+
+function ewww_image_optimizer_define_noexec() {
+	if ( defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
+		return;
+	}
+	// Check if exec is disabled
+	if( ewww_image_optimizer_exec_check() ) {
+		define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
+		ewwwio_debug_message( 'exec seems to be disabled' );
+		ewww_image_optimizer_disable_tools();
+		// otherwise, query the php settings for safe mode
+	} elseif ( ewww_image_optimizer_safemode_check() ) {
+		define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
+		ewwwio_debug_message( 'safe mode appears to be enabled' );
+		ewww_image_optimizer_disable_tools();
+	} else {
+		define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', false );
+	}
 }
 
 // we check for safe mode and exec, then also direct the user where to go if they don't have the tools installed
@@ -1306,22 +1324,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		return array( false, __( 'Unsupported file type', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . ": $type", $converted, $original );
 	}
 	if ( ! EWWW_IMAGE_OPTIMIZER_CLOUD ) {
-		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
-			// TODO: this ought to be in a function that we can call
-			// Check if exec is disabled
-			if( ewww_image_optimizer_exec_check() ) {
-				define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
-				ewwwio_debug_message( 'exec seems to be disabled' );
-				ewww_image_optimizer_disable_tools();
-				// otherwise, query the php settings for safe mode
-			} elseif ( ewww_image_optimizer_safemode_check() ) {
-				define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
-				ewwwio_debug_message( 'safe mode appears to be enabled' );
-				ewww_image_optimizer_disable_tools();
-			} else {
-				define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', false );
-			}
-		}
+		ewww_image_optimizer_define_noexec();
 		if ( EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
 			$nice = '';
 		} else {
