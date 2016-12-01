@@ -19,6 +19,10 @@ function ewww_image_optimizer_bulk_preview() {
 	if ( empty( $resume ) ) {
 		$fullsize_count = ewww_image_optimizer_count_optimized( 'media' );
 		$button_text = esc_attr__( 'Start optimizing', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+	} elseif ( $resume == 'scanning' ) {
+		$fullsize_count = ewww_image_optimizer_count_optimized( 'media' );
+		//$fullsize_count = count( get_option( 'ewww_image_optimizer_scanning_attachments' ) );
+		$button_text = esc_attr__( 'Start optimizing', EWWW_IMAGE_OPTIMIZER_DOMAIN );
 	} else {
 		$fullsize_count = ewww_image_optimizer_aux_images_table_count_pending();
 		$button_text = esc_attr__( 'Resume previous optimization', EWWW_IMAGE_OPTIMIZER_DOMAIN );
@@ -66,7 +70,7 @@ function ewww_image_optimizer_bulk_preview() {
 			echo '<p>' . esc_html__( 'You do not appear to have uploaded any images yet.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</p>';
 		} else { ?>
 			<div id="ewww-bulk-forms">
-<?php			if ( $resume ) { 
+<?php			if ( $resume == 'true' ) { 
 				//if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 				//	$credits_needed = $fullsize_count * ( count( get_intermediate_image_sizes() ) + 1 );
 				//} ?>
@@ -83,17 +87,17 @@ function ewww_image_optimizer_bulk_preview() {
 			<p id="ewww-nothing" class="ewww-bulk-info" style="display:none"><?php esc_html_e( 'There are no images to optimize.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>
 			<p id="ewww-scanning" class="ewww-bulk-info" style="display:none"><?php esc_html_e( 'Scanning, this could take a while', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>&nbsp;<img src='<?php echo $loading_image; ?>' alt='loading'/></p>
 			<form id="ewww-aux-start" class="ewww-bulk-form" method="post" action="">
-<?php				if ( ! $resume ) { ?>
+<?php				if ( $resume != 'true' ) { ?>
 				<input id="ewww-aux-first" type="submit" class="button-primary action" value="<?php esc_attr_e( 'Scan for unoptimized images', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>" />
 				<?php } ?>
 				<input id="ewww-aux-again" type="submit" class="button-secondary action" style="display:none" value="<?php esc_attr_e( 'Scan Again', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>" />
 			</form>
-			<form id="ewww-bulk-start" class="ewww-bulk-form" <?php if ( ! $resume ) { ?>style="display:none" <?php } ?>method="post" action="">
+			<form id="ewww-bulk-start" class="ewww-bulk-form" <?php if ( $resume != 'true' ) { ?>style="display:none" <?php } ?>method="post" action="">
 				<input id="ewww-aux-first" type="submit" class="button-primary action" value="<?php echo $button_text; ?>" />
 			</form>
 <?php		}
 		// if the 'bulk resume' option was not empty, offer to reset it so the user can start back from the beginning
-		if ( ! empty( $resume ) ): 
+		if ( $resume == 'true' ) { 
 ?>
 			<p class="ewww-media-info ewww-bulk-info"><?php esc_html_e( 'If you would like to start over again, press the Reset Status button to reset the bulk operation status.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>
 			<form class="ewww-bulk-form" method="post" action="">
@@ -101,7 +105,7 @@ function ewww_image_optimizer_bulk_preview() {
 				<input type="hidden" name="ewww_reset" value="1">
 				<button id="ewww-bulk-reset" type="submit" class="button-secondary action"><?php esc_html_e( 'Reset Status', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></button>
 			</form>
-<?php		endif;
+<?php		}
 	echo '</div>';
 	ewwwio_memory( __FUNCTION__ );
 	ewww_image_optimizer_aux_images();
@@ -375,7 +379,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 	// check the 'bulk resume' option
 	$resume = get_option('ewww_image_optimizer_bulk_resume');
 	$scanning = get_option('ewww_image_optimizer_aux_resume');
-	$attachments = get_option( 'ewww_image_optimizer_scanning_attachments' );
+//	$attachments = get_option( 'ewww_image_optimizer_scanning_attachments' );
 	// see if we were given attachment IDs to work with via GET/POST
 	$ids = array();
         if ( ! empty( $_REQUEST['ids'] ) && ( preg_match( '/^[\d,]+$/', $_REQUEST['ids'], $request_ids ) || is_numeric( $_REQUEST['ids'] ) ) ) {
@@ -403,10 +407,10 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 		// unset the 'bulk resume' option since we were given specific IDs to optimize
 		update_option( 'ewww_image_optimizer_bulk_resume', '' );
         // check if there is a previous bulk operation to resume
-//        } elseif ( $scanning == 'scanning' ) {
+        } elseif ( $resume == 'scanning' ) {
 		// retrieve the attachment IDs that have not been finished from the 'scanning attachments' option
-//		$attachments = get_option( 'ewww_image_optimizer_scanning_attachments' );
-        } elseif ( $scanning ) {
+		$attachments = get_option( 'ewww_image_optimizer_scanning_attachments' );
+        } elseif ( $scanning || $resume ) {
 		// do nothing
 		$attachments = array();
 	// since we aren't resuming, and weren't given a list of IDs, we will optimize everything
@@ -466,6 +470,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	$reset_images = array();
 	$queued_ids = array();
 	ewwwio_debug_message( "scanning for media attachments" );
+	update_option('ewww_image_optimizer_bulk_resume', 'scanning');
 
 	// retrieve the time when the scan starts
 	$started = microtime( true );
@@ -797,9 +802,9 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	ewww_image_optimizer_debug_log();
 	$loading_image = plugins_url('/images/wpspin.gif', __FILE__);
 	if ( count( $attachment_ids ) ) {
-		die( json_encode( array( 'remaining' => '<p>' . sprintf( esc_html__( 'Stage 1, %d images left to scan.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), count( $attachment_ids ) ) . "&nbsp;<img src='$loading_image' /></p>" ) ) );
+		die( json_encode( array( 'remaining' => sprintf( esc_html__( 'Stage 1, %d images left to scan.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), count( $attachment_ids ) ) . "&nbsp;<img src='$loading_image' />" ) ) );
 	} else {
-		die( json_encode( array( 'remaining' => '<p>' . esc_html__( 'Stage 2, please wait.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "&nbsp;<img src='$loading_image' /></p>" ) ) );
+		die( json_encode( array( 'remaining' => esc_html__( 'Stage 2, please wait.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "&nbsp;<img src='$loading_image' />" ) ) );
 	}
 }
 

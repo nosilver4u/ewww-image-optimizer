@@ -4,9 +4,8 @@
 // TODO: use <picture> element to serve webp
 // TODO: revamp bulk, make it pull only from table, track images by attachment ID as well, so we can pull resize data
 // TODO: maybe move percentages to be built on-demand too, with a dedicated function for portability
-// TODO: see if we can offer a rebuild option, to restore/rebuild broken meta, and also to fill in missing thumbs
+// TODO: see if we can offer a rebuild option, to fill in missing thumbs
 // TODO: look at simple_html_dom_node that wp retina uses for parsing
-// TODO: track the folders scanned successfully so far, and then skip them on a subsequent scan, so that users could list multiple subdirs to complete super large folders
 // TODO: so, if lazy loading support sucks, can we roll our own? that's an image "optimization", right?...
 // TODO: cleanup old options (just uncomment the block and make sure it works properly)
 // TODO: make sure IMS resizes still work
@@ -28,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '313.21' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '313.23' );
 
 // initialize a couple globals
 $ewww_debug = '';
@@ -989,6 +988,7 @@ function ewww_image_optimizer_install_table() {
 		results varchar(55) NOT NULL,
 		image_size int(10) unsigned,
 		orig_size int(10) unsigned,
+		level int(5) unsigned,
 		pending tinyint(1) NOT NULL DEFAULT 0,
 		updates int(5) unsigned,
 		updated timestamp DEFAULT '1971-01-01 00:00:00' ON UPDATE CURRENT_TIMESTAMP,

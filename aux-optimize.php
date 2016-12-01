@@ -477,6 +477,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 	}
 	update_option( 'ewww_image_optimizer_aux_folders_completed', array(), false );
 	update_option( 'ewww_image_optimizer_aux_resume', '' );
+	update_option( 'ewww_image_optimizer_bulk_resume', '' );
 	ewww_image_optimizer_debug_log();
 	if ( ! empty( $_REQUEST['ewww_scan'] ) ) {
 		ewwwio_memory( __FUNCTION__ );
