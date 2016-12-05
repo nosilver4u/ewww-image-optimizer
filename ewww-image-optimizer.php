@@ -2174,7 +2174,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		$perms = $stat['mode'] & 0000666; //same permissions as parent folder, strip off the executable bits
 		@chmod( $file, $perms );
 
-		$results_msg = ewww_image_optimizer_update_table( $file, $new_size, $orig_size, $new );
+		$results_msg = ewww_image_optimizer_update_table( $file, $new_size, $orig_size, $original );
 		ewwwio_memory( __FUNCTION__ );
 		return array( $file, $results_msg, $converted, $original );
 	}

@@ -139,9 +139,11 @@ function ewww_image_optimizer_count_optimized( $gallery, $return_ids = false ) {
 				// retrieve the attachment IDs that were pre-loaded in the database
 				if ( 'scanning' == $resume ) {
 					$attachment_ids = array_merge( get_option( 'ewww_image_optimizer_scanning_attachments' ), get_option( 'ewww_image_optimizer_bulk_attachments' ) );
-				} else {
+				} elseif ( $resume ) {
 					$attachment_ids = get_option( 'ewww_image_optimizer_bulk_attachments' );
 //					$full_count = count( get_option( 'ewww_image_optimizer_bulk_attachments' ) );
+				} else {
+					$attachment_ids = get_option( 'ewww_image_optimizer_scanning_attachments' );
 				}
 				if ( ! empty( $attachment_ids ) ) {
 					$full_count = count( $attachment_ids );
@@ -401,6 +403,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 				$attachments = array_merge( $attachments, $ims_images );
 			}
 		} else {
+			ewwwio_debug_message( "validating requested ids: {$request_ids[0]}" );
 	                // retrieve post IDs correlating to the IDs submitted to make sure they are all valid
 			$attachments = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%') AND ID IN ({$request_ids[0]}) ORDER BY ID DESC" );
 		}
@@ -512,7 +515,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		$enabled_types[] = 'application/pdf';
 	}
 
-	while ( microtime( true ) - $started < apply_filters( 'ewww_image_optimizer_timeout', 5 ) && count( $attachment_ids ) ) {
+	while ( microtime( true ) - $started < apply_filters( 'ewww_image_optimizer_timeout', 15 ) && count( $attachment_ids ) ) {
 		if ( ! empty( $attachment_ids ) && is_array( $attachment_ids ) ) {
 			ewwwio_debug_message( 'remaining items: ' . count( $attachment_ids ) );
 			// retrieve the attachment IDs that were pre-loaded in the database
@@ -547,18 +550,18 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			if ( empty( $attachment_meta[ $selected_id ]['meta'] ) ) {
 				ewwwio_debug_message( "empty meta for $selected_id" );
 				$meta = array();
-				//continue;
 			} else {
 				$meta = maybe_unserialize( $attachment_meta[ $selected_id ]['meta'] );
 			}
 			if ( ! empty( $attachment_meta[ $selected_id ]['type'] ) ) {
 				$mime = $attachment_meta[ $selected_id ]['type'];
+				ewwwio_debug_message( "got mime via db query: $mime" );
 			} elseif ( ! empty( $meta['file'] ) ) {
 				$mime = ewww_image_optimizer_quick_mimetype( $meta['file'] );
-				ewwwio_debug_message( 'got quick mime via filename' );
+				ewwwio_debug_message( "got quick mime via filename: $mime" );
 			} elseif ( ! empty( $selected_id ) ) {
 				$mime = get_post_mime_type( $selected_id );
-				ewwwio_debug_message( 'checking mime via get_post...' );
+				ewwwio_debug_message( "checking mime via get_post_mime_type: $mime" );
 			}
 			if ( empty( $mime ) ) {
 				ewwwio_debug_message( "missing mime for $selected_id" );
@@ -584,20 +587,8 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			if ( ! in_array( $mime, $enabled_types ) ) {
 				continue;
 			}
-/*			if ( $mime == 'image/jpeg' && ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) == 0 ) {
-				continue;
-			}
-			if ( $mime == 'image/png' && ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) == 0 ) {
-				continue;
-			}
-			if ( $mime == 'image/gif' && ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) == 0 ) {
-				continue;
-			}
-			if ( $mime == 'application/pdf' && ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) == 0 ) {
-				continue;
-			}*/
 			//ewwwio_debug_message( print_r( $meta, true ) );
-			//ewwwio_debug_message( "type: $mime" );
+			ewwwio_debug_message( "id: $selected_id and type: $mime" );
 			$attached_file = ( ! empty( $attachment_meta[ $selected_id ]['_wp_attached_file'] ) ? $attachment_meta[ $selected_id ]['_wp_attached_file'] : '' );
 			list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $selected_id, $attached_file, false );
 			// run a quick fix for as3cf files
@@ -633,6 +624,9 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					if ( ! empty( $disabled_sizes[ $size ] ) ) {
 						continue;
 					}
+					if ( ! empty( $disabled_sizes[ 'pdf-full' ] ) && $size == 'full' ) {
+						continue;
+					}
 					if ( empty( $data['file'] ) ) {
 						continue;
 					}
@@ -645,10 +639,6 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						$ims_temp_path = $base_dir . $data['file']; // formerly $image_path
 						ewwwio_debug_message( "ims path: $ims_path" );
 						if ( $file_path != $ims_temp_path && isset( $optimized_list[ $ims_temp_path ] ) ) {
-						/*	ewwwio_debug_message( "possibly need to replace $ims_temp_path" );
-							if ( isset( $optimized_list[ $ims_path ] ) ) {
-								ewwwio_debug_message( "we got a dup: {$optimized_list[ $ims_path ]['id']}" );
-							}*/
 							$optimized_list[ $ims_path ] = $optimized_list[ $ims_temp_path ];
 							ewwwio_debug_message( "updating record {$optimized_list[ $ims_temp_path ]['id']} with $ims_path" );
 							// store info on the current image for future reference
@@ -659,7 +649,6 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 								array(
 									'id' => $optimized_list[ $ims_temp_path ]['id'],
 								));
-							//unset( $optimized_list[ $ims_temp_path ] );
 						}
 						$base_dir = $base_ims_dir;
 					}
@@ -670,15 +659,12 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						if ( $scan['height'] == $data['height'] && $scan['width'] == $data['width'] ) {
 							// found a duplicate resize
 							continue( 2 );
-							//$dup_size = true;
-							// point this resize at the same image as the previous one
-							//$meta['sizes'][ $size ]['file'] = $meta['sizes'][ $proc ]['file'];
-							// and tell the user we didn't do any further optimization
-							//$meta['sizes'][ $size ]['ewww_image_optimizer'] = __( 'No savings', EWWW_IMAGE_OPTIMIZER_DOMAIN );
 						}
 					}
 					$resize_path = $base_dir . $data['file'];
-					if ( is_file( $resize_path ) ) {
+					if ( is_file( $resize_path ) && 'application/pdf' == $mime ) {
+						$attachment_images[ 'pdf-' . $size ] = $resize_path;
+					} elseif ( is_file( $resize_path ) ) {
 						$attachment_images[ $size ] = $resize_path;
 					}
 					// optimize retina images, if they exist
@@ -946,9 +932,6 @@ function ewww_image_optimizer_bulk_loop() {
 			global $wpdb;
 			$wpdb->delete( $wpdb->ewwwio_images, array( 'id' => $image->id ), array( '%d' ) );
 		}
-		$output['results'] .= sprintf( "<p>" . esc_html__( 'Optimized', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . " <strong>%s</strong><br>", esc_html( $image->file ) );
-		$output['results'] .= "$msg</p>";
-
 		// if this is a full size image and it was converted
 		if ( $image->resize == 'full' && ( $image->increment !== false || $converted !== false ) ) {
 			if ( ! $meta || ! is_array( $meta ) ) {
@@ -958,25 +941,31 @@ function ewww_image_optimizer_bulk_loop() {
 				$image->increment = $converted;
 			}
 			$image->file = $file;
-			$image->converted = $original_file;
-			$meta = $image->update_converted_attachment( $meta );
+			$image->converted = $original;
+			$meta['file'] = trailingslashit( dirname( $meta['file'] ) ) . basename( $file );
+			$image->update_converted_attachment( $meta );
 			$meta = $image->convert_sizes( $meta, $converted );
+		}
+
+		$output['results'] .= sprintf( "<p>" . esc_html__( 'Optimized', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . " <strong>%s</strong><br>", esc_html( $image->file ) );
+		$output['results'] .= "$msg</p>";
+
+		// do metadata update after full-size is processed, usually because of conversion or resizing
+		if ( $image->resize == 'full' && $image->attachment_id ) {
+			if ( $meta && is_array( $meta ) ) {
+				$meta_saved = wp_update_attachment_metadata( $image->attachment_id, $meta );
+				if ( ! $meta_saved ) {
+					ewwwio_debug_message( 'failed to save meta' );
+				}
+			}
 		}
 
 		// pull the next image
 		$next_image = new EWWW_Image( $attachment, 'media' );
-		// do metadata update and what not when the last image resize has been processed
-		// TODO: make sure we don't bother with PDF meta, should not be any need for it
-		// I think this is fine (see above), but double-check it on a pdf
+
+		// when we finish all the sizes, we just want to fire off any filters for plugins that might need to take action when an image is updated
 		if ( $attachment && $attachment != $next_image->attachment_id ) {
-			if ( $meta && is_array( $meta ) ) {
-				$meta_saved = wp_update_attachment_metadata( $attachment, $meta );
-				if ( ! $meta_saved ) {
-					ewwwio_debug_message( 'failed to save meta' );
-				}
-			} else { // if we didn't retrieve the meta previously, thus it hasn't been modified for conversion/resizing, we just want to fire off any filters for plugins that might need to take action when an image is updated
-				$meta = apply_filters( 'wp_update_attachment_metadata', wp_get_attachment_metadata( $image->attachment_id ), $image->attachment_id );
-			}
+			$meta = apply_filters( 'wp_update_attachment_metadata', wp_get_attachment_metadata( $image->attachment_id ), $image->attachment_id );
 		}
 		// when an image (attachment) is done, pull the next attachment ID off the stack
 		if ( ( $next_image->resize == 'full' || empty( $next_image->resize ) ) && ! empty( $attachment ) && $attachment != $next_image->attachment_id ) {
@@ -996,7 +985,6 @@ function ewww_image_optimizer_bulk_loop() {
 	$elapsed = microtime( true ) - $started;
 	// output how much time has elapsed since we started
 	$output['results'] .= sprintf( '<p>' . esc_html__( 'Elapsed: %.3f seconds', EWWW_IMAGE_OPTIMIZER_DOMAIN) . '</p>', $elapsed );
-	// update the metadata for the current attachment
 	// store the updated list of attachment IDs back in the 'bulk_attachments' option
 	update_option( 'ewww_image_optimizer_bulk_attachments', $attachments, false );
 	if ( ewww_image_optimizer_get_option ( 'ewww_image_optimizer_debug' ) ) {

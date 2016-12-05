@@ -8,7 +8,6 @@
 // TODO: look at simple_html_dom_node that wp retina uses for parsing
 // TODO: so, if lazy loading support sucks, can we roll our own? that's an image "optimization", right?...
 // TODO: cleanup old options (just uncomment the block and make sure it works properly)
-// TODO: make sure IMS resizes still work
 // TODO: see if imsanity still mangles the wp_image_editor paths
 // TODO: see if we can also tell the reoptimize query to ignore plugin & theme images
 // TODO: check new Azure plugin for compatibility with bulk/remote_fetch
@@ -21,7 +20,11 @@
 // TODO: use a transient to do health checks on the schedule optimizer
 // TODO: add a column to track compression level used for each image, and later implement a way to (re)compress at a specific compression level
 // TODO: implement (optional) backups with a .bak extension for every file
+// TODO: when reverting conversion, check current size against orig_size: if it matches, just delete the record, otherwise update/revert the record in ewwwio_images
+// TODO: when deleting an attachment, run a quick delete on all ewwwio records tagged with that image id
+// TODO: when API key is removed, pngout gets enabled, bad!
 
+// IMPORTANT: make sure bulk processes for flag/ngg still work
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -95,6 +98,7 @@ add_filter( 'ewww_image_optimizer_superadmin_permissions', 'ewww_image_optimizer
 $plugin = plugin_basename ( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
 add_filter( "plugin_action_links_$plugin", 'ewww_image_optimizer_settings_link' );
 add_filter( 'intermediate_image_sizes_advanced', 'ewww_image_optimizer_image_sizes_advanced' );
+add_filter( 'fallback_intermediate_image_sizes', 'ewww_image_optimizer_fallback_sizes' );
 add_filter( 'ewww_image_optimizer_settings', 'ewww_image_optimizer_filter_settings_page' );
 add_filter( 'myarcade_filter_screenshot', 'ewww_image_optimizer_myarcade_thumbnail' );
 add_filter( 'myarcade_filter_thumbnail', 'ewww_image_optimizer_myarcade_thumbnail' );
@@ -1096,7 +1100,7 @@ function ewww_image_optimizer_notice_reoptimization() {
 		$reoptimized = get_transient( 'ewww_image_optimizer_images_reoptimized' );
 		if ( empty( $reoptimized ) ) {
 			global $wpdb;
-			$reoptimized = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->ewwwio_images WHERE updates > 10 LIMIT 10" );
+			$reoptimized = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->ewwwio_images WHERE updates > 10 AND path NOT LIKE '%wp-content/themes%' AND path NOT LIKE '%wp-content/plugins%'  LIMIT 10" );
 			if ( empty( $reoptimized ) ) {
 				set_transient( 'ewww_image_optimizer_images_reoptimized', 'zero', HOUR_IN_SECONDS );
 			} else {
@@ -1135,6 +1139,7 @@ function ewww_image_optimizer_load_editor( $editors ) {
 function ewww_image_optimizer_add_attachment() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	add_filter( 'intermediate_image_sizes_advanced', 'ewww_image_optimizer_image_sizes', 200 );
+	add_filter( 'fallback_intermediate_image_sizes', 'ewww_image_optimizer_image_sizes', 200 );
 }
 
 // remove the image editor filter, and add a new filter that will restore it later
@@ -1196,6 +1201,40 @@ function ewww_image_optimizer_image_sizes_advanced( $sizes ) {
 		if ( $flipped ) {
 			$sizes = array_flip( $sizes );
 		}
+	}
+	return $sizes;
+}
+
+// filter the image previews generated for pdf files and other non-image types
+function ewww_image_optimizer_fallback_sizes( $sizes ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes' );
+	$flipped = false;
+	if ( ! empty( $disabled_sizes ) ) {
+/*		if ( ! empty( $sizes[0] ) ) {
+			$sizes = array_flip( $sizes );
+			$flipped = true;
+		}*/
+		ewwwio_debug_message( print_r( $sizes, true ) );
+		if ( ewww_image_optimizer_iterable( $sizes ) && ewww_image_optimizer_iterable( $disabled_sizes ) ) {
+			if ( ! empty( $disabled_sizes['pdf-full'] ) ) {
+				return array();
+			}
+			foreach ( $sizes as $i => $size ) {
+				if ( ! empty( $disabled_sizes[ $size ] ) ) {
+					ewwwio_debug_message( "size disabled: $size" );
+					unset( $sizes[ $i ] );
+				}
+			}
+/*			foreach ( $disabled_sizes as $size => $disabled ) {
+				if ( ! empty( $disabled ) ) {
+					ewwwio_debug_message( "size disabled: $size" );
+					unset( $sizes[$size] );
+				}*/
+		}
+		//if ( $flipped ) {
+		//	$sizes = array_flip( $sizes );
+		//}
 	}
 	return $sizes;
 }
@@ -2716,11 +2755,21 @@ function ewww_image_optimizer_check_table( $file, $orig_size ) {
 }
 
 // receives a path, optimized size, and an original size to insert into ewwwwio_images table
-// if this is a $new image, copy the result stored in the database
-function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, $preserve_results = false ) {
+function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, $original = '' ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
-	$already_optimized = ewww_image_optimizer_find_already_optimized( $attachment );
+	// first check if the image was converted, so we don't orphan records
+	if ( $original && $original != $attachment ) {
+		$already_optimized = ewww_image_optimizer_find_already_optimized( $original );
+		$converted = $original;
+	} else {
+		$already_optimized = ewww_image_optimizer_find_already_optimized( $attachment );
+		if ( is_array( $already_optimized ) && ! empty( $already_optimized['converted'] ) ) {
+			$converted = $already_optimized['converted'];
+		} else {
+			$converted = '';
+		}
+	}
 	if ( $already_optimized && $opt_size >= $orig_size ) {
 		$prev_string = ' - ' . __( 'Previously Optimized', EWWW_IMAGE_OPTIMIZER_DOMAIN );
 	} else {
@@ -2730,34 +2779,18 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 		$orig_size = $already_optimized['orig_size'];
 	}
 	ewwwio_debug_message( "savings: $opt_size (new) vs. $orig_size (orig)" );
-	if ( is_array( $already_optimized ) && ! empty( $already_optimized['results'] ) && $preserve_results && $opt_size == $orig_size) {
-		$results_msg = $already_optimized['results'];
-//	} elseif ( $opt_size >= $orig_size ) {
-//		ewwwio_debug_message( "original and new file are same size (or something weird made the new one larger), no savings" );
-//		$results_msg = __( 'No savings', EWWW_IMAGE_OPTIMIZER_DOMAIN );
-	} else {
-		// calculate how much space was saved
-		$results_msg = ewww_image_optimizer_image_results( $orig_size, $opt_size, $prev_string );
-/*		$savings = intval( $orig_size ) - intval( $opt_size );
-		// convert it to human readable format
-		$savings_str = size_format( $savings, 1 );
-		// replace spaces and extra decimals with proper html entity encoding
-		$savings_str = preg_replace( '/\.0 B /', ' B', $savings_str );
-		$savings_str = str_replace( ' ', '&nbsp;', $savings_str );
-		// determine the percentage savings
-		$percent = number_format_i18n( 100 - ( 100 * ( $opt_size / $orig_size ) ), 1 ) . '%';
-		// use the percentage and the savings size to output a nice message to the user
-		$results_msg = sprintf( __( 'Reduced by %1$s (%2$s)', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
-			$percent,
-			$savings_str
-		) . $prev_string;
-		ewwwio_debug_message( "original and new file are different size: $results_msg" );*/
-	}
+//	if ( is_array( $already_optimized ) && ! empty( $already_optimized['results'] ) && $preserve_results && $opt_size == $orig_size) {
+//		$results_msg = $already_optimized['results'];
+//	} else {
+	// calculate how much space was saved
+	$results_msg = ewww_image_optimizer_image_results( $orig_size, $opt_size, $prev_string );
+//	}
 	if ( empty( $already_optimized ) ) {
 		ewwwio_debug_message( "creating new record, path: $attachment, size: $opt_size" );
 		// store info on the current image for future reference
 		$wpdb->insert( $wpdb->ewwwio_images, array(
 			'path' => $attachment,
+			'converted' => $converted,
 			'image_size' => $opt_size,
 			'orig_size' => $orig_size,
 			'results' => $results_msg,
@@ -2774,6 +2807,8 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 		// store info on the current image for future reference
 		$wpdb->update( $wpdb->ewwwio_images,
 			array(
+				'path' => $attachment,
+				'converted' => $converted,
 				'image_size' => $opt_size,
 				'results' => $results_msg,
 				'updates' => $already_optimized['updates'] + 1,
@@ -2847,11 +2882,7 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 	if ( ewww_image_optimizer_stl_check() && ini_get( 'max_execution_time' ) < 60 ) {
 		set_time_limit( 0 );
 	}
-	// get the 'aux attachments' with a list of attachments remaining
-/*	$attachments = get_option( 'ewww_image_optimizer_aux_attachments' );
-	if ( empty( $attachment ) ) {
-		$attachment = array_shift( $attachments );
-	}*/
+	// get the next image in the queue
 	if ( empty( $attachment ) ) {
 		list( $id, $attachment ) = $wpdb->get_row( "SELECT id,path FROM $wpdb->ewwwio_images WHERE pending=1 LIMIT 1", ARRAY_N );
 	} else {
@@ -2933,7 +2964,6 @@ function ewww_image_optimizer_update_attachment_metadata( $meta, $ID ) {
 		);
 		
 	}
-	// if the file was converted
 	// resized versions, so we can continue
 	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 		ewwwio_debug_message( 'processing resizes for webp updates' );
@@ -3591,13 +3621,13 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 	} else {
 		list( $file, $msg, $conv, $original ) = ewww_image_optimizer( $file_path, $gallery_type, false, $new_image, true );
 		// update the optimization results in the metadata
-		$meta['ewww_image_optimizer'] = $msg;
+		//$meta['ewww_image_optimizer'] = $msg;
 		if ( $file === false ) {
 			return $meta;
 		}
-		$meta['file'] = str_replace( $upload_path, '', $file );
 		// if the file was converted
 		if ( $conv !== false ) {
+			$meta['file'] = str_replace( $upload_path, '', $file );
 			ewwwio_debug_message( 'image was converted' );
 			// if we don't already have the update attachment filter
 			if ( FALSE === has_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment' ) )
@@ -3629,6 +3659,9 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 				continue;
 			}
 			if ( ! empty( $disabled_sizes[ $size ] ) ) {
+				continue;
+			}
+			if ( ! empty( $disabled_sizes[ 'pdf-full' ] ) && $size == 'full' ) {
 				continue;
 			}
 			if ( empty( $data['file'] ) ) {
@@ -4001,7 +4034,7 @@ function ewww_image_optimizer_update_attachment( $meta, $ID ) {
 	// if the new image is a JPG
 	if ( preg_match( '/.jpg$/i', basename( $meta['file'] ) ) ) {
 		// set the mimetype to JPG
-		$mime = 'image/jpg';
+		$mime = 'image/jpeg';
 	}
 	// if the new image is a PNG
 	if ( preg_match( '/.png$/i', basename( $meta['file'] ) ) ) {
@@ -4732,6 +4765,11 @@ function ewww_image_optimizer_get_image_sizes() {
 			}
 		}
 	}
+	$sizes['pdf-full'] = array(
+		'width' => 99999,
+		'height' => 99999,
+	);
+		
 	ewwwio_debug_message( print_r( $sizes, true ) );
 	return $sizes;
 }
@@ -5175,16 +5213,18 @@ function ewww_image_optimizer_options () {
 				$output[] = '<table><tr><th>' . esc_html__( 'Disable Optimization', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</th><th>' . esc_html__( 'Disable Creation', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</th></tr>\n";
 				ewwwio_debug_message( 'disabled resizes:' );
 				foreach ( $image_sizes as $size => $dimensions ) {
-					if ( $size != 'thumbnail' ) {
-						$output [] = "<tr><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_opt_$size' name='ewww_image_optimizer_disable_resizes_opt[$size]' value='true' " . ( ! empty( $disabled_sizes_opt[$size] ) ? "checked='true'" : "" ) . " /></td><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_$size' name='ewww_image_optimizer_disable_resizes[$size]' value='true' " . ( ! empty( $disabled_sizes[$size] ) ? "checked='true'" : "" ) . " /></td><td><label for='ewww_image_optimizer_disable_resizes_$size'>$size - {$dimensions['width']}x{$dimensions['height']}</label></td></tr>\n";
-					} else {
+					if ( $size == 'thumbnail' ) {
 						$output [] = "<tr><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_opt_$size' name='ewww_image_optimizer_disable_resizes_opt[$size]' value='true' " . ( ! empty( $disabled_sizes_opt[$size] ) ? "checked='true'" : "" ) . " /></td><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_$size' name='ewww_image_optimizer_disable_resizes[$size]' value='true' disabled /></td><td><label for='ewww_image_optimizer_disable_resizes_$size'>$size - {$dimensions['width']}x{$dimensions['height']}</label></td></tr>\n";
+					} elseif ( $size == 'pdf-full' ) {
+						$output [] = "<tr><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_opt_$size' name='ewww_image_optimizer_disable_resizes_opt[$size]' value='true' " . ( ! empty( $disabled_sizes_opt[$size] ) ? "checked='true'" : "" ) . " /></td><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_$size' name='ewww_image_optimizer_disable_resizes[$size]' value='true' " . ( ! empty( $disabled_sizes[$size] ) ? "checked='true'" : "" ) . " /></td><td><label for='ewww_image_optimizer_disable_resizes_$size'>$size - <span class='description'>" . esc_html__( 'Disabling creation of the full-size preview for PDF files will disable all PDF preview sizes', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</span></label></td></tr>\n";
+					} else {
+						$output [] = "<tr><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_opt_$size' name='ewww_image_optimizer_disable_resizes_opt[$size]' value='true' " . ( ! empty( $disabled_sizes_opt[$size] ) ? "checked='true'" : "" ) . " /></td><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_$size' name='ewww_image_optimizer_disable_resizes[$size]' value='true' " . ( ! empty( $disabled_sizes[$size] ) ? "checked='true'" : "" ) . " /></td><td><label for='ewww_image_optimizer_disable_resizes_$size'>$size - {$dimensions['width']}x{$dimensions['height']}</label></td></tr>\n";
 					}
 					ewwwio_debug_message( $size . ': ' . ( ! empty( $disabled_sizes_opt[$size] ) ? "optimization=disabled " : "optimization=enabled " ) . ( ! empty( $disabled_sizes[$size] ) ? "creation=disabled" : "creation=enabled" ) );
 				}
 				$output[] = "</table>\n";
 				$output[] = "</td></tr>\n";
-				$output[] = "<tr><th><label for='ewww_image_optimizer_skip_size'>" . esc_html__('Skip Small Images', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><input type='text' id='ewww_image_optimizer_skip_size' name='ewww_image_optimizer_skip_size' size='8' value='" . ewww_image_optimizer_get_option('ewww_image_optimizer_skip_size') . "'> " . esc_html__('Do not optimize images smaller than this (in bytes)', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</td></tr>\n";
+				$output[] = "<tr><th><label for='ewww_image_optimizer_skip_size'>" . esc_html__( 'Skip Small Images', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</label></th><td><input type='text' id='ewww_image_optimizer_skip_size' name='ewww_image_optimizer_skip_size' size='8' value='" . ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_size' ) . "'> " . esc_html__( 'Do not optimize images smaller than this (in bytes)', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</td></tr>\n";
 				ewwwio_debug_message( "skip images smaller than: " . ewww_image_optimizer_get_option('ewww_image_optimizer_skip_size') . " bytes" );
 				$output[] = "<tr><th><label for='ewww_image_optimizer_skip_png_size'>" . esc_html__('Skip Large PNG Images', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><input type='text' id='ewww_image_optimizer_skip_png_size' name='ewww_image_optimizer_skip_png_size' size='8' value='" . ewww_image_optimizer_get_option('ewww_image_optimizer_skip_png_size') . "'> " . esc_html__('Do not optimize PNG images larger than this (in bytes)', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</td></tr>\n";
 				ewwwio_debug_message( "skip PNG images larger than: " . ewww_image_optimizer_get_option('ewww_image_optimizer_skip_png_size') . " bytes" );
