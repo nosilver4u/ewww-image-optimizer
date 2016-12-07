@@ -1303,12 +1303,12 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	}
 	$file_owner = 'unknown';
 	$file_group = 'unknown';
-	if (function_exists('posix_getpwuid')) {
-		$file_owner = posix_getpwuid(fileowner($file));
+	if ( function_exists( 'posix_getpwuid' ) ) {
+		$file_owner = posix_getpwuid( fileowner( $file ) );
 		$file_owner = $file_owner['name'];
 	}
-	if (function_exists('posix_getgrgid')) {
-		$file_group = posix_getgrgid(filegroup($file));
+	if ( function_exists( 'posix_getgrgid' ) ) {
+		$file_group = posix_getgrgid( filegroup( $file ) );
 		$file_group = $file_group['name'];
 	}
 	ewwwio_debug_message( "permissions: $file_perms, owner: $file_owner, group: $file_group" );
@@ -1356,7 +1356,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		set_time_limit( 0 );
 	}
 	// if the full-size image was converted
-	if ( $converted ) {
+	if ( $converted ) { // TODO: remove this block in a future release, it should not fire anymore, as resizes will be converted only directly after the full-size is converted
 		ewwwio_debug_message( 'full-size image was converted, need to rebuild filename for meta' );
 		$filenum = $converted;
 		// grab the file extension
@@ -1474,8 +1474,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			// if optimization is turned ON
 			if ( $optimize ) {
 				ewwwio_debug_message( 'attempting to optimize JPG...' );
-				// generate temporary file-names:
-//				$tempfile = $file . ".tmp"; //non-progressive jpeg
+				// generate temporary file-name:
 				$progfile = $file . ".prog"; // progressive jpeg
 				// check to see if we are supposed to strip metadata (badly named)
 				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpegtran_copy' ) && ! $keep_metadata ) {
@@ -1485,39 +1484,10 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					// copy all the metadata
 					$copy_opt = 'all';
 				}
-				// run jpegtran - non-progressive
-//				exec( "$nice " . $tools['JPEGTRAN'] . " -copy $copy_opt -optimize -outfile " . ewww_image_optimizer_escapeshellarg( $tempfile ) . " " . ewww_image_optimizer_escapeshellarg( $file ) );
 				// run jpegtran - progressive
 				exec( "$nice " . $tools['JPEGTRAN'] . " -copy $copy_opt -optimize -progressive -outfile " . ewww_image_optimizer_escapeshellarg( $progfile ) . " " . ewww_image_optimizer_escapeshellarg( $file ) );
-				// check the filesize of the non-progressive JPG
-			//	$non_size = ewww_image_optimizer_filesize( $tempfile );
 				// check the filesize of the progressive JPG
 				$new_size = ewww_image_optimizer_filesize( $progfile );
-//				ewwwio_debug_message( "optimized JPG (non-progresive) size: $non_size" );
-//				ewwwio_debug_message( "optimized JPG (progresive) size: $prog_size" );
-/*				if ( $non_size === false || $prog_size === false ) {
-					$result = __( 'Unable to write file', EWWW_IMAGE_OPTIMIZER_DOMAIN );
-					$new_size = 0;
-				} elseif ( ! $non_size || ! $prog_size) {
-					$result = __( 'Optimization failed', EWWW_IMAGE_OPTIMIZER_DOMAIN );
-					$new_size = 0;
-				} else {
-					// if the progressive file is bigger
-					if ( $prog_size > $non_size ) {
-						// store the size of the non-progessive JPG
-						$new_size = $non_size;
-						if ( is_file( $progfile ) ) {
-							// delete the progressive file
-							unlink( $progfile );
-						}
-					// if the progressive file is smaller or the same
-					} else {
-						// store the size of the progressive JPG
-						$new_size = $prog_size;
-						// replace the non-progressive with the progressive file
-						rename($progfile, $tempfile);
-					}
-				}*/
 				ewwwio_debug_message( "optimized JPG size: $new_size" );
 				// if the best-optimized is smaller than the original JPG, and we didn't create an empty JPG
 				if ( $orig_size > $new_size && $new_size != 0 && ewww_image_optimizer_mimetype( $progfile, 'i' ) == $type ) {
@@ -1830,7 +1800,6 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			// retrieve the new filesize of the PNG
 			$new_size = ewww_image_optimizer_filesize( $file );
 			// if conversion is on and the PNG doesn't have transparency or the user set a background color to replace transparency
-			//if ( $convert && ( ! ewww_image_optimizer_png_alpha( $file ) || ewww_image_optimizer_jpg_background() ) ) {
 			if ( $convert ) {
 				ewwwio_debug_message( "attempting to convert PNG to JPG: $jpgfile" );
 				if ( empty( $new_size ) ) {
@@ -1914,8 +1883,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				}
 				// next we need to optimize that JPG if jpegtran is enabled
 				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) == 10 && file_exists( $jpgfile ) ) {
-					// generate temporary file-names:
-//					$tempfile = $jpgfile . ".tmp"; //non-progressive jpeg
+					// generate temporary file-name:
 					$progfile = $jpgfile . ".prog"; // progressive jpeg
 					// check to see if we are supposed to strip metadata (badly named)
 					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpegtran_copy' ) && ! $keep_metadata ){
@@ -1925,33 +1893,10 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 						// copy all the metadata
 						$copy_opt = 'all';
 					}
-					// run jpegtran - non-progressive
-//					exec( "$nice " . $tools['JPEGTRAN'] . " -copy $copy_opt -optimize -outfile " . ewww_image_optimizer_escapeshellarg( $tempfile ) . " " . ewww_image_optimizer_escapeshellarg( $jpgfile ) );
 					// run jpegtran - progressive
 					exec( "$nice " . $tools['JPEGTRAN'] . " -copy $copy_opt -optimize -progressive -outfile " . ewww_image_optimizer_escapeshellarg( $progfile ) . " " . ewww_image_optimizer_escapeshellarg( $jpgfile ) );
-					// check the filesize of the non-progressive JPG
-//					$non_size = ewww_image_optimizer_filesize( $tempfile );
-//					ewwwio_debug_message( "non-progressive JPG filesize: $non_size" );
 					// check the filesize of the progressive JPG
 					$opt_jpg_size = ewww_image_optimizer_filesize( $progfile );
-//					ewwwio_debug_message( "progressive JPG filesize: $prog_size" );
-					// if the progressive file is bigger
-					/*if ($prog_size > $non_size) {
-						// store the size of the non-progessive JPG
-						$opt_jpg_size = $non_size;
-						if (is_file($progfile)) {
-							// delete the progressive file
-							unlink($progfile);
-						}
-						ewwwio_debug_message( 'keeping non-progressive JPG' );
-					// if the progressive file is smaller or the same
-					} else {
-						// store the size of the progressive JPG
-						$opt_jpg_size = $prog_size;
-						// replace the non-progressive with the progressive file
-						rename( $progfile, $tempfile );
-						ewwwio_debug_message( 'keeping progressive JPG' );
-					}*/
 					// if the best-optimized is smaller than the original JPG, and we didn't create an empty JPG
 					if ( $jpg_size > $opt_jpg_size && $opt_jpg_size != 0 ) {
 						// replace the original with the optimized file
@@ -2159,7 +2104,6 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		default:
 			// if not a JPG, PNG, or GIF, tell the user we don't work with strangers
 			return array( false, __( 'Unsupported file type', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . ": $type", $converted, $original );
-//			return array( false, __( 'Unsupported type: ' . $type, EWWW_IMAGE_OPTIMIZER_DOMAIN ), $converted, $original );
 	}
 	// allow other plugins to run operations on the images after optimization.
 	// NOTE: it is recommended to do any image modifications prior to optimization, otherwise you risk un-optimizing your images here.

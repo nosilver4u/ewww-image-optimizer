@@ -944,7 +944,7 @@ function ewww_image_optimizer_bulk_loop() {
 			$image->converted = $original;
 			$meta['file'] = trailingslashit( dirname( $meta['file'] ) ) . basename( $file );
 			$image->update_converted_attachment( $meta );
-			$meta = $image->convert_sizes( $meta, $converted );
+			$meta = $image->convert_sizes( $meta );
 		}
 
 		$output['results'] .= sprintf( "<p>" . esc_html__( 'Optimized', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . " <strong>%s</strong><br>", esc_html( $image->file ) );
