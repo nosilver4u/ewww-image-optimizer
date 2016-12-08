@@ -4371,7 +4371,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			echo $output;
 			return;
 		}
-		if ( is_array( $meta ) && ! empty( $meta['ewww_image_optimizer'] ) ) {
+		if ( is_array( $meta ) && ( ! empty( $meta['ewww_image_optimizer'] ) || ! empty( $meta['converted'] ) ) ) {
 			$meta = ewww_image_optimizer_migrate_meta_to_db( $id, $meta );
 		}
 		$msg = '';
@@ -4606,32 +4606,55 @@ function ewww_image_optimizer_clean_meta( $meta ) {
 	if ( is_array( $meta ) && ! empty( $meta['ewww_image_optimizer'] ) ) {
 		unset( $meta['ewww_image_optimizer'] );
 	}
+	if ( is_array( $meta ) && ! empty( $meta['converted'] ) ) {
+		unset( $meta['converted'] );
+	}
+	if ( is_array( $meta ) && ! empty( $meta['orig_file'] ) ) {
+		unset( $meta['orig_file'] );
+	}
 	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 		foreach ( $meta['sizes'] as $size => $data ) {
 			if ( is_array( $data ) && ! empty( $data['ewww_image_optimizer'] ) ) {
 				unset( $meta['sizes'][ $size ]['ewww_image_optimizer'] );
+			}
+			if ( is_array( $data ) && ! empty( $data['converted'] ) ) {
+				unset( $meta['sizes'][ $size ]['converted'] );
+			}
+			if ( is_array( $data ) && ! empty( $data['orig_file'] ) ) {
+				unset( $meta['sizes'][ $size ]['orig_file'] );
 			}
 		}
 	}
 	return $meta;
 }
 
-function ewww_image_optimizer_update_file_from_meta( $file, $gallery = '', $attachment_id = null, $size = null ) {
+function ewww_image_optimizer_update_file_from_meta( $file, $gallery = false, $attachment_id = false, $size = false, $converted = false ) {
 	$already_optimized = ewww_image_optimizer_find_already_optimized( $file );
 	if ( is_array( $already_optimized ) && ! empty( $already_optimized['id'] ) ) {
-		global $wpdb;
-		// store info on the current image for future reference
-		$wpdb->update(
-			$wpdb->ewwwio_images,
-			array(
-				'resize' => $size,
-				'attachment_id' => $attachment_id,
-				'gallery' => $gallery,
-			),
-			array(
-				'id' => $already_optimized['id'],
-			)
-		);
+		$updates = array();
+		if ( $gallery ) {
+			$updates['gallery'] = $gallery;
+		}
+		if ( $attachment_id ) {
+			$updates['attachment_id'] = $attachment_id;
+		}
+		if ( $size ) {
+			$updates['resize'] = $size;
+		}
+		if ( $converted ) {
+			$updates['converted'] = $converted;
+		}
+		if ( $updates ) {
+			global $wpdb;
+			// update the values given for the record we found
+			$wpdb->update(
+				$wpdb->ewwwio_images,
+				$updates,
+				array(
+					'id' => $already_optimized['id'],
+				)
+			);
+		}
 	}
 }
 
@@ -4647,7 +4670,7 @@ function ewww_image_optimizer_migrate_meta_to_db( $id, $meta ) {
 		// construct a $file_path and proceed IF a supported CDN plugin is installed
 		$file_path = get_attached_file( $selected_id );
 		if ( ! $file_path ) {
-		// TODO: once we've kicked the tires about a million times, and we're convinced this can't happen in error, then lets clean the meta
+		// TODO: once we've kicked the tires about a million times, and we're convinced this can't happen in error, then let's clean the meta
 		//	$meta = ewww_image_optimizer_clean_meta( $meta );
 			return $meta;
 		}
@@ -4655,7 +4678,8 @@ function ewww_image_optimizer_migrate_meta_to_db( $id, $meta ) {
 	//	$meta = ewww_image_optimizer_clean_meta( $meta );
 		return $meta;
 	}
-	ewww_image_optimizer_update_file_from_meta( $file_path, 'media', $id, 'full' );
+	$converted = ( is_array( $meta ) && ! empty( $meta['converted'] ) && ! empty( $meta['orig_file'] ) ? trailingslashit( dirname( $file_path ) ) . basename( $meta['orig_file'] ) : false );
+	ewww_image_optimizer_update_file_from_meta( $file_path, 'media', $id, 'full', $converted );
 	$retina_path = ewww_image_optimizer_hidpi_optimize( $file_path, true, false );
 	if ( $retina_path ) {
 		ewww_image_optimizer_update_file_from_meta( $retina_path, 'media', $id, 'full-retina' );
@@ -4674,7 +4698,7 @@ function ewww_image_optimizer_migrate_meta_to_db( $id, $meta ) {
 			if ( strpos( $size, 'webp') === 0 ) {
 				continue;
 			}
-			if ( empty( $data['file'] ) ) {
+			if ( empty( $data ) || ! is_array( $data ) || empty( $data['file'] ) ) {
 				continue;
 			}
 			if ( $size == 'full' && $type == 'application/pdf' ) {
@@ -4684,7 +4708,8 @@ function ewww_image_optimizer_migrate_meta_to_db( $id, $meta ) {
 			}
 
 			$resize_path = $base_dir . $data['file'];
-			ewww_image_optimizer_update_file_from_meta( $resize_path, 'media', $id, $size );
+			$converted = ( is_array( $data ) && ! empty( $data['converted'] ) && ! empty( $data['orig_file'] ) ? trailingslashit( dirname( $resize_path ) ) . basename( $data['orig_file'] ) : false );
+			ewww_image_optimizer_update_file_from_meta( $resize_path, 'media', $id, $size, $converted );
 			// optimize retina images, if they exist
 			if ( function_exists( 'wr2x_get_retina' ) && $retina_path = wr2x_get_retina( $resize_path ) ) {
 				ewww_image_optimizer_update_file_from_meta( $retina_path, 'media', $id, $size . '-retina' );
@@ -4715,7 +4740,7 @@ function ewww_image_optimizer_migrate_meta_to_db( $id, $meta ) {
 	}
 	$meta = ewww_image_optimizer_clean_meta( $meta );
 	ewwwio_debug_message( print_r( $meta, true ) );
-	//update_post_meta( $id, '_wp_attachment_metadata', $meta );
+	update_post_meta( $id, '_wp_attachment_metadata', $meta );
 	return $meta;
 }
 
