@@ -662,7 +662,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						}
 					}
 					$resize_path = $base_dir . $data['file'];
-					if ( is_file( $resize_path ) && 'application/pdf' == $mime ) {
+					if ( is_file( $resize_path ) && 'application/pdf' == $mime && $size == 'full' ) {
 						$attachment_images[ 'pdf-' . $size ] = $resize_path;
 					} elseif ( is_file( $resize_path ) ) {
 						$attachment_images[ $size ] = $resize_path;
