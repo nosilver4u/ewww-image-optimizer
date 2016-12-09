@@ -260,6 +260,10 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * feature requests are sticky at the top of the support forums, vote for the ones you like: https://wordpress.org/support/plugin/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 3.2.0 =
+* removed: ability to use the ImageMagick 'convert' binary, use Imagick extension for PHP instead
+* fixed: parallel mode prevents successful conversion
+
 = 3.1.3 =
 * added: settings which require validation display appropriate errors when validation fails
 * added: filter to make sure test images in the ewww-image-optimizer folder never get optimized
