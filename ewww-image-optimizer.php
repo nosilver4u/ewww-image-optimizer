@@ -72,8 +72,6 @@ function ewww_image_optimizer_exec_init() {
 				update_site_option( 'ewww_image_optimizer_optipng_level', (int) $_POST['ewww_image_optimizer_optipng_level'] );
 				update_site_option( 'ewww_image_optimizer_pngout_level', (int) $_POST['ewww_image_optimizer_pngout_level'] );
 			}
-//			if (empty($_POST['ewww_image_optimizer_disable_optipng'])) $_POST['ewww_image_optimizer_disable_optipng'] = '';
-//			update_site_option('ewww_image_optimizer_disable_optipng', $_POST['ewww_image_optimizer_disable_optipng']);
 			if ( empty( $_POST['ewww_image_optimizer_disable_pngout'] ) ) {
 				update_site_option( 'ewww_image_optimizer_disable_pngout', false );
 			} else {
@@ -85,7 +83,6 @@ function ewww_image_optimizer_exec_init() {
 	register_setting('ewww_image_optimizer_options', 'ewww_image_optimizer_skip_bundle', 'boolval');
 	register_setting('ewww_image_optimizer_options', 'ewww_image_optimizer_optipng_level', 'intval');
 	register_setting('ewww_image_optimizer_options', 'ewww_image_optimizer_pngout_level', 'intval');
-	register_setting('ewww_image_optimizer_options', 'ewww_image_optimizer_disable_optipng', 'boolval');
 	register_setting('ewww_image_optimizer_options', 'ewww_image_optimizer_disable_pngout', 'boolval');
 	if ( defined( 'WPE_PLUGIN_VERSION' ) ) {
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_wpengine' );
@@ -434,7 +431,7 @@ function ewww_image_optimizer_skip_tools() {
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) == 0 || ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) > 10 ) {
 		$skip['jpegtran'] = true;
 	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_optipng' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) == 0 || ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) > 10 ) ) {
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) == 0 || ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) > 10 ) ) {
 		$skip['optipng'] = true;
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) == 0 || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
@@ -1574,7 +1571,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					}
 				}
 				// if optipng isn't disabled
-				if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_optipng' ) ) {
+				if ( $tools['OPTIPNG'] ) {
 					// retrieve the optipng optimization level
 					$optipng_level = (int) ewww_image_optimizer_get_option('ewww_image_optimizer_optipng_level');
 					if (ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpegtran_copy' ) && preg_match( '/0.7/', ewww_image_optimizer_tool_found( $tools['OPTIPNG'], 'o' ) ) && ! $keep_metadata ) {
@@ -1720,7 +1717,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				);
 			}
 			// if pngout and optipng are disabled
-			if ( ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_optipng' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_pngout' ) ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) == 0 ) {
+			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) == 0 ) {
 				// tell the user all PNG tools are disabled
 				$result = __( 'PNG optimization is disabled', EWWW_IMAGE_OPTIMIZER_DOMAIN );
 			// if the utility checking is on, optipng is enabled, but optipng cannot be found
@@ -1755,7 +1752,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				$tempfile = $file . '.tmp.png';
 				copy( $file, $tempfile );
 				// if optipng is enabled
-				if( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_optipng' ) ) {
+				if( $tools['OPTIPNG'] ) {
 					// retrieve the optimization level for optipng
 					$optipng_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_optipng_level' );
 					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpegtran_copy' ) && preg_match( '/0.7/', ewww_image_optimizer_tool_found( $tools['OPTIPNG'], 'o' ) ) && ! $keep_metadata ) {
@@ -2040,7 +2037,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					$new_size = $orig_size;
 				}
 				// if optipng is enabled
-				if ( ! ewww_image_optimizer_get_option('ewww_image_optimizer_disable_optipng') && $tools['OPTIPNG']) {
+				if ( $tools['OPTIPNG'] ) {
 					// retrieve the optipng optimization level
 					$optipng_level = (int) ewww_image_optimizer_get_option('ewww_image_optimizer_optipng_level');
 					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpegtran_copy' ) && preg_match( '/0.7/', ewww_image_optimizer_tool_found( $tools['OPTIPNG'], 'o' ) ) && ! $keep_metadata ) {

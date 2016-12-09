@@ -15,7 +15,7 @@ class ewwwflag {
 			add_action('flag_manage_post_processor_images', array(&$this, 'ewww_flag_bulk'));
 			add_action('flag_manage_post_processor_galleries', array(&$this, 'ewww_flag_bulk'));
 		}
-		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ) {
+		if ( ewww_image_optimizer_test_background_opt() ) {
 			add_action( 'flag_image_optimized', array( $this, 'queue_new_image' ) );
 			add_action( 'flag_image_resized', array( $this, 'queue_new_image' ) );
 		} else {
@@ -448,6 +448,7 @@ class ewwwflag {
 		$elapsed = microtime( true ) - $started;
 		// and output it to the user
 		$output['results'] .= sprintf( esc_html__( 'Elapsed: %.3f seconds', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p>", $elapsed );
+		$output['completed'] = 1;
 		// send the list back to the db
 		update_option( 'ewww_image_optimizer_bulk_flag_attachments', $attachments, false );
                 if ( ! empty( $attachments ) ) {
@@ -459,9 +460,10 @@ class ewwwflag {
                         } else {
                                 $output['next_file'] =  "<p>" . esc_html__('Optimizing', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "&nbsp;<img src='$loading_image' alt='loading'/></p>";
                         }
-                }
-                echo json_encode( $output );
-		die();
+                } else {
+			$output['done'] = 1;
+		}
+                die( json_encode( $output ) );
 	}
 
 	/* finish the bulk operation, and clear out the bulk_flag options */
