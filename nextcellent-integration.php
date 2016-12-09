@@ -500,6 +500,7 @@ class ewwwngg {
 		// outupt how much time we spent
 		$elapsed = microtime( true ) - $started;
 		$output['results'] .= sprintf( esc_html__( 'Elapsed: %.3f seconds', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p>", $elapsed);
+		$output['completed'] = 1;
 		//store the list back in the db
 		update_option( 'ewww_image_optimizer_bulk_ngg_attachments', $attachments, false );
 		if ( ! empty( $attachments ) ) {
@@ -511,9 +512,10 @@ class ewwwngg {
                         } else {
                                 $output['next_file'] =  "<p>" . esc_html__('Optimizing', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "&nbsp;<img src='$loading_image' alt='loading'/></p>";
                         }
-                }
-                echo json_encode( $output );
-		die();
+                } else {
+			$output['done'] = 1;
+		}
+                die( json_encode( $output ) );
 	}
 
 	/* finish the bulk operation */
