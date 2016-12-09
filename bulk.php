@@ -21,7 +21,6 @@ function ewww_image_optimizer_bulk_preview() {
 		$button_text = esc_attr__( 'Start optimizing', EWWW_IMAGE_OPTIMIZER_DOMAIN );
 	} elseif ( $resume == 'scanning' ) {
 		$fullsize_count = ewww_image_optimizer_count_optimized( 'media' );
-		//$fullsize_count = count( get_option( 'ewww_image_optimizer_scanning_attachments' ) );
 		$button_text = esc_attr__( 'Start optimizing', EWWW_IMAGE_OPTIMIZER_DOMAIN );
 	} else {
 		$fullsize_count = ewww_image_optimizer_aux_images_table_count_pending();
@@ -61,7 +60,8 @@ function ewww_image_optimizer_bulk_preview() {
 			</div>
 		</div>
 		<form class="ewww-bulk-form">
-			<p><label for="ewww-force" style="font-weight: bold"><?php esc_html_e( 'Force re-optimize', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></label>&emsp;<input type="checkbox" id="ewww-force" name="ewww-force"> <?php esc_html_e( 'Previously optimized images will be skipped by default.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>
+			<p><?php esc_html_e( 'Previously optimized images will be skipped by default.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>
+			<p><label for="ewww-force" style="font-weight: bold"><?php esc_html_e( 'Force re-optimize', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></label>&emsp;<input type="checkbox" id="ewww-force" name="ewww-force"></p>
 			<p><label for="ewww-delay" style="font-weight: bold"><?php esc_html_e( 'Choose how long to pause between images (in seconds, 0 = disabled)', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></label>&emsp;<input type="text" id="ewww-delay" name="ewww-delay" value="<?php if ( $delay = ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' ) ) { echo (int) $delay; } else { echo 0; } ?>"></p>
 			<div id="ewww-delay-slider" style="width:50%"></div>
 		</form>
@@ -490,7 +490,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		$optimized_list[ $optimized_path ]['attachment_id'] = $optimized['attachment_id'];
 	}
 
-	$max_query = apply_filters( 'ewww_image_optimizer_count_optimized_queries', 3000 );
+	$max_query = apply_filters( 'ewww_image_optimizer_count_optimized_queries', 2000 );
 	$max_query = (int) $max_query;
 
 	$attachment_ids = get_option( 'ewww_image_optimizer_scanning_attachments' );
@@ -532,15 +532,21 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		foreach ( $attachments as $attachment ) {
 			if ( '_wp_attached_file' == $attachment['meta_key'] ) {
 				$attachment_meta[ $attachment['post_id'] ]['_wp_attached_file'] = $attachment['meta_value'];
-			} elseif ( '_wp_attachment_metadata' != $attachment['meta_key'] ) {
-				if ( ! empty( $attachment['post_mime_type'] ) ) {
+				if ( ! empty( $attachment['post_mime_type'] ) && empty( $attachment_meta[ $attachment['post_id'] ]['type'] ) ) {
 					$attachment_meta[ $attachment['post_id'] ]['type'] = $attachment['post_mime_type'];
 				}
-				//ewwwio_debug_message( print_r( $attachment, true ) );
+				continue;
+			} elseif ( '_wp_attachment_metadata' == $attachment['meta_key'] ) {
+				$attachment_meta[ $attachment['post_id'] ]['meta'] = $attachment['meta_value'];
+				if ( ! empty( $attachment['post_mime_type'] ) && empty( $attachment_meta[ $attachment['post_id'] ]['type'] ) ) {
+					$attachment_meta[ $attachment['post_id'] ]['type'] = $attachment['post_mime_type'];
+				}
 				continue;
 			}
-			$attachment_meta[ $attachment['post_id'] ]['meta'] = $attachment['meta_value'];
-			$attachment_meta[ $attachment['post_id'] ]['type'] = $attachment['post_mime_type'];
+			if ( ! empty( $attachment['post_mime_type'] ) && empty( $attachment_meta[ $attachment['post_id'] ]['type'] ) ) {
+				$attachment_meta[ $attachment['post_id'] ]['type'] = $attachment['post_mime_type'];
+			}
+			//ewwwio_debug_message( print_r( $attachment, true ) );
 		}
 
 		ewwwio_debug_message( "validated " . count( $attachment_meta ) . " attachment meta items" );
@@ -741,7 +747,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					$images[] = "('" . esc_sql( utf8_encode( $file_path ) ) . "','media',$image_size,$selected_id,'$size',1)";
 					$image_count++;
 				}
-				if ( $image_count > 3000 ) {
+				if ( $image_count > 1000 ) {
 					ewwwio_debug_message( 'making a dump run' );
 					// let's dump what we have so far to the db
 					$image_count = 0;
