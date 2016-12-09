@@ -172,6 +172,13 @@ function ewww_image_optimizer_aux_images_table_count_pending() {
 function ewww_image_optimizer_delete_pending() {
 	global $wpdb;
 	$wpdb->query( "DELETE from $wpdb->ewwwio_images WHERE pending=1 AND (image_size IS NULL OR image_size = 0)" );
+	$wpdb->update( $wpdb->ewwwio_images,
+				array(
+					'pending' => 0,
+				),
+				array(
+					'pending' => 1,
+				) );
 }
 
 // scan a folder for images and return them as an array
@@ -195,9 +202,11 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	$iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $dir ), RecursiveIteratorIterator::CHILD_FIRST, RecursiveIteratorIterator::CATCH_GET_CHILD );
 	$start = microtime( true );
 	if ( empty( $optimized_list ) || ! is_array( $optimized_list ) ) {
-		ewwwio_debug_message( 'building optimized list' );
+		ewww_image_optimizer_optimized_list();
+	/*	ewwwio_debug_message( 'building optimized list' );
 		$query = "SELECT id,path,image_size,pending FROM $wpdb->ewwwio_images";
 		$already_optimized = $wpdb->get_results( $query, ARRAY_A );
+		$wpdb->flush();
 		$optimized_list = array();
 		foreach( $already_optimized as $optimized ) {
 			$optimized_path = $optimized['path'];
@@ -205,6 +214,8 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			$optimized_list[ $optimized_path ]['id'] = $optimized['id'];
 			$optimized_list[ $optimized_path ]['pending'] = $optimized['pending'];
 		}
+		$already_optimized = null;
+		unset( $already_optimized );*/
 	}
 	$file_counter = 0; // track total files
 	$image_count = 0; // track number of files since last queue update
@@ -259,7 +270,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 				$images[] = "('" . esc_sql( utf8_encode( $path ) ) . "',$image_size,1)";
 				$image_count++;
 			}
-			if ( $image_count > 5000 ) {
+			if ( $image_count > 1000 ) {
 				// let's dump what we have so far to the db
 				$image_count = 0;
 				$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,orig_size,pending) VALUES " . implode( ',', $images );
@@ -278,6 +289,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	}
 	$end = microtime( true ) - $start;
         ewwwio_debug_message( "query time for $file_counter files (seconds): $end" );
+	clearstatcache();
 	ewwwio_memory( __FUNCTION__ );
 	$folders_completed[] = $dir;
 	update_option( 'ewww_image_optimizer_aux_folders_completed', $folders_completed, false );

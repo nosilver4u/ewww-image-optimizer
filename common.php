@@ -577,7 +577,8 @@ function ewww_image_optimizer_superadmin_permissions( $permissions ) {
 function ewwwio_memory( $function ) {
 	if ( WP_DEBUG ) {
 		global $ewww_memory;
-//		$ewww_memory .= $function . ': ' . memory_get_usage(true) . "\n";
+		$ewww_memory .= $function . ': ' . memory_get_usage(true) . "\n";
+	ewwwio_memory_output();
 	}
 }
 
@@ -5651,12 +5652,13 @@ function ewww_image_optimizer_image_queue_debug() {
 }
 
 function ewwwio_memory_output() {
-	if ( WP_DEBUG ) {
+/*	if ( WP_DEBUG ) {
 		global $ewww_memory;
-		$timestamp = date('y-m-d h:i:s.u') . "  ";
-		if (!file_exists(EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'memory.log'))
-			touch(EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'memory.log');
-		file_put_contents(EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'memory.log', $timestamp . $ewww_memory, FILE_APPEND);
-	}
+		$timestamp = date( 'y-m-d h:i:s.u' ) . "  ";
+		if ( ! file_exists( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'memory.log' ) )
+			touch( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'memory.log' );
+		file_put_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'memory.log', $timestamp . $ewww_memory, FILE_APPEND );
+		$ewww_memory = '';
+	}*/
 }
 ?>
