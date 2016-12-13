@@ -3638,7 +3638,8 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 			//if ( ! $dup_size ) {
 				$resize_path = $base_dir . $data['file'];
 				if ( $type == 'application/pdf' && $size == 'full' ) {
-					$size == 'pdf-full';
+					$size = 'pdf-full';
+					ewwwio_debug_message( 'processing full size pdf preview' );
 				}
 				// run the optimization and store the results
 				if ( $parallel_opt && file_exists( $resize_path ) ) {
@@ -3664,7 +3665,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 					}*/
 					if ( $optimized_file !== false ) {
 						// update the filename
-						$meta['sizes'][ $size ]['file'] = str_replace( $base_dir, '', $optimized_file );
+					//	$meta['sizes'][ $size ]['file'] = str_replace( $base_dir, '', $optimized_file );
 					}
 					// update the optimization results
 					//$meta['sizes'][ $size ]['ewww_image_optimizer'] = $results;
@@ -4361,14 +4362,15 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 		global $wpdb;
 		if ( $ewww_cdn ) {
 			if ( get_transient( 'ewwwio-background-in-progress-' . $id ) ) {
-				$output .= esc_html__( 'In Progress', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+				$output .= '<br>' . esc_html__( 'In Progress', EWWW_IMAGE_OPTIMIZER_DOMAIN );
 			// if optimizer data exists in the db
-			} elseif ( $optimized_images = $wpdb->get_results( "SELECT image_size,orig_size,resize,converted,level FROM $wpdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media' AND image_size <> 0", ARRAY_A ) ) {
+			} elseif ( $optimized_images = $wpdb->get_results( "SELECT image_size,orig_size,resize,converted,level FROM $wpdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", ARRAY_A ) ) {
 				$orig_size = 0;
 				$opt_size = 0;
 				$level = 0;
 				$converted = false;
 				$sizes_to_opt = 0;
+				$detail_output = '<table>';
 				foreach ( $optimized_images as $optimized_image ) {
 					$orig_size += $optimized_image['orig_size'];
 					$opt_size += $optimized_image['image_size'];
@@ -4379,7 +4381,13 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 						$converted = $optimized_image['converted'];
 					}
 					$sizes_to_opt++;
+					if ( ! empty( $optimized_image['resize'] ) ) {
+						$display_size = size_format( $optimized_image['image_size'], 2 );
+						$display_size = preg_replace( '/\.00 B /', ' B', $display_size );
+		        			$detail_output .= '<tr><td><strong>' . ucfirst( $optimized_image['resize'] ) . '</strong></td><td>' . sprintf( esc_html__( 'Image Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size ) . '</td><td>' . esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) ) . '</td></tr>';
+					}
 				}
+				$detail_output .= '</table>';
 
 				$output .= '<br>' . sprintf( esc_html__( '%d sizes compressed',EWWW_IMAGE_OPTIMIZER_DOMAIN ), $sizes_to_opt ) . '<br>';
 				$results_msg = ewww_image_optimizer_image_results( $orig_size, $opt_size );
@@ -4389,6 +4397,8 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				$display_size = preg_replace( '/\.00 B /', ' B', $display_size );
 				// output the filesize
 				$output .= "<br>" . sprintf( esc_html__( 'Total Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size );
+				$output .= " <span class='ewww-toggle' data-attachment-id='$id'>(+)</span>";
+				$output .= "<div id='ewww-attachment-detail-$id' style='display:none'>$detail_output</div>";
 				// output the optimizer results
 				if ( current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 					// output a link to re-optimize manually
@@ -4417,12 +4427,13 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 		if ( get_transient( 'ewwwio-background-in-progress-' . $id ) ) {
 			$output .= esc_html__( 'In Progress', EWWW_IMAGE_OPTIMIZER_DOMAIN );
 		// if optimizer data exists
-		} elseif ( $optimized_images = $wpdb->get_results( "SELECT image_size,orig_size,resize,converted,level FROM $wpdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media' AND image_size <> 0", ARRAY_A ) ) {
+		} elseif ( $optimized_images = $wpdb->get_results( "SELECT image_size,orig_size,resize,converted,level FROM $wpdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", ARRAY_A ) ) {
 			$orig_size = 0;
 			$opt_size = 0;
 			$level = 0;
 			$converted = false;
 			$sizes_to_opt = 0;
+			$detail_output = '<table>';
 			foreach ( $optimized_images as $optimized_image ) {
 				$orig_size += $optimized_image['orig_size'];
 				$opt_size += $optimized_image['image_size'];
@@ -4433,8 +4444,13 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 					$converted = $optimized_image['converted'];
 				}
 				$sizes_to_opt++;
+				if ( ! empty( $optimized_image['resize'] ) ) {
+					$display_size = size_format( $optimized_image['image_size'], 2 );
+					$display_size = preg_replace( '/\.00 B /', ' B', $display_size );
+		                        $detail_output .= '<tr><td><strong>' . ucfirst( $optimized_image['resize'] ) . '</strong></td><td>' . sprintf( esc_html__( 'Image Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size ) . '</td><td>' . esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) ) . '</td></tr>';
+				}
 			}
-
+			$detail_output .= '</table>';
 			$output .= sprintf( esc_html__( '%d sizes compressed',EWWW_IMAGE_OPTIMIZER_DOMAIN ), $sizes_to_opt ) . '<br>';
 			$results_msg = ewww_image_optimizer_image_results( $orig_size, $opt_size );
 			// output the optimizer results
@@ -4443,6 +4459,8 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			$display_size = preg_replace( '/\.00 B /', ' B', $display_size );
 			// output the filesize
 			$output .= "<br>" . sprintf( esc_html__( 'Total Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size );
+			$output .= " <span class='ewww-toggle' data-attachment-id='$id'>(+)</span>";
+			$output .= "<div id='ewww-attachment-detail-$id' style='display:none'>$detail_output</div>";
 			if ( empty( $msg ) && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 				// output a link to re-optimize manually
 				$output .= sprintf("<br><a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_force=1&amp;ewww_attachment_ID=%d\">%s</a>",

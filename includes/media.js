@@ -18,6 +18,13 @@ jQuery(document).on( 'click', '.ewww-manual-optimize', function() {
 	});
 	return false;
 });
+function toggleOptimizationDetails(attachment_id) {
+	jQuery( '#ewww-attachment-detail-' + attachment_id ).toggle( 'blind' );
+}
+jQuery(document).on( 'click', '.ewww-toggle', function() {
+	var attachment_id = jQuery(this).attr( 'data-attachment-id' );
+	toggleOptimizationDetails(attachment_id);
+});
 jQuery(document).on( 'click', '.ewww-manual-convert', function() {
 	var post_id = jQuery(this).data('id');
 	var ewww_nonce = jQuery(this).data('nonce');
