@@ -4267,7 +4267,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 		$output .= "<div id='ewww-media-status-$id'>";
 		$ewww_cdn = false;
 		if( is_array( $meta ) && ! empty( $meta['cloudinary'] ) ) {
-			$output .= esc_html__( 'Cloudinary image', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+			$output .= esc_html__( 'Cloudinary image', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</div>';
 			if ( $return_output ) {
 				return $output;
 			}
@@ -4275,17 +4275,17 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			return;
 		}
 		if ( is_array( $meta ) & class_exists( 'WindowsAzureStorageUtil' ) && ! empty( $meta['url'] ) ) {
-			$output .= esc_html__( 'Azure Storage image', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+			$output .= '<div>' . esc_html__( 'Azure Storage image', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</div>';
 			$ewww_cdn = true;
 		}
 		if ( is_array( $meta ) && class_exists( 'Amazon_S3_And_CloudFront' ) && preg_match( '/^(http|s3)\w*:/', get_attached_file( $id ) ) ) {
-			$output .= esc_html__( 'Amazon S3 image', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+			$output .= '<div>' . esc_html__( 'Amazon S3 image', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</div>';
 			$ewww_cdn = true;
 		}
 		list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
 		// if the file does not exist
 		if ( empty( $file_path ) && ! $ewww_cdn ) {
-			$output .= esc_html__( 'Could not retrieve file path.', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+			$output .= esc_html__( 'Could not retrieve file path.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</div>';
 			ewww_image_optimizer_debug_log();
 			if ( $return_output ) {
 				return $output;
@@ -4319,7 +4319,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				// if jpegtran is missing, tell them that
 				if( ! EWWW_IMAGE_OPTIMIZER_JPEGTRAN && ! $skip['jpegtran'] ) {
 					$valid = false;
-					$msg = '<br>' . wp_kses( sprintf( __( '%s is missing', EWWW_IMAGE_OPTIMIZER_DOMAIN), '<em>jpegtran</em>' ), array( 'em' => array() ) );
+					$msg = '<div>' . wp_kses( sprintf( __( '%s is missing', EWWW_IMAGE_OPTIMIZER_DOMAIN), '<em>jpegtran</em>' ), array( 'em' => array() ) ) . '</div>';
 				} else {
 					$convert_link = esc_html__('JPG to PNG', EWWW_IMAGE_OPTIMIZER_DOMAIN);
 					$convert_desc = esc_attr__( 'WARNING: Removes metadata. Requires GD or ImageMagick. PNG is generally much better than JPG for logos and other images with a limited range of colors.', EWWW_IMAGE_OPTIMIZER_DOMAIN );
@@ -4329,7 +4329,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				// if pngout and optipng are missing, tell the user
 				if( ! EWWW_IMAGE_OPTIMIZER_PNGOUT && ! EWWW_IMAGE_OPTIMIZER_OPTIPNG && ! $skip['optipng'] && ! $skip['pngout'] ) {
 					$valid = false;
-					$msg = '<br>' . wp_kses( sprintf( __( '%s is missing', EWWW_IMAGE_OPTIMIZER_DOMAIN ), '<em>optipng/pngout</em>' ), array( 'em' => array() ) );
+					$msg = '<div>' . wp_kses( sprintf( __( '%s is missing', EWWW_IMAGE_OPTIMIZER_DOMAIN ), '<em>optipng/pngout</em>' ), array( 'em' => array() ) ) . '</div>';
 				} else {
 					$convert_link = esc_html__('PNG to JPG', EWWW_IMAGE_OPTIMIZER_DOMAIN);
 					$convert_desc = esc_attr__('WARNING: This is not a lossless conversion and requires GD or ImageMagick. JPG is much better than PNG for photographic use because it compresses the image and discards data. Transparent images will only be converted if a background color has been set.', EWWW_IMAGE_OPTIMIZER_DOMAIN);
@@ -4339,7 +4339,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				// if gifsicle is missing, tell the user
 				if( ! EWWW_IMAGE_OPTIMIZER_GIFSICLE && ! $skip['gifsicle'] ) {
 					$valid = false;
-					$msg = '<br>' . wp_kses( sprintf( __( '%s is missing', EWWW_IMAGE_OPTIMIZER_DOMAIN ), '<em>gifsicle</em>' ), array( 'em' => array() ) );
+					$msg = '<div>' . wp_kses( sprintf( __( '%s is missing', EWWW_IMAGE_OPTIMIZER_DOMAIN ), '<em>gifsicle</em>' ), array( 'em' => array() ) ) . '</div>';
 				} else {
 					$convert_link = esc_html__('GIF to PNG', EWWW_IMAGE_OPTIMIZER_DOMAIN);
 					$convert_desc = esc_attr__('PNG is generally better than GIF, but does not support animation. Animated images will not be converted.', EWWW_IMAGE_OPTIMIZER_DOMAIN);
@@ -4350,7 +4350,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				break;
 			default:
 				// not a supported mimetype
-				$output .= esc_html__( 'Unsupported file type', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+				$output .= esc_html__( 'Unsupported file type', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</div>';
 				ewww_image_optimizer_debug_log();
 				if ( $return_output ) {
 					return $output;
@@ -4362,7 +4362,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 		global $wpdb;
 		if ( $ewww_cdn ) {
 			if ( get_transient( 'ewwwio-background-in-progress-' . $id ) ) {
-				$output .= '<br>' . esc_html__( 'In Progress', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+				$output .= '<div>' . esc_html__( 'In Progress', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</div>';
 			// if optimizer data exists in the db
 			} elseif ( $optimized_images = $wpdb->get_results( "SELECT image_size,orig_size,resize,converted,level FROM $wpdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", ARRAY_A ) ) {
 				$orig_size = 0;
@@ -4384,27 +4384,27 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 					if ( ! empty( $optimized_image['resize'] ) ) {
 						$display_size = size_format( $optimized_image['image_size'], 2 );
 						$display_size = preg_replace( '/\.00 B /', ' B', $display_size );
-		        			$detail_output .= '<tr><td><strong>' . ucfirst( $optimized_image['resize'] ) . '</strong></td><td>' . sprintf( esc_html__( 'Image Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size ) . '</td><td>' . esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) ) . '</td></tr>';
+		        			$detail_output .= '<tr><td><strong>' . ucfirst( $optimized_image['resize'] ) . '</strong></td><td>' /*. sprintf( esc_html__( 'Image Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size ) . '</td><td>'*/ . esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) ) . '</td></tr>';
 					}
 				}
 				$detail_output .= '</table>';
 
-				$output .= '<br>' . sprintf( esc_html__( '%d sizes compressed',EWWW_IMAGE_OPTIMIZER_DOMAIN ), $sizes_to_opt ) . '<br>';
+				$output .= '<div>' . sprintf( esc_html__( '%d sizes compressed',EWWW_IMAGE_OPTIMIZER_DOMAIN ), $sizes_to_opt ) . '</div>';
 				$results_msg = ewww_image_optimizer_image_results( $orig_size, $opt_size );
 				// output the optimizer results
-				$output .= esc_html( $results_msg );
+				$output .= '<div>' . esc_html( $results_msg ) . '</div>';
 				$display_size = size_format( $opt_size, 2 );
 				$display_size = preg_replace( '/\.00 B /', ' B', $display_size );
 				// output the filesize
-				$output .= "<br>" . sprintf( esc_html__( 'Total Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size );
-				$output .= " <span class='ewww-toggle' data-attachment-id='$id'>(+)</span>";
-				$output .= "<div id='ewww-attachment-detail-$id' style='display:none'>$detail_output</div>";
+				$output .= '<div>' . sprintf( esc_html__( 'Total Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size );
+				$output .= " <span class='ewww-toggle' data-attachment-id='$id'>(+)</span></div>";
+				$output .= "<div id='ewww-attachment-detail-$id' class='ewww-attachment-detail'>$detail_output</div>";
 				// output the optimizer results
 				if ( current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 					// output a link to re-optimize manually
-					$output .= sprintf( "<br><a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_force=1&amp;ewww_attachment_ID=%d\">%s</a>",
+					$output .= '<div>' . sprintf( "<a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_force=1&amp;ewww_attachment_ID=%d\">%s</a>",
 						$id,
-						esc_html__( 'Re-optimize', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
+						esc_html__( 'Re-optimize', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) . '</div>';
 				}
 			} elseif ( current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 				// and give the user the option to optimize the image right now
@@ -4413,9 +4413,9 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 					$disabled_count = ( is_array( $disabled_sizes_opt ) ? count( $disabled_sizes_opt ) : 0 );
 					$resizes_to_opt = ewww_image_optimizer_resize_count( $meta['sizes'] );
 					$sizes_to_opt = $resizes_to_opt + 1 - $disabled_count;
-					$output .= '<br>' . sprintf( esc_html__( '%d sizes to compress',EWWW_IMAGE_OPTIMIZER_DOMAIN ), $sizes_to_opt );
+					$output .= '<div>' . sprintf( esc_html__( '%d sizes to compress',EWWW_IMAGE_OPTIMIZER_DOMAIN ), $sizes_to_opt ) . '</div>';
 				}
-				$output .= sprintf( "<br><a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' ref=\"admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d\">%s</a>", $id, esc_html__( 'Optimize now!', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
+				$output .= '<div>' . sprintf( "<a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' ref=\"admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d\">%s</a>", $id, esc_html__( 'Optimize now!', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) . '</div>';
 			}
 			$output .= '</div>';
 			if ( $return_output ) {
@@ -4447,45 +4447,25 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				if ( ! empty( $optimized_image['resize'] ) ) {
 					$display_size = size_format( $optimized_image['image_size'], 2 );
 					$display_size = preg_replace( '/\.00 B /', ' B', $display_size );
-		                        $detail_output .= '<tr><td><strong>' . ucfirst( $optimized_image['resize'] ) . '</strong></td><td>' . sprintf( esc_html__( 'Image Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size ) . '</td><td>' . esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) ) . '</td></tr>';
+		                        $detail_output .= '<tr><td><strong>' . ucfirst( $optimized_image['resize'] ) . '</strong></td><td>' ./* sprintf( esc_html__( 'Image Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size ) . '</td><td>' .*/ esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) ) . '</td></tr>';
 				}
 			}
 			$detail_output .= '</table>';
-			$output .= sprintf( esc_html__( '%d sizes compressed',EWWW_IMAGE_OPTIMIZER_DOMAIN ), $sizes_to_opt ) . '<br>';
+			$output .= '<div>' . sprintf( esc_html__( '%d sizes compressed',EWWW_IMAGE_OPTIMIZER_DOMAIN ), $sizes_to_opt ) . '</div>';
 			$results_msg = ewww_image_optimizer_image_results( $orig_size, $opt_size );
 			// output the optimizer results
-			$output .= esc_html( $results_msg );
+			$output .= '<div>' . esc_html( $results_msg ) . '</div>';
 			$display_size = size_format( $opt_size, 2 );
 			$display_size = preg_replace( '/\.00 B /', ' B', $display_size );
 			// output the filesize
-			$output .= "<br>" . sprintf( esc_html__( 'Total Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size );
-			$output .= " <span class='ewww-toggle' data-attachment-id='$id'>(+)</span>";
-			$output .= "<div id='ewww-attachment-detail-$id' style='display:none'>$detail_output</div>";
-			if ( empty( $msg ) && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
-				// output a link to re-optimize manually
-				$output .= sprintf("<br><a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_force=1&amp;ewww_attachment_ID=%d\">%s</a>",
-					$id,
-					esc_html__( 'Re-optimize', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
-				if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_convert_links' ) && 'ims_image' != get_post_type( $id ) && ! empty( $convert_desc ) ) {
-					$output .= " | <a class='ewww-manual-convert' data-id='$id' data-nonce='$ewww_manual_nonce' title='$convert_desc' href='admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=$id&amp;ewww_convert=1&amp;ewww_force=1'>$convert_link</a>";
-				}
-			} else {
-				$output .= $msg;
-			}
-			$restorable = false;
-			if ( $converted && is_file( $converted ) ) {
-				$restorable = true;
-			}
-			if ( $restorable && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
-				$output .= sprintf( "<br><a class='ewww-manual-restore' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_restore&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d\">%s</a>",
-					$id,
-					esc_html__( 'Restore original', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
-			}
-
+			$output .= '<div>' . sprintf( esc_html__( 'Total Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size );
+			$output .= " <span class='ewww-toggle' data-attachment-id='$id'>(+)</span></div>";
+			$output .= "<div id='ewww-attachment-detail-$id' class='ewww-attachment-detail'>$detail_output</div>";
+			
 			// link to webp upgrade script
 			$oldwebpfile = preg_replace('/\.\w+$/', '.webp', $file_path);
 			if ( file_exists( $oldwebpfile ) && current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
-				$output .= "<br><a href='options.php?page=ewww-image-optimizer-webp-migrate'>" . esc_html__( 'Run WebP upgrade', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</a>";
+				$output .= "<div><a href='options.php?page=ewww-image-optimizer-webp-migrate'>" . esc_html__( 'Run WebP upgrade', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</a></div>";
 			}
 
 			// determine filepath for webp
@@ -4496,7 +4476,29 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				$webpurl = esc_url( wp_get_attachment_url( $id ) . '.webp' );
 				// get a human readable filesize
 				$webp_size = preg_replace( '/\.00 B /', ' B', $webp_size );
-				$output .= "<br>WebP: <a href='$webpurl'>$webp_size</a>";
+				$output .= "<div>WebP: <a href='$webpurl'>$webp_size</a></div>";
+			}
+
+			if ( empty( $msg ) && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
+				// output a link to re-optimize manually
+				$output .= '<div>' . sprintf("<a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_force=1&amp;ewww_attachment_ID=%d\">%s</a>",
+					$id,
+					esc_html__( 'Re-optimize', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
+				if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_convert_links' ) && 'ims_image' != get_post_type( $id ) && ! empty( $convert_desc ) ) {
+					$output .= " | <a class='ewww-manual-convert' data-id='$id' data-nonce='$ewww_manual_nonce' title='$convert_desc' href='admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=$id&amp;ewww_convert=1&amp;ewww_force=1'>$convert_link</a>";
+				}
+				$output .= '</div>';
+			} else {
+				$output .= $msg;
+			}
+			$restorable = false;
+			if ( $converted && is_file( $converted ) ) {
+				$restorable = true;
+			}
+			if ( $restorable && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
+				$output .= '<div>' . sprintf( "<a class='ewww-manual-restore' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_restore&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d\">%s</a>",
+					$id,
+					esc_html__( 'Restore original', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) . '</div>';
 			}
 		} else {
 			// otherwise, this must be an image we haven't processed
@@ -4505,18 +4507,19 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				$disabled_count = ( is_array( $disabled_sizes_opt ) ? count( $disabled_sizes_opt ) : 0 );
 				$resizes_to_opt = ewww_image_optimizer_resize_count( $meta['sizes'] );
 				$sizes_to_opt = $resizes_to_opt + 1 - $disabled_count;
-				$output .= sprintf( esc_html__( '%d sizes to compress',EWWW_IMAGE_OPTIMIZER_DOMAIN ), $sizes_to_opt );
+				$output .= '<div>' . sprintf( esc_html__( '%d sizes to compress',EWWW_IMAGE_OPTIMIZER_DOMAIN ), $sizes_to_opt ) . '</div>';
 			} else {
-				$output .= esc_html__( 'Not processed', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+				$output .= '<div>' . esc_html__( 'Not processed', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</div>';
 			}
 			// tell them the filesize
-			$output .= "<br>" . sprintf( esc_html__( 'Image Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $file_size );
+			$output .= '<div>' . sprintf( esc_html__( 'Image Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $file_size ) . '</div>';
 			if ( empty( $msg ) && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 				// and give the user the option to optimize the image right now
-				$output .= sprintf( "<br><a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d\">%s</a>", $id, esc_html__( 'Optimize now!', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
+				$output .= sprintf( "<div><a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d\">%s</a>", $id, esc_html__( 'Optimize now!', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 				if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_convert_links' ) && 'ims_image' != get_post_type( $id ) && ! empty( $convert_desc ) ) {
 					$output .= " | <a class='ewww-manual-convert' data-id='$id' data-nonce='$ewww_manual_nonce' title='$convert_desc' href='admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=$id&amp;ewww_convert=1&amp;ewww_force=1'>$convert_link</a>";
 				}
+				$output .= '</div>';
 			} else {
 				$output .= $msg;
 			}

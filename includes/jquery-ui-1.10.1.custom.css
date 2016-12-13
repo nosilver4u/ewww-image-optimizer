@@ -380,3 +380,13 @@ body .ui-tooltip {
 a.removeimage {
 	cursor: pointer;
 }
+.ewww-attachment-detail {
+	display: none;
+}
+.ewww-attachment-detail table td {
+	padding: 0px 10px 0px 0px;
+}
+.ewww-toggle {
+	color: #0073aa;
+	cursor:pointer;
+}
