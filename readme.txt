@@ -257,12 +257,16 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 
 == Changelog ==
 
+* I no longer have a Mac with which to build new binaries. Until I can raise enough funds, there will be no more updates for the Mac OS X tools, and I may have to temporarily remove Mac support if any security issues arise in the meantime: https://www.gofundme.com/ewww-image-optimizer-mac-dev-laptop
 * feature requests are sticky at the top of the support forums, vote for the ones you like: https://wordpress.org/support/plugin/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 3.2.0 =
+* added: option to ignore folders when bulk optimizing
+* changed: bulk optimizers for media library and everything else have been merged
 * removed: ability to use the ImageMagick 'convert' binary, use Imagick extension for PHP instead
 * fixed: parallel mode prevents successful conversion
+
 
 = 3.1.3 =
 * added: settings which require validation display appropriate errors when validation fails
