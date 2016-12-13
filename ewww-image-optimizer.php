@@ -46,6 +46,11 @@ register_deactivation_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimi
 // check to see if the cloud constant is defined (which would mean we've already run init) and then set it properly if not
 function ewww_image_optimizer_cloud_init() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	// basically this happens on settings save, so we need to check if the settings are being saved with an empty key, and pre-emptively set the constant to false
+	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) && isset( $_POST['ewww_image_optimizer_cloud_key'] ) && ! $_POST['ewww_image_optimizer_cloud_key'] ) {
+		define( 'EWWW_IMAGE_OPTIMIZER_CLOUD', FALSE );
+		return;
+	}
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) > 10 && ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) > 10 ) {
 		define( 'EWWW_IMAGE_OPTIMIZER_CLOUD', TRUE );
 	} elseif ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) ) {
@@ -653,67 +658,141 @@ function ewww_image_optimizer_path_check( $j = true, $o = true, $g = true, $p = 
 			'WEBP' => false,
 		);
 	}
+// TODO: check the values of the constants before doing another search
+// TODO: set the values of the constants if they are not yet
 	if ( 'WINNT' == PHP_OS ) {
 		if ( $j ) {
-			$jpegtran = ewww_image_optimizer_find_win_binary( 'jpegtran', 'j' );
+			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) ) {
+				$jpegtran = ewww_image_optimizer_find_win_binary( 'jpegtran', 'j' );
+				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_JPEGTRAN' );
+				define( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN', $jpegtran );
+			} else {
+				$jpegtran = EWWW_IMAGE_OPTIMIZER_JPEGTRAN;
+			}
 		}
 		if ( $o ) {
-			$optipng = ewww_image_optimizer_find_win_binary( 'optipng', 'o' ); 
+			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_OPTIPNG' ) ) {
+				$optipng = ewww_image_optimizer_find_win_binary( 'optipng', 'o' ); 
+				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_OPTIPNG' );
+				define( 'EWWW_IMAGE_OPTIMIZER_', $optipng );
+			} else {
+				$optipng = EWWW_IMAGE_OPTIMIZER_OPTIPNG;
+			}
 		}
 		if ( $g ) {
-			$gifsicle = ewww_image_optimizer_find_win_binary( 'gifsicle', 'g' ); 
+			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_GIFSICLE' ) ) {
+				$gifsicle = ewww_image_optimizer_find_win_binary( 'gifsicle', 'g' ); 
+				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_GIFSICLE' );
+				define( 'EWWW_IMAGE_OPTIMIZER_GIFSICLE', $gifsicle );
+			} else {
+				$gifsicle = EWWW_IMAGE_OPTIMIZER_GIFSICLE;
+			}
 		}
 		if ( $p ) {
-			$pngout = ewww_image_optimizer_find_win_binary( 'pngout', 'p' ); 
+			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_PNGOUT' ) ) {
+				$pngout = ewww_image_optimizer_find_win_binary( 'pngout', 'p' ); 
+				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_PNGOUT' );
+				define( 'EWWW_IMAGE_OPTIMIZER_PNGOUT', $pngout );
+			} else {
+				$pngout = EWWW_IMAGE_OPTIMIZER_PNGOUT;
+			}
 		}
 		if ( $q ) {
-			$pngquant = ewww_image_optimizer_find_win_binary( 'pngquant', 'q' ); 
+			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_PNGQUANT' ) ) {
+				$pngquant = ewww_image_optimizer_find_win_binary( 'pngquant', 'q' ); 
+				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_PNGQUANT' );
+				define( 'EWWW_IMAGE_OPTIMIZER_PNGQUANT', $pngquant );
+			} else {
+				$pngquant = EWWW_IMAGE_OPTIMIZER_PNGQUANT;
+			}
 		}
 		if ( $w ) {
-			$webp = ewww_image_optimizer_find_win_binary( 'cwebp', 'w' ); 
+			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_WEBP' ) ) {
+				$webp = ewww_image_optimizer_find_win_binary( 'cwebp', 'w' ); 
+				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_WEBP' );
+				define( 'EWWW_IMAGE_OPTIMIZER_WEBP', $webp );
+			} else {
+				$webp = EWWW_IMAGE_OPTIMIZER_WEBP;
+			}
 		}
 	} else {
 		if ( $j ) {
-			$jpegtran = ewww_image_optimizer_find_nix_binary( 'jpegtran', 'j' );
-			if ( ! $jpegtran ) {
-				$jpegtran = ewww_image_optimizer_find_nix_binary( 'jpegtran', 'jb' );
+			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) ) {
+				$jpegtran = ewww_image_optimizer_find_nix_binary( 'jpegtran', 'j' );
+				if ( ! $jpegtran ) {
+					$jpegtran = ewww_image_optimizer_find_nix_binary( 'jpegtran', 'jb' );
+				}
+				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_JPEGTRAN' );
+				define( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN', $jpegtran );
+			} else {
+				$jpegtran = EWWW_IMAGE_OPTIMIZER_JPEGTRAN;
 			}
 		}
 		if ( $o ) {
-			$optipng = ewww_image_optimizer_find_nix_binary( 'optipng', 'o' );
-			if ( ! $optipng ) {
-				$optipng = ewww_image_optimizer_find_nix_binary( 'optipng', 'ob' );
+			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_OPTIPNG' ) ) {
+				$optipng = ewww_image_optimizer_find_nix_binary( 'optipng', 'o' );
+				if ( ! $optipng ) {
+					$optipng = ewww_image_optimizer_find_nix_binary( 'optipng', 'ob' );
+				}
+				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_OPTIPNG' );
+				define( 'EWWW_IMAGE_OPTIMIZER_OPTIPNG', $optipng );
+			} else {
+				$optipng = EWWW_IMAGE_OPTIMIZER_OPTIPNG;
 			}
 		}
 		if ( $g ) {
-			$gifsicle = ewww_image_optimizer_find_nix_binary( 'gifsicle', 'g' );
-			if ( ! $gifsicle ) {
-				$gifsicle = ewww_image_optimizer_find_nix_binary( 'gifsicle', 'gb' );
+			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_GIFSICLE' ) ) {
+				$gifsicle = ewww_image_optimizer_find_nix_binary( 'gifsicle', 'g' );
+				if ( ! $gifsicle ) {
+					$gifsicle = ewww_image_optimizer_find_nix_binary( 'gifsicle', 'gb' );
+				}
+				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_GIFSICLE' );
+				define( 'EWWW_IMAGE_OPTIMIZER_GIFSICLE', $gifsicle );
+			} else {
+				$gifsicle = EWWW_IMAGE_OPTIMIZER_GIFSICLE;
 			}
 		}
 		if ( $p ) {
-			// pngout is special and has a dynamic and static binary to check
-			$pngout = ewww_image_optimizer_find_nix_binary( 'pngout-static', 'p' );
-			if ( ! $pngout ) {
-				$pngout = ewww_image_optimizer_find_nix_binary( 'pngout', 'p' );
-			}
-			if ( ! $pngout ) {
-				$pngout = ewww_image_optimizer_find_nix_binary( 'pngout-static', 'pb' );
-			}
-			if ( ! $pngout ) {
-				$pngout = ewww_image_optimizer_find_nix_binary( 'pngout', 'pb' );
+			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_PNGOUT' ) ) {
+				// pngout is special and has a dynamic and static binary to check
+				$pngout = ewww_image_optimizer_find_nix_binary( 'pngout-static', 'p' );
+				if ( ! $pngout ) {
+					$pngout = ewww_image_optimizer_find_nix_binary( 'pngout', 'p' );
+				}
+				if ( ! $pngout ) {
+					$pngout = ewww_image_optimizer_find_nix_binary( 'pngout-static', 'pb' );
+				}
+				if ( ! $pngout ) {
+					$pngout = ewww_image_optimizer_find_nix_binary( 'pngout', 'pb' );
+				}
+				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_PNGOUT' );
+				define( 'EWWW_IMAGE_OPTIMIZER_PNGOUT', $pngout );
+			} else {
+				$pngout = EWWW_IMAGE_OPTIMIZER_PNGOUT;
 			}
 		}
 		if ( $q ) {
-			$pngquant = ewww_image_optimizer_find_nix_binary( 'pngquant', 'q' );
-			if ( ! $pngquant ) {
-				$pngquant = ewww_image_optimizer_find_nix_binary( 'pngquant', 'qb' );
+			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_PNGQUANT' ) ) {
+				$pngquant = ewww_image_optimizer_find_nix_binary( 'pngquant', 'q' );
+				if ( ! $pngquant ) {
+					$pngquant = ewww_image_optimizer_find_nix_binary( 'pngquant', 'qb' );
+				}
+				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_PNGQUANT' );
+				define( 'EWWW_IMAGE_OPTIMIZER_PNGQUANT', $pngquant );
+			} else {
+				$pngquant = EWWW_IMAGE_OPTIMIZER_PNGQUANT;
 			}
 		}
 		if ( $w ) {
-			$webp = ewww_image_optimizer_find_nix_binary( 'cwebp', 'w' );
-			if ( ! $webp ) {
-				$webp = ewww_image_optimizer_find_nix_binary( 'cwebp', 'wb' );
+			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_WEBP' ) ) {
+				$webp = ewww_image_optimizer_find_nix_binary( 'cwebp', 'w' );
+				if ( ! $webp ) {
+					$webp = ewww_image_optimizer_find_nix_binary( 'cwebp', 'wb' );
+				}
+				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_WEBP' );
+				define( 'EWWW_IMAGE_OPTIMIZER_WEBP', $webp );
+			} else {
+				$webp = EWWW_IMAGE_OPTIMIZER_WEBP;
 			}
 		}
 	}

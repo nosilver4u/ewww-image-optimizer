@@ -264,9 +264,11 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 = 3.2.0 =
 * added: option to ignore folders when bulk optimizing
 * changed: bulk optimizers for media library and everything else have been merged
+* changed: tool locations saved for the duration of a request to improve optimization speed
 * removed: ability to use the ImageMagick 'convert' binary, use Imagick extension for PHP instead
 * fixed: parallel mode prevents successful conversion
-
+* fixed: removing API key on multisite did not fallback to local mode properly
+* fixed: pngout enabled after API key removed
 
 = 3.1.3 =
 * added: settings which require validation display appropriate errors when validation fails

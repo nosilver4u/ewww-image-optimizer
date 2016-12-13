@@ -380,11 +380,23 @@ body .ui-tooltip {
 a.removeimage {
 	cursor: pointer;
 }
-.ewww-attachment-detail {
+.ewww-attachment-detail-container {
 	display: none;
 }
-.ewww-attachment-detail table td {
-	padding: 0px 10px 0px 0px;
+.ewww-attachment-detail table td, .ewww-attachment-detail table th {
+	padding: 8px 10px;
+}
+.ewww-attachment-detail table th {
+	border-bottom: 1px solid #e5e5e5;
+}
+.ewww-attachment-detail table {
+	width: 100%;
+	border: 1px solid #e5e5e5;
+	border-collapse: collapse;
+	margin-bottom: 8px;
+}
+.ewww-attachment-detail {
+	padding: 13px 0px 0px;
 }
 .ewww-toggle {
 	color: #0073aa;

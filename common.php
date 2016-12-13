@@ -9,12 +9,10 @@
 // TODO: check new Azure plugin for compatibility with bulk/remote_fetch
 // TODO: if Imsanity is active, disable the resize settings with a notice (instead of just ignoring them like we currently do)
 // TODO: see what Imsanity does different to avoid memory issues on resizing
-// TODO: use an object to store optimizer paths/locations to avoid re-checking the binaries on every optimization, not a transient, don't want to risk corrupting something if there are changes in the meantime
 // TODO: prevent bad ajax errors from firing when we click the toggle on the Optimization Log
 // TODO: use a transient to do health checks on the schedule optimizer
 // TODO: add a column to track compression level used for each image, and later implement a way to (re)compress at a specific compression level
 // TODO: implement (optional) backups with a .bak extension for every file
-// TODO: when API key is removed, pngout gets enabled, bad!
 // TODO: might be able to use the Custom Bulk Actions in 4.7 to support the bulk optimize drop-down menu
 // TODO: see if there is a way to query the last couple months (or 30 days) worth of attachments instead of scanning two folders
 
@@ -1699,9 +1697,10 @@ function check_webp_feature(a,b){var c={alpha:"UklGRkoAAABXRUJQVlA4WAoAAAAQAAAAA
 // enqueue custom jquery stylesheet for bulk optimizer
 function ewww_image_optimizer_media_scripts( $hook ) {
 	if ( $hook == 'upload.php' ) {
+		add_thickbox();
 		wp_enqueue_script( 'jquery-ui-tooltip' );
 		wp_enqueue_script( 'ewwwmediascript', plugins_url( '/includes/media.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
-		wp_enqueue_style( 'jquery-ui-tooltip-custom', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ) );
+		wp_enqueue_style( 'jquery-ui-tooltip-custom', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 		// submit a couple variables to the javascript to work with
 		$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
 		$loading_image = plugins_url( '/images/spinner.gif', __FILE__ );
@@ -4370,7 +4369,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				$level = 0;
 				$converted = false;
 				$sizes_to_opt = 0;
-				$detail_output = '<table>';
+				$detail_output = '<table class="striped"><tr><th>&nbsp;</th><th>' . esc_html__( 'Image Size', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</th><th>' . esc_html__( 'Savings', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</th></tr>';
 				foreach ( $optimized_images as $optimized_image ) {
 					$orig_size += $optimized_image['orig_size'];
 					$opt_size += $optimized_image['image_size'];
@@ -4384,21 +4383,21 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 					if ( ! empty( $optimized_image['resize'] ) ) {
 						$display_size = size_format( $optimized_image['image_size'], 2 );
 						$display_size = preg_replace( '/\.00 B /', ' B', $display_size );
-		        			$detail_output .= '<tr><td><strong>' . ucfirst( $optimized_image['resize'] ) . '</strong></td><td>' /*. sprintf( esc_html__( 'Image Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size ) . '</td><td>'*/ . esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) ) . '</td></tr>';
+		        			$detail_output .= '<tr><td><strong>' . ucfirst( $optimized_image['resize'] ) . "</strong></td><td>$display_size</td><td>" . esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) ) . '</td></tr>';
 					}
 				}
 				$detail_output .= '</table>';
 
-				$output .= '<div>' . sprintf( esc_html__( '%d sizes compressed',EWWW_IMAGE_OPTIMIZER_DOMAIN ), $sizes_to_opt ) . '</div>';
+				$output .= '<div>' . sprintf( esc_html__( '%d sizes compressed',EWWW_IMAGE_OPTIMIZER_DOMAIN ), $sizes_to_opt );
+				$output .= " <a href='#TB_inline?width=550&height=450&inlineId=ewww-attachment-detail-$id' class='thickbox'>(+)</a></div>";
 				$results_msg = ewww_image_optimizer_image_results( $orig_size, $opt_size );
 				// output the optimizer results
 				$output .= '<div>' . esc_html( $results_msg ) . '</div>';
 				$display_size = size_format( $opt_size, 2 );
 				$display_size = preg_replace( '/\.00 B /', ' B', $display_size );
 				// output the filesize
-				$output .= '<div>' . sprintf( esc_html__( 'Total Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size );
-				$output .= " <span class='ewww-toggle' data-attachment-id='$id'>(+)</span></div>";
-				$output .= "<div id='ewww-attachment-detail-$id' class='ewww-attachment-detail'>$detail_output</div>";
+				$detail_output .= '<div><strong>' . sprintf( esc_html__( 'Total Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size ) . '</strong></div>';
+				$output .= "<div id='ewww-attachment-detail-$id' class='ewww-attachment-detail-container'><div class='ewww-attachment-detail'>$detail_output</div></div>";
 				// output the optimizer results
 				if ( current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 					// output a link to re-optimize manually
@@ -4433,7 +4432,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			$level = 0;
 			$converted = false;
 			$sizes_to_opt = 0;
-			$detail_output = '<table>';
+			$detail_output = '<table class="striped"><tr><th>&nbsp;</th><th>' . esc_html__( 'Image Size', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</th><th>' . esc_html__( 'Savings', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</th></tr>';
 			foreach ( $optimized_images as $optimized_image ) {
 				$orig_size += $optimized_image['orig_size'];
 				$opt_size += $optimized_image['image_size'];
@@ -4447,20 +4446,20 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				if ( ! empty( $optimized_image['resize'] ) ) {
 					$display_size = size_format( $optimized_image['image_size'], 2 );
 					$display_size = preg_replace( '/\.00 B /', ' B', $display_size );
-		                        $detail_output .= '<tr><td><strong>' . ucfirst( $optimized_image['resize'] ) . '</strong></td><td>' ./* sprintf( esc_html__( 'Image Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size ) . '</td><td>' .*/ esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) ) . '</td></tr>';
+		                        $detail_output .= '<tr><td><strong>' . ucfirst( $optimized_image['resize'] ) . "</strong></td><td>$display_size</td><td>" . esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) ) . '</td></tr>';
 				}
 			}
 			$detail_output .= '</table>';
-			$output .= '<div>' . sprintf( esc_html__( '%d sizes compressed',EWWW_IMAGE_OPTIMIZER_DOMAIN ), $sizes_to_opt ) . '</div>';
+			$output .= '<div>' . sprintf( esc_html__( '%d sizes compressed',EWWW_IMAGE_OPTIMIZER_DOMAIN ), $sizes_to_opt );
+			$output .= " <a href='#TB_inline?width=550&height=450&inlineId=ewww-attachment-detail-$id' class='thickbox'>(+)</a></div>";
 			$results_msg = ewww_image_optimizer_image_results( $orig_size, $opt_size );
 			// output the optimizer results
 			$output .= '<div>' . esc_html( $results_msg ) . '</div>';
 			$display_size = size_format( $opt_size, 2 );
 			$display_size = preg_replace( '/\.00 B /', ' B', $display_size );
 			// output the filesize
-			$output .= '<div>' . sprintf( esc_html__( 'Total Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size );
-			$output .= " <span class='ewww-toggle' data-attachment-id='$id'>(+)</span></div>";
-			$output .= "<div id='ewww-attachment-detail-$id' class='ewww-attachment-detail'>$detail_output</div>";
+			$detail_output .= '<div><strong>' . sprintf( esc_html__( 'Total Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $display_size ) . '</strong></div>';
+			$output .= "<div id='ewww-attachment-detail-$id' class='ewww-attachment-detail-container'><div class='ewww-attachment-detail'>$detail_output</div></div>";
 			
 			// link to webp upgrade script
 			$oldwebpfile = preg_replace('/\.\w+$/', '.webp', $file_path);
@@ -5338,7 +5337,8 @@ function ewww_image_optimizer_options () {
 			$output[] = "<table class='form-table'>\n";
 			if ( ewww_image_optimizer_full_cloud() ) {
 				$output[] = "<input id='ewww_image_optimizer_optipng_level' name='ewww_image_optimizer_optipng_level' type='hidden' value='2'>\n" .
-					"<input id='ewww_image_optimizer_pngout_level' name='ewww_image_optimizer_pngout_level' type='hidden' value='2'>\n";
+					"<input id='ewww_image_optimizer_pngout_level' name='ewww_image_optimizer_pngout_level' type='hidden' value='2'>\n" .
+					"<input id='ewww_image_optimizer_disable_pngout' name='ewww_image_optimizer_disable_pngout' type='hidden' value='true'/>\n";
 			} else {
 				$output[] = "<tr class='nocloud'><th><label for='ewww_image_optimizer_optipng_level'>" . esc_html__('optipng optimization level', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th>\n" .
 				"<td><span><select id='ewww_image_optimizer_optipng_level' name='ewww_image_optimizer_optipng_level'>\n" .
