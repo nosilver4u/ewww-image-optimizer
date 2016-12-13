@@ -15,10 +15,7 @@
 // TODO: add a column to track compression level used for each image, and later implement a way to (re)compress at a specific compression level
 // TODO: implement (optional) backups with a .bak extension for every file
 // TODO: when API key is removed, pngout gets enabled, bad!
-// TODO: put libxml version in debug information instead of using a potentially undefined constant in the alt web function
 // TODO: might be able to use the Custom Bulk Actions in 4.7 to support the bulk optimize drop-down menu
-// TODO: add an exclusion option, hooked onto the bypass filter
-// TODO: do some memory tests during bulk scan, see what happens
 // TODO: see if there is a way to query the last couple months (or 30 days) worth of attachments instead of scanning two folders
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -50,6 +47,9 @@ if ( ! defined( 'PHP_VERSION_ID' ) ) {
 }
 if ( defined( 'PHP_VERSION_ID' ) ) {
 	ewwwio_debug_message( 'PHP version: ' . PHP_VERSION_ID );
+}
+if ( defined( 'LIBXML_VERSION' ) ) {
+	ewwwio_debug_message( 'libxml version: ' . LIBXML_VERSION );
 }
 
 if ( WP_DEBUG ) {
@@ -119,6 +119,8 @@ add_action( 'wr2x_retina_file_added', 'ewww_image_optimizer_retina', 20, 2 );
 add_action( 'wp_ajax_ewww_webp_rewrite', 'ewww_image_optimizer_webp_rewrite' );
 add_action( 'wp_ajax_ewww_manual_optimize', 'ewww_image_optimizer_manual' );
 add_action( 'wp_ajax_ewww_manual_restore', 'ewww_image_optimizer_manual' );
+add_filter( 'ewww_image_optimizer_bypass', 'ewww_image_optimizer_ignore_file', 10, 2 );
+
 register_deactivation_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimizer_network_deactivate' );
 register_uninstall_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimizer_uninstall' );
 //add_action( 'shutdown', 'ewwwio_memory_output' );
@@ -241,8 +243,8 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 		$libxml_previous_error_reporting = libxml_use_internal_errors( true );
 		$html->formatOutput = false;
 		$html->encoding = 'utf-8';
-		ewwwio_debug_message( 'libxml version: ' . LIBXML_VERSION );
 		if ( defined( 'LIBXML_VERSION' ) && LIBXML_VERSION < 20800 ) {
+			ewwwio_debug_message( 'libxml version: ' . LIBXML_VERSION );
 			// converts the buffer from utf-8 to html-entities
 			$buffer = mb_convert_encoding( $buffer, 'HTML-ENTITIES', 'UTF-8' );
 		} elseif ( ! defined( 'LIBXML_VERSION' ) ) {
@@ -764,6 +766,8 @@ function ewww_image_optimizer_admin_init() {
 			update_site_option('ewww_image_optimizer_auto', $_POST['ewww_image_optimizer_auto']);
 			if ( empty( $_POST['ewww_image_optimizer_aux_paths'] ) ) $_POST['ewww_image_optimizer_aux_paths'] = '';
 			update_site_option( 'ewww_image_optimizer_aux_paths', ewww_image_optimizer_aux_paths_sanitize( $_POST['ewww_image_optimizer_aux_paths'] ) );
+			if ( empty( $_POST['ewww_image_optimizer_exclude_paths'] ) ) $_POST['ewww_image_optimizer_exclude_paths'] = '';
+			update_site_option( 'ewww_image_optimizer_exclude_paths', ewww_image_optimizer_exclude_paths_sanitize( $_POST['ewww_image_optimizer_exclude_paths'] ) );
 			$_POST['ewww_image_optimizer_enable_cloudinary'] = ( empty( $_POST['ewww_image_optimizer_enable_cloudinary'] ) ? false : true );
 			update_site_option('ewww_image_optimizer_enable_cloudinary', $_POST['ewww_image_optimizer_enable_cloudinary']);
 			if ( empty( $_POST['ewww_image_optimizer_delay'] ) ) $_POST['ewww_image_optimizer_delay'] = '';
@@ -821,6 +825,7 @@ function ewww_image_optimizer_admin_init() {
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_cloud_key', 'ewww_image_optimizer_cloud_key_sanitize' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_auto', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_aux_paths', 'ewww_image_optimizer_aux_paths_sanitize' );
+	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_exclude_paths', 'ewww_image_optimizer_exclude_paths_sanitize' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_enable_cloudinary', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_delay', 'intval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_maxmediawidth', 'intval' );
@@ -1801,11 +1806,11 @@ function ewww_image_optimizer_disable_resizes_sanitize( $disabled_resizes ) {
 
 function ewww_image_optimizer_aux_paths_sanitize( $input ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if (empty($input)) {
+	if ( empty( $input ) ) {
 		return '';
 	}
 	$path_array = array();
-	$paths = explode("\n", $input);
+	$paths = explode( "\n", $input );
 	if ( ewww_image_optimizer_iterable( $paths ) ) {
 		$i = 0;
 		foreach ( $paths as $path ) {
@@ -1844,6 +1849,29 @@ function ewww_image_optimizer_aux_paths_sanitize( $input ) {
 			}
 			if ( ! empty( $path ) ) {
 				add_settings_error( 'ewww_image_optimizer_aux_paths', "ewwwio-aux-paths-$i", sprintf( esc_html__( 'Could not save Folder to Optimize: %s. Please ensure that it is a valid location on the server.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), esc_html( $path ) ) );
+			}
+		}
+	}
+//	ewww_image_optimizer_debug_log();
+	ewwwio_memory( __FUNCTION__ );
+	return $path_array;
+}
+
+function ewww_image_optimizer_exclude_paths_sanitize( $input ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( empty( $input ) ) {
+		return '';
+	}
+	$path_array = array();
+	$paths = explode("\n", $input);
+	if ( ewww_image_optimizer_iterable( $paths ) ) {
+		$i = 0;
+		foreach ( $paths as $path ) {
+			$i++;
+			ewwwio_debug_message( "validating path exclusion: $path" );
+			$path = sanitize_text_field( $path );
+			if ( ! empty( $path ) ) {
+				$path_array[] = $path;
 			}
 		}
 	}
@@ -1935,7 +1963,15 @@ function ewww_image_optimizer_jpg_quality( $quality = null ) {
 	}
 }
 
-
+function ewww_image_optimizer_ignore_file( $bypass, $filename ) {
+	$ignore_folders = ewww_image_optimizer_get_option( 'ewww_image_optimizer_exclude_paths' );
+	foreach( $ignore_folders as $ignore_folder ) {
+		if ( strpos( $filename, $ignore_folder ) !== false ) {
+			return true;
+		}
+	}
+	return $bypass;
+}
 function ewww_image_optimizer_set_jpg_quality( $quality ) {
 	$new_quality = ewww_image_optimizer_jpg_quality();
 	if ( ! empty( $new_quality ) ) {
@@ -5322,6 +5358,16 @@ function ewww_image_optimizer_options () {
 					ewwwio_debug_message( "folders to optimize:" );
 					foreach ( $aux_paths as $aux_path ) {
 						ewwwio_debug_message( $aux_path );
+					}
+				}
+
+				$output[] = "<tr><th><label for='ewww_image_optimizer_exclude_paths'>" . esc_html__('Folders to ignore', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td>" . sprintf(esc_html__('One path per line, partial paths allowed, but no urls.', EWWW_IMAGE_OPTIMIZER_DOMAIN), ABSPATH) . "<br>\n";
+				$output[] = "<textarea id='ewww_image_optimizer_exclude_paths' name='ewww_image_optimizer_exclude_paths' rows='3' cols='60'>" . ( ( $exclude_paths = ewww_image_optimizer_get_option( 'ewww_image_optimizer_exclude_paths' ) ) ? implode( "\n", $exclude_paths ) : "" ) . "</textarea>\n";
+				$output[] = "<p class='description'>" . esc_html__( 'A file that matches any pattern or path provided will not be optimized.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p></td></tr>\n";
+				if ( ewww_image_optimizer_iterable( $exclude_paths ) ) {
+					ewwwio_debug_message( "folders to ignore:" );
+					foreach ( $exclude_paths as $exclude_path ) {
+						ewwwio_debug_message( $exclude_path );
 					}
 				}
 
