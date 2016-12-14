@@ -575,10 +575,11 @@ function ewww_image_optimizer_superadmin_permissions( $permissions ) {
 }
 
 function ewwwio_memory( $function ) {
+	return;
 	if ( WP_DEBUG ) {
 		global $ewww_memory;
 		$ewww_memory .= $function . ': ' . memory_get_usage(true) . "\n";
-	ewwwio_memory_output();
+		ewwwio_memory_output();
 	}
 }
 
@@ -2163,9 +2164,15 @@ function ewww_image_optimizer_delete( $id ) {
 			foreach ( $optimized_images as $image ) {
 				if ( ! empty( $image['path'] )&& is_file( $image['path'] ) ) {
 					unlink( $image['path'] );
+					if ( is_file( $image['path'] . '.webp' ) ) {
+						unlink( $image['path'] . '.webp' );
+					}
 				}
 				if ( ! empty( $image['converted'] ) && is_file( $image['converted'] ) ) {
 					unlink( $image['converted'] );
+					if ( is_file( $image['converted'] . '.webp' ) ) {
+						unlink( $image['converted'] . '.webp' );
+					}
 				}
 			}
 		}
@@ -2183,10 +2190,10 @@ function ewww_image_optimizer_delete( $id ) {
 		// delete any residual webp versions
 		$webpfile = $filename . '.webp';
 		$webpfileold = preg_replace( '/\.\w+$/', '.webp', $filename );
-		if ( file_exists( $webpfile) ) {
+		if ( is_file( $webpfile) ) {
 			unlink( $webpfile );
 		}
-		if ( file_exists( $webpfileold) ) {
+		if ( is_file( $webpfileold) ) {
 			unlink( $webpfileold );
 		}
 		// retrieve any posts that link the original image
@@ -4561,7 +4568,7 @@ function ewww_image_optimizer_clean_meta( $meta ) {
 function ewww_image_optimizer_update_file_from_meta( $file, $gallery = false, $attachment_id = false, $size = false, $converted = false ) {
 	$already_optimized = ewww_image_optimizer_find_already_optimized( $file );
 	if ( is_array( $already_optimized ) && ! empty( $already_optimized['id'] ) ) {
-		$updates = array();
+		$updates = array( 'updated' => $already_optimized['updated'] );
 		if ( $gallery ) {
 			$updates['gallery'] = $gallery;
 		}
