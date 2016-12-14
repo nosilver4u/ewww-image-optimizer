@@ -1963,6 +1963,7 @@ function ewww_image_optimizer_jpg_quality( $quality = null ) {
 	}
 }
 
+// filter the filename past any folders the user wants to ignore
 function ewww_image_optimizer_ignore_file( $bypass, $filename ) {
 	$ignore_folders = ewww_image_optimizer_get_option( 'ewww_image_optimizer_exclude_paths' );
 	foreach( $ignore_folders as $ignore_folder ) {
@@ -1972,6 +1973,7 @@ function ewww_image_optimizer_ignore_file( $bypass, $filename ) {
 	}
 	return $bypass;
 }
+
 function ewww_image_optimizer_set_jpg_quality( $quality ) {
 	$new_quality = ewww_image_optimizer_jpg_quality();
 	if ( ! empty( $new_quality ) ) {
@@ -1979,7 +1981,6 @@ function ewww_image_optimizer_set_jpg_quality( $quality ) {
 	}
 	return $quality;
 }
-		
 
 // check filesize, and prevent errors by ensuring file exists, and that the cache has been cleared
 function ewww_image_optimizer_filesize( $file ) {
@@ -2055,7 +2056,7 @@ function ewww_image_optimizer_manual() {
 		ewwwio_debug_message( 'failed to save meta' );
 	}
 	if ( get_transient( 'ewww_image_optimizer_cloud_status' ) == 'exceeded' || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
-		wp_die( json_encode( array( 'error' => esc_html__( 'License exceeded', EWWW_IMAGE_OPTIMIZER_DOMAIN) ) ) );
+		die( json_encode( array( 'error' => esc_html__( 'License exceeded', EWWW_IMAGE_OPTIMIZER_DOMAIN) ) ) );
 	} 
 	$success = ewww_image_optimizer_custom_column( 'ewww-image-optimizer', $attachment_ID, $new_meta, true );
 	ewww_image_optimizer_debug_log();
@@ -2071,7 +2072,7 @@ function ewww_image_optimizer_manual() {
 	}
 	// we are done, nothing to see here
 	ewwwio_memory( __FUNCTION__ );
-	exit( json_encode( array( 'success' => $success, 'basename' => $basename, ) ) );
+	die( json_encode( array( 'success' => $success, 'basename' => $basename ) ) );
 }
 
 /**
@@ -2091,67 +2092,6 @@ function ewww_image_optimizer_restore_from_meta_data( $meta, $id ) {
 	}
 	$ewww_image = new EWWW_Image( $id, 'media', $db_image['path'] );
 	return $ewww_image->restore_with_meta( $meta );
-	if ( ! empty( $meta['converted'] ) ) {
-		if ( file_exists( $meta['orig_file'] ) ) {
-			// update the filename in the metadata
-			$meta['file'] = $meta['orig_file'];
-			// update the optimization results in the metadata
-			$meta['ewww_image_optimizer'] = __( 'Original Restored', EWWW_IMAGE_OPTIMIZER_DOMAIN );
-			$meta['orig_file'] = $file_path;
-			$meta['real_orig_file'] = $file_path;
-			$meta['converted'] = 0;
-			unlink( $meta['orig_file'] );
-			unset( $meta['orig_file'] );
-			$meta['file'] = str_replace($upload_path, '', $meta['file']);
-			// if we don't already have the update attachment filter
-			if (FALSE === has_filter('wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment'))
-				// add the update attachment filter
-				add_filter('wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment', 10, 2);
-		} else {
-			remove_filter('wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment', 10);
-		}
-	}
-	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
-		// process each resized version
-		$processed = array();
-		// meta sizes don't contain a path, so we calculate one
-		$base_dir = trailingslashit( dirname( $file_path ) );
-		foreach ( $meta['sizes'] as $size => $data ) {
-			// check through all the sizes we've processed so far
-			foreach( $processed as $proc => $scan ) {
-				// if a previous resize had identical dimensions
-				if ( $scan['height'] == $data['height'] && $scan['width'] == $data['width'] && isset( $meta['sizes'][ $proc ]['converted'] ) ) {
-					// point this resize at the same image as the previous one
-					$meta['sizes'][ $size ]['file'] = $meta['sizes'][ $proc ]['file'];
-				}
-			}
-			if ( isset( $data['converted'] ) ) {
-				// if this is a unique size
-				if ( file_exists( $base_dir . $data['orig_file'] ) ) {
-					// update the filename
-					$meta['sizes'][ $size ]['file'] = $data['orig_file'];
-					// update the optimization results
-					$meta['sizes'][ $size ]['ewww_image_optimizer'] = __( 'Original Restored', EWWW_IMAGE_OPTIMIZER_DOMAIN );
-					$meta['sizes'][ $size ]['orig_file'] = $data['file'];
-					$meta['sizes'][ $size ]['real_orig_file'] = $data['file'];
-					$meta['sizes'][ $size ]['converted'] = 0;
-					$meta['sizes'][ $size ]['mime-type'] = ewww_image_optimizer_quick_mimetype( $data['orig_file'] );
-					// if we don't already have the update attachment filter
-					if ( FALSE === has_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment' ) ) {
-						// add the update attachment filter
-						add_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment', 10, 2 );
-					}
-					unlink( $base_dir . $data['file'] );
-					unset( $meta['sizes'][ $size ]['orig_file'] );
-				}
-				// store info on the sizes we've processed, so we can check the list for duplicate sizes
-				$processed[$size]['width'] = $data['width'];
-				$processed[$size]['height'] = $data['height'];
-			}		
-		}
-	}
-	ewwwio_memory( __FUNCTION__ );
-	return $meta;
 }
 
 // deletes 'orig_file' when an attachment is being deleted

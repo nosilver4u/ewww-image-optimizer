@@ -658,8 +658,6 @@ function ewww_image_optimizer_path_check( $j = true, $o = true, $g = true, $p = 
 			'WEBP' => false,
 		);
 	}
-// TODO: check the values of the constants before doing another search
-// TODO: set the values of the constants if they are not yet
 	if ( 'WINNT' == PHP_OS ) {
 		if ( $j ) {
 			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) ) {
