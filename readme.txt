@@ -262,13 +262,35 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 3.2.0 =
-* added: option to ignore folders when bulk optimizing
+* added: option to ignore folders when optimizing
+* added: ability to disable optimization or creation for any or all previews of PDF files in WordPress 4.7
+* added: optimization results detail for all resizes of an image in media library list view
+* added: automatic metadata rebuilding for broken image attachments in media library during bulk scan
 * changed: bulk optimizers for media library and everything else have been merged
+* changed: bulk optimization processes images in batches for fewer AJAX requests to your server
 * changed: tool locations saved for the duration of a request to improve optimization speed
+* changed: optimization results no longer stored in attachment metadata
+* changed: populating list of optimized images during scan uses less memory
+* changed: obsolete options removed from database
+* changed: if scan is interrupted, it will automatically retry
+* changed: excessive re-optimization warning ignores theme and plugin images
+* changed: if full-size image is converted, all resizes, custom sizes, and retina images will be converted
+* changed: conversion will not inject extra numbers if possible
+* changed: image results message generated on demand to avoid stale results
 * removed: ability to use the ImageMagick 'convert' binary, use Imagick extension for PHP instead
+* removed: unoptimized images page, bulk scanner is now able to accomplish the job more accurately
 * fixed: parallel mode prevents successful conversion
 * fixed: removing API key on multisite did not fallback to local mode properly
 * fixed: pngout enabled after API key removed
+* fixed: image paths with special characters stored incorrectly in database
+* fixed: parallel optimization for retina and custom sizes was missing parameters
+* fixed: bulk optimizing a single image was broken, but who does that anyway?
+* fixed: notice when LIBXML_VERSION is undefined and alt webp is enabled
+* fixed: invalid default value for timestamp in db records
+* fixed: one-click optimization returns no error when running out of API credits
+* fixed: background mode was not checked properly in nextgen and flagallery functions
+* fixed: incorrect mimetype set after image conversion for PNG2JPG
+* fixed: using getimagesize on pdf files
 
 = 3.1.3 =
 * added: settings which require validation display appropriate errors when validation fails

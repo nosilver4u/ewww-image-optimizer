@@ -1613,7 +1613,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					}
 					$png_size = ewww_image_optimizer_filesize( $pngfile );
 				}
-				if ( ! $png_size ) {
+			/*	if ( ! $png_size ) {
 					$convert_path = '';
 					// retrieve version info for ImageMagick
 					if ( PHP_OS != 'WINNT' ) {
@@ -1626,7 +1626,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 						exec( $convert_path . " " . ewww_image_optimizer_escapeshellarg( $file ) . " -strip " . ewww_image_optimizer_escapeshellarg( $pngfile ) );
 						$png_size = ewww_image_optimizer_filesize( $pngfile );
 					}
-				}
+				}*/
 				if ( ! $png_size && ewww_image_optimizer_gd_support() ) {
 					ewwwio_debug_message( 'converting with GD' );
 					imagepng( imagecreatefromjpeg( $file ), $pngfile );
@@ -1917,7 +1917,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					}
 					$jpg_size = ewww_image_optimizer_filesize( $jpgfile );
 				} 
-				if ( ! $jpg_size ) { 
+		/*		if ( ! $jpg_size ) { 
 					// retrieve version info for ImageMagick
 					$convert_path = ewww_image_optimizer_find_nix_binary( 'convert', 'i' );
 					if ( ! empty( $convert_path ) ) { 
@@ -1926,7 +1926,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 						exec ( "$convert_path $background -alpha remove $cquality " . ewww_image_optimizer_escapeshellarg( $file ) . " " . ewww_image_optimizer_escapeshellarg( $jpgfile ) );
 						$jpg_size = ewww_image_optimizer_filesize( $jpgfile );
 					}
-				}
+				}*/
 				if ( ! $jpg_size && ewww_image_optimizer_gd_support() ) {
 					ewwwio_debug_message( 'converting with GD' );
 					// retrieve the data from the PNG
@@ -2138,31 +2138,31 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 						exec( "$nice " . $tools['PNGOUT'] . " -s$pngout_level -q " . ewww_image_optimizer_escapeshellarg( $file ) . " " . ewww_image_optimizer_escapeshellarg( $pngfile ) );
 					}
 				}
-					// retrieve the filesize of the PNG
-					$png_size = ewww_image_optimizer_filesize($pngfile);
-					// if the new PNG is smaller than the original GIF
-					if ( $new_size > $png_size && $png_size != 0 && ewww_image_optimizer_mimetype( $pngfile, 'i' ) == 'image/png' ) {
-						// store the PNG size as the new filesize
-						$new_size = $png_size;
-						// if the user wants original GIFs deleted after successful conversion
-						if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) == TRUE ) {
-							// delete the original GIF
-							unlink( $file );
-						}
-						// update the $file location with the new PNG
-						$file = $pngfile;
-						// let webp know what we're dealing with now
-						$type = 'image/png';
-						// normally this would be at the end of the section, but we only want to do webp if the image was successfully converted to a png
-						ewww_image_optimizer_webp_create( $file, $new_size, $type, $tools['WEBP'], $orig_size != $new_size );
-						// successful conversion (for now), so we store the increment
-						$converted = $filenum;
-					} else {
-						$converted = FALSE;
-						if ( is_file( $pngfile ) ) {
-							unlink( $pngfile );
-						}
+				// retrieve the filesize of the PNG
+				$png_size = ewww_image_optimizer_filesize($pngfile);
+				// if the new PNG is smaller than the original GIF
+				if ( $new_size > $png_size && $png_size != 0 && ewww_image_optimizer_mimetype( $pngfile, 'i' ) == 'image/png' ) {
+					// store the PNG size as the new filesize
+					$new_size = $png_size;
+					// if the user wants original GIFs deleted after successful conversion
+					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) == TRUE ) {
+						// delete the original GIF
+						unlink( $file );
 					}
+					// update the $file location with the new PNG
+					$file = $pngfile;
+					// let webp know what we're dealing with now
+					$type = 'image/png';
+					// normally this would be at the end of the section, but we only want to do webp if the image was successfully converted to a png
+					ewww_image_optimizer_webp_create( $file, $new_size, $type, $tools['WEBP'], $orig_size != $new_size );
+					// successful conversion (for now), so we store the increment
+					$converted = $filenum;
+				} else {
+					$converted = FALSE;
+					if ( is_file( $pngfile ) ) {
+						unlink( $pngfile );
+					}
+				}
 			}
 			break;
 		case 'application/pdf':

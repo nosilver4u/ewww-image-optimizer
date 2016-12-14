@@ -15,6 +15,8 @@
 // TODO: implement (optional) backups with a .bak extension for every file
 // TODO: might be able to use the Custom Bulk Actions in 4.7 to support the bulk optimize drop-down menu
 // TODO: see if there is a way to query the last couple months (or 30 days) worth of attachments instead of scanning two folders
+// TODO: add a timer to the bulk process
+// TODO: look into the 'resizing' filter via js for admin users
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -5148,8 +5150,8 @@ function ewww_image_optimizer_options () {
 				} else {
 					$output[] = '<span style="color: red; font-weight: bolder">' . esc_html__('Missing', EWWW_IMAGE_OPTIMIZER_DOMAIN);
 				}
-				$output[] = "</span>&emsp;&emsp;Imagemagick 'convert': ";
-				if ( 'WINNT' == PHP_OS && ewww_image_optimizer_find_win_binary( 'convert', 'i' ) ) { 
+				$output[] = "</span>"; //&emsp;&emsp;Imagemagick 'convert': ";
+/*				if ( 'WINNT' == PHP_OS && ewww_image_optimizer_find_win_binary( 'convert', 'i' ) ) { 
 					$output[] = '<span style="color: green; font-weight: bolder">' . esc_html__('Installed', EWWW_IMAGE_OPTIMIZER_DOMAIN) . '</span>';
 					$toolkit_found = true;
 				} elseif ( 'WINNT' != PHP_OS && ewww_image_optimizer_find_nix_binary( 'convert', 'i' ) ) { 
@@ -5157,7 +5159,7 @@ function ewww_image_optimizer_options () {
 					$toolkit_found = true;
 				} else { 
 					$output[] = '<span style="color: red; font-weight: bolder">' . esc_html__('Missing', EWWW_IMAGE_OPTIMIZER_DOMAIN) . '</span>';
-				}
+				}*/
 				if ( ! $toolkit_found && ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) ) ) {
 					$collapsible = false;
 				}
