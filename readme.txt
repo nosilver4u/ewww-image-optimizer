@@ -1,7 +1,7 @@
 === EWWW Image Optimizer ===
 Contributors: nosilver4u
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW
-Tags: image, attachment, optimize, optimization, lossless, lossy, photo, picture, seo, compression, compress, jpegmini, tinyjpg, tinypng, webp, wp-cli 
+Tags: image, compress, optimize, optimization, lossless, lossy, photo, picture, seo, jpegmini, tinyjpg, tinypng, webp, wp-cli 
 Requires at least: 4.4
 Tested up to: 4.7.0
 Stable tag: 3.1.3
@@ -20,17 +20,17 @@ The EWWW Image Optimizer is a WordPress plugin that will automatically optimize 
 1. **Less bandwidth usage.** Optimizing your images can save you hundreds of KB per image, which means significantly less bandwidth usage.
 1. **Super fast.** The plugin can run on your own server, so you don’t have to wait for a third party service to receive, process, and return your images. You can optimize hundreds of images in just a few minutes. PNG files take the longest, but you can adjust the settings for your situation.
 1. **Best JPG optimization.** With TinyJPG integration, nothing else comes close (requires an API subscription).
-1. **Best PNG optimization.** You can use pngout, optipng, and pngquant in conjunction. And if that isn't enough, try the lossy PNG option powered by TinyPNG.
+1. **Best PNG optimization.** You can use pngout, optipng, and pngquant in conjunction. And if that isn't enough, try the powerful TinyPNG option.
 1. **Root access not needed** Pre-compiled binaries are made available to install directly within the Wordpress folder, and cloud optimization is provided for those who cannot run the binaries locally.
 1. **Optimize everything** With the wp_image_editor class extension, and the ability to specify your own folders for scanning, any image in Wordpress can be optimized.
 
 By default, EWWW Image Optimizer uses lossless optimization techniques, so your image quality will be exactly the same before and after the optimization. The only thing that will change is your file size. The one small exception to this is GIF animations. While the optimization is technically lossless, you will not be able to properly edit the animation again without performing an --unoptimize operation with gifsicle. The gif2png and jpg2png conversions are also lossless but the png2jpg process is not lossless. The lossy optimization for JPG and PNG files uses sophisticated algorithms to minimize perceptual quality loss, which is vastly different than setting a static quality/compression level.
 
-The tools used for optimization are [jpegtran](http://jpegclub.org/jpegtran/), [TinyJPG](http://www.tinyjpg.com), [JPEGmini](http://www.jpegmini.com), [optipng](http://optipng.sourceforge.net/), [pngout](http://advsys.net/ken/utils.htm), [pngquant](http://pngquant.org/), [TinyPNG](http://www.tinypng.com), and [gifsicle](http://www.lcdf.org/gifsicle/). Most of these are freely available except TinyJPG/TinyPNG and JPEGmini. Images are converted using the above tools and one of the following: GMagick, IMagick, GD or 'convert' (ImageMagick).
+The tools used for optimization are [jpegtran](http://jpegclub.org/jpegtran/), [TinyJPG](http://www.tinyjpg.com), [JPEGmini](http://www.jpegmini.com), [optipng](http://optipng.sourceforge.net/), [pngout](http://advsys.net/ken/utils.htm), [pngquant](http://pngquant.org/), [TinyPNG](http://www.tinypng.com), and [gifsicle](http://www.lcdf.org/gifsicle/). Most of these are freely available except TinyJPG/TinyPNG and JPEGmini. Images are converted using the above tools and one of the following: GMagick, IMagick, or GD.
 
 EWWW Image Optimizer calls optimization utilities directly which is well suited to shared hosting situations where these utilities may already be installed. Pre-compiled binaries/executables are provided for optipng, gifsicle, pngquant, cwebp, and jpegtran. Pngout can be installed with one-click from the settings page. If none of that works, there is a cloud option that will work for any site.
 
-If you need a version of this plugin for cloud use only, see [EWWW Image Optimizer Cloud](https://wordpress.org/plugins/ewww-image-optimizer-cloud/). It is much more compact as it does not contain any binaries or any mention of the exec() function.
+If you need a version of this plugin for API use only, see [EWWW Image Optimizer Cloud](https://wordpress.org/plugins/ewww-image-optimizer-cloud/). It is much more compact as it does not contain any binaries or any mention of the exec() function.
 
 = Support =
 
@@ -39,19 +39,19 @@ The EWWW Image Optimizer is developed at https://github.com/nosilver4u/ewww-imag
 
 = Bulk Optimize =
 
-There are two functions on the Bulk Optimize page. One is to optimize all images in the Media Library. The Scan and Optimize is for everything else. Officially supported galleries (GRAND FlaGallery and NextGEN) have their own Bulk Optimize pages. 
+Optimize all your images from a single page using the Bulk Scanner. This includes the Media Library, your theme, and a handful of pre-configured folders (see Optimize Everything Else below). Officially supported galleries (GRAND FlaGallery, NextCellent and NextGEN) have their own Bulk Optimize pages. 
 
 = Skips Previously Optimized Images =
 
-All optimized images are stored in the database so that the plugin does not attempt to re-optimize them unless they are modified. On the Bulk Optimize page you can view a list of already optimized images. You may additionally choose to remove individual images from the list, or use the Force optimize option to override the default behavior. The re-optimize links on the Media Library page also force the plugin to ignore the previous optimization status of images.
+All optimized images are stored in the database so that the plugin does not attempt to re-optimize them unless they are modified. On the Bulk Optimize page you can view a list of already optimized images. You may also remove individual images from the list, or use the Force optimize option to override the default behavior. The re-optimize links on the Media Library page also force the plugin to ignore the previous optimization status of images.
 
 = WP Image Editor = 
 
-All images created by the built-in WP_Image_Editor class will be automatically optimized. Current implementations are GD, Imagick, and Gmagick. Images optimized via this class include Animated GIF Resize, BuddyPress Activity Plus (thumbs), Easy Watermark, Hammy, Imsanity, MediaPress, Meta Slider, MyArcadePlugin, OTF Regenerate Thumbnails, Regenerate Thumbnails, Simple Image Sizes, WP Retina 2x, WP RSS Aggregator and probably countless others. If you are not sure if a plugin uses WP_Image_Editor, post your question in the support forums.
+All images created by the built-in WP_Image_Editor class will be automatically optimized. Current implementations are GD, Imagick, and Gmagick. Images optimized via this class include Animated GIF Resize, BuddyPress Activity Plus (thumbs), Easy Watermark, Hammy, Imsanity, MediaPress, Meta Slider, MyArcadePlugin, OTF Regenerate Thumbnails, Regenerate Thumbnails, Simple Image Sizes, WP Retina 2x, WP RSS Aggregator and probably countless others. If you are not sure if a plugin uses WP_Image_Editor, send an inquiry on the support page.
 
 = Optimize Everything Else =
 
-Site admins can specify any folder within their wordpress folder to be optimized. The 'Scan and Optimize' option under Media->Bulk Optimize will optimize theme images, BuddyPress avatars, BuddyPress Activity Plus images, Meta Slider slides, WP Symposium images, GD bbPress attachments, Grand Media Galleries, and any user-specified folders. Additionally, this tool can run on an hourly basis via wp_cron to keep newly uploaded images optimized. Scheduled optimization should not be used for any plugin that uses the built-in Wordpress image functions.
+Site admins can specify any folder within their WordPress folder to be optimized. The Bulk Scan under Media->Bulk Optimize will optimize theme images, BuddyPress avatars, BuddyPress Activity Plus images, Meta Slider slides, WP Symposium images, GD bbPress attachments, Grand Media Galleries, and any user-specified folders. Additionally, this tool can run on an hourly basis via wp_cron to keep newly uploaded images optimized. Scheduled optimization should not be used for any plugin that uses the built-in Wordpress image functions.
 
 = WebP Images =
 
@@ -87,22 +87,7 @@ Uploads to Amazon S3, Azure Storage, Cloudinary, and DreamSpeed CDN are optimize
 
 = Translations =
 
-Huge thanks to all our translators: 
-Bulgarian translation by Ivan Arnaudov  
-Dutch translation by Ludo Rubben  
-French translation by Bruno Tritsch, Nicolas Juen, Philippe Dupuit, Jean-Baptiste Gourdin, Dominique Goethals, Mickaël Chapusot, and Guillaume Thibord  
-German translation by Christian Herrmann and Ralf Platschi
-Italian translation by  Umberto Moroni, Alexander Gevak and Fabrizio Balestrieri  
-Polish translation by Grzegorz Janoszka  
-Portuguese (Brazil) translation by Pedro Marcelo de Sá Alves and Celso Azevedo  
-Portuguese (Portugal) translation by Celso Azevedo
-Romanian translation by Iosif Kadar of MediasInfo.ro  
-Russian translation by Elvis of turkenichev.ru, Roman Sobol, and Vitaliy Ralle
-Spanish translation by Manuel Ballesta Ruiz and Adrián López Galera  
-Swedish translation by Alexander Widén  
-Turkish translation by sfatih  
-Ukrainian translation by Roman Sobol
-Full contributors list is at https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/contributors
+Huge thanks to all our translators! See the full list here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/contributors
 
 If you would like to help translate this plugin (new or existing translations), you can do so here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer
 To receive updates when new strings are available for translation, you can signup here: https://ewww.io/register/
@@ -218,15 +203,16 @@ Yes, you can, set it up on the Advanced tab.
 
 = Can I lower the compression setting for JPGs to save more space? =
 
-The lossy optimization using the EWWW IO Cloud service will determine the ideal quality setting and save even more space. You cannot manually set the quality with this plugin, but Imsanity (and many others) will do that if you really want to. But you should REALLY try EWWW IO Cloud first.
+The lossy JPG optimization using TinyJPG and JPEGmini will determine the ideal quality setting and give you the best results, but you can also adjust the default quality for conversion and resizing.
 
 = The bulk optimizer doesn't seem to be working, what can I do? =
 
 If it doesn't seem to work at all, check for javascript problems using the developer console in Firefox or Chrome. If it is not working just on some images, you may need to increase the setting max_execution_time in your php.ini file. There are also other timeouts with Apache, and possibly other limitations of your webhost. If you've tried everything else, the last thing to look for is large PNG files. In my tests on a shared hosting setup, "large" is anything over 300 KB. You can first try decreasing the PNG optimization level in the settings. If that doesn't work, perhaps you ought to convert that PNG to JPG or set a max PNG optimization size. Screenshots are often done as PNG files, but that is a poor choice for anything with photographic elements.
+[youtube https://www.youtube.com/watch?v=V4U2hQlmkvQ]
 
 = What are the supported operating systems? =
 
-I've tested it on Windows (with Apache), Linux, Mac OSX, FreeBSD (8 and 9), and Solaris (v10). The cloud service will run on any OS.
+I've tested it on Windows (with Apache), Linux, Mac OSX, FreeBSD 9, and Solaris (v10). The cloud API will work on any OS.
 
 = How are JPGs optimized? =
 
@@ -291,57 +277,6 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * fixed: background mode was not checked properly in nextgen and flagallery functions
 * fixed: incorrect mimetype set after image conversion for PNG2JPG
 * fixed: using getimagesize on pdf files
-
-= 3.1.3 =
-* added: settings which require validation display appropriate errors when validation fails
-* added: filter to make sure test images in the ewww-image-optimizer folder never get optimized
-* fixed: optimizing "other" images with wp-cli was broken
-
-= 3.1.2 =
-* added: ability to disable background optimization via ewww_image_optimizer_background_optimization filter
-* changed: scan and optimize rewritten to store images in batches, with auto-retry for very large sites
-* changed: folders to optimize validator will attempt to fix relative paths and urls
-* changed: conversion operations are not run in background, override with ewww_image_optimizer_defer_conversion filter
-* changed: reverted Alt WebP support for lazy load, as it does not work consistently
-* changed: cache query results for excessive reoptimization up to an hour
-* fixed: ensure disabled resizes are not optimized during Enable Media Replace uploader
-* fixed: images were not optimized after editing with Post Thumbnail Editor
-* fixed: bulk operation handles attachment ID as a string instead of an integer
-* fixed: bulk optimizing a single image displays no results
-* fixed: bulk optimizing images with corrupted metadata does not result in a repair operation
-* fixed: image scanner skips optimized metaslider images even if they have changed
-* fixed: scan and optimize includes file types that are disabled
-
-= 3.1.1 =
-* fixed: exec() notice surpressed when it should not be
-
-= 3.1.0 =
-* added: warning when excessive re-optimizations have been detected
-* added: Alt WebP supports lazy loading in Hueman theme
-* added: Alt WebP supports Lazy Load plugin and Cherry Lazy modifications
-* added: Alt WebP supports BJ Lazy Load plugin
-* added: Alt WebP supports Retina Lazysizes
-* added: ability to defer resizing of uploaded image using ewww_image_optimizer_defer_resizing filter, "other" dimensions will apply regardless of upload method
-* changed: wp_image_editor integration does not use background optimization, reverting to inline processing, holler if you want it back
-* changed: all scripts have proper version numbers to avoid caching issues
-* changed: inline webp script moved to head element to work better with lazy loading
-* changed: optimized Alt WebP code for smaller size
-
-= 3.0.2 =
-* fixed: fatal error running empty() on a constant in PHP less than 5.5
-
-= 3.0.0 =
-* fixed: resizes not checked for existence before calling parallel/async optimization, causing the process to stall
-* fixed: background optimization disabled when settings are saved
-* fixed: regression in db upgrade function throws warning on plugin upgrade
-* fixed: alt webp breaks Slider Revolution's lazyload when dummy.png.webp exists
-* fixed: background optimization for nextcellent was incomplete
-* fixed: notices under Manage Gallery for nextcellent when tool constants were not defined
-* changed: one-click actions in Media Library don't require reload, now possible to optimize several images at the same time
-* changed: API quota check no longer requires a verification on every attempt
-* changed: webp settings moved to separate tab
-* added: forced webp mode, to generate webp for every image, regardless of final filesize
-* added: in forced webp mode, must specify allowed url patterns for rewriting
 
 == Upgrade Notice ==
 

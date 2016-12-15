@@ -18,6 +18,8 @@
 // TODO: add a timer to the bulk process
 // TODO: look into the 'resizing' filter via js for admin users
 
+// TODO - IMPORTANT: check wp-cli before release, even if we don't end up changing anything there
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -1968,6 +1970,9 @@ function ewww_image_optimizer_jpg_quality( $quality = null ) {
 // filter the filename past any folders the user wants to ignore
 function ewww_image_optimizer_ignore_file( $bypass, $filename ) {
 	$ignore_folders = ewww_image_optimizer_get_option( 'ewww_image_optimizer_exclude_paths' );
+	if ( ! ewww_image_optimizer_iterable( $ignore_folders ) ) {
+		return $bypass;
+	}
 	foreach( $ignore_folders as $ignore_folder ) {
 		if ( strpos( $filename, $ignore_folder ) !== false ) {
 			return true;
