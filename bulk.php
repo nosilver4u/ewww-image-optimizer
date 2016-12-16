@@ -85,7 +85,7 @@ function ewww_image_optimizer_bulk_preview() {
 <?php			} ?>
 			<?php //esc_html_e( 'Previously optimized images will be skipped by default.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>
 			<p id="ewww-nothing" class="ewww-bulk-info" style="display:none"><?php esc_html_e( 'There are no images to optimize.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>
-			<p id="ewww-scanning" class="ewww-bulk-info" style="display:none"><?php esc_html_e( 'Scanning, this could take a while', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>&nbsp;<img src='<?php echo $loading_image; ?>' alt='loading'/></p>
+			<p id="ewww-scanning" class="ewww-bulk-info" style="display:none"><?php printf( esc_html__( 'Stage 1, %d images left to scan.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $fullsize_count ); ?>&nbsp;<img src='<?php echo $loading_image; ?>' alt='loading'/></p>
 			<form id="ewww-aux-start" class="ewww-bulk-form" method="post" action="">
 <?php				if ( $resume != 'true' ) { ?>
 				<input id="ewww-aux-first" type="submit" class="button-primary action" value="<?php esc_attr_e( 'Scan for unoptimized images', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>" />

@@ -14,11 +14,9 @@
 // TODO: add a column to track compression level used for each image, and later implement a way to (re)compress at a specific compression level
 // TODO: implement (optional) backups with a .bak extension for every file
 // TODO: might be able to use the Custom Bulk Actions in 4.7 to support the bulk optimize drop-down menu
-// TODO: see if there is a way to query the last couple months (or 30 days) worth of attachments instead of scanning two folders
+// TODO: see if there is a way to query the last couple months (or 30 days) worth of attachments, but only when the user is not using year/month folders. This way, they can catch extraneous images if possible.
 // TODO: add a timer to the bulk process
 // TODO: look into the 'resizing' filter via js for admin users
-
-// TODO - IMPORTANT: check wp-cli before release, even if we don't end up changing anything there
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -30,28 +28,10 @@ define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '313.26' );
 $ewww_debug = '';
 $ewww_defer = true;
 
-$disabled = ini_get( 'disable_functions' );
-if ( ! preg_match( '/get_current_user/', $disabled ) ) {
-	ewwwio_debug_message( get_current_user() );
-}
-
-ewwwio_debug_message( 'EWWW IO version: ' . EWWW_IMAGE_OPTIMIZER_VERSION );
-
-// check the WP version
-global $wp_version;
-$my_version = substr( $wp_version, 0, 3 );
-ewwwio_debug_message( "WP version: $wp_version" );
-
 // check the PHP version
 if ( ! defined( 'PHP_VERSION_ID' ) ) {
 	$php_version = explode( '.', PHP_VERSION );
 	define( 'PHP_VERSION_ID', ( $version[0] * 10000 + $version[1] * 100 + $version[2] ) );
-}
-if ( defined( 'PHP_VERSION_ID' ) ) {
-	ewwwio_debug_message( 'PHP version: ' . PHP_VERSION_ID );
-}
-if ( defined( 'LIBXML_VERSION' ) ) {
-	ewwwio_debug_message( 'libxml version: ' . LIBXML_VERSION );
 }
 
 if ( WP_DEBUG ) {
@@ -1719,22 +1699,6 @@ function ewww_image_optimizer_media_scripts( $hook ) {
 			)
 		);
 	}
-}
-
-// used to output debug messages to a logfile in the plugin folder in cases where output to the screen is a bad idea
-function ewww_image_optimizer_debug_log() {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	global $ewww_debug;
-	if (! empty( $ewww_debug ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-		$timestamp = date( 'y-m-d h:i:s.u' ) . "\n";
-		if ( ! file_exists( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
-			touch( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' );
-		}
-		$ewww_debug_log = str_replace( '<br>', "\n", $ewww_debug );
-		file_put_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log', $timestamp . $ewww_debug_log, FILE_APPEND );
-	}
-	$ewww_debug = '';
-	ewwwio_memory( __FUNCTION__ );
 }
 
 // adds a link on the Plugins page for the EWWW IO settings
@@ -5495,6 +5459,7 @@ function ewww_image_optimizer_options () {
 		ewww_image_optimizer_webp_inline_script();
 	}
 
+	ewwwio_debug_version_info();
 	if ( ewww_image_optimizer_get_option ( 'ewww_image_optimizer_debug' ) ) {
 		?>
 <script type="text/javascript">
@@ -5536,6 +5501,44 @@ function ewwwio_debug_message( $message ) {
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 		global $ewww_debug;
 		$ewww_debug .= "$message<br>";
+	}
+}
+
+// used to output debug messages to a logfile in the plugin folder in cases where output to the screen is a bad idea
+function ewww_image_optimizer_debug_log() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	ewwwio_debug_version_info();
+	global $ewww_debug;
+	if ( ! empty( $ewww_debug ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
+		$timestamp = date( 'y-m-d h:i:s.u' ) . "\n";
+		if ( ! file_exists( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
+			touch( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' );
+		}
+		$ewww_debug_log = str_replace( '<br>', "\n", $ewww_debug );
+		file_put_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log', $timestamp . $ewww_debug_log, FILE_APPEND );
+	}
+	$ewww_debug = '';
+	ewwwio_memory( __FUNCTION__ );
+}
+
+function ewwwio_debug_version_info() {
+	$disabled = ini_get( 'disable_functions' );
+	if ( ! preg_match( '/get_current_user/', $disabled ) ) {
+		ewwwio_debug_message( get_current_user() );
+	}
+
+	ewwwio_debug_message( 'EWWW IO version: ' . EWWW_IMAGE_OPTIMIZER_VERSION );
+
+	// check the WP version
+	global $wp_version;
+	$my_version = substr( $wp_version, 0, 3 );
+	ewwwio_debug_message( "WP version: $wp_version" );
+
+	if ( defined( 'PHP_VERSION_ID' ) ) {
+		ewwwio_debug_message( 'PHP version: ' . PHP_VERSION_ID );
+	}
+	if ( defined( 'LIBXML_VERSION' ) ) {
+		ewwwio_debug_message( 'libxml version: ' . LIBXML_VERSION );
 	}
 }
 

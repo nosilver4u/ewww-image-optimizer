@@ -69,7 +69,6 @@ class EWWWIO_CLI extends WP_CLI_Command {
 					ewww_image_optimizer_delete_pending();
 					WP_CLI::line( __('Bulk status has been reset, starting from the beginning.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 				}
-		// TODO: update the 'other' and 'media' segments here
 				WP_CLI::line( __( 'Scanning, this could take a while', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 				ewww_image_optimizer_bulk_script( 'media_page_ewww-image-optimizer-bulk' );
 				$fullsize_count = ewww_image_optimizer_count_optimized ('media');
@@ -102,6 +101,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 				while( ewww_image_optimizer_bulk_loop( 'ewww-image-optimizer-cli', $delay ) ) {
 					$something = 1;
 				}
+				ewww_image_optimizer_bulk_media_cleanup();
 				if ( class_exists( 'Ewwwngg' ) ) {
 					global $ngg;
 					if ( preg_match( '/^2/', $ngg->version ) ) {
@@ -115,7 +115,6 @@ class EWWWIO_CLI extends WP_CLI_Command {
 					ewww_image_optimizer_bulk_flag( $delay );
 				}
 				//ewww_image_optimizer_bulk_other( $delay );
-				ewww_image_optimizer_bulk_media_cleanup();
 				break;
 			case 'media':
 			case 'other':
@@ -218,38 +217,6 @@ function ewww_image_optimizer_bulk_media_cleanup( $delay = 0 ) {
 	update_option('ewww_image_optimizer_bulk_resume', '');
 	update_option('ewww_image_optimizer_aux_resume', '');
 	update_option('ewww_image_optimizer_bulk_attachments', '', false);
-	// and let the user know we are done
-	WP_CLI::success( __('Finished Optimization!', EWWW_IMAGE_OPTIMIZER_DOMAIN) );
-}
-
-function ewww_image_optimizer_bulk_other( $delay = 0 ) {
-	// update the 'aux resume' option to show that an operation is in progress
-	update_option('ewww_image_optimizer_aux_resume', 'true');
-	// store the time and number of images for later display
-	$count = ewww_image_optimizer_aux_images_table_count_pending();
-	update_option('ewww_image_optimizer_aux_last', array(time(), $count));
-	if ( ! empty( $count ) ) {
-		global $wpdb;
-		$i = 0;
-		while ( $i < $count && $attachment = $wpdb->get_row( "SELECT id,path FROM $wpdb->ewwwio_images WHERE image_size IS NULL LIMIT 1", ARRAY_A ) ) {
-			// retrieve the time when the optimizer starts
-			$started = microtime(true);
-			// do the optimization for the current image
-			$results = ewww_image_optimizer_aux_images_loop( $attachment, true, true );
-			// output the path
-			WP_CLI::line( __('Optimized', EWWW_IMAGE_OPTIMIZER_DOMAIN) . ' ' . $attachment['path'] );
-			// tell the user what the results were for the original image
-			WP_CLI::line( html_entity_decode( $results ) );
-			// calculate how much time has elapsed since we started
-			$elapsed = microtime(true) - $started;
-			// output how much time has elapsed since we started
-			WP_CLI::line( sprintf( __( 'Elapsed: %.3f seconds', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $elapsed) );
-			sleep($delay);
-		}
-	} 
-	$stored_last = get_option('ewww_image_optimizer_aux_last');
-	update_option('ewww_image_optimizer_aux_last', array(time(), $stored_last[1]));
-	update_option('ewww_image_optimizer_aux_resume', '');
 	// and let the user know we are done
 	WP_CLI::success( __('Finished Optimization!', EWWW_IMAGE_OPTIMIZER_DOMAIN) );
 }
