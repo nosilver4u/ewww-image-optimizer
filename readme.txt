@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: image, compress, optimize, optimization, lossless, lossy, photo, picture, seo, jpegmini, tinyjpg, tinypng, webp, wp-cli 
 Requires at least: 4.4
 Tested up to: 4.7.0
-Stable tag: 3.1.3
+Stable tag: 3.2.0
 License: GPLv3
 
 Reduce image sizes in WordPress including NextGEN, GRAND FlAGallery, FooGallery and more using lossless/lossy methods and image format conversion.
@@ -103,44 +103,7 @@ To receive updates when new strings are available for translation, you can signu
 1. *Recommended* Visit the settings page to enable/disable specific tools and turn on advanced optimization features.
 1. Done!
 
-If these steps do not work, more detailed instructions are available below the video tutorials. If you need further assistance using the plugin, please visit our [Support Page](https://ewww.io/contact-us/). The forums are community supported only.
-
-At the bottom of this page, you will find a list of known working webhosts. If you have any contributions or corrections to these lists, please contact me via the form at https://ewww.io/contact-us/
-
-EWWW IO - Getting Started
-[youtube https://www.youtube.com/watch?v=bwn53mhFdTs]
-EWWW IO - Advanced Settings
-[youtube https://www.youtube.com/watch?v=kifGIs5Lx2U]
-EWWW IO - Converting Images
-[youtube https://www.youtube.com/watch?v=xAGtdv3vrYg]
-EWWW IO - WebP
-[youtube https://www.youtube.com/watch?v=OeYJgTy3D94]
-EWWW IO - Cloud API Walkthrough
-[youtube https://www.youtube.com/watch?v=U78FFkM582E]
-Using EWWW IO:
-[youtube https://www.youtube.com/watch?v=uELM25v-qgU]
-
-= Installing pngout =
-
-Pngout is not enabled by default because it is resource intensive. Optipng is the preferred PNG optimizer if you have resource (CPU) constraints. Pngout is also not open-source for those who care about such things, but the command-line version is free.
-
-1. Go to the settings page.
-1. Uncheck the option to disable pngout and Save your settings.
-1. Click the Automatic link in the Plugin Status area to install pngout for your server, and the plugin will download the pngout archive, unpack it, and install the appropriate version for your server.
-1. Adjust the pngout level according to your needs. Level 0 gives the best results, but can take up to a minute or more on a single image.
-
-To manually install pngout:
-
-1. Click the Manual link in the Plugin Status.
-1. Download the version of pngout that matches your webserver (NOT your desktop/laptop). Always use the -static downloads for Linux and FreeBSD. If you don't know if you have a linux server, or Mac, or whether it is 32-bit vs 64-bit, ask your webhost, or turn on debugging and post the debug information in the forums with your request for assistance.
-1. If you have Windows on your personal computer, you may need to install 7-zip or something similar to extract the .tar.gz files. Linux and Mac OS X systems should have built-in support for gzipped files.
-1. For Linux and FreeBSD pngout downloads, you will see an i686 folder and x86_64. The first is for 32-bit the latter is for 64-bit. Upload the pngout-static file (pngout for Mac, pngout.exe for Windows) to the wp-content/ewww/ folder on your web server.
-1. Make sure the permissions are set correctly. It is recommended to use 755 or rwxr-xr-x, which is read, write, execute for the owner, read/execute for the group, and read/execute for everyone else.
-1. If pngout still is not working, you can download older versions, but do not go further back than the 20130221 release: http://static.jonof.id.au/dl/kenutils/
-
-= Installing (Compiling) other tools =
-
-https://ewww.io/2014/12/06/the-plugin-says-im-missing-something/
+If these steps do not work, additional documentation is available at https://docs.ewww.io. If you need further assistance using the plugin, please visit our [Support Page](https://ewww.io/contact-us/). The forums are community supported only.
 
 = Webhosts =
 
@@ -187,11 +150,11 @@ Webhosts where the plugin will only work in cloud mode or only some tools are in
 
 = Google Pagespeed says my images need compressing or resizing, but I already optimized all my images. What do I do? =
 
-Try this for starters: https://ewww.io/2014/12/05/pagespeed-says-my-images-need-more-work/
+Try this for starters: http://docs.ewww.io/article/5-pagespeed-says-my-images-need-more-work
 
 = The plugin complains that I'm missing something, what do I do? =
 
-This article will walk you through installing the required tools (and the alternatives if installation does not work): https://ewww.io/2014/12/06/the-plugin-says-im-missing-something/
+This article will walk you through installing the required tools (and the alternatives if installation does not work): http://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something
 
 = Does the plugin replace existing images? =
 
@@ -203,7 +166,7 @@ Yes, you can, set it up on the Advanced tab.
 
 = Can I lower the compression setting for JPGs to save more space? =
 
-The lossy JPG optimization using TinyJPG and JPEGmini will determine the ideal quality setting and give you the best results, but you can also adjust the default quality for conversion and resizing.
+The lossy JPG optimization using TinyJPG and JPEGmini will determine the ideal quality setting and give you the best results, but you can also adjust the default quality for conversion and resizing. More information here: http://docs.ewww.io/article/12-jpq-quality-and-wordpress
 
 = The bulk optimizer doesn't seem to be working, what can I do? =
 
@@ -230,7 +193,6 @@ Using the command *gifsicle -b -O3 --careful original file*. This is particularl
 
 That's not a question, but since I made it up, I'll answer it. See these resources:  
 http://developer.yahoo.com/performance/rules.html#opt_images  
-https://developers.google.com/speed/docs/best-practices/payload#CompressImages  
 https://developers.google.com/speed/docs/insights/OptimizeImages
 
 Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO users. Pngout (usually) optimizes better than Optipng, and best when they are used together. TinyJPG is the best lossy compression tool that I have found for JPG images. Pngquant is an excellent lossy optimizer for PNGs, and is one of the tools used by TinyPNG.
