@@ -157,7 +157,7 @@ function ewww_image_optimizer_count_optimized( $gallery, $return_ids = false ) {
 			break;
 		case 'ngg':
 			// see if we were given attachment IDs to work with via GET/POST
-		        if ( ! empty($_REQUEST['ewww_inline']) || get_option('ewww_image_optimizer_bulk_ngg_resume')) {
+		        if ( ! empty( $_REQUEST['ewww_inline'] ) || get_option( 'ewww_image_optimizer_bulk_ngg_resume') ) {
 				// retrieve the attachment IDs that were pre-loaded in the database
 				$attachment_ids = get_option('ewww_image_optimizer_bulk_ngg_attachments');
 				while ( $attachment_ids && $attachment_query_count < $max_query ) {
@@ -311,6 +311,11 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 	// check the 'bulk resume' option
 	$resume = get_option('ewww_image_optimizer_bulk_resume');
 	$scanning = get_option('ewww_image_optimizer_aux_resume');
+	if ( ! $resume && ! $scanning ) {
+		update_option( 'ewww_image_optimizer_scanning_attachments', '', false );
+		update_option( 'ewww_image_optimizer_bulk_attachments', '', false );
+		ewww_image_optimizer_delete_pending();
+	}
 //	$attachments = get_option( 'ewww_image_optimizer_scanning_attachments' );
 	// see if we were given attachment IDs to work with via GET/POST
 	$ids = array();
@@ -737,10 +742,11 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			$attachment_images = array();
 		}
 		update_option( 'ewww_image_optimizer_scanning_attachments', $attachment_ids, false );
-		if ( empty( get_option( 'ewww_image_optimizer_bulk_attachments' ) ) || ! is_array( get_option( 'ewww_image_optimizer_bulk_attachments' ) ) ) {
+		$attachments_queued = get_option( 'ewww_image_optimizer_bulk_attachments' );
+		if ( empty( $attachments_queued ) || ! is_array( $attachments_queued ) ) {
 			update_option( 'ewww_image_optimizer_bulk_attachments', $queued_ids, false );
 		} else {
-			update_option( 'ewww_image_optimizer_bulk_attachments', array_merge( get_option( 'ewww_image_optimizer_bulk_attachments' ), $queued_ids ), false );
+			update_option( 'ewww_image_optimizer_bulk_attachments', array_merge( $attachments_queued, $queued_ids ), false );
 		}
 		$queued_ids = array();
 	//ewwwio_memory( 'finished a while loop (selected_ids)' );
@@ -756,10 +762,11 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	}
 	update_option( 'ewww_image_optimizer_scanning_attachments', $attachment_ids, false );
 	if ( ! empty( $queued_ids ) ) {
-		if ( empty( get_option( 'ewww_image_optimizer_bulk_attachments' ) ) || ! is_array( get_option( 'ewww_image_optimizer_bulk_attachments' ) ) ) {
+		$attachments_queued = get_option( 'ewww_image_optimizer_bulk_attachments' );
+		if ( empty( $attachments_queued ) || ! is_array( $attachments_queued ) ) {
 			update_option( 'ewww_image_optimizer_bulk_attachments', $queued_ids, false );
 		} else {
-			update_option( 'ewww_image_optimizer_bulk_attachments', array_merge( get_option( 'ewww_image_optimizer_bulk_attachments' ), $queued_ids ), false );
+			update_option( 'ewww_image_optimizer_bulk_attachments', array_merge( $attachments_queued, $queued_ids ), false );
 		}
 	}
 	$elapsed = microtime( true ) - $started;
@@ -900,7 +907,7 @@ function ewww_image_optimizer_bulk_loop( $hook, $delay = 0 ) {
 		list( $file, $msg, $converted, $original ) = ewww_image_optimizer( $image->file, 1, false, false, $image->resize == 'full' );
 		// gotta make sure we don't delete a pending record if the license is exceeded, so the license check goes first
 		$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
-		if ( ! empty ( $ewww_status ) && preg_match( '/exceeded/', $ewww_status ) ) {
+		if ( ! empty( $ewww_status ) && preg_match( '/exceeded/', $ewww_status ) ) {
 			$output['error'] = esc_html__( 'License Exceeded', EWWW_IMAGE_OPTIMIZER_DOMAIN );
 			die( json_encode( $output ) );
 		}
