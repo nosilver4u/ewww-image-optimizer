@@ -33,6 +33,7 @@ function ewww_image_optimizer_bulk_preview() {
 			<p id="ewww-loading" class="ewww-bulk-info" style="display:none"><?php esc_html_e( 'Importing', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>&nbsp;<img src='<?php echo $loading_image; ?>' /></p>
 		</div>
 		<div id="ewww-bulk-progressbar"></div>
+		<div id="ewww-bulk-timer" style="float:right;"></div>
 		<div id="ewww-bulk-counter"></div>
 		<form id="ewww-bulk-stop" style="display:none;" method="post" action="">
 			<br /><input type="submit" class="button-secondary action" value="<?php esc_attr_e( 'Stop Optimizing', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>" />
@@ -380,6 +381,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 			/* translators: used for Bulk Optimize progress bar, like so: Optimized 32/346 */
 			'optimized' => esc_html__( 'Optimized', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
 			'last_image_header' => esc_html( 'Last Image Optimized', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
+			'time_remaining' => esc_html( 'remaining', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
 		)
 	);
 	// load the stylesheet for the jquery progressbar
@@ -829,6 +831,7 @@ function ewww_image_optimizer_bulk_initialize() {
 	} else {
 		$output['results'] = "<p>" . esc_html__( 'Optimizing', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "&nbsp;<img src='$loading_image' /></p>";
 	}
+	$output['start_time'] = time();
 	ewwwio_memory( __FUNCTION__ );
 	die( json_encode( $output ) );
 }
@@ -1004,6 +1007,7 @@ function ewww_image_optimizer_bulk_loop( $hook, $delay = 0 ) {
 	if ( defined( 'WP_CLI' ) && WP_CLI ) {
 		return true;
 	}
+	$output['current_time'] = time();
 	die( json_encode( $output ) );
 }
 

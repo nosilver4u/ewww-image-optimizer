@@ -209,6 +209,9 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * feature requests are sticky at the top of the support forums, vote for the ones you like: https://wordpress.org/support/plugin/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 3.2.2 =
+* added: estimated time remaining on bulk optimize
+
 = 3.2.1 =
 * fixed: really old versions of PHP (less than 5.5) cannot cope with using empty() on a function return value
 * fixed: queue of images not reset when reloading bulk page

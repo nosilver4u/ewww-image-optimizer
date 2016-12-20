@@ -88,6 +88,15 @@ jQuery(document).ready(function($) {
 	var ewww_main = false;
 	var ewww_quota_update = 0;
 	var ewww_scan_failures = 0;
+	var ewww_bulk_start_time = 0;
+	var ewww_bulk_elapsed_time = 0;
+	var ewww_time_per_image = 0;
+	var ewww_time_remaining = 0;
+	var ewww_days_remaining = 0;
+	var ewww_hours_remaining = 0;
+	var ewww_minutes_remaining = 0;
+	var ewww_seconds_remaining = 0;
+	var ewww_countdown = false;
 	// initialize the ajax actions for the appropriate bulk page
 	var ewww_quota_update_data = {
 		action: 'bulk_quota_update',
@@ -374,6 +383,9 @@ jQuery(document).ready(function($) {
 			if ( ewww_init_response.error ) {
 				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_init_response.error + '</b></p>');
 			} else {
+				if ( ewww_init_response.start_time ) {
+					ewww_bulk_start_time = ewww_init_response.start_time;
+				}
 	                	$('#ewww-bulk-loading').html(ewww_init_response.results);
 				$('#ewww-bulk-progressbar').progressbar({ max: ewww_attachments });
 				$('#ewww-bulk-counter').html( ewww_vars.optimized + ' 0/' + ewww_attachments);
@@ -420,7 +432,37 @@ jQuery(document).ready(function($) {
 			else if ( response == 0 ) {
 				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.operation_stopped + '</b></p>');
 			}
-			else if (ewww_i < ewww_attachments && ! ewww_response.done) {
+			else if ( ewww_i < ewww_attachments && ! ewww_response.done ) {
+				if ( ewww_bulk_start_time && ewww_response.current_time ) {
+					if (ewww_countdown) {
+						clearInterval(ewww_countdown);
+					}
+					ewww_bulk_elapsed_time = ewww_response.current_time - ewww_bulk_start_time;
+					ewww_time_per_image = ewww_bulk_elapsed_time / ewww_i;
+					ewww_time_remaining = Math.floor((ewww_attachments - ewww_i) * ewww_time_per_image);
+					ewww_days_remaining = Math.floor(ewww_time_remaining / 86400);
+					ewww_hours_remaining = Math.floor((ewww_time_remaining - (ewww_days_remaining * 86400)) / 3600);
+					ewww_minutes_remaining = Math.floor((ewww_time_remaining - (ewww_days_remaining * 86400) - (ewww_hours_remaining * 3600)) / 60);
+					ewww_seconds_remaining = ewww_time_remaining - (ewww_days_remaining * 86400) - (ewww_hours_remaining * 3600) - (ewww_minutes_remaining * 60);
+					if (ewww_days_remaining < 10) { ewww_days_remaining = '0'+ewww_days_remaining; }
+					if (ewww_hours_remaining < 10) { ewww_hours_remaining = '0'+ewww_hours_remaining; }
+					if (ewww_minutes_remaining < 10) { ewww_minutes_remaining = '0'+ewww_minutes_remaining; }
+					if (ewww_seconds_remaining < 10) { ewww_seconds_remaining = '0'+ewww_seconds_remaining; }
+/*var hours   = Math.floor(sec_num / 3600);
+var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+var seconds = sec_num - (hours * 3600) - (minutes * 60);
+if (hours   < 10) {hours   = "0"+hours;}
+if (minutes < 10) {minutes = "0"+minutes;}
+if (seconds < 10) {seconds = "0"+seconds;}
+return hours+':'+minutes+':'+seconds;
+
+	var ewww_days_remaining = 0;
+	var ewww_hours_remaining = 0;
+	var ewww_minutes_remaining = 0;
+	var ewww_seconds_remaining = 0;*/
+					$('#ewww-bulk-timer').html(ewww_days_remaining + ':' + ewww_hours_remaining + ':' + ewww_minutes_remaining + ':' + ewww_seconds_remaining + ' ' + ewww_vars.time_remaining);
+					ewww_countdown = setInterval( ewwwCountDown, 1000 );
+				}
 				$('#ewww-bulk-widgets').show();
 				$('#ewww-bulk-status h2').show();
 				$('#ewww-bulk-last h2').show();
@@ -479,6 +521,7 @@ jQuery(document).ready(function($) {
 			});
 			$('#ewww-show-table').show();
 			$('#ewww-table-info').show();
+			$('#ewww-bulk-timer').hide();
 			//$('#ewww-lastaux').show();
 			//$('#ewww-aux-forms .ewww-aux-info').show();
 			//$('#ewww-aux-start').show();
@@ -505,6 +548,21 @@ jQuery(document).ready(function($) {
 			ewww_i = 0;
 			ewww_force = 0;
 		}
+	}
+	function ewwwCountDown() {
+		//ewww_time_remaining = Math.floor((ewww_attachments - ewww_i) * ewww_time_per_image);
+		if (ewww_time_remaining > 1) {
+			ewww_time_remaining--;
+		}
+		ewww_days_remaining = Math.floor(ewww_time_remaining / 86400);
+		ewww_hours_remaining = Math.floor((ewww_time_remaining - (ewww_days_remaining * 86400)) / 3600);
+		ewww_minutes_remaining = Math.floor((ewww_time_remaining - (ewww_days_remaining * 86400) - (ewww_hours_remaining * 3600)) / 60);
+		ewww_seconds_remaining = ewww_time_remaining - (ewww_days_remaining * 86400) - (ewww_hours_remaining * 3600) - (ewww_minutes_remaining * 60);
+		if (ewww_days_remaining < 10) { ewww_days_remaining = '0'+ewww_days_remaining; }
+		if (ewww_hours_remaining < 10) { ewww_hours_remaining = '0'+ewww_hours_remaining; }
+		if (ewww_minutes_remaining < 10) { ewww_minutes_remaining = '0'+ewww_minutes_remaining; }
+		if (ewww_seconds_remaining < 10) { ewww_seconds_remaining = '0'+ewww_seconds_remaining; }
+		$('#ewww-bulk-timer').html(ewww_days_remaining + ':' + ewww_hours_remaining + ':' + ewww_minutes_remaining + ':' + ewww_seconds_remaining + ' ' + ewww_vars.time_remaining);
 	}	
 });
 function ewwwRemoveImage(imageID) {
