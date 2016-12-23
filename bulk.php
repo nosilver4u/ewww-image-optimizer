@@ -526,6 +526,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 //	ewwwio_memory( 'scanning an attachment for images' );
 			clearstatcache();
 			$pending = false;
+			$remote_file = false;
 			if ( empty( $attachment_meta[ $selected_id ]['meta'] ) ) {
 				ewwwio_debug_message( "empty meta for $selected_id" );
 				$meta = array();
@@ -576,11 +577,16 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			}
 			if ( ! is_file( $file_path ) && ( class_exists( 'WindowsAzureStorageUtil' ) || class_exists( 'Amazon_S3_And_CloudFront' ) ) ) {
 				// construct a $file_path and proceed IF a supported CDN plugin is installed
+				ewwwio_debug_message( 'Azure or S3 detected and no local file found' );
 				$file_path = get_attached_file( $selected_id );
+				ewwwio_debug_message( "remote file possible: $file_path" );
 				if ( ! $file_path ) {
+					ewwwio_debug_message( 'no file found on remote storage, bailing' );
 					continue;
 				}
+				$remote_file = true;
 			} elseif ( ! $file_path ) {
+					ewwwio_debug_message( "no file path for $selected_id" );
 				continue;
 			}
 			$attachment_images['full'] = $file_path;
@@ -645,6 +651,10 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						$attachment_images[ 'pdf-' . $size ] = $resize_path;
 					} elseif ( is_file( $resize_path ) ) {
 						$attachment_images[ $size ] = $resize_path;
+					} elseif ( $remote_file && 'application/pdf' == $mime && $size == 'full' ) {
+						$attachment_images[ 'pdf-' . $size ] = $resize_path;
+					} elseif ( $remote_file ) {
+						$attachment_images[ $size ] = $resize_path;
 					}
 					// optimize retina images, if they exist
 					if ( function_exists( 'wr2x_get_retina' ) && $retina_path = wr2x_get_retina( $resize_path ) && is_file( $retina_path ) ) {
@@ -685,14 +695,20 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			// check if the files are 'prev opt', pending, or brand new, and then queue the file
 			foreach ( $attachment_images as $size => $file_path ) {
 //	ewwwio_memory( 'checking an image we found' );
-				$file_path = realpath( $file_path );
-				if ( isset( $optimized_list[ $file_path ] ) ) {
+				if ( ! $remote_file && strpos( $file_path, 's3' ) !== 0 ) {
+					$file_path = realpath( $file_path );
+				}
+				if ( isset( $optimized_list[ $file_path ] ) && ( ! $remote_file || ! empty( $_REQUEST['ewww_force'] ) ) ) {
 					if ( ! empty( $optimized_list[ $file_path ]['pending'] ) ) {
 						$pending = true;
 						ewwwio_debug_message( "pending record for $file_path" );
 						continue;
 					}
-					$image_size = filesize( $file_path );
+					if ( $remote_file ) {
+						$image_size = $optimized_list[ $file_path ]['image_size'];
+					} else {
+						$image_size = filesize( $file_path );
+					}
 					if ( $optimized_list[ $file_path ]['image_size'] == $image_size && empty( $_REQUEST['ewww_force'] ) ) {
 						ewwwio_debug_message( "match found for $file_path" );
 						continue;
@@ -717,7 +733,11 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				} else {
 					$pending = true;
 					ewwwio_debug_message( "queuing $file_path" );
-					$image_size = filesize( $file_path );
+					if ( $remote_file ) {
+						$image_size = 0;
+					} else {
+						$image_size = filesize( $file_path );
+					}
 					$images[] = "('" . esc_sql( utf8_encode( $file_path ) ) . "','media',$image_size,$selected_id,'$size',1)";
 					$image_count++;
 				}

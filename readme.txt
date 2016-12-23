@@ -211,6 +211,10 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 
 = 3.2.2 =
 * added: estimated time remaining on bulk optimize
+* fixed: compatibility with Azure storage plugin
+* fixed: compatibility with WP Retina Pro full-size option when resizing images
+* notice: FreeBSD 9 is EOL, version 10.3 is now the currently supported version
+* notice: RHEL 5 and CentOS 5 will be EOL at the end of March, at that point version 6 will be the lowest supported version
 
 = 3.2.1 =
 * fixed: really old versions of PHP (less than 5.5) cannot cope with using empty() on a function return value
