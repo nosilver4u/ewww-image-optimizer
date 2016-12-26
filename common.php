@@ -6,7 +6,7 @@
 // TODO: look at simple_html_dom_node that wp retina uses for parsing
 // TODO: so, if lazy loading support sucks, can we roll our own? that's an image "optimization", right?...
 // TODO: see if imsanity still mangles the wp_image_editor paths, it does, but we can disable the hooks within Imsanity now
-// TODO: see what Imsanity does different to avoid memory issues on resizing - it processes the image before the other resizes, sigh...
+// TODO: move resizing - to process the image before the other resizes, and see what that does for performance
 // TODO: prevent bad ajax errors from firing when we click the toggle on the Optimization Log
 // TODO: use a transient to do health checks on the schedule optimizer
 // TODO: add a column to track compression level used for each image, and later implement a way to (re)compress at a specific compression level
@@ -14,6 +14,7 @@
 // TODO: might be able to use the Custom Bulk Actions in 4.7 to support the bulk optimize drop-down menu
 // TODO: see if there is a way to query the last couple months (or 30 days) worth of attachments, but only when the user is not using year/month folders. This way, they can catch extraneous images if possible.
 // TODO: move resizing options into their own sub-menu
+// TODO: what is up with S3 when there are no local images?
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -1973,7 +1974,7 @@ function ewww_image_optimizer_manual() {
 	$ewww_defer = false;
 	// check permissions of current user
 	$permissions = apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
-	if ( FALSE === current_user_can( $permissions ) ) {
+	if ( false === current_user_can( $permissions ) ) {
 		// display error message if insufficient permissions
 		if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
 			wp_die( esc_html__( 'You do not have permission to optimize images.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
@@ -1981,7 +1982,7 @@ function ewww_image_optimizer_manual() {
 		wp_die( json_encode( array( 'error' => esc_html__( 'You do not have permission to optimize images.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
 	}
 	// make sure we didn't accidentally get to this page without an attachment to work on
-	if ( FALSE === isset( $_REQUEST['ewww_attachment_ID'] ) ) {
+	if ( false === isset( $_REQUEST['ewww_attachment_ID'] ) ) {
 		// display an error message since we don't have anything to work on
 		if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
 			wp_die( esc_html__( 'No attachment ID was provided.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
@@ -2298,7 +2299,7 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 	}
 	if ( empty( $verified ) ) {
 		ewwwio_memory( __FUNCTION__ );
-		return FALSE;
+		return false;
 	} else {
 		set_transient( 'ewww_image_optimizer_cloud_status', $verified, 3600 ); 
 		set_transient( 'ewww_image_optimizer_cloud_ip', $ewww_cloud_ip, 3600 );
@@ -3079,7 +3080,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
 	ewwwio_memory( 'checking type' );
 	//check file type
 	$type = ewww_image_optimizer_mimetype( $file, 'i' );
-	if ( strpos( $type, 'image' ) === FALSE ) {
+	if ( strpos( $type, 'image' ) === false ) {
 		ewwwio_debug_message( 'not an image, cannot resize' );
 		return false;
 	}
@@ -3384,7 +3385,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 	}
 	$fullsize_size = ewww_image_optimizer_filesize( $file_path );
 	// see if this is a new image and Imsanity resized it (which means it could be already optimized)
-	if ( ! empty( $new_image ) && function_exists( 'imsanity_get_max_width_height' ) && strpos( $type, 'image' ) !== FALSE ) {
+	if ( ! empty( $new_image ) && function_exists( 'imsanity_get_max_width_height' ) && strpos( $type, 'image' ) !== false ) {
 		list( $maxW, $maxH ) = imsanity_get_max_width_height( IMSANITY_SOURCE_LIBRARY );
 		list( $oldW, $oldH ) = getimagesize( $file_path );
 		list( $newW, $newH ) = wp_constrain_dimensions( $oldW, $oldH, $maxW, $maxH );
@@ -3399,6 +3400,9 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 			$wpdb->update( $wpdb->ewwwio_images,
 				array(
 					'path' => $file_path,
+					'attachment_id' => $ID,
+					'resize' => 'full',
+					'gallery' => 'media',
 				),
 				array(
 					'id' => $already_optimized['id'],
@@ -3492,7 +3496,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 			ewwwio_debug_message( 'image was converted' );
 	// TODO: probably do not need the filter anymore, but lets make sure when the attached_file meta is saved
 			// if we don't already have the update attachment filter
-			//if ( FALSE === has_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment' ) )
+			//if ( false === has_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment' ) )
 				// add the update attachment filter
 				// add_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment', 10, 2 );
 			// store the conversion status in the metadata
@@ -3586,7 +3590,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 				// TODO: probably won't need this section anymore either
 				/*	if ( $resize_conv !== false ) {
 						// if we don't already have the update attachment filter
-						if ( FALSE === has_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment' ) ) {
+						if ( false === has_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment' ) ) {
 							// add the update attachment filter
 							add_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment', 10, 2 );
 						}
