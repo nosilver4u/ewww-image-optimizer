@@ -2609,6 +2609,9 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 		$updates['updated'] = date( 'Y-m-d H:i:s' );
 		$wpdb->insert( $wpdb->ewwwio_images, $updates );
 	} else {
+		if ( is_array( $already_optimized ) && empty( $already_optimized['orig_size'] ) ) {
+			$updates['orig_size'] = $orig_size;
+		}
 		ewwwio_debug_message( "updating existing record ({$already_optimized['id']}), path: $attachment, size: $opt_size" );
 		$updates['updates'] = $already_optimized['updates']++;
 		$updates['pending'] = 0;
@@ -3003,7 +3006,7 @@ function ewww_image_optimizer_check_table_as3cf( $meta, $ID, $s3_path ) {
 
 function ewww_image_optimizer_update_table_as3cf( $local_path, $s3_path ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	// first we need to see if anything matches the old local path
+	// first we need to see if anything matches the s3 path
 	$s3_image = ewww_image_optimizer_find_already_optimized( $s3_path );
 	ewwwio_debug_message( "looking for $s3_path" );
 	if ( is_array( $s3_image ) ) {

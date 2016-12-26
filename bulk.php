@@ -575,10 +575,13 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			if ( class_exists( 'Amazon_S3_And_CloudFront' ) && strpos( $file_path, 's3' ) === 0 ) {
 				ewww_image_optimizer_check_table_as3cf( $meta, $selected_id, $file_path );
 			}
-			if ( ! is_file( $file_path ) && ( class_exists( 'WindowsAzureStorageUtil' ) || class_exists( 'Amazon_S3_And_CloudFront' ) ) ) {
+			if ( ( strpos( $file_path, 's3' ) === 0 || ! is_file( $file_path ) ) && ( class_exists( 'WindowsAzureStorageUtil' ) || class_exists( 'Amazon_S3_And_CloudFront' ) ) ) {
 				// construct a $file_path and proceed IF a supported CDN plugin is installed
 				ewwwio_debug_message( 'Azure or S3 detected and no local file found' );
 				$file_path = get_attached_file( $selected_id );
+				if ( strpos( $file_path, 's3' ) === 0 ) {
+					$file_path = get_attached_file( $selected_id, true );
+				}
 				ewwwio_debug_message( "remote file possible: $file_path" );
 				if ( ! $file_path ) {
 					ewwwio_debug_message( 'no file found on remote storage, bailing' );
@@ -899,12 +902,13 @@ function ewww_image_optimizer_bulk_loop( $hook, $delay = 0 ) {
 		$output['completed']++;
 		$meta = false;
 		// see if the image needs fetching from a CDN
-		if ( $image->resize === 'full' && ! is_file( $image->file ) ) {
+		if ( ! is_file( $image->file ) ) {
 			$meta = wp_get_attachment_metadata( $image->attachment_id );
 			$file_path = ewww_image_optimizer_remote_fetch( $image->attachment_id, $meta );
-			if ( $file_path && $image->file != $file_path ) {
+			unset( $meta );
+		/*	if ( $image->resize === 'full' && $file_path && $image->file != $file_path ) {
 				$image->file = $file_path;
-			} elseif ( ! $file_path ) {
+			} else*/if ( ! $file_path ) {
 				ewwwio_debug_message( 'could not retrieve path' );
 				if ( defined( 'WP_CLI' ) && WP_CLI ) {
 					WP_CLI::line( __( 'Could not find image', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . ' ' . $image->file );
@@ -921,7 +925,7 @@ function ewww_image_optimizer_bulk_loop( $hook, $delay = 0 ) {
 			if ( ! $meta || ! is_array( $meta ) ) {
 				$meta = wp_get_attachment_metadata( $image->attachment_id );
 			}
-			$new_dimensions = ewww_image_optimizer_resize_upload( $file_path );
+			$new_dimensions = ewww_image_optimizer_resize_upload( $image->file );
 			if ( is_array( $new_dimensions ) ) {
 				$meta['width'] = $new_dimensions[0];
 				$meta['height'] = $new_dimensions[1];
