@@ -1228,11 +1228,19 @@ function ewww_image_optimizer_fallback_sizes( $sizes ) {
 	return $sizes;
 }
 
-// during an upload, remove the W3TC CDN filter and add a new filter with our own wrapper around the W3TC function
+// during an upload, handle resizing, and set the 'new_image' global
 function ewww_image_optimizer_handle_upload( $params ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $ewww_new_image;
 	$ewww_new_image = true;
+	// NOTE: if you use the ewww_image_optimizer_defer_resizing filter to defer the resize operation, only the "other" dimensions will apply
+	// resize here unless the user chose to defer resizing or imsanity is enabled with a max size
+	if ( ! apply_filters( 'ewww_image_optimizer_defer_resizing', false ) && ! function_exists( 'imsanity_get_max_width_height' ) ) {
+		$file_path = $params['file'];
+		if ( ( ! is_wp_error( $params ) ) && is_file( $file_path ) && in_array( $params['type'], array( 'image/png', 'image/gif', 'image/jpeg' ) ) ) {
+			ewww_image_optimizer_resize_upload( $file_path );
+		}
+	}
 	return $params;
 }
 
@@ -2613,9 +2621,11 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 			$updates['orig_size'] = $orig_size;
 		}
 		ewwwio_debug_message( "updating existing record ({$already_optimized['id']}), path: $attachment, size: $opt_size" );
-		$updates['updates'] = $already_optimized['updates']++;
+		if ( $already_optimized['updates'] ) {
+			$updates['updates'] = $already_optimized['updates']++;
+		}
 		$updates['pending'] = 0;
-		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && $already_optimized['updates'] > 1 ) {
 			$updates['trace'] = ewwwio_debug_backtrace();
 		}
 		if ( empty( $already_optimized['gallery'] ) && is_object( $ewww_image ) && $ewww_image instanceof EWWW_Image && $ewww_image->gallery ) {
@@ -3187,7 +3197,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
 					'orig_size' => $orig_size,
 				) );
 			}
-		// otherwise, we delete the record created from optimizing the resized file, and update our records for the original file
+		// otherwise, we delete the record created from optimizing the resized file
 		} else {
 	ewwwio_memory( 'see if temp file got opt' );
 			$temp_optimized = ewww_image_optimizer_find_already_optimized( $new_file );
@@ -3202,8 +3212,6 @@ function ewww_image_optimizer_resize_upload( $file ) {
 					)
 				);
 			}
-			// should not need this, as the image will get optimized shortly
-			//ewww_image_optimizer_update_table( $file, $new_size, $orig_size );
 		}
 	ewwwio_memory( 'all done' );
 		return array( $newwidth, $newheight );
@@ -3412,9 +3420,8 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $ID = null, $log = t
 				));
 		}
 	}
-	// NOTE: if you use the ewww_image_optimizer_defer_resizing filter to defer the resize operation, only the "other" dimensions will apply
-	// resize here unless the user chose to defer resizing, we have a new image OR resize existing is enabled, and imsanity isn't enabled with a max size
-	if ( ! apply_filters( 'ewww_image_optimizer_defer_resizing', false ) && ( ! empty( $new_image ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) ) && ! function_exists( 'imsanity_get_max_width_height' ) ) {
+	// resize here so long as this is not a new image AND resize existing is enabled, and imsanity isn't enabled with a max size
+	if ( ( empty( $new_image ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) ) && ! function_exists( 'imsanity_get_max_width_height' ) ) {
 		$new_dimensions = ewww_image_optimizer_resize_upload( $file_path );
 		if ( is_array( $new_dimensions ) ) {
 			$meta['width'] = $new_dimensions[0];

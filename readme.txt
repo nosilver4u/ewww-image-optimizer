@@ -211,7 +211,9 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 
 = 3.2.2 =
 * added: estimated time remaining on bulk optimize
+* changed: image resizing is performed before any thumbnails are generated for reduced resource usage
 * fixed: compatibility with Azure storage plugin
+* fixed: bulk optimization not playing nice with WP Offload S3
 * fixed: compatibility with WP Retina Pro full-size option when resizing images
 * fixed: optimization results for resized original not displayed when using Imsanity
 * notice: FreeBSD 9 is EOL, version 10.3 is now the currently supported version

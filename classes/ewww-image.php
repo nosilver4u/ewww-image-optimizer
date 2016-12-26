@@ -37,10 +37,17 @@ class EWWW_Image {
 				$this->file = $path;
 				$this->orig_size = filesize( $path );
 				$this->gallery = $gallery;
-				if ( ! empty( $id ) ) {
+				if ( $id ) {
 					$this->attachment_id = $id;
 				}
 				return;
+			} elseif ( is_array( $new_image ) ) {
+				if ( $id && empty( $new_image['attachment_id'] ) ) {
+					$new_image['attachment_id'] = $id;
+				}
+				if ( $gallery && empty( $new_image['gallery'] ) ) {
+					$new_image['gallery'] = $gallery;
+				}
 			}
 		} elseif ( $path ) { // if $path is supplied but is not a file, then bail
 			ewwwio_debug_message( "could not create EWWW_Image with $path, not a file" );
