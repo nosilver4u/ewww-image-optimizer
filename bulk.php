@@ -136,7 +136,9 @@ function ewww_image_optimizer_count_optimized( $gallery, $return_ids = false ) {
 				ewwwio_debug_message( 'we have received attachment ids via $_REQUEST' );
 				// retrieve the attachment IDs that were pre-loaded in the database
 				if ( 'scanning' == $resume ) {
-					$attachment_ids = array_merge( get_option( 'ewww_image_optimizer_scanning_attachments' ), get_option( 'ewww_image_optimizer_bulk_attachments' ) );
+					$finished = (array) get_option( 'ewww_image_optimizer_bulk_attachments' );
+					$remaining = (array) get_option( 'ewww_image_optimizer_scanning_attachments' );
+					$attachment_ids = array_merge( $finished, $remaining );
 				} elseif ( $resume ) {
 					// this shouldn't ever happen, but doesn't hurt to account for the use case, just in case something changes in the future
 					$attachment_ids = get_option( 'ewww_image_optimizer_bulk_attachments' );

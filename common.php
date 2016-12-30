@@ -6,7 +6,6 @@
 // TODO: look at simple_html_dom_node that wp retina uses for parsing
 // TODO: so, if lazy loading support sucks, can we roll our own? that's an image "optimization", right?...
 // TODO: see if imsanity still mangles the wp_image_editor paths, it does, but we can disable the hooks within Imsanity now
-// TODO: move resizing - to process the image before the other resizes, and see what that does for performance
 // TODO: prevent bad ajax errors from firing when we click the toggle on the Optimization Log
 // TODO: use a transient to do health checks on the schedule optimizer
 // TODO: add a column to track compression level used for each image, and later implement a way to (re)compress at a specific compression level
@@ -14,7 +13,11 @@
 // TODO: might be able to use the Custom Bulk Actions in 4.7 to support the bulk optimize drop-down menu
 // TODO: see if there is a way to query the last couple months (or 30 days) worth of attachments, but only when the user is not using year/month folders. This way, they can catch extraneous images if possible.
 // TODO: move resizing options into their own sub-menu
-// TODO: what is up with S3 when there are no local images?
+// TODO: see if retina optimization can be delayed until background opt, should be since we check for hidpi versions during resize_from_meta
+// TODO: check for the full-size image in the db, if no results are found by attachment_id, and then run the migrate routine, but how to do that safely? hmmm
+// TODO: add console logging when a json parsing error occurs, or a response does not seem right
+// TODO: add an 'in pixels' note to the resize settings
+// TODO: add an override for network admins to allow site admins to configure their own sites
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -4739,7 +4742,7 @@ function ewww_image_optimizer_set_option( $option_name, $option_value ) {
 function ewww_image_optimizer_settings_script( $hook ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
-	// make sure we are being called from the bulk optimization page
+	// make sure we are being called from the settings page
 	if ( strpos( $hook,'settings_page_ewww-image-optimizer' ) !== 0 ) {
 		return;
 	}
@@ -5743,7 +5746,7 @@ function ewww_image_optimizer_image_queue_debug() {
 }
 
 function ewwwio_memory( $function ) {
-//	return;
+	return;
 	if ( WP_DEBUG ) {
 		global $ewww_memory;
 		$ewww_memory .= $function . ': ' . memory_get_usage(true) . "\n";
