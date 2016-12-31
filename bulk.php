@@ -7,7 +7,7 @@ function ewww_image_optimizer_bulk_preview() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// retrieve the attachment IDs that were pre-loaded in the database
 ?>
-	<div class="wrap"> 
+	<div class="wrap">
 	<h1>
 <?php 		esc_html_e( 'Bulk Optimize', EWWW_IMAGE_OPTIMIZER_DOMAIN );
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
@@ -71,12 +71,12 @@ function ewww_image_optimizer_bulk_preview() {
 			echo '<p>' . esc_html__( 'You do not appear to have uploaded any images yet.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</p>';
 		} else { ?>
 			<div id="ewww-bulk-forms">
-<?php			if ( $resume == 'true' ) { 
+<?php			if ( $resume == 'true' ) {
 				//if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 				//	$credits_needed = $fullsize_count * ( count( get_intermediate_image_sizes() ) + 1 );
 				//} ?>
 				<p class="ewww-media-info ewww-bulk-info"><?php printf( esc_html__( 'There are %d images ready to optimize.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $fullsize_count ); ?> <?php //if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && $credits_needed > 0 ) { printf( esc_html__( 'This could require approximately %d image credits to complete.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $credits_needed ); } ?></p>
-<?php			} else { 
+<?php			} else {
 				//if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 				//	$credits_needed = $unoptimized_count + $unoptimized_resize_count;
 				//} ?>
@@ -98,7 +98,7 @@ function ewww_image_optimizer_bulk_preview() {
 			</form>
 <?php		}
 		// if the 'bulk resume' option was not empty, offer to reset it so the user can start back from the beginning
-		if ( $resume == 'true' ) { 
+		if ( $resume == 'true' ) {
 ?>
 			<p class="ewww-media-info ewww-bulk-info"><?php esc_html_e( 'If you would like to start over again, press the Reset Status button to reset the bulk operation status.', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></p>
 			<form class="ewww-bulk-form" method="post" action="">
@@ -479,7 +479,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	$started = microtime( true );
 
 	ewww_image_optimizer_optimized_list();
-	
+
 	$max_query = apply_filters( 'ewww_image_optimizer_count_optimized_queries', 2000 );
 	$max_query = (int) $max_query;
 
@@ -520,7 +520,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		}
 
 		$attachment_meta = ewww_image_optimizer_fetch_metadata_batch( $attachments_in );
-		$attachments_in = null;	
+		$attachments_in = null;
 
 		ewwwio_debug_message( "validated " . count( $attachment_meta ) . " attachment meta items" );
 		ewwwio_debug_message( 'remaining items after selection: ' . count( $attachment_ids ) );
@@ -682,7 +682,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					if ( is_file( $imagemeta_resize_path ) ) {
 						$attachment_images[ 'resized-images-' . $index ] = $imagemeta_resize_path;
 					}
-				}		
+				}
 			}
 
 			// and another custom theme
@@ -743,7 +743,12 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					} else {
 						$image_size = filesize( $file_path );
 					}
-					$images[] = "('" . esc_sql( utf8_encode( $file_path ) ) . "','media',$image_size,$selected_id,'$size',1)";
+					if ( seems_utf8( $file_path ) ) {
+						$utf8_file_path = $file_path;
+					} else {
+						$utf8_file_path = utf8_encode( $file_path );
+					}
+					$images[] = "('" . esc_sql( $utf8_file_path ) . "','media',$image_size,$selected_id,'$size',1)";
 					$image_count++;
 				}
 				if ( $image_count > 1000 || count( $reset_images ) > 1000 ) {
@@ -819,7 +824,7 @@ function ewww_image_optimizer_bulk_quota_update() {
 		die( esc_html__( 'Access token has expired, please reload the page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-	//	ewww_image_optimizer_cloud_verify(); 
+	//	ewww_image_optimizer_cloud_verify();
 		echo esc_html__( 'Image credits available:', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . ' ' . ewww_image_optimizer_cloud_quota();
 	}
 	ewwwio_memory( __FUNCTION__ );

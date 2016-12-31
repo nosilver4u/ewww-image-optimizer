@@ -41,7 +41,7 @@ function ewww_image_optimizer_aux_images () {
 				<input type="hidden" name="ewww_convert" value="1">
 				<button id="ewww-table-convert" type="submit" class="button-secondary action"><?php esc_html_e( 'Convert Table', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></button>
 			</form>
-		<?php } ?>	
+		<?php } ?>
 		<?php if ( ! empty( $lastaux ) ) { ?>
 	<!--		<p id="ewww-lastaux" class="ewww-bulk-info"><?php printf( esc_html__( 'Last optimization was completed on %1$s at %2$s and optimized %3$d images', EWWW_IMAGE_OPTIMIZER_DOMAIN ), date( get_option( 'date_format' ), $lastaux[0] ), date( get_option( 'time_format' ), $lastaux[0] ), (int) $lastaux[1] ); ?></p>-->
 		<?php } ?>
@@ -62,7 +62,7 @@ function ewww_image_optimizer_aux_images () {
 			<span id="paginator" class="pagination-links ewww-aux-table">
 				<a id="first-images" class="first-page" style="display:none">&laquo;</a>
 				<a id="prev-images" class="prev-page" style="display:none">&lsaquo;</a>
-				<?php esc_html_e( 'page', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?> <span class="current-page"></span> <?php esc_html_e( 'of', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?> 
+				<?php esc_html_e( 'page', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?> <span class="current-page"></span> <?php esc_html_e( 'of', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?>
 				<span class="total-pages"></span>
 				<a id="next-images" class="next-page" style="display:none">&rsaquo;</a>
 				<a id="last-images" class="last-page" style="display:none">&raquo;</a>
@@ -86,7 +86,7 @@ function ewww_image_optimizer_aux_images_table() {
 	// verify that an authorized user has called function
 	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) ) {
 		wp_die( esc_html__( 'Access token has expired, please reload the page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
-	} 
+	}
 	global $wpdb;
 	$offset = 50 * (int) $_POST['ewww_offset'];
 	$query = "SELECT path,results,image_size,id FROM $wpdb->ewwwio_images WHERE pending=0 ORDER BY id DESC LIMIT $offset,50";
@@ -139,7 +139,7 @@ function ewww_image_optimizer_aux_images_remove() {
 	// verify that an authorized user has called function
 	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) ) {
 		wp_die( esc_html__( 'Access token has expired, please reload the page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
-	} 
+	}
 	global $wpdb;
 	if ( $wpdb->delete( $wpdb->ewwwio_images, array( 'id' => $_POST['ewww_image_id'] ) ) ) {
 		echo "1";
@@ -264,7 +264,12 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			} else {
 				ewwwio_debug_message( "queuing $path" );
 				$image_size = $file->getSize();
-				$images[] = "('" . esc_sql( utf8_encode( $path ) ) . "',$image_size,1)";
+				if ( seems_utf8( $path ) ) {
+					$utf8_file_path = $path;
+				} else {
+					$utf8_file_path = utf8_encode( $path );
+				}
+				$images[] = "('" . esc_sql( $utf8_file_path ) . "',$image_size,1)";
 				$image_count++;
 			}
 			if ( $image_count > 1000 ) {
@@ -371,13 +376,13 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 		}
 		if ( is_plugin_active( 'ml-slider/ml-slider.php' ) || is_plugin_active_for_network( 'ml-slider/ml-slider.php' ) ) {
 			$slide_paths = array();
-			$slides = $wpdb->get_col( 
+			$slides = $wpdb->get_col(
 				"
-				SELECT wpposts.ID 
-				FROM $wpdb->posts wpposts 
+				SELECT wpposts.ID
+				FROM $wpdb->posts wpposts
 				INNER JOIN $wpdb->term_relationships term_relationships
 						ON wpposts.ID = term_relationships.object_id
-				INNER JOIN $wpdb->terms wpterms 
+				INNER JOIN $wpdb->terms wpterms
 						ON term_relationships.term_taxonomy_id = wpterms.term_id
 				INNER JOIN $wpdb->term_taxonomy term_taxonomy
 						ON wpterms.term_id = term_taxonomy.term_id
@@ -475,7 +480,7 @@ function ewww_image_optimizer_aux_images_initialize( $auto = false ) {
 		wp_die( esc_html__( 'Access denied.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 	}
 	session_write_close();
-	$output = array(); 
+	$output = array();
 	// update the 'aux resume' option to show that an operation is in progress
 	update_option( 'ewww_image_optimizer_aux_resume', 'true' );
 	// store the time and number of images for later display
