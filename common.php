@@ -4286,11 +4286,26 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 		}
 		$ewww_manual_nonce = wp_create_nonce( "ewww-manual" );
 		global $wpdb;
+		$in_progress = false;
+		$migrated = false;
+		$optimized_images = false;
 		if ( $ewww_cdn ) {
 			if ( get_transient( 'ewwwio-background-in-progress-' . $id ) ) {
 				$output .= '<div>' . esc_html__( 'In Progress', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</div>';
+				$in_progress = true;
+			}
+			if ( ! $in_progress ) {
+				$optimized_images = $wpdb->get_results( "SELECT image_size,orig_size,resize,converted,level FROM $wpdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", ARRAY_A );
+				if ( ! $optimized_images ) {
+					// attempt migration, but only if the original image is in the db, $migrated will be metadata on success, false on failure
+					$migrated = ewww_image_optimizer_migrate_meta_to_db( $id, $meta, true );
+				}
+				if ( $migrated ) {
+					$optimized_images = $wpdb->get_results( "SELECT image_size,orig_size,resize,converted,level FROM $wpdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", ARRAY_A );
+				}
+			}
 			// if optimizer data exists in the db
-			} elseif ( $optimized_images = $wpdb->get_results( "SELECT image_size,orig_size,resize,converted,level FROM $wpdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", ARRAY_A ) ) {
+			if ( ! empty( $optimized_images ) ) {
 				$orig_size = 0;
 				$opt_size = 0;
 				$level = 0;
@@ -4353,8 +4368,20 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 		}
 		if ( get_transient( 'ewwwio-background-in-progress-' . $id ) ) {
 			$output .= esc_html__( 'In Progress', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+			$in_progress = true;
 		// if optimizer data exists
-		} elseif ( $optimized_images = $wpdb->get_results( "SELECT image_size,orig_size,resize,converted,level FROM $wpdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", ARRAY_A ) ) {
+		}
+		if ( ! $in_progress ) {
+			$optimized_images = $wpdb->get_results( "SELECT image_size,orig_size,resize,converted,level FROM $wpdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", ARRAY_A );
+			if ( ! $optimized_images ) {
+				// attempt migration, but only if the original image is in the db, $migrated will be metadata on success, false on failure
+				$migrated = ewww_image_optimizer_migrate_meta_to_db( $id, $meta, true );
+			}
+			if ( $migrated ) {
+				$optimized_images = $wpdb->get_results( "SELECT image_size,orig_size,resize,converted,level FROM $wpdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", ARRAY_A );
+			}
+		}
+		if ( ! empty( $optimized_images ) ) {
 			$orig_size = 0;
 			$opt_size = 0;
 			$level = 0;
@@ -4428,7 +4455,6 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 					esc_html__( 'Restore original', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) . '</div>';
 			}
 		} else {
-			ewww_image_optimizer_migrate_meta_to_db( $id, $meta );
 			// otherwise, this must be an image we haven't processed
 			if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 				$disabled_sizes_opt = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt' );
@@ -4541,8 +4567,8 @@ function ewww_image_optimizer_migrate_meta_to_db( $id, $meta, $bail_early = fals
 	}
 	$converted = ( is_array( $meta ) && ! empty( $meta['converted'] ) && ! empty( $meta['orig_file'] ) ? trailingslashit( dirname( $file_path ) ) . basename( $meta['orig_file'] ) : false );
 	$full_size_update = ewww_image_optimizer_update_file_from_meta( $file_path, 'media', $id, 'full', $converted );
-	if ( ! $full_size_updated || $bail_early ) {
-		return $meta;
+	if ( ! $full_size_updated && $bail_early ) {
+		return false;
 	}
 	$retina_path = ewww_image_optimizer_hidpi_optimize( $file_path, true, false );
 	if ( $retina_path ) {
