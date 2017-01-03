@@ -285,10 +285,6 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 	if ( 'media_page_ewww-image-optimizer-bulk' != $hook ) {
 		return;
 	}
-//		update_option( 'ewww_image_optimizer_bulk_resume', '' );
-//		update_option( 'ewww_image_optimizer_aux_resume', '' );
-//		update_option( 'ewww_image_optimizer_scanning_attachments', '' );
-//		update_option( 'ewww_image_optimizer_bulk_attachments', '', false );
         // initialize the $attachments variable
         $attachments = array();
         // check to see if we are supposed to reset the bulk operation and verify we are authorized to do so
@@ -398,7 +394,7 @@ function ewww_image_optimizer_optimized_list() {
 	$offset = 0;
 	$max_query = (int) apply_filters( 'ewww_image_optimizer_count_optimized_queries', 3000 );
 	$optimized_list = array();
-	while( $already_optimized = $wpdb->get_results( "SELECT id,path,image_size,pending,attachment_id FROM $wpdb->ewwwio_images LIMIT $offset,$max_query", ARRAY_A ) ) {
+	while( $already_optimized = $wpdb->get_results( "SELECT id,path,image_size,pending,attachment_id,updated FROM $wpdb->ewwwio_images LIMIT $offset,$max_query", ARRAY_A ) ) {
 		$wpdb->flush();
 		//ewwwio_memory( 'queried already opt' );
 		//ewwwio_memory( 'flushed already opt' );
@@ -408,6 +404,7 @@ function ewww_image_optimizer_optimized_list() {
 			$optimized_list[ $optimized_path ]['id'] = $optimized['id'];
 			$optimized_list[ $optimized_path ]['pending'] = $optimized['pending'];
 			$optimized_list[ $optimized_path ]['attachment_id'] = $optimized['attachment_id'];
+			$optimized_list[ $optimized_path ]['updated'] = $optimized['updated'];
 		}
 		//ewwwio_memory( 'swapped records' );
 		ewwwio_memory( 'removed original records' );
@@ -635,6 +632,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 							$wpdb->update( $wpdb->ewwwio_images,
 								array(
 									'path' => $ims_path,
+									'updated' => $optimized_list[ $ims_temp_path ]['updated'],
 								),
 								array(
 									'id' => $optimized_list[ $ims_temp_path ]['id'],
@@ -652,20 +650,26 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						}
 					}
 					$resize_path = $base_dir . $data['file'];
-					if ( is_file( $resize_path ) && 'application/pdf' == $mime && $size == 'full' ) {
+					if ( ( $remote_file || is_file( $resize_path ) ) && 'application/pdf' == $mime && $size == 'full' ) {
 						$attachment_images[ 'pdf-' . $size ] = $resize_path;
-					} elseif ( is_file( $resize_path ) ) {
-						$attachment_images[ $size ] = $resize_path;
-					} elseif ( $remote_file && 'application/pdf' == $mime && $size == 'full' ) {
-						$attachment_images[ 'pdf-' . $size ] = $resize_path;
-					} elseif ( $remote_file ) {
+					} elseif ( $remote_file || is_file( $resize_path ) ) {
 						$attachment_images[ $size ] = $resize_path;
 					}
 					// optimize retina images, if they exist
-					if ( function_exists( 'wr2x_get_retina' ) && $retina_path = wr2x_get_retina( $resize_path ) && is_file( $retina_path ) ) {
+					if ( function_exists( 'wr2x_get_retina' ) ) {
+						$retina_path = wr2x_get_retina( $resize_path );
+					} else {
+						$retina_path = false;
+					}
+					if ( $retina_path && is_file( $retina_path ) ) {
+						ewwwio_debug_message( "found retina via wr2x_get_retina $retina_path" );
 						$attachment_images[ $size . '-retina' ] = $retina_path;
-					} elseif ( $retina_path = ewww_image_optimizer_hidpi_optimize( $resize_path, true ) ) {
-						$attachment_images[ $size . '-retina' ] = $retina_path;
+					} else {
+						$retina_path = ewww_image_optimizer_hidpi_optimize( $resize_path, true );
+						if ( $retina_path ) {
+							ewwwio_debug_message( "found retina via hidpi_opt $retina_path" );
+							$attachment_images[ $size . '-retina' ] = $retina_path;
+						}
 					}
 					// store info on the sizes we've processed, so we can check the list for duplicate sizes
 					$processed[ $size ]['width'] = $data['width'];
@@ -700,9 +704,14 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			// check if the files are 'prev opt', pending, or brand new, and then queue the file
 			foreach ( $attachment_images as $size => $file_path ) {
 //	ewwwio_memory( 'checking an image we found' );
+				ewwwio_debug_message( "here is a path $file_path" );
 				if ( ! $remote_file && strpos( $file_path, 's3' ) !== 0 ) {
 					$file_path = realpath( $file_path );
 				}
+				if ( empty( $file_path ) ) {
+					continue;
+				}
+				ewwwio_debug_message( "here is a path $file_path" );
 				if ( isset( $optimized_list[ $file_path ] ) && ( ! $remote_file || ! empty( $_REQUEST['ewww_force'] ) ) ) {
 					if ( ! empty( $optimized_list[ $file_path ]['pending'] ) ) {
 						$pending = true;
@@ -727,6 +736,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 									'attachment_id' => $selected_id,
 									'gallery' => 'media',
 									'resize' => $size,
+									'updated' => $optimized_list[ $file_path ]['updated'],
 								),
 								array( 'id' => $optimized_list[ $file_path ]['id'] )
 							);
@@ -743,11 +753,19 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					} else {
 						$image_size = filesize( $file_path );
 					}
-					$images[] = "('" . esc_sql( utf8_encode( $file_path ) ) . "','media',$image_size,$selected_id,'$size',1)";
+					if ( seems_utf8( $file_path ) ) {
+						ewwwio_debug_message( 'file seems utf8' );
+						$utf8_file_path = $file_path;
+					} else {
+						ewwwio_debug_message( 'file will become utf8' );
+						$utf8_file_path = utf8_encode( $file_path );
+					}
+					$images[] = "('" . esc_sql( $utf8_file_path ) . "','media',$image_size,$selected_id,'$size',1)";
 					$image_count++;
 				}
 				if ( $image_count > 1000 || count( $reset_images ) > 1000 ) {
 					ewwwio_debug_message( 'making a dump run' );
+					ewww_image_optimizer_debug_log();
 	//ewwwio_memory( 'dumping images to db' );
 					// let's dump what we have so far to the db
 					$image_count = 0;
@@ -757,7 +775,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					}
 					$images = array();
 					if ( ! empty( $reset_images ) ) {
-						$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $reset_images ) . ')' );
+						$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1, updated = updated WHERE id IN (" . implode( ',', $reset_images ) . ')' );
 					}
 					$reset_images = array();
 	//ewwwio_memory( 'dumped images to db' );
@@ -778,13 +796,14 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		$queued_ids = array();
 	//ewwwio_memory( 'finished a while loop (selected_ids)' );
 	} // endwhile
+	ewww_image_optimizer_debug_log();
 	if ( ! empty( $images ) ) {
 		$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,gallery,orig_size,attachment_id,resize,pending) VALUES " . implode( ',', $images );
 		$wpdb->query( $insert_query );
 	//ewwwio_memory( 'inserted ids' );
 	}
 	if ( ! empty( $reset_images ) ) {
-		$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $reset_images ) . ')' );
+		$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1, updated = updated WHERE id IN (" . implode( ',', $reset_images ) . ')' );
 	//ewwwio_memory( 'updated ids' );
 	}
 	update_option( 'ewww_image_optimizer_scanning_attachments', $attachment_ids, false );

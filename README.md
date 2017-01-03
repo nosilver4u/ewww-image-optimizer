@@ -3,8 +3,8 @@
 **Donate link:** https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW  
 **Tags:** image, attachment, optimize, optimization, lossless, lossy, photo, picture, seo, compression, gmagick, jpegtran, gifsicle, optipng, pngout, pngquant, jpegmini, tinyjpg, tinypng, webp, wp-cli   
 **Requires at least:** 4.4  
-**Tested up to:** 4.6.1 
-**Stable tag:** 2.9.9
+**Tested up to:** 4.7.0 
+**Stable tag:** 3.2.1
 **License:** GPLv3  
 
 Reduce image sizes in WordPress including NextGEN, GRAND FlAGallery, FooGallery and more using lossless/lossy methods and image format conversion.
@@ -279,7 +279,6 @@ https://developers.google.com/speed/docs/insights/OptimizeImages
 
 Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO users. Pngout (usually) optimizes better than Optipng, and best when they are used together. TinyJPG is the best lossy compression tool that I have found for JPG images. Pngquant is an excellent lossy optimizer for PNGs, and is one of the tools used by TinyPNG.
 
-
 ## Screenshots 
 
 ### 1. Plugin settings page.
@@ -290,107 +289,6 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 
 ### 3. Bulk optimization page. You can optimize all your images at once and resume a previous bulk optimization. This is very useful for existing blogs that have lots of images.
 ![Bulk optimization page. You can optimize all your images at once and resume a previous bulk optimization. This is very useful for existing blogs that have lots of images.](https://ps.w.org/ewww-image-optimizer/assets/screenshot-3.png)
-
-
-
-## Changelog 
-
-* feature requests are sticky at the top of the support forums, vote for the ones you like: https://wordpress.org/support/plugin/ewww-image-optimizer
-* If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
-
-
-### 2.9.9 
-* fixed: broken uploads with W3TC CDN option enabled
-* fixed: warning when scanning Meta Slider metadata for images
-* fixed: should not check for 'nice' when exec() is disabled
-* fixed: notices for 'nice' when exec() output is empty
-* fixed: wp-cli command skipping pdf files
-* added: ability to view API history at https://history.exactlywww.com/
-* added: abiltiy to disable set_time_limit() function with EWWW_IMAGE_OPTIMIZER_DISABLE_STL constant
-* changed: removed baseline JPG encoding trial, since progressive compression is almost always smaller, and is always more desirable from a UX perspective
-* updated: cwebp version 0.5.1
-
-
-### 2.9.8 
-* fixed: also disable parallel mode iternally if background testing is not successful
-* fixed: fatal error when WP Retina 2x is enabled with EWWW's parallel mode
-* fixed: parallel opt would hang if resizes were missing
-* fixed: prevent background test from accidentally spawning more tests
-* fixed: background test stuck in queue indefinitely if it didn't succeed
-
-
-### 2.9.7 
-* fixed: cached value for multisite uploads directory incorrect on some sites
-* fixed: retina/hidpi images required separate async task with parallel optimization
-* fixed: retina function would try to run an async optimization even if the file didn't exist
-* fixed: one-time convert links (like JPG2PNG) from Media Library not working when Parallel mode enabled
-* fixed: images with transparency were being converted if PNG2JPG enabled regardless of JPG background setting when using API
-* fixed: mime-type meta for resizes updated on conversion and restoration
-* fixed: resizes were being checked, even if no filename was available
-* added: thread limit for parallel optimization, set to 5, can be modified by filter
-* added: filter to modify timeout for parallel optimization
-* added: filter to disable (or modify) the suffix added to converted images
-* added: debugging page to view and clear background optimization queues (must have EWWW's debug setting enabled) - under Media menu
-* changed: parallel mode only enabled if using API or your images have more than 5 resizes each
-* changed: background mode only enabled if background test succeeds (on plugin upgrade)
-* changed: file types with disabled optimization no longer included in unoptimized image counts
-
-
-### 2.9.6 
-* fixed: set_time_limit() was still being called in a couple spots even if set_time_limit() is disabled by PHP
-* fixed: regression in scheduled optimization which allowed multiple processes to run
-* fixed: total savings for multisite was incorrectly requerying site 1 for each blog
-* fixed: optimization being attempted via API even if license exceeded
-* added: ewwwio_images table is checked on settings page to make sure it exists
-* added: run utf8_encode() on all filenames for Scheduled Optimize and Scan & Optimize to avoid database update issues, please report any new issues with Scan & Optimize right away
-
-
-### 2.9.5 
-* fixed: wrong path pre-pended using parallel optimization and wp-content or uploads folder is not within the WP root
-* fixed: absolute paths passed to async optimization are pre-pended with ABSPATH
-* fixed: Bulk Optimize excluding images from count based on wrong option (disabled generation vs. disabled optimization)
-* fixed: timeouts during Media optimize could corrupt metadata, added routine to rebuild the meta on re-optimization
-* changed: running out of API credits puts the verification function to sleep for up to 5 minutes
-* added: extra checks to make sure the Background/Async objects are properly initialized before using them
-
-
-### 2.9.4 
-* fixed: permissions after optimization are different than what WP core uses and falls back to umask on unixy systems
-* fixed: API server address not re-fetched properly when cache expires
-* changed: Parallel Optimization no longer ON by default
-
-
-### 2.9.3 
-* fixed: sorry, missed a session locking operation (manual optimize)
-
-
-### 2.9.2 
-* changed: priority level of Alt WebP Rewriting so that pages do not get un-minified after Autoptimize runs
-* fixed: async requests for parallel optimization had an empty user agent
-* fixed: uploads broken because start_session() locks all async processes
-
-
-### 2.9.1 
-* changed: full paths are not POSTed to avoid Local File Inclusion blocks put in place by various security plugins (Wordfence & Shield)
-* fixed: reduced number of database queries during parallel optimization
-* fixed: undefined methods for BFI thumb editor class
-* added: detect Shield's Lock to Location feature and disable background/parallel operations
-
-
-### 2.9.0 
-* added: parallel optimization for Media uploads (original and resizes are done concurrently), turn off under Advanced if it affects site performance
-* added: allow resize dimensions to be filtered: https://ewww.io/2016/07/05/changing-the-dimensions-for-resizing-images/
-* changed: deferred (background) optimization is now the normal mode of operation as it runs instantly, and no longer relies on wp_cron
-* changed: scheduled optimization uses new background processing to allow it to run longer, and resume quicker
-* changed: webp .htaccess rules removed when plugin is deleted
-* changed: JPG quality setting applies to conversion AND image editing (but not regular optimization), so that you can override the WP default of 82
-* changed: API license status check is faster, as results are cached while checking for updates in the background
-* fixed: .htaccess rules for webp inserted properly for sub-directory installs
-* fixed: .jpe files properly detected as image/jpeg when fetching from CDN or during folder-scanning operations
-* fixed: images generated by NextGEN are properly optimized with latest version
-* fixed: deprecated class constructors for NextGEN, Nextcellent, and FlaGallery classes (potential white screen with PHP 7)
-* fixed: basic uploader for FlaGallery broken due to missing class
-* fixed: images uploaded with WPML Media active are now resized, with better detection for newly uploaded images
 
 ## Contact and Credits 
 
@@ -409,7 +307,6 @@ This software is provided 'as-is', without any express or implied
 warranty.  In no event will the author(s) be held liable for any damages
 arising from the use of this software.
 
-
 ### pngquant.c 
 
    © 1989, 1991 by Jef Poskanzer.
@@ -420,7 +317,6 @@ arising from the use of this software.
    copyright notice and this permission notice appear in supporting
    documentation.  This software is provided "as is" without express or
    implied warranty.
-
 
 ### pngquant.c and rwpng.c/h 
 
@@ -449,7 +345,6 @@ arising from the use of this software.
    CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
    OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 
 ### WebP 
 

@@ -425,8 +425,6 @@ jQuery(document).ready(function($) {
 					$('#ewww-bulk-last .inside').html( ewww_response.results );
 		                	$('#ewww-bulk-status .inside').append( ewww_response.results );
 				}
-				//ewww_jqxhr.abort();
-				//ewwwAuxCleanup();
 				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.operation_stopped + '</b></p>');
 			}
 			else if ( response == 0 ) {
@@ -434,34 +432,14 @@ jQuery(document).ready(function($) {
 			}
 			else if ( ewww_i < ewww_attachments && ! ewww_response.done ) {
 				if ( ewww_bulk_start_time && ewww_response.current_time ) {
-					if (ewww_countdown) {
-						clearInterval(ewww_countdown);
-					}
 					ewww_bulk_elapsed_time = ewww_response.current_time - ewww_bulk_start_time;
 					ewww_time_per_image = ewww_bulk_elapsed_time / ewww_i;
 					ewww_time_remaining = Math.floor((ewww_attachments - ewww_i) * ewww_time_per_image);
-					ewww_days_remaining = Math.floor(ewww_time_remaining / 86400);
-					ewww_hours_remaining = Math.floor((ewww_time_remaining - (ewww_days_remaining * 86400)) / 3600);
-					ewww_minutes_remaining = Math.floor((ewww_time_remaining - (ewww_days_remaining * 86400) - (ewww_hours_remaining * 3600)) / 60);
-					ewww_seconds_remaining = ewww_time_remaining - (ewww_days_remaining * 86400) - (ewww_hours_remaining * 3600) - (ewww_minutes_remaining * 60);
-					if (ewww_days_remaining < 10) { ewww_days_remaining = '0'+ewww_days_remaining; }
-					if (ewww_hours_remaining < 10) { ewww_hours_remaining = '0'+ewww_hours_remaining; }
-					if (ewww_minutes_remaining < 10) { ewww_minutes_remaining = '0'+ewww_minutes_remaining; }
-					if (ewww_seconds_remaining < 10) { ewww_seconds_remaining = '0'+ewww_seconds_remaining; }
-/*var hours   = Math.floor(sec_num / 3600);
-var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-var seconds = sec_num - (hours * 3600) - (minutes * 60);
-if (hours   < 10) {hours   = "0"+hours;}
-if (minutes < 10) {minutes = "0"+minutes;}
-if (seconds < 10) {seconds = "0"+seconds;}
-return hours+':'+minutes+':'+seconds;
-
-	var ewww_days_remaining = 0;
-	var ewww_hours_remaining = 0;
-	var ewww_minutes_remaining = 0;
-	var ewww_seconds_remaining = 0;*/
-					$('#ewww-bulk-timer').html(ewww_days_remaining + ':' + ewww_hours_remaining + ':' + ewww_minutes_remaining + ':' + ewww_seconds_remaining + ' ' + ewww_vars.time_remaining);
-					ewww_countdown = setInterval( ewwwCountDown, 1000 );
+					ewwwTimeIncrementsUpdate();
+					if ( ! ewww_countdown) {
+						$('#ewww-bulk-timer').html(ewww_days_remaining + ':' + ewww_hours_remaining + ':' + ewww_minutes_remaining + ':' + ewww_seconds_remaining + ' ' + ewww_vars.time_remaining);
+						ewww_countdown = setInterval( ewwwCountDown, 1000 );
+					}
 				}
 				$('#ewww-bulk-widgets').show();
 				$('#ewww-bulk-status h2').show();
@@ -550,10 +528,13 @@ return hours+':'+minutes+':'+seconds;
 		}
 	}
 	function ewwwCountDown() {
-		//ewww_time_remaining = Math.floor((ewww_attachments - ewww_i) * ewww_time_per_image);
 		if (ewww_time_remaining > 1) {
 			ewww_time_remaining--;
 		}
+		ewwwTimeIncrementsUpdate();
+		$('#ewww-bulk-timer').html(ewww_days_remaining + ':' + ewww_hours_remaining + ':' + ewww_minutes_remaining + ':' + ewww_seconds_remaining + ' ' + ewww_vars.time_remaining);
+	}
+	function ewwwTimeIncrementsUpdate() {
 		ewww_days_remaining = Math.floor(ewww_time_remaining / 86400);
 		ewww_hours_remaining = Math.floor((ewww_time_remaining - (ewww_days_remaining * 86400)) / 3600);
 		ewww_minutes_remaining = Math.floor((ewww_time_remaining - (ewww_days_remaining * 86400) - (ewww_hours_remaining * 3600)) / 60);
@@ -562,8 +543,7 @@ return hours+':'+minutes+':'+seconds;
 		if (ewww_hours_remaining < 10) { ewww_hours_remaining = '0'+ewww_hours_remaining; }
 		if (ewww_minutes_remaining < 10) { ewww_minutes_remaining = '0'+ewww_minutes_remaining; }
 		if (ewww_seconds_remaining < 10) { ewww_seconds_remaining = '0'+ewww_seconds_remaining; }
-		$('#ewww-bulk-timer').html(ewww_days_remaining + ':' + ewww_hours_remaining + ':' + ewww_minutes_remaining + ':' + ewww_seconds_remaining + ' ' + ewww_vars.time_remaining);
-	}	
+	}
 });
 function ewwwRemoveImage(imageID) {
 	var ewww_image_removal = {

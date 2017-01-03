@@ -264,7 +264,12 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			} else {
 				ewwwio_debug_message( "queuing $path" );
 				$image_size = $file->getSize();
-				$images[] = "('" . esc_sql( utf8_encode( $path ) ) . "',$image_size,1)";
+				if ( seems_utf8( $path ) ) {
+					$utf8_file_path = $path;
+				} else {
+					$utf8_file_path = utf8_encode( $path );
+				}
+				$images[] = "('" . esc_sql( $utf8_file_path ) . "',$image_size,1)";
 				$image_count++;
 			}
 			if ( $image_count > 1000 ) {

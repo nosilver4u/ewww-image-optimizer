@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: image, compress, optimize, optimization, lossless, lossy, photo, picture, seo, jpegmini, tinyjpg, tinypng, webp, wp-cli 
 Requires at least: 4.4
 Tested up to: 4.7.0
-Stable tag: 3.2.1
+Stable tag: 3.2.2
 License: GPLv3
 
 Reduce image sizes in WordPress including NextGEN, GRAND FlAGallery, FooGallery and more using lossless/lossy methods and image format conversion.
@@ -209,15 +209,22 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * feature requests are sticky at the top of the support forums, vote for the ones you like: https://wordpress.org/support/plugin/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 3.2.3 =
+* added: image linker for media images optimized using scheduled optimizer or the old Scan and Optimize
+* fixed: bulk scanner updates timestamps when it should not
+
 = 3.2.2 =
 * added: estimated time remaining on bulk optimize
+* added: 'ewww_image_optimizer_image_resized' hook added right after resizing, before original is overwritten
 * changed: image resizing is performed before any thumbnails are generated for reduced resource usage
 * fixed: compatibility with Azure storage plugin
 * fixed: bulk optimization not playing nice with WP Offload S3
-* fixed: compatibility with WP Retina Pro full-size option when resizing images
 * fixed: optimization results for resized original not displayed when using Imsanity
+* fixed: bulk optimization not working for utf-8 filenames - credit to devsporadic on github
+* fixed: retina paths not tested correctly in some odd cases
 * notice: FreeBSD 9 is EOL, version 10.3 is now the currently supported version
 * notice: RHEL 5 and CentOS 5 will be EOL at the end of March, at that point version 6 will be the lowest supported version
+* removed: generating full-size retina image automatically when resizing images and WP Retina 2x Pro detected
 
 = 3.2.1 =
 * fixed: really old versions of PHP (less than 5.5) cannot cope with using empty() on a function return value
