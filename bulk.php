@@ -469,6 +469,14 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	$attachment_images = array();
 	$reset_images = array();
 	$queued_ids = array();
+	$field_formats = array(
+		'%s', // path
+		'%s', // gallery
+		'%d', // orig_size
+		'%d', // attachment_id
+		'%s', // resize
+		'%d', // pending
+	);
 	ewwwio_debug_message( "scanning for media attachments" );
 	update_option( 'ewww_image_optimizer_bulk_resume', 'scanning' );
 
@@ -753,14 +761,22 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					} else {
 						$image_size = filesize( $file_path );
 					}
-					if ( seems_utf8( $file_path ) ) {
+					/*if ( seems_utf8( $file_path ) ) {
 						ewwwio_debug_message( 'file seems utf8' );
 						$utf8_file_path = $file_path;
 					} else {
 						ewwwio_debug_message( 'file will become utf8' );
 						$utf8_file_path = utf8_encode( $file_path );
-					}
-					$images[] = "('" . esc_sql( $utf8_file_path ) . "','media',$image_size,$selected_id,'$size',1)";
+					}*/
+					//$images[] = "('" . esc_sql( $utf8_file_path ) . "','media',$image_size,$selected_id,'$size',1)";
+					$images[] = array(
+						'path' => $file_path,
+						'gallery' => 'media',
+						'orig_size' => $image_size,
+						'attachment_id' => $selected_id,
+						'resize' => $size,
+						'pending' => 1,
+					);
 					$image_count++;
 				}
 				if ( $image_count > 1000 || count( $reset_images ) > 1000 ) {
@@ -770,8 +786,9 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					// let's dump what we have so far to the db
 					$image_count = 0;
 					if ( ! empty( $images ) ) {
-						$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,gallery,orig_size,attachment_id,resize,pending) VALUES " . implode( ',', $images );
-						$wpdb->query( $insert_query );
+						ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, $field_formats );
+//						$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,gallery,orig_size,attachment_id,resize,pending) VALUES " . implode( ',', $images );
+//						$wpdb->query( $insert_query );
 					}
 					$images = array();
 					if ( ! empty( $reset_images ) ) {
@@ -798,8 +815,9 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	} // endwhile
 	ewww_image_optimizer_debug_log();
 	if ( ! empty( $images ) ) {
-		$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,gallery,orig_size,attachment_id,resize,pending) VALUES " . implode( ',', $images );
-		$wpdb->query( $insert_query );
+		ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, $field_formats );
+		//$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,gallery,orig_size,attachment_id,resize,pending) VALUES " . implode( ',', $images );
+		//$wpdb->query( $insert_query );
 	//ewwwio_memory( 'inserted ids' );
 	}
 	if ( ! empty( $reset_images ) ) {

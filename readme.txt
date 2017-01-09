@@ -212,6 +212,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 = 3.2.3 =
 * added: image linker for media images optimized using scheduled optimizer or the old Scan and Optimize
 * fixed: bulk scanner updates timestamps when it should not
+* fixed: special characters are mangled during database insert on some systems
 
 = 3.2.2 =
 * added: estimated time remaining on bulk optimize

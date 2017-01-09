@@ -13,15 +13,16 @@
 // TODO: see if there is a way to query the last couple months (or 30 days) worth of attachments, but only when the user is not using year/month folders. This way, they can catch extraneous images if possible.
 // TODO: move resizing options into their own sub-menu
 // TODO: see if retina optimization can be delayed until background opt, should be since we check for hidpi versions during resize_from_meta
-// TODO: check for the full-size image in the db, if no results are found by attachment_id, and then run the migrate routine, but how to do that safely? hmmm
+// TODO: check for the full-size image in the db, if no results are found by attachment_id, and then run the migrate routine, but how to do that safely? should be DONE
 // TODO: add console logging when a json parsing error occurs, or a response does not seem right
 // TODO: add an override for network admins to allow site admins to configure their own sites
+// TODO: add a count of how many images optimized to the debug info on the settings, making sure to ignore pending
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '322.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '322.3' );
 
 // initialize a couple globals
 $ewww_debug = '';
@@ -2555,6 +2556,25 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	}
 }
 
+// inserts multiple records into the table at once
+// each sub-array should have the same number of items as $columns & $formats
+// if $format isn't specified, default to string (%s)
+function ewww_image_optimizer_mass_insert( $table, $images, $format ) {
+	if ( empty( $table ) || ! ewww_image_optimizer_iterable( $images ) || ! ewww_image_optimizer_iterable( $format ) ) {
+		return false;
+	}
+	global $ewwwdb;
+	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/ewww-db.php' );
+	if ( ! isset( $ewwwdb ) ) {
+		$ewwwdb = new ewwwdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
+	}
+//	if ( ! isset( $ewwwdb->ewwwio_images ) ) {
+//		$ewwwdb->ewwwio_images = $ewwwdb->prefix . "ewwwio_images";
+//	}
+	
+	$ewwwdb->insert_multiple( $table, $images, $format );	
+}
+
 // check the database to see if we've done this image before
 function ewww_image_optimizer_check_table( $file, $orig_size ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
@@ -2617,6 +2637,7 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 		$updates['orig_size'] = $orig_size;
 		$updates['updated'] = date( 'Y-m-d H:i:s' );
 		$wpdb->insert( $wpdb->ewwwio_images, $updates );
+		ewwwio_debug_message( print_r( $wpdb->last_query, true ) );
 	} else {
 		if ( is_array( $already_optimized ) && empty( $already_optimized['orig_size'] ) ) {
 			$updates['orig_size'] = $orig_size;
@@ -4347,7 +4368,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 						$id,
 						esc_html__( 'Re-optimize', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) . '</div>';
 				}
-			} elseif ( current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
+			} elseif ( ! $in_progress && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 				ewww_image_optimizer_migrate_meta_to_db( $id, $meta );
 				// and give the user the option to optimize the image right now
 				if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
@@ -4454,7 +4475,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 					$id,
 					esc_html__( 'Restore original', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) . '</div>';
 			}
-		} else {
+		} elseif ( ! $in_progress ) {
 			// otherwise, this must be an image we haven't processed
 			if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 				$disabled_sizes_opt = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt' );
