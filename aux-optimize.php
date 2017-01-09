@@ -264,27 +264,34 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			} else {
 				ewwwio_debug_message( "queuing $path" );
 				$image_size = $file->getSize();
-				if ( seems_utf8( $path ) ) {
+			/*	if ( seems_utf8( $path ) ) {
 					$utf8_file_path = $path;
 				} else {
 					$utf8_file_path = utf8_encode( $path );
-				}
-				$images[] = "('" . esc_sql( $utf8_file_path ) . "',$image_size,1)";
+				}*/
+				//$images[] = "('" . esc_sql( $utf8_file_path ) . "',$image_size,1)";
+				$images[] = array(
+					'path' => $path,
+					'orig_size' => $image_size,
+					'pending' => 1,
+				);
 				$image_count++;
 			}
 			if ( $image_count > 1000 ) {
 				// let's dump what we have so far to the db
 				$image_count = 0;
-				$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,orig_size,pending) VALUES " . implode( ',', $images );
-				$wpdb->query( $insert_query );
+				ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
+				//$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,orig_size,pending) VALUES " . implode( ',', $images );
+				//$wpdb->query( $insert_query );
 				$images = array();
 			}
 		}
 //		ewww_image_optimizer_debug_log();
 	}
 	if ( ! empty( $images ) ) {
-		$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,orig_size,pending) VALUES " . implode( ',', $images );
-		$wpdb->query( $insert_query );
+		ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
+		//$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,orig_size,pending) VALUES " . implode( ',', $images );
+		//$wpdb->query( $insert_query );
 	}
 	if ( ! empty( $reset_images ) ) {
 		$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $reset_images ) . ')' );
@@ -414,7 +421,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 								$mimetype = ewww_image_optimizer_mimetype( $path, 'i' );
 								// brand new image
 								if ( preg_match( '/^image\/(jpeg|png|gif)/', $mimetype ) && empty( $already_optimized ) ) {
-									$slide_paths[] = "('$path',$image_size)";
+									$slide_paths[] = array( 'path' => $path, 'orig_size' => $image_size );
 								// changed image
 								} elseif ( preg_match( '/^image\/(jpeg|png|gif)/', $mimetype ) && ! empty( $already_optimized ) && $already_optimized['image_size'] != $image_size ) {
 									$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id = {$already_optimized['id']}" );
@@ -425,8 +432,9 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 				}
 			}
 			if ( ! empty( $slide_paths ) ) {
-				$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,orig_size) VALUES " . implode( ',', $slide_paths );
-				$wpdb->query( $insert_query );
+				ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $slide_paths, array( '%s', '%d' ) );
+	//			$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,orig_size) VALUES " . implode( ',', $slide_paths );
+	//			$wpdb->query( $insert_query );
 			}
 		}
 		// collect a list of images in auxiliary folders provided by user
