@@ -197,8 +197,11 @@ jQuery(document).ready(function($) {
 				$('#ewww-show-table').hide();
 				//$('.ewww-bulk-form').hide();
 				//$('.ewww-bulk-info').hide();
-				//$('h2').hide();	
-				$('#ewww-scanning').html( ewww_response.remaining );
+				//$('h2').hide();
+				if ( ! ewww_response.notice ) {
+					ewww_response.notice = '';
+				}
+				$('#ewww-scanning').html( ewww_response.remaining + '<br>' + ewww_response.notice );
 				ewwwStartScan();
 			} else if ( ewww_response.ready ) {
 				ewww_attachments = ewww_response.ready;

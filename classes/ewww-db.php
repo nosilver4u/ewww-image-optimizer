@@ -5,6 +5,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class ewwwdb extends wpdb {
 
+	// makes sure we use some variant of utf8 for checking images
+	function init_charset() {
+		parent::init_charset();
+		if ( strpos( $this->charset, 'utf8' ) === false ) {
+			$this->charset = 'utf8';
+		}
+	}
+
 	// inserts multiple records into the table at once
 	// each sub-array should have the same number of items as $formats
 	// if $format isn't specified, default to string (%s)
@@ -53,6 +61,7 @@ class ewwwdb extends wpdb {
 			}
 			$multi_formats[] = '(' . implode( ',', $formats ) . ')';
 		}
+
 		$fields = '`' . implode( '`, `', array_keys( $data[0] ) ) . '`';
 		$multi_formats = implode( ',', $multi_formats );
 		$sql = "INSERT INTO `$table` ($fields) VALUES $multi_formats";
