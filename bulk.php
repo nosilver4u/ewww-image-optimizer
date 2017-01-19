@@ -115,13 +115,13 @@ function ewww_image_optimizer_bulk_preview() {
 // detect if memory limits are a bit low and reduce the number of records we query at a time
 function ewww_image_optimizer_reduce_query_count( $max_query ) {
 	$memory_limit = ewwwio_memory_limit();
-	if ( $memory_limit <= 33550000 ) {
+	if ( $memory_limit <= 33560000 ) {
 		return 500;
-	} elseif ( $memory_limit <= 67110000 ) {
+	} elseif ( $memory_limit <= 67120000 ) {
 		return 1000;
-	} elseif ( $memory_limit <= 134200000 ) {
+	} elseif ( $memory_limit <= 134300000 ) {
 		return 2000;
-	} elseif ( $memory_limit <= 268400000 ) {
+	} elseif ( $memory_limit <= 268500000 ) {
 		return 4000;
 	}
 	return $max_query;
