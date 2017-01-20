@@ -220,6 +220,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * fixed: pending images that were already optimized were not cleared from queue
 * fixed: images with invalid updated dates in database corrected
 * fixed: images that should be excluded from optimization were still queued even though they would not be optimized
+* fixed: results column was too short, causing bulk optimization to get stuck on an image that was previously optimized
 
 = 3.2.2 =
 * added: estimated time remaining on bulk optimize

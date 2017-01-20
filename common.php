@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '322.40' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '322.41' );
 
 // initialize a couple globals
 $ewww_debug = '';
@@ -977,13 +977,13 @@ function ewww_image_optimizer_install_table() {
 
 	// create a table with 4 columns: an id, the file path, the md5sum, and the optimization results
 	$sql = "CREATE TABLE $wpdb->ewwwio_images (
-		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		id mediumint(14) NOT NULL AUTO_INCREMENT,
 		attachment_id bigint(20) unsigned,
 		gallery varchar(10),
-		resize varchar(55),
+		resize varchar(75),
 		path text NOT NULL,
 		converted text NOT NULL,
-		results varchar(55) NOT NULL,
+		results varchar(75) NOT NULL,
 		image_size int(10) unsigned,
 		orig_size int(10) unsigned,
 		level int(5) unsigned,
@@ -2750,13 +2750,19 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 		if ( empty( $already_optimized['resize'] ) && is_object( $ewww_image ) && $ewww_image instanceof EWWW_Image && $ewww_image->resize ) {
 			$updates['resize'] = $ewww_image->resize;
 		}
+		ewwwio_debug_message( print_r( $updates, true ) );
 		// store info on the current image for future reference
-		$ewwwdb->update( $ewwwdb->ewwwio_images,
+		$record_updated = $ewwwdb->update( $ewwwdb->ewwwio_images,
 			$updates,
 			array(
 				'id' => $already_optimized['id'],
 			)
 		);
+		if ( false === $record_updated ) {
+			ewwwio_debug_message( "db error: " . print_r( $wpdb->last_error, true ) );
+		} else {
+			ewwwio_debug_message( "updated $record_updated records successfully" );
+		}
 	}
 	ewwwio_memory( __FUNCTION__ );
 	$ewwwdb->flush();
