@@ -61,8 +61,8 @@ class ewwwdb extends wpdb {
 			}
 			$multi_formats[] = '(' . implode( ',', $formats ) . ')';
 		}
-
-		$fields = '`' . implode( '`, `', array_keys( $data[0] ) ) . '`';
+		$first = reset( $data );
+		$fields = '`' . implode( '`, `', array_keys( $first ) ) . '`';
 		$multi_formats = implode( ',', $multi_formats );
 		$sql = "INSERT INTO `$table` ($fields) VALUES $multi_formats";
 //ewwwio_debug_message( $sql );

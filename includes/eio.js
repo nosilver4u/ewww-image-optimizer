@@ -382,9 +382,11 @@ jQuery(document).ready(function($) {
 				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.invalid_response + '</b></p>');
 				return false;
 			}	
-			//var ewww_init_response = $.parseJSON(response);
 			if ( ewww_init_response.error ) {
 				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_init_response.error + '</b></p>');
+				if ( ewww_init_response.data ) {
+					console.log( ewww_init_response.data );
+				}
 			} else {
 				if ( ewww_init_response.start_time ) {
 					ewww_bulk_start_time = ewww_init_response.start_time;

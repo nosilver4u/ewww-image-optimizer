@@ -3,8 +3,8 @@ Contributors: nosilver4u
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW
 Tags: image, compress, optimize, optimization, lossless, lossy, photo, picture, seo, jpegmini, tinyjpg, tinypng, webp, wp-cli 
 Requires at least: 4.4
-Tested up to: 4.7.0
-Stable tag: 3.2.2
+Tested up to: 4.7.2
+Stable tag: 3.2.4
 License: GPLv3
 
 Reduce image sizes in WordPress including NextGEN, GRAND FlAGallery, FooGallery and more using lossless/lossy methods and image format conversion.
@@ -209,10 +209,19 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * feature requests are sticky at the top of the support forums, vote for the ones you like: https://wordpress.org/support/plugin/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 3.2.4 =
+* changed: when license has been exceeded, visiting the settings page flushes the license cache
+* fixed: warnings for illegal string offsets
+* fixed: regression with the dreaded duplicate key name
+* fixed: scheduled optimization could run during bulk optimization, causing unexpected results
+
 = 3.2.3 =
 * added: image linker for media images optimized using scheduled optimizer or the old Scan and Optimize
 * added: low memory mode for bulk scanner with notice to user
+* added: ability to manually configure how much memory is available using EWWW_MEMORY_LIMIT constant
 * added: variable query counts depending on available memory
+* added: ability to view and remove debug.log from settings page
+* added: ability to manually disable background optimization using EWWW_DISABLE_ASYNC constant
 * changed: check every 100 images during scan to avoid timeouts and memory errors
 * changed: additional folder scanner can stop & resume mid-folder
 * fixed: bulk scanner updates timestamps when it should not
@@ -221,6 +230,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * fixed: images with invalid updated dates in database corrected
 * fixed: images that should be excluded from optimization were still queued even though they would not be optimized
 * fixed: results column was too short, causing bulk optimization to get stuck on an image that was previously optimized
+* fixed: if two different attachments reference the same image, duplicate records could be inserted into database during media scan
 
 = 3.2.2 =
 * added: estimated time remaining on bulk optimize
@@ -271,6 +281,9 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * fixed: using getimagesize on pdf files
 
 == Upgrade Notice ==
+
+= 3.2.3 =
+* The bulk scanner will now attempt to auto-detect how much memory is available to avoid exceeding memory limits within PHP. Some webhosts do not allow the ini_get() function, so the plugin will fall back to the current memory usage plug 16MB. If you need to set the memory limit for EWWW IO manually, you can do so with the EWWW_MEMORY_LIMIT constant in wp-config.php.
 
 = 2.9.0 =
 * changed: JPG quality setting applies to conversion AND image editing (but not regular optimization), so that you can override the WP default of 82 (it is NOT recommended to increase the quality)

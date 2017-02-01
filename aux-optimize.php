@@ -229,7 +229,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 		if ( get_transient( 'ewww_image_optimizer_aux_iterator' ) && get_transient( 'ewww_image_optimizer_aux_iterator' ) > $file_counter ) {
 			continue;
 		}
-		if ( $file_counter % 100 === 0 && $started && ! empty( $_REQUEST['ewww_scan'] ) && microtime( true ) - $started > apply_filters( 'ewww_image_optimizer_timeout', 15 ) ) {
+		if ( $started && ! empty( $_REQUEST['ewww_scan'] ) && $file_counter % 100 === 0 && microtime( true ) - $started > apply_filters( 'ewww_image_optimizer_timeout', 15 ) ) {
 			if ( ! empty( $reset_images ) ) {
 				$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $reset_images ) . ')' );
 			}
@@ -240,7 +240,8 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			$loading_image = plugins_url('/images/wpspin.gif', __FILE__);
 			die( json_encode( array( 'remaining' => '<p>' . esc_html__( 'Stage 2, please wait.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "&nbsp;<img src='$loading_image' /></p>", 'notice' => '' ) ) );
 		}
-		if ( $file_counter % 100 === 0 && ! ewwwio_check_memory_available( 2097000 ) ) {
+		// TODO: can we tailor this for scheduled opt also?
+		if ( ! empty( $_REQUEST['ewww_scan'] ) && $file_counter % 100 === 0 && ! ewwwio_check_memory_available( 2097000 ) ) {
 			if ( $file_counter < 100 ) {
 				die( json_encode( array( 'error' => esc_html__( 'Stage 2 unable to complete due to memory restrictions. Please increase the memory_limit setting for PHP and try again.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
 			}
@@ -254,14 +255,12 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			$loading_image = plugins_url('/images/wpspin.gif', __FILE__);
 			die( json_encode( array( 'remaining' => '<p>' . esc_html__( 'Stage 2, please wait.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "&nbsp;<img src='$loading_image' /></p>", 'notice' => '' ) ) );
 		}
-// put memory check here, and store file_counter, perhaps also do some sort of sanity check to make sure we are making progress, like file_counter > 100
 		$file_counter++;
 		if ( $file->isFile() ) {
 			$path = $file->getPathname();
 			if ( preg_match( '/(\/|\\\\)\./', $path ) && apply_filters( 'ewww_image_optimizer_ignore_hidden_files', true ) ) {
 				continue;
 			}
-			//if ( ! ewww_image_optimizer_quick_mimetype( $path ) ) {
 			$mime = ewww_image_optimizer_quick_mimetype( $path );
 			if ( ! in_array( $mime, $enabled_types ) ) {
 				continue;
@@ -271,10 +270,9 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 				continue;
 			}
 
+			$already_optimized = false;
 			if ( $optimized_list === 'low_memory' ) {
 				$already_optimized = ewww_image_optimizer_find_already_optimized( $path );
-			} else {
-				$already_optimized = false;
 			}
 
 			if ( $already_optimized || isset( $optimized_list[ $path ] ) ) {

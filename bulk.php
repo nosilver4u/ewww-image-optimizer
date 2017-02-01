@@ -120,9 +120,9 @@ function ewww_image_optimizer_reduce_query_count( $max_query ) {
 	} elseif ( $memory_limit <= 67120000 ) {
 		return 1000;
 	} elseif ( $memory_limit <= 134300000 ) {
-		return 2000;
+		return 1500;
 	} elseif ( $memory_limit <= 268500000 ) {
-		return 4000;
+		return 3000;
 	}
 	return $max_query;
 }
@@ -139,7 +139,7 @@ function ewww_image_optimizer_count_optimized( $gallery, $return_ids = false ) {
 	ewwwio_debug_message( "scanning for $gallery" );
 	// retrieve the time when the optimizer starts
 	$started = microtime(true);
-	$max_query = apply_filters( 'ewww_image_optimizer_count_optimized_queries', 8000 );
+	$max_query = apply_filters( 'ewww_image_optimizer_count_optimized_queries', 4000 );
 	$max_query = (int) $max_query;
 	$attachment_query_count = 0;
 	switch ( $gallery ) {
@@ -413,7 +413,7 @@ function ewww_image_optimizer_optimized_list() {
 		$ewwwdb = $wpdb;
 	}
 	$offset = 0;
-	$max_query = (int) apply_filters( 'ewww_image_optimizer_count_optimized_queries', 8000 );
+	$max_query = (int) apply_filters( 'ewww_image_optimizer_count_optimized_queries', 4000 );
 	$optimized_list = array();
 	if ( get_transient( 'ewww_image_optimizer_low_memory_mode' ) ) {
 		$optimized_list = 'low_memory';
@@ -523,13 +523,14 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	);
 	ewwwio_debug_message( "scanning for media attachments" );
 	update_option( 'ewww_image_optimizer_bulk_resume', 'scanning' );
+	set_transient( 'ewww_image_optimizer_no_scheduled_optimization', true, 30  * MINUTE_IN_SECONDS );
 
 	// retrieve the time when the scan starts
 	$started = microtime( true );
 
 	ewww_image_optimizer_optimized_list();
 
-	$max_query = apply_filters( 'ewww_image_optimizer_count_optimized_queries', 8000 );
+	$max_query = apply_filters( 'ewww_image_optimizer_count_optimized_queries', 4000 );
 	$max_query = (int) $max_query;
 
 	$attachment_ids = get_option( 'ewww_image_optimizer_scanning_attachments' );
@@ -784,10 +785,9 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					continue;
 				}
 				ewwwio_debug_message( "here is a path $file_path" );
+				$already_optimized = false;
 				if ( ! is_array( $optimized_list ) && $optimized_list === 'low_memory' ) {
 					$already_optimized = ewww_image_optimizer_find_already_optimized( $file_path );
-				} else {
-					$already_optimized = false;
 				}
 				if ( ( $already_optimized || isset( $optimized_list[ $file_path ] ) ) && ( ! $remote_file || ! empty( $_REQUEST['ewww_force'] ) ) ) {
 					if ( ! $already_optimized ) {
@@ -834,6 +834,9 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						ewwwio_debug_message( "mismatch found for $file_path, db says " . $already_optimized['image_size'] . " vs. current $image_size" );
 					}
 				} else {
+					if ( ! empty( $images[ $file_path ] ) ) {
+						continue;
+					}
 					$pending = true;
 					ewwwio_debug_message( "queuing $file_path" );
 					if ( $remote_file ) {
@@ -857,7 +860,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						$utf8_file_path = utf8_encode( $file_path );
 					}
 					//$images[] = "('" . esc_sql( $utf8_file_path ) . "','media',$image_size,$selected_id,'$size',1)";
-					$images[] = array(
+					$images[ $file_path ] = array(
 						'path' => $utf8_file_path,
 						'gallery' => 'media',
 						'orig_size' => $image_size,
@@ -977,7 +980,7 @@ function ewww_image_optimizer_bulk_initialize() {
 		$attachments = unserialize( $attachments );
 	}
 	if ( ! is_array( $attachments ) ) {
-		die( json_encode( array( 'error' => esc_html__( 'Error retrieving list of images', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
+		die( json_encode( array( 'error' => esc_html__( 'Error retrieving list of images', EWWW_IMAGE_OPTIMIZER_DOMAIN ), 'data' => print_r( $attachments, true ) ) ) );
 	}
 	$attachment = (int) array_shift( $attachments );
 	ewwwio_debug_message( "first image: $attachment" );
@@ -1012,6 +1015,8 @@ function ewww_image_optimizer_bulk_loop( $hook, $delay = 0 ) {
 	session_write_close();
 	// retrieve the time when the optimizer starts
 	$started = microtime( true );
+	// prevent the scheduled optimizer from firing during a bulk optimization
+	set_transient( 'ewww_image_optimizer_no_scheduled_optimization', true, 5  * MINUTE_IN_SECONDS );
 	// find out if our nonce is on it's last leg/tick
 	if ( ! empty( $_REQUEST['ewww_wpnonce'] ) ) {
 		$tick = wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' );
