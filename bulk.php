@@ -379,17 +379,19 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 	// number of image attachments to be optimized
 	$attachment_count = count( $attachments );
 	// submit a couple variables to the javascript to work with
+	$loading_image = plugins_url('/images/wpspin.gif', __FILE__);
 	wp_localize_script('ewwwbulkscript', 'ewww_vars', array(
 			'_wpnonce' => wp_create_nonce( 'ewww-image-optimizer-bulk' ),
 			'attachments' => ewww_image_optimizer_aux_images_table_count_pending(),
 			'image_count' => $image_count,
 			'count_string' => sprintf( esc_html__( '%d images', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $image_count ),
 			'scan_fail' => esc_html__( 'Operation timed out, you may need to increase the max_execution_time for PHP', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
-			'scan_incomplete' => esc_html__( 'Scan did not complete, will try again', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
+			'scan_incomplete' => esc_html__( 'Scan did not complete, will try again', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "&nbsp;<img src='$loading_image' />",
 			'operation_stopped' => esc_html__( 'Optimization stopped, reload page to resume.', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
 			'operation_interrupted' => esc_html__( 'Operation Interrupted', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
 			'temporary_failure' => esc_html__( 'Temporary failure, seconds left to retry:', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
 			'invalid_response' => esc_html__( 'Received an invalid response from your website, please check for errors in the Developer Tools console of your browser.', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
+			'bad_attachment' => esc_html__( 'Previous failure due to broken/missing metadata, skipped resizes for attachment:', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
 			'remove_failed' => esc_html__( 'Could not remove image from table.', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
 			/* translators: used for Bulk Optimize progress bar, like so: Optimized 32/346 */
 			'optimized' => esc_html__( 'Optimized', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
@@ -528,8 +530,11 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	// retrieve the time when the scan starts
 	$started = microtime( true );
 
+	list( $bad_attachments, $bad_attachment ) = ewww_image_optimizer_get_bad_attachments();
+	ewww_image_optimizer_debug_log();
 	ewww_image_optimizer_optimized_list();
 
+	ewww_image_optimizer_debug_log();
 	$max_query = apply_filters( 'ewww_image_optimizer_count_optimized_queries', 4000 );
 	$max_query = (int) $max_query;
 
@@ -556,8 +561,10 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		$enabled_types[] = 'application/pdf';
 	}
 
+	ewww_image_optimizer_debug_log();
 	$starting_memory_usage = memory_get_usage( true );
 	while ( microtime( true ) - $started < apply_filters( 'ewww_image_optimizer_timeout', 15 ) && count( $attachment_ids ) ) {
+	ewww_image_optimizer_debug_log();
 		if ( ! empty( $estimated_batch_memory ) && ! ewwwio_check_memory_available( 3146000 + $estimated_batch_memory ) ) { // initial batch storage used + 3MB
 			break;
 		}
@@ -590,6 +597,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		ewwwio_debug_message( "validated " . count( $attachment_meta ) . " attachment meta items" );
 		ewwwio_debug_message( 'remaining items after selection: ' . count( $attachment_ids ) );
 		foreach ( $selected_ids as $selected_id ) {
+	ewww_image_optimizer_debug_log();
 			array_shift( $failsafe_selected_ids );
 //	ewwwio_memory( 'scanning an attachment for images' );
 			clearstatcache();
@@ -615,7 +623,9 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				ewwwio_debug_message( "missing mime for $selected_id" );
 			}
 
+	ewww_image_optimizer_debug_log();
 			if ( 'application/pdf' != $mime // NOT a pdf
+				&& ! in_array( $selected_id, $bad_attachments ) // not a known broken attachment, means we already tried this once before
 				&& ( // AND
 					empty( $meta ) // meta is empty
 					|| ( is_string( $meta ) && 'processing' == $meta ) // OR the string 'processing'
@@ -624,7 +634,10 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			) {
 				// rebuild meta
 				ewwwio_debug_message( "attempting to rebuild attachment meta for $selected_id" );
+				set_transient( 'ewww_image_optimizer_rebuilding_attachment', $selected_id, 5  * MINUTE_IN_SECONDS );
+	ewww_image_optimizer_debug_log();
 				$new_meta = ewww_image_optimizer_rebuild_meta( $selected_id );
+				delete_transient( 'ewww_image_optimizer_rebuilding_attachment' );
 				if ( is_array( $new_meta ) ) {
 					$meta = $new_meta;
 				} else {
@@ -637,6 +650,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			}
 			//ewwwio_debug_message( print_r( $meta, true ) );
 			ewwwio_debug_message( "id: $selected_id and type: $mime" );
+	ewww_image_optimizer_debug_log();
 			$attached_file = ( ! empty( $attachment_meta[ $selected_id ]['_wp_attached_file'] ) ? $attachment_meta[ $selected_id ]['_wp_attached_file'] : '' );
 			list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $selected_id, $attached_file, false );
 			// run a quick fix for as3cf files
@@ -893,7 +907,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				$queued_ids[] = $selected_id;
 			}
 			$attachment_images = array();
-			if ( $image_count % 100 == 0 && ( microtime( true ) - $started > apply_filters( 'ewww_image_optimizer_timeout', 15 ) || ! ewwwio_check_memory_available( 2097000 ) ) ) {
+			if ( $selected_id == $bad_attachment || ( $image_count % 100 == 0 && ( microtime( true ) - $started > apply_filters( 'ewww_image_optimizer_timeout', 15 ) || ! ewwwio_check_memory_available( 2097000 ) ) ) ) {
 				$attachment_ids = array_merge( $failsafe_selected_ids, $attachment_ids );
 				break;
 			}
@@ -941,11 +955,13 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		die( json_encode( array(
 			'remaining' => sprintf( esc_html__( 'Stage 1, %d images left to scan.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), count( $attachment_ids ) ) . "&nbsp;<img src='$loading_image' />",
 			'notice' => $notice,
+			'bad_attachment' => $bad_attachment,
 		) ) );
 	} else {
 		die( json_encode( array(
 			'remaining' => esc_html__( 'Stage 2, please wait.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "&nbsp;<img src='$loading_image' />",
 			'notice' => $notice,
+			'bad_attachment' => $bad_attachment,
 		 ) ) );
 	}
 }

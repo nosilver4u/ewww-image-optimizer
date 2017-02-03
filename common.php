@@ -19,7 +19,7 @@
 // TODO: check for Pantheon platform, and use relative path matching somehow: if ( in_array( $_ENV['PANTHEON_ENVIRONMENT'], Array('test', 'live') ) ) and include the CONSTANT in the path when storing in db
 // TODO: need to make the scheduler so it can resume without having to re-run the queue population, and then we can probably also flush the queue when scheduled opt starts, but later it would be nice to implement the bulk_loop as the aux_loop so that it could handle media properly
 // TODO: implement a search for the bulk table, or maybe we should just move it to it's own page?
-// TODO: can we detect the absence of 'sleep' when it is disabled, and disable the background/parallel modes?
+// TODO: use new function_exists test for exec
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -591,6 +591,28 @@ function ewww_image_optimizer_stl_check() {
 		ewwwio_debug_message( 'set_time_limit does not exist' );
 		return false;
 	}
+}
+
+// checks if a function is disabled or does not exist
+function ewww_image_optimizer_function_exists( $function ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$disabled = @ini_get( 'disable_functions' );
+//	$disabled = explode( ',', ini_get( 'disable_functions' )
+	ewwwio_debug_message( "disable_functions: $disabled" );
+	if ( extension_loaded( 'suhosin' ) ) {
+		$suhosin_disabled = @ini_get( 'suhosin.executor.func.blacklist' );
+		ewwwio_debug_message( "suhosin_blacklist: $suhosin_disabled" );
+		if ( ! empty( $suhosin_disabled ) ) {
+			$suhosin_disabled = explode( ',', $suhosin_disabled );
+			$suhosin_disabled = array_map( 'trim', $suhosin_disabled );
+			$suhosin_disabled = array_map( 'strtolower', $suhosin_disabled );
+			if ( function_exists( $function ) && ! in_array( $function, $suhosin_disabled ) ) {
+				return true;
+			}
+			return false;
+		}
+	}
+	return function_exists( $function );
 }
 
 function ewww_image_optimizer_preinit() {
@@ -3397,6 +3419,9 @@ function ewww_image_optimizer_test_background_opt( $type = '' ) {
 	if ( defined( 'EWWW_DISABLE_ASYNC' ) && EWWW_DISABLE_ASYNC ) {
 		return false;
 	}
+	if ( ! ewww_image_optimizer_function_exists( 'sleep' ) ) {
+		return false;
+	}
 	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ) {
 		return false;
 	}
@@ -3418,6 +3443,9 @@ function ewww_image_optimizer_test_background_opt( $type = '' ) {
 
 function ewww_image_optimizer_test_parallel_opt( $type = '', $id = 0 ) {
 	if ( defined( 'EWWW_DISABLE_ASYNC' ) && EWWW_DISABLE_ASYNC ) {
+		return false;
+	}
+	if ( ! ewww_image_optimizer_function_exists( 'sleep' ) ) {
 		return false;
 	}
 	if ( ewww_image_optimizer_detect_wpsf_location_lock() ) {
@@ -3458,8 +3486,11 @@ function ewww_image_optimizer_rebuild_meta( $attachment_id ) {
 	if ( file_exists( $file ) ) {
 		remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
 		remove_all_filters( 'wp_generate_attachment_metadata' );
+ewwwio_debug_message( "generating new meta for $attachment_id" );
+			ewww_image_optimizer_debug_log();
 		$meta = wp_generate_attachment_metadata( $attachment_id, $file );
 		ewwwio_debug_message( "generated new meta for $attachment_id" );
+			ewww_image_optimizer_debug_log();
 		$updated = update_post_meta( $attachment_id, '_wp_attachment_metadata', $meta );
 		if ( $updated ) {
 			ewwwio_debug_message( "updated meta for $attachment_id" );
@@ -4893,6 +4924,20 @@ function ewww_image_optimizer_set_option( $option_name, $option_value ) {
 	return $success;
 }
 
+// check for a list of attachments for which we do not rebuild meta
+function ewww_image_optimizer_get_bad_attachments() {
+	$bad_attachment = get_transient( 'ewww_image_optimizer_rebuilding_attachment' );
+	if ( $bad_attachment ) {
+		$bad_attachments = (array) ewww_image_optimizer_get_option( 'ewww_image_optimizer_bad_attachments' );
+		$bad_attachments[] = $bad_attachment;
+		ewww_image_optimizer_set_option( 'ewww_image_optimizer_bad_attachments', $bad_attachments, false );
+	} else {
+		$bad_attachments = (array) ewww_image_optimizer_get_option( 'ewww_image_optimizer_bad_attachments' );
+	}
+	delete_transient( 'ewww_image_optimizer_rebuilding_attachment' );
+	return array( $bad_attachments, $bad_attachment );
+}
+
 function ewww_image_optimizer_settings_script( $hook ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 //	global $wpdb;
@@ -5651,6 +5696,9 @@ function ewww_image_optimizer_options () {
 	"</div>\n";
 	ewwwio_debug_message( 'max_execution_time: ' . ini_get('max_execution_time') );
 	ewww_image_optimizer_stl_check();
+	if ( ! ewww_image_optimizer_function_exists( 'sleep' ) ) {
+		ewwwio_debug_message( 'sleep disabled' );
+	}
 	ewwwio_check_memory_available();
 	echo apply_filters( 'ewww_image_optimizer_settings', $output );
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_ce_webp_enabled() ) {

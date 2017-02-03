@@ -206,7 +206,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 == Changelog ==
 
 * I no longer have a Mac with which to build new binaries. Until I can raise enough funds, there will be no more updates for the Mac OS X tools, and I may have to temporarily remove Mac support if any security issues arise in the meantime: https://www.gofundme.com/ewww-image-optimizer-mac-dev-laptop
-* feature requests are sticky at the top of the support forums, vote for the ones you like: https://wordpress.org/support/plugin/ewww-image-optimizer
+* Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 3.2.4 =
@@ -214,6 +214,8 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * fixed: warnings for illegal string offsets
 * fixed: regression with the dreaded duplicate key name
 * fixed: scheduled optimization could run during bulk optimization, causing unexpected results
+* fixed: background optimization running when sleep is disabled
+* fixed: broken attachment metadata could halt the bulk scanner
 
 = 3.2.3 =
 * added: image linker for media images optimized using scheduled optimizer or the old Scan and Optimize
