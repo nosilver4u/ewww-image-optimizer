@@ -507,6 +507,7 @@ class EWWW_Image {
 					imagecopy( $output, $input, 0, 0, 0, 0, $width, $height );
 					// output the JPG with the quality setting
 					imagejpeg( $output, $newfile, $quality );
+					$jpg_size = ewww_image_optimizer_filesize( $newfile );
 				}
 				ewwwio_debug_message( "converted JPG size: $jpg_size" );
 				// if the new JPG is smaller than the original PNG
