@@ -211,6 +211,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 
 = 3.2.4 =
 * changed: when license has been exceeded, visiting the settings page flushes the license cache
+* fixed: converting PNG to JPG with GD did not properly convert resizes
 * fixed: warnings for illegal string offsets
 * fixed: regression with the dreaded duplicate key name
 * fixed: scheduled optimization could run during bulk optimization, causing unexpected results
