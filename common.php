@@ -20,12 +20,13 @@
 // TODO: need to make the scheduler so it can resume without having to re-run the queue population, and then we can probably also flush the queue when scheduled opt starts, but later it would be nice to implement the bulk_loop as the aux_loop so that it could handle media properly
 // TODO: implement a search for the bulk table, or maybe we should just move it to it's own page?
 // TODO: use new function_exists test for exec
+// TODO: check for print_r before using
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '324.2' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '325.0' );
 
 // initialize a couple globals
 $ewww_debug = '';
@@ -596,10 +597,12 @@ function ewww_image_optimizer_stl_check() {
 // checks if a function is disabled or does not exist
 function ewww_image_optimizer_function_exists( $function ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	$disabled = @ini_get( 'disable_functions' );
+	if ( function_exists( 'ini_get' ) ) {
+		$disabled = @ini_get( 'disable_functions' );
+		ewwwio_debug_message( "disable_functions: $disabled" );
+	}
 //	$disabled = explode( ',', ini_get( 'disable_functions' )
-	ewwwio_debug_message( "disable_functions: $disabled" );
-	if ( extension_loaded( 'suhosin' ) ) {
+	if ( extension_loaded( 'suhosin' ) && function_exists( 'ini_get' ) ) {
 		$suhosin_disabled = @ini_get( 'suhosin.executor.func.blacklist' );
 		ewwwio_debug_message( "suhosin_blacklist: $suhosin_disabled" );
 		if ( ! empty( $suhosin_disabled ) ) {
@@ -5481,9 +5484,9 @@ function ewww_image_optimizer_options () {
 				ewwwio_debug_message( "pdf level: " . ewww_image_optimizer_get_option('ewww_image_optimizer_pdf_level') );
 				$output[] = "<tr><th><label for='ewww_image_optimizer_delay'>" . esc_html__('Bulk Delay', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><input type='text' id='ewww_image_optimizer_delay' name='ewww_image_optimizer_delay' size='5' value='" . ewww_image_optimizer_get_option('ewww_image_optimizer_delay') . "'> " . esc_html__('Choose how long to pause between images (in seconds, 0 = disabled)', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</td></tr>\n";
 				ewwwio_debug_message( "bulk delay: " . ewww_image_optimizer_get_option('ewww_image_optimizer_delay') );
-				$output[] = "<tr><th><label for='ewww_image_optimizer_backup_files'>" . esc_html__('Backup Originals', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><input type='checkbox' id='ewww_image_optimizer_backup_files' name='ewww_image_optimizer_backup_files' value='true' " .
-					( ewww_image_optimizer_get_option('ewww_image_optimizer_backup_files') ? "checked='true'" : "" ) . " $disable_level > " . esc_html__( 'Store a copy of your original images on our secure server for 30 days. *Requires an active API key.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</td></tr>\n";
-				ewwwio_debug_message( "backup mode: " . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ? "on" : "off" ) );
+//				$output[] = "<tr><th><label for='ewww_image_optimizer_backup_files'>" . esc_html__('Backup Originals', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><input type='checkbox' id='ewww_image_optimizer_backup_files' name='ewww_image_optimizer_backup_files' value='true' " .
+//					( ewww_image_optimizer_get_option('ewww_image_optimizer_backup_files') ? "checked='true'" : "" ) . " $disable_level > " . esc_html__( 'Store a copy of your original images on our secure server for 30 days. *Requires an active API key.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</td></tr>\n";
+//				ewwwio_debug_message( "backup mode: " . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ? "on" : "off" ) );
 	if ( class_exists( 'Cloudinary' ) && Cloudinary::config_get( 'api_secret' ) ) {
 				$output[] = "<tr><th><label for='ewww_image_optimizer_enable_cloudinary'>" . esc_html__('Automatic Cloudinary upload', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</label></th><td><input type='checkbox' id='ewww_image_optimizer_enable_cloudinary' name='ewww_image_optimizer_enable_cloudinary' value='true' " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_enable_cloudinary') == TRUE ? "checked='true'" : "" ) . " /> " . esc_html__('When enabled, uploads to the Media Library will be transferred to Cloudinary after optimization. Cloudinary generates resizes, so only the full-size image is uploaded.', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</td></tr>\n";
 				ewwwio_debug_message( "cloudinary upload: " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_enable_cloudinary') == TRUE ? "on" : "off" ) );
@@ -5705,7 +5708,7 @@ function ewww_image_optimizer_options () {
 		ewww_image_optimizer_webp_inline_script();
 	}
 
-	ewwwio_debug_version_info();
+	//ewwwio_debug_version_info();
 	if ( ewww_image_optimizer_get_option ( 'ewww_image_optimizer_debug' ) ) {
 		?>
 <script type="text/javascript">
@@ -5783,31 +5786,37 @@ function ewwwio_debug_message( $message ) {
 		$memory_limit = ewwwio_memory_limit();
 		if ( strlen( $message ) + 4000000 + memory_get_usage( true ) <= $memory_limit ) {
 			global $ewww_debug;
+			global $ewww_version_dumped;
+			if ( empty( $ewww_debug ) && empty( $ewww_version_dumped ) ) {
+				ewwwio_debug_version_info();
+				$ewww_version_dumped = true;
+			}
 			$ewww_debug .= "$message<br>";
 		} else {
 			global $ewww_debug;
-			$ewww_debug = "detected memory limit is $memory_limit";
+			$ewww_debug = "not logging message, memory limit is $memory_limit";
 		}
 	}
 }
 
 // used to output debug messages to a logfile in the plugin folder in cases where output to the screen is a bad idea
 function ewww_image_optimizer_debug_log() {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	ewwwio_debug_version_info();
+//	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $ewww_debug;
 	if ( ! empty( $ewww_debug ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
+		$memory_limit = ewwwio_memory_limit();
+		clearstatcache();
 		$timestamp = date( 'y-m-d h:i:s.u' ) . "\n";
 		if ( ! file_exists( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
 			touch( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' );
 		} else {
-			if ( ! ewwwio_check_memory_available( filesize( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) + 4000000 ) ) {
+			if ( filesize( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) + 4000000 + memory_get_usage( true ) > $memory_limit ) {
 				unlink( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' );
 				touch( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' );
 			}
 		}
-		clearstatcache();
-		if ( ewwwio_check_memory_available( filesize( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) + strlen( $ewww_debug ) + 4000000 ) ) {
+		if ( filesize( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) + strlen( $ewww_debug ) + 4000000 + memory_get_usage( true ) <= $memory_limit ) {
+//		if ( ewwwio_check_memory_available( filesize( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) + strlen( $ewww_debug ) + 4000000 ) ) {
 			$ewww_debug_log = str_replace( '<br>', "\n", $ewww_debug );
 			file_put_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log', $timestamp . $ewww_debug_log, FILE_APPEND );
 		}
@@ -5826,23 +5835,25 @@ function ewww_image_optimizer_delete_debug_log() {
 }
 
 function ewwwio_debug_version_info() {
-	$disabled = ini_get( 'disable_functions' );
-	if ( ! preg_match( '/get_current_user/', $disabled ) ) {
-		ewwwio_debug_message( get_current_user() );
+//	$disabled = ini_get( 'disable_functions' );
+//	if ( ! preg_match( '/get_current_user/', $disabled ) ) {
+	global $ewww_debug;
+	if ( ! extension_loaded( 'suhosin' ) && function_exists( 'get_current_user' ) ) {
+		$ewww_debug .= get_current_user() . '<br>';
 	}
 
-	ewwwio_debug_message( 'EWWW IO version: ' . EWWW_IMAGE_OPTIMIZER_VERSION );
+	$ewww_debug .= 'EWWW IO version: ' . EWWW_IMAGE_OPTIMIZER_VERSION . '<br>';
 
 	// check the WP version
 	global $wp_version;
 	$my_version = substr( $wp_version, 0, 3 );
-	ewwwio_debug_message( "WP version: $wp_version" );
+	$ewww_debug .= "WP version: $wp_version<br>" ;
 
 	if ( defined( 'PHP_VERSION_ID' ) ) {
-		ewwwio_debug_message( 'PHP version: ' . PHP_VERSION_ID );
+		$ewww_debug .= 'PHP version: ' . PHP_VERSION_ID . '<br>';
 	}
 	if ( defined( 'LIBXML_VERSION' ) ) {
-		ewwwio_debug_message( 'libxml version: ' . LIBXML_VERSION );
+		$ewww_debug .= 'libxml version: ' . LIBXML_VERSION . '<br>';
 	}
 }
 
@@ -6015,12 +6026,13 @@ function ewwwio_memory_limit() {
 // see if the current usage + padding will fit within the memory_limit defined by PHP. If not, return false, otherwise, proceed with true.
 function ewwwio_check_memory_available( $padding = 1049000 ) {
 	$memory_limit = ewwwio_memory_limit();
-	ewwwio_debug_message( "detected memory limit is $memory_limit" );
 
 	$current_memory = memory_get_usage( true ) + $padding;
 	if ( $current_memory >= $memory_limit ) {
+	ewwwio_debug_message( "detected memory limit is not enough: $memory_limit" );
 		return false;
 	}
+	ewwwio_debug_message( "detected memory limit is: $memory_limit" );
 	return true;
 }
 

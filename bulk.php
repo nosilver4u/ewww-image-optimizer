@@ -657,6 +657,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			if ( class_exists( 'Amazon_S3_And_CloudFront' ) && strpos( $file_path, 's3' ) === 0 ) {
 				ewww_image_optimizer_check_table_as3cf( $meta, $selected_id, $file_path );
 			}
+	ewww_image_optimizer_debug_log();
 			if ( ( strpos( $file_path, 's3' ) === 0 || ! is_file( $file_path ) ) && ( class_exists( 'WindowsAzureStorageUtil' ) || class_exists( 'Amazon_S3_And_CloudFront' ) ) ) {
 				// construct a $file_path and proceed IF a supported CDN plugin is installed
 				ewwwio_debug_message( 'Azure or S3 detected and no local file found' );
@@ -674,11 +675,13 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				ewwwio_debug_message( "no file path for $selected_id" );
 				continue;
 			}
+	ewww_image_optimizer_debug_log();
 			$attachment_images['full'] = $file_path;
 			$retina_path = ewww_image_optimizer_hidpi_optimize( $file_path, true );
 			if ( $retina_path ) {
 				$attachment_images['full-retina'] = $retina_path;
 			}
+	ewww_image_optimizer_debug_log();
 			// resized versions, so we can continue
 			if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 				// meta sizes don't contain a path, so we calculate one
@@ -688,6 +691,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				$processed = array();
 				foreach ( $meta['sizes'] as $size => $data ) {
 					ewwwio_debug_message( "checking for size: $size" );
+	ewww_image_optimizer_debug_log();
 					if ( strpos( $size, 'webp') === 0 ) {
 						continue;
 					}
@@ -760,6 +764,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				}
 			}
 
+	ewww_image_optimizer_debug_log();
 			// queue sizes from a custom theme
 			if ( isset( $meta['image_meta']['resized_images'] ) && ewww_image_optimizer_iterable( $meta['image_meta']['resized_images'] ) ) {
 				$imagemeta_resize_pathinfo = pathinfo( $file_path );
@@ -772,6 +777,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				}		
 			}
 
+	ewww_image_optimizer_debug_log();
 			// and another custom theme
 			if ( isset( $meta['custom_sizes'] ) && ewww_image_optimizer_iterable( $meta['custom_sizes'] ) ) {
 				$custom_sizes_pathinfo = pathinfo( $file_path );
@@ -784,9 +790,11 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				}
 			}
 
+	ewww_image_optimizer_debug_log();
 			// check if the files are 'prev opt', pending, or brand new, and then queue the file
 			foreach ( $attachment_images as $size => $file_path ) {
 //	ewwwio_memory( 'checking an image we found' );
+	ewww_image_optimizer_debug_log();
 				ewwwio_debug_message( "here is a path $file_path" );
 				if ( ! $remote_file && strpos( $file_path, 's3' ) !== 0 ) {
 					$file_path = realpath( $file_path );
@@ -798,7 +806,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					ewwwio_debug_message( "skipping $file_path as instructed" );
 					continue;
 				}
-				ewwwio_debug_message( "here is a path $file_path" );
+				ewwwio_debug_message( "here is the real path $file_path" );
 				$already_optimized = false;
 				if ( ! is_array( $optimized_list ) && $optimized_list === 'low_memory' ) {
 					$already_optimized = ewww_image_optimizer_find_already_optimized( $file_path );
@@ -847,6 +855,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						}
 						ewwwio_debug_message( "mismatch found for $file_path, db says " . $already_optimized['image_size'] . " vs. current $image_size" );
 					}
+	ewww_image_optimizer_debug_log();
 				} else {
 					if ( ! empty( $images[ $file_path ] ) ) {
 						continue;
@@ -883,6 +892,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						'pending' => 1,
 					);
 					$image_count++;
+	ewww_image_optimizer_debug_log();
 				}
 				if ( $image_count > 1000 || count( $reset_images ) > 1000 ) {
 					ewwwio_debug_message( 'making a dump run' );

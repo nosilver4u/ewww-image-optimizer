@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: image, compress, optimize, optimization, lossless, lossy, photo, picture, seo, jpegmini, tinyjpg, tinypng, webp, wp-cli 
 Requires at least: 4.4
 Tested up to: 4.7.2
-Stable tag: 3.2.4
+Stable tag: 3.2.5
 License: GPLv3
 
 Reduce image sizes in WordPress including NextGEN, GRAND FlAGallery, FooGallery and more using lossless/lossy methods and image format conversion.
@@ -209,14 +209,16 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 3.2.5 =
+* fixed: converting PNG to JPG with GD did not properly convert resizes
+* fixed: broken attachment metadata could halt the bulk scanner
+* fixed: background optimization running when sleep is disabled
+
 = 3.2.4 =
 * changed: when license has been exceeded, visiting the settings page flushes the license cache
-* fixed: converting PNG to JPG with GD did not properly convert resizes
 * fixed: warnings for illegal string offsets
 * fixed: regression with the dreaded duplicate key name
 * fixed: scheduled optimization could run during bulk optimization, causing unexpected results
-* fixed: background optimization running when sleep is disabled
-* fixed: broken attachment metadata could halt the bulk scanner
 
 = 3.2.3 =
 * added: image linker for media images optimized using scheduled optimizer or the old Scan and Optimize

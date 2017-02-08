@@ -196,9 +196,9 @@ jQuery(document).ready(function($) {
 			} else if ( ewww_response.remaining ) {
 				$('.ewww-aux-table').hide();
 				$('#ewww-show-table').hide();
-				if ( ! ewww_response.notice ) {
-					ewww_response.notice = '';
-				}
+				//if ( ! ewww_response.notice ) {
+				//	ewww_response.notice = '';
+				//}
 				$('#ewww-scanning').html( ewww_response.remaining );
 				if ( ewww_response.notice ) {
 					$('#ewww-scanning').append( '<br>' + ewww_response.notice );
