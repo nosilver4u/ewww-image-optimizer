@@ -384,6 +384,7 @@ jQuery(document).ready(function($) {
 			}
 			if ( ! is_json ) {
 				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.invalid_response + '</b></p>');
+				console.log( response );
 				return false;
 			}	
 			if ( ewww_init_response.error ) {
@@ -421,6 +422,7 @@ jQuery(document).ready(function($) {
 			}
 			if ( ! is_json ) {
 				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.invalid_response + '</b></p>');
+				console.log( response );
 				return false;
 			}	
 			ewww_i += ewww_response.completed;

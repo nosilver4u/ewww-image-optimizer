@@ -510,6 +510,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	//ewwwio_memory( 'post wpdb' );
 	$image_count = 0;
 	$reset_count = 0;
+	$attachments_processed = 0;
 	$attachment_query = '';
 	$images = array();
 	$attachment_images = array();
@@ -597,6 +598,13 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		ewwwio_debug_message( "validated " . count( $attachment_meta ) . " attachment meta items" );
 		ewwwio_debug_message( 'remaining items after selection: ' . count( $attachment_ids ) );
 		foreach ( $selected_ids as $selected_id ) {
+			$attachments_processed++;
+			if ( $attachments_processed % 10 == 0 && ( microtime( true ) - $started > apply_filters( 'ewww_image_optimizer_timeout', 15 ) || ! ewwwio_check_memory_available( 2194304 ) ) ) {
+	ewwwio_debug_message( 'time exceeded, or memory exceeded' );
+	ewww_image_optimizer_debug_log();
+				$attachment_ids = array_merge( $failsafe_selected_ids, $attachment_ids );
+				break 2;
+			}
 	ewww_image_optimizer_debug_log();
 			array_shift( $failsafe_selected_ids );
 //	ewwwio_memory( 'scanning an attachment for images' );
@@ -794,8 +802,8 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			// check if the files are 'prev opt', pending, or brand new, and then queue the file
 			foreach ( $attachment_images as $size => $file_path ) {
 //	ewwwio_memory( 'checking an image we found' );
-	ewww_image_optimizer_debug_log();
 				ewwwio_debug_message( "here is a path $file_path" );
+	ewww_image_optimizer_debug_log();
 				if ( ! $remote_file && strpos( $file_path, 's3' ) !== 0 ) {
 					$file_path = realpath( $file_path );
 				}
@@ -804,41 +812,58 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				}
 				if ( apply_filters( 'ewww_image_optimizer_bypass', false, $file_path ) === true ) {
 					ewwwio_debug_message( "skipping $file_path as instructed" );
+	ewww_image_optimizer_debug_log();
 					continue;
 				}
 				ewwwio_debug_message( "here is the real path $file_path" );
+				ewwwio_debug_message( 'memory used: ' . memory_get_usage( true ) );
+	ewww_image_optimizer_debug_log();
 				$already_optimized = false;
 				if ( ! is_array( $optimized_list ) && $optimized_list === 'low_memory' ) {
 					$already_optimized = ewww_image_optimizer_find_already_optimized( $file_path );
 				}
 				if ( ( $already_optimized || isset( $optimized_list[ $file_path ] ) ) && ( ! $remote_file || ! empty( $_REQUEST['ewww_force'] ) ) ) {
+					ewwwio_debug_message( "potential match found" );
+		ewww_image_optimizer_debug_log();
 					if ( ! $already_optimized ) {
 						$already_optimized = $optimized_list[ $file_path ];
 					}
 					if ( ! empty( $already_optimized['pending'] ) ) {
 						$pending = true;
 						ewwwio_debug_message( "pending record for $file_path" );
+	ewww_image_optimizer_debug_log();
 						continue;
 					}
 					if ( $remote_file ) {
 						$image_size = $already_optimized['image_size'];
+						ewwwio_debug_message( "image size for remote file is $image_size" );
+	ewww_image_optimizer_debug_log();
 					} else {
 						$image_size = filesize( $file_path );
+						ewwwio_debug_message( "image size is $image_size" );
+	ewww_image_optimizer_debug_log();
 					}
 					if ( $image_size < ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_size' ) ) {
 						ewwwio_debug_message( "file skipped due to filesize: $file_path" );
+	ewww_image_optimizer_debug_log();
 						continue;
 					}
 					if ( $mime == 'image/png' && ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) && $image_size > ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) ) {
 						ewwwio_debug_message( "file skipped due to PNG filesize: $file_path" );
+	ewww_image_optimizer_debug_log();
 						continue;
 					}
 					if ( $already_optimized['image_size'] == $image_size && empty( $_REQUEST['ewww_force'] ) ) {
 						ewwwio_debug_message( "match found for $file_path" );
+	ewww_image_optimizer_debug_log();
 						continue;
 					} else {
+						ewwwio_debug_message( "mismatch found for $file_path, db says " . $already_optimized['image_size'] . " vs. current $image_size" );
+	ewww_image_optimizer_debug_log();
 						$pending = true;
 						if ( empty( $already_optimized['attachment_id'] ) ) {
+						ewwwio_debug_message( "updating record for $file_path, with id $selected_id and resize $size" );
+	ewww_image_optimizer_debug_log();
 							$ewwwdb->update(
 								$ewwwdb->ewwwio_images,
 								array(
@@ -850,10 +875,12 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 								),
 								array( 'id' => $already_optimized['id'] )
 							);
+						ewwwio_debug_message( 'updated record' );
 						} else {
+						ewwwio_debug_message( "adding $selected_id to reset queue" );
+	ewww_image_optimizer_debug_log();
 							$reset_images[] = (int) $already_optimized['id'];
 						}
-						ewwwio_debug_message( "mismatch found for $file_path, db says " . $already_optimized['image_size'] . " vs. current $image_size" );
 					}
 	ewww_image_optimizer_debug_log();
 				} else {
@@ -862,16 +889,22 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					}
 					$pending = true;
 					ewwwio_debug_message( "queuing $file_path" );
+	ewww_image_optimizer_debug_log();
 					if ( $remote_file ) {
 						$image_size = 0;
+						ewwwio_debug_message( "image size set to 0" );
 					} else {
 						$image_size = filesize( $file_path );
+						ewwwio_debug_message( "image size is $image_size" );
+	ewww_image_optimizer_debug_log();
 						if ( $image_size < ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_size' ) ) {
 							ewwwio_debug_message( "file skipped due to filesize: $file_path" );
+	ewww_image_optimizer_debug_log();
 							continue;
 						}
 						if ( $mime == 'image/png' && ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) && $image_size > ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) ) {
 							ewwwio_debug_message( "file skipped due to PNG filesize: $file_path" );
+	ewww_image_optimizer_debug_log();
 							continue;
 						}
 					}
@@ -882,6 +915,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						ewwwio_debug_message( 'file will become utf8' );
 						$utf8_file_path = utf8_encode( $file_path );
 					}
+	ewww_image_optimizer_debug_log();
 					//$images[] = "('" . esc_sql( $utf8_file_path ) . "','media',$image_size,$selected_id,'$size',1)";
 					$images[ $file_path ] = array(
 						'path' => $utf8_file_path,
@@ -892,6 +926,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						'pending' => 1,
 					);
 					$image_count++;
+						ewwwio_debug_message( 'image added to $images queue' );
 	ewww_image_optimizer_debug_log();
 				}
 				if ( $image_count > 1000 || count( $reset_images ) > 1000 ) {
@@ -901,12 +936,16 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					// let's dump what we have so far to the db
 					$image_count = 0;
 					if ( ! empty( $images ) ) {
+					ewwwio_debug_message( 'doing mass insert' );
+					ewww_image_optimizer_debug_log();
 						ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, $field_formats );
 //						$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,gallery,orig_size,attachment_id,resize,pending) VALUES " . implode( ',', $images );
 //						$wpdb->query( $insert_query );
 					}
 					$images = array();
 					if ( ! empty( $reset_images ) ) {
+					ewwwio_debug_message( 'marking reset_images as pending' );
+					ewww_image_optimizer_debug_log();
 						$ewwwdb->query( "UPDATE $ewwwdb->ewwwio_images SET pending = 1, updated = updated WHERE id IN (" . implode( ',', $reset_images ) . ')' );
 					}
 					$reset_images = array();
@@ -914,41 +953,58 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				}
 			} // end of foreach loop checking all the attachment_images for selected_id to see if they are optimized already or pending already
 			if ( $pending ) {
+	ewwwio_debug_message( "$selected_id added to queue" );
+	ewww_image_optimizer_debug_log();
 				$queued_ids[] = $selected_id;
 			}
 			$attachment_images = array();
-			if ( $selected_id == $bad_attachment || ( $image_count % 100 == 0 && ( microtime( true ) - $started > apply_filters( 'ewww_image_optimizer_timeout', 15 ) || ! ewwwio_check_memory_available( 2097000 ) ) ) ) {
+	ewwwio_debug_message( 'checking for bad attachment' );
+	ewww_image_optimizer_debug_log();
+			if ( $selected_id == $bad_attachment ) {
+	ewwwio_debug_message( 'found bad attachment, bailing to reset the counter' );
+	ewww_image_optimizer_debug_log();
 				$attachment_ids = array_merge( $failsafe_selected_ids, $attachment_ids );
-				break;
+				break 2;
 			}
 		} // end foreach loop for the selected_id
+	ewwwio_debug_message( 'finished foreach, storing remaining attachments in scanning_attachments' );
+	ewww_image_optimizer_debug_log();
 		update_option( 'ewww_image_optimizer_scanning_attachments', $attachment_ids, false );
 		$attachments_queued = get_option( 'ewww_image_optimizer_bulk_attachments' );
 		if ( empty( $attachments_queued ) || ! is_array( $attachments_queued ) ) {
+	ewwwio_debug_message( 'storing queued attachments in bulk_attachments' );
+	ewww_image_optimizer_debug_log();
 			update_option( 'ewww_image_optimizer_bulk_attachments', $queued_ids, false );
 		} else {
+	ewwwio_debug_message( 'storing queued attachments in bulk_attachments, merged with existing' );
+	ewww_image_optimizer_debug_log();
 			update_option( 'ewww_image_optimizer_bulk_attachments', array_merge( $attachments_queued, $queued_ids ), false );
 		}
 		$queued_ids = array();
+	ewwwio_debug_message( 'finished a loop in the while, going back for more possibly' );
+	ewww_image_optimizer_debug_log();
 	//ewwwio_memory( 'finished a while loop (selected_ids)' );
 	} // endwhile
+	ewwwio_debug_message( 'done for a while, wrapping up' );
 	ewww_image_optimizer_debug_log();
 	if ( ! empty( $images ) ) {
 		ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, $field_formats );
-		//$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,gallery,orig_size,attachment_id,resize,pending) VALUES " . implode( ',', $images );
-		//$wpdb->query( $insert_query );
-	//ewwwio_memory( 'inserted ids' );
 	}
 	if ( ! empty( $reset_images ) ) {
 		$ewwwdb->query( "UPDATE $ewwwdb->ewwwio_images SET pending = 1, updated = updated WHERE id IN (" . implode( ',', $reset_images ) . ')' );
-	//ewwwio_memory( 'updated ids' );
 	}
+	ewwwio_debug_message( 'storing remaining attachments in scanning_attachments' );
+	ewww_image_optimizer_debug_log();
 	update_option( 'ewww_image_optimizer_scanning_attachments', $attachment_ids, false );
 	if ( ! empty( $queued_ids ) ) {
 		$attachments_queued = get_option( 'ewww_image_optimizer_bulk_attachments' );
 		if ( empty( $attachments_queued ) || ! is_array( $attachments_queued ) ) {
+	ewwwio_debug_message( 'storing queued attachments in bulk_attachments' );
+	ewww_image_optimizer_debug_log();
 			update_option( 'ewww_image_optimizer_bulk_attachments', $queued_ids, false );
 		} else {
+	ewwwio_debug_message( 'storing queued attachments in bulk_attachments, merged with existing' );
+	ewww_image_optimizer_debug_log();
 			update_option( 'ewww_image_optimizer_bulk_attachments', array_merge( $attachments_queued, $queued_ids ), false );
 		}
 	}
