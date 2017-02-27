@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: image, compress, optimize, optimization, lossless, lossy, photo, picture, seo, jpegmini, tinyjpg, tinypng, webp, wp-cli 
 Requires at least: 4.4
 Tested up to: 4.7.2
-Stable tag: 3.2.6
+Stable tag: 3.2.7
 License: GPLv3
 
 Reduce image sizes in WordPress including NextGEN, GRAND FlAGallery, FooGallery and more using lossless/lossy methods and image format conversion.
@@ -208,6 +208,12 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * I no longer have a Mac with which to build new binaries. Until I can raise enough funds, there will be no more updates for the Mac OS X tools, and I may have to temporarily remove Mac support if any security issues arise in the meantime: https://www.gofundme.com/ewww-image-optimizer-mac-dev-laptop
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
+
+= 3.2.7 =
+* added: function to remove duplicate records from the ewwwio table when doing a bulk scan or re-optimizing an image
+* changed: zero-byte files skipped during bulk scan instead of during optimization
+* changed: exec() check rewritten, please report any errors right away
+* fixed: plugin status shows All Clear even though exec disabled and warning is displayed
 
 = 3.2.6 =
 * changed: time elapsed test now runs every 10 attachments

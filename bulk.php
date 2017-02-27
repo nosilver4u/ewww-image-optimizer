@@ -428,6 +428,10 @@ function ewww_image_optimizer_optimized_list() {
 		//ewwwio_memory( 'flushed already opt' );
 		foreach ( $already_optimized as $optimized ) {
 			$optimized_path = $optimized['path'];
+			// check for duplicate record
+			if ( ! empty( $optimized_list[ $optimized_path ] ) && ! empty( $optimized_list[ $optimized_path ]['id'] ) ) {
+				$optimized = ewww_image_optimizer_remove_duplicate_records( array( $optimized_list[ $optimized_path ]['id'], $optimized['id'] ) );
+			}
 			$optimized_list[ $optimized_path ]['image_size'] = $optimized['image_size'];
 			$optimized_list[ $optimized_path ]['id'] = $optimized['id'];
 			$optimized_list[ $optimized_path ]['pending'] = $optimized['pending'];
@@ -599,7 +603,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		ewwwio_debug_message( 'remaining items after selection: ' . count( $attachment_ids ) );
 		foreach ( $selected_ids as $selected_id ) {
 			$attachments_processed++;
-			if ( $attachments_processed % 10 == 0 && ( microtime( true ) - $started > apply_filters( 'ewww_image_optimizer_timeout', 15 ) || ! ewwwio_check_memory_available( 2194304 ) ) ) {
+			if ( $attachments_processed % 5 == 0 && ( microtime( true ) - $started > apply_filters( 'ewww_image_optimizer_timeout', 15 ) || ! ewwwio_check_memory_available( 2194304 ) ) ) {
 	ewwwio_debug_message( 'time exceeded, or memory exceeded' );
 	ewww_image_optimizer_debug_log();
 				$attachment_ids = array_merge( $failsafe_selected_ids, $attachment_ids );
@@ -841,6 +845,9 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					} else {
 						$image_size = filesize( $file_path );
 						ewwwio_debug_message( "image size is $image_size" );
+						if ( ! $image_size ) {
+							continue;
+						}
 	ewww_image_optimizer_debug_log();
 					}
 					if ( $image_size < ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_size' ) ) {
@@ -896,6 +903,9 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					} else {
 						$image_size = filesize( $file_path );
 						ewwwio_debug_message( "image size is $image_size" );
+						if ( ! $image_size ) {
+							continue;
+						}
 	ewww_image_optimizer_debug_log();
 						if ( $image_size < ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_size' ) ) {
 							ewwwio_debug_message( "file skipped due to filesize: $file_path" );

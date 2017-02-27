@@ -19,15 +19,14 @@
 // TODO: check for Pantheon platform, and use relative path matching somehow: if ( in_array( $_ENV['PANTHEON_ENVIRONMENT'], Array('test', 'live') ) ) and include the CONSTANT in the path when storing in db
 // TODO: need to make the scheduler so it can resume without having to re-run the queue population, and then we can probably also flush the queue when scheduled opt starts, but later it would be nice to implement the bulk_loop as the aux_loop so that it could handle media properly
 // TODO: implement a search for the bulk table, or maybe we should just move it to it's own page?
-// TODO: use new function_exists test for exec
 // TODO: check for print_r before using
-// TODO: if two records are found for an image, and one is pending, remove it
+// TODO: can we turn off EWWW during a thumb regeneration, and get it to obey the size settings? include the MLP processing anytime they use wp_generate_attachment_metadata().
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '326.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '327.0' );
 
 // initialize a couple globals
 $ewww_debug = '';
@@ -1046,7 +1045,8 @@ function ewww_image_optimizer_install_table() {
 	// include the upgrade library to initialize a table
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 	$updates = dbDelta( $sql );
-	
+	ewwwio_debug_message( 'db upgrade results: ' . print_r(	$updates, true ) );
+
 	// make sure some of our options are not autoloaded (since they can be huge)
 	$bulk_attachments = get_option( 'ewww_image_optimizer_bulk_attachments', '' );
 	delete_option( 'ewww_image_optimizer_bulk_attachments' );
@@ -2300,11 +2300,13 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 			update_site_option( 'ewww_image_optimizer_pdf_level', 0 );
 			update_option( 'ewww_image_optimizer_pdf_level', 0 );
 		}
+		ewww_image_optimizer_debug_log();
 		return false;
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
 		set_transient( 'ewww_image_optimizer_cloud_status', 'exceeded', 3600 ); 
 		ewwwio_debug_message( 'license exceeded notice has not expired' );
+		ewww_image_optimizer_debug_log();
 		return 'exceeded';
 	}
 	add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent' );
@@ -2321,6 +2323,7 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 			$ewwwio_async_key_verification = new EWWWIO_Async_Key_Verification();
 		}
 		$ewwwio_async_key_verification->dispatch();
+		ewww_image_optimizer_debug_log();
 		return $ewww_cloud_status;
 	}
 	if ( $ewww_cloud_transport !== 'https' && $ewww_cloud_transport !== 'http' ) {
@@ -2351,6 +2354,7 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 		$servers = gethostbynamel( 'optimize.exactlywww.com' );
 		if ( empty ( $servers ) ) {
 			ewwwio_debug_message( 'unable to resolve servers' );
+		ewww_image_optimizer_debug_log();
 			return false;
 		}
 		if ( ewww_image_optimizer_iterable( $servers ) ) {
@@ -2379,6 +2383,7 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 	}
 	if ( empty( $verified ) ) {
 		ewwwio_memory( __FUNCTION__ );
+		ewww_image_optimizer_debug_log();
 		return false;
 	} else {
 		set_transient( 'ewww_image_optimizer_cloud_status', $verified, 3600 ); 
@@ -2389,6 +2394,7 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 		}
 		ewwwio_debug_message( "verification body contents: {$result['body']}" );
 		ewwwio_memory( __FUNCTION__ );
+		ewww_image_optimizer_debug_log();
 		return $verified;
 	}
 }
@@ -3424,12 +3430,12 @@ function ewww_image_optimizer_find_already_optimized( $attachment ) {
 		}
 	}
 	// do something with duplicates
-/*	if ( ! empty( $duplicates ) && is_array( $duplicates ) ) {
+	if ( ! empty( $duplicates ) && is_array( $duplicates ) ) {
 		$keeper = ewww_image_optimizer_remove_duplicate_records( $duplicates );
 		if ( ! empty( $keeper ) && is_array( $keeper ) ) {
 			$maybe_return_image = $keeper;
 		}
-	}*/
+	}
 	return $maybe_return_image;
 	//return false;
 }
@@ -3463,15 +3469,38 @@ function ewww_image_optimizer_remove_duplicate_records( $duplicates ) {
 			$discard[] = $duplicate;
 		}
 	}
+	// then look for the first record with an image_size (that means it has been optimized)
 	if ( empty( $keeper ) ) {
+		$discard = array();
 		foreach ( $duplicates as $duplicate ) {
-			if ( empty( $keeper ) && ! empty( $duplicate['image_size'] ) && $image_size == $duplicate['image_size'] ) {
+			if ( empty( $keeper ) && ! empty( $duplicate['image_size'] ) ) {
 				$keeper = $duplicate;
 			} else {
 				$discard[] = $duplicate;
 			}
 		}
 	}
+	// if we still have nothing, mark the 0 record as the primary and pull it off the stack
+	if ( empty( $keeper ) ) {
+		$keeper = array_shift( $duplicates );
+		$discard = $duplicates;
+	}
+	if ( is_array( $keeper ) && is_array( $discard ) ) {
+		$delete_ids = array();
+		foreach( $discard as $record ) {
+			foreach ( $record as $key => $value ) {
+				if ( empty( $keeper[ $key ] ) && ! empty( $value ) ) {
+					$keeper[ $key ] = $value;
+				}
+			}
+			$delete_ids[] = (int) $record['id'];
+		}
+		if ( ! empty( $delete_ids ) && is_array( $delete_ids ) ) {
+			$ewwwdb->query( "DELETE FROM $ewwwdb->ewwwio_images WHERE id IN (" . implode( ',', $delete_ids ) . ")" );
+		}
+		return $keeper;
+	}
+	return false;
 }
 
 // WAS used only for background WP_Image_Editor requests, not for processing uploaded image attachments, that one uses the wpsf_location_lock function directly
@@ -5390,7 +5419,7 @@ function ewww_image_optimizer_options () {
 					$collapsible = false;
 				}
 			}
-			if ( ! ewww_image_optimizer_full_cloud() && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
+			if ( ! ewww_image_optimizer_full_cloud() ) {
 				if ( ewww_image_optimizer_safemode_check() ) {
 					$output[] = 'safe mode: <span style="color: red; font-weight: bolder">' . esc_html__('On', EWWW_IMAGE_OPTIMIZER_DOMAIN) . '</span>&emsp;&emsp;';
 					$collapsible = false;
@@ -5404,6 +5433,8 @@ function ewww_image_optimizer_options () {
 					$output[] = 'exec(): <span style="color: green; font-weight: bolder">' . esc_html__('Enabled', EWWW_IMAGE_OPTIMIZER_DOMAIN) . '</span>&emsp;&emsp;';
 				}
 				$output[] = "<br />\n";
+			}
+			if ( ! ewww_image_optimizer_full_cloud() && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
 				$output[] = wp_kses( sprintf( __( "%s only need one, used for conversion, not optimization", EWWW_IMAGE_OPTIMIZER_DOMAIN ), '<b>' . __( 'Graphics libraries', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</b> - ' ), array( 'b' => array() ) );
 				$output[] = '<br>';
 				$toolkit_found = false;

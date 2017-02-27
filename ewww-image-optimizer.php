@@ -5,7 +5,7 @@ Plugin URI: https://wordpress.org/plugins/ewww-image-optimizer/
 Description: Reduce file sizes for images within WordPress including NextGEN Gallery and GRAND FlAGallery. Uses jpegtran, optipng/pngout, and gifsicle.
 Author: Shane Bishop
 Text Domain: ewww-image-optimizer
-Version: 3.2.6
+Version: 3.2.7
 Author URI: https://ewww.io/
 License: GPLv3
 */
@@ -605,7 +605,11 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 // function to check if exec() is disabled
 function ewww_image_optimizer_exec_check() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	$disabled = ini_get( 'disable_functions' );
+	if ( ! ewww_image_optimizer_function_exists( 'exec' ) ) {
+		return true;
+	}
+	return false;
+/*	$disabled = ini_get( 'disable_functions' );
 	ewwwio_debug_message( "disable_functions: $disabled" );
 	$suhosin_disabled = ini_get( 'suhosin.executor.func.blacklist' );
 	ewwwio_debug_message( "suhosin_blacklist: $suhosin_disabled" );
@@ -615,7 +619,7 @@ function ewww_image_optimizer_exec_check() {
 	} else {
 		ewwwio_memory( __FUNCTION__ );
 		return false;
-	}
+	}*/
 }
 
 // function to check if safe mode is on
