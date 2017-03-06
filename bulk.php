@@ -395,8 +395,10 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 			'remove_failed' => esc_html__( 'Could not remove image from table.', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
 			/* translators: used for Bulk Optimize progress bar, like so: Optimized 32/346 */
 			'optimized' => esc_html__( 'Optimized', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
-			'last_image_header' => esc_html( 'Last Image Optimized', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
-			'time_remaining' => esc_html( 'remaining', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
+			'last_image_header' => esc_html__( 'Last Image Optimized', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
+			'time_remaining' => esc_html__( 'remaining', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
+			'original_restored' => esc_html__( 'Original Restored', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
+			'restoring' => "<p>" . esc_html__( 'Restoring', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "&nbsp;<img src='$loading_image' /></p>",
 		)
 	);
 	// load the stylesheet for the jquery progressbar
@@ -427,7 +429,7 @@ function ewww_image_optimizer_optimized_list() {
 		//ewwwio_memory( 'queried already opt' );
 		//ewwwio_memory( 'flushed already opt' );
 		foreach ( $already_optimized as $optimized ) {
-			$optimized_path = $optimized['path'];
+			$optimized_path = ewww_image_optimizer_relative_path_replace( $optimized['path'] );
 			// check for duplicate record
 			if ( ! empty( $optimized_list[ $optimized_path ] ) && ! empty( $optimized_list[ $optimized_path ]['id'] ) ) {
 				$optimized = ewww_image_optimizer_remove_duplicate_records( array( $optimized_list[ $optimized_path ]['id'], $optimized['id'] ) );
@@ -730,7 +732,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 							// store info on the current image for future reference
 							$ewwwdb->update( $ewwwdb->ewwwio_images,
 								array(
-									'path' => $ims_path,
+									'path' => ewww_image_optimizer_relative_path_remove( $ims_path ),
 									'updated' => $optimized_list[ $ims_temp_path ]['updated'],
 								),
 								array(
@@ -808,7 +810,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 //	ewwwio_memory( 'checking an image we found' );
 				ewwwio_debug_message( "here is a path $file_path" );
 	ewww_image_optimizer_debug_log();
-				if ( ! $remote_file && strpos( $file_path, 's3' ) !== 0 ) {
+				if ( ! $remote_file && strpos( $file_path, 's3' ) !== 0 && ! defined( 'EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER' ) ) {
 					$file_path = realpath( $file_path );
 				}
 				if ( empty( $file_path ) ) {
@@ -928,7 +930,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	ewww_image_optimizer_debug_log();
 					//$images[] = "('" . esc_sql( $utf8_file_path ) . "','media',$image_size,$selected_id,'$size',1)";
 					$images[ $file_path ] = array(
-						'path' => $utf8_file_path,
+						'path' => ewww_image_optimizer_relative_path_remove( $utf8_file_path ),
 						'gallery' => 'media',
 						'orig_size' => $image_size,
 						'attachment_id' => $selected_id,
@@ -949,8 +951,6 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					ewwwio_debug_message( 'doing mass insert' );
 					ewww_image_optimizer_debug_log();
 						ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, $field_formats );
-//						$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,gallery,orig_size,attachment_id,resize,pending) VALUES " . implode( ',', $images );
-//						$wpdb->query( $insert_query );
 					}
 					$images = array();
 					if ( ! empty( $reset_images ) ) {

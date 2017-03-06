@@ -211,6 +211,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 
 = 3.2.8 =
 * added: filename as second parameter to ewww_image_optimizer_resize_dimensions filter
+* fixed: WP_Image_Editor integration was not disabled when using Regenerate Thumbs plugin, resulting in disabled resizes being ignored, and optimization not being backgrounded properly
 
 = 3.2.7 =
 * added: function to remove duplicate records from the ewwwio table when doing a bulk scan or re-optimizing an image

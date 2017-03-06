@@ -574,3 +574,35 @@ function ewwwRemoveImage(imageID) {
 		}
 	});
 }
+function ewwwRestoreImage(imageID) {
+	var ewww_image_restore = {
+		action: 'ewww_manual_cloud_restore_single',
+		ewww_wpnonce: ewww_vars._wpnonce,
+		ewww_image_id: imageID,
+	};
+	var original_html = jQuery('#ewww-image-' + imageID + ' td:last-child').html();
+	jQuery('#ewww-image-' + imageID + ' td:last-child').html(ewww_vars.restoring);
+	jQuery.post(ajaxurl, ewww_image_restore, function(response) {
+		var is_json = true;
+		try {
+			var ewww_response = jQuery.parseJSON(response);
+		} catch (err) {
+			is_json = false;
+		}
+		if ( ! is_json ) {
+			alert( ewww_vars.invalid_response );
+			console.log( response );
+			return false;
+		}	
+		if ( ewww_response.success == '1') {
+//			jQuery('#ewww-image-' + imageID + ' td:last-child .restoreimage').remove();
+//			jQuery('#ewww-image-' + imageID + ' td:last-child .restoring').remove();
+			jQuery('#ewww-image-' + imageID + ' td:last-child').html(ewww_vars.original_restored);
+			return false;
+		} else if (ewww_response.error) {
+			jQuery('#ewww-image-' + imageID + ' td:last-child').html(original_html);
+			alert(ewww_response.error);
+			return false;
+		}
+	});
+}

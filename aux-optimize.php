@@ -95,41 +95,53 @@ function ewww_image_optimizer_aux_images_table() {
 		$ewwwdb = $wpdb;
 	}
 	$offset = 50 * (int) $_POST['ewww_offset'];
-	$query = "SELECT path,results,image_size,id FROM $ewwwdb->ewwwio_images WHERE pending=0 ORDER BY id DESC LIMIT $offset,50";
-	$already_optimized = $ewwwdb->get_results( $query, ARRAY_N );
+	$query = "SELECT path,results,image_size,id,backup FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 ORDER BY id DESC LIMIT $offset,50";
+	$already_optimized = $ewwwdb->get_results( $query, ARRAY_A );
         $upload_info = wp_upload_dir();
 	$upload_path = $upload_info['basedir'];
 	echo '<br /><table class="wp-list-table widefat media" cellspacing="0"><thead><tr><th>&nbsp;</th><th>' . esc_html__( 'Filename', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</th><th>' . esc_html__( 'Image Type', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</th><th>' . esc_html__( 'Image Optimizer', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</th></tr></thead>';
 	$alternate = true;
 	foreach ( $already_optimized as $optimized_image ) {
-		$image_name = str_replace( ABSPATH, '', $optimized_image[0] );
+		$image_name = str_replace( ABSPATH, '', ewww_image_optimizer_relative_path_replace( $optimized_image['path'] ) );
 		$image_url = esc_url( trailingslashit( get_site_url() ) . $image_name );
-		$savings = esc_html( $optimized_image[1] );
+		$savings = esc_html( $optimized_image['results'] );
 		// if the path given is not the absolute path
-		if ( file_exists( $optimized_image[0] ) ) {
+		if ( file_exists( $optimized_image['path'] ) ) {
 			// retrieve the mimetype of the attachment
-			$type = ewww_image_optimizer_mimetype( $optimized_image[0], 'i' );
+			$type = ewww_image_optimizer_mimetype( $optimized_image['path'], 'i' );
 			// get a human readable filesize
-			$file_size = size_format( $optimized_image[2], 2 );
+			$file_size = size_format( $optimized_image['image_size'], 2 );
 			$file_size = str_replace( '.00 B ', ' B', $file_size );
-?>			<tr<?php if ( $alternate ) { echo " class='alternate'"; } ?> id="ewww-image-<?php echo $optimized_image[3]; ?>">
+?>			<tr<?php if ( $alternate ) { echo " class='alternate'"; } ?> id="ewww-image-<?php echo $optimized_image['id']; ?>">
 				<td style='width:80px' class='column-icon'><img width='50' height='50' src="<?php echo $image_url; ?>" /></td>
 				<td class='title'>...<?php echo $image_name; ?></td>
 				<td><?php echo $type; ?></td>
-				<td><?php echo "$savings <br>" . sprintf( esc_html__( 'Image Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $file_size ); ?><br><a class="removeimage" onclick="ewwwRemoveImage( <?php echo $optimized_image[3]; ?> )"><?php esc_html_e( 'Remove from table', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></a></td>
+				<td>
+					<?php echo "$savings <br>" . sprintf( esc_html__( 'Image Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $file_size ); ?><br>
+					<a class="removeimage" onclick="ewwwRemoveImage( <?php echo $optimized_image['id']; ?> )"><?php esc_html_e( 'Remove from table', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></a>
+				<?php	if ( $optimized_image['backup'] ) { ?>
+					<br><a class="restoreimage" onclick="ewwwRestoreImage( <?php echo $optimized_image['id']; ?> )"><?php esc_html_e( 'Restore original', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></a>
+				<?php	} ?>
+				</td>
 			</tr>
 <?php			$alternate = ! $alternate;
-		} elseif ( strpos( $optimized_image[0], 's3' ) === 0 ) {
+		} elseif ( strpos( $optimized_image['path'], 's3' ) === 0 ) {
 			// retrieve the mimetype of the attachment
 			$type = esc_html__( 'Amazon S3 image', EWWW_IMAGE_OPTIMIZER_DOMAIN );
 			// get a human readable filesize
-			$file_size = size_format( $optimized_image[2], 2 );
+			$file_size = size_format( $optimized_image['image_size'], 2 );
 			$file_size = str_replace( '.00 B ', ' B', $file_size );
-?>			<tr<?php if ( $alternate ) { echo " class='alternate'"; } ?> id="ewww-image-<?php echo $optimized_image[3]; ?>">
+?>			<tr<?php if ( $alternate ) { echo " class='alternate'"; } ?> id="ewww-image-<?php echo $optimized_image['id']; ?>">
 				<td style='width:80px' class='column-icon'>&nbsp;</td>
 				<td class='title'><?php echo $image_name; ?></td>
 				<td><?php echo $type; ?></td>
-				<td><?php echo "$savings <br>" . sprintf( esc_html__( 'Image Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $file_size ); ?><br><a class="removeimage" onclick="ewwwRemoveImage( <?php echo $optimized_image[3]; ?> )"><?php esc_html_e( 'Remove from table', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></a></td>
+				<td>
+					<?php echo "$savings <br>" . sprintf( esc_html__( 'Image Size: %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $file_size ); ?><br>
+					<a class="removeimage" onclick="ewwwRemoveImage( <?php echo $optimized_image['id']; ?> )"><?php esc_html_e( 'Remove from table', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></a>
+				<?php	if ( $optimized_image['backup'] ) { ?>
+					<br><a class="restoreimage" onclick="ewwwRestoreImage( <?php echo $optimized_image['id']; ?> )"><?php esc_html_e( 'Restore original', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></a>
+				<?php	} ?>
+				</td>
 			</tr>
 <?php			$alternate = ! $alternate;
 		}
@@ -310,12 +322,12 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 					continue;
 				}
 				ewwwio_debug_message( "queuing $path" );
+				$path = ewww_image_optimizer_relative_path_remove( $path );
 				if ( seems_utf8( $path ) ) {
 					$utf8_file_path = $path;
 				} else {
 					$utf8_file_path = utf8_encode( $path );
 				}
-				//$images[] = "('" . esc_sql( $utf8_file_path ) . "',$image_size,1)";
 				$images[] = array(
 					'path' => $utf8_file_path,
 					'orig_size' => $image_size,
@@ -327,8 +339,6 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 				// let's dump what we have so far to the db
 				$image_count = 0;
 				ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
-				//$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,orig_size,pending) VALUES " . implode( ',', $images );
-				//$wpdb->query( $insert_query );
 				$images = array();
 			}
 		}
@@ -336,8 +346,6 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	}
 	if ( ! empty( $images ) ) {
 		ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
-		//$insert_query = "INSERT INTO $wpdb->ewwwio_images (path,orig_size,pending) VALUES " . implode( ',', $images );
-		//$wpdb->query( $insert_query );
 	}
 	if ( ! empty( $reset_images ) ) {
 		$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $reset_images ) . ')' );
@@ -360,6 +368,7 @@ function ewww_image_optimizer_aux_images_convert() {
 		if ( empty( $record['image_md5'] ) ) {
 			continue;
 		}
+		$record['path'] = ewww_image_optimizer_relative_path_replace( $record['path'] );
 		$image_md5 = md5_file( $record['path'] );
 		if ( $image_md5 === $record['image_md5'] ) {
 			$filesize = filesize( $record['path'] );
@@ -468,7 +477,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 								$mimetype = ewww_image_optimizer_mimetype( $path, 'i' );
 								// brand new image
 								if ( preg_match( '/^image\/(jpeg|png|gif)/', $mimetype ) && empty( $already_optimized ) ) {
-									$slide_paths[] = array( 'path' => $path, 'orig_size' => $image_size );
+									$slide_paths[] = array( 'path' => ewww_image_optimizer_relative_path_remove( $path ), 'orig_size' => $image_size );
 								// changed image
 								} elseif ( preg_match( '/^image\/(jpeg|png|gif)/', $mimetype ) && ! empty( $already_optimized ) && $already_optimized['image_size'] != $image_size ) {
 									$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id = {$already_optimized['id']}" );

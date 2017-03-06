@@ -377,7 +377,7 @@ body .ui-tooltip {
         top: auto;
 }
 
-a.removeimage {
+a.removeimage, a.restoreimage {
 	cursor: pointer;
 }
 .ewww-attachment-detail-container {
