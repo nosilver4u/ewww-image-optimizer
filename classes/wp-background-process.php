@@ -51,6 +51,11 @@ if ( ! class_exists( 'WP_Background_Process' ) ) {
 		 */
 		protected $cron_interval_identifier;
 
+		// either an 'a' or a 'b', depending on which one is currently running
+		protected $active_queue;
+
+		protected $second_queue;
+
 		/**
 		 * Initiate new background process
 		 */
@@ -98,11 +103,15 @@ if ( ! class_exists( 'WP_Background_Process' ) ) {
 		 */
 		public function save() {
 			$key = $this->generate_key();
-
+ewwwio_debug_message( "queue $key will be saved to" );
 			if ( ! empty( $this->data ) ) {
-				update_site_option( $key, $this->data );
+				$existing_data = get_option( $key );
+				if ( ! empty( $existing_data ) ) {
+					$this->data = array_merge( $existing_data, $this->data );
+				}
+				update_option( $key, $this->data, false );
 			}
-
+			$this->data = array();
 			return $this;
 		}
 
@@ -116,7 +125,10 @@ if ( ! class_exists( 'WP_Background_Process' ) ) {
 		 */
 		public function update( $key, $data ) {
 			if ( ! empty( $data ) ) {
-				update_site_option( $key, $data );
+				$existing_data = get_option( $key );
+				if ( ! empty( $existing_data ) ) {
+					update_option( $key, $data, false );
+				}
 			}
 
 			return $this;
@@ -130,7 +142,7 @@ if ( ! class_exists( 'WP_Background_Process' ) ) {
 		 * @return $this
 		 */
 		public function delete( $key ) {
-			delete_site_option( $key );
+			update_option( $key, '' );
 
 			return $this;
 		}
@@ -146,7 +158,12 @@ if ( ! class_exists( 'WP_Background_Process' ) ) {
 		 * @return string
 		 */
 		protected function generate_key( $length = 64 ) {
-			$unique  = md5( microtime() . rand() );
+//			$unique  = md5( microtime() . rand() );
+			$unique  = 'a';
+			if ( $this->is_queue_active( $unique ) ) {
+				$unique = 'b';
+			}
+			$this->second_queue = $unique;
 			$prepend = $this->identifier . '_batch_';
 
 			return substr( $prepend . $unique, 0, $length );
@@ -187,17 +204,17 @@ if ( ! class_exists( 'WP_Background_Process' ) ) {
 			$table  = $wpdb->options;
 			$column = 'option_name';
 
-			if ( is_multisite() ) {
+/*			if ( is_multisite() ) {
 				$table  = $wpdb->sitemeta;
 				$column = 'meta_key';
-			}
+			}*/
 
 			$key = $this->identifier . '_batch_%';
 
 			$count = $wpdb->get_var( $wpdb->prepare( "
 			SELECT COUNT(*)
 			FROM {$table}
-			WHERE {$column} LIKE %s
+			WHERE {$column} LIKE %s AND option_value != ''
 		", $key ) );
 
 			return ( $count > 0 ) ? false : true;
@@ -210,13 +227,25 @@ if ( ! class_exists( 'WP_Background_Process' ) ) {
 		 * in a background process.
 		 */
 		protected function is_process_running() {
-			if ( get_site_transient( $this->identifier . '_process_lock' ) ) {
+			if ( get_transient( $this->identifier . '_process_lock' ) ) {
 				// Process already running.
 				return true;
 			}
 
 			return false;
 		}
+
+		protected function is_queue_active( $queue_id ) {
+			global $wpdb;
+			$process_lock_transient = '_transient_' . $this->identifier . '_process_lock';
+			if ( $wpdb->get_var( "SELECT option_value FROM $wpdb->options WHERE option_name LIKE '$process_lock_transient'" ) == $queue_id ) {
+ewwwio_debug_message( "queue $queue_id is running" );
+				return true;
+			}
+ewwwio_debug_message( "queue $queue_id is not running, checked with: ". $this->identifier . '_process_lock' );
+			return false;
+		}
+
 
 		/**
 		 * Lock process
@@ -230,10 +259,20 @@ if ( ! class_exists( 'WP_Background_Process' ) ) {
 
 			$lock_duration = ( property_exists( $this, 'queue_lock_time' ) ) ? $this->queue_lock_time : 60; // 1 minute
 			$lock_duration = apply_filters( $this->identifier . '_queue_lock_time', $lock_duration );
-
-			set_site_transient( $this->identifier . '_process_lock', microtime(), $lock_duration );
+			if ( empty( $this->active_queue ) ) {
+				$this->active_queue = 'a';
+			}
 		}
 
+		protected function update_lock() {
+			if ( empty( $this->active_queue ) ) {
+				return;
+			}
+			$lock_duration = ( property_exists( $this, 'queue_lock_time' ) ) ? $this->queue_lock_time : 60; // 1 minute
+			$lock_duration = apply_filters( $this->identifier . '_queue_lock_time', $lock_duration );
+			set_transient( $this->identifier . '_process_lock', $this->active_queue , $lock_duration );
+		}
+			
 		/**
 		 * Unlock process
 		 *
@@ -242,7 +281,7 @@ if ( ! class_exists( 'WP_Background_Process' ) ) {
 		 * @return $this
 		 */
 		protected function unlock_process() {
-			delete_site_transient( $this->identifier . '_process_lock' );
+			delete_transient( $this->identifier . '_process_lock' );
 
 			return $this;
 		}
@@ -260,19 +299,19 @@ if ( ! class_exists( 'WP_Background_Process' ) ) {
 			$key_column   = 'option_id';
 			$value_column = 'option_value';
 
-			if ( is_multisite() ) {
+/*			if ( is_multisite() ) {
 				$table        = $wpdb->sitemeta;
 				$column       = 'meta_key';
 				$key_column   = 'meta_id';
 				$value_column = 'meta_value';
-			}
+			}*/
 
 			$key = $this->identifier . '_batch_%';
 
 			$query = $wpdb->get_row( $wpdb->prepare( "
 			SELECT *
 			FROM {$table}
-			WHERE {$column} LIKE %s
+			WHERE {$column} LIKE %s AND {$value_column} != ''
 			ORDER BY {$key_column} ASC
 			LIMIT 1
 		", $key ) );
@@ -280,7 +319,8 @@ if ( ! class_exists( 'WP_Background_Process' ) ) {
 			$batch       = new stdClass();
 			$batch->key  = $query->$column;
 			$batch->data = maybe_unserialize( $query->$value_column );
-
+			$this->active_queue = substr( $batch->key, -1 );
+			$this->update_lock();
 			return $batch;
 		}
 

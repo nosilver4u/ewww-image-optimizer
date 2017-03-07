@@ -1,6 +1,7 @@
 jQuery(document).ready(function($) {
 	var ewww_error_counter = 30;
-	if (!ewww_vars.attachments) {
+	//if (!ewww_vars.attachments) {
+	if (!ewww_vars.scan_fail) {
 		$('#ewww-webp-rewrite').submit(function() {
 			var ewww_webp_rewrite_action = 'ewww_webp_rewrite';
 			var ewww_webp_rewrite_data = {

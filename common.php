@@ -20,13 +20,8 @@
 // TODO: need to make the scheduler so it can resume without having to re-run the queue population, and then we can probably also flush the queue when scheduled opt starts, but later it would be nice to implement the bulk_loop as the aux_loop so that it could handle media properly
 // TODO: implement a search for the bulk table, or maybe we should just move it to it's own page?
 // TODO: check for print_r before using
-// TODO: can we turn off EWWW during a thumb regeneration within the MLP processing anytime they use wp_generate_attachment_metadata().
-// TODO: disable savings output when it is 0, and when multisite is 1000+
-// TODO: do a better check on the bulk page for eio.js (instead of checking attachments, which can be 0)
-// TODO: find issue with FB importer, via Will Taylor
 // TODO: need to port restore to NextGEN and FlaGallery plus metadata 2 ewwwio table changes
 // TODO: fix wp-cli bulk memory issues
-// TODO: add in 'restore original' for CDN images on custom column
 
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -130,6 +125,7 @@ add_action( 'admin_action_ewww_image_optimizer_delete_debug_log', 'ewww_image_op
 register_deactivation_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimizer_network_deactivate' );
 register_uninstall_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimizer_uninstall' );
 //add_action( 'shutdown', 'ewwwio_memory_output' );
+add_action( 'shutdown', 'ewww_image_optimizer_debug_log' );
 if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ) {
 	add_action( 'template_redirect', 'ewww_image_optimizer_buffer_start' );
 	if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
@@ -923,8 +919,16 @@ function ewww_image_optimizer_ajax_compat_check() {
 	if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
 		return;
 	}
-	// Check for (Force) Regenerate Thumbnails action
+	// Check for (Force) Regenerate Thumbnails action (includes MLP regnerate)
 	if ( ! empty( $_REQUEST['action'] ) && $_REQUEST['action'] == 'regeneratethumbnail' ) {
+		ewww_image_optimizer_image_sizes( false );
+	}
+	// Check for other MLP actions, including multi-regen
+	if ( ! empty( $_REQUEST['action'] ) && class_exists( 'MaxGalleriaMediaLib' ) && ( $_REQUEST['action'] == 'regen_mlp_thumbnails' || $_REQUEST['action'] == 'move_media' || $_REQUEST['action'] == 'copy_media' || $_REQUEST['action'] == 'maxgalleria_rename_image' ) ) {
+		ewww_image_optimizer_image_sizes( false );
+	}
+	// Check for MLP upload
+	if ( ! empty( $_REQUEST['action'] ) && class_exists( 'MaxGalleriaMediaLib' ) && ! empty( $_REQUEST['nonce'] ) && $_REQUEST['action'] == 'upload_attachment' ) {
 		ewww_image_optimizer_image_sizes( false );
 	}
 }
@@ -2467,13 +2471,13 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 			update_site_option( 'ewww_image_optimizer_pdf_level', 0 );
 			update_option( 'ewww_image_optimizer_pdf_level', 0 );
 		}
-		ewww_image_optimizer_debug_log();
+		//ewww_image_optimizer_debug_log();
 		return false;
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
 		set_transient( 'ewww_image_optimizer_cloud_status', 'exceeded', 3600 ); 
 		ewwwio_debug_message( 'license exceeded notice has not expired' );
-		ewww_image_optimizer_debug_log();
+		//ewww_image_optimizer_debug_log();
 		return 'exceeded';
 	}
 	add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent' );
@@ -2490,7 +2494,7 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 			$ewwwio_async_key_verification = new EWWWIO_Async_Key_Verification();
 		}
 		$ewwwio_async_key_verification->dispatch();
-		ewww_image_optimizer_debug_log();
+		//ewww_image_optimizer_debug_log();
 		return $ewww_cloud_status;
 	}
 	if ( $ewww_cloud_transport !== 'https' && $ewww_cloud_transport !== 'http' ) {
@@ -2521,7 +2525,7 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 		$servers = gethostbynamel( 'optimize.exactlywww.com' );
 		if ( empty ( $servers ) ) {
 			ewwwio_debug_message( 'unable to resolve servers' );
-		ewww_image_optimizer_debug_log();
+		//ewww_image_optimizer_debug_log();
 			return false;
 		}
 		if ( ewww_image_optimizer_iterable( $servers ) ) {
@@ -2550,7 +2554,7 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 	}
 	if ( empty( $verified ) ) {
 		ewwwio_memory( __FUNCTION__ );
-		ewww_image_optimizer_debug_log();
+		//ewww_image_optimizer_debug_log();
 		return false;
 	} else {
 		set_transient( 'ewww_image_optimizer_cloud_status', $verified, 3600 ); 
@@ -2561,7 +2565,7 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 		}
 		ewwwio_debug_message( "verification body contents: {$result['body']}" );
 		ewwwio_memory( __FUNCTION__ );
-		ewww_image_optimizer_debug_log();
+		//ewww_image_optimizer_debug_log();
 		return $verified;
 	}
 }
@@ -4432,7 +4436,7 @@ function ewww_image_optimizer_attachment_path( $meta, $ID, $file = '', $refresh_
 }
 
 function ewww_image_optimizer_relative_path_remove( $file ) {
-	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_RELATIVE' ) ) {
+	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_RELATIVE' ) || ! EWWW_IMAGE_OPTIMIZER_RELATIVE ) {
 		return $file;
 	}
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
@@ -4769,13 +4773,13 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				$in_progress = true;
 			}
 			if ( ! $in_progress ) {
-				$optimized_images = $wpdb->get_results( "SELECT image_size,orig_size,resize,converted,level FROM $wpdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", ARRAY_A );
+				$optimized_images = $wpdb->get_results( "SELECT image_size,orig_size,resize,converted,level,backup FROM $wpdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", ARRAY_A );
 				if ( ! $optimized_images ) {
 					// attempt migration, but only if the original image is in the db, $migrated will be metadata on success, false on failure
 					$migrated = ewww_image_optimizer_migrate_meta_to_db( $id, $meta, true );
 				}
 				if ( $migrated ) {
-					$optimized_images = $wpdb->get_results( "SELECT image_size,orig_size,resize,converted,level FROM $wpdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", ARRAY_A );
+					$optimized_images = $wpdb->get_results( "SELECT image_size,orig_size,resize,converted,level,backup FROM $wpdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", ARRAY_A );
 				}
 			}
 			// if optimizer data exists in the db
@@ -4791,6 +4795,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 					$opt_size += $optimized_image['image_size'];
 					if ( $optimized_image['resize'] == 'full' ) {
 						$level = $optimized_image['level'];
+						$backup_available = $optimized_image['backup'];
 					}
 					if ( ! empty( $optimized_image['converted'] ) ) {
 						$converted = $optimized_image['converted'];
@@ -4820,6 +4825,11 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 					$output .= '<div>' . sprintf( "<a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_force=1&amp;ewww_attachment_ID=%d\">%s</a>",
 						$id,
 						esc_html__( 'Re-optimize', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) . '</div>';
+				}
+				if ( $backup_available && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
+					$output .= '<div>' . sprintf( "<a class='ewww-manual-cloud-restore' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_cloud_restore&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d\">%s</a>",
+						$id,
+						esc_html__( 'Restore original', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) . '</div>';
 				}
 			} elseif ( ! $in_progress && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 				ewww_image_optimizer_migrate_meta_to_db( $id, $meta );
@@ -5286,23 +5296,26 @@ function ewww_image_optimizer_savings() {
 	}
 	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
 		ewwwio_debug_message( 'querying savings for multi-site' );
+
+		if ( get_blog_count() > 1000 ) {
+			// TODO: someday do something more clever than this, maybe
+			return 0;
+		}
 		if ( function_exists( 'get_sites' ) ) {
 			ewwwio_debug_message( 'retrieving list of sites the easy way (4.6+)' );
-			add_filter( 'wp_is_large_network', 'ewww_image_optimizer_large_network', 20, 3 );
 			$blogs = get_sites( array(
 				'fields' => 'ids',
 				'number' => 1000,
 			) );
-			remove_filter( 'wp_is_large_network', 'ewww_image_optimizer_large_network', 20, 3 );
 
 		} elseif ( function_exists( 'wp_get_sites' ) ) {
 			ewwwio_debug_message( 'retrieving list of sites the easy way (pre 4.6)' );
-			add_filter( 'wp_is_large_network', 'ewww_image_optimizer_large_network', 20, 3 );
+			//add_filter( 'wp_is_large_network', 'ewww_image_optimizer_large_network', 20, 3 );
 			$blogs = wp_get_sites( array(
 				'network_id' => $wpdb->siteid,
 				'limit' => 1000
 			) );
-			remove_filter( 'wp_is_large_network', 'ewww_image_optimizer_large_network', 20, 3 );
+			//remove_filter( 'wp_is_large_network', 'ewww_image_optimizer_large_network', 20, 3 );
 		}
 		$total_savings = 0;
 		if ( ewww_image_optimizer_iterable( $blogs ) ) {
@@ -6244,7 +6257,6 @@ function ewww_image_optimizer_image_queue_debug() {
 			if ( ! is_object( $ewwwio_media_background ) ) {
 				$ewwwio_media_background = new EWWWIO_Media_Background_Process();
 			}
-			ewwwio_debug_message( "backgrounding optimization for $ID" );
 			$queues = (int) $_POST['ewww_image_optimizer_clear_queue'];
 			while( $queues ) {
 				$ewwwio_media_background->cancel_process();
@@ -6274,19 +6286,19 @@ function ewww_image_optimizer_image_queue_debug() {
 	$key_column   = 'option_id';
 	$value_column = 'option_value';
 
-	if ( is_multisite() ) {
+/*	if ( is_multisite() ) {
 		$table        = $wpdb->sitemeta;
 		$column       = 'meta_key';
 		$key_column   = 'meta_id';
 		$value_column = 'meta_value';
-	}
+	}*/
 
 	$key = 'wp_ewwwio_media_optimize_batch_%';
 	$queues = $wpdb->get_results( 
 		$wpdb->prepare( "
 			SELECT *
 			FROM {$table}
-			WHERE {$column} LIKE %s
+			WHERE {$column} LIKE %s AND {$value_column} != ''
 			ORDER BY {$key_column} ASC
 			", $key ),
 		ARRAY_A );
