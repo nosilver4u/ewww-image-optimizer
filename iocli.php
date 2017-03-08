@@ -69,12 +69,12 @@ class EWWWIO_CLI extends WP_CLI_Command {
 					ewww_image_optimizer_delete_pending();
 					WP_CLI::line( __('Bulk status has been reset, starting from the beginning.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 				}
-				WP_CLI::line( __( 'Scanning, this could take a while', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 				ewww_image_optimizer_bulk_script( 'media_page_ewww-image-optimizer-bulk' );
-				$fullsize_count = ewww_image_optimizer_count_optimized ('media');
-				ewww_image_optimizer_aux_images_script( 'ewww-image-optimizer-auto' );
+				$fullsize_count = ewww_image_optimizer_count_optimized( 'media' );
+				//ewww_image_optimizer_aux_images_script( 'ewww-image-optimizer-auto' );
 				WP_CLI::line( sprintf( __( '%1$d images in the Media Library have been selected.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $fullsize_count ) );
 				WP_CLI::line( __( 'The active theme, BuddyPress, WP Symposium, and folders that you have configured will also be scanned for unoptimized images.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
+				WP_CLI::line( __( 'Scanning, this could take a while', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 				// do a filter to increase the timeout to 999 or something crazy
 				add_filter( 'ewww_image_optimizer_timeout', 'ewww_image_optimizer_cli_timeout', 200 );
 				ewww_image_optimizer_media_scan( 'ewww-image-optimizer-cli' );
@@ -94,7 +94,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 					WP_CLI::line( 'Flagallery: ' . sprintf( __( '%1$d images have been selected (%2$d unoptimized), with %3$d resizes (%4$d unoptimized).', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $fullsize_count, $unoptimized_count, $resize_count, $unoptimized_resize_count ) );
 				}
 				if ( empty( $assoc_args['noprompt'] ) ) {
-					WP_CLI::confirm( sprintf( __( '%d images in other folders need optimizing.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $pending_count ) );
+					WP_CLI::confirm( sprintf( __( 'There are %d images ready to optimize.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $pending_count ) );
 				}
 				//ewww_image_optimizer_bulk_media( $delay );
 				$_REQUEST['ewww_batch_limit'] = 1;

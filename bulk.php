@@ -498,9 +498,13 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 
 	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 	if ( 'ewww-image-optimizer-cli' !== $hook && empty( $_REQUEST['ewww_scan'] ) ) {
+	ewwwio_debug_message( 'bailing no cli' );
+	ewww_image_optimizer_debug_log();
 		die( json_encode( array( 'error' => esc_html__( 'Access denied.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
 	}
 	if ( ! empty( $_REQUEST['ewww_scan'] ) && ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) ) {
+	ewwwio_debug_message( 'bailing no nonce' );
+	ewww_image_optimizer_debug_log();
 		die( json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
 	}
 	//ewwwio_memory( __FUNCTION__ );
@@ -573,7 +577,14 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	while ( microtime( true ) - $started < apply_filters( 'ewww_image_optimizer_timeout', 15 ) && count( $attachment_ids ) ) {
 	ewww_image_optimizer_debug_log();
 		if ( ! empty( $estimated_batch_memory ) && ! ewwwio_check_memory_available( 3146000 + $estimated_batch_memory ) ) { // initial batch storage used + 3MB
-			break;
+			if ( defined( 'WP_CLI' ) && WP_CLI ) {
+				if ( is_array( $optimized_list ) ) {
+					set_transient( 'ewww_image_optimizer_low_memory_mode', 1, 600 ); // keep us in low memory mode for at least 10 minutes
+					$optimized_list = 'low_memory';
+				}
+			} else {	
+				break;
+			}
 		}
 		if ( ! empty( $attachment_ids ) && is_array( $attachment_ids ) ) {
 			$selected_ids = null;
@@ -609,7 +620,15 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	ewwwio_debug_message( 'time exceeded, or memory exceeded' );
 	ewww_image_optimizer_debug_log();
 				$attachment_ids = array_merge( $failsafe_selected_ids, $attachment_ids );
-				break 2;
+				if ( defined( 'WP_CLI' ) && WP_CLI ) {
+					if ( is_array( $optimized_list ) ) {
+						set_transient( 'ewww_image_optimizer_low_memory_mode', 1, 600 ); // keep us in low memory mode for at least 10 minutes
+						$optimized_list = 'low_memory';
+					}
+					break;
+				} else {
+					break 2;
+				}
 			}
 	ewww_image_optimizer_debug_log();
 			array_shift( $failsafe_selected_ids );
@@ -973,8 +992,10 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			if ( $selected_id == $bad_attachment ) {
 	ewwwio_debug_message( 'found bad attachment, bailing to reset the counter' );
 	ewww_image_optimizer_debug_log();
-				$attachment_ids = array_merge( $failsafe_selected_ids, $attachment_ids );
-				break 2;
+				if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
+					$attachment_ids = array_merge( $failsafe_selected_ids, $attachment_ids );
+					break 2;
+				}
 			}
 		} // end foreach loop for the selected_id
 	ewwwio_debug_message( 'finished foreach, storing remaining attachments in scanning_attachments' );
@@ -1140,9 +1161,7 @@ function ewww_image_optimizer_bulk_loop( $hook, $delay = 0 ) {
 			$meta = wp_get_attachment_metadata( $image->attachment_id );
 			$file_path = ewww_image_optimizer_remote_fetch( $image->attachment_id, $meta );
 			unset( $meta );
-		/*	if ( $image->resize === 'full' && $file_path && $image->file != $file_path ) {
-				$image->file = $file_path;
-			} else*/if ( ! $file_path ) {
+			if ( ! $file_path ) {
 				ewwwio_debug_message( 'could not retrieve path' );
 				if ( defined( 'WP_CLI' ) && WP_CLI ) {
 					WP_CLI::line( __( 'Could not find image', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . ' ' . $image->file );

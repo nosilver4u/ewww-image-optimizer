@@ -8,7 +8,6 @@
 // TODO: prevent bad ajax errors from firing when we click the toggle on the Optimization Log, and the plugin status from doing 403s...
 // TODO: use a transient to do health checks on the schedule optimizer
 // TODO: add a column to track compression level used for each image, and later implement a way to (re)compress at a specific compression level
-// TODO: implement (optional) backups with a .bak extension for every file
 // TODO: might be able to use the Custom Bulk Actions in 4.7 to support the bulk optimize drop-down menu
 // TODO: see if there is a way to query the last couple months (or 30 days) worth of attachments, but only when the user is not using year/month folders. This way, they can catch extraneous images if possible. Use the post_date field, and do a media_scan followed by the folder scan to catch remaining images
 // TODO: move resizing options into their own sub-menu
@@ -16,13 +15,10 @@
 // TODO: add an override for network admins to allow site admins to configure their own sites
 // TODO: even without the override, the size (disabling) settings need to be exposed per-site
 // TODO: see if there is a way to make the bulk time elapsed obey locale settings for decimal vs. comma
-// TODO: check for Pantheon platform, and use relative path matching somehow: if ( in_array( $_ENV['PANTHEON_ENVIRONMENT'], Array('test', 'live') ) ) and include the CONSTANT in the path when storing in db
 // TODO: need to make the scheduler so it can resume without having to re-run the queue population, and then we can probably also flush the queue when scheduled opt starts, but later it would be nice to implement the bulk_loop as the aux_loop so that it could handle media properly
 // TODO: implement a search for the bulk table, or maybe we should just move it to it's own page?
 // TODO: check for print_r before using
 // TODO: need to port restore to NextGEN and FlaGallery plus metadata 2 ewwwio table changes
-// TODO: fix wp-cli bulk memory issues
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -6118,6 +6114,10 @@ function ewww_image_optimizer_admin_bar_menu() {
 }
 
 function ewwwio_debug_message( $message ) {
+	if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		WP_CLI::debug( $message );
+		return;
+	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 		$memory_limit = ewwwio_memory_limit();
 		if ( strlen( $message ) + 4000000 + memory_get_usage( true ) <= $memory_limit ) {
@@ -6342,14 +6342,16 @@ function ewwwio_memory_limit() {
 		$memory_limit = ini_get( 'memory_limit' );
 	} else {
 		if ( ! defined( 'EWWW_MEMORY_LIMIT' ) ) {
+			// conservative default, current usage + 16M
 			$current_memory = memory_get_usage( true );
 			$memory_limit = round( $current_memory / ( 1024 * 1024 ) ) + 16;
 			define( 'EWWW_MEMORY_LIMIT', $memory_limit );
-			// conservative default.
-		//	$memory_limit = '64M';
 		}
 	}
-	if ( ! $memory_limit || -1 === $memory_limit ) {
+	if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		WP_CLI::debug( "memory limit is set at $memory_limit" );
+	}
+	if ( ! $memory_limit || -1 == $memory_limit ) {
 		// Unlimited, set to 32GB.
 		$memory_limit = '32000M';
 	}
@@ -6362,7 +6364,7 @@ function ewwwio_memory_limit() {
 }
 
 // see if the current usage + padding will fit within the memory_limit defined by PHP. If not, return false, otherwise, proceed with true.
-function ewwwio_check_memory_available( $padding = 1049000 ) {
+function ewwwio_check_memory_available( $padding = 1050000 ) {
 	$memory_limit = ewwwio_memory_limit();
 
 	$current_memory = memory_get_usage( true ) + $padding;

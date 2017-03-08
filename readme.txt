@@ -220,6 +220,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * fixed: imported attachments queued multiple times when plugins like Facebook Events Importer use media_sideload_image()
 * fixed: notice when clearing queues
 * fixed: when a background process is running, queues repopulate even after clearing all items
+* fixed: WP-CLI not dropping to low memory mode in constrained environments, causing incomplete scans
 
 = 3.2.7 =
 * added: function to remove duplicate records from the ewwwio table when doing a bulk scan or re-optimizing an image
