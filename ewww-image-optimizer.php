@@ -2128,9 +2128,9 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				// if pngout is enabled
 				if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_pngout' ) && $tools['PNGOUT'] ) {
 					// retrieve the pngout optimization level
-					$pngout_level = (int) ewww_image_optimizer_get_option('ewww_image_optimizer_pngout_level');
+					$pngout_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pngout_level' );
 					// if $pngfile exists (which means optipng was run already)
-					if (file_exists($pngfile)) {
+					if ( file_exists( $pngfile ) ) {
 						// run pngout on the PNG file
 						exec( "$nice " . $tools['PNGOUT'] . " -s$pngout_level -q " . ewww_image_optimizer_escapeshellarg( $pngfile ) );
 					} else {

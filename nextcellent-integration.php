@@ -57,8 +57,11 @@ class ewwwngg {
 
 	/* ngg_added_new_image hook */
 	function ewww_added_new_image( $id, $meta ) {
+		global $ewww_image;
 		// retrieve the image path
 		$file_path = $meta->image->imagePath;
+		$ewww_image = new EWWW_Image( $id, 'nextcellent', $file_path );
+		$ewww_image->resize = 'full';
 		// run the optimizer on the current image
 		$fres = ewww_image_optimizer( $file_path, 2, false, false, true );
 		// update the metadata for the optimized image
@@ -71,16 +74,15 @@ class ewwwngg {
 		// query the filesystem path of the gallery from the database
 		global $ewww_defer;
 		global $wpdb;
+		global $ewww_image;
 		$q = $wpdb->prepare( "SELECT path FROM {$wpdb->prefix}ngg_gallery WHERE gid = %d LIMIT 1", $image['galleryID'] );
 		$gallery_path = $wpdb->get_var( $q );
 		// if we have a path to work with
 		if ( $gallery_path ) {
 			// construct the absolute path of the current image
 			$file_path = trailingslashit( $gallery_path ) . $image['filename'];
-			if ( $ewww_defer && ewww_image_optimizer_get_option( 'ewww_image_optimizer_defer' ) ) {
-				ewww_image_optimizer_add_deferred_attachment( "nextcellent,{$image['id']}" );
-				return;
-			}
+			$ewww_image = new EWWW_Image( $image['id'], 'nextcellent', $file_path );
+			$ewww_image->resize = 'full';
 			// run the optimizer on the current image
 			$res = ewww_image_optimizer( ABSPATH . $file_path, 2, false, false, true );
 			// update the metadata for the optimized image
@@ -88,6 +90,7 @@ class ewwwngg {
 		}
 	}
 
+// TODO: this should be the function that optimizes the thumbnail, check it out
 	function ewww_ngg_image_save( $filename ) {
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		global $ewww_defer;
@@ -138,10 +141,13 @@ class ewwwngg {
 
 	/* optimize an image by ID */
 	function ewww_ngg_optimize( $id ) {
+		global $ewww_image;
 		// retrieve the metadata for the image
 		$meta = new nggMeta( $id );
 		// retrieve the image path
 		$file_path = $meta->image->imagePath;
+		$ewww_image = new EWWW_Image( $id, 'nextcellent', $file_path );
+		$ewww_image->resize = 'full';
 		// run the optimizer on the current image
 		$fres = ewww_image_optimizer( $file_path, 2, false, false, true );
 		// update the metadata for the optimized image
@@ -149,6 +155,8 @@ class ewwwngg {
 		$nggdb->update_image_meta( $id, array( 'ewww_image_optimizer' => $fres[1] ) );
 		// get the filepath of the thumbnail image
 		$thumb_path = $meta->image->thumbPath;
+		$ewww_image = new EWWW_Image( $id, 'nextcellent', $thumb_path );
+		$ewww_image->resize = 'thumbnail';
 		// run the optimization on the thumbnail
 		$tres = ewww_image_optimizer( $thumb_path, 2, false, true );
 		return array( $fres, $tres );

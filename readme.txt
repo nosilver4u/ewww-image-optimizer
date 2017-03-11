@@ -103,7 +103,7 @@ To receive updates when new strings are available for translation, you can signu
 1. *Recommended* Visit the settings page to enable/disable specific tools and turn on advanced optimization features.
 1. Done!
 
-If these steps do not work, additional documentation is available at https://docs.ewww.io. If you need further assistance using the plugin, please visit our [Support Page](https://ewww.io/contact-us/). The forums are community supported only.
+If these steps do not work, additional documentation is available at http://docs.ewww.io. If you need further assistance using the plugin, please visit our [Support Page](https://ewww.io/contact-us/). The forums are community supported only.
 
 = Webhosts =
 
@@ -221,6 +221,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * fixed: notice when clearing queues
 * fixed: when a background process is running, queues repopulate even after clearing all items
 * fixed: WP-CLI not dropping to low memory mode in constrained environments, causing incomplete scans
+* fixed: nextgen not showing optimization stats
 
 = 3.2.7 =
 * added: function to remove duplicate records from the ewwwio table when doing a bulk scan or re-optimizing an image
