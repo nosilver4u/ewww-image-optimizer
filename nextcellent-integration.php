@@ -310,7 +310,7 @@ class ewwwngg {
 			</div>
 		</div>
                 <div id="ewww-bulk-forms">
-                <p class="ewww-bulk-info"><?php printf(esc_html__('We have %d images to optimize.', EWWW_IMAGE_OPTIMIZER_DOMAIN), count($attachments)); ?><br />
+                <p class="ewww-bulk-info"><?php printf( esc_html( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', count( $attachments), EWWW_IMAGE_OPTIMIZER_DOMAIN ) ), count( $attachments ) ); ?><br />
 		<?php esc_html_e('Previously optimized images will be skipped by default.', EWWW_IMAGE_OPTIMIZER_DOMAIN); ?></p>
                 <form id="ewww-bulk-start" class="ewww-bulk-form" method="post" action="">
 			<input type="hidden" id="ewww-delay" name="ewww-delay" value="0">
@@ -507,7 +507,8 @@ class ewwwngg {
 		$output['results'] .= sprintf( esc_html__( 'Thumbnail - %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "<br>", esc_html( $tres[1] ) );
 		// outupt how much time we spent
 		$elapsed = microtime( true ) - $started;
-		$output['results'] .= sprintf( esc_html__( 'Elapsed: %.3f seconds', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p>", $elapsed);
+		$output['results'] .= sprintf( esc_html( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) . '</p>', number_format_i18n( $elapsed ) );
+		//$output['results'] .= sprintf( esc_html__( 'Elapsed: %.3f seconds', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p>", $elapsed);
 		$output['completed'] = 1;
 		//store the list back in the db
 		update_option( 'ewww_image_optimizer_bulk_ngg_attachments', $attachments, false );

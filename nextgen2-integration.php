@@ -13,8 +13,10 @@ class ewwwngg {
 //		add_action( 'ngg_manage_image_custom_column', array( $this, 'ewww_manage_image_custom_column' ), 10, 2 );
 		if ( ewww_image_optimizer_test_background_opt() ) {
 			add_action( 'ngg_added_new_image', array( $this, 'queue_new_image' ) );
+			ewwwio_debug_message( 'background mode enabled for nextgen' );
 		} else {
 			add_action( 'ngg_added_new_image', array( $this, 'ewww_added_new_image' ) );
+			ewwwio_debug_message( 'background mode NOT enabled for nextgen' );
 		}
 		add_action( 'wp_ajax_ewww_ngg_manual', array( $this, 'ewww_ngg_manual' ) );
 		add_action( 'wp_ajax_ewww_ngg_cloud_restore', array( $this, 'ewww_ngg_cloud_restore' ) );
@@ -146,14 +148,14 @@ class ewwwngg {
 		// check permission of current user
 		$permissions = apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
 		if ( FALSE === current_user_can( $permissions ) ) {
-			if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
+			if ( ! wp_doing_ajax() ) {
 				wp_die( esc_html__( 'You do not have permission to optimize images.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 			}
 			wp_die( json_encode( array( 'error' => esc_html__( 'You do not have permission to optimize images.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
 		}
 		// make sure function wasn't called without an attachment to work with
 		if ( FALSE === isset( $_REQUEST['ewww_attachment_ID'] ) ) {
-			if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
+			if ( ! wp_doing_ajax() ) {
 				wp_die( esc_html__( 'No attachment ID was provided.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 			}
 			wp_die( json_encode( array( 'error' => esc_html__( 'No attachment ID was provided.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
@@ -161,7 +163,7 @@ class ewwwngg {
 		// store the attachment $id
 		$id = intval( $_REQUEST['ewww_attachment_ID'] );
 		if ( empty( $_REQUEST['ewww_manual_nonce'] ) || ! wp_verify_nonce( $_REQUEST['ewww_manual_nonce'], "ewww-manual-$id" ) ) {
-			if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
+			if ( ! wp_doing_ajax() ) {
                 		wp_die( esc_html__( 'Access denied.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 			}
 			wp_die( json_encode( array( 'error' => esc_html__( 'Access denied.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
@@ -177,7 +179,7 @@ class ewwwngg {
 		if ( get_transient( 'ewww_image_optimizer_cloud_status' ) == 'exceeded' || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
 			die( json_encode( array( 'error' => esc_html__( 'License exceeded', EWWW_IMAGE_OPTIMIZER_DOMAIN) ) ) );
 		} 
-		if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
+		if ( ! wp_doing_ajax() ) {
 			// get the referring page, and send the user back there
 			$sendback = wp_get_referer();
 			$sendback = preg_replace('|[^a-z0-9-~+_.?#=&;,/:]|i', '', $sendback);
@@ -192,14 +194,14 @@ class ewwwngg {
 		// check permission of current user
 		$permissions = apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
 		if ( FALSE === current_user_can( $permissions ) ) {
-			if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
+			if ( ! wp_doing_ajax() ) {
 				wp_die( esc_html__( 'You do not have permission to optimize images.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 			}
 			wp_die( json_encode( array( 'error' => esc_html__( 'You do not have permission to optimize images.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
 		}
 		// make sure function wasn't called without an attachment to work with
 		if ( FALSE === isset( $_REQUEST['ewww_attachment_ID'] ) ) {
-			if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
+			if ( ! wp_doing_ajax() ) {
 				wp_die( esc_html__( 'No attachment ID was provided.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 			}
 			wp_die( json_encode( array( 'error' => esc_html__( 'No attachment ID was provided.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
@@ -207,7 +209,7 @@ class ewwwngg {
 		// store the attachment $id
 		$id = intval( $_REQUEST['ewww_attachment_ID'] );
 		if ( empty( $_REQUEST['ewww_manual_nonce'] ) || ! wp_verify_nonce( $_REQUEST['ewww_manual_nonce'], "ewww-manual-$id" ) ) {
-			if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
+			if ( ! wp_doing_ajax() ) {
                 		wp_die( esc_html__( 'Access denied.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 			}
 			wp_die( json_encode( array( 'error' => esc_html__( 'Access denied.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) ) );
@@ -275,7 +277,7 @@ class ewwwngg {
 				$image = $storage->object->_image_mapper->find( $id );
 			}
 			$output = "<div id='ewww-nextgen-status-$image->pid'>";
-			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
+			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && ewww_image_optimizer_function_exists( 'print_r' ) ) {
 				$print_meta = print_r( $image->meta_data, TRUE );
 				$print_meta = preg_replace( array( '/ /', '/\n+/' ), array( '&nbsp;', '<br />' ), esc_html( $print_meta ) );
 				$output .= '<div style="background-color:#ffff99;font-size: 10px;padding: 10px;margin:-10px -10px 10px;line-height: 1.1em">' . $print_meta . '</div>';
@@ -682,7 +684,8 @@ class ewwwngg {
 		}
 		// outupt how much time we spent
 		$elapsed = microtime( true ) - $started;
-		$output['results'] .= sprintf( esc_html__( 'Elapsed: %.3f seconds', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p>", $elapsed );
+		$output['results'] .= sprintf( esc_html( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) . '</p>', number_format_i18n( $elapsed ) );
+//		$output['results'] .= sprintf( esc_html__( 'Elapsed: %.3f seconds', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p>", $elapsed );
 		$output['completed'] = 1;
 		// store the list back in the db
 		update_option('ewww_image_optimizer_bulk_ngg_attachments', $attachments, false);
@@ -744,7 +747,7 @@ if ( ! empty( $_REQUEST['page'] ) && $_REQUEST['page'] !== 'ngg_other_options' &
 			if ( $success ) {
 				$filename = $success->fileName;
 				ewww_image_optimizer( $filename );
-				ewwwio_debug_message( "nextgen dynamic thumb saved: $filename" );
+				ewwwio_debug_message( "nextgen dynamic thumb saved via extension: $filename" );
 				$image_size = ewww_image_optimizer_filesize($filename);
 				ewwwio_debug_message( "optimized size: $image_size" );
 			}

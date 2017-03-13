@@ -72,7 +72,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 				ewww_image_optimizer_bulk_script( 'media_page_ewww-image-optimizer-bulk' );
 				$fullsize_count = ewww_image_optimizer_count_optimized( 'media' );
 				//ewww_image_optimizer_aux_images_script( 'ewww-image-optimizer-auto' );
-				WP_CLI::line( sprintf( __( '%1$d images in the Media Library have been selected.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $fullsize_count ) );
+				WP_CLI::line( sprintf( _n( '%1$d image in the Media Library has been selected.', '%1$d images in the Media Library have been selected.', $fullsize_count, EWWW_IMAGE_OPTIMIZER_DOMAIN ), $fullsize_count ) );
 				WP_CLI::line( __( 'The active theme, BuddyPress, WP Symposium, and folders that you have configured will also be scanned for unoptimized images.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 				WP_CLI::line( __( 'Scanning, this could take a while', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 				// do a filter to increase the timeout to 999 or something crazy
@@ -86,7 +86,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 						WP_CLI::line( 'Nextgen: ' . sprintf( __( '%1$d images have been selected (%2$d unoptimized), with %3$d resizes (%4$d unoptimized).', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $fullsize_count, $unoptimized_count, $resize_count, $unoptimized_resize_count ) );
 					} else {
 						$attachments = ewww_image_optimizer_scan_next();
-						WP_CLI::line( 'Nextgen: ' . sprintf( __( 'We have %d images to optimize.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), count( $attachments ) ) );
+						WP_CLI::line( 'Nextgen: ' . sprintf( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', count( $attachments), EWWW_IMAGE_OPTIMIZER_DOMAIN ), count( $attachments ) ) );
 					}
 				}
 				if ( class_exists( 'ewwwflag' ) ) {
@@ -94,7 +94,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 					WP_CLI::line( 'Flagallery: ' . sprintf( __( '%1$d images have been selected (%2$d unoptimized), with %3$d resizes (%4$d unoptimized).', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $fullsize_count, $unoptimized_count, $resize_count, $unoptimized_resize_count ) );
 				}
 				if ( empty( $assoc_args['noprompt'] ) ) {
-					WP_CLI::confirm( sprintf( __( 'There are %d images ready to optimize.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $pending_count ) );
+					WP_CLI::confirm( sprintf( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', $pending_count, EWWW_IMAGE_OPTIMIZER_DOMAIN ), $pending_count ) );
 				}
 				//ewww_image_optimizer_bulk_media( $delay );
 				$_REQUEST['ewww_batch_limit'] = 1;
@@ -136,7 +136,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 				ewww_image_optimizer_media_scan( 'ewww-image-optimizer-cli' );
 				$pending_count = ewww_image_optimizer_aux_images_script( 'ewww-image-optimizer-auto' );
 				if ( empty( $assoc_args['noprompt'] ) ) {
-					WP_CLI::confirm( sprintf( __( 'There are %d images ready to optimize.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $pending_count ) );
+					WP_CLI::confirm( sprintf( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', $pending_count, EWWW_IMAGE_OPTIMIZER_DOMAIN ), $pending_count ) );
 				}
 				$_REQUEST['ewww_batch_limit'] = 1;
 				while( ewww_image_optimizer_bulk_loop( 'ewww-image-optimizer-cli', $delay ) ) {
@@ -160,7 +160,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 					} else {
 						$attachments = ewww_image_optimizer_scan_next();
 						if ( empty( $assoc_args['noprompt'] ) ) {
-							WP_CLI::confirm( sprintf( __( 'We have %d images to optimize.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), count( $attachments ) ) );
+							WP_CLI::confirm( sprintf( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', count( $attachments), EWWW_IMAGE_OPTIMIZER_DOMAIN ), count( $attachments ) ) );
 						}
 						ewww_image_optimizer_bulk_next( $delay, $attachments );
 					}
@@ -242,7 +242,9 @@ function ewww_image_optimizer_bulk_flag( $delay = 0 ) {
 		return;
 	}
 	foreach ( $ids as $id ) {
-		sleep( $delay );
+		if ( ewww_image_optimizer_function_exists( 'sleep' ) ) {
+			sleep( $delay );
+		}
 		// record the starting time for the current image (in microseconds)
 		$started = microtime(true);
 		// retrieve the meta for the current ID
@@ -271,7 +273,7 @@ function ewww_image_optimizer_bulk_flag( $delay = 0 ) {
 		// determine how much time the image took to process
 		$elapsed = microtime(true) - $started;
 		// and output it to the user
-		WP_CLI::line( sprintf( __( 'Elapsed: %.3f seconds', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $elapsed ) );
+		WP_CLI::line( sprintf( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, EWWW_IMAGE_OPTIMIZER_DOMAIN ), number_format_i18n( $elapsed ) ) );
 		// retrieve the list of attachments left to work on
 		$attachments = get_option('ewww_image_optimizer_bulk_flag_attachments');
 		// take the first image off the list
@@ -321,7 +323,9 @@ function ewww_image_optimizer_bulk_ngg( $delay = 0 ) {
 	}
 	global $ewwwngg;
 	foreach ( $images as $id ) {
-		sleep( $delay );
+		if ( ewww_image_optimizer_function_exists( 'sleep' ) ) {
+			sleep( $delay );
+		}
 		// find out what time we started, in microseconds
 		$started = microtime(true);
 		// creating the 'registry' object for working with nextgen
@@ -351,7 +355,7 @@ function ewww_image_optimizer_bulk_ngg( $delay = 0 ) {
 		}
 		// outupt how much time we spent
 		$elapsed = microtime(true) - $started;
-		WP_CLI::line( sprintf( __( 'Elapsed: %.3f seconds', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $elapsed ) );
+		WP_CLI::line( sprintf( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, EWWW_IMAGE_OPTIMIZER_DOMAIN ), number_format_i18n( $elapsed ) ) );
 		// get the list of attachments remaining from the db
 		$attachments = get_option('ewww_image_optimizer_bulk_ngg_attachments');
 		// remove the first item
@@ -394,7 +398,9 @@ function ewww_image_optimizer_bulk_next( $delay, $attachments ) {
 	// need this file to work with metadata
 	require_once( WP_CONTENT_DIR . '/plugins/nextcellent-gallery-nextgen-legacy/lib/meta.php' );
 	foreach ( $attachments as $id ) {
-		sleep( $delay );
+		if ( ewww_image_optimizer_function_exists( 'sleep' ) ) {
+			sleep( $delay );
+		}
 		// find out what time we started, in microseconds
 		$started = microtime(true);
 		// get the metadata
@@ -416,7 +422,7 @@ function ewww_image_optimizer_bulk_next( $delay, $attachments ) {
 		WP_CLI::line( sprintf( __( 'Thumbnail - %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), html_entity_decode( $tres[1] ) ) );
 		// outupt how much time we spent
 		$elapsed = microtime(true) - $started;
-		WP_CLI::line( sprintf( __( 'Elapsed: %.3f seconds', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $elapsed ) );
+		WP_CLI::line( sprintf( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, EWWW_IMAGE_OPTIMIZER_DOMAIN ), number_format_i18n( $elapsed ) ) );
 		// get the list of attachments remaining from the db
 		$attachments = get_option('ewww_image_optimizer_bulk_ngg_attachments');
 		// remove the first item

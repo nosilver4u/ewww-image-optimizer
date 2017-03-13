@@ -528,7 +528,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 	ewww_image_optimizer_debug_log();
 	if ( ! empty( $_REQUEST['ewww_scan'] ) ) {
 		ewwwio_memory( __FUNCTION__ );
-		$ready_msg = sprintf( esc_html__( 'There are %d images ready to optimize.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $image_count );
+		$ready_msg = sprintf( esc_html( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', $image_count, EWWW_IMAGE_OPTIMIZER_DOMAIN ) ), $image_count );
 		die( json_encode( array( 'ready' => $image_count, 'message' => $ready_msg ) ) );
 	}
 	ewwwio_memory( __FUNCTION__ );

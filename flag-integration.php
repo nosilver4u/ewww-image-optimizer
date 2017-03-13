@@ -531,7 +531,8 @@ class ewwwflag {
 		// determine how much time the image took to process
 		$elapsed = microtime( true ) - $started;
 		// and output it to the user
-		$output['results'] .= sprintf( esc_html__( 'Elapsed: %.3f seconds', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p>", $elapsed );
+		$output['results'] .= sprintf( esc_html( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) . '</p>', number_format_i18n( $elapsed ) );
+		//$output['results'] .= sprintf( esc_html__( 'Elapsed: %.3f seconds', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p>", $elapsed );
 		$output['completed'] = 1;
 		// send the list back to the db
 		update_option( 'ewww_image_optimizer_bulk_flag_attachments', $attachments, false );
@@ -590,7 +591,7 @@ class ewwwflag {
 			$output = "<div id='ewww-flag-status-$id'>";
 			// get the metadata
 			$meta = new flagMeta( $id );
-			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
+			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && ewww_image_optimizer_function_exists( 'print_r' ) ) {
 				$print_meta = print_r( $meta->image->meta_data, TRUE );
 				$print_meta = preg_replace( array( '/ /', '/\n+/' ), array( '&nbsp;', '<br />' ), esc_html( $print_meta ) );
 				echo '<div style="background-color:#ffff99;font-size: 10px;padding: 10px;margin:-10px -10px 10px;line-height: 1.1em">' . $print_meta . '</div>';
