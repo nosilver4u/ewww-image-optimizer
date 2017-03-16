@@ -5,9 +5,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 function ewww_image_optimizer_webp_migrate_preview() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 ?>	<div class="wrap"> 
-	<h1><?php esc_html_e( 'Migrate WebP Images', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></h1>
+	<h1><?php esc_html_e( 'Migrate WebP Images', 'ewww-image-optimizer' ); ?></h1>
 <?php		esc_html_e( 'The migration is split into two parts. First, the plugin needs to scan all folders for webp images. Once it has obtained the list of images to rename, it will proceed with the renaming' );
-	$button_text = esc_attr__( 'Start Migration', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+	$button_text = esc_attr__( 'Start Migration', 'ewww-image-optimizer' );
 	$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
 	// create the html for the migration form and status divs
 ?>
@@ -86,7 +86,7 @@ function ewww_image_optimizer_webp_initialize() {
 	// verify that an authorized user has started the migration
 	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
 	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-webp' ) || ! current_user_can( $permissions ) ) {
-		wp_die( esc_html__( 'Access denied.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
+		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
 	if ( get_option( 'ewww_image_optimizer_webp_skipped' ) ) {
 		delete_option( 'ewww_image_optimizer_webp_skipped' );
@@ -95,7 +95,7 @@ function ewww_image_optimizer_webp_initialize() {
 	// generate the WP spinner image for display
 	$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
 	// let the user know that we are beginning
-	echo "<p>" . esc_html__( 'Scanning', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "&nbsp;<img src='$loading_image' /></p>";
+	echo "<p>" . esc_html__( 'Scanning', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>";
 	die();
 }
 
@@ -104,7 +104,7 @@ function ewww_image_optimizer_webp_loop() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
 	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-webp' ) || ! current_user_can( $permissions ) ) {
-		wp_die( esc_html__( 'Access token has expired, please reload the page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
+		wp_die( esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) );
 	} 
 	// retrieve the time when the migration starts
 	$started = microtime( true );
@@ -117,7 +117,7 @@ function ewww_image_optimizer_webp_loop() {
 	$images_skipped = '';
 	$images = get_option( 'ewww_image_optimizer_webp_images' );
 	if ( $images ) {
-		printf( esc_html__( '%d Webp images left to rename.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), count( $images ) );
+		printf( esc_html__( '%d Webp images left to rename.', 'ewww-image-optimizer' ), count( $images ) );
 		echo "<br>";
 	}
 	while ( $images ) {
@@ -195,18 +195,18 @@ function ewww_image_optimizer_webp_loop() {
 function ewww_image_optimizer_webp_cleanup() {
 	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
 	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-webp' ) || ! current_user_can( $permissions ) ) {
-		wp_die( esc_html__( 'Access token has expired, please reload the page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
+		wp_die( esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) );
 	}
 	$skipped = get_option( 'ewww_image_optimizer_webp_skipped' );
 	// all done, so we can remove the webp options
 	delete_option( 'ewww_image_optimizer_webp_images' );
 	delete_option( 'ewww_image_optimizer_webp_skipped', '' );
 	if ( $skipped ) {
-		echo '<p><b>' . esc_html__( 'Skipped:', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</b></p>';
+		echo '<p><b>' . esc_html__( 'Skipped:', 'ewww-image-optimizer' ) . '</b></p>';
 		echo "<p>$skipped</p>";
 	}
 	// and let the user know we are done
-	echo '<p><b>' . esc_html__( 'Finished', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</b></p>';
+	echo '<p><b>' . esc_html__( 'Finished', 'ewww-image-optimizer' ) . '</b></p>';
 	die();
 }
 add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_webp_script' );

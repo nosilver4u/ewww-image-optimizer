@@ -691,7 +691,7 @@ class EWWW_Image {
 					'converted' => ewww_image_optimizer_relative_path_remove( $path ),
 					'orig_size' => filesize( $new_path ),
 					'attachment_id' => $this->attachment_id,
-					'results' => __( 'No savings', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
+					'results' => __( 'No savings', 'ewww-image-optimizer' ),
 					'updated' => date( 'Y-m-d H:i:s' ),
 					'updates' => 0,
 				) );
@@ -738,7 +738,7 @@ class EWWW_Image {
 				'path' => ewww_image_optimizer_relative_path_remove( $new_path ),
 				'converted' => '',
 				'image_size' => 0,
-				'results' => __( 'Original Restored', EWWW_IMAGE_OPTIMIZER_DOMAIN ),
+				'results' => __( 'Original Restored', 'ewww-image-optimizer' ),
 				'updates' => 0,
 				'trace' => '',
 				'level' => null,

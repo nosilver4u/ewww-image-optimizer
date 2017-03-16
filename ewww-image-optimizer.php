@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 // Constants
-define( 'EWWW_IMAGE_OPTIMIZER_DOMAIN', 'ewww-image-optimizer' );
+define( ''ewww-image-optimizer'', 'ewww-image-optimizer' );
 // this is the full path of the plugin file itself
 define( 'EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE', __FILE__ );
 // this is the path of the plugin file relative to the plugins/ folder
@@ -149,13 +149,13 @@ function ewww_image_optimizer_set_defaults() {
 // tells the user they are on an unsupported operating system
 function ewww_image_optimizer_notice_os() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	echo "<div id='ewww-image-optimizer-warning-os' class='error'><p><strong>" . esc_html__( 'EWWW Image Optimizer is supported on Linux, FreeBSD, Mac OSX, and Windows', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . ".</strong> " . sprintf( esc_html__( 'Unfortunately, the EWWW Image Optimizer plugin does not work with %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), htmlentities( PHP_OS ) ) . ".</p></div>";
+	echo "<div id='ewww-image-optimizer-warning-os' class='error'><p><strong>" . esc_html__( 'EWWW Image Optimizer is supported on Linux, FreeBSD, Mac OSX, and Windows', 'ewww-image-optimizer' ) . ".</strong> " . sprintf( esc_html__( 'Unfortunately, the EWWW Image Optimizer plugin does not work with %s', 'ewww-image-optimizer' ), htmlentities( PHP_OS ) ) . ".</p></div>";
 }
 
 // inform the user that only ewww-image-optimizer-cloud is permitted on WP Engine
 function ewww_image_optimizer_notice_wpengine() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	echo "<div id='ewww-image-optimizer-warning-wpengine' class='error'><p>" . esc_html__('The regular version of the EWWW Image Optimizer plugin is not permitted on WP Engine sites. However, the cloud version has been approved by WP Engine. Please deactivate EWWW Image Optimizer and install EWWW Image Optimizer Cloud to optimize your images.', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</p></div>";
+	echo "<div id='ewww-image-optimizer-warning-wpengine' class='error'><p>" . esc_html__('The regular version of the EWWW Image Optimizer plugin is not permitted on WP Engine sites. However, the cloud version has been approved by WP Engine. Please deactivate EWWW Image Optimizer and install EWWW Image Optimizer Cloud to optimize your images.', 'ewww-image-optimizer') . "</p></div>";
 }
 
 // generates the source and destination paths for the executables that we bundle with the plugin based on the operating system
@@ -276,7 +276,7 @@ function ewww_image_optimizer_check_permissions( $file, $minimum ) {
 }
 
 function ewww_image_optimizer_tool_folder_notice() {
-	echo "<div id='ewww-image-optimizer-warning-tool-folder-create' class='error'><p><strong>" . esc_html__('EWWW Image Optimizer could not create the tool folder', EWWW_IMAGE_OPTIMIZER_DOMAIN) . ": " . htmlentities(EWWW_IMAGE_OPTIMIZER_TOOL_PATH) . ".</strong> " . esc_html__('Please adjust permissions or create the folder', EWWW_IMAGE_OPTIMIZER_DOMAIN) . ".</p></div>";
+	echo "<div id='ewww-image-optimizer-warning-tool-folder-create' class='error'><p><strong>" . esc_html__('EWWW Image Optimizer could not create the tool folder', 'ewww-image-optimizer') . ": " . htmlentities(EWWW_IMAGE_OPTIMIZER_TOOL_PATH) . ".</strong> " . esc_html__('Please adjust permissions or create the folder', 'ewww-image-optimizer') . ".</p></div>";
 }
 
 function ewww_image_optimizer_tool_folder_permissions_notice() {
@@ -289,7 +289,7 @@ function ewww_image_optimizer_tool_folder_permissions_notice() {
 	} else {
 		$settings_page = 'options-general.php?page=' . EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL;
 	}
-	echo "<div id='ewww-image-optimizer-warning-tool-folder-permissions' class='error'><p><strong>" . sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), htmlentities( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . ".</strong> " . sprintf( esc_html__( 'Please adjust permissions or create the folder. If you have installed the tools elsewhere on your system, check the option to %s.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), esc_html__( 'Use System Paths', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) . " " . wp_kses( sprintf( __( 'For more details, visit the %1$s or the %2$s.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), "<a href='$settings_page'>" . __('Settings Page', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</a>", "<a href='https://wordpress.org/extend/plugins/ewww-image-optimizer/installation/'>" . __('Installation Instructions', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</a>" ), array( 'a' => array( 'href' => array() ) ) ) . '</p></div>';
+	echo "<div id='ewww-image-optimizer-warning-tool-folder-permissions' class='error'><p><strong>" . sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), htmlentities( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . ".</strong> " . sprintf( esc_html__( 'Please adjust permissions or create the folder. If you have installed the tools elsewhere on your system, check the option to %s.', 'ewww-image-optimizer' ), esc_html__( 'Use System Paths', 'ewww-image-optimizer' ) ) . " " . wp_kses( sprintf( __( 'For more details, visit the %1$s or the %2$s.', 'ewww-image-optimizer' ), "<a href='$settings_page'>" . __('Settings Page', 'ewww-image-optimizer') . "</a>", "<a href='https://wordpress.org/extend/plugins/ewww-image-optimizer/installation/'>" . __('Installation Instructions', 'ewww-image-optimizer') . "</a>" ), array( 'a' => array( 'href' => array() ) ) ) . '</p></div>';
 }
 
 // installs the executables that are bundled with the plugin
@@ -412,7 +412,7 @@ function ewww_image_optimizer_install_tools() {
 		} else {
 			$settings_page = 'options-general.php?page=' . EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL;
 		}
-		echo "<div id='ewww-image-optimizer-warning-tool-install' class='error'><p><strong>" . sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), htmlentities( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . ".</strong> " . sprintf( esc_html__( 'Please adjust permissions or create the folder. If you have installed the tools elsewhere on your system, check the option to %s.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), esc_html__( 'Use System Paths', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ) . " " . wp_kses( sprintf( __( 'For more details, visit the %1$s or the %2$s.', EWWW_IMAGE_OPTIMIZER_DOMAIN ), "<a href='$settings_page'>" . __( 'Settings Page', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</a>", "<a href='https://wordpress.org/extend/plugins/ewww-image-optimizer/installation/'>" . __( 'Installation Instructions', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . '</a>'), array( 'a' => array( 'href' => array() ) ) ) . '</p></div>';
+		echo "<div id='ewww-image-optimizer-warning-tool-install' class='error'><p><strong>" . sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), htmlentities( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . ".</strong> " . sprintf( esc_html__( 'Please adjust permissions or create the folder. If you have installed the tools elsewhere on your system, check the option to %s.', 'ewww-image-optimizer' ), esc_html__( 'Use System Paths', 'ewww-image-optimizer' ) ) . " " . wp_kses( sprintf( __( 'For more details, visit the %1$s or the %2$s.', 'ewww-image-optimizer' ), "<a href='$settings_page'>" . __( 'Settings Page', 'ewww-image-optimizer' ) . "</a>", "<a href='https://wordpress.org/extend/plugins/ewww-image-optimizer/installation/'>" . __( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>'), array( 'a' => array( 'href' => array() ) ) ) . '</p></div>';
 	}
 	ewwwio_memory( __FUNCTION__ );
 }
@@ -482,7 +482,7 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 		// need to be a little particular with the quiet parameter
 		if ( $quiet !== 'quiet' ) {
 			//display a warning if exec() is disabled, can't run much of anything without it
-			echo "<div id='ewww-image-optimizer-warning-exec' class='error'><p>" . esc_html__( 'EWWW Image Optimizer requires exec() or an API key. Your system administrator has disabled the exec() function, ask them to enable it.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p></div>";
+			echo "<div id='ewww-image-optimizer-warning-exec' class='error'><p>" . esc_html__( 'EWWW Image Optimizer requires exec() or an API key. Your system administrator has disabled the exec() function, ask them to enable it.', 'ewww-image-optimizer' ) . "</p></div>";
 		}
 		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
 			define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
@@ -494,7 +494,7 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 	} elseif ( ewww_image_optimizer_safemode_check() ) {
 		if ( $quiet !== 'quiet' ) {
 			// display a warning to the user
-			echo "<div id='ewww-image-optimizer-warning-safemode' class='error'><p>" . esc_html__( 'Safe Mode is turned on for PHP. This plugin cannot operate in Safe Mode unless you have an API key.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . "</p></div>";
+			echo "<div id='ewww-image-optimizer-warning-safemode' class='error'><p>" . esc_html__( 'Safe Mode is turned on for PHP. This plugin cannot operate in Safe Mode unless you have an API key.', 'ewww-image-optimizer' ) . "</p></div>";
 		}
 		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
 			define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
@@ -597,7 +597,7 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 		} elseif ( ! is_writable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
 			ewww_image_optimizer_tool_folder_permissions_notice();
 		}
-		echo "<div id='ewww-image-optimizer-warning-opt-missing' class='error'><p>" . wp_kses( sprintf(__('EWWW Image Optimizer uses %1$s, %2$s, %3$s, %4$s, %5$s, and %6$s. You are missing: %7$s. Please install via the %8$s or the %9$s.', EWWW_IMAGE_OPTIMIZER_DOMAIN), "<a href='http://jpegclub.org/jpegtran/'>jpegtran</a>", "<a href='http://optipng.sourceforge.net/'>optipng</a>", "<a href='http://advsys.net/ken/utils.htm'>pngout</a>", "<a href='http://pngquant.org/'>pngquant</a>", "<a href='http://www.lcdf.org/gifsicle/'>gifsicle</a>", "<a href='https://developers.google.com/speed/webp/'>cwebp</a>", $msg, "<a href='$settings_page'>" . __('Settings Page', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</a>", "<a href='https://wordpress.org/extend/plugins/ewww-image-optimizer/installation/'>" . __('Installation Instructions', EWWW_IMAGE_OPTIMIZER_DOMAIN) . "</a>"), array( 'a' => array( 'href' => array() ) ) ) . "</p></div>";
+		echo "<div id='ewww-image-optimizer-warning-opt-missing' class='error'><p>" . wp_kses( sprintf(__('EWWW Image Optimizer uses %1$s, %2$s, %3$s, %4$s, %5$s, and %6$s. You are missing: %7$s. Please install via the %8$s or the %9$s.', 'ewww-image-optimizer'), "<a href='http://jpegclub.org/jpegtran/'>jpegtran</a>", "<a href='http://optipng.sourceforge.net/'>optipng</a>", "<a href='http://advsys.net/ken/utils.htm'>pngout</a>", "<a href='http://pngquant.org/'>pngquant</a>", "<a href='http://www.lcdf.org/gifsicle/'>gifsicle</a>", "<a href='https://developers.google.com/speed/webp/'>cwebp</a>", $msg, "<a href='$settings_page'>" . __('Settings Page', 'ewww-image-optimizer') . "</a>", "<a href='https://wordpress.org/extend/plugins/ewww-image-optimizer/installation/'>" . __('Installation Instructions', 'ewww-image-optimizer') . "</a>"), array( 'a' => array( 'href' => array() ) ) ) . "</p></div>";
 	ewwwio_memory( __FUNCTION__ );
 	}
 }
@@ -1073,7 +1073,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			if ( 0 < $testjpgsize && $testjpgsize < 5700 ) {
 				ewwwio_debug_message( 'optimizer found' );
-				return esc_html__( 'unknown', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ;
+				return esc_html__( 'unknown', 'ewww-image-optimizer' ) ;
 			}
 			break;
 		case 'o': // optipng
@@ -1095,7 +1095,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			if ( 0 < $testpngsize && $testpngsize < 110 ) {
 				ewwwio_debug_message( 'optimizer found' );
-				return esc_html__( 'unknown', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ;
+				return esc_html__( 'unknown', 'ewww-image-optimizer' ) ;
 			}
 			break;
 		case 'g': // gifsicle
@@ -1117,7 +1117,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			if ( 0 < $testgifsize && $testgifsize < 12000 ) {
 				ewwwio_debug_message( 'optimizer found' );
-				return esc_html__( 'unknown', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ;
+				return esc_html__( 'unknown', 'ewww-image-optimizer' ) ;
 			}
 			break;
 		case 'p': // pngout
@@ -1139,7 +1139,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			if ( 0 < $testpngsize && $testpngsize < 110 ) {
 				ewwwio_debug_message( 'optimizer found' );
-				return esc_html__( 'unknown', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ;
+				return esc_html__( 'unknown', 'ewww-image-optimizer' ) ;
 			}
 			break;
 		case 'q': // pngquant
@@ -1161,7 +1161,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			if ( 0 < $testpngsize && $testpngsize < 114 ) {
 				ewwwio_debug_message( 'optimizer found' );
-				return esc_html__( 'unknown', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ;
+				return esc_html__( 'unknown', 'ewww-image-optimizer' ) ;
 			}
 			break;
 		case 'i': // ImageMagick
@@ -1224,7 +1224,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			if ( 0 < $testpngsize && $testpngsize < 114 ) {
 				ewwwio_debug_message( 'optimizer found' );
-				return esc_html__( 'unknown', EWWW_IMAGE_OPTIMIZER_DOMAIN ) ;
+				return esc_html__( 'unknown', 'ewww-image-optimizer' ) ;
 			}
 			break;
 	}
@@ -1427,7 +1427,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	if ( true === $bypass_optimization ) {
 		ewwwio_debug_message( "optimization bypassed: $file" );
 		// tell the user optimization was skipped
-		return array( false, __( "Optimization skipped", EWWW_IMAGE_OPTIMIZER_DOMAIN ), $converted, $file );
+		return array( false, __( "Optimization skipped", 'ewww-image-optimizer' ), $converted, $file );
 	}
 	// initialize the original filename 
 	$original = $file;
@@ -1435,7 +1435,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	// check that the file exists
 	if ( FALSE === file_exists( $file ) ) {
 		// tell the user we couldn't find the file
-		$msg = sprintf( __( 'Could not find %s', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $file );
+		$msg = sprintf( __( 'Could not find %s', 'ewww-image-optimizer' ), $file );
 		ewwwio_debug_message( "file doesn't appear to exist: $file" );
 		// send back the above message
 		return array( false, $msg, $converted, $original );
@@ -1443,7 +1443,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	// check that the file is writable
 	if ( FALSE === is_writable( $file ) ) {
 		// tell the user we can't write to the file
-		$msg = sprintf( __( '%s is not writable', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $file );
+		$msg = sprintf( __( '%s is not writable', 'ewww-image-optimizer' ), $file );
 		ewwwio_debug_message( "couldn't write to the file $file" );
 		// send back the above message
 		return array( false, $msg, $converted, $original );
@@ -1466,12 +1466,12 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	if ( ! $type ) {
 		ewwwio_debug_message( 'could not find any functions for mimetype detection' );
 		//otherwise we store an error message since we couldn't get the mime-type
-		return array( false, __( 'Unknown file type', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $converted, $original );
+		return array( false, __( 'Unknown file type', 'ewww-image-optimizer' ), $converted, $original );
 	}
 	//not an image or pdf
 	if ( strpos( $type, 'image' ) === FALSE && strpos( $type, 'pdf' ) === FALSE ) {
 		ewwwio_debug_message( "unsupported mimetype: $type" );
-		return array( false, __( 'Unsupported file type', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . ": $type", $converted, $original );
+		return array( false, __( 'Unsupported file type', 'ewww-image-optimizer' ) . ": $type", $converted, $original );
 	}
 	if ( ! EWWW_IMAGE_OPTIMIZER_CLOUD ) {
 		ewww_image_optimizer_define_noexec();
@@ -1532,12 +1532,12 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	if ( $orig_size < ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_size' ) ) {
 		ewwwio_debug_message( "optimization bypassed due to filesize: $file" );
 		// tell the user optimization was skipped
-		return array( false, __( "Optimization skipped", EWWW_IMAGE_OPTIMIZER_DOMAIN ), $converted, $file );
+		return array( false, __( "Optimization skipped", 'ewww-image-optimizer' ), $converted, $file );
 	}
 	if ( $type == 'image/png' && ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) && $orig_size > ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) ) {
 		ewwwio_debug_message( "optimization bypassed due to filesize: $file" );
 		// tell the user optimization was skipped
-		return array( false, __( "Optimization skipped", EWWW_IMAGE_OPTIMIZER_DOMAIN ), $converted, $file );
+		return array( false, __( "Optimization skipped", 'ewww-image-optimizer' ), $converted, $file );
 	}
 	$backup_hash = '';
 	// initialize $new_size with a zero
@@ -1612,11 +1612,11 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			// if jpegtran optimization is disabled
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) == 0 ) {
 				// store an appropriate message in $result
-				$result = __( 'JPG optimization is disabled', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+				$result = __( 'JPG optimization is disabled', 'ewww-image-optimizer' );
 			// otherwise, if we aren't skipping the utility verification and jpegtran doesn't exist
 			} elseif ( ! $skip['jpegtran'] && ! $tools['JPEGTRAN'] ) {
 				// store an appropriate message in $result
-				$result = sprintf( __( '%s is missing', EWWW_IMAGE_OPTIMIZER_DOMAIN ), '<em>jpegtran</em>' );
+				$result = sprintf( __( '%s is missing', 'ewww-image-optimizer' ), '<em>jpegtran</em>' );
 			// otherwise, things should be good, so...
 			} else {
 				// set the optimization process to ON
@@ -1873,15 +1873,15 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			// if pngout and optipng are disabled
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) == 0 ) {
 				// tell the user all PNG tools are disabled
-				$result = __( 'PNG optimization is disabled', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+				$result = __( 'PNG optimization is disabled', 'ewww-image-optimizer' );
 			// if the utility checking is on, optipng is enabled, but optipng cannot be found
 			} elseif ( ! $skip['optipng'] && ! $tools['OPTIPNG'] ) {
 				// tell the user optipng is missing
-				$result = sprintf( __( '%s is missing', EWWW_IMAGE_OPTIMIZER_DOMAIN ), '<em>optipng</em>' );
+				$result = sprintf( __( '%s is missing', 'ewww-image-optimizer' ), '<em>optipng</em>' );
 			// if the utility checking is on, pngout is enabled, but pngout cannot be found
 			} elseif ( ! $skip['pngout'] && ! $tools['PNGOUT'] ) {
 				// tell the user pngout is missing
-				$result = sprintf( __( '%s is missing', EWWW_IMAGE_OPTIMIZER_DOMAIN ), '<em>pngout</em>' );
+				$result = sprintf( __( '%s is missing', 'ewww-image-optimizer' ), '<em>pngout</em>' );
 			} else {
 				// turn optimization on if we made it through all the checks
 				$optimize = true;
@@ -2147,11 +2147,11 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			// if gifsicle is disabled
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) == 0 ) {
 				// return an appropriate message
-				$result = __( 'GIF optimization is disabled', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+				$result = __( 'GIF optimization is disabled', 'ewww-image-optimizer' );
 			// if utility checking is on, and gifsicle is not installed
 			} elseif ( ! $skip['gifsicle'] && ! $tools['GIFSICLE'] ) {
 				// return an appropriate message
-				$result = sprintf(__('%s is missing', EWWW_IMAGE_OPTIMIZER_DOMAIN), '<em>gifsicle</em>');
+				$result = sprintf(__('%s is missing', 'ewww-image-optimizer'), '<em>gifsicle</em>');
 			} else {
 				// otherwise, turn optimization ON
 				$optimize = true;
@@ -2254,14 +2254,14 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			break;
 		default:
 			// if not a JPG, PNG, or GIF, tell the user we don't work with strangers
-			return array( false, __( 'Unsupported file type', EWWW_IMAGE_OPTIMIZER_DOMAIN ) . ": $type", $converted, $original );
+			return array( false, __( 'Unsupported file type', 'ewww-image-optimizer' ) . ": $type", $converted, $original );
 	}
 	// allow other plugins to run operations on the images after optimization.
 	// NOTE: it is recommended to do any image modifications prior to optimization, otherwise you risk un-optimizing your images here.
 	do_action( 'ewww_image_optimizer_post_optimization', $file, $type );
 	// if their cloud api license limit has been exceeded
 	if ( $result == 'exceeded' ) {
-		return array( false, __( 'License exceeded', EWWW_IMAGE_OPTIMIZER_DOMAIN ), $converted, $original );
+		return array( false, __( 'License exceeded', 'ewww-image-optimizer' ), $converted, $original );
 	}
 	if ( ! empty( $new_size ) ) {
 		// Set correct file permissions
@@ -2324,13 +2324,13 @@ function ewww_image_optimizer_install_pngout() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
 	if ( FALSE === current_user_can( $permissions ) ) {
-		wp_die( esc_html__( 'You do not have permission to install image optimizer utilities.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
+		wp_die( esc_html__( 'You do not have permission to install image optimizer utilities.', 'ewww-image-optimizer' ) );
 	}
 	if ( PHP_OS != 'WINNT' ) {
 		$tar = ewww_image_optimizer_find_nix_binary( 'tar', 't' );
 	}
 	if ( empty( $tar ) && PHP_OS != 'WINNT' ) {
-		$pngout_error = __( 'tar command not found', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+		$pngout_error = __( 'tar command not found', 'ewww-image-optimizer' );
 	}
 	if ( PHP_OS == 'Linux' ) {
 		$os_string = 'linux';
@@ -2350,14 +2350,14 @@ function ewww_image_optimizer_install_pngout() {
 				exec( "$tar xzf $download_result -C " . ewww_image_optimizer_escapeshellarg( EWWW_IMAGE_OPTIMIZER_BINARY_PATH ) . ' pngout-' . $latest . '-' . $os_string . '-static/' . $arch_type . '/pngout-static' );
 				if ( file_exists( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-' . $os_string . '-static/' . $arch_type . '/pngout-static' ) ) {
 					if ( ! rename( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-' . $os_string . '-static/' . $arch_type . '/pngout-static', $tool_path . 'pngout-static' ) ) {
-						if ( empty( $pngout_error ) ) { $pngout_error = __( "could not move pngout", EWWW_IMAGE_OPTIMIZER_DOMAIN ); }
+						if ( empty( $pngout_error ) ) { $pngout_error = __( "could not move pngout", 'ewww-image-optimizer' ); }
 					}
 					if ( ! chmod( $tool_path . 'pngout-static', 0755 ) ) {
-						if ( empty( $pngout_error ) ) { $pngout_error = __( "could not set permissions", EWWW_IMAGE_OPTIMIZER_DOMAIN ); }
+						if ( empty( $pngout_error ) ) { $pngout_error = __( "could not set permissions", 'ewww-image-optimizer' ); }
 					}
 					$pngout_version = ewww_image_optimizer_tool_found( ewww_image_optimizer_escapeshellarg( $tool_path ) . 'pngout-static', 'p' );
 				} else {
-					$pngout_error = __( 'extraction of files failed', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+					$pngout_error = __( 'extraction of files failed', 'ewww-image-optimizer' );
 				}
 			}
 		}
@@ -2369,14 +2369,14 @@ function ewww_image_optimizer_install_pngout() {
 				exec( "$tar xzf $download_result -C " . ewww_image_optimizer_escapeshellarg( EWWW_IMAGE_OPTIMIZER_BINARY_PATH ) . ' pngout-' . $latest . '-darwin/pngout' );
 				if ( file_exists( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-' . $os_string . '-static/' . $arch_type . '/pngout-static' ) ) {
 					if ( ! rename( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-darwin/pngout', $tool_path . 'pngout-static' ) ) {
-						if ( empty( $pngout_error ) ) { $pngout_error = __( 'could not move pngout', EWWW_IMAGE_OPTIMIZER_DOMAIN ); }
+						if ( empty( $pngout_error ) ) { $pngout_error = __( 'could not move pngout', 'ewww-image-optimizer' ); }
 					}
 					if ( ! chmod( $tool_path . 'pngout-static', 0755 ) ) {
-						if ( empty( $pngout_error ) ) { $pngout_error = __( 'could not set permissions', EWWW_IMAGE_OPTIMIZER_DOMAIN ); }
+						if ( empty( $pngout_error ) ) { $pngout_error = __( 'could not set permissions', 'ewww-image-optimizer' ); }
 					}
 					$pngout_version = ewww_image_optimizer_tool_found( ewww_image_optimizer_escapeshellarg( $tool_path ) . 'pngout-static', 'p' );
 				} else {
-					$pngout_error = __( 'extraction of files failed', EWWW_IMAGE_OPTIMIZER_DOMAIN );
+					$pngout_error = __( 'extraction of files failed', 'ewww-image-optimizer' );
 				}
 			}
 		}
@@ -2387,7 +2387,7 @@ function ewww_image_optimizer_install_pngout() {
 			$pngout_error = $download_result->get_error_message();
 		} else {
 			if ( ! rename( $download_result, $tool_path . 'pngout.exe' ) ) {
-				if ( empty( $pngout_error ) ) { $pngout_error = __( "could not move pngout", EWWW_IMAGE_OPTIMIZER_DOMAIN ); }
+				if ( empty( $pngout_error ) ) { $pngout_error = __( "could not move pngout", 'ewww-image-optimizer' ); }
 			}
 			$pngout_version = ewww_image_optimizer_tool_found ( '"' . $tool_path . 'pngout.exe"', 'p' );
 		}
