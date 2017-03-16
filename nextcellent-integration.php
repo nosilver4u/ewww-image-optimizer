@@ -180,10 +180,10 @@ class ewwwngg {
 			// get the file path of the image
 			$file_path = $meta->image->imagePath;
 			// get the mimetype of the image
-			$type = ewww_image_optimizer_mimetype($file_path, 'i');
+			$type = ewww_image_optimizer_mimetype( $file_path, 'i' );
 			// retrieve the human-readable filesize of the image
-			$file_size = size_format( ewww_image_optimizer_filesize( $file_path ), 2 );
-			$file_size = str_replace( 'B ', 'B', $file_size );
+			$file_size = ewww_image_optimizer_size_format( ewww_image_optimizer_filesize( $file_path ), 2 );
+		//	$file_size = str_replace( 'B ', 'B', $file_size );
 			$valid = true;
 			// check to see if we have a tool to handle the mimetype detected
 //			$skip = ewww_image_optimizer_skip_tools();

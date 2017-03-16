@@ -95,7 +95,7 @@ function ewww_image_optimizer_aux_images_table() {
 		$ewwwdb = $wpdb;
 	}
 	$offset = 50 * (int) $_POST['ewww_offset'];
-	$query = "SELECT path,results,image_size,id,backup FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 ORDER BY id DESC LIMIT $offset,50";
+	$query = "SELECT path,orig_size,image_size,id,backup FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 ORDER BY id DESC LIMIT $offset,50";
 	$already_optimized = $ewwwdb->get_results( $query, ARRAY_A );
         $upload_info = wp_upload_dir();
 	$upload_path = $upload_info['basedir'];
@@ -104,14 +104,15 @@ function ewww_image_optimizer_aux_images_table() {
 	foreach ( $already_optimized as $optimized_image ) {
 		$image_name = str_replace( ABSPATH, '', ewww_image_optimizer_relative_path_replace( $optimized_image['path'] ) );
 		$image_url = esc_url( trailingslashit( get_site_url() ) . $image_name );
-		$savings = esc_html( $optimized_image['results'] );
+//		$savings = esc_html( $optimized_image['results'] );
+		$savings = esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) );
 		// if the path given is not the absolute path
 		if ( file_exists( $optimized_image['path'] ) ) {
 			// retrieve the mimetype of the attachment
 			$type = ewww_image_optimizer_mimetype( $optimized_image['path'], 'i' );
 			// get a human readable filesize
-			$file_size = size_format( $optimized_image['image_size'], 2 );
-			$file_size = str_replace( '.00 B ', ' B', $file_size );
+			$file_size = ewww_image_optimizer_size_format( $optimized_image['image_size'] );
+			//$file_size = str_replace( '.00 B ', ' B', $file_size );
 ?>			<tr<?php if ( $alternate ) { echo " class='alternate'"; } ?> id="ewww-image-<?php echo $optimized_image['id']; ?>">
 				<td style='width:80px' class='column-icon'><img width='50' height='50' src="<?php echo $image_url; ?>" /></td>
 				<td class='title'>...<?php echo $image_name; ?></td>
@@ -129,8 +130,8 @@ function ewww_image_optimizer_aux_images_table() {
 			// retrieve the mimetype of the attachment
 			$type = esc_html__( 'Amazon S3 image', EWWW_IMAGE_OPTIMIZER_DOMAIN );
 			// get a human readable filesize
-			$file_size = size_format( $optimized_image['image_size'], 2 );
-			$file_size = str_replace( '.00 B ', ' B', $file_size );
+			$file_size = ewww_image_optimizer_size_format( $optimized_image['image_size'] );
+			//$file_size = str_replace( '.00 B ', ' B', $file_size );
 ?>			<tr<?php if ( $alternate ) { echo " class='alternate'"; } ?> id="ewww-image-<?php echo $optimized_image['id']; ?>">
 				<td style='width:80px' class='column-icon'>&nbsp;</td>
 				<td class='title'><?php echo $image_name; ?></td>

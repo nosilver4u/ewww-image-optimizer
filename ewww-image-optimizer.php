@@ -1327,6 +1327,83 @@ function ewww_image_optimizer_find_nix_binary( $binary, $switch ) {
 	}
 }
 
+function ewww_image_optimizer_jpegtran_autorotate( $file, $type, $orientation ) {
+	if ( 'image/jpeg' != $type ) {
+		ewwwio_debug_message( 'not a JPG, go away!' );
+		return false;
+	}
+	if ( ! $orientation || $orientation == 1 ) {
+		return false;
+	}
+	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) || ! EWWW_IMAGE_OPTIMIZER_CLOUD ) {
+		ewww_image_optimizer_define_noexec();
+		if ( EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
+			$nice = '';
+		} else {
+			// check to see if 'nice' exists
+			$nice = ewww_image_optimizer_find_nix_binary( 'nice', 'n' );
+		}
+	}
+	$tools = ewww_image_optimizer_path_check(
+		true,
+		false,
+		false,
+		false,
+		false,
+		false
+	);
+	if ( empty( $tools['JPEGTRAN'] ) ) {
+		return false;
+	}
+	switch( $orientation ) {
+		case 1:
+			return false;
+		case 2:
+			$transform = '-flip horizontal';
+			break;
+		case 3:
+			$transform = '-rotate 180';
+			break;
+		case 4:
+			$transform = '-flip vertical';
+			break;
+		case 5:
+			$transform = '-transpose';
+			break;
+		case 6:
+			$transform = '-rotate 90';
+			break;
+		case 7:
+			$transform = '-transverse';
+			break;
+		case 8:
+			$transform = '-rotate 270';
+			break;
+		default:
+			return false;
+	}
+	$outfile = "$file.rotate";
+	// run jpegtran 
+	exec( "$nice {$tools['JPEGTRAN']} -copy all $transform -outfile " . ewww_image_optimizer_escapeshellarg( $outfile ) . " " . ewww_image_optimizer_escapeshellarg( $file ) );
+	ewwwio_debug_message( "$file rotated to $outfile" );
+
+	if ( file_exists( $outfile ) ) {
+		$new_type = ewww_image_optimizer_mimetype( $outfile, 'i' );
+		// check the filesize of the progressive JPG
+		$new_size = filesize( $outfile );
+	} else {
+		return false;
+	}
+
+	if ( $new_size == 0 || $new_type != 'image/jpeg' ) {
+		unlink( $outfile );
+		return false;
+	}
+
+	rename( $outfile, $file );
+	return true;
+}
+
 /**
  * Process an image.
  *
