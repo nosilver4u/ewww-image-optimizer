@@ -1,37 +1,32 @@
 <?php
+/**
+ * Functions for dealing with auxiliary images
+ * This file contains functions for bulk optimizing images outside the Media Library, and AJAX hooks for handling the image status table on the bulk optimize page.
+ * @link https://ewww.io
+ * @package EWWW_Image_Optimizer
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-// displays the 'Optimize Everything Else' section of the Bulk Optimize page
-function ewww_image_optimizer_aux_images () {
+
+/**
+ * Displays the lower portion of the Bulk Optimize page.
+ *
+ * Includes the table migration notice from way back, and the framework for displaying the image status table.
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_aux_images() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
-	// Retrieve the value of the 'aux resume' option and set the button text for the form to use
-	$aux_resume = get_option( 'ewww_image_optimizer_aux_resume' );
-	if ( ! empty( $aux_resume ) && $aux_resume !== 'scanning' ) {
-		$button_text = esc_attr__( 'Resume previous optimization', EWWW_IMAGE_OPTIMIZER_DOMAIN );
-	} else {
-		$button_text = esc_attr__( 'Scan and optimize', EWWW_IMAGE_OPTIMIZER_DOMAIN );
-	}
-	// find out if the auxiliary image table has anything in it
+	// Find out if the auxiliary image table has anything in it.
 	$already_optimized = ewww_image_optimizer_aux_images_table_count();
-	// see if the auxiliary image table needs converting from md5sums to image sizes
-	$column_query = "SHOW COLUMNS FROM $wpdb->ewwwio_images LIKE 'image_md5'";
-	$column = $wpdb->get_row( $column_query, ARRAY_N );
+	// See if the auxiliary image table needs converting from md5sums to image sizes.
+	$column = $wpdb->get_row( "SHOW COLUMNS FROM $wpdb->ewwwio_images LIKE 'image_md5'", ARRAY_N );
 	if ( ! empty( $column ) ) {
-		ewwwio_debug_message( "image_md5 column exists, checking for image_md5 values"  );
-		$convert_query = "SELECT image_md5 FROM $wpdb->ewwwio_images WHERE image_md5 <> ''";
-		$db_convert = $wpdb->get_results( $convert_query, ARRAY_N );
+		ewwwio_debug_message( 'image_md5 column exists, checking for image_md5 values'  );
+		$db_convert = $wpdb->get_results( "SELECT image_md5 FROM $wpdb->ewwwio_images WHERE image_md5 <> ''", ARRAY_N );
 	}
-//	ewwwio_debug_message( print_r( $column, true ) );
-	// check the last time the auxiliary optimizer was run
-	$lastaux = get_option( 'ewww_image_optimizer_aux_last' );
-	// set the timezone according to the blog settings
-	$site_timezone = get_option( 'timezone_string' );
-	if ( empty( $site_timezone ) ) {
-		$site_timezone = 'UTC';
-	}
-	date_default_timezone_set( $site_timezone );
 	?>
 		<div id="ewww-aux-forms">
 		<?php if ( ! empty( $db_convert ) ) { ?>
@@ -41,11 +36,7 @@ function ewww_image_optimizer_aux_images () {
 				<input type="hidden" name="ewww_convert" value="1">
 				<button id="ewww-table-convert" type="submit" class="button-secondary action"><?php esc_html_e( 'Convert Table', EWWW_IMAGE_OPTIMIZER_DOMAIN ); ?></button>
 			</form>
-		<?php } ?>	
-		<?php if ( ! empty( $lastaux ) ) { ?>
-	<!--		<p id="ewww-lastaux" class="ewww-bulk-info"><?php printf( esc_html__( 'Last optimization was completed on %1$s at %2$s and optimized %3$d images', EWWW_IMAGE_OPTIMIZER_DOMAIN ), date( get_option( 'date_format' ), $lastaux[0] ), date( get_option( 'time_format' ), $lastaux[0] ), (int) $lastaux[1] ); ?></p>-->
-		<?php } ?>
-<?php		// if the 'bulk resume' option was not empty, offer to reset it so the user can start back from the beginning
+		<?php }
 		if ( empty( $already_optimized ) ) {
 			$display = ' style="display:none"';
 		} else {
@@ -81,7 +72,12 @@ function ewww_image_optimizer_aux_images () {
 	ewwwio_memory( __FUNCTION__ );
 }
 
-// displays 50 records from the auxiliary images table
+/**
+ * Displays 50 records from the images table.
+ *
+ * Called via AJAX to find 50 records from the images table and display them with alternating row style.
+ * @global object $wpdb
+ */
 function ewww_image_optimizer_aux_images_table() {
 	// verify that an authorized user has called function
 	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) ) {
@@ -104,15 +100,13 @@ function ewww_image_optimizer_aux_images_table() {
 	foreach ( $already_optimized as $optimized_image ) {
 		$image_name = str_replace( ABSPATH, '', ewww_image_optimizer_relative_path_replace( $optimized_image['path'] ) );
 		$image_url = esc_url( trailingslashit( get_site_url() ) . $image_name );
-//		$savings = esc_html( $optimized_image['results'] );
 		$savings = esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) );
-		// if the path given is not the absolute path
+		// If the path given is not the absolute path.
 		if ( file_exists( $optimized_image['path'] ) ) {
-			// retrieve the mimetype of the attachment
+			// Retrieve the mimetype of the attachment.
 			$type = ewww_image_optimizer_mimetype( $optimized_image['path'], 'i' );
-			// get a human readable filesize
+			// Get a human readable filesize.
 			$file_size = ewww_image_optimizer_size_format( $optimized_image['image_size'] );
-			//$file_size = str_replace( '.00 B ', ' B', $file_size );
 ?>			<tr<?php if ( $alternate ) { echo " class='alternate'"; } ?> id="ewww-image-<?php echo $optimized_image['id']; ?>">
 				<td style='width:80px' class='column-icon'><img width='50' height='50' src="<?php echo $image_url; ?>" /></td>
 				<td class='title'>...<?php echo $image_name; ?></td>
@@ -127,11 +121,9 @@ function ewww_image_optimizer_aux_images_table() {
 			</tr>
 <?php			$alternate = ! $alternate;
 		} elseif ( strpos( $optimized_image['path'], 's3' ) === 0 ) {
-			// retrieve the mimetype of the attachment
+			// Retrieve the mimetype of the attachment.
 			$type = esc_html__( 'Amazon S3 image', EWWW_IMAGE_OPTIMIZER_DOMAIN );
-			// get a human readable filesize
 			$file_size = ewww_image_optimizer_size_format( $optimized_image['image_size'] );
-			//$file_size = str_replace( '.00 B ', ' B', $file_size );
 ?>			<tr<?php if ( $alternate ) { echo " class='alternate'"; } ?> id="ewww-image-<?php echo $optimized_image['id']; ?>">
 				<td style='width:80px' class='column-icon'>&nbsp;</td>
 				<td class='title'><?php echo $image_name; ?></td>
@@ -155,7 +147,7 @@ function ewww_image_optimizer_aux_images_table() {
 
 // removes an image from the auxiliary images table
 function ewww_image_optimizer_aux_images_remove() {
-	// verify that an authorized user has called function
+	// Verify that an authorized user has called function.
 	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) ) {
 		wp_die( esc_html__( 'Access token has expired, please reload the page.', EWWW_IMAGE_OPTIMIZER_DOMAIN ) );
 	} 

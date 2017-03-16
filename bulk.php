@@ -1,4 +1,10 @@
 <?php
+/**
+ * Functions for performing Bulk Optimizations
+ * This file contains functions for the main bulk optimize page.
+ * @link https://ewww.io
+ * @package EWWW_Image_Optimizer
+ */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
