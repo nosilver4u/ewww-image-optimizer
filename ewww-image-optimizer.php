@@ -13,8 +13,6 @@ License: GPLv3
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-// Constants
-define( ''ewww-image-optimizer'', 'ewww-image-optimizer' );
 // this is the full path of the plugin file itself
 define( 'EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE', __FILE__ );
 // this is the path of the plugin file relative to the plugins/ folder
