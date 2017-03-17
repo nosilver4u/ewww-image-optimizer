@@ -24,6 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 function ewww_image_optimizer_aux_images() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
+	$output = '';
 	// Find out if the auxiliary image table has anything in it.
 	$already_optimized = ewww_image_optimizer_aux_images_table_count();
 	// See if the auxiliary image table needs converting from md5sums to image sizes.
@@ -32,51 +33,46 @@ function ewww_image_optimizer_aux_images() {
 		ewwwio_debug_message( 'image_md5 column exists, checking for image_md5 values' );
 		$db_convert = $wpdb->get_results( "SELECT image_md5 FROM $wpdb->ewwwio_images WHERE image_md5 <> ''", ARRAY_N );
 	}
-	?>
-		<div id="ewww-aux-forms">
-<?php
+	$output .= '<div id="ewww-aux-forms">';
 	if ( ! empty( $db_convert ) ) {
-?>
-		<p class="ewww-bulk-info"><?php esc_html_e( 'The database schema has changed, you need to convert to the new format.', 'ewww-image-optimizer' ); ?></p>
-		<form method="post" id="ewww-aux-convert" class="ewww-bulk-form" action="">
-			<?php wp_nonce_field( 'ewww-image-optimizer-aux-images-convert', 'ewww_wpnonce' ); ?>
-			<input type="hidden" name="ewww_convert" value="1">
-			<button id="ewww-table-convert" type="submit" class="button-secondary action"><?php esc_html_e( 'Convert Table', 'ewww-image-optimizer' ); ?></button>
-		</form>
-<?php
+		$output .= '<p class="ewww-bulk-info">' . esc_html__( 'The database schema has changed, you need to convert to the new format.', 'ewww-image-optimizer' ) . '</p>';
+		$output .= '<form method="post" id="ewww-aux-convert" class="ewww-bulk-form" action="">';
+		$output .= wp_nonce_field( 'ewww-image-optimizer-aux-images-convert', 'ewww_wpnonce', true, false );
+		$output .= '<input type="hidden" name="ewww_convert" value="1">';
+		$output .= '<button id="ewww-table-convert" type="submit" class="button-secondary action">' . esc_html__( 'Convert Table', 'ewww-image-optimizer' ) . '</button>';
+		$output .= '</form>';
 	}
 	if ( empty( $already_optimized ) ) {
 		$display = ' style="display:none"';
 	} else {
 		$display = '';
 	}
-?>
-			<p id="ewww-table-info" class="ewww-bulk-info"<?php echo "$display>"; printf( esc_html__( 'The plugin keeps track of already optimized images to prevent re-optimization. There are %d images that have been optimized so far.', 'ewww-image-optimizer' ), $already_optimized ); ?></p>
-			<form id="ewww-show-table" class="ewww-bulk-form" method="post" action=""<?php echo $display; ?>>
-				<button type="submit" class="button-secondary action"><?php esc_html_e( 'Show Optimized Images', 'ewww-image-optimizer' ); ?></button>
-			</form>
-			<div class="tablenav ewww-aux-table" style="display:none">
-			<div class="tablenav-pages ewww-aux-table">
-			<span class="displaying-num ewww-aux-table"></span>
-			<span id="paginator" class="pagination-links ewww-aux-table">
-				<a id="first-images" class="first-page" style="display:none">&laquo;</a>
-				<a id="prev-images" class="prev-page" style="display:none">&lsaquo;</a>
-				<?php esc_html_e( 'page', 'ewww-image-optimizer' ); ?> <span class="current-page"></span> <?php esc_html_e( 'of', 'ewww-image-optimizer' ); ?> 
-				<span class="total-pages"></span>
-				<a id="next-images" class="next-page" style="display:none">&rsaquo;</a>
-				<a id="last-images" class="last-page" style="display:none">&raquo;</a>
-			</span>
-			</div>
-			</div>
-			<div id="ewww-bulk-table" class="ewww-aux-table"></div>
-			<span id="ewww-pointer" style="display:none">0</span>
-		</div>
-	</div>
-<?php
+	$output .= "<p id='ewww-table-info' class='ewww-bulk-info' $display>" . sprintf( esc_html__( 'The plugin keeps track of already optimized images to prevent re-optimization. There are %d images that have been optimized so far.', 'ewww-image-optimizer' ), $already_optimized ) . '</p>';
+	$output .= "<form id='ewww-show-table' class='ewww-bulk-form' method='post' action='' $display>";
+	$output .= '<button type="submit" class="button-secondary action">' . esc_html__( 'Show Optimized Images', 'ewww-image-optimizer' ) . '</button>';
+	$output .= '</form>';
+	$output .= '<div class="tablenav ewww-aux-table" style="display:none">' .
+		'<div class="tablenav-pages ewww-aux-table">' .
+		'<span class="displaying-num ewww-aux-table"></span>' . "\n" .
+		'<span id="paginator" class="pagination-links ewww-aux-table">' . "\n" .
+		'<a id="first-images" class="first-page" style="display:none">&laquo;</a>' . "\n" .
+		'<a id="prev-images" class="prev-page" style="display:none">&lsaquo;</a>' . "\n";
+	$output .= esc_html__( 'page', 'ewww-image-optimizer' ) . ' <span class="current-page"></span> ' . esc_html__( 'of', 'ewww-image-optimizer' ) . "\n"; 
+	$output .= '<span class="total-pages"></span>' . "\n" .
+		'<a id="next-images" class="next-page" style="display:none">&rsaquo;</a>' . "\n" .
+		'<a id="last-images" class="last-page" style="display:none">&raquo;</a>' .
+		'</span>' .
+		'</div>' .
+		'</div>' .
+		'<div id="ewww-bulk-table" class="ewww-aux-table"></div>' .
+		'<span id="ewww-pointer" style="display:none">0</span>' .
+		'</div>' .
+		'</div>';
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 		global $ewww_debug;
-		echo '<div id="ewww-debug-info" style="clear:both;background:#ffff99;margin-left:-20px;padding:10px">' . $ewww_debug . '</div>';
+		$output .= '<div id="ewww-debug-info" style="clear:both;background:#ffff99;margin-left:-20px;padding:10px">' . $ewww_debug . '</div>';
 	}
+	echo $output;
 	ewwwio_memory( __FUNCTION__ );
 }
 
@@ -225,7 +221,7 @@ function ewww_image_optimizer_delete_pending() {
 	);
 }
 
-/*
+/**
  * Searches for images to optimize in a specific folder.
  *
  * Scan a folder for images and mark unoptimized images in the database
@@ -281,11 +277,13 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 		if ( $started && ! empty( $_REQUEST['ewww_scan'] ) && 0 === $file_counter % 100 && microtime( true ) - $started > apply_filters( 'ewww_image_optimizer_timeout', 15 ) ) {
 			if ( ! empty( $reset_images ) ) {
 				$escaped_reset_images = array();
+				$placeholders = array();
 				foreach ( $reset_images as $reset_image ) {
-					$escaped_reset_images[] = $wpdb->prepare( '%d', $reset_image );
+					$escaped_reset_images[] = (int) $reset_image;
+					$placeholders[] = '%d';
 				}
-				$query = "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $escaped_reset_images ) . ')';
-				$wpdb->query( $query ); // WPCS: unprepared SQL OK
+				$query = "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $placeholders ) . ')';
+				$wpdb->query( $wpdb->prepare( $query, $escaped_reset_images ) );
 			}
 			if ( ! empty( $images ) ) {
 				ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
@@ -301,11 +299,13 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			}
 			if ( ! empty( $reset_images ) ) {
 				$escaped_reset_images = array();
+				$placeholders = array();
 				foreach ( $reset_images as $reset_image ) {
-					$escaped_reset_images[] = $wpdb->prepare( '%d', $reset_image );
+					$escaped_reset_images[] = (int) $reset_image;
+					$placeholders[] = '%d';
 				}
-				$query = "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $escaped_reset_images ) . ')'; // WPCS: unprepared SQL OK
-				$wpdb->query( $query );
+				$query = "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $placeholders ) . ')';
+				$wpdb->query( $wpdb->prepare( $query, $escaped_reset_images ) );
 			}
 			if ( ! empty( $images ) ) {
 				ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
@@ -395,11 +395,13 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	}
 	if ( ! empty( $reset_images ) ) {
 		$escaped_reset_images = array();
+		$placeholders = array();
 		foreach ( $reset_images as $reset_image ) {
-			$escaped_reset_images[] = $wpdb->prepare( '%d', $reset_image );
+			$escaped_reset_images[] = (int) $reset_image;
+			$placeholders[] = '%d';
 		}
-		$query = "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $escaped_reset_images ) . ')'; // WPCS: unprepared SQL OK
-		$wpdb->query( $query );
+		$query = "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $placeholders ) . ')';
+		$wpdb->query( $wpdb->prepare( $query, $escaped_reset_images ) );
 	}
 	delete_transient( 'ewww_image_optimizer_aux_iterator' );
 	$end = microtime( true ) - $start;

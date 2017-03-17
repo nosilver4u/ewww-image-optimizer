@@ -1,11 +1,29 @@
 <?php
+/**
+ * Class file for EwwwDB
+ *
+ * EwwwDB contains methods for working with the ewwwio_images table.
+ *
+ * @link https://ewww.io
+ * @package EWWW_Image_Optimizer
+ */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class ewwwdb extends wpdb {
 
-	// Makes sure we use some variant of utf8 for checking images.
+/**
+ * DB class extension to for working with the ewwwio_images table.
+ *
+ * Provides functions needed to ensure that all data in the table is in utf8 format.
+ *
+ * @see wpdb
+ */
+class EwwwDB extends wpdb {
+
+	/**
+	 * Ensures use of some variant of utf8 for interacting with the images table.
+	 */
 	function init_charset() {
 		parent::init_charset();
 		if ( strpos( $this->charset, 'utf8' ) === false ) {
@@ -16,19 +34,20 @@ class ewwwdb extends wpdb {
 	/**
 	 * Inserts multiple records into the table at once.
 	 *
-	 * Takes an associative array and creates a database record for each array item, using a single MySQL query.
-	 * 
-	 * @param string $table
-	 * @param array $data
-	 * @param array $format
-	 * Each sub-array should have the same number of items as $formats.
-	 * If $format isn't specified, default to string (%s).
-	 * The fields/columns are extracted from the very first item in the $data array().
+	 * Takes an associative array and creates a database record for each array item, using a single
+	 * MySQL query. Column names are extracted from the key names of the first record.
+	 *
+	 * @param string $table Name of table to be used in INSERT statement.
+	 * @param array $data Records to be inserted into table.
+	 * @param array $format List of formats for values in each record, like %s, %d, or %f.
+	 * 			Each sub-array should have the same number of items as $formats.
+	 * @return int|false Number of rows affected or false on error.
 	 */
 	function insert_multiple( $table, $data, $format ) {
 		if ( empty( $table ) || ! ewww_image_optimizer_iterable( $data ) || ! ewww_image_optimizer_iterable( $format ) ) {
 			return false;
 		}
+
 		/*
 		 * Given a multi-dimensional array like so:
 		 * array(

@@ -134,7 +134,6 @@ class EWWWIO_Image_Background_Process extends WP_Background_Process {
 	/**
 	 * Runs optimization for a file from the image queue.
 	 *
-	 *
 	 * @access protected
 	 *
 	 * @param string $item The filename of the attachment.
@@ -528,7 +527,6 @@ class EWWWIO_Async_Key_Verification extends WP_Async_Request {
 	 * Handles the async key verification request.
 	 *
 	 * Called via a POST request to verify an API key asynchronously.
-	 *
 	 */
 	protected function handle() {
 		session_write_close();

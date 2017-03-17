@@ -24,6 +24,7 @@
 // TODO: implement 35 day cutoff on restores
 // TODO: post updates as blog post, and summarize in email
 // TODO: test the autoloader on PHP 5.2 somehow, and see if Imagick preserves meta on resizing
+// TODO: do auto-rotate prior to removing metadata, both with jpegtran, and on the regular API endpoint
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -2862,7 +2863,7 @@ function ewww_image_optimizer_db_init() {
 	global $ewwwdb, $table_prefix;
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/ewww-db.php' );
 	if ( ! isset( $ewwwdb ) ) {
-		$ewwwdb = new ewwwdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
+		$ewwwdb = new EwwwDB( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
 	}
 
 	if ( !empty( $ewwwdb->error ) )
