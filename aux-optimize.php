@@ -1,7 +1,10 @@
 <?php
 /**
  * Functions for dealing with auxiliary images
- * This file contains functions for bulk optimizing images outside the Media Library, and AJAX hooks for handling the image status table on the bulk optimize page.
+ *
+ * This file contains functions for bulk optimizing images outside the Media
+ * Library, and AJAX hooks for handling the image status table on the bulk
+ * optimize page.
  *
  * @link https://ewww.io
  * @package EWWW_Image_Optimizer
@@ -14,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Displays the lower portion of the Bulk Optimize page.
  *
- * Includes the table migration notice from way back, and the framework for displaying the image status table.
+ * Includes the table migration notice, and the framework for displaying the image status table.
  *
  * @global object $wpdb
  */
@@ -26,24 +29,27 @@ function ewww_image_optimizer_aux_images() {
 	// See if the auxiliary image table needs converting from md5sums to image sizes.
 	$column = $wpdb->get_row( "SHOW COLUMNS FROM $wpdb->ewwwio_images LIKE 'image_md5'", ARRAY_N );
 	if ( ! empty( $column ) ) {
-		ewwwio_debug_message( 'image_md5 column exists, checking for image_md5 values'  );
+		ewwwio_debug_message( 'image_md5 column exists, checking for image_md5 values' );
 		$db_convert = $wpdb->get_results( "SELECT image_md5 FROM $wpdb->ewwwio_images WHERE image_md5 <> ''", ARRAY_N );
 	}
 	?>
 		<div id="ewww-aux-forms">
-		<?php if ( ! empty( $db_convert ) ) { ?>
-			<p class="ewww-bulk-info"><?php esc_html_e( 'The database schema has changed, you need to convert to the new format.', 'ewww-image-optimizer' ); ?></p>
-			<form method="post" id="ewww-aux-convert" class="ewww-bulk-form" action="">
-				<?php wp_nonce_field( 'ewww-image-optimizer-aux-images-convert', 'ewww_wpnonce' ); ?>
-				<input type="hidden" name="ewww_convert" value="1">
-				<button id="ewww-table-convert" type="submit" class="button-secondary action"><?php esc_html_e( 'Convert Table', 'ewww-image-optimizer' ); ?></button>
-			</form>
-		<?php }
-		if ( empty( $already_optimized ) ) {
-			$display = ' style="display:none"';
-		} else {
-			$display = '';
-		}
+<?php
+	if ( ! empty( $db_convert ) ) {
+?>
+		<p class="ewww-bulk-info"><?php esc_html_e( 'The database schema has changed, you need to convert to the new format.', 'ewww-image-optimizer' ); ?></p>
+		<form method="post" id="ewww-aux-convert" class="ewww-bulk-form" action="">
+			<?php wp_nonce_field( 'ewww-image-optimizer-aux-images-convert', 'ewww_wpnonce' ); ?>
+			<input type="hidden" name="ewww_convert" value="1">
+			<button id="ewww-table-convert" type="submit" class="button-secondary action"><?php esc_html_e( 'Convert Table', 'ewww-image-optimizer' ); ?></button>
+		</form>
+<?php
+	}
+	if ( empty( $already_optimized ) ) {
+		$display = ' style="display:none"';
+	} else {
+		$display = '';
+	}
 ?>
 			<p id="ewww-table-info" class="ewww-bulk-info"<?php echo "$display>"; printf( esc_html__( 'The plugin keeps track of already optimized images to prevent re-optimization. There are %d images that have been optimized so far.', 'ewww-image-optimizer' ), $already_optimized ); ?></p>
 			<form id="ewww-show-table" class="ewww-bulk-form" method="post" action=""<?php echo $display; ?>>
@@ -77,7 +83,8 @@ function ewww_image_optimizer_aux_images() {
 /**
  * Displays 50 records from the images table.
  *
- * Called via AJAX to find 50 records from the images table and display them with alternating row style.
+ * Called via AJAX to find 50 records from the images table and display them
+ * with alternating row style.
  *
  * @global object $wpdb
  */
@@ -148,9 +155,11 @@ function ewww_image_optimizer_aux_images_table() {
 	die();
 }
 
-/*
+/**
  * Removes an image from the auxiliary images table.
- * Called via AJAX, this function will remove the record in provided by the POST variable 'ewww_image_id' and return a '1' if successful.
+ *
+ * Called via AJAX, this function will remove the record in provided by the
+ * POST variable 'ewww_image_id' and return a '1' if successful.
  *
  * @global object $wpdb
  */
@@ -167,11 +176,12 @@ function ewww_image_optimizer_aux_images_remove() {
 	die();
 }
 
-/*
+/**
  * Find the number of optimized images in the ewwwio_images table.
  *
  * @global object $wpdb
- * @return int When not called via AJAX, this is the total number of records in the images table that are not pending and have a valid file-size.
+ * @return int The total number of records in the images table that are not pending and have a
+ * 	valid file-size.
  */
 function ewww_image_optimizer_aux_images_table_count() {
 	global $wpdb;
@@ -185,7 +195,7 @@ function ewww_image_optimizer_aux_images_table_count() {
 	return $count;
 }
 
-/*
+/**
  * Find the number of un-optimized images in the ewwwio_images table.
  *
  * @global object $wpdb
@@ -197,7 +207,7 @@ function ewww_image_optimizer_aux_images_table_count_pending() {
 	return $count;
 }
 
-/*
+/**
  * Remove all un-optimized images from the ewwwio_images table.
  *
  * @global object $wpdb
@@ -217,12 +227,15 @@ function ewww_image_optimizer_delete_pending() {
 
 /*
  * Searches for images to optimize in a specific folder.
- * Scan a folder for images and mark unoptimized images in the database (inserts new records as necessary).
  *
- * @param string $dir The full, absolute path to the folder which needs to be scanned for unoptimized images.
- * @param int $started The number of seconds since the overall scanning process started, checked in case we need to bail to avoid timeouts.
+ * Scan a folder for images and mark unoptimized images in the database
+ * (inserts new records as necessary).
+ *
+ * @param string $dir The absolute path of the folder to be scanned for unoptimized images.
+ * @param int $started The number of seconds since the overall scanning process started.
  * @global object $wpdb
- * @global array/string $optimized_list This will either be an associative array containing information from the images table, or the string 'low_memory' which forces the scan to query each image from the database directly.
+ * @global array|string $optimized_list An associative array containing information from the images
+ * 					table, or the string 'low_memory'.
  */
 function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
@@ -268,11 +281,11 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 		if ( $started && ! empty( $_REQUEST['ewww_scan'] ) && 0 === $file_counter % 100 && microtime( true ) - $started > apply_filters( 'ewww_image_optimizer_timeout', 15 ) ) {
 			if ( ! empty( $reset_images ) ) {
 				$escaped_reset_images = array();
-				foreach( $reset_images as $reset_image ) {
+				foreach ( $reset_images as $reset_image ) {
 					$escaped_reset_images[] = $wpdb->prepare( '%d', $reset_image );
 				}
 				$query = "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $escaped_reset_images ) . ')';
-				$wpdb->query( $query );
+				$wpdb->query( $query ); // WPCS: unprepared SQL OK
 			}
 			if ( ! empty( $images ) ) {
 				ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
@@ -288,10 +301,10 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			}
 			if ( ! empty( $reset_images ) ) {
 				$escaped_reset_images = array();
-				foreach( $reset_images as $reset_image ) {
+				foreach ( $reset_images as $reset_image ) {
 					$escaped_reset_images[] = $wpdb->prepare( '%d', $reset_image );
 				}
-				$query = "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $escaped_reset_images ) . ')';
+				$query = "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $escaped_reset_images ) . ')'; // WPCS: unprepared SQL OK
 				$wpdb->query( $query );
 			}
 			if ( ! empty( $images ) ) {
@@ -382,10 +395,10 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	}
 	if ( ! empty( $reset_images ) ) {
 		$escaped_reset_images = array();
-		foreach( $reset_images as $reset_image ) {
+		foreach ( $reset_images as $reset_image ) {
 			$escaped_reset_images[] = $wpdb->prepare( '%d', $reset_image );
 		}
-		$query = "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $escaped_reset_images ) . ')';
+		$query = "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $escaped_reset_images ) . ')'; // WPCS: unprepared SQL OK
 		$wpdb->query( $query );
 	}
 	delete_transient( 'ewww_image_optimizer_aux_iterator' );
@@ -397,7 +410,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	update_option( 'ewww_image_optimizer_aux_folders_completed', $folders_completed, false );
 }
 
-/*
+/**
  * Convert all records in table to use filesize rather than md5sum.
  *
  * @global object $wpdb
@@ -432,13 +445,15 @@ function ewww_image_optimizer_aux_images_convert() {
 	}
 }
 
-/*
+/**
  * Searches for images to optimize.
- * Scans all auxiliary folders, including some predefined ones, and those configured by the user. Used for the main bulk tool, and the scheduled optimization.
  *
- * @param string $hook Optional. Used for letting the function know this is scheduled opt, and it should scan the last two months of media folders (if the user has enabled the option).
+ * Scans all auxiliary folders, including some predefined ones, and those configured by the user.
+ * Used for the main bulk tool, and the scheduled optimization.
+ *
+ * @param string $hook Optional. Indicates if scheduled optimization is running.
  * @global object $wpdb
- * @return int Number of images ready to optimize, when run during AJAX call, this is output using JSON.
+ * @return int Number of images ready to optimize.
  */
 function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
@@ -524,7 +539,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 								// This is a brand new image.
 								if ( preg_match( '/^image\/(jpeg|png|gif)/', $mimetype ) && empty( $already_optimized ) ) {
 									$slide_paths[] = array( 'path' => ewww_image_optimizer_relative_path_remove( $path ), 'orig_size' => $image_size );
-								// This is a changed image.
+									// This is a changed image.
 								} elseif ( preg_match( '/^image\/(jpeg|png|gif)/', $mimetype ) && ! empty( $already_optimized ) && $already_optimized['image_size'] != $image_size ) {
 									$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id = %d", $already_optimized['id'] ) );
 								}
@@ -580,6 +595,8 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 
 /**
  * Called by scheduled optimization to cleanup after ourselves.
+ *
+ * @param bool $auto Indicates whether or not the function is called from scheduled (auto) optimization mode.
  */
 function ewww_image_optimizer_aux_images_cleanup( $auto = false ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
