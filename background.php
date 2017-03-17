@@ -16,12 +16,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * The parent WP_Async_Request class file.
  */
-require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/wp-async-request.php' );
+require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/wp-async-request.php' );
 
 /**
  * The parent WP_Background_Process class file.
  */
-require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/wp-background-process.php' );
+require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/wp-background-process.php' );
 
 /**
  * Processes media uploads in background/async mode.

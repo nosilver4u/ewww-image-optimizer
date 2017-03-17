@@ -60,7 +60,7 @@ if ( ! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) && in_array( $_ENV['PANTHEON_ENVIR
 }
 
 // used for manipulating exif info
-require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/pel/autoload.php' );
+require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/pel/autoload.php' );
 use lsolesen\pel\PelJpeg;
 //use lsolesen\pel\PelExif;
 use lsolesen\pel\PelTag;

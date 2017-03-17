@@ -7,6 +7,7 @@
  * @link https://ewww.io
  * @package EWWW_Image_Optimizer
  */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -38,9 +39,10 @@ class EwwwDB extends wpdb {
 	 * MySQL query. Column names are extracted from the key names of the first record.
 	 *
 	 * @param string $table Name of table to be used in INSERT statement.
-	 * @param array $data Records to be inserted into table.
-	 * @param array $format List of formats for values in each record, like %s, %d, or %f.
-	 * 			Each sub-array should have the same number of items as $formats.
+	 * @param array $data Records to be inserted into table. Default none. Accepts an array of arrays,
+	 *		      see example below.
+	 * @param array $format List of formats for values in each record. Each sub-array should have the
+	 * 			same number of items as $formats. Default '%s'. Accepts '%s', '%d', '%f'.
 	 * @return int|false Number of rows affected or false on error.
 	 */
 	function insert_multiple( $table, $data, $format ) {

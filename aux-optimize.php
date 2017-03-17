@@ -57,7 +57,7 @@ function ewww_image_optimizer_aux_images() {
 		'<span id="paginator" class="pagination-links ewww-aux-table">' . "\n" .
 		'<a id="first-images" class="first-page" style="display:none">&laquo;</a>' . "\n" .
 		'<a id="prev-images" class="prev-page" style="display:none">&lsaquo;</a>' . "\n";
-	$output .= esc_html__( 'page', 'ewww-image-optimizer' ) . ' <span class="current-page"></span> ' . esc_html__( 'of', 'ewww-image-optimizer' ) . "\n"; 
+	$output .= esc_html__( 'page', 'ewww-image-optimizer' ) . ' <span class="current-page"></span> ' . esc_html__( 'of', 'ewww-image-optimizer' ) . "\n";
 	$output .= '<span class="total-pages"></span>' . "\n" .
 		'<a id="next-images" class="next-page" style="display:none">&rsaquo;</a>' . "\n" .
 		'<a id="last-images" class="last-page" style="display:none">&raquo;</a>' .
@@ -228,7 +228,7 @@ function ewww_image_optimizer_delete_pending() {
  * (inserts new records as necessary).
  *
  * @param string $dir The absolute path of the folder to be scanned for unoptimized images.
- * @param int $started The number of seconds since the overall scanning process started.
+ * @param int $started Optional. The number of seconds since the overall scanning process started. Default 0.
  * @global object $wpdb
  * @global array|string $optimized_list An associative array containing information from the images
  * 					table, or the string 'low_memory'.
@@ -276,14 +276,8 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 		}
 		if ( $started && ! empty( $_REQUEST['ewww_scan'] ) && 0 === $file_counter % 100 && microtime( true ) - $started > apply_filters( 'ewww_image_optimizer_timeout', 15 ) ) {
 			if ( ! empty( $reset_images ) ) {
-				$escaped_reset_images = array();
-				$placeholders = array();
-				foreach ( $reset_images as $reset_image ) {
-					$escaped_reset_images[] = (int) $reset_image;
-					$placeholders[] = '%d';
-				}
-				$query = "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $placeholders ) . ')';
-				$wpdb->query( $wpdb->prepare( $query, $escaped_reset_images ) );
+				array_walk( $reset_images, 'intval' );
+				$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $reset_images ) . ')' ); // WPCS: unprepared SQL ok.
 			}
 			if ( ! empty( $images ) ) {
 				ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
@@ -298,14 +292,8 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 				die( json_encode( array( 'error' => esc_html__( 'Stage 2 unable to complete due to memory restrictions. Please increase the memory_limit setting for PHP and try again.', 'ewww-image-optimizer' ) ) ) );
 			}
 			if ( ! empty( $reset_images ) ) {
-				$escaped_reset_images = array();
-				$placeholders = array();
-				foreach ( $reset_images as $reset_image ) {
-					$escaped_reset_images[] = (int) $reset_image;
-					$placeholders[] = '%d';
-				}
-				$query = "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $placeholders ) . ')';
-				$wpdb->query( $wpdb->prepare( $query, $escaped_reset_images ) );
+				array_walk( $reset_images, 'intval' );
+				$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $reset_images ) . ')' ); // WPCS: unprepared SQL ok.
 			}
 			if ( ! empty( $images ) ) {
 				ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
@@ -394,14 +382,8 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 		ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
 	}
 	if ( ! empty( $reset_images ) ) {
-		$escaped_reset_images = array();
-		$placeholders = array();
-		foreach ( $reset_images as $reset_image ) {
-			$escaped_reset_images[] = (int) $reset_image;
-			$placeholders[] = '%d';
-		}
-		$query = "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $placeholders ) . ')';
-		$wpdb->query( $wpdb->prepare( $query, $escaped_reset_images ) );
+		array_walk( $reset_images, 'intval' );
+		$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $reset_images ) . ')' ); // WPCS: unprepared SQL ok.
 	}
 	delete_transient( 'ewww_image_optimizer_aux_iterator' );
 	$end = microtime( true ) - $start;
