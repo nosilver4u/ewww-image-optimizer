@@ -215,6 +215,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * added: filename as second parameter to ewww_image_optimizer_resize_dimensions filter
 * changed: retina images can be processed in background
 * changed: prevent sleep() and print_r() from running when disabled
+* changed: entire ewwwio_images table no longer loaded into memory when running bulk operation on small batches of images, or when the table is too large
 * fixed: WP_Image_Editor integration was not disabled when using Regenerate Thumbs plugin, resulting in disabled resizes being ignored, and optimization not being backgrounded properly
 * fixed: Media Library Plus actions triggered optimization too early, preventing background optimization.
 * fixed: settings page would not load on very large multisite installs (1,000+ blogs) because of too many queries for total savings achieved
@@ -225,6 +226,8 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * fixed: WP-CLI not dropping to low memory mode in constrained environments, causing incomplete scans
 * fixed: nextgen not showing optimization stats
 * fixed: proper i18n for strings that could contain singular and plural numbers
+* fixed: bulk scanner could skip images that need optimization when in 'low memory' mode
+* fixed: all JPG images down-sampled when only one of max height or max width is set
 
 = 3.2.7 =
 * added: function to remove duplicate records from the ewwwio table when doing a bulk scan or re-optimizing an image

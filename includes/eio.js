@@ -187,7 +187,6 @@ jQuery(document).ready(function($) {
 				console.log( response );
 				return false;
 			}	
-			//ewww_response = $.parseJSON(response);
 			ewww_init_data = {
 			        action: ewww_init_action,
 				ewww_wpnonce: ewww_vars._wpnonce,

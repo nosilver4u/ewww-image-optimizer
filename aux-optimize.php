@@ -227,11 +227,12 @@ function ewww_image_optimizer_delete_pending() {
  * Scan a folder for images and mark unoptimized images in the database
  * (inserts new records as necessary).
  *
- * @param string $dir The absolute path of the folder to be scanned for unoptimized images.
- * @param int $started Optional. The number of seconds since the overall scanning process started. Default 0.
  * @global object $wpdb
  * @global array|string $optimized_list An associative array containing information from the images
- * 					table, or the string 'low_memory'.
+ * 					table, or 'low_memory', 'large_list', 'small_scan'.
+ *
+ * @param string $dir The absolute path of the folder to be scanned for unoptimized images.
+ * @param int    $started Optional. The number of seconds since the overall scanning process started. Default 0.
  */
 function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
@@ -318,7 +319,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			}
 
 			$already_optimized = false;
-			if ( 'low_memory' === $optimized_list ) {
+			if ( is_string( $optimized_list ) ) {
 				$already_optimized = ewww_image_optimizer_find_already_optimized( $path );
 			}
 
