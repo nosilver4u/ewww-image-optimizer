@@ -2,8 +2,8 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-if ( ! class_exists( 'ewwwngg' ) ) {
-	class ewwwngg {
+if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
+	class EWWW_Nextcellent {
 		/* initializes the nextgen integration functions */
 		function __construct() {
 			add_filter( 'ngg_manage_images_columns', array( &$this, 'ewww_manage_images_columns' ) );
@@ -555,5 +555,5 @@ if ( ! class_exists( 'ewwwngg' ) ) {
 	}
 
 	global $ewwwngg;
-	$ewwwngg = new ewwwngg();
-}
+	$ewwwngg = new EWWW_Nextcellent();
+} // End if().

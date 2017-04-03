@@ -2,14 +2,14 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-if ( ! class_exists( 'ewwwngg' ) ) {
-	class ewwwngg {
+if ( ! class_exists( 'EWWW_Nextgen' ) ) {
+	class EWWW_Nextgen {
 		/* initializes the nextgen integration functions */
 		public function __construct() {
-			// add_filter( 'ngg_manage_images_columns', array( $this, 'ewww_manage_images_columns' ) );
+			/* add_filter( 'ngg_manage_images_columns', array( $this, 'ewww_manage_images_columns' ) ); */
 			add_filter( 'ngg_manage_images_number_of_columns', array( $this, 'ewww_manage_images_number_of_columns' ) );
 			add_filter( 'ngg_manage_images_row_actions', array( $this, 'ewww_manage_images_row_actions' ) );
-			// add_action( 'ngg_manage_image_custom_column', array( $this, 'ewww_manage_image_custom_column' ), 10, 2 );
+			/* add_action( 'ngg_manage_image_custom_column', array( $this, 'ewww_manage_image_custom_column' ), 10, 2 ); */
 			if ( ewww_image_optimizer_test_background_opt() ) {
 				add_action( 'ngg_added_new_image', array( $this, 'queue_new_image' ) );
 				ewwwio_debug_message( 'background mode enabled for nextgen' );
@@ -723,7 +723,7 @@ if ( ! class_exists( 'ewwwngg' ) ) {
 	}
 	// initialize the plugin and the class
 	global $ewwwngg;
-	$ewwwngg = new ewwwngg();
+	$ewwwngg = new EWWW_Nextgen();
 }
 
 if ( ! empty( $_REQUEST['page'] ) && $_REQUEST['page'] !== 'ngg_other_options' && ! class_exists( 'EWWWIO_Gallery_Storage' ) && class_exists( 'Mixin' ) && class_exists( 'C_Gallery_Storage' ) ) {

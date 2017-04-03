@@ -213,9 +213,11 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * added: optional image backups for API users, restore images from bulk optimize, or media library list view
 * added: relative file location support, automatically enabled for Pantheon, use EWWW_IMAGE_OPTIMIZER_RELATIVE and EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER to enable elsewhere
 * added: filename as second parameter to ewww_image_optimizer_resize_dimensions filter
+* added: prevent accidental regeneration of an image resize with the built-in WP_Image_Editor
 * changed: retina images can be processed in background
 * changed: prevent sleep() and print_r() from running when disabled
 * changed: entire ewwwio_images table no longer loaded into memory when running bulk operation on small batches of images, or when the table is too large
+* changed: when resize optimization is disabled, Include Media Folders is disabled to prevent optimization of disabled sizes
 * fixed: WP_Image_Editor integration was not disabled when using Regenerate Thumbs plugin, resulting in disabled resizes being ignored, and optimization not being backgrounded properly
 * fixed: Media Library Plus actions triggered optimization too early, preventing background optimization.
 * fixed: settings page would not load on very large multisite installs (1,000+ blogs) because of too many queries for total savings achieved
