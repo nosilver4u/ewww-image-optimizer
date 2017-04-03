@@ -31,11 +31,12 @@
 // TODO: post updates as blog post, and summarize in email.
 // TODO: test the autoloader on PHP 5.2 somehow, and see if Imagick preserves meta on resizing.
 // TODO: Add a custom async function for parallel mode to store image as pending and use the row ID instead of relative path.
+// TODO: should we not use is_executable/is_writable, etc. instead of our fancy permissions check? Or perhaps allow users to override the default permissions check?
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '327.2' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '327.3' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -852,7 +853,7 @@ function ewww_image_optimizer_enable_background_optimization() {
 	}
 	global $ewwwio_test_async;
 	if ( ! class_exists( 'WP_Background_Process' ) ) {
-		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'class-ewwwio-media-background-process.php' );
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
 	}
 	if ( ! is_object( $ewwwio_test_async ) ) {
 		$ewwwio_test_async = new EWWWIO_Test_Async_Handler();

@@ -111,6 +111,8 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 				$button_text = esc_attr__( 'Resume previous bulk operation', 'ewww-image-optimizer' );
 			}
 			$delay = ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' ) ? ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' ) : 0;
+			/* translators: 1-4: number(s) of images */
+			$selected_images_text = sprintf( esc_html__( '%1$d images have been selected (%2$d unoptimized), with %3$d resizes (%4$d unoptimized).', 'ewww-image-optimizer' ), $fullsize_count, $unoptimized_count, $resize_count, $unoptimized_resize_count );
 			?>
 			<div id="ewww-bulk-loading"></div>
 			<div id="ewww-bulk-progressbar"></div>
@@ -146,7 +148,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 				<div id="ewww-delay-slider" style="width:50%"></div>
 			</form>
 			<div id="ewww-bulk-forms">
-			<p class="ewww-bulk-info"><?php printf( esc_html__( '%1$d images have been selected (%2$d unoptimized), with %3$d resizes (%4$d unoptimized).', 'ewww-image-optimizer' ), $fullsize_count, $unoptimized_count, $resize_count, $unoptimized_resize_count ); ?><br />
+			<p class="ewww-bulk-info"><?php echo $selected_images_text; ?><br />
 			<?php esc_html_e( 'Previously optimized images will be skipped by default.', 'ewww-image-optimizer' ); ?></p>
 			<form id="ewww-bulk-start" class="ewww-bulk-form" method="post" action="">
 				<input type="submit" class="button-secondary action" value="<?php echo $button_text; ?>" />

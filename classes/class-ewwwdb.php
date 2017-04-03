@@ -70,7 +70,8 @@ class EwwwDB extends wpdb {
 		 *	)
 		 */
 		ewwwio_debug_message( 'we have records to store via ewwwdb' );
-		$multi_formats = $values = array();
+		$multi_formats = array();
+		$values = array();
 		foreach ( $data as $record ) {
 			if ( ! ewww_image_optimizer_iterable( $record ) ) {
 				continue;
