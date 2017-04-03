@@ -223,11 +223,11 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		/* ngg_manage_images_number_of_columns hook, changed in NGG 2.0.50ish */
 		function ewww_manage_images_number_of_columns( $count ) {
 			add_thickbox();
-			wp_enqueue_script( 'ewwwnextgenscript', plugins_url( '/includes/nextgen.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
-			wp_enqueue_style( 'jquery-ui-tooltip-custom', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+			wp_enqueue_script( 'ewwwnextgenscript', plugins_url( '/includes/nextgen.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+			wp_enqueue_style( 'jquery-ui-tooltip-custom', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 			// submit a couple variables to the javascript to work with
-			$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
-			$loading_image = plugins_url( '/images/spinner.gif', __FILE__ );
+			$loading_image = plugins_url( '/images/wpspin.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
+			$loading_image = plugins_url( '/images/spinner.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
 			wp_localize_script(
 				'ewwwnextgenscript',
 				'ewww_vars',
@@ -331,7 +331,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				}
 				$backup_available = false;
 				global $wpdb;
-				$optimized_images = $wpdb->get_results( "SELECT image_size,orig_size,resize,converted,level,backup FROM $wpdb->ewwwio_images WHERE attachment_id = $image->pid AND gallery = 'nextgen' AND image_size <> 0 ORDER BY orig_size DESC", ARRAY_A );
+				$optimized_images = $wpdb->get_results( "SELECT image_size,orig_size,resize,converted,level,backup,updated FROM $wpdb->ewwwio_images WHERE attachment_id = $image->pid AND gallery = 'nextgen' AND image_size <> 0 ORDER BY orig_size DESC", ARRAY_A );
 				if ( ! empty( $optimized_images ) ) {
 					list( $detail_output, $converted, $backup_available ) = ewww_image_optimizer_custom_column_results( $image->pid, $optimized_images );
 					$output .= $detail_output;
@@ -547,14 +547,14 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			// store the image IDs to process in the db
 			update_option( 'ewww_image_optimizer_bulk_ngg_attachments', $images, false );
 			// add the EWWW IO script
-			wp_enqueue_script( 'ewwwbulkscript', plugins_url( '/includes/eio.js', __FILE__ ), array( 'jquery', 'jquery-ui-progressbar', 'jquery-ui-slider', 'postbox', 'dashboard' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+			wp_enqueue_script( 'ewwwbulkscript', plugins_url( '/includes/eio.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array( 'jquery', 'jquery-ui-progressbar', 'jquery-ui-slider', 'postbox', 'dashboard' ), EWWW_IMAGE_OPTIMIZER_VERSION );
 			// replacing the built-in nextgen styling rules for progressbar, partially because the bulk optimize page doesn't work without them
 			wp_deregister_style( 'ngg-jqueryui' );
 			wp_deregister_style( 'ngg-jquery-ui' );
 			add_action( 'admin_head', array( &$this, 'ewww_ngg_style_remove' ) );
-			wp_register_style( 'jquery-ui-nextgen', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ) );
+			wp_register_style( 'jquery-ui-nextgen', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ) );
 			// enqueue the progressbar styling
-			wp_enqueue_style( 'jquery-ui-nextgen' ); // , plugins_url('jquery-ui-1.10.1.custom.css', __FILE__));
+			wp_enqueue_style( 'jquery-ui-nextgen' ); // , plugins_url('jquery-ui-1.10.1.custom.css', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE));
 			// include all the vars we need for javascript
 			wp_localize_script( 'ewwwbulkscript', 'ewww_vars', array(
 				'_wpnonce' => wp_create_nonce( 'ewww-image-optimizer-bulk' ),
@@ -590,7 +590,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			$id = array_shift( $attachments );
 			$file = $this->ewww_ngg_bulk_filename( $id );
 			// let the user know we are starting
-			$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
+			$loading_image = plugins_url( '/images/wpspin.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
 			if ( empty( $file ) ) {
 				$output['results'] = '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' alt='loading'/></p>";
 			} else {
@@ -682,7 +682,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			if ( ! empty( $attachments ) ) {
 				$next_attachment = array_shift( $attachments );
 				$next_file = $this->ewww_ngg_bulk_filename( $next_attachment );
-				$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
+				$loading_image = plugins_url( '/images/wpspin.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
 				if ( $next_file ) {
 					$output['next_file'] = '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . " <b>$next_file</b>&nbsp;<img src='$loading_image' alt='loading'/></p>";
 				} else {

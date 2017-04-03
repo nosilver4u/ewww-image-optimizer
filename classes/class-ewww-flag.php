@@ -236,9 +236,9 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			// Store the IDs to optimize in the options table of the db.
 			update_option( 'ewww_image_optimizer_bulk_flag_attachments', $ids );
 			// Add the EWWW IO javascript.
-			wp_enqueue_script( 'ewwwbulkscript', plugins_url( '/includes/eio.js', __FILE__ ), array( 'jquery', 'jquery-ui-progressbar', 'jquery-ui-slider', 'postbox', 'dashboard' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+			wp_enqueue_script( 'ewwwbulkscript', plugins_url( '/includes/eio.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array( 'jquery', 'jquery-ui-progressbar', 'jquery-ui-slider', 'postbox', 'dashboard' ), EWWW_IMAGE_OPTIMIZER_VERSION );
 			// Add the styling for the progressbar.
-			wp_enqueue_style( 'jquery-ui-progressbar', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ) );
+			wp_enqueue_style( 'jquery-ui-progressbar', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ) );
 			// Prepare a few variables to be used by the javascript code.
 			wp_localize_script('ewwwbulkscript', 'ewww_vars', array(
 				'_wpnonce' => wp_create_nonce( 'ewww-image-optimizer-bulk' ),
@@ -485,7 +485,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			}
 			$id = array_shift( $attachments );
 			$file_name = $this->ewww_flag_bulk_filename( $id );
-			$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
+			$loading_image = plugins_url( '/images/wpspin.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
 			// Output the initial message letting the user know we are starting.
 			if ( empty( $file_name ) ) {
 				$output['results'] = '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' alt='loading'/></p>";
@@ -590,7 +590,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			if ( ! empty( $attachments ) ) {
 				$next_attachment = array_shift( $attachments );
 				$next_file = $this->ewww_flag_bulk_filename( $next_attachment );
-				$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
+				$loading_image = plugins_url( '/images/wpspin.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
 				if ( $next_file ) {
 					$output['next_file'] = '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . " <b>$next_file</b>&nbsp;<img src='$loading_image' alt='loading'/></p>";
 				} else {
@@ -626,11 +626,11 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		 */
 		function ewww_manage_images_columns( $columns ) {
 			add_thickbox();
-			wp_enqueue_script( 'ewwwflagscript', plugins_url( '/includes/flag.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
-			wp_enqueue_style( 'jquery-ui-tooltip-custom', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+			wp_enqueue_script( 'ewwwflagscript', plugins_url( '/includes/flag.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+			wp_enqueue_style( 'jquery-ui-tooltip-custom', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 			// Submit a couple variables to the javascript to work with.
-			$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
-			$loading_image = plugins_url( '/images/spinner.gif', __FILE__ );
+			$loading_image = plugins_url( '/images/wpspin.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
+			$loading_image = plugins_url( '/images/spinner.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
 			wp_localize_script(
 				'ewwwflagscript',
 				'ewww_vars',
@@ -708,7 +708,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			}
 			$backup_available = false;
 			global $wpdb;
-			$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT image_size,orig_size,resize,converted,level,backup FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'flag' AND image_size <> 0 ORDER BY orig_size DESC", $id ) ARRAY_A );
+			$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT image_size,orig_size,resize,converted,level,backup,updated FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'flag' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
 			$ewww_manual_nonce = wp_create_nonce( 'ewww-manual-' . $id );
 			if ( ! empty( $optimized_images ) ) {
 				list( $detail_output, $converted, $backup_available ) = ewww_image_optimizer_custom_column_results( $id, $optimized_images );
