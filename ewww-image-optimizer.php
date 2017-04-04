@@ -310,44 +310,6 @@ function ewww_image_optimizer_check_permissions( $file, $minimum ) {
 	}
 	ewwwio_debug_message( 'permissions insufficient' );
 	return false;
-	$perms_pass = true;
-	if ( ( $perms & 0x8000 ) != 0x8000 ) {
-		$perms_pass = false;
-	}
-	$minimum = str_split( $minimum );
-	if ( 'r' == $minimum[0] && ! ( $perms & 0x0100 ) ) {
-		$perms_pass = false;
-	}
-	if ( 'w' == $minimum[1] && ! ( $perms & 0x0080 ) ) {
-		$perms_pass = false;
-	}
-	if ( 'x' == $minimum[2] && ! ( $perms & 0x0040 ) ) {
-		$perms_pass = false;
-	}
-	if ( 'r' == $minimum[3] && ! ( $perms & 0x0020 ) ) {
-		$perms_pass = false;
-	}
-	if ( 'w' == $minimum[4] && ! ( $perms & 0x0010 ) ) {
-		$perms_pass = false;
-	}
-	if ( 'x' == $minimum[5] && ! ( $perms & 0x0008 ) ) {
-		$perms_pass = false;
-	}
-	if ( 'r' == $minimum[6] && ! ( $perms & 0x0004 ) ) {
-		$perms_pass = false;
-	}
-	if ( 'w' == $minimum[7] && ! ( $perms & 0x0002 ) ) {
-		$perms_pass = false;
-	}
-	if ( 'x' == $minimum[8] && ! ( $perms & 0x0001 ) ) {
-		$perms_pass = false;
-	}
-	if ( $perms_pass ) {
-		ewwwio_debug_message( 'permissions ok' );
-	} else {
-		ewwwio_debug_message( 'permissions insufficient' );
-	}
-	return $perms_pass;
 }
 
 /**
