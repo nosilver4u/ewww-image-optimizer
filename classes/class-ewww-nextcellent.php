@@ -1,10 +1,25 @@
 <?php
+/**
+ * Class and methods to integrate EWWW IO and Nextcellent Gallery.
+ *
+ * @link https://ewww.io
+ * @package EWWW_Image_Optimizer
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
+	/**
+	 * Allows EWWW to integrate with the Nextcellent Gallery plugin.
+	 *
+	 * Adds automatic optimization on upload, a bulk optimizer, and compression details when
+	 * managing galleries.
+	 */
 	class EWWW_Nextcellent {
-		/* initializes the nextgen integration functions */
+		/**
+		 * Initializes the nextcellent integration functions.
+		 */
 		function __construct() {
 			add_filter( 'ngg_manage_images_columns', array( &$this, 'ewww_manage_images_columns' ) );
 			add_action( 'ngg_manage_image_custom_column', array( &$this, 'ewww_manage_image_custom_column' ), 10, 2 );
@@ -25,11 +40,19 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			add_action( 'ngg_ajax_image_save', array( &$this, 'ewww_ngg_image_save' ) );
 		}
 
-		/* adds the Bulk Optimize page to the tools menu, and a hidden page for optimizing thumbnails */
+		/**
+		 * Adds the Bulk Optimize page to the tools menu.
+		 */
 		function ewww_ngg_bulk_menu() {
 			add_submenu_page( NGGFOLDER, esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), 'NextGEN Manage gallery', 'ewww-ngg-bulk', array( &$this, 'ewww_ngg_bulk_preview' ) );
 		}
 
+		/**
+		 * Adds a newly uploaded image to the optimization queue.
+		 *
+		 * @param int   $gallery The gallery ID number (I think).
+		 * @param array $images The list of new images.
+		 */
 		function dispatch_new_images( $gallery, $images ) {
 			global $ewwwio_ngg_background;
 			if ( ! class_exists( 'WP_Background_Process' ) ) {
