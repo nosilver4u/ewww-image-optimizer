@@ -218,6 +218,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * changed: prevent sleep() and print_r() from running when disabled
 * changed: entire ewwwio_images table no longer loaded into memory when running bulk operation on small batches of images, or when the table is too large
 * changed: when resize optimization is disabled, Include Media Folders is disabled to prevent optimization of disabled sizes
+* changed: Swedish translation moved to wp.org
 * fixed: WP_Image_Editor integration was not disabled when using Regenerate Thumbs plugin, resulting in disabled resizes being ignored, and optimization not being backgrounded properly
 * fixed: Media Library Plus actions triggered optimization too early, preventing background optimization.
 * fixed: settings page would not load on very large multisite installs (1,000+ blogs) because of too many queries for total savings achieved
@@ -230,6 +231,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * fixed: proper i18n for strings that could contain singular and plural numbers
 * fixed: bulk scanner could skip images that need optimization when in 'low memory' mode
 * fixed: all JPG images down-sampled when only one of max height or max width is set
+* fixed: permissions error on tool folder cause media grid to appear empty
 
 = 3.2.7 =
 * added: function to remove duplicate records from the ewwwio table when doing a bulk scan or re-optimizing an image

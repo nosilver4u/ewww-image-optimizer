@@ -379,6 +379,27 @@ function ewww_image_optimizer_tool_folder_permissions_notice() {
 }
 
 /**
+ * Alert the user when tool installation fails.
+ */
+function ewww_image_optimizer_tool_installation_failed_notice() {
+	if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
+		// Need to include the plugin library for the is_plugin_active function.
+		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	}
+	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
+		$settings_page = 'settings.php?page=' . EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL;
+	} else {
+		$settings_page = 'options-general.php?page=' . EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL;
+	}
+	echo "<div id='ewww-image-optimizer-warning-tool-install' class='error'><p><strong>" .
+		/* translators: %s: Folder location where executables should be installed */
+		sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), htmlentities( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . '.</strong> ' .
+		esc_html__( 'Please adjust permissions or create the folder. If you have installed the tools elsewhere on your system, check the option to Use System Paths.', 'ewww-image-optimizer' ) . ' ' .
+		/* translators: 1: Settings Page (link) 2: Installation Instructions (link) */
+		sprintf( esc_html__( 'For more details, visit the %1$s or the %2$s.', 'ewww-image-optimizer' ), "<a href='$settings_page'>" . esc_html__( 'Settings Page', 'ewww-image-optimizer' ) . '</a>', "<a href='http://docs.ewww.io/'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
+}
+
+/**
  * Installs the executables that are bundled with the plugin.
  */
 function ewww_image_optimizer_install_tools() {
@@ -491,21 +512,8 @@ function ewww_image_optimizer_install_tools() {
 		}
 	}
 	if ( $toolfail ) {
-		if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
-			// Need to include the plugin library for the is_plugin_active function.
-			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-		}
-		if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
-			$settings_page = 'settings.php?page=' . EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL;
-		} else {
-			$settings_page = 'options-general.php?page=' . EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL;
-		}
-		echo "<div id='ewww-image-optimizer-warning-tool-install' class='error'><p><strong>" .
-			/* translators: %s: Folder location where executables should be installed */
-			sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), htmlentities( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . '.</strong> ' .
-			esc_html__( 'Please adjust permissions or create the folder. If you have installed the tools elsewhere on your system, check the option to Use System Paths.', 'ewww-image-optimizer' ) . ' ' .
-			/* translators: 1: Settings Page (link) 2: Installation Instructions (link) */
-			sprintf( esc_html__( 'For more details, visit the %1$s or the %2$s.', 'ewww-image-optimizer' ), "<a href='$settings_page'>" . esc_html__( 'Settings Page', 'ewww-image-optimizer' ) . '</a>', "<a href='http://docs.ewww.io/'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
+		add_action( 'network_admin_notices', 'ewww_image_optimizer_tool_installation_failed_notice' );
+		add_action( 'admin_notices', 'ewww_image_optimizer_tool_installation_failed_notice' );
 	}
 	ewwwio_memory( __FUNCTION__ );
 }
