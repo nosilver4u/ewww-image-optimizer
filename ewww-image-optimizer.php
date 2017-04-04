@@ -300,6 +300,16 @@ function ewww_image_optimizer_check_permissions( $file, $minimum ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$perms = fileperms( $file );
 	ewwwio_debug_message( "permissions for $file: " . substr( sprintf( '%o', $perms ), -4 ) );
+	if ( ! is_file( $file ) ) {
+		ewwwio_debug_message( 'permissions insufficient' );
+		return false;
+	}
+	if ( is_readable( $file ) && is_executable( $file ) ) {
+		ewwwio_debug_message( 'permissions ok' );
+		return true;
+	}
+	ewwwio_debug_message( 'permissions insufficient' );
+	return false;
 	$perms_pass = true;
 	if ( ( $perms & 0x8000 ) != 0x8000 ) {
 		$perms_pass = false;
@@ -440,7 +450,7 @@ function ewww_image_optimizer_install_tools() {
 				ewwwio_debug_message( 'could not copy OSX 10.8 cwebp to cwebp-alt' );
 			}
 			if ( ! ewww_image_optimizer_check_permissions( $webp8_dst, 'rwxr-xr-x' ) ) {
-				if ( ! chmod( $webp8_dst, 0755 ) ) {
+				if ( ! is_writable( $webp8_dst ) || ! chmod( $webp8_dst, 0755 ) ) {
 					ewwwio_debug_message( 'could not set cwebp8-alt permissions' );
 				}
 			}
@@ -450,31 +460,31 @@ function ewww_image_optimizer_install_tools() {
 	if ( PHP_OS != 'WINNT' && ! $toolfail ) {
 		ewwwio_debug_message( 'Linux/UNIX style OS, checking permissions' );
 		if ( ! $skip['jpegtran'] && ! ewww_image_optimizer_check_permissions( $jpegtran_dst, 'rwxr-xr-x' ) ) {
-			if ( ! chmod( $jpegtran_dst, 0755 ) ) {
+			if ( ! is_writable( $webp8_dst ) || ! chmod( $jpegtran_dst, 0755 ) ) {
 				$toolfail = true;
 				ewwwio_debug_message( 'could not set jpegtran permissions' );
 			}
 		}
 		if ( ! $skip['gifsicle'] && ! ewww_image_optimizer_check_permissions( $gifsicle_dst, 'rwxr-xr-x' ) ) {
-			if ( ! chmod( $gifsicle_dst, 0755 ) ) {
+			if ( ! is_writable( $webp8_dst ) || ! chmod( $gifsicle_dst, 0755 ) ) {
 				$toolfail = true;
 				ewwwio_debug_message( 'could not set gifsicle permissions' );
 			}
 		}
 		if ( ! $skip['optipng'] && ! ewww_image_optimizer_check_permissions( $optipng_dst, 'rwxr-xr-x' ) ) {
-			if ( ! chmod( $optipng_dst, 0755 ) ) {
+			if ( ! is_writable( $webp8_dst ) || ! chmod( $optipng_dst, 0755 ) ) {
 				$toolfail = true;
 				ewwwio_debug_message( 'could not set optipng permissions' );
 			}
 		}
 		if ( ! $skip['pngquant'] && ! ewww_image_optimizer_check_permissions( $pngquant_dst, 'rwxr-xr-x' ) ) {
-			if ( ! chmod( $pngquant_dst, 0755 ) ) {
+			if ( ! is_writable( $webp8_dst ) || ! chmod( $pngquant_dst, 0755 ) ) {
 				$toolfail = true;
 				ewwwio_debug_message( 'could not set pngquant permissions' );
 			}
 		}
 		if ( ! $skip['webp'] && ! ewww_image_optimizer_check_permissions( $webp_dst, 'rwxr-xr-x' ) ) {
-			if ( ! chmod( $webp_dst, 0755 ) ) {
+			if ( ! is_writable( $webp8_dst ) || ! chmod( $webp_dst, 0755 ) ) {
 				$toolfail = true;
 				ewwwio_debug_message( 'could not set webp permissions' );
 			}

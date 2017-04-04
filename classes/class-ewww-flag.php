@@ -1,6 +1,6 @@
 <?php
 /**
- * Class and methods to integrate EWWW IO and GRAND FlaGallery
+ * Class and methods to integrate EWWW IO and GRAND FlaGallery.
  *
  * @link https://ewww.io
  * @package EWWW_Image_Optimizer
