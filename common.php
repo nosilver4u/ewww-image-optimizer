@@ -29,9 +29,9 @@
 // TODO: extend custom WP_Image_Editor class from s3 uploader plugin on github.
 // TODO: make a bulk restore function.
 // TODO: post updates as blog post, and summarize in email.
-// TODO: test the autoloader on PHP 5.2 somehow, and see if Imagick preserves meta on resizing.
+// TODO: see if Imagick preserves meta on resizing.
+// TODO: stop all execution on PHP 5.2... somehow
 // TODO: Add a custom async function for parallel mode to store image as pending and use the row ID instead of relative path.
-// TODO: should we not use is_executable/is_writable, etc. instead of our fancy permissions check? Or perhaps allow users to override the default permissions check?
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

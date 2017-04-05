@@ -4,6 +4,14 @@
 
 	<rule ref="WordPress-Core" />
 	<rule ref="WordPress-Docs" />
+
+	<rule ref="Squiz.PHP.CommentedOutCode">
+		<exclude name="Squiz.PHP.CommentedOutCode.Found" />
+	</rule>
+
+	<rule ref="Generic.PHP.NoSilencedErrors">
+		<exclude name="Generic.PHP.NoSilencedErrors.Discouraged" />
+	</rule>
 	
 	<rule ref="WordPress.NamingConventions.ValidVariableName">
 		<properties>
