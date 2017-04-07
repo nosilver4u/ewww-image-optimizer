@@ -33,6 +33,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			add_action( 'wp_ajax_ewww_ngg_manual', array( $this, 'ewww_ngg_manual' ) );
 			add_action( 'wp_ajax_ewww_ngg_cloud_restore', array( $this, 'ewww_ngg_cloud_restore' ) );
 			add_action( 'admin_action_ewww_ngg_manual', array( $this, 'ewww_ngg_manual' ) );
+			add_action( 'admin_enqueue_scripts', array( $this, 'ewww_ngg_manual_actions_script' ) );
 			add_action( 'admin_menu', array( $this, 'ewww_ngg_bulk_menu' ) );
 			add_action( 'admin_head', array( $this, 'ewww_ngg_bulk_actions_script' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'ewww_ngg_bulk_script' ), 20 );
@@ -280,17 +281,21 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		}
 
 		/**
-		 * Filter for ngg_manage_images_number_of_columns hook, changed in NGG 2.0.50ish.
+		 * Prepare javascript for one-click actions on manage gallery page.
 		 *
-		 * @param int $count The number of columns for the table display.
-		 * @return int The new number of columns.
+		 * @param string $hook The hook value for the current page.
 		 */
-		function ewww_manage_images_number_of_columns( $count ) {
+		function ewww_ngg_manual_actions_script( $hook ) {
+			if ( 'gallery_page_nggallery-manage-gallery' != $hook ) {
+				return;
+			}
+			if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
+				return;
+			}
 			add_thickbox();
 			wp_enqueue_script( 'ewwwnextgenscript', plugins_url( '/includes/nextgen.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
 			wp_enqueue_style( 'jquery-ui-tooltip-custom', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 			// Submit a couple variables needed for javascript functions.
-			$loading_image = plugins_url( '/images/wpspin.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
 			$loading_image = plugins_url( '/images/spinner.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
 			wp_localize_script(
 				'ewwwnextgenscript',
@@ -300,6 +305,15 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 					'restoring' => '<p>' . esc_html__( 'Restoring', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
 				)
 			);
+		}
+
+		/**
+		 * Filter for ngg_manage_images_number_of_columns hook, changed in NGG 2.0.50ish.
+		 *
+		 * @param int $count The number of columns for the table display.
+		 * @return int The new number of columns.
+		 */
+		function ewww_manage_images_number_of_columns( $count ) {
 			$count++;
 			add_filter( "ngg_manage_images_column_{$count}_header", array( &$this, 'ewww_manage_images_columns' ) );
 			add_filter( "ngg_manage_images_column_{$count}_content", array( &$this, 'ewww_manage_image_custom_column' ), 10, 2 );
@@ -354,7 +368,6 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				$file_path = $storage->get_image_abspath( $image, 'full' );
 				// Get the mimetype of the image.
 				$type = ewww_image_optimizer_quick_mimetype( $file_path );
-				$valid = true;
 				// Check to see if we have a tool to handle the mimetype detected.
 				if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) ) {
 					ewww_image_optimizer_tool_init();
@@ -449,8 +462,6 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 				return '';
 			}
-			ewwwio_debug_message( 'BLAMMMMM' );
-			ewwwio_debug_message( print_r( $id, true ) );
 			if ( is_string( $id ) && 'optimize' == $id && is_object( $image ) && ! empty( $image->pid ) ) {
 				$id = $image->pid;
 				global $wpdb;

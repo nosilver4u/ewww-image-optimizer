@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Installation routine for PNGOUT.
-add_action( 'admin_action_ewww_image_optimizer_install_pngout', 'ewww_image_optimizer_install_pngout' );
+add_action( 'admin_action_ewww_image_optimizer_install_pngout', 'ewww_image_optimizer_install_pngout_wrapper' );
 // Removes the binaries when the plugin is deactivated.
 register_deactivation_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimizer_remove_binaries' );
 
@@ -381,31 +381,31 @@ function ewww_image_optimizer_install_tools() {
 	if ( PHP_OS != 'WINNT' && ! $toolfail ) {
 		ewwwio_debug_message( 'Linux/UNIX style OS, checking permissions' );
 		if ( ! $skip['jpegtran'] && ! ewww_image_optimizer_check_permissions( $jpegtran_dst, 'rwxr-xr-x' ) ) {
-			if ( ! is_writable( $webp8_dst ) || ! chmod( $jpegtran_dst, 0755 ) ) {
+			if ( ! is_writable( $jpegtran_dst ) || ! chmod( $jpegtran_dst, 0755 ) ) {
 				$toolfail = true;
 				ewwwio_debug_message( 'could not set jpegtran permissions' );
 			}
 		}
 		if ( ! $skip['gifsicle'] && ! ewww_image_optimizer_check_permissions( $gifsicle_dst, 'rwxr-xr-x' ) ) {
-			if ( ! is_writable( $webp8_dst ) || ! chmod( $gifsicle_dst, 0755 ) ) {
+			if ( ! is_writable( $gifsicle_dst ) || ! chmod( $gifsicle_dst, 0755 ) ) {
 				$toolfail = true;
 				ewwwio_debug_message( 'could not set gifsicle permissions' );
 			}
 		}
 		if ( ! $skip['optipng'] && ! ewww_image_optimizer_check_permissions( $optipng_dst, 'rwxr-xr-x' ) ) {
-			if ( ! is_writable( $webp8_dst ) || ! chmod( $optipng_dst, 0755 ) ) {
+			if ( ! is_writable( $optipng_dst ) || ! chmod( $optipng_dst, 0755 ) ) {
 				$toolfail = true;
 				ewwwio_debug_message( 'could not set optipng permissions' );
 			}
 		}
 		if ( ! $skip['pngquant'] && ! ewww_image_optimizer_check_permissions( $pngquant_dst, 'rwxr-xr-x' ) ) {
-			if ( ! is_writable( $webp8_dst ) || ! chmod( $pngquant_dst, 0755 ) ) {
+			if ( ! is_writable( $pngquant_dst ) || ! chmod( $pngquant_dst, 0755 ) ) {
 				$toolfail = true;
 				ewwwio_debug_message( 'could not set pngquant permissions' );
 			}
 		}
 		if ( ! $skip['webp'] && ! ewww_image_optimizer_check_permissions( $webp_dst, 'rwxr-xr-x' ) ) {
-			if ( ! is_writable( $webp8_dst ) || ! chmod( $webp_dst, 0755 ) ) {
+			if ( ! is_writable( $webp_dst ) || ! chmod( $webp_dst, 0755 ) ) {
 				$toolfail = true;
 				ewwwio_debug_message( 'could not set webp permissions' );
 			}
@@ -1468,7 +1468,7 @@ function ewww_image_optimizer_jpegtran_autorotate( $file, $type, $orientation ) 
 	}
 	$outfile = "$file.rotate";
 	// Run jpegtran.
-	exec( "$nice {$tools['JPEGTRAN']} -copy all $transform -outfile " . ewww_image_optimizer_escapeshellarg( $outfile ) . ' ' . ewww_image_optimizer_escapeshellarg( $file ) );
+	exec( "$nice {$tools['JPEGTRAN']} -trim -copy all $transform -outfile " . ewww_image_optimizer_escapeshellarg( $outfile ) . ' ' . ewww_image_optimizer_escapeshellarg( $file ) );
 	ewwwio_debug_message( "$file rotated to $outfile" );
 
 	if ( file_exists( $outfile ) ) {
@@ -2390,12 +2390,20 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 	} else {
 		// Check to see if 'nice' exists.
 		$nice = ewww_image_optimizer_find_nix_binary( 'nice', 'n' );
+		// Check to see if we are supposed to strip metadata (badly named).
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpegtran_copy' ) ) {
+			// Don't copy metadata.
+			$copy_opt = 'none';
+		} else {
+			// Copy all the metadata.
+			$copy_opt = 'all';
+		}
 		switch ( $type ) {
 			case 'image/jpeg':
-				exec( "$nice " . $tool . ' -q  85 -quiet ' . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1', $cli_output );
+				exec( "$nice " . $tool . " -q 82 -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1', $cli_output );
 				break;
 			case 'image/png':
-				exec( "$nice " . $tool . ' -lossless -quiet ' . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1', $cli_output );
+				exec( "$nice " . $tool . " -lossless -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1', $cli_output );
 				break;
 		}
 	}
@@ -2414,14 +2422,26 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 }
 
 /**
- * Installs pngout from the official site.
+ * Redirects back to previous page after PNGOUT installation.
  */
-function ewww_image_optimizer_install_pngout() {
+function ewww_image_optimizer_install_pngout_wrapper() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
 	if ( false === current_user_can( $permissions ) ) {
 		wp_die( esc_html__( 'You do not have permission to install image optimizer utilities.', 'ewww-image-optimizer' ) );
 	}
+	$sendback = ewww_image_optimizer_install_pngout();
+	wp_redirect( esc_url_raw( $sendback ) );
+	ewwwio_memory( __FUNCTION__ );
+	exit( 0 );
+}
+
+/**
+ * Installs pngout from the official site.
+ *
+ * @return string The url from whence we came (settings page), with success or error parameters added.
+ */
+function ewww_image_optimizer_install_pngout() {
 	if ( PHP_OS != 'WINNT' ) {
 		$tar = ewww_image_optimizer_find_nix_binary( 'tar', 't' );
 	}
@@ -2510,9 +2530,7 @@ function ewww_image_optimizer_install_pngout() {
 			remove_query_arg( array( 'ewww_pngout', 'ewww_error' ), wp_get_referer() )
 		);
 	}
-	wp_redirect( esc_url_raw( $sendback ) );
-	ewwwio_memory( __FUNCTION__ );
-	exit( 0 );
+	return $sendback;
 }
 
 /**

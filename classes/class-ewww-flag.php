@@ -25,6 +25,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		function __construct() {
 			add_filter( 'flag_manage_images_columns', array( $this, 'ewww_manage_images_columns' ) );
 			add_action( 'flag_manage_gallery_custom_column', array( $this, 'ewww_manage_image_custom_column_wrapper' ), 10, 2 );
+			add_action( 'admin_enqueue_scripts', array( $this, 'ewww_flag_manual_actions_script' ), 21 );
 			if ( current_user_can( apply_filters( 'ewww_image_optimizer_bulk_permissions', '' ) ) ) {
 				add_action( 'flag_manage_images_bulkaction', array( $this, 'ewww_manage_images_bulkaction' ) );
 				add_action( 'flag_manage_galleries_bulkaction', array( $this, 'ewww_manage_galleries_bulkaction' ) );
@@ -619,26 +620,39 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		}
 
 		/**
+		 * Prepare javascript for one-click actions on manage gallery page.
+		 *
+		 * @param string $hook The hook value for the current page.
+		 */
+		function ewww_flag_manual_actions_script( $hook ) {
+			if ( 'flagallery_page_flag-manage-gallery' != $hook ) {
+				return;
+			}
+			if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
+				return;
+			}
+			add_thickbox();
+			wp_enqueue_script( 'ewwwflagscript', plugins_url( '/includes/flag.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+			wp_enqueue_style( 'jquery-ui-tooltip-custom', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+			// Submit a couple variables needed for javascript functions.
+			$loading_image = plugins_url( '/images/spinner.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
+			wp_localize_script(
+				'ewwwflagscript',
+				'ewww_vars',
+				array(
+					'optimizing' => '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . " <img src='$loading_image' /></p>",
+					'restoring' => '<p>' . esc_html__( 'Restoring', 'ewww-image-optimizer' ) . " <img src='$loading_image' /></p>",
+				)
+			);
+		}
+
+		/**
 		 * Add a column on the gallery display.
 		 *
 		 * @param array $columns A list of columns displayed on the manage gallery page.
 		 * @return array The list of columns, with EWWW's custom column added.
 		 */
 		function ewww_manage_images_columns( $columns ) {
-			add_thickbox();
-			wp_enqueue_script( 'ewwwflagscript', plugins_url( '/includes/flag.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
-			wp_enqueue_style( 'jquery-ui-tooltip-custom', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
-			// Submit a couple variables to the javascript to work with.
-			$loading_image = plugins_url( '/images/wpspin.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
-			$loading_image = plugins_url( '/images/spinner.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
-			wp_localize_script(
-				'ewwwflagscript',
-				'ewww_vars',
-				array(
-					'optimizing' => '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
-					'restoring' => '<p>' . esc_html__( 'Restoring', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
-				)
-			);
 			$columns['ewww_image_optimizer'] = esc_html__( 'Image Optimizer', 'ewww-image-optimizer' );
 			return $columns;
 		}

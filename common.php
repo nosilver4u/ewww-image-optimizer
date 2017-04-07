@@ -24,14 +24,12 @@
 // TODO: even without the override, the size (disabling) settings need to be exposed per-site.
 // TODO: need to make the scheduler so it can resume without having to re-run the queue population, and then we can probably also flush the queue when scheduled opt starts, but later it would be nice to implement the bulk_loop as the aux_loop so that it could handle media properly.
 // TODO: implement a search for the bulk table, or maybe we should just move it to it's own page?
-// TODO: need to port restore to Nextcellent plus metadata 2 ewwwio table changes.
 // TODO: port bulk changes to NextGEN and FlaGallery.
 // TODO: extend custom WP_Image_Editor class from s3 uploader plugin on github.
 // TODO: make a bulk restore function.
 // TODO: post updates as blog post, and summarize in email.
-// TODO: see if Imagick preserves meta on resizing.
-// TODO: stop all execution on PHP 5.2... somehow
 // TODO: Add a custom async function for parallel mode to store image as pending and use the row ID instead of relative path.
+// TODO: make sure orientation is being fixed during bulk for both local jpegtran and API. Probably just build it into the core function so that anytime jpegtran is used, autorotation is performed.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -1246,7 +1244,7 @@ function ewww_image_optimizer_install_table() {
 	 * Create a table with 15 columns:
 	 * id: unique for each record/image,
 	 * attachment_id: the unique id within the media library, nextgen, or flag
-	 * gallery: 'media', 'nextgen', 'nextcellent', or 'flag',
+	 * gallery: 'media', 'nextgen', 'nextcell', or 'flag',
 	 * resize: size of the image,
 	 * path: filename of the image, potentially replaced with ABSPATH or WP_CONTENT_DIR,
 	 * converted: filename of the image before conversion,
@@ -4151,6 +4149,9 @@ function ewww_image_optimizer_update_table_as3cf( $local_path, $s3_path ) {
  * @param string $file The file to check for rotation.
  */
 function ewww_image_optimizer_autorotate( $file ) {
+	if ( defined( 'EWWW_IMAGE_OPTIMIZER_NO_ROTATE' ) && EWWW_IMAGE_OPTIMIZER_NO_ROTATE ) {
+		return;
+	}
 	$type = ewww_image_optimizer_mimetype( $file, 'i' );
 	if ( 'image/jpeg' != $type ) {
 		ewwwio_debug_message( 'not a JPG, no rotation needed' );
@@ -5858,7 +5859,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			$webp_size = ewww_image_optimizer_filesize( $webpfile );
 			if ( $webp_size ) {
 				// Get a human readable filesize.
-				$webp_size = ewww_image_optiizer_size_format( $webp_size );
+				$webp_size = ewww_image_optimizer_size_format( $webp_size );
 				$webpurl = esc_url( wp_get_attachment_url( $id ) . '.webp' );
 				$output .= "<div>WebP: <a href='$webpurl'>$webp_size</a></div>";
 			}
