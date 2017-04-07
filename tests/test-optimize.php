@@ -45,10 +45,14 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		ewww_image_optimizer_set_defaults();
 		update_option( 'ewww_image_optimizer_webp', true );
 		update_option( 'ewww_image_optimizer_png_level', 40 );
+		update_site_option( 'ewww_image_optimizer_webp', true );
+		update_site_option( 'ewww_image_optimizer_png_level', 40 );
 		ewww_image_optimizer_install_tools();
 		ewww_image_optimizer_install_pngout();
 		update_option( 'ewww_image_optimizer_webp', '' );
 		update_option( 'ewww_image_optimizer_png_level', 10 );
+		update_site_option( 'ewww_image_optimizer_webp', '' );
+		update_site_option( 'ewww_image_optimizer_png_level', 10 );
 	}
 
 	/**
@@ -107,8 +111,12 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
 		update_option( 'ewww_image_optimizer_jpg_level', 10 );
 		update_option( 'ewww_image_optimizer_webp', true );
+		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_jpg_level', 10 );
+		update_site_option( 'ewww_image_optimizer_webp', true );
 		$results = $this->optimize_jpg();
 		update_option( 'ewww_image_optimizer_webp', '' );
+		update_site_option( 'ewww_image_optimizer_webp', '' );
 		$this->assertEquals( 1395225, filesize( $results[0] ) );
 		unlink( $results[0] );
 		$this->assertEquals( 309322, filesize( $results[0] . '.webp' ) );
@@ -123,6 +131,8 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	function test_optimize_jpg_10_keep_meta() {
 		update_option( 'ewww_image_optimizer_jpegtran_copy', '' );
 		update_option( 'ewww_image_optimizer_jpg_level', 10 );
+		update_site_option( 'ewww_image_optimizer_jpegtran_copy', '' );
+		update_site_option( 'ewww_image_optimizer_jpg_level', 10 );
 		$results = $this->optimize_jpg();
 		$this->assertEquals( 1413662, filesize( $results[0] ) );
 		unlink( $results[0] );
@@ -137,8 +147,14 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_optipng_level', 2 );
 		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
 		update_option( 'ewww_image_optimizer_webp', true );
+		update_site_option( 'ewww_image_optimizer_png_level', 10 );
+		update_site_option( 'ewww_image_optimizer_disable_pngout', true );
+		update_site_option( 'ewww_image_optimizer_optipng_level', 2 );
+		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_webp', true );
 		$results = $this->optimize_png();
 		update_option( 'ewww_image_optimizer_webp', '' );
+		update_site_option( 'ewww_image_optimizer_webp', '' );
 		$this->assertEquals( 188043, filesize( $results[0] ) );
 		unlink( $results[0] );
 		$this->assertEquals( 137258, filesize( $results[0] . '.webp' ) );
@@ -155,6 +171,10 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_disable_pngout', true );
 		update_option( 'ewww_image_optimizer_optipng_level', 2 );
 		update_option( 'ewww_image_optimizer_jpegtran_copy', '' );
+		update_site_option( 'ewww_image_optimizer_png_level', 10 );
+		update_site_option( 'ewww_image_optimizer_disable_pngout', true );
+		update_site_option( 'ewww_image_optimizer_optipng_level', 2 );
+		update_site_option( 'ewww_image_optimizer_jpegtran_copy', '' );
 		$results = $this->optimize_png();
 		$this->assertEquals( 190775, filesize( $results[0] ) );
 		unlink( $results[0] );
@@ -169,6 +189,11 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_optipng_level', 2 );
 		update_option( 'ewww_image_optimizer_pngout_level', 1 );
 		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_png_level', 10 );
+		update_site_option( 'ewww_image_optimizer_disable_pngout', '' );
+		update_site_option( 'ewww_image_optimizer_optipng_level', 2 );
+		update_site_option( 'ewww_image_optimizer_pngout_level', 1 );
+		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
 		$results = $this->optimize_png();
 		$this->assertEquals( 180779, filesize( $results[0] ) );
 		unlink( $results[0] );
@@ -182,6 +207,10 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_disable_pngout', true );
 		update_option( 'ewww_image_optimizer_optipng_level', 2 );
 		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_png_level', 40 );
+		update_site_option( 'ewww_image_optimizer_disable_pngout', true );
+		update_site_option( 'ewww_image_optimizer_optipng_level', 2 );
+		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
 		$results = $this->optimize_png();
 		$this->assertEquals( 35105, filesize( $results[0] ) );
 		unlink( $results[0] );
@@ -192,6 +221,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 */
 	function test_optimize_gif_10() {
 		update_option( 'ewww_image_optimizer_gif_level', 10 );
+		update_site_option( 'ewww_image_optimizer_gif_level', 10 );
 		$results = $this->optimize_gif();
 		$this->assertEquals( 8900, filesize( $results[0] ) );
 		unlink( $results[0] );
@@ -207,6 +237,8 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		add_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 		delete_option( 'ewww_image_optimizer_version' );
 		delete_option( 'ewww_image_optimizer_cloud_key' );
+		delete_site_option( 'ewww_image_optimizer_version' );
+		delete_site_option( 'ewww_image_optimizer_cloud_key' );
 		parent::tearDown();
 	}
 
