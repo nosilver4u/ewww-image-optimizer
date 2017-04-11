@@ -229,10 +229,10 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 ## Screenshots 
 
 ### 1. Plugin settings page.
-![Plugin settings page.](https://ps.w.org/ewww-image-optimizer/assets/screenshot-1.png)
+![Plugin settings page.](https://ps.w.org/ewww-image-optimizer/assets/screenshot-1.png?rev=1557839)
 
 ### 2. Additional optimize column added to media listing. You can see your savings, manually optimize individual images, and restore originals (converted only).
-![Additional optimize column added to media listing. You can see your savings, manually optimize individual images, and restore originals (converted only).](https://ps.w.org/ewww-image-optimizer/assets/screenshot-2.png)
+![Additional optimize column added to media listing. You can see your savings, manually optimize individual images, and restore originals (converted only).](https://ps.w.org/ewww-image-optimizer/assets/screenshot-2.png?rev=1557839)
 
 ### 3. Bulk optimization page. You can optimize all your images at once and resume a previous bulk optimization. This is very useful for existing blogs that have lots of images.
 ![Bulk optimization page. You can optimize all your images at once and resume a previous bulk optimization. This is very useful for existing blogs that have lots of images.](https://ps.w.org/ewww-image-optimizer/assets/screenshot-3.png?rev=1557839)

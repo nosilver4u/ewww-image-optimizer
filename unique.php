@@ -1473,8 +1473,9 @@ function ewww_image_optimizer_jpegtran_autorotate( $file, $type, $orientation ) 
 
 	if ( file_exists( $outfile ) ) {
 		$new_type = ewww_image_optimizer_mimetype( $outfile, 'i' );
-		// Check the filesize of the progressive JPG.
+		// Check the filesize of the new JPG.
 		$new_size = filesize( $outfile );
+		ewwwio_debug_message( "$outfile exists, testing type and size" );
 	} else {
 		return false;
 	}
@@ -1483,7 +1484,7 @@ function ewww_image_optimizer_jpegtran_autorotate( $file, $type, $orientation ) 
 		unlink( $outfile );
 		return false;
 	}
-
+	ewwwio_debug_message( 'rotation success' );
 	rename( $outfile, $file );
 	return true;
 }

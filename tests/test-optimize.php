@@ -6,9 +6,8 @@
  * @package Ewww_Image_Optimizer
  */
 
-// TODO: do the autorotation functions too.
+// TODO: do the autorotation functions too (jpegtran done, need cloud mode test or assertion at least).
 // TODO: add a PDF file for testing also.
-// TODO: add webp to the keep meta test for JPG.
 /**
  * Optimization test cases.
  */
@@ -39,7 +38,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Downloads test images.
 	 */
 	public static function setUpBeforeClass() {
-		self::$test_jpg = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/20170314_174652.jpg' );
+		self::$test_jpg = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/20170314_174658.jpg' );
 		self::$test_png = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/books.png' );
 		self::$test_gif = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/gifsiclelogo.gif' );
 		ewww_image_optimizer_set_defaults();
@@ -108,7 +107,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test default JPG optimization.
+	 * Test default JPG optimization with WebP.
 	 */
 	function test_optimize_jpg_10() {
 		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
@@ -120,25 +119,42 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$results = $this->optimize_jpg();
 		update_option( 'ewww_image_optimizer_webp', '' );
 		update_site_option( 'ewww_image_optimizer_webp', '' );
-		$this->assertEquals( 1395225, filesize( $results[0] ) );
+		$this->assertEquals( 1362850, filesize( $results[0] ) );
 		unlink( $results[0] );
-		$this->assertEquals( 309322, filesize( $results[0] . '.webp' ) );
+		$this->assertEquals( 298690, filesize( $results[0] . '.webp' ) );
 		if ( is_file( $results[0] . '.webp' ) ) {
 			unlink( $results[0] . '.webp' );
 		}
 	}
 
 	/**
-	 * Test lossless JPG and keeps meta.
+	 * Test lossless JPG and keeps meta with WebP and autorotation tests.
 	 */
 	function test_optimize_jpg_10_keep_meta() {
 		update_option( 'ewww_image_optimizer_jpegtran_copy', '' );
 		update_option( 'ewww_image_optimizer_jpg_level', 10 );
+		update_option( 'ewww_image_optimizer_webp', true );
 		update_site_option( 'ewww_image_optimizer_jpegtran_copy', '' );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 10 );
+		update_site_option( 'ewww_image_optimizer_webp', true );
 		$results = $this->optimize_jpg();
-		$this->assertEquals( 1413662, filesize( $results[0] ) );
+		update_option( 'ewww_image_optimizer_webp', '' );
+		update_site_option( 'ewww_image_optimizer_webp', '' );
+		// size post opt.
+		$this->assertEquals( 1382398, filesize( $results[0] ) );
+		// orientation pre-rotation.
+		$this->assertEquals( ewww_image_optimizer_get_orientation( self::$test_jpg, 'image/jpeg' ), 8 );
+		ewww_image_optimizer_autorotate( $results[0] );
+		// orientation post-rotation should always be 1, no matter the image.
+		$this->assertEquals( ewww_image_optimizer_get_orientation( $results[0], 'image/jpeg' ), 1 );
+		// size post-rotation.
+		$this->assertEquals( 1447702, filesize( $results[0] ) );
 		unlink( $results[0] );
+		// size of webp with meta.
+		$this->assertEquals( 318272, filesize( $results[0] . '.webp' ) );
+		if ( is_file( $results[0] . '.webp' ) ) {
+			unlink( $results[0] . '.webp' );
+		}
 	}
 
 	/**
