@@ -39,12 +39,15 @@ class EWWWIO_Utility_Tests extends WP_UnitTestCase {
 	 */
 	function test_mimetype() {
 		$binaries = scandir( EWWW_IMAGE_OPTIMIZER_BINARY_PATH );
+		global $ewww_debug;
+		$ewww_debug .= '';
+		ewww_image_optimizer_set_option( 'ewww_image_optimizer_debug', true );
 		foreach ( $binaries as $binary ) {
 			$binary = trailingslashit( EWWW_IMAGE_OPTIMIZER_BINARY_PATH ) . $binary;
 			if ( ! is_file( $binary ) ) {
 				continue;
 			}
-			$this->assertTrue( (bool) ewww_image_optimizer_mimetype( $binary, 'b' ) );
+			$this->assertTrue( (bool) ewww_image_optimizer_mimetype( $binary, 'b' ), $binary . ":\n" . str_replace( '<br>', "\n", $ewww_debug ) );
 		}
 	}
 
