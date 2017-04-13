@@ -2944,7 +2944,7 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 				if ( is_wp_error( $result ) ) {
 					$ewww_cloud_transport = 'http';
 					$error_message = $result->get_error_message();
-					ewwwio_debug_message( "verification failed: $error_message" );
+					ewwwio_debug_message( "verification failed via $ewww_cloud_transport://$ip: $error_message" );
 				} elseif ( ! empty( $result['body'] ) && preg_match( '/(great|exceeded)/', $result['body'] ) ) {
 					$verified = $result['body'];
 					if ( preg_match( '/exceeded/', $verified ) ) {
