@@ -1071,7 +1071,7 @@ function ewww_image_optimizer_mimetype( $path, $case ) {
 		}
 	}
 	// If we are dealing with a binary, and found an executable.
-	if ( 'b' === $case && preg_match( '/executable|octet-stream/', $type ) ) {
+	if ( 'b' === $case && preg_match( '/executable|octet-stream|dosexec/', $type ) ) {
 		ewwwio_memory( __FUNCTION__ );
 		return $type;
 		// Otherwise, if we are dealing with an image.
@@ -1678,6 +1678,10 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				}
 				break;
 			}
+			// If we get this far, we are using local (jpegtran) optimization, so do an autorotate on the image.
+			ewww_image_optimizer_autorotate( $file );
+			// Get the (possibly new) original image size.
+			$orig_size = ewww_image_optimizer_filesize( $file );
 			if ( $convert ) {
 				$tools = ewww_image_optimizer_path_check(
 					! $skip['jpegtran'],

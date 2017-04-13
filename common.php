@@ -13,7 +13,7 @@
 // TODO: use <picture> element to serve webp.
 // TODO: see if we can offer a rebuild option, to fill in missing thumbs.
 // TODO: look at simple_html_dom_node that wp retina uses for parsing.
-// TODO: so, if lazy loading support sucks, can we roll our own? that's an image "optimization", right?...
+// TODO: so, if lazy loading support stinks, can we roll our own? that's an image "optimization", right?...
 // TODO: prevent bad ajax errors from firing when we click the toggle on the Optimization Log, and the plugin status from doing 403s...
 // TODO: use a transient to do health checks on the schedule optimizer.
 // TODO: add a column to track compression level used for each image, and later implement a way to (re)compress at a specific compression level.
@@ -29,7 +29,8 @@
 // TODO: make a bulk restore function.
 // TODO: post updates as blog post, and summarize in email.
 // TODO: Add a custom async function for parallel mode to store image as pending and use the row ID instead of relative path.
-// TODO: make sure orientation is being fixed during bulk for both local jpegtran and API. Probably just build it into the core function so that anytime jpegtran is used, autorotation is performed.
+// TODO: write some tests for update_table and check_table, find_already_opt, and remove_dups.
+// TODO: build a test for the resize function too.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -1822,7 +1823,7 @@ function ewww_image_optimizer_network_admin_menu() {
 /**
  * Simulates regenerating a resize for an attachment.
  */
-function ewww_image_optimizer_resiz_dup_check() {
+function ewww_image_optimizer_resize_dup_check() {
 	$meta = wp_get_attachment_metadata( 34 );
 	list( $file, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, 34 );
 	$editor = wp_get_image_editor( $file );
@@ -1842,7 +1843,7 @@ function ewww_image_optimizer_admin_menu() {
 	// Adds bulk optimize to the media library menu.
 	$ewww_bulk_page = add_media_page( esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-bulk', 'ewww_image_optimizer_bulk_preview' );
 	// TEST TODO: move this to a unit test or something!
-	/* add_media_page( esc_html__( 'Resize checker', 'ewww-image-optimizer' ), esc_html__( 'Duplicate Resize Check', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-resize-dup-check', 'ewww_image_optimizer_resiz_dup_check' ); */
+	/* add_media_page( esc_html__( 'Resize checker', 'ewww-image-optimizer' ), esc_html__( 'Duplicate Resize Check', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-resize-dup-check', 'ewww_image_optimizer_resize_dup_check' ); */
 	$ewww_webp_migrate_page = add_submenu_page( null, esc_html__( 'Migrate WebP Images', 'ewww-image-optimizer' ), esc_html__( 'Migrate WebP Images', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-webp-migrate', 'ewww_image_optimizer_webp_migrate_preview' );
 	if ( ! function_exists( 'is_plugin_active' ) ) {
 		// Need to include the plugin library for the is_plugin_active function.
@@ -2890,7 +2891,7 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 		ewwwio_debug_message( 'license exceeded notice has not expired' );
 		return 'exceeded';
 	}
-	add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent' );
+	add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 	$ewww_cloud_status = get_transient( 'ewww_image_optimizer_cloud_status' );
 	$ewww_cloud_ip = get_transient( 'ewww_image_optimizer_cloud_ip' );
 	$ewww_cloud_transport = get_transient( 'ewww_image_optimizer_cloud_transport' );

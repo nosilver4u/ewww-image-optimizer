@@ -138,9 +138,9 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$results = $this->optimize_jpg();
 		update_option( 'ewww_image_optimizer_webp', '' );
 		update_site_option( 'ewww_image_optimizer_webp', '' );
-		$this->assertEquals( 1362850, filesize( $results[0] ) );
+		$this->assertEquals( 1348837, filesize( $results[0] ) );
 		unlink( $results[0] );
-		$this->assertEquals( 298690, filesize( $results[0] . '.webp' ) );
+		$this->assertEquals( 319938, filesize( $results[0] . '.webp' ) );
 		if ( is_file( $results[0] . '.webp' ) ) {
 			unlink( $results[0] . '.webp' );
 		}
@@ -160,17 +160,14 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_webp', '' );
 		update_site_option( 'ewww_image_optimizer_webp', '' );
 		// size post opt.
-		$this->assertEquals( 1382398, filesize( $results[0] ) );
+		$this->assertEquals( 1368385, filesize( $results[0] ) );
 		// orientation pre-rotation.
 		$this->assertEquals( ewww_image_optimizer_get_orientation( self::$test_jpg, 'image/jpeg' ), 8 );
-		ewww_image_optimizer_autorotate( $results[0] );
 		// orientation post-rotation should always be 1, no matter the image.
 		$this->assertEquals( ewww_image_optimizer_get_orientation( $results[0], 'image/jpeg' ), 1 );
-		// size post-rotation.
-		$this->assertEquals( 1447702, filesize( $results[0] ) );
 		unlink( $results[0] );
 		// size of webp with meta.
-		$this->assertEquals( 318272, filesize( $results[0] . '.webp' ) );
+		$this->assertEquals( 339520, filesize( $results[0] . '.webp' ) );
 		if ( is_file( $results[0] . '.webp' ) ) {
 			unlink( $results[0] . '.webp' );
 		}
@@ -497,6 +494,9 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		}
 		if ( is_file( self::$test_gif ) ) {
 			unlink( self::$test_gif );
+		}
+		if ( is_file( self::$test_pdf ) ) {
+			unlink( self::$test_pdf );
 		}
 		ewww_image_optimizer_remove_binaries();
 	}
