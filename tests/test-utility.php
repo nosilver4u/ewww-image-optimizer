@@ -15,9 +15,9 @@ class EWWWIO_Utility_Tests extends WP_UnitTestCase {
 	 * Test our image results function to ensure proper formatting.
 	 */
 	function test_byte_format() {
-		$this->assertEquals( 'Reduced by 90.0% (90 B)', ewww_image_optimizer_image_results( 100, 10 ) );
-		$this->assertEquals( 'Reduced by 29.8% (29.2 KB)', ewww_image_optimizer_image_results( 100235, 70384 ) );
-		$this->assertEquals( 'Reduced by 36.8% (1.1 MB)', ewww_image_optimizer_image_results( 3202350, 2023840 ) );
+		$this->assertEquals( 'reduced by 90.0% (90 b)', strtolower( ewww_image_optimizer_image_results( 100, 10 ) ) );
+		$this->assertEquals( 'reduced by 29.8% (29.2 kb)', strtolower( ewww_image_optimizer_image_results( 100235, 70384 ) ) );
+		$this->assertEquals( 'reduced by 36.8% (1.1 mb)', strtolower( ewww_image_optimizer_image_results( 3202350, 2023840 ) ) );
 	}
 
 	/**
