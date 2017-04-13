@@ -2401,7 +2401,8 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 		}
 		switch ( $type ) {
 			case 'image/jpeg':
-				exec( "$nice " . $tool . " -q 82 -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1', $cli_output );
+				$quality = (int) apply_filters( 'jpeg_quality', 82, 'image/webp' );
+				exec( "$nice " . $tool . " -q $quality -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1', $cli_output );
 				break;
 			case 'image/png':
 				exec( "$nice " . $tool . " -lossless -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1', $cli_output );

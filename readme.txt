@@ -214,6 +214,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * added: relative file location support, automatically enabled for Pantheon, use EWWW_IMAGE_OPTIMIZER_RELATIVE and EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER to enable elsewhere
 * added: filename as second parameter to ewww_image_optimizer_resize_dimensions filter
 * added: prevent accidental regeneration of an image resize with the built-in WP_Image_Editor
+* changed: JPG quality setting applies to WebP generation also
 * changed: retina images can be processed in background
 * changed: prevent sleep() and print_r() from running when disabled
 * changed: entire ewwwio_images table no longer loaded into memory when running bulk operation on small batches of images, or when the table is too large
