@@ -1078,7 +1078,7 @@ function ewww_image_optimizer_mimetype( $path, $case ) {
 		ewwwio_memory( __FUNCTION__ );
 		return $type;
 		// Otherwise, if we are dealing with an image.
-	} elseif ( 'i' == $case ) {
+	} elseif ( 'i' === $case ) {
 		ewwwio_memory( __FUNCTION__ );
 		return $type;
 		// If all else fails, bail.
@@ -1540,7 +1540,8 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		ewwwio_debug_message( "couldn't write to the file $file" );
 		return array( false, $msg, $converted, $original );
 	}
-	if ( function_exists( 'fileperms' ) ) {
+	$file_perms = 'unknown';
+	if ( ewww_image_optimizer_function_exists( 'fileperms' ) ) {
 		$file_perms = substr( sprintf( '%o', fileperms( $file ) ), -4 );
 	}
 	$file_owner = 'unknown';
