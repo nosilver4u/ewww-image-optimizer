@@ -1528,7 +1528,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	// Initialize the original filename.
 	$original = $file;
 	$result = '';
-	if ( false === file_exists( $file ) ) {
+	if ( false === is_file( $file ) ) {
 		/* translators: %s: Image filename */
 		$msg = sprintf( __( 'Could not find %s', 'ewww-image-optimizer' ), $file );
 		ewwwio_debug_message( "file doesn't appear to exist: $file" );

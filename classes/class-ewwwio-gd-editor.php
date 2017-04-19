@@ -31,7 +31,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 			if ( ! $filename ) {
 				$filename = $this->generate_filename( null, null, $extension );
 			}
-			if ( is_file( $filename ) ) {
+			if ( ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) || ! EWWWIO_EDITOR_OVERWRITE ) && is_file( $filename ) ) {
 				ewwwio_debug_message( "detected existing file: $filename" );
 				$current_size = getimagesize( $filename );
 				if ( $current_size && $this->size['width'] == $current_size[0] && $this->size['height'] == $current_size[1] ) {
@@ -154,7 +154,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 			if ( ! $filename ) {
 				$filename = $this->generate_filename( null, null, $extension );
 			}
-			if ( is_file( $filename ) ) {
+			if ( ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) || ! EWWWIO_EDITOR_OVERWRITE ) && is_file( $filename ) ) {
 				ewwwio_debug_message( "detected existing file: $filename" );
 				$current_size = getimagesize( $filename );
 				if ( $current_size && $this->size['width'] == $current_size[0] && $this->size['height'] == $current_size[1] ) {
@@ -226,7 +226,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 			if ( ! $filename ) {
 				$filename = $this->generate_filename( null, null, $extension );
 			}
-			if ( is_file( $filename ) ) {
+			if ( ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) || ! EWWWIO_EDITOR_OVERWRITE ) && is_file( $filename ) ) {
 				ewwwio_debug_message( "detected existing file: $filename" );
 				$current_size = getimagesize( $filename );
 				if ( $current_size && $this->size['width'] == $current_size[0] && $this->size['height'] == $current_size[1] ) {
@@ -298,7 +298,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 			if ( ! $filename ) {
 				$filename = $this->generate_filename( null, null, $extension );
 			}
-			if ( is_file( $filename ) ) {
+			if ( ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) || ! EWWWIO_EDITOR_OVERWRITE ) && is_file( $filename ) ) {
 				ewwwio_debug_message( "detected existing file: $filename" );
 				$current_size = getimagesize( $filename );
 				if ( $current_size && $this->size['width'] == $current_size[0] && $this->size['height'] == $current_size[1] ) {

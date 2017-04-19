@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: image, compress, optimize, optimization, lossless, lossy, photo, picture, seo, jpegmini, tinyjpg, tinypng, webp, wp-cli
 Requires at least: 4.4
 Tested up to: 4.7.3
-Stable tag: 3.2.7
+Stable tag: 3.3.0
 License: GPLv3
 
 Reduce image sizes in WordPress including NextGEN, GRAND FlAGallery, FooGallery and more using lossless/lossy methods and image format conversion.
@@ -84,6 +84,10 @@ Uploads are automatically optimized. Look for Optimize under the Image Store (Ga
 = CDN Support =
 
 Uploads to Amazon S3, Azure Storage, Cloudinary, and DreamSpeed CDN are optimized. All pull mode CDNs like Cloudflare, KeyCDN, MaxCDN, and Sucuri CloudProxy are also supported.
+
+= WPML Compatible =
+
+Tested regularly to ensure compatibility with multilingual sites. Learn more at https://wpml.org/plugin/ewww-image-optimizer/
 
 = Translations =
 
@@ -213,7 +217,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * added: optional image backups for API users, restore images from bulk optimize, or media library list view
 * added: relative file location support, automatically enabled for Pantheon, use EWWW_IMAGE_OPTIMIZER_RELATIVE and EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER to enable elsewhere
 * added: filename as second parameter to ewww_image_optimizer_resize_dimensions filter
-* added: prevent accidental regeneration of an image resize with the built-in WP_Image_Editor
+* added: prevent accidental regeneration of an image resize with the built-in WP_Image_Editor, disable by defining EWWWIO_EDITOR_OVERWRITE
 * changed: JPG quality setting applies to WebP generation also
 * changed: retina images can be processed in background
 * changed: prevent sleep() and print_r() from running when disabled

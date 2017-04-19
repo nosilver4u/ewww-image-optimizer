@@ -27,7 +27,6 @@
 // TODO: port bulk changes to NextGEN and FlaGallery.
 // TODO: extend custom WP_Image_Editor class from s3 uploader plugin on github.
 // TODO: make a bulk restore function.
-// TODO: post updates as blog post, and summarize in email.
 // TODO: Add a custom async function for parallel mode to store image as pending and use the row ID instead of relative path.
 // TODO: write some tests for update_table and check_table, find_already_opt, and remove_dups.
 // TODO: build a test for the resize function too.
@@ -35,7 +34,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '327.4' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '330.0' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -1835,6 +1834,7 @@ function ewww_image_optimizer_resize_dup_check() {
 	}
 	$saved = $editor->save( $new_file );
 }
+
 /**
  * Adds various items to the admin menu.
  */
@@ -5944,6 +5944,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
  */
 function ewww_image_optimizer_count_unoptimized_sizes( $sizes ) {
 	if ( ! ewww_image_optimizer_iterable( $sizes ) ) {
+		ewwwio_debug_message( 'unoptimized sizes cannot be counted' );
 	 	return 0;
 	}
 	$sizes_to_opt = 0;
@@ -5975,6 +5976,7 @@ function ewww_image_optimizer_count_unoptimized_sizes( $sizes ) {
 				continue( 2 );
 			}
 		}
+		$sizes_to_opt++;
 		// Store info on the sizes we've processed, so we can check the list for duplicate sizes.
 		$processed[ $size ]['width'] = $data['width'];
 		$processed[ $size ]['height'] = $data['height'];
