@@ -2,7 +2,7 @@
 * added: optional image backups for API users, restore images from bulk optimize, or media library list view
 * added: relative file location support, automatically enabled for Pantheon, use EWWW_IMAGE_OPTIMIZER_RELATIVE and EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER to enable elsewhere
 * added: filename as second parameter to ewww_image_optimizer_resize_dimensions filter
-* added: prevent accidental regeneration of an image resize with the built-in WP_Image_Editor
+* added: prevent accidental regeneration of an image resize with the built-in WP_Image_Editor, disable by defining EWWWIO_EDITOR_OVERWRITE
 * changed: JPG quality setting applies to WebP generation also
 * changed: retina images can be processed in background
 * changed: prevent sleep() and print_r() from running when disabled
