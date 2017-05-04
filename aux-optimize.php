@@ -272,6 +272,9 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	}
 	$file_counter = 0; // Used to track total files overall.
 	$image_count = 0; // Used to track number of files since last queue update.
+	if ( ewww_image_optimizer_stl_check() ) {
+		set_time_limit( 0 );
+	}
 	$enabled_types = array();
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
 		$enabled_types[] = 'image/jpeg';
