@@ -3336,10 +3336,10 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	$payload = '';
 	foreach ( $post_fields as $name => $value ) {
 		$payload .= '--' . $boundary;
-	        $payload .= "\r\n";
-	        $payload .= 'Content-Disposition: form-data; name="' . $name . '"' . "\r\n\r\n";
-	        $payload .= $value;
-	        $payload .= "\r\n";
+		$payload .= "\r\n";
+		$payload .= 'Content-Disposition: form-data; name="' . $name . '"' . "\r\n\r\n";
+		$payload .= $value;
+		$payload .= "\r\n";
 	}
 
 	$payload .= '--' . $boundary;
@@ -3451,10 +3451,10 @@ function ewww_image_optimizer_cloud_autorotate( $file, $type ) {
 	$payload = '';
 	foreach ( $post_fields as $name => $value ) {
 		$payload .= '--' . $boundary;
-	        $payload .= "\r\n";
-	        $payload .= 'Content-Disposition: form-data; name="' . $name . '"' . "\r\n\r\n";
-	        $payload .= $value;
-	        $payload .= "\r\n";
+		$payload .= "\r\n";
+		$payload .= 'Content-Disposition: form-data; name="' . $name . '"' . "\r\n\r\n";
+		$payload .= $value;
+		$payload .= "\r\n";
 	}
 
 	$payload .= '--' . $boundary;
@@ -6059,7 +6059,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 function ewww_image_optimizer_count_unoptimized_sizes( $sizes ) {
 	if ( ! ewww_image_optimizer_iterable( $sizes ) ) {
 		ewwwio_debug_message( 'unoptimized sizes cannot be counted' );
-	 	return 0;
+		return 0;
 	}
 	$sizes_to_opt = 0;
 	$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt' );

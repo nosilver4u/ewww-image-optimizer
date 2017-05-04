@@ -492,12 +492,12 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 		}
 		if ( is_plugin_active( 'buddypress/bp-loader.php' ) || is_plugin_active_for_network( 'buddypress/bp-loader.php' ) ) {
-		        $upload_dir = wp_upload_dir();
+			$upload_dir = wp_upload_dir();
 			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/avatars', $started );
 			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/group-avatars', $started );
 		}
 		if ( is_plugin_active( 'buddypress-activity-plus/bpfb.php' ) || is_plugin_active_for_network( 'buddypress-activity-plus/bpfb.php' ) ) {
-		        $upload_dir = wp_upload_dir();
+			$upload_dir = wp_upload_dir();
 			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/bpfb', $started );
 		}
 		if ( is_plugin_active( 'grand-media/grand-media.php' ) || is_plugin_active_for_network( 'grand-media/grand-media.php' ) ) {

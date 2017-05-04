@@ -244,8 +244,8 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 			while ( $attachments = $wpdb->get_col( "SELECT meta_data FROM $wpdb->nggpictures $attachment_query LIMIT $offset, $max_query" ) ) { // WPCS: unprepared SQL ok.
 				foreach ( $attachments as $attachment ) {
 					if ( class_exists( 'Ngg_Serializable' ) ) {
-				        	$serializer = new Ngg_Serializable();
-				        	$meta = $serializer->unserialize( $attachment );
+						$serializer = new Ngg_Serializable();
+						$meta = $serializer->unserialize( $attachment );
 					} else {
 						$meta = unserialize( $attachment );
 					}
@@ -410,7 +410,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 			}
 		} else {
 			ewwwio_debug_message( "validating requested ids: {$request_ids[0]}" );
-	                // Retrieve post IDs correlating to the IDs submitted to make sure they are all valid.
+			// Retrieve post IDs correlating to the IDs submitted to make sure they are all valid.
 			$attachments = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%') AND ID IN ({$request_ids[0]}) ORDER BY ID DESC" ); // WPCS: unprepared SQL ok.
 		}
 		// Unset the 'bulk resume' option since we were given specific IDs to optimize.

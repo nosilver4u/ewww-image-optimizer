@@ -481,8 +481,8 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			}
 			if ( ! is_array( $attachments ) ) {
 				$output['error'] = esc_html__( 'Error retrieving list of images' );
-	                echo json_encode( $output );
-	                die();
+				echo json_encode( $output );
+				die();
 			}
 			$id = array_shift( $attachments );
 			$file_name = $this->ewww_flag_bulk_filename( $id );
@@ -698,7 +698,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 				case 'image/jpeg':
 					if ( ! EWWW_IMAGE_OPTIMIZER_JPEGTRAN && ! $skip['jpegtran'] ) {
 						/* translators: %s: name of a tool like jpegtran */
-	     	                                $msg = '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>jpegtran</em>' ) . '</div>';
+						$msg = '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>jpegtran</em>' ) . '</div>';
 					}
 					break;
 				case 'image/png':

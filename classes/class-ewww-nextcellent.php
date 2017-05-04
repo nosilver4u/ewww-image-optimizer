@@ -255,7 +255,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 *
 		 *	@type array $fres The optimization results for the full-size image.
 		 *	@type array $tres The optimization results for the thumbnail.
-	 	 * }
+		 * }
 		 */
 		function ewww_ngg_optimize( $id ) {
 			global $ewww_image;
@@ -329,7 +329,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 						// If jpegtran is missing, tell the user.
 						if ( ! EWWW_IMAGE_OPTIMIZER_JPEGTRAN && ! $skip['jpegtran'] ) {
 							/* translators: %s: name of a tool like jpegtran */
-	     	        	                        $msg = '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>jpegtran</em>' ) . '</div>';
+							$msg = '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>jpegtran</em>' ) . '</div>';
 						}
 						break;
 					case 'image/png':
@@ -604,7 +604,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			// Get the list of attachments remaining from the db.
 			$attachments = get_option( 'ewww_image_optimizer_bulk_ngg_attachments' );
 			if ( ! is_array( $attachments ) && ! empty( $attachments ) ) {
-			        $attachments = unserialize( $attachments );
+				$attachments = unserialize( $attachments );
 			}
 			if ( ! is_array( $attachments ) ) {
 				$output['error'] = esc_html__( 'Error retrieving list of images' );

@@ -85,7 +85,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 		 * Resize multiple images from a single source.
 		 *
 		 * @param array $sizes An array of image size arrays. Default sizes are 'small', 'medium', 'medium_large', 'large'.
-	 	 * @return array An array of resized images' metadata by size.
+		 * @return array An array of resized images' metadata by size.
 		 */
 		public function multi_resize( $sizes ) {
 			global $ewww_defer;
