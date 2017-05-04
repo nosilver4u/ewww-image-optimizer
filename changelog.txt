@@ -1,3 +1,10 @@
+= 3.3.1 =
+* added: alt webp supports Jetpack Carousel for image galleries
+* added: hard crop images during resizing using ewww_image_optimizer_crop_image filter
+* changed: plugin status on settings revamped to rely less on javascript
+* fixed: regression with scheduled optimizer scanning causing timeouts
+* fixed: alt webp compatibility with Divi Builder in Visual mode
+
 = 3.3.0 =
 * added: optional image backups for API users, restore images from bulk optimize, or media library list view
 * added: relative file location support, automatically enabled for Pantheon, use EWWW_IMAGE_OPTIMIZER_RELATIVE and EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER to enable elsewhere
