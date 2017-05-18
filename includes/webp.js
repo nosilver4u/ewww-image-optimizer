@@ -6,7 +6,7 @@ jQuery(document).ready(function($) {
 	var cleanup_action = 'webp_cleanup';
 	var init_data = {
 	        action: init_action,
-		_wpnonce: ewww_vars._wpnonce,
+		ewww_wpnonce: ewww_vars.ewww_wpnonce,
 	};
 	$('#webp-start').submit(function() {
 		startMigrate();
@@ -22,7 +22,7 @@ jQuery(document).ready(function($) {
 	function processLoop () {
 	        var loop_data = {
 	                action: loop_action,
-			_wpnonce: ewww_vars._wpnonce,
+			ewww_wpnonce: ewww_vars.ewww_wpnonce,
 	        };
 	        var jqxhr = $.post(ajaxurl, loop_data, function(response) {
 			if (response) {
@@ -32,7 +32,7 @@ jQuery(document).ready(function($) {
 			} else {
 			        var cleanup_data = {
 			                action: cleanup_action,
-					_wpnonce: ewww_vars._wpnonce,
+					ewww_wpnonce: ewww_vars.ewww_wpnonce,
 			        };
 			        $.post(ajaxurl, cleanup_data, function(response) {
 					$('#webp-loading').hide();
@@ -40,7 +40,7 @@ jQuery(document).ready(function($) {
 			        });
 			}
 	        })
-		.fail(function() { 
+		.fail(function() {
 			if (ewww_error_counter == 0) {
 				$('#webp-loading').html('<p style="color: red"><b>Operation Interrupted</b></p>');
 			} else {

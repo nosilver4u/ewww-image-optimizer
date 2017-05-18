@@ -176,6 +176,8 @@ ewwwio_debug_message( "queue $key will be saved to" );
 		 * the process is not already running.
 		 */
 		public function maybe_handle() {
+			session_write_close();
+
 			if ( $this->is_process_running() ) {
 				// Background process already running.
 				wp_die();

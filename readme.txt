@@ -209,9 +209,13 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 
 == Changelog ==
 
-* I no longer have a Mac with which to build new binaries. Until I can raise enough funds, there will be no more updates for the Mac OS X tools, and I may have to temporarily remove Mac support if any security issues arise in the meantime: https://www.gofundme.com/ewww-image-optimizer-mac-dev-laptop
+* Thank you to everyone who donated for a new Macbook! New binaries are coming soon.
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
+
+= 3.3.2 =
+* added: close sessions even earlier in background/async handling to prevent lock-ups
+* fixed: webp migration script sending wrong nonce variable
 
 = 3.3.1 =
 * added: alt webp supports Jetpack Carousel for image galleries

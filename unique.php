@@ -239,7 +239,7 @@ function ewww_image_optimizer_check_permissions( $file, $minimum ) {
 	$perms = fileperms( $file );
 	ewwwio_debug_message( "permissions for $file: " . substr( sprintf( '%o', $perms ), -4 ) );
 	if ( ! is_file( $file ) ) {
-		ewwwio_debug_message( 'permissions insufficient' );
+		ewwwio_debug_message( 'permissions check failed, file not found' );
 		return false;
 	}
 	if ( is_readable( $file ) && is_executable( $file ) ) {
