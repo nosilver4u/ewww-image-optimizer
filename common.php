@@ -31,7 +31,7 @@
 // TODO: build a test for the resize function too.
 // TODO: do a bottom paginator for the show optimized images table.
 // TODO: use wp_http_supports( array( 'ssl' ) ) to detect whether we should use https.
-// TODO: check this patch, to see if the use of 'full' causes any issues: https://core.trac.wordpress.org/ticket/37840
+// TODO: check this patch, to see if the use of 'full' causes any issues: https://core.trac.wordpress.org/ticket/37840 .
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
