@@ -214,6 +214,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 3.3.2 =
+* added: optional usage tracking
 * added: close sessions even earlier in background/async handling to prevent lock-ups
 * fixed: webp migration script sending wrong nonce variable
 

@@ -15,7 +15,7 @@
 	
 	<rule ref="WordPress.NamingConventions.ValidVariableName">
 		<properties>
-			<property name="customPropertiesWhitelist" type="array" value="formatOutput,parentNode,nextSibling,documentElement,imagePath,webimagePath,thumbPath,fileName" />
+			<property name="customPropertiesWhitelist" type="array" value="formatOutput,parentNode,nextSibling,documentElement,imagePath,webimagePath,thumbPath,fileName,Version,Name" />
 		</properties>
 		<properties>
 			<property name="customVariablesWhitelist" type="array" value="formatOutput,parentNode,nextSibling,documentElement" />

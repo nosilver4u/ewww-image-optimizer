@@ -1619,7 +1619,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		$original = $file;
 	}
 	// Get the original image size.
-	$orig_size = filesize( $file );
+	$orig_size = ewww_image_optimizer_filesize( $file );
 	ewwwio_debug_message( "original filesize: $orig_size" );
 	if ( $orig_size < ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_size' ) ) {
 		ewwwio_debug_message( "optimization bypassed due to filesize: $file" );
