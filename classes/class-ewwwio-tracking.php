@@ -137,8 +137,8 @@ class EWWWIO_Tracking {
 		$data['resize_indirect_height'] = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherheight' );
 		$data['resize_existing'] = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' );
 		$data['total_sizes'] = (int) count( ewww_image_optimizer_get_image_sizes() );
-		$data['disabled_opt_sizes'] = is_array( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt' ) ) ? count( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt' ) ) : 0;
-		$data['disabled_create_sizes'] = is_array( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes' ) ) ? count( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes' ) ) : 0;
+		$data['disabled_opt_sizes'] = is_array( get_option( 'ewww_image_optimizer_disable_resizes_opt' ) ) ? count( get_option( 'ewww_image_optimizer_disable_resizes_opt' ) ) : 0;
+		$data['disabled_create_sizes'] = is_array( get_option( 'ewww_image_optimizer_disable_resizes' ) ) ? count( get_option( 'ewww_image_optimizer_disable_resizes' ) ) : 0;
 		$data['skip_small_images'] = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_size' );
 		$data['skip_large_pngs'] = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' );
 		$data['exclude_full_lossy'] = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_lossy_skip_full' );
@@ -177,7 +177,7 @@ class EWWWIO_Tracking {
 
 		// Send a maximum of once per week.
 		$last_send = $this->get_last_send();
-		if ( is_numeric( $last_send ) && $last_send > strtotime( '-1 minute' ) && ! $ignore_last_checkin ) {
+		if ( is_numeric( $last_send ) && $last_send > strtotime( '-1 week' ) && ! $ignore_last_checkin ) {
 			ewwwio_debug_message( 'has not been a week since we last reported' );
 			return false;
 		}
@@ -303,11 +303,13 @@ class EWWWIO_Tracking {
 	 */
 	public function admin_notice() {
 		$hide_notice = ewww_image_optimizer_get_option( 'ewww_image_optimizer_tracking_notice' );
+		if ( is_multisite() && get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) && get_site_option( 'ewww_image_optimizer_tracking_notice' ) ) {
+			$hide_notice = true;
+		}
 
 		if ( $hide_notice ) {
 			return;
 		}
-
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_allow_tracking' ) ) {
 			return;
 		}
@@ -334,7 +336,7 @@ class EWWWIO_Tracking {
 			$optin_url = 'admin.php?action=ewww_opt_into_tracking';
 			$optout_url = 'admin.php?action=ewww_opt_out_of_tracking';
 			echo '<div class="updated"><p>';
-				esc_html_e( 'Allow EWWW Image Optimizer to track plugin usage? Opt-in to tracking to receive free image credits. No sensitive data is tracked.', 'ewww-image-optimizer' );
+				esc_html_e( 'Allow EWWW Image Optimizer to track plugin usage? Opt-in to tracking to receive up to 500 free image credits. No sensitive data is tracked.', 'ewww-image-optimizer' );
 				echo '&nbsp;<a href="http://docs.ewww.io/learn-more-about-tracking">' . esc_html__( 'Learn more.', 'ewww-image-optimizer' ) . '</a>';
 				echo '&nbsp;<a href="' . esc_url( $optin_url ) . '" class="button-secondary">' . esc_html__( 'Allow', 'ewww-image-optimizer' ) . '</a>';
 				echo '&nbsp;<a href="' . esc_url( $optout_url ) . '" class="button-secondary">' . esc_html__( 'Do not allow', 'ewww-image-optimizer' ) . '</a>';

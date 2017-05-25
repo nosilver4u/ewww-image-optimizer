@@ -658,7 +658,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		ewww_image_optimizer_aux_images_script();
 	}
 
-	$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt' );
+	$disabled_sizes = get_option( 'ewww_image_optimizer_disable_resizes_opt' );
 
 	$enabled_types = array();
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {

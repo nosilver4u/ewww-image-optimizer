@@ -28,7 +28,10 @@ jQuery(document).ready(function($) {
 		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').show();
 		$('li.ewww-general-nav').addClass('ewww-selected');
-		$('#ewww-optimization-settings').hide();
+		if($('#ewww_image_optimizer_cloud_key').length){
+			$('#ewww-optimization-settings').hide();
+			console.log($('#ewww-general-settings').length);
+		}
 		$('#ewww-conversion-settings').hide();
 		$('.ewww-webp-nav').click(function() {
 			$('.ewww-tab-nav li').removeClass('ewww-selected');
@@ -186,7 +189,7 @@ jQuery(document).ready(function($) {
 				$('#ewww-scanning').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
 				console.log( response );
 				return false;
-			}	
+			}
 			ewww_init_data = {
 			        action: ewww_init_action,
 				ewww_wpnonce: ewww_vars._wpnonce,
@@ -224,7 +227,7 @@ jQuery(document).ready(function($) {
 				}
 			}
 	        })
-		.fail(function() { 
+		.fail(function() {
 			ewww_scan_failures++;
 			if (ewww_scan_failures > 10) {
 				$('#ewww-scanning').html('<span style="color: red"><b>' + ewww_vars.scan_fail + '</b></span>');
@@ -386,7 +389,7 @@ jQuery(document).ready(function($) {
 				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.invalid_response + '</b></p>');
 				console.log( response );
 				return false;
-			}	
+			}
 			if ( ewww_init_response.error ) {
 				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_init_response.error + '</b></p>');
 				if ( ewww_init_response.data ) {
@@ -424,7 +427,7 @@ jQuery(document).ready(function($) {
 				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.invalid_response + '</b></p>');
 				console.log( response );
 				return false;
-			}	
+			}
 			ewww_i += ewww_response.completed;
 			$('#ewww-bulk-progressbar').progressbar( "option", "value", ewww_i );
 			$('#ewww-bulk-counter').html(ewww_vars.optimized + ' ' + ewww_i + '/' + ewww_attachments);
@@ -487,7 +490,7 @@ jQuery(document).ready(function($) {
 			        });
 			}
 	        })
-		.fail(function() { 
+		.fail(function() {
 			if (ewww_error_counter == 0) {
 				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.operation_interrupted + '</b></p>');
 			} else {
@@ -593,7 +596,7 @@ function ewwwRestoreImage(imageID) {
 			alert( ewww_vars.invalid_response );
 			console.log( response );
 			return false;
-		}	
+		}
 		if ( ewww_response.success == '1') {
 //			jQuery('#ewww-image-' + imageID + ' td:last-child .restoreimage').remove();
 //			jQuery('#ewww-image-' + imageID + ' td:last-child .restoring').remove();

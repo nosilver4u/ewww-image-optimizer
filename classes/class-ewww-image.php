@@ -272,7 +272,7 @@ class EWWW_Image {
 
 		/* ewwwio_debug_message( 'next up for conversion search: meta' ); */
 		if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
-			$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt' );
+			$disabled_sizes = get_option( 'ewww_image_optimizer_disable_resizes_opt' );
 			foreach ( $meta['sizes'] as $size => $data ) {
 				/* ewwwio_debug_message( "checking to see if we should convert $size" ); */
 				if ( strpos( $size, 'webp' ) === 0 ) {

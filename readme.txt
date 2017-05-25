@@ -216,6 +216,8 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 = 3.3.2 =
 * added: optional usage tracking
 * added: close sessions even earlier in background/async handling to prevent lock-ups
+* added: multisite option to network activate and allow individual site configuration
+* changed: disabling resizes must be done on individual sites even when network activated
 * fixed: webp migration script sending wrong nonce variable
 
 = 3.3.1 =
@@ -255,6 +257,9 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * fixed: edited images show active and backup compression results in media library
 
 == Upgrade Notice ==
+
+= 3.4.0 =
+* Multisite change: disabling resizes must be done on individual sites even when network activated, as those settings are heavily theme-specific.
 
 = 3.3.0 =
 * Requires PHP 5.3+. All sites hosted on Pantheon will now use "relative" paths. Existing Pantheon sites will need to update the ewwwio_images table to match (contact support for help), or disable this function by setting EWWW_IMAGE_OPTIMIZER_RELATIVE to false in wp-config.php.
