@@ -2765,7 +2765,7 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 	}
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
 	$domain = parse_url( get_site_url(), PHP_URL_HOST );
-	$url = "$ewww_cloud_transport://optimize1.exactlywww.com/backup/restore.php";
+	$url = "$ewww_cloud_transport://optimize.exactlywww.com/backup/restore.php";
 	$result = wp_remote_post( $url, array(
 		'timeout' => 30,
 		'sslverify' => false,
@@ -3067,7 +3067,7 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 	}
 	if ( empty( $verified ) ) {
 		$ewww_cloud_transport = 'https';
-		$servers = gethostbynamel( 'optimize1.exactlywww.com' );
+		$servers = gethostbynamel( 'optimize.exactlywww.com' );
 		if ( empty( $servers ) ) {
 			ewwwio_debug_message( 'unable to resolve servers' );
 			return false;
@@ -3153,7 +3153,7 @@ function ewww_image_optimizer_cloud_quota() {
 		$ewww_cloud_transport = 'https';
 	}
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
-	$url = "$ewww_cloud_transport://optimize1.exactlywww.com/quota/";
+	$url = "$ewww_cloud_transport://optimize.exactlywww.com/quota/";
 	$result = wp_remote_post( $url, array(
 		'timeout' => 5,
 		'sslverify' => false,
