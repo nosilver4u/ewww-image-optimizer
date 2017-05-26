@@ -3,7 +3,7 @@ Contributors: nosilver4u
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW
 Tags: image, compress, optimize, optimization, lossless, lossy, photo, picture, seo, jpegmini, tinyjpg, tinypng, webp, wp-cli
 Requires at least: 4.4
-Tested up to: 4.7.4
+Tested up to: 4.8
 Stable tag: 3.3.1
 License: GPLv3
 
@@ -213,12 +213,17 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
-= 3.3.2 =
+= 3.4.0 =
 * added: optional usage tracking
 * added: close sessions even earlier in background/async handling to prevent lock-ups
 * added: multisite option to network activate and allow individual site configuration
 * changed: disabling resizes must be done on individual sites even when network activated
+* changed: PNG files with empty alpha channels can be converted to JPG with setting a background/fill color
 * fixed: webp migration script sending wrong nonce variable
+* updated: bundled cwebp to version 0.6.0
+* updated: bundled pngquant to verision 2.9.1 (2.8.1 for Windows)
+* deprecated: cwebp will not be updated for Mac OS X 10.9 past 0.5.1
+* obsoleted: FreeBSD 9 and CentOS 5 are "End of Life" and will no longer be tested
 
 = 3.3.1 =
 * added: alt webp supports Jetpack Carousel for image galleries

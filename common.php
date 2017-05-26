@@ -19,8 +19,6 @@
 // TODO: might be able to use the Custom Bulk Actions in 4.7 to support the bulk optimize drop-down menu.
 // TODO: see if there is a way to query the last couple months (or 30 days) worth of attachments, but only when the user is not using year/month folders. This way, they can catch extraneous images if possible. Use the post_date field, and do a media_scan followed by the folder scan to catch remaining images.
 // TODO: move resizing options into their own sub-menu.
-// TODO: add an override for network admins to allow site admins to configure their own sites.
-// TODO: even without the override, the size (disabling) settings need to be exposed per-site.
 // TODO: need to make the scheduler so it can resume without having to re-run the queue population, and then we can probably also flush the queue when scheduled opt starts, but later it would be nice to implement the bulk_loop as the aux_loop so that it could handle media properly.
 // TODO: implement a search for the bulk table, or maybe we should just move it to it's own page?
 // TODO: port bulk changes to NextGEN and FlaGallery.
@@ -28,7 +26,6 @@
 // TODO: make a bulk restore function.
 // TODO: Add a custom async function for parallel mode to store image as pending and use the row ID instead of relative path.
 // TODO: write some tests for update_table and check_table, find_already_opt, and remove_dups.
-// TODO: build a test for the resize function too.
 // TODO: do a bottom paginator for the show optimized images table.
 // TODO: use wp_http_supports( array( 'ssl' ) ) to detect whether we should use https.
 // TODO: check this patch, to see if the use of 'full' causes any issues: https://core.trac.wordpress.org/ticket/37840 .
@@ -983,7 +980,7 @@ function ewww_image_optimizer_admin_init() {
 	}
 	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
 		// Set the common network settings if they have been POSTed.
-		if ( isset( $_POST['ewww_image_optimizer_delay'] ) && current_user_can( 'manage_network_options' ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'ewww_image_optimizer_options-options' ) ) {
+		if ( isset( $_POST['ewww_image_optimizer_delay'] ) && current_user_can( 'manage_network_options' ) && ! get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'ewww_image_optimizer_options-options' ) ) {
 			if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
 				ewwwio_debug_message( print_r( $_POST, true ) );
 			}
@@ -1074,6 +1071,21 @@ function ewww_image_optimizer_admin_init() {
 			add_action( 'network_admin_notices', 'ewww_image_optimizer_network_settings_saved' );
 		} // End if().
 	} // End if().
+	if ( is_multisite() && get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) &&
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) &&
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) &&
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) &&
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' )
+	) {
+		ewww_image_optimizer_set_defaults();
+		update_option( 'ewww_image_optimizer_disable_pngout', true );
+		update_option( 'ewww_image_optimizer_optipng_level', 2 );
+		update_option( 'ewww_image_optimizer_pngout_level', 2 );
+		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_option( 'ewww_image_optimizer_jpg_level', '10' );
+		update_option( 'ewww_image_optimizer_png_level', '10' );
+		update_option( 'ewww_image_optimizer_gif_level', '10' );
+	}
 	// Register all the common EWWW IO settings.
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_debug', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_jpegtran_copy', 'boolval' );
@@ -2753,7 +2765,7 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 	}
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
 	$domain = parse_url( get_site_url(), PHP_URL_HOST );
-	$url = "$ewww_cloud_transport://optimize.exactlywww.com/backup/restore.php";
+	$url = "$ewww_cloud_transport://optimize1.exactlywww.com/backup/restore.php";
 	$result = wp_remote_post( $url, array(
 		'timeout' => 30,
 		'sslverify' => false,
@@ -3055,7 +3067,7 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 	}
 	if ( empty( $verified ) ) {
 		$ewww_cloud_transport = 'https';
-		$servers = gethostbynamel( 'optimize.exactlywww.com' );
+		$servers = gethostbynamel( 'optimize1.exactlywww.com' );
 		if ( empty( $servers ) ) {
 			ewwwio_debug_message( 'unable to resolve servers' );
 			return false;
@@ -3141,7 +3153,7 @@ function ewww_image_optimizer_cloud_quota() {
 		$ewww_cloud_transport = 'https';
 	}
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
-	$url = "$ewww_cloud_transport://optimize.exactlywww.com/quota/";
+	$url = "$ewww_cloud_transport://optimize1.exactlywww.com/quota/";
 	$result = wp_remote_post( $url, array(
 		'timeout' => 5,
 		'sslverify' => false,
@@ -3196,14 +3208,8 @@ function ewww_image_optimizer_cloud_quota() {
  * @param string $newfile Optional. Filename to be used if image is converted. Default null.
  * @param string $newtype Optional. Mimetype expected if image is converted. Default null.
  * @param bool   $fullsize Optional. True if this is an original upload. Default false.
- * @param array  $jpg_params {
- *	Optional. Parameters for PNG to JPG conversion.
- *
- *	@type string $r Red. Default '255'. Accepts 1-255.
- *	@type string $g Green. Default '255'. Accepts 1-255.
- *	@type string $b Blue. Default '255'. Accepts 1-255.
- *	@type int $quality JPG quality level. Default null. Accepts 1-100.
- * }
+ * @param array  $jpg_fill Optional. Fill color for PNG to JPG conversion in hex format.
+ * @param int    $jpg_quality Optional. JPG quality level. Default null. Accepts 1-100.
  * @return array {
  *	Information about the cloud optimization.
  *
@@ -3213,16 +3219,8 @@ function ewww_image_optimizer_cloud_quota() {
  *	@type int File size of the (new) image.
  * }
  */
-function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $newfile = null, $newtype = null, $fullsize = false, $jpg_params = '' ) {
+function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $newfile = null, $newtype = null, $fullsize = false, $jpg_fill = '', $jpg_quality = 82 ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( empty( $jpg_params ) ) {
-		$jpg_params = array(
-			'r' => 255,
-			'g' => 255,
-			'b' => 255,
-			'quality' => null,
-		);
-	}
 	$ewww_cloud_ip = get_transient( 'ewww_image_optimizer_cloud_ip' );
 	$ewww_cloud_transport = get_transient( 'ewww_image_optimizer_cloud_transport' );
 	$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
@@ -3277,7 +3275,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	}
 	if ( 'image/webp' == $newtype ) {
 		$webp = 1;
-		$jpg_params['quality'] = apply_filters( 'jpeg_quality', 82, 'image/webp' );
+		$jpg_quality = apply_filters( 'jpeg_quality', $jpg_quality, 'image/webp' );
 	} else {
 		$webp = 0;
 	}
@@ -3318,11 +3316,10 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	ewwwio_debug_message( "newfile: $newfile" );
 	ewwwio_debug_message( "newtype: $newtype" );
 	ewwwio_debug_message( "webp: $webp" );
-	if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
-		ewwwio_debug_message( 'jpg_params: ' . print_r( $jpg_params, true ) );
-	}
+	ewwwio_debug_message( "jpg fill: $jpg_fill" );
+	ewwwio_debug_message( "jpg quality: $jpg_quality" );
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
-	$url = "$ewww_cloud_transport://$ewww_cloud_ip/";
+	$url = "$ewww_cloud_transport://$ewww_cloud_ip/v2/";
 	$boundary = wp_generate_password( 24, false );
 
 	$headers = array(
@@ -3336,10 +3333,8 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		'convert' => $convert,
 		'metadata' => $metadata,
 		'api_key' => $api_key,
-		'red' => $jpg_params['r'],
-		'green' => $jpg_params['g'],
-		'blue' => $jpg_params['b'],
-		'quality' => $jpg_params['quality'],
+		'jpg_fill' => $jpg_fill,
+		'quality' => $jpg_quality,
 		'compress' => $png_compress,
 		'lossy' => $lossy,
 		'lossy_fast' => $lossy_fast,
