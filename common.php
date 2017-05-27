@@ -26,6 +26,7 @@
 // TODO: make a bulk restore function.
 // TODO: Add a custom async function for parallel mode to store image as pending and use the row ID instead of relative path.
 // TODO: write some tests for update_table and check_table, find_already_opt, and remove_dups.
+// TODO: write some conversion tests.
 // TODO: do a bottom paginator for the show optimized images table.
 // TODO: use wp_http_supports( array( 'ssl' ) ) to detect whether we should use https.
 // TODO: check this patch, to see if the use of 'full' causes any issues: https://core.trac.wordpress.org/ticket/37840 .
