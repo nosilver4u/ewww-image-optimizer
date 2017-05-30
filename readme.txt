@@ -220,6 +220,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * changed: disabling resizes must be done on individual sites even when network activated
 * changed: PNG files with empty alpha channels can be converted to JPG with setting a background/fill color
 * fixed: webp migration script sending wrong nonce variable
+* fixed: wp-cli help text was not being parsed properly
 * updated: bundled cwebp to version 0.6.0
 * updated: bundled pngquant to verision 2.9.1 (2.8.1 for Windows)
 * deprecated: cwebp will not be updated for Mac OS X 10.9 past 0.5.1

@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class EWWWIO_CLI extends WP_CLI_Command {
 	/**
-	 * Bulk Optimize Images
+	 * Optimizes images from the selected 'gallery'.
 	 *
 	 * ## OPTIONS
 	 *
@@ -43,10 +43,6 @@ class EWWWIO_CLI extends WP_CLI_Command {
 	 *     wp-cli ewwwio optimize media 5 --force --reset --noprompt
 	 *
 	 * @synopsis <library> [<delay>] [--force] [--reset] [--noprompt]
-	 */
-
-	/**
-	 * Optimizes images from the selected 'gallery'.
 	 *
 	 * @global bool $ewww_defer Gets set to false to make sure optimization happens inline.
 	 * @global object $ngg
