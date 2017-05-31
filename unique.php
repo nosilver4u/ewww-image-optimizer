@@ -1884,21 +1884,23 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			if ( ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' ) || ! empty( $_REQUEST['ewww_convert'] ) )
 				&& 1 == $gallery_type && ! $skip_lossy ) {
 				ewwwio_debug_message( 'PNG to JPG conversion turned on' );
+				$cloud_background = '';
+				$r = '';
+				$g = '';
+				$b = '';
 				// If the user set a fill background for transparency.
 				$background = ewww_image_optimizer_jpg_background();
-				$cloud_background = "#$background";
 				if ( $background ) {
+					$cloud_background = "#$background";
 					// Set background color for GD.
 					$r = hexdec( '0x' . strtoupper( substr( $background, 0, 2 ) ) );
 					$g = hexdec( '0x' . strtoupper( substr( $background, 2, 2 ) ) );
 					$b = hexdec( '0x' . strtoupper( substr( $background, 4, 2 ) ) );
 					// Set the background flag for 'convert'.
 					$background = '-background ' . '"' . "#$background" . '"';
-				} else {
-					$r = '';
-					$g = '';
-					$b = '';
 				}
+				$cquality = '';
+				$gquality = '92';
 				// If the user manually set the JPG quality.
 				$quality = ewww_image_optimizer_jpg_quality();
 				if ( $quality ) {
@@ -1906,9 +1908,6 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					$gquality = $quality;
 					// Set the quality flag for 'convert'.
 					$cquality = "-quality $quality";
-				} else {
-					$cquality = '';
-					$gquality = '92';
 				}
 				// If this is a resize version.
 				if ( $converted ) {

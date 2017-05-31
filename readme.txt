@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: image, compress, optimize, optimization, lossless, lossy, photo, picture, seo, jpegmini, tinyjpg, tinypng, webp, wp-cli
 Requires at least: 4.4
 Tested up to: 4.8
-Stable tag: 3.3.1
+Stable tag: 3.4.0
 License: GPLv3
 
 Reduce image sizes in WordPress including NextGEN, GRAND FlAGallery, FooGallery and more using lossless/lossy methods and image format conversion.
@@ -132,7 +132,7 @@ Webhosts where things work (mostly) out of the box:
 * [Liquid Web](https://www.liquidweb.com)
 * [Namecheap](https://www.namecheap.com)
 * [OVH](https://www.ovh.co.uk)
-* [Site5] (https://www.site5.com) (tools must be built manually, or contact Site5 support for assistance)
+* [Site5](https://www.site5.com) (tools must be built manually, or contact Site5 support for assistance)
 * [SiteGround](https://www.siteground.com)
 * [Spry Servers](https://www.spryservers.net) (even with PHP 7)
 * [WebFaction](https://www.webfaction.com)
