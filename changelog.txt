@@ -1,3 +1,16 @@
+= 3.4.0 =
+* added: optional usage tracking
+* added: close sessions even earlier in background/async handling to prevent lock-ups
+* added: multisite option to network activate and allow individual site configuration
+* changed: disabling resizes must be done on individual sites even when network activated
+* changed: PNG files with empty alpha channels can be converted to JPG without setting a background/fill color
+* fixed: webp migration script sending wrong nonce variable
+* fixed: wp-cli help text was not being parsed properly
+* updated: bundled cwebp to version 0.6.0
+* updated: bundled pngquant to verision 2.9.1 (2.8.1 for Windows)
+* deprecated: cwebp will not be updated for Mac OS X 10.9 past 0.5.1
+* obsoleted: FreeBSD 9 and CentOS 5 are "End of Life" and will no longer be tested
+
 = 3.3.1 =
 * added: alt webp supports Jetpack Carousel for image galleries
 * added: hard crop images during resizing using ewww_image_optimizer_crop_image filter
