@@ -119,6 +119,7 @@ Webhosts where things work (mostly) out of the box:
 * [aghosted](https://aghosted.com/)
 * [Arvixe](http://www.arvixe.com)
 * [Bluehost](https://www.bluehost.com)
+* [CiviHosting](https://civihosting.com/)
 * [DigitalBerg](https://www.digitalberg.com)
 * [Dreamhost](https://www.dreamhost.com)
 * [GoDaddy](https://www.godaddy.com) (only with PHP 5.3+)
@@ -212,6 +213,13 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * Thank you to everyone who donated for a new Macbook! New binaries are coming soon.
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
+
+= 3.4.1 =
+* changed: API keys are partially revealed, for easier verification
+* changed: API key no longer uses password field to avoid problems with auto-fill
+* changed: API key activation raises JPG and PNG to lossy and enables backups
+* fixed: single-site settings override not saving in certain cases on multisite
+* fixed: AMP pages are broken when Alt WebP is enabled with old versions of libxml (less than 2.8.0)
 
 = 3.4.0 =
 * added: optional usage tracking
