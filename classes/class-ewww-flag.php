@@ -98,12 +98,11 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 				return;
 			}
 			?>
-			<div class="wrap"><h1>GRAND FlAGallery <?php esc_html_e( 'Bulk Optimize', 'ewww-image-optimizer' );
+			<div class="wrap"><h1>GRAND FlAGallery <?php esc_html_e( 'Bulk Optimize', 'ewww-image-optimizer' ); ?></h1><?php
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 				ewww_image_optimizer_cloud_verify();
 				echo '<a id="ewww-bulk-credits-available" target="_blank" class="page-title-action" style="float:right;" href="https://ewww.io/my-account/">' . esc_html__( 'Image credits available:', 'ewww-image-optimizer' ) . ' ' . ewww_image_optimizer_cloud_quota() . '</a>';
 			}
-			echo '</h1>';
 			// Retrieve the value of the 'bulk resume' option and set the button text for the form to use.
 			$resume = get_option( 'ewww_image_optimizer_bulk_flag_resume' );
 			if ( empty( $resume ) ) {
