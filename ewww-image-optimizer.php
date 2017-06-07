@@ -14,7 +14,7 @@ Plugin URI: https://wordpress.org/plugins/ewww-image-optimizer/
 Description: Reduce file sizes for images within WordPress including NextGEN Gallery and GRAND FlAGallery. Uses jpegtran, optipng/pngout, and gifsicle.
 Author: Shane Bishop
 Text Domain: ewww-image-optimizer
-Version: 3.4.0
+Version: 3.4.1
 Author URI: https://ewww.io/
 License: GPLv3
 */

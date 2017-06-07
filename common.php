@@ -32,12 +32,11 @@
 // TODO: check this patch, to see if the use of 'full' causes any issues: https://core.trac.wordpress.org/ticket/37840 .
 // TODO: see if it is possible to do more "loose" matching on the .htaccess web rules.
 // TODO: show a background optimization indicator in the plugin status.
-// TODO: see if we can stall the S3 plugin until after we process an image when background mode is enabled.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '340.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '341.0' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -88,9 +87,6 @@ if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
 add_filter( 'ewww_image_optimizer_bypass', 'ewww_image_optimizer_ignore_self', 10, 2 );
 // This filter turns off ewwwio_image_editor during save from the actual image editor and ensures that we parse the resizes list during the image editor save function.
 add_filter( 'load_image_to_edit_path', 'ewww_image_optimizer_editor_save_pre' );
-// This hook is used to ensure we populate the metadata with webp images.
-// TODO: this should be pulled, but make sure webp images are still deleted when deleting an attachment.
-add_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment_metadata', 8, 2 );
 // Adds a column to the media library list view to display optimization results.
 add_filter( 'manage_media_columns', 'ewww_image_optimizer_columns' );
 // Outputs the actual column information for each attachment.
@@ -183,6 +179,9 @@ if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ) {
 	if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
 		// Load the non-minified, non-inline version of the webp rewrite script.
 		add_action( 'wp_enqueue_scripts', 'ewww_image_optimizer_webp_debug_script' );
+	} elseif ( defined( 'EWWW_IMAGE_OPTIMIZER_WEBP_EXTERNAL_SCRIPT' ) && EWWW_IMAGE_OPTIMIZER_WEBP_EXTERNAL_SCRIPT ) {
+		// Load the minified, non-inline version of the webp rewrite script.
+		add_action( 'wp_enqueue_scripts', 'ewww_image_optimizer_webp_min_script' );
 	} else {
 		// Loads jQuery and the minified inline webp rewrite script.
 		add_action( 'wp_enqueue_scripts', 'ewww_image_optimizer_webp_load_jquery' );
@@ -2245,6 +2244,15 @@ function ewww_image_optimizer_webp_debug_script() {
 }
 
 /**
+ * Load minified webp script when EWWW_IMAGE_OPTIMIZER_WEBP_EXTERNAL_SCRIPT is set.
+ */
+function ewww_image_optimizer_webp_min_script() {
+	if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
+		wp_enqueue_script( 'ewww-webp-load-script', plugins_url( '/includes/load_webp.min.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+	}
+}
+
+/**
  * Enqueue script dependency for alt webp rewriting when running inline.
  */
 function ewww_image_optimizer_webp_load_jquery() {
@@ -4034,60 +4042,6 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 }
 
 /**
- * Processes metadata and looks for any webp version to insert in the meta.
- *
- * @deprecated 3.2.0 We should not use the meta anymore, no replacement.
- *
- * @param array $meta The attachment metadata.
- * @param int   $id The ID number of the attachment.
- * @return array The attachment metadata.
- */
-function ewww_image_optimizer_update_attachment_metadata( $meta, $id ) {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	ewwwio_debug_message( "attachment id: $id" );
-	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
-	// Don't do anything else if the attachment path can't be retrieved.
-	if ( ! is_file( $file_path ) ) {
-		ewwwio_debug_message( 'could not retrieve path' );
-		return $meta;
-	}
-	ewwwio_debug_message( "retrieved file path: $file_path" );
-	if ( is_file( $file_path . '.webp' ) ) {
-		$meta['sizes']['webp-full'] = array(
-			'file' => pathinfo( $file_path, PATHINFO_BASENAME ) . '.webp',
-			'width' => 0,
-			'height' => 0,
-			'mime-type' => 'image/webp',
-		);
-	}
-	// Resized versions, so we can continue.
-	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
-		ewwwio_debug_message( 'processing resizes for webp updates' );
-		// Meta sizes don't contain a path, so we use the foldername from the original to generate one.
-		$base_dir = trailingslashit( dirname( $file_path ) );
-		$processed = array();
-		foreach ( $meta['sizes'] as $size => $data ) {
-			if ( empty( $data['file'] ) ) {
-				continue;
-			}
-			$resize_path = $base_dir . $data['file'];
-			// Update the webp paths.
-			if ( is_file( $resize_path . '.webp' ) ) {
-				$meta['sizes'][ 'webp-' . $size ] = array(
-					'file' => $data['file'] . '.webp',
-					'width' => 0,
-					'height' => 0,
-					'mime-type' => 'image/webp',
-				);
-			}
-		}
-	}
-	ewwwio_memory( __FUNCTION__ );
-	// Send back the updated metadata.
-	return $meta;
-}
-
-/**
  * Looks for a retina version of the original file so that we can optimize that too.
  *
  * @global object $ewww_image Contains more information about the image currently being processed.
@@ -4988,6 +4942,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 	}
 	if ( ewww_image_optimizer_test_background_opt( $type ) ) {
 		add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
+		add_filter( 'as3cf_pre_update_attachment_metadata', '__return_true' );
 		global $ewwwio_media_background;
 		if ( ! class_exists( 'WP_Background_Process' ) ) {
 			require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
@@ -5306,9 +5261,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		} // End while().
 	} // End if().
 	unset( $meta['processing'] );
-	if ( ! empty( $new_image ) ) {
-		$meta = ewww_image_optimizer_update_attachment_metadata( $meta, $id );
-	}
+
 	global $ewww_attachment;
 	$ewww_attachment['id'] = $id;
 	$ewww_attachment['meta'] = $meta;
@@ -5322,11 +5275,11 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 	if ( $fullsize_opt_size && $fullsize_opt_size < $fullsize_size && class_exists( 'Amazon_S3_And_CloudFront' ) ) {
 		global $as3cf;
 		if ( method_exists( $as3cf, 'wp_update_attachment_metadata' ) ) {
-			$as3cf->wp_update_attachment_metadata( $meta, $id );
+			ewwwio_debug_message( 'deferring to normal S3 hook' );
 		} elseif ( method_exists( $as3cf, 'wp_generate_attachment_metadata' ) ) {
 			$as3cf->wp_generate_attachment_metadata( $meta, $id );
+			ewwwio_debug_message( 'uploading to Amazon S3' );
 		}
-		ewwwio_debug_message( 'uploading to Amazon S3' );
 	}
 	if ( $fullsize_opt_size && $fullsize_opt_size < $fullsize_size && class_exists( 'DreamSpeed_Services' ) ) {
 		global $dreamspeed;

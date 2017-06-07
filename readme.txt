@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: image, compress, optimize, optimization, lossless, lossy, photo, picture, seo, jpegmini, tinyjpg, tinypng, webp, wp-cli
 Requires at least: 4.4
 Tested up to: 4.8
-Stable tag: 3.4.0
+Stable tag: 3.4.1
 License: GPLv3
 
 Reduce image sizes in WordPress including NextGEN, GRAND FlAGallery, FooGallery and more using lossless/lossy methods and image format conversion.
@@ -132,6 +132,7 @@ Webhosts where things work (mostly) out of the box:
 * [inmotion](http://www.inmotionhosting.com)
 * [Liquid Web](https://www.liquidweb.com)
 * [Namecheap](https://www.namecheap.com)
+* [The Open Host](https://theopenhost.com)
 * [OVH](https://www.ovh.co.uk)
 * [Site5](https://www.site5.com) (tools must be built manually, or contact Site5 support for assistance)
 * [SiteGround](https://www.siteground.com)
@@ -210,16 +211,20 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 
 == Changelog ==
 
-* Thank you to everyone who donated for a new Macbook! New binaries are coming soon.
+* Thank you to everyone who donated for a new Macbook, new binaries are here!
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 3.4.1 =
+* added: move the Alt WebP script to an external resource by defining EWWW_IMAGE_OPTIMIZER_WEBP_EXTERNAL_SCRIPT
 * changed: API keys are partially revealed, for easier verification
 * changed: API key no longer uses password field to avoid problems with auto-fill
 * changed: API key activation raises JPG and PNG to lossy and enables backups
+* fixed: bulk delay setting not carried over to bulk optimizer
+* fixed: WP Offload S3 uploads images prior to background optimization, resulting in a second upload afterwards
 * fixed: single-site settings override not saving in certain cases on multisite
 * fixed: AMP pages are broken when Alt WebP is enabled with old versions of libxml (less than 2.8.0)
+* removed: unnecessary call to WP Offload S3 update function after optimization
 
 = 3.4.0 =
 * added: optional usage tracking
@@ -234,41 +239,8 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * deprecated: cwebp will not be updated for Mac OS X 10.9 past 0.5.1
 * obsoleted: FreeBSD 9 and CentOS 5 are "End of Life" and will no longer be tested
 
-= 3.3.1 =
-* added: alt webp supports Jetpack Carousel for image galleries
-* added: hard crop images during resizing using ewww_image_optimizer_crop_image filter
-* changed: plugin status on settings revamped to rely less on javascript
-* fixed: regression with scheduled optimizer scanning causing timeouts
-* fixed: alt webp compatibility with Divi Builder in Visual mode
-
-= 3.3.0 =
-* added: optional image backups for API users, restore images from bulk optimize, or media library list view
-* added: relative file location support, automatically enabled for Pantheon, use EWWW_IMAGE_OPTIMIZER_RELATIVE and EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER to enable elsewhere
-* added: filename as second parameter to ewww_image_optimizer_resize_dimensions filter
-* added: prevent accidental regeneration of an image resize with the built-in WP_Image_Editor, disable by defining EWWWIO_EDITOR_OVERWRITE
-* changed: JPG quality setting applies to WebP generation also
-* changed: retina images can be processed in background
-* changed: prevent sleep() and print_r() from running when disabled
-* changed: entire ewwwio_images table no longer loaded into memory when running bulk operation on small batches of images, or when the table is too large
-* changed: when resize optimization is disabled, Include Media Folders is disabled to prevent optimization of disabled sizes
-* changed: Swedish translation moved to wp.org
-* changed: permissions check uses is_readable() and is_executable() instead of requiring 755 permissions
-* changed: requires at least PHP 5.3
-* fixed: WP_Image_Editor integration was not disabled when using Regenerate Thumbs plugin, resulting in disabled resizes being ignored, and optimization not being backgrounded properly
-* fixed: Media Library Plus actions triggered optimization too early, preventing background optimization.
-* fixed: settings page would not load on very large multisite installs (1,000+ blogs) because of too many queries for total savings achieved
-* fixed: background optimization not working properly on multisite installs
-* fixed: imported attachments queued multiple times when plugins like Facebook Events Importer use media_sideload_image()
-* fixed: notice when clearing queues
-* fixed: when a background process is running, queues repopulate even after clearing all items
-* fixed: WP-CLI not dropping to low memory mode in constrained environments, causing incomplete scans
-* fixed: nextgen not showing optimization stats
-* fixed: proper i18n for strings that could contain singular and plural numbers
-* fixed: bulk scanner could skip images that need optimization when in 'low memory' mode
-* fixed: all JPG images down-sampled when only one of max height or max width is set
-* fixed: permissions error on tool folder cause media grid to appear empty
-* fixed: fatal error when both EWWW I.O. plugins are activated
-* fixed: edited images show active and backup compression results in media library
+= Earlier versions =
+Please refer to the separate changelog.txt file.
 
 == Upgrade Notice ==
 
