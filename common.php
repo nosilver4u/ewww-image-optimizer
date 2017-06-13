@@ -4417,6 +4417,9 @@ function ewww_image_optimizer_resize_upload( $file ) {
 	list( $oldwidth, $oldheight ) = getimagesize( $file );
 	if ( $oldwidth <= $maxwidth && $oldheight <= $maxheight ) {
 		ewwwio_debug_message( 'image too small for resizing' );
+		if ( $oldwidth && $oldheight ) {
+			return array( $oldwidth, $oldheight );
+		}
 		return false;
 	}
 	$crop = false;
