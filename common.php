@@ -33,6 +33,7 @@
 // TODO: see if it is possible to do more "loose" matching on the .htaccess web rules.
 // TODO: show a background optimization indicator in the plugin status.
 // TODO: perhaps have an optional footer thingy that says how many images have been optimized.
+// TODO: integrate AGR, since it's "abandoned", but possibly using gifsicle for better GIFs.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -4331,6 +4332,7 @@ function ewww_image_optimizer_update_table_as3cf( $local_path, $s3_path ) {
  * @param string $file The file to check for rotation.
  */
 function ewww_image_optimizer_autorotate( $file ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( defined( 'EWWW_IMAGE_OPTIMIZER_NO_ROTATE' ) && EWWW_IMAGE_OPTIMIZER_NO_ROTATE ) {
 		return;
 	}
@@ -4344,8 +4346,12 @@ function ewww_image_optimizer_autorotate( $file ) {
 		return;
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) < 20 ) {
-		// Use jpegtran to rotate.
-		if ( ewww_image_optimizer_jpegtran_autorotate( $file, $type, $orientation ) ) {
+		// Read the exif, if it fails, we won't autorotate.
+		$jpeg = new PelJpeg( $file );
+		$exif = $jpeg->getExif();
+		if ( null == $exif ) {
+			ewwwio_debug_message( 'could not work with PelJpeg object, no rotation happening here' );
+		} elseif ( ewww_image_optimizer_jpegtran_autorotate( $file, $type, $orientation ) ) {
 			// Use PEL to correct the orientation flag when metadata was preserved.
 			$jpeg = new PelJpeg( $file );
 			$exif = $jpeg->getExif();
@@ -4354,6 +4360,7 @@ function ewww_image_optimizer_autorotate( $file ) {
 				$ifd0 = $tiff->getIfd();
 				$orientation = $ifd0->getEntry( PelTag::ORIENTATION );
 				if ( null != $orientation ) {
+					ewwwio_debug_message( 'orientation being adjusted' );
 					$orientation->setValue( 1 );
 				}
 				$jpeg->saveFile( $file );
@@ -4560,6 +4567,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
  * @return int|bool The orientation value or false.
  */
 function ewww_image_optimizer_get_orientation( $file, $type ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( function_exists( 'exif_read_data' ) && 'image/jpeg' === $type ) {
 		$exif = @exif_read_data( $file );
 		if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {

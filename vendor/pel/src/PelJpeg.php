@@ -120,7 +120,11 @@ class PelJpeg
 
         if (is_string($data)) {
             Pel::debug('Initializing PelJpeg object from %s', $data);
-            $this->loadFile($data);
+            try {
+                $this->loadFile($data);
+            } catch ( PelDataWindowOffsetException $e ) {
+                return;
+            }
         } elseif ($data instanceof PelDataWindow) {
             Pel::debug('Initializing PelJpeg object from PelDataWindow.');
             $this->load($data);

@@ -217,6 +217,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 
 = 3.4.2 =
 * changed: if an image is too small for resizing, but the dimensions in the metadata are incorrect, it will attempt to update them
+* fixed: fatal error if image metadata cannot be read by PEL
 
 = 3.4.1 =
 * added: move the Alt WebP script to an external resource by defining EWWW_IMAGE_OPTIMIZER_WEBP_EXTERNAL_SCRIPT

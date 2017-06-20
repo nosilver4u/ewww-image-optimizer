@@ -1425,6 +1425,7 @@ function ewww_image_optimizer_find_nix_binary( $binary, $switch ) {
  * @return bool True if the rotation was successful.
  */
 function ewww_image_optimizer_jpegtran_autorotate( $file, $type, $orientation ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( 'image/jpeg' != $type ) {
 		ewwwio_debug_message( 'not a JPG, go away!' );
 		return false;

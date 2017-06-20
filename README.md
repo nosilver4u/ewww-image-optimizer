@@ -3,8 +3,8 @@
 **Donate link:** https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW  
 **Tags:** image, attachment, optimize, optimization, lossless, lossy, photo, picture, seo, compression, gmagick, jpegtran, gifsicle, optipng, pngout, pngquant, jpegmini, tinyjpg, tinypng, webp, wp-cli   
 **Requires at least:** 4.4  
-**Tested up to:** 4.7.5
-**Stable tag:** 3.4.0
+**Tested up to:** 4.8
+**Stable tag:** 3.4.1
 **License:** GPLv3
 **Build Status:** [![Build Status](https://travis-ci.org/nosilver4u/ewww-image-optimizer.svg?branch=master)](https://travis-ci.org/nosilver4u/ewww-image-optimizer)
 
