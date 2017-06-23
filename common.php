@@ -1303,8 +1303,13 @@ function ewww_image_optimizer_ajax_compat_check() {
 		return;
 	}
 	// Check for (Force) Regenerate Thumbnails action (includes MLP regnerate).
-	if ( ! empty( $_REQUEST['action'] ) && 'regeneratethumbnail' == $_REQUEST['action'] ) {
-		ewww_image_optimizer_image_sizes( false );
+	if ( ! empty( $_REQUEST['action'] ) ) {
+		if ( 'regeneratethumbnail' == $_REQUEST['action'] ||
+	 		'meauh_save_image' == $_REQUEST['action'] ||
+	 		'hotspot_save' == $_REQUEST['action']
+		) {
+			ewww_image_optimizer_image_sizes( false );
+		}
 	}
 	// Check for other MLP actions, including multi-regen.
 	if ( ! empty( $_REQUEST['action'] ) && class_exists( 'MaxGalleriaMediaLib' ) && ( 'regen_mlp_thumbnails' == $_REQUEST['action'] || 'move_media' == $_REQUEST['action'] || 'copy_media' == $_REQUEST['action'] || 'maxgalleria_rename_image' == $_REQUEST['action'] ) ) {
@@ -6699,6 +6704,7 @@ function ewww_image_optimizer_webp_rewrite() {
  * If rules are present, stay silent, otherwise, gives us some rules to insert!
  */
 function ewww_image_optimizer_webp_rewrite_verify() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$current_rules = extract_from_markers( ewww_image_optimizer_htaccess_path(), 'EWWWIO' );
 	$ewww_rules = array(
 		'<IfModule mod_rewrite.c>',
@@ -6706,20 +6712,49 @@ function ewww_image_optimizer_webp_rewrite_verify() {
 		'RewriteCond %{HTTP_ACCEPT} image/webp',
 		'RewriteCond %{REQUEST_FILENAME} (.*)\.(jpe?g|png)$',
 		'RewriteCond %{REQUEST_FILENAME}.webp -f',
-		'RewriteRule (.+)\.(jpe?g|png)$ %{REQUEST_FILENAME}.webp [T=image/webp,E=accept:1]',
+		'RewriteCond %{QUERY_STRING} !type=original',
+		'RewriteRule (.+)\.(jpe?g|png)$ %{REQUEST_FILENAME}.webp [T=image/webp,E=accept:1,L]',
 		'</IfModule>',
 		'<IfModule mod_headers.c>',
 		'Header append Vary Accept env=REDIRECT_accept',
 		'</IfModule>',
 		'AddType image/webp .webp',
 	);
-	if ( array_diff( $ewww_rules, $current_rules ) ) {
+	ewwwio_debug_message( print_r( $current_rules, true ) );
+	if ( empty( $current_rules ) ||
+		! ewww_image_optimizer_array_search( '{HTTP_ACCEPT} image/webp', $current_rules ) ||
+		! ewww_image_optimizer_array_search( '{REQUEST_FILENAME}.webp', $current_rules ) ||
+		! ewww_image_optimizer_array_search( 'Header append Vary Accept', $current_rules ) ||
+		! ewww_image_optimizer_array_search( 'AddType image/webp', $current_rules )
+	) {
 		ewwwio_memory( __FUNCTION__ );
 		return $ewww_rules;
 	} else {
 		ewwwio_memory( __FUNCTION__ );
 		return;
 	}
+}
+
+/**
+ * Looks for a certain string within all array elements.
+ *
+ * @param string $needle The searched value.
+ * @param array  $haystack The array to search.
+ * @return bool True if the needle is found, false otherwise.
+ */
+function ewww_image_optimizer_array_search( $needle, $haystack ) {
+	if ( ! is_array( $haystack ) ) {
+		return false;
+	}
+	foreach ( $haystack as $straw ) {
+		if ( ! is_string( $straw ) ) {
+			continue;
+		}
+		if ( strpos( $straw, $needle ) !== false ) {
+			return true;
+		}
+	}
+	return false;
 }
 
 /**
@@ -7160,11 +7195,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$output[] = "<tr class='$network_class'><th><label for='ewww_image_optimizer_jpegtran_copy'>" . esc_html__( 'Remove metadata', 'ewww-image-optimizer' ) . "</label></th>\n" .
 		"<td><input type='checkbox' id='ewww_image_optimizer_jpegtran_copy' name='ewww_image_optimizer_jpegtran_copy' value='true' " . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpegtran_copy' ) == true ? "checked='true'" : '' ) . ' /> ' . esc_html__( 'This will remove ALL metadata: EXIF, comments, color profiles, and anything else that is not pixel data.', 'ewww-image-optimizer' ) . "</td></tr>\n";
 	ewwwio_debug_message( 'remove metadata: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpegtran_copy' ) == true ? 'on' : 'off' ) );
-	$output[] = "<tr class='$network_class'><th>&nbsp;</th><td>";
-	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-		$output[] = "<p class='$network_class nocloud'>* <a href='https://ewww.io/plans/'>" . esc_html__( 'Purchase an API key to unlock additional compression levels below.', 'ewww-image-optimizer' ) . "</a></p>\n";
-	}
-	$output[] = "<p class='$network_class description'>" . esc_html__( 'Lossless compression keeps the original quality of the image.', 'ewww-image-optimizer' ) . ' ' . esc_html__( 'While most users will not notice a difference in image quality, lossy means there IS a loss in image quality.', 'ewww-image-optimizer' ) . "</p></td></tr>\n";
+	$output[] = "<tr class='$network_class'><th>&nbsp;</th><td>" .
+		"<p class='$network_class description'>" . esc_html__( 'All methods used by the EWWW Image Optimizer are intended to produce visually identical images.', 'ewww-image-optimizer' ) .
+		' ' . esc_html__( 'Lossless compression is actually identical to the original, while lossy reduces the quality a small amount.', 'ewww-image-optimizer' ) . "</p>\n" .
+		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? "<p class='$network_class nocloud'><strong>* <a href='https://ewww.io/plans/' target='_blank'>" . esc_html__( 'Get an API key to achieve up to 80% compression and see the quality for yourself.', 'ewww-image-optimizer' ) . "</a></strong></p>\n" : '' );
+	$output[] = "</td></tr>\n";
 	$output[] = "<tr class='$network_class'><th><label for='ewww_image_optimizer_jpg_level'>" . esc_html__( 'JPG Optimization Level', 'ewww-image-optimizer' ) . "</label></th>\n" .
 		"<td><span><select id='ewww_image_optimizer_jpg_level' name='ewww_image_optimizer_jpg_level'>\n" .
 		"<option value='0'" . selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ), 0, false ) . '>' . esc_html__( 'No Compression', 'ewww-image-optimizer' ) . "</option>\n";
@@ -7414,7 +7449,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				"RewriteCond %{HTTP_ACCEPT} image/webp\n" .
 				"RewriteCond %{REQUEST_FILENAME} (.*)\.(jpe?g|png)$\n" .
 				"RewriteCond %{REQUEST_FILENAME}\.webp -f\n" .
-				"RewriteRule (.+)\.(jpe?g|png)$ %{REQUEST_FILENAME}.webp [T=image/webp,E=accept:1]\n" .
+				"RewriteCond %{QUERY_STRING} !type=original\n" .
+				"RewriteRule (.+)\.(jpe?g|png)$ %{REQUEST_FILENAME}.webp [T=image/webp,E=accept:1,L]\n" .
 				"&lt;/IfModule&gt;\n" .
 				"&lt;IfModule mod_headers.c&gt;\n" .
 				"Header append Vary Accept env=REDIRECT_accept\n" .

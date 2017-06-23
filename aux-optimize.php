@@ -601,7 +601,8 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 	if ( wp_doing_ajax() ) {
 		ewwwio_memory( __FUNCTION__ );
 		/* translators: %d: number of images */
-		$ready_msg = sprintf( esc_html( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', $image_count, 'ewww-image-optimizer' ) ), $image_count );
+		$ready_msg = sprintf( esc_html( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', $image_count, 'ewww-image-optimizer' ) ), $image_count )
+			. ' <a href="http://docs.ewww.io/article/20-why-do-i-have-so-many-images-on-my-site" target="_blank">' . esc_html__( 'Why are there so many images?', 'ewww-image-optimizer' ) . '</a>';
 		die( json_encode( array(
 			'ready' => $image_count,
 			'message' => $ready_msg,
