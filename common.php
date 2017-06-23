@@ -1305,8 +1305,8 @@ function ewww_image_optimizer_ajax_compat_check() {
 	// Check for (Force) Regenerate Thumbnails action (includes MLP regnerate).
 	if ( ! empty( $_REQUEST['action'] ) ) {
 		if ( 'regeneratethumbnail' == $_REQUEST['action'] ||
-	 		'meauh_save_image' == $_REQUEST['action'] ||
-	 		'hotspot_save' == $_REQUEST['action']
+			'meauh_save_image' == $_REQUEST['action'] ||
+			'hotspot_save' == $_REQUEST['action']
 		) {
 			ewww_image_optimizer_image_sizes( false );
 		}
