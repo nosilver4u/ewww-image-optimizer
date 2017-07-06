@@ -505,7 +505,10 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 			ewww_image_optimizer_image_scan( WP_CONTENT_DIR . '/grand-media', $started );
 		}
 		if ( is_plugin_active( 'wp-symposium/wp-symposium.php' ) || is_plugin_active_for_network( 'wp-symposium/wp-symposium.php' ) ) {
-			ewww_image_optimizer_image_scan( get_option( 'symposium_img_path', $started ) );
+			ewww_image_optimizer_image_scan( get_option( 'symposium_img_path' ), $started );
+		}
+		if ( defined( 'WPS_CORE_PLUGINS' ) ) {
+			ewww_image_optimizer_image_scan( WP_CONTENT_DIR . '/wps-pro-content', $started );
 		}
 		if ( is_plugin_active( 'ml-slider/ml-slider.php' ) || is_plugin_active_for_network( 'ml-slider/ml-slider.php' ) ) {
 			global $wpdb;

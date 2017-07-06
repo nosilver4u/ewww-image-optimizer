@@ -30,8 +30,6 @@
 // TODO: do a bottom paginator for the show optimized images table.
 // TODO: use wp_http_supports( array( 'ssl' ) ) to detect whether we should use https.
 // TODO: check this patch, to see if the use of 'full' causes any issues: https://core.trac.wordpress.org/ticket/37840 .
-// TODO: see if it is possible to do more "loose" matching on the .htaccess web rules.
-// TODO: show a background optimization indicator in the plugin status.
 // TODO: perhaps have an optional footer thingy that says how many images have been optimized.
 // TODO: integrate AGR, since it's "abandoned", but possibly using gifsicle for better GIFs.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -84,6 +82,10 @@ if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
 	add_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
 	// Add hook for PTE confirmation to make sure new resizes are optimized.
 	add_filter( 'wp_get_attachment_metadata', 'ewww_image_optimizer_pte_check' );
+	// Resizes and auto-rotates MediaPress images.
+	add_filter( 'mpp_handle_upload', 'ewww_image_optimizer_handle_mpp_upload' );
+	// Processes a MediaPress image via the metadata after upload.
+	add_filter( 'mpp_generate_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
 }
 // Makes sure the optimizer never optimizes it's own testing images.
 add_filter( 'ewww_image_optimizer_bypass', 'ewww_image_optimizer_ignore_self', 10, 2 );
@@ -1711,6 +1713,7 @@ function ewww_image_optimizer_image_sizes( $sizes ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
 	add_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_restore_editor_hooks', 1 );
+	add_filter( 'mpp_generate_metadata', 'ewww_image_optimizer_restore_editor_hooks', 1 );
 	return $sizes;
 }
 
@@ -1844,6 +1847,18 @@ function ewww_image_optimizer_fallback_sizes( $sizes ) {
 		}
 	}
 	return $sizes;
+}
+
+/**
+ * Wrapper around the upload handler for MediaPress.
+ *
+ * @param array $params Parameters related to the file being uploaded.
+ * @return array The unaltered parameters, we only need to pass them on.
+ */
+function ewww_image_optimizer_handle_mpp_upload( $params ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	add_filter( 'mpp_intermediate_image_sizes', 'ewww_image_optimizer_image_sizes', 200 );
+	return ewww_image_optimizer_handle_upload( $params );
 }
 
 /**
@@ -6935,9 +6950,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	} else {
 		$disable_level = "disabled='disabled'";
 	}
-	if ( ewww_image_optimizer_detect_wpsf_location_lock() ) {
-		$status_output .= '<p><span style="color: orange">' . esc_html__( 'WARNING:', 'ewww-image-optimizer' ) . '</span> ' . esc_html__( "You are using Shield's Lock to Location feature, which prevents the use of Background & Parallel Optimization for faster processing time.", 'ewww-image-optimizer' ) . '</p>';
-	}
 	if ( ! ewww_image_optimizer_full_cloud() && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
 		list ( $jpegtran_src, $optipng_src, $gifsicle_src, $jpegtran_dst, $optipng_dst, $gifsicle_dst ) = ewww_image_optimizer_install_paths();
 	}
@@ -7143,6 +7155,20 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewwwio_debug_message( "mimetype function in use: $mimetype_tool" );
 	$status_output .= $mimetype_output;
 	$status_output .= $extra_tool_output;
+	$status_output .= '<strong>' . esc_html( 'Background and Parallel optimization (faster uploads):', 'ewww-image-optimizer' ) . '</strong><br>';
+	if ( defined( 'EWWW_DISABLE_ASYNC' ) && EWWW_DISABLE_ASYNC ) {
+		$status_output .= '<span>' . esc_html__( 'Disabled by administrator', 'ewww-image-optimizer' ) . '</span>';
+	} elseif ( ! ewww_image_optimizer_function_exists( 'sleep' ) ) {
+		$status_output .= '<span style="color: orange; font-weight: bolder">' . esc_html__( 'Disabled, sleep function missing', 'ewww-image-optimizer' ) . '</span>';
+	} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ) {
+		$status_output .= '<span style="color: orange; font-weight: bolder">' . esc_html__( 'Disabled automatically, async requests blocked', 'ewww-image-optimizer' ) . '</span>';
+	} elseif ( ewww_image_optimizer_detect_wpsf_location_lock() ) {
+		$status_output .= '<span style="color: orange; font-weight: bolder">' . esc_html__( "Disabled by Shield's Lock to Location feature", 'ewww-image-optimizer' ) . '</p>';
+	} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_parallel_optimization' ) ) {
+		$status_output .= '<span>' . esc_html__( 'Enable Parallel Optimization in Advanced Settings', 'ewww-image-optimizer' ) . '</span>';
+	} else {
+		$status_output .= '<span style="color: green; font-weight: bolder">' . esc_html__( 'Fully Enabled', 'ewww-image-optimizer' ) . '</span>';
+	}
 	$status_output .= '</div><!-- end .inside -->';
 	$status_output .= "</div></div></div>\n";
 	if ( $collapsible ) {

@@ -42,7 +42,7 @@ Optimize all your images from a single page using the Bulk Scanner. This include
 
 = Optimize Everything Else =
 
-Configure any folder within your WordPress folder to be optimized. The Bulk Scan under Media->Bulk Optimize will optimize theme images, BuddyPress avatars, BuddyPress Activity Plus images, Meta Slider slides, WP Symposium images, GD bbPress attachments, Grand Media Galleries, and any user-specified folders. Additionally, this tool can run on an hourly basis via wp_cron to keep newly uploaded images optimized. Scheduled optimization should not be used for any plugin that uses the built-in Wordpress image functions.
+Configure any folder within your WordPress folder to be optimized. The Bulk Scan under Media->Bulk Optimize will optimize theme images, BuddyPress avatars, BuddyPress Activity Plus images, Meta Slider slides, WP Symposium Pro avatars, GD bbPress attachments, Grand Media Galleries, and any user-specified folders. Additionally, this tool can run on an hourly basis via wp_cron to keep newly uploaded images optimized. Scheduled optimization should not be used for any plugin that uses the built-in Wordpress image functions.
 
 = Skips Previously Optimized Images =
 
@@ -215,11 +215,13 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 3.4.2 =
+* added: MediaPress uploads fully optimized on upload
 * changed: WebP .htaccess rewrite rule verifier more flexible
 * changed: WebP .htaccess rewrite rules allow appending type=original to access non-WebP image
 * changed: if an image is too small for resizing, but the dimensions in the metadata are incorrect, it will attempt to update them
 * fixed: fatal error if image metadata cannot be read by PEL
 * fixed: WebP .htaccess rewrite rules work better on LiteSpeed
+* fixed: WP Symposium integration using old options, scanner now includes avatars folder by default
 
 = 3.4.1 =
 * added: move the Alt WebP script to an external resource by defining EWWW_IMAGE_OPTIMIZER_WEBP_EXTERNAL_SCRIPT
