@@ -70,8 +70,13 @@ use lsolesen\pel\PelTag;
 
 // If automatic optimization is NOT disabled.
 if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
-	// Resizes and auto-rotates images.
-	add_filter( 'wp_handle_upload', 'ewww_image_optimizer_handle_upload' );
+	if ( class_exists( 'S3_Uploads' ) ) {
+		// Resizes and auto-rotates images.
+		add_filter( 'wp_handle_upload_prefilter', 'ewww_image_optimizer_handle_upload', 8 );
+	} else {
+		// Resizes and auto-rotates images.
+		add_filter( 'wp_handle_upload', 'ewww_image_optimizer_handle_upload' );
+	}
 	// Turns off the ewwwio_image_editor during uploads.
 	add_action( 'add_attachment', 'ewww_image_optimizer_add_attachment' );
 	// Turns off ewwwio_image_editor during Enable Media Replace.
@@ -1874,14 +1879,24 @@ function ewww_image_optimizer_handle_upload( $params ) {
 	global $ewww_new_image;
 	$ewww_new_image = true;
 	if ( empty( $params['file'] ) ) {
-		return $params;
+		if ( ! empty( $params['tmp_name'] ) ) {
+			$file_path = $params['tmp_name'];
+		} else {
+			return $params;
+		}
+	} else {
+		$file_path = $params['file'];
 	}
-	ewww_image_optimizer_autorotate( $params['file'] );
+	ewww_image_optimizer_autorotate( $file_path );
 	// NOTE: if you use the ewww_image_optimizer_defer_resizing filter to defer the resize operation, only the "other" dimensions will apply
 	// resize here unless the user chose to defer resizing or imsanity is enabled with a max size.
 	if ( ! apply_filters( 'ewww_image_optimizer_defer_resizing', false ) && ! function_exists( 'imsanity_get_max_width_height' ) ) {
-		$file_path = $params['file'];
-		if ( ( ! is_wp_error( $params ) ) && is_file( $file_path ) && in_array( $params['type'], array( 'image/png', 'image/gif', 'image/jpeg' ) ) ) {
+		if ( empty( $params['type'] ) ) {
+			$mime_type = ewww_image_optimizer_mimetype( $file_path, 'i' );
+		} else {
+			$mime_type = $params['type'];
+		}
+		if ( ( ! is_wp_error( $params ) ) && is_file( $file_path ) && in_array( $mime_type, array( 'image/png', 'image/gif', 'image/jpeg' ) ) ) {
 			ewww_image_optimizer_resize_upload( $file_path );
 		}
 	}
@@ -3756,6 +3771,11 @@ function ewww_image_optimizer_mass_insert( $table, $images, $format ) {
 function ewww_image_optimizer_check_table( $file, $orig_size ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	ewwwio_debug_message( "checking for $file with size: $orig_size" );
+	global $s3_uploads_image;
+	if ( class_exists( 'S3_Uploads' ) && ! empty( $s3_uploads_image ) && $s3_uploads_image != $file ) {
+		$file = $s3_uploads_image;
+		ewwwio_debug_message( "overriding check with: $file" );
+	}
 	$image = ewww_image_optimizer_find_already_optimized( $file );
 	if ( is_array( $image ) && $image['image_size'] == $orig_size ) {
 		$prev_string = ' - ' . __( 'Previously Optimized', 'ewww-image-optimizer' );
@@ -3810,6 +3830,11 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 		$already_optimized = ewww_image_optimizer_find_already_optimized( $original );
 		$converted = $original;
 	} else {
+		global $s3_uploads_image;
+		if ( class_exists( 'S3_Uploads' ) && ! empty( $s3_uploads_image ) && $s3_uploads_image != $attachment ) {
+			$attachment = $s3_uploads_image;
+			ewwwio_debug_message( "overriding check with: $attachment" );
+		}
 		$already_optimized = ewww_image_optimizer_find_already_optimized( $attachment );
 		if ( is_array( $already_optimized ) && ! empty( $already_optimized['converted'] ) ) {
 			$converted = $already_optimized['converted'];
@@ -4919,7 +4944,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		ewww_image_optimizer_check_table_as3cf( $meta, $id, $file_path );
 	}
 	// If the local file is missing and we have valid metadata, see if we can fetch via CDN.
-	if ( ! is_file( $file_path ) || strpos( $file_path, 's3' ) === 0 ) {
+	if ( ! is_file( $file_path ) || ( strpos( $file_path, 's3' ) === 0 && ! class_exists( 'S3_Uploads' ) ) ) {
 		$file_path = ewww_image_optimizer_remote_fetch( $id, $meta );
 		if ( ! $file_path ) {
 			ewwwio_debug_message( 'could not retrieve path' );
@@ -5888,6 +5913,10 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			$ewww_cdn = true;
 		}
 		if ( is_array( $meta ) && class_exists( 'Amazon_S3_And_CloudFront' ) && preg_match( '/^(http|s3)\w*:/', get_attached_file( $id ) ) ) {
+			$output .= '<div>' . esc_html__( 'Amazon S3 image', 'ewww-image-optimizer' ) . '</div>';
+			$ewww_cdn = true;
+		}
+		if ( is_array( $meta ) && class_exists( 'S3_Uploads' ) && preg_match( '/^(http|s3)\w*:/', get_attached_file( $id ) ) ) {
 			$output .= '<div>' . esc_html__( 'Amazon S3 image', 'ewww-image-optimizer' ) . '</div>';
 			$ewww_cdn = true;
 		}

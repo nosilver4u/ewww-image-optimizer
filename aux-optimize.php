@@ -112,17 +112,15 @@ function ewww_image_optimizer_aux_images_table() {
 		if ( DAY_IN_SECONDS * 30 + $updated_time < time() ) {
 			$optimized_image['backup'] = '';
 		}
-		// If the path given is not the absolute path.
-		if ( file_exists( $optimized_image['path'] ) ) {
+		if ( strpos( $optimized_image['path'], 's3' ) === 0 ) {
 			// Retrieve the mimetype of the attachment.
-			$type = ewww_image_optimizer_mimetype( $optimized_image['path'], 'i' );
-			// Get a human readable filesize.
+			$type = esc_html__( 'Amazon S3 image', 'ewww-image-optimizer' );
 			$file_size = ewww_image_optimizer_size_format( $optimized_image['image_size'] );
 			/* translators: %s: human-readable filesize */
 			$size_string = sprintf( esc_html__( 'Image Size: %s', 'ewww-image-optimizer' ), $file_size );
 ?>			<tr<?php if ( $alternate ) { echo " class='alternate'"; } ?> id="ewww-image-<?php echo $optimized_image['id']; ?>">
-				<td style='width:80px' class='column-icon'><img width='50' height='50' src="<?php echo $image_url; ?>" /></td>
-				<td class='title'>...<?php echo $image_name; ?></td>
+				<td style='width:80px' class='column-icon'>&nbsp;</td>
+				<td class='title'><?php echo $image_name; ?></td>
 				<td><?php echo $type; ?></td>
 				<td>
 					<?php echo "$savings <br>$size_string"; ?><br>
@@ -133,15 +131,16 @@ function ewww_image_optimizer_aux_images_table() {
 				</td>
 			</tr>
 <?php			$alternate = ! $alternate;
-		} elseif ( strpos( $optimized_image['path'], 's3' ) === 0 ) {
+		} elseif ( file_exists( $optimized_image['path'] ) ) {
 			// Retrieve the mimetype of the attachment.
-			$type = esc_html__( 'Amazon S3 image', 'ewww-image-optimizer' );
+			$type = ewww_image_optimizer_mimetype( $optimized_image['path'], 'i' );
+			// Get a human readable filesize.
 			$file_size = ewww_image_optimizer_size_format( $optimized_image['image_size'] );
 			/* translators: %s: human-readable filesize */
 			$size_string = sprintf( esc_html__( 'Image Size: %s', 'ewww-image-optimizer' ), $file_size );
 ?>			<tr<?php if ( $alternate ) { echo " class='alternate'"; } ?> id="ewww-image-<?php echo $optimized_image['id']; ?>">
-				<td style='width:80px' class='column-icon'>&nbsp;</td>
-				<td class='title'><?php echo $image_name; ?></td>
+				<td style='width:80px' class='column-icon'><img width='50' height='50' src="<?php echo $image_url; ?>" /></td>
+				<td class='title'>...<?php echo $image_name; ?></td>
 				<td><?php echo $type; ?></td>
 				<td>
 					<?php echo "$savings <br>$size_string"; ?><br>

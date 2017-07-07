@@ -214,7 +214,8 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
-= 3.4.2 =
+= 3.4.9 =
+* added: compatibility with S3 Uploads by Human Made
 * added: MediaPress uploads fully optimized on upload
 * changed: WebP .htaccess rewrite rule verifier more flexible
 * changed: WebP .htaccess rewrite rules allow appending type=original to access non-WebP image
