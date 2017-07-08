@@ -230,7 +230,6 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 			}
 			global $s3_uploads_image;
 			$s3_uploads_image = $filename;
-			ewwwio_debug_message( "image editor (s3 uploads) working on: $filename" );
 			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) ) {
 				ewww_image_optimizer_cloud_init();
 			}

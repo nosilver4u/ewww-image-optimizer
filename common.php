@@ -22,7 +22,6 @@
 // TODO: need to make the scheduler so it can resume without having to re-run the queue population, and then we can probably also flush the queue when scheduled opt starts, but later it would be nice to implement the bulk_loop as the aux_loop so that it could handle media properly.
 // TODO: implement a search for the bulk table, or maybe we should just move it to it's own page?
 // TODO: port bulk changes to NextGEN and FlaGallery.
-// TODO: extend custom WP_Image_Editor class from s3 uploader plugin on github.
 // TODO: make a bulk restore function.
 // TODO: Add a custom async function for parallel mode to store image as pending and use the row ID instead of relative path.
 // TODO: write some tests for update_table and check_table, find_already_opt, and remove_dups.
@@ -3833,7 +3832,7 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 		global $s3_uploads_image;
 		if ( class_exists( 'S3_Uploads' ) && ! empty( $s3_uploads_image ) && $s3_uploads_image != $attachment ) {
 			$attachment = $s3_uploads_image;
-			ewwwio_debug_message( "overriding check with: $attachment" );
+			ewwwio_debug_message( "overriding update with: $attachment" );
 		}
 		$already_optimized = ewww_image_optimizer_find_already_optimized( $attachment );
 		if ( is_array( $already_optimized ) && ! empty( $already_optimized['converted'] ) ) {

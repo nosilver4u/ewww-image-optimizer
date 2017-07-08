@@ -1540,7 +1540,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	if ( empty( $s3_uploads_image ) ) {
 		$s3_uploads_image = false;
 	}
-	if ( strpos( $file, 's3' ) === 0 && class_exists( 'S3_Uploads' ) && ! EWWW_IMAGE_OPTIMIZER_CLOUD ) {
+	if ( strpos( $file, 's3' ) === 0 && class_exists( 'S3_Uploads' ) ) {
 		$s3_uploads_image = $file;
 		$s3_uploads_instance = S3_Uploads::get_instance();
 		$s3_uploads_instance->setup();
