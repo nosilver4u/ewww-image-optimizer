@@ -1544,7 +1544,9 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		$s3_uploads_image = $file;
 		$s3_uploads_instance = S3_Uploads::get_instance();
 		$s3_uploads_instance->setup();
-		require_once( ABSPATH . 'wp-admin/includes/admin.php' );
+		if ( ! function_exists( 'wp_tempnam' ) ) {
+			require_once( ABSPATH . 'wp-admin/includes/admin.php' );
+		}
 		$file = $s3_uploads_instance->copy_image_from_s3( $file );
 	}
 	// Initialize the original filename.
