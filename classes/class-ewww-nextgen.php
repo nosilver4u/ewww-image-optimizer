@@ -691,6 +691,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				'_wpnonce' => wp_create_nonce( 'ewww-image-optimizer-bulk' ),
 				'gallery' => 'nextgen',
 				'attachments' => count( $images ),
+				'scan_fail' => esc_html__( 'Operation timed out, you may need to increase the max_execution_time for PHP', 'ewww-image-optimizer' ),
 				'operation_stopped' => esc_html__( 'Optimization stopped, reload page to resume.', 'ewww-image-optimizer' ),
 				'operation_interrupted' => esc_html__( 'Operation Interrupted', 'ewww-image-optimizer' ),
 				'temporary_failure' => esc_html__( 'Temporary failure, seconds left to retry:', 'ewww-image-optimizer' ),

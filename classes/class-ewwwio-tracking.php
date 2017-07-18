@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class EWWWIO_Tracking {
 
 	/**
-	 * The data to send to the EDD site
+	 * The data to send to the API
 	 *
 	 * @access private
 	 * @var array $data
@@ -33,7 +33,6 @@ class EWWWIO_Tracking {
 	public function __construct() {
 		add_action( 'admin_init', array( $this, 'schedule_send' ) );
 		add_action( 'ewww_image_optimizer_site_report', array( $this, 'send_checkin' ) );
-		add_action( 'ewww_settings_general_sanitize', array( $this, 'check_for_settings_optin' ) );
 		add_action( 'admin_action_ewww_opt_into_tracking', array( $this, 'check_for_optin' ) );
 		add_action( 'admin_action_ewww_opt_out_of_tracking', array( $this, 'check_for_optout' ) );
 		add_action( 'admin_notices', array( $this, 'admin_notice' ) );

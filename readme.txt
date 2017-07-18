@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: image, compress, optimize, optimization, lossless, lossy, photo, picture, seo, jpegmini, tinyjpg, tinypng, webp, wp-cli
 Requires at least: 4.4
 Tested up to: 4.8
-Stable tag: 3.5.0
+Stable tag: 3.5.1
 License: GPLv3
 
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
@@ -58,7 +58,7 @@ Can generate WebP versions of your images, and enables you to serve even smaller
 
 = WP-CLI =
 
-Allows you to run all Bulk Optimization processes from your command line, instead of the web interface. It is much faster, and allows you to do things like run it in 'screen' or via regular cron (instead of wp-cron, which can be unpredictable on low-traffic sites). Install WP-CLI from wp-cli.org, and run 'wp-cli.phar help ewwwio optimize' for more information.
+Allows you to run all Bulk Optimization processes from your command line, instead of the web interface. It is much faster, and allows you to do things like run it in 'screen' or via regular cron (instead of wp-cron, which can be unpredictable on low-traffic sites). Install WP-CLI from wp-cli.org, and run 'wp-cli.phar help ewwwio optimize' for more information or see the [Docs](http://docs.ewww.io/article/25-optimizing-with-wp-cli).
 
 = FooGallery =
 
@@ -213,6 +213,12 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * Thank you to everyone who donated for a new Macbook, new binaries are here!
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
+
+= 3.5.1 =
+* added: optional help beacons on bulk and settings pages
+* added: disable deferring of WP Offload S3 uploads with EWWW_IMAGE_OPTIMIZER_NO_DEFER_S3
+* added: override use of wp_add_inline_script with non-standard jQuery by defining EWWW_IMAGE_OPTIMIZER_WEBP_INLINE_FALLBACK
+* fixed: javascript for bulk optimizers in NextGEN, NextCellent and FlaGallery 
 
 = 3.5.0 =
 * added: compatibility with S3 Uploads by Human Made

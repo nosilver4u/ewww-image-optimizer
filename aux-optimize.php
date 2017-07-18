@@ -70,10 +70,41 @@ function ewww_image_optimizer_aux_images() {
 		'</div>' .
 		'</div>';
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
+		ewww_image_optimizer_options( 'debug-silent' );
 		global $ewww_debug;
 		$output .= '<div id="ewww-debug-info" style="clear:both;background:#ffff99;margin-left:-20px;padding:10px">' . $ewww_debug . '</div>';
 	}
 	echo $output;
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
+		$help_instructions = esc_html__( 'Please turn on the Debugging option. Then copy and paste the Debug Information from the bottom of the settings page. This will allow us to assist you more quickly.', 'ewww-image-optimizer' );
+		$current_user = wp_get_current_user();
+		$help_email = $current_user->user_email;
+		$hs_config = array(
+			'color' => '#3eadc9',
+			'icon' => 'buoy',
+			'instructions' => $help_instructions,
+			'poweredBy' => false,
+			'showContactFields' => true,
+			'showSubject' => true,
+			'topArticles' => true,
+			'zIndex' => 100000,
+		);
+		$hs_identify = array(
+			'email' => $help_email,
+			'debug_info' => $ewww_debug,
+		);
+		?>
+<script type='text/javascript'>
+	!function(e,o,n){window.HSCW=o,window.HS=n,n.beacon=n.beacon||{};var t=n.beacon;t.userConfig={},t.readyQueue=[],t.config=function(e){this.userConfig=e},t.ready=function(e){this.readyQueue.push(e)},o.config={docs:{enabled:!0,baseUrl:"//ewwwio.helpscoutdocs.com/"},contact:{enabled:!0,formId:"af75cf17-310a-11e7-9841-0ab63ef01522"}};var r=e.getElementsByTagName("script")[0],c=e.createElement("script");c.type="text/javascript",c.async=!0,c.src="https://djtflbt20bdde.cloudfront.net/",r.parentNode.insertBefore(c,r)}(document,window.HSCW||{},window.HS||{});
+	HS.beacon.config(<?php echo json_encode( $hs_config ); ?>);
+	HS.beacon.ready(function() {
+		HS.beacon.identify(
+			<?php echo json_encode( $hs_identify ); ?>
+		);
+	});
+</script>
+		<?php
+	}
 	ewwwio_memory( __FUNCTION__ );
 }
 
@@ -604,7 +635,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 		ewwwio_memory( __FUNCTION__ );
 		/* translators: %d: number of images */
 		$ready_msg = sprintf( esc_html( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', $image_count, 'ewww-image-optimizer' ) ), $image_count )
-			. ' <a href="http://docs.ewww.io/article/20-why-do-i-have-so-many-images-on-my-site" target="_blank">' . esc_html__( 'Why are there so many images?', 'ewww-image-optimizer' ) . '</a>';
+			. ' <a href="http://docs.ewww.io/article/20-why-do-i-have-so-many-images-on-my-site" target="_blank" data-beacon-article="58598744c697912ffd6c3eb4">' . esc_html__( 'Why are there so many images?', 'ewww-image-optimizer' ) . '</a>';
 		die( json_encode( array(
 			'ready' => $image_count,
 			'message' => $ready_msg,

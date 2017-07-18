@@ -18,6 +18,12 @@ function ewww_image_optimizer_bulk_preview() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Retrieve the attachment IDs that were pre-loaded in the database.
 	echo '<div class="wrap"><h1>' . esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ) . '</h1>';
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) ) {
+		echo '<div class="error"><p>';
+		esc_html_e( 'Please disable Scheduled optimization before continuing.', 'ewww-image-optimizer' );
+		echo '</p></div></div>';
+		return;
+	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 		echo '<span><a id="ewww-bulk-credits-available" target="_blank" class="page-title-action" style="float:right;" href="https://ewww.io/my-account/">' . esc_html__( 'Image credits available:', 'ewww-image-optimizer' ) . ' ' . ewww_image_optimizer_cloud_quota() . '</a></span>';
 	}
