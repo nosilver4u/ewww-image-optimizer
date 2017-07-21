@@ -233,7 +233,6 @@ You can find more information about overriding options in the [Documentation](ht
 * removed: ewww_image_optimizer_lossy_skip_full (Exclude full-size images from lossy optimization) option
 * removed: ewww_image_optimizer_metadata_skip_full (Exclude full-size images from metadata removal) option
 * removed: ewww_image_optimizer_skip_bundle (Use System Paths) option
-* removed: PNGOUT installer, will still be used if installed manually
 
 = 3.5.1 =
 * added: optional help beacons on bulk and settings pages
