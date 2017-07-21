@@ -70,13 +70,13 @@ function ewww_image_optimizer_aux_images() {
 		'</div>' .
 		'</div>';
 	$help_instructions = esc_html__( 'Enable the Debugging option and refresh this page to include debugging information with your question.', 'ewww-image-optimizer' ) . ' ' .
-	 	esc_html__( 'This will allow us to assist you more quickly.', 'ewww-image-optimizer' );
+		esc_html__( 'This will allow us to assist you more quickly.', 'ewww-image-optimizer' );
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 		ewww_image_optimizer_options( 'debug-silent' );
 		global $ewww_debug;
 		$output .= '<div id="ewww-debug-info" style="clear:both;background:#ffff99;margin-left:-20px;padding:10px">' . $ewww_debug . '</div>';
 		$help_instructions = esc_html__( 'Debugging information will be included with your message automatically.', 'ewww-image-optimizer' ) . ' ' .
-	 		esc_html__( 'This will allow us to assist you more quickly.', 'ewww-image-optimizer' );
+			esc_html__( 'This will allow us to assist you more quickly.', 'ewww-image-optimizer' );
 	}
 	echo $output;
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
@@ -158,7 +158,14 @@ function ewww_image_optimizer_aux_images_table() {
 			$file_size = ewww_image_optimizer_size_format( $optimized_image['image_size'] );
 			/* translators: %s: human-readable filesize */
 			$size_string = sprintf( esc_html__( 'Image Size: %s', 'ewww-image-optimizer' ), $file_size );
-?>			<tr<?php if ( $alternate ) { echo " class='alternate'"; } ?> id="ewww-image-<?php echo $optimized_image['id']; ?>">
+			?>
+			<tr
+			<?php
+			if ( $alternate ) {
+				echo " class='alternate' ";
+			}
+			?>
+			id="ewww-image-<?php echo $optimized_image['id']; ?>">
 				<td style='width:80px' class='column-icon'>&nbsp;</td>
 				<td class='title'><?php echo $image_name; ?></td>
 				<td><?php echo $type; ?></td>
@@ -170,7 +177,8 @@ function ewww_image_optimizer_aux_images_table() {
 				<?php	} ?>
 				</td>
 			</tr>
-<?php			$alternate = ! $alternate;
+			<?php
+			$alternate = ! $alternate;
 		} elseif ( file_exists( $optimized_image['path'] ) ) {
 			// Retrieve the mimetype of the attachment.
 			$type = ewww_image_optimizer_mimetype( $optimized_image['path'], 'i' );
@@ -178,7 +186,14 @@ function ewww_image_optimizer_aux_images_table() {
 			$file_size = ewww_image_optimizer_size_format( $optimized_image['image_size'] );
 			/* translators: %s: human-readable filesize */
 			$size_string = sprintf( esc_html__( 'Image Size: %s', 'ewww-image-optimizer' ), $file_size );
-?>			<tr<?php if ( $alternate ) { echo " class='alternate'"; } ?> id="ewww-image-<?php echo $optimized_image['id']; ?>">
+			?>
+			<tr
+			<?php
+			if ( $alternate ) {
+				echo " class='alternate' ";
+			}
+			?>
+			id="ewww-image-<?php echo $optimized_image['id']; ?>">
 				<td style='width:80px' class='column-icon'><img width='50' height='50' src="<?php echo $image_url; ?>" /></td>
 				<td class='title'>...<?php echo $image_name; ?></td>
 				<td><?php echo $type; ?></td>
@@ -190,7 +205,8 @@ function ewww_image_optimizer_aux_images_table() {
 				<?php	} ?>
 				</td>
 			</tr>
-<?php			$alternate = ! $alternate;
+			<?php
+			$alternate = ! $alternate;
 		} // End if().
 	} // End foreach().
 	echo '</table>';
@@ -230,7 +246,7 @@ function ewww_image_optimizer_aux_images_remove() {
  *
  * @global object $wpdb
  * @return int The total number of records in the images table that are not pending and have a
- * 	valid file-size.
+ *             valid file-size.
  */
 function ewww_image_optimizer_aux_images_table_count() {
 	global $wpdb;
@@ -282,7 +298,7 @@ function ewww_image_optimizer_delete_pending() {
  *
  * @global object $wpdb
  * @global array|string $optimized_list An associative array containing information from the images
- * 					table, or 'low_memory', 'large_list', 'small_scan'.
+ *                                      table, or 'low_memory', 'large_list', 'small_scan'.
  *
  * @param string $dir The absolute path of the folder to be scanned for unoptimized images.
  * @param int    $started Optional. The number of seconds since the overall scanning process started. Default 0.
@@ -618,7 +634,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 		}
 		// Scan images in two most recent media library folders if the option is enabled, and this is a scheduled optimization.
 		if ( 'ewww-image-optimizer-auto' == $hook && ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_media_paths' ) ) {
-			// Retrieve the location of the wordpress upload folder.
+			// Retrieve the location of the WordPress upload folder.
 			$upload_dir = wp_upload_dir();
 			// Retrieve the path of the upload folder.
 			$upload_path = $upload_dir['basedir'];

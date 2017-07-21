@@ -16,7 +16,8 @@ function ewww_image_optimizer_webp_migrate_preview() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 ?>	<div class="wrap">
 	<h1><?php esc_html_e( 'Migrate WebP Images', 'ewww-image-optimizer' ); ?></h1>
-<?php		esc_html_e( 'The migration is split into two parts. First, the plugin needs to scan all folders for webp images. Once it has obtained the list of images to rename, it will proceed with the renaming' );
+	<?php
+	esc_html_e( 'The migration is split into two parts. First, the plugin needs to scan all folders for webp images. Once it has obtained the list of images to rename, it will proceed with the renaming' );
 	$button_text = esc_attr__( 'Start Migration', 'ewww-image-optimizer' );
 	$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
 	// Create the html for the migration form and status divs.
@@ -93,9 +94,8 @@ function ewww_image_optimizer_webp_script( $hook ) {
 	$image_count = count( $images );
 	// Submit a couple variables to the javascript to work with.
 	wp_localize_script( 'ewwwwebpscript', 'ewww_vars', array(
-			'ewww_wpnonce' => wp_create_nonce( 'ewww-image-optimizer-webp' ),
-		)
-	);
+		'ewww_wpnonce' => wp_create_nonce( 'ewww-image-optimizer-webp' ),
+	) );
 }
 
 /**

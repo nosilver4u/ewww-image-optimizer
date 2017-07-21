@@ -529,7 +529,8 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			}
 				?>
 			<div class="wrap">
-				<h1><?php esc_html_e( 'Bulk Optimize', 'ewww-image-optimizer' ); ?></h1><?php
+				<h1><?php esc_html_e( 'Bulk Optimize', 'ewww-image-optimizer' ); ?></h1>
+				<?php
 				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 					ewww_image_optimizer_cloud_verify();
 					echo '<a id="ewww-bulk-credits-available" target="_blank" class="page-title-action" style="float:right;" href="https://ewww.io/my-account/">' . esc_html__( 'Image credits available:', 'ewww-image-optimizer' ) . ' ' . ewww_image_optimizer_cloud_quota() . '</a>';
@@ -555,20 +556,20 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				<div class="meta-box-sortables">
 				<div id="ewww-bulk-last" class="postbox">
 					<button type="button" class="handlediv button-link" aria-expanded="true">
-						<span class="screen-reader-text"><?php esc_html_e( 'Click to toggle', 'ewww-image-optimizer' ) ?></span>
+						<span class="screen-reader-text"><?php esc_html_e( 'Click to toggle', 'ewww-image-optimizer' ); ?></span>
 						<span class="toggle-indicator" aria-hidden="true"></span>
 					</button>
-					<h2 class="hndle"><span><?php esc_html_e( 'Last Image Optimized', 'ewww-image-optimizer' ) ?></span></h2>
+					<h2 class="hndle"><span><?php esc_html_e( 'Last Image Optimized', 'ewww-image-optimizer' ); ?></span></h2>
 					<div class="inside"></div>
 				</div>
 				</div>
 				<div class="meta-box-sortables">
 				<div id="ewww-bulk-status" class="postbox">
 					<button type="button" class="handlediv button-link" aria-expanded="true">
-						<span class="screen-reader-text"><?php esc_html_e( 'Click to toggle', 'ewww-image-optimizer' ) ?></span>
+						<span class="screen-reader-text"><?php esc_html_e( 'Click to toggle', 'ewww-image-optimizer' ); ?></span>
 						<span class="toggle-indicator" aria-hidden="true"></span>
 					</button>
-					<h2 class="hndle"><span><?php esc_html_e( 'Optimization Log', 'ewww-image-optimizer' ) ?></span></h2>
+					<h2 class="hndle"><span><?php esc_html_e( 'Optimization Log', 'ewww-image-optimizer' ); ?></span></h2>
 					<div class="inside"></div>
 				</div>
 				</div>
@@ -586,14 +587,16 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				</form>
 				<?php
 				// If there is a previous bulk operation to resume, give the user the option to reset the resume flag.
-				if ( ! empty( $resume ) ) { ?>
-						<p class="ewww-bulk-info"><?php esc_html_e( 'If you would like to start over again, press the Reset Status button to reset the bulk operation status.', 'ewww-image-optimizer' ); ?></p>
-						<form id="ewww-bulk-reset" class="ewww-bulk-form" method="post" action="">
-								<?php wp_nonce_field( 'ewww-image-optimizer-bulk-reset', 'ewww_wpnonce' ); ?>
-								<input type="hidden" name="ewww_reset" value="1">
-								<input type="submit" class="button-secondary action" value="<?php esc_attr_e( 'Reset Status', 'ewww-image-optimizer' ); ?>" />
-						</form>
-<?php           }
+				if ( ! empty( $resume ) ) {
+					?>
+					<p class="ewww-bulk-info"><?php esc_html_e( 'If you would like to start over again, press the Reset Status button to reset the bulk operation status.', 'ewww-image-optimizer' ); ?></p>
+					<form id="ewww-bulk-reset" class="ewww-bulk-form" method="post" action="">
+							<?php wp_nonce_field( 'ewww-image-optimizer-bulk-reset', 'ewww_wpnonce' ); ?>
+							<input type="hidden" name="ewww_reset" value="1">
+							<input type="submit" class="button-secondary action" value="<?php esc_attr_e( 'Reset Status', 'ewww-image-optimizer' ); ?>" />
+					</form>
+					<?php
+				}
 				echo '</div></div>';
 				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 					global $ewww_debug;
@@ -697,8 +700,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				'temporary_failure' => esc_html__( 'Temporary failure, seconds left to retry:', 'ewww-image-optimizer' ),
 				'remove_failed' => esc_html__( 'Could not remove image from table.', 'ewww-image-optimizer' ),
 				'optimized' => esc_html__( 'Optimized', 'ewww-image-optimizer' ),
-				)
-			);
+			) );
 		}
 
 		/**
@@ -861,12 +863,14 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			if ( ( strpos( $current_screen->id, 'nggallery-manage-images' ) === false && strpos( $current_screen->id, 'nggallery-manage-gallery' ) === false ) || ! current_user_can( apply_filters( 'ewww_image_optimizer_bulk_permissions', '' ) ) ) {
 				return;
 			}
-	?>		<script type="text/javascript">
-			jQuery(document).ready(function($){
-				$('select[name^="bulkaction"] option:last-child').after('<option value="bulk_optimize"><?php esc_html_e( 'Bulk Optimize', 'ewww-image-optimizer' ); ?></option>');
-			});
-		</script>
-<?php		}
+			?>
+			<script type="text/javascript">
+				jQuery(document).ready(function($){
+					$('select[name^="bulkaction"] option:last-child').after('<option value="bulk_optimize"><?php esc_html_e( 'Bulk Optimize', 'ewww-image-optimizer' ); ?></option>');
+				});
+			</script>
+			<?php
+		}
 	}
 	// Initialize the plugin and the class.
 	global $ewwwngg;

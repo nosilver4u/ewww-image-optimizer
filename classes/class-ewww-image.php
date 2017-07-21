@@ -166,15 +166,15 @@ class EWWW_Image {
 		if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
 			ewwwio_debug_message( print_r( $new_image, true ) );
 		}
-		$this->id 		= $new_image['id'];
-		$this->file		= ewww_image_optimizer_relative_path_replace( $new_image['path'] );
-		$this->attachment_id 	= $new_image['attachment_id'];
-		$this->opt_size		= $new_image['image_size'];
-		$this->orig_size	= $new_image['orig_size'];
-		$this->resize		= $new_image['resize'];
-		$this->converted	= ewww_image_optimizer_relative_path_replace( $new_image['converted'] );
-		$this->gallery		= ( empty( $gallery ) ? $new_image['gallery'] : $gallery );
-		$this->backup		= $new_image['backup'];
+		$this->id            = $new_image['id'];
+		$this->file          = ewww_image_optimizer_relative_path_replace( $new_image['path'] );
+		$this->attachment_id = $new_image['attachment_id'];
+		$this->opt_size      = $new_image['image_size'];
+		$this->orig_size     = $new_image['orig_size'];
+		$this->resize        = $new_image['resize'];
+		$this->converted     = ewww_image_optimizer_relative_path_replace( $new_image['converted'] );
+		$this->gallery       = ( empty( $gallery ) ? $new_image['gallery'] : $gallery );
+		$this->backup        = $new_image['backup'];
 	}
 
 	/**
@@ -210,8 +210,7 @@ class EWWW_Image {
 		wp_update_post( array(
 			'ID' => $this->attachment_id,
 			'post_mime_type' => $mime,
-			)
-		);
+		) );
 	}
 
 	/**

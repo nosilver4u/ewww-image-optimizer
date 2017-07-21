@@ -54,7 +54,8 @@ class EWWWIO_CLI extends WP_CLI_Command {
 		global $ewww_defer;
 		$ewww_defer = false;
 		// because NextGEN hasn't flushed it's buffers...
-		while ( @ob_end_flush() ) {}
+		while ( @ob_end_flush() ) {
+		}
 		$library = $args[0];
 		if ( empty( $args[1] ) ) {
 			$delay = ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' );

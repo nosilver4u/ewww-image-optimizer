@@ -50,7 +50,7 @@ class EWWWIO_Media_Background_Process extends WP_Background_Process {
 	 * @global bool $ewww_defer True to defer optimization, false otherwise.
 	 *
 	 * @param array $item The id of the attachment, how many attempts have been made to process
-	 *		 the item, the type of attachment, and whether it is a new upload.
+	 *                    the item, the type of attachment, and whether it is a new upload.
 	 * @return bool|array If the item is not complete, return it. False indicates completion.
 	 */
 	protected function task( $item ) {
@@ -482,7 +482,7 @@ class EWWWIO_Async_Request extends WP_Async_Request {
 		if ( is_file( $file_path ) ) {
 			return $file_path;
 		}
-		// Retrieve the location of the wordpress upload folder.
+		// Retrieve the location of the WordPress upload folder.
 		$upload_dir = wp_upload_dir();
 		$upload_path = trailingslashit( $upload_dir['basedir'] );
 		$file = $upload_path . $file_path;

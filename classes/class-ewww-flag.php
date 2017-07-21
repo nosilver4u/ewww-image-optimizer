@@ -98,7 +98,8 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 				return;
 			}
 			?>
-			<div class="wrap"><h1>GRAND FlAGallery <?php esc_html_e( 'Bulk Optimize', 'ewww-image-optimizer' ); ?></h1><?php
+			<div class="wrap"><h1>GRAND FlAGallery <?php esc_html_e( 'Bulk Optimize', 'ewww-image-optimizer' ); ?></h1>
+			<?php
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 				ewww_image_optimizer_cloud_verify();
 				echo '<a id="ewww-bulk-credits-available" target="_blank" class="page-title-action" style="float:right;" href="https://ewww.io/my-account/">' . esc_html__( 'Image credits available:', 'ewww-image-optimizer' ) . ' ' . ewww_image_optimizer_cloud_quota() . '</a>';
@@ -124,20 +125,20 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 				<div class="meta-box-sortables">
 					<div id="ewww-bulk-last" class="postbox">
 						<button type="button" class="handlediv button-link" aria-expanded="true">
-							<span class="screen-reader-text"><?php esc_html_e( 'Click to toggle', 'ewww-image-optimizer' ) ?></span>
+							<span class="screen-reader-text"><?php esc_html_e( 'Click to toggle', 'ewww-image-optimizer' ); ?></span>
 							<span class="toggle-indicator" aria-hidden="true"></span>
 						</button>
-						<h2 class="hndle"><span><?php esc_html_e( 'Last Image Optimized', 'ewww-image-optimizer' ) ?></span></h2>
+						<h2 class="hndle"><span><?php esc_html_e( 'Last Image Optimized', 'ewww-image-optimizer' ); ?></span></h2>
 						<div class="inside"></div>
 					</div>
 				</div>
 				<div class="meta-box-sortables">
 					<div id="ewww-bulk-status" class="postbox">
 						<button type="button" class="handlediv button-link" aria-expanded="true">
-							<span class="screen-reader-text"><?php esc_html_e( 'Click to toggle', 'ewww-image-optimizer' ) ?></span>
+							<span class="screen-reader-text"><?php esc_html_e( 'Click to toggle', 'ewww-image-optimizer' ); ?></span>
 							<span class="toggle-indicator" aria-hidden="true"></span>
 						</button>
-						<h2 class="hndle"><span><?php esc_html_e( 'Optimization Log', 'ewww-image-optimizer' ) ?></span></h2>
+						<h2 class="hndle"><span><?php esc_html_e( 'Optimization Log', 'ewww-image-optimizer' ); ?></span></h2>
 						<div class="inside"></div>
 					</div>
 				</div>
@@ -250,8 +251,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 				'temporary_failure' => esc_html__( 'Temporary failure, seconds left to retry:', 'ewww-image-optimizer' ),
 				'remove_failed' => esc_html__( 'Could not remove image from table.', 'ewww-image-optimizer' ),
 				'optimized' => esc_html__( 'Optimized', 'ewww-image-optimizer' ),
-				)
-			);
+			) );
 		}
 
 		/**
