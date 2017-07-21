@@ -356,27 +356,6 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test max lossless PNG with API.
-	 */
-	function test_optimize_png_30() {
-		update_option( 'ewww_image_optimizer_png_level', 30 );
-		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
-		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
-		update_site_option( 'ewww_image_optimizer_png_level', 30 );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
-		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
-		$test_png = self::$test_png;
-		self::$test_png = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/Opera_512x512.png' );
-		$results = $this->optimize_png();
-		update_option( 'ewww_image_optimizer_cloud_key', '' );
-		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
-		$this->assertEquals( 37461, filesize( $results[0] ) );
-		unlink( self::$test_png );
-		self::$test_png = $test_png;
-		unlink( $results[0] );
-	}
-
-	/**
 	 * Test regular lossy PNG with API.
 	 */
 	function test_optimize_png_40() {

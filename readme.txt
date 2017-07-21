@@ -2,7 +2,7 @@
 Contributors: nosilver4u
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW
 Tags: image, compress, optimize, optimization, lossless, lossy, photo, picture, seo, jpegmini, tinyjpg, tinypng, webp, wp-cli
-Requires at least: 4.4
+Requires at least: 4.6
 Tested up to: 4.8
 Stable tag: 3.5.1
 License: GPLv3
@@ -213,6 +213,27 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * Thank you to everyone who donated for a new Macbook, new binaries are here!
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
+
+= 3.5.2 =
+In an effort to simplify the settings page and make room for new features, many settings have been "hidden" and/or rearranged. It is my hope that this will make it easier for new users to get going with EWWW IO.
+You can find more information about overriding options in the [Documentation](http://docs.ewww.io)
+* added: ability to override any boolean/integer options by defining constant of the same name
+* added: debug information included automatically with help beacon requests when debugging is enabled
+* added: use wp_raise_memory_limit (WP 4.6+) to avoid memory issues
+* added: use wp_is_ini_value_changeable (WP 4.6+) to avoid errors when raising max_execution_time
+* changed: Better Lossless and Maximum Lossless have been combined for PNG images with more intelligent usage of advpng on the API
+* changed: resize settings moved to new tab
+* changed: various options have been removed from the settings page, but are still available via constants, see removals
+* removed: ewww_image_optimizer_delay (Bulk Delay), can be selected on the bulk page instead
+* removed: ewww_image_optimizer_optipng_level (OptiPNG level) option
+* removed: ewww_image_optimizer_pngout_level (PNGOUT level) option
+* removed: ewww_image_optimizer_disable_pngout (Disable PNGOUT) option
+* removed: ewww_image_optimizer_skip_size (Skip Small Images) option
+* removed: ewww_image_optimizer_skip_png_size (Skip Large PNG Images) option
+* removed: ewww_image_optimizer_lossy_skip_full (Exclude full-size images from lossy optimization) option
+* removed: ewww_image_optimizer_metadata_skip_full (Exclude full-size images from metadata removal) option
+* removed: ewww_image_optimizer_skip_bundle (Use System Paths) option
+* removed: PNGOUT installer, will still be used if installed manually
 
 = 3.5.1 =
 * added: optional help beacons on bulk and settings pages

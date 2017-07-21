@@ -1,3 +1,30 @@
+= 3.5.1 =
+* added: optional help beacons on bulk and settings pages
+* added: disable deferring of WP Offload S3 uploads with EWWW_IMAGE_OPTIMIZER_NO_DEFER_S3
+* added: override use of wp_add_inline_script with non-standard jQuery by defining EWWW_IMAGE_OPTIMIZER_WEBP_INLINE_FALLBACK
+* fixed: javascript for bulk optimizers in NextGEN, NextCellent and FlaGallery 
+
+= 3.5.0 =
+* added: compatibility with S3 Uploads by Human Made
+* added: MediaPress uploads fully optimized on upload
+* changed: WebP .htaccess rewrite rule verifier more flexible
+* changed: WebP .htaccess rewrite rules allow appending type=original to access non-WebP image
+* changed: if an image is too small for resizing, but the dimensions in the metadata are incorrect, it will attempt to update them
+* fixed: fatal error if image metadata cannot be read by PEL
+* fixed: WebP .htaccess rewrite rules work better on LiteSpeed
+* fixed: WP Symposium integration using old options, scanner now includes avatars folder by default
+
+= 3.4.1 =
+* added: move the Alt WebP script to an external resource by defining EWWW_IMAGE_OPTIMIZER_WEBP_EXTERNAL_SCRIPT
+* changed: API keys are partially revealed, for easier verification
+* changed: API key no longer uses password field to avoid problems with auto-fill
+* changed: API key activation raises JPG and PNG to lossy and enables backups
+* fixed: bulk delay setting not carried over to bulk optimizer
+* fixed: WP Offload S3 uploads images prior to background optimization, resulting in a second upload afterwards
+* fixed: single-site settings override not saving in certain cases on multisite
+* fixed: AMP pages are broken when Alt WebP is enabled with old versions of libxml (less than 2.8.0)
+* removed: unnecessary call to WP Offload S3 update function after optimization
+
 = 3.4.0 =
 * added: optional usage tracking
 * added: close sessions even earlier in background/async handling to prevent lock-ups
