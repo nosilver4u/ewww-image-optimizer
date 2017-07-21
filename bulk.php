@@ -1402,11 +1402,13 @@ function ewww_image_optimizer_bulk_counter_measures( $image ) {
 				// MAYBE:::In any of the cases, output some sort of warning to let the user know we took evasive action, and they might need to adjust their settings.
 			} // End if().
 			set_transient( 'ewww_image_optimizer_failed_file', $image->file, 600 );
+			return $previous_countermeasures;
 		} else {
 			delete_transient( 'ewww_image_optimizer_failed_file' );
 			delete_transient( 'ewww_image_optimizer_bulk_counter_measures' );
 		} // End if().
 	} // End if().
+	return false;
 }
 /**
  * Called by AJAX to process each image in the queue.
@@ -1464,7 +1466,6 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 	$output['results'] = '';
 	$output['completed'] = 0;
 	while ( $output['completed'] < $batch_image_limit && $image->file && microtime( true ) - $started + $time_adjustment < apply_filters( 'ewww_image_optimizer_timeout', 15 ) ) {
-		set_transient( 'ewww_image_optimizer_bulk_current_image', $image->file, 600 );
 		$output['completed']++;
 		$meta = false;
 		// See if the image needs fetching from a CDN.
@@ -1485,7 +1486,11 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		if ( $image->resize && 'full' != $image->resize && ! is_file( $image->file ) ) {
 			// TODO: Make sure this is optional, because of CDN offloading: resized image does not exist, regenerate it.
 		}
-		ewww_image_optimizer_bulk_counter_measures( $image );
+		$countermeasures = ewww_image_optimizer_bulk_counter_measures( $image );
+		if ( $countermeasures ) {
+			$batch_image_limit = 1;
+		}
+		set_transient( 'ewww_image_optimizer_bulk_current_image', $image->file, 600 );
 		if ( 'full' === $image->resize && ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) && ! function_exists( 'imsanity_get_max_width_height' ) ) {
 			if ( ! $meta || ! is_array( $meta ) ) {
 				$meta = wp_get_attachment_metadata( $image->attachment_id );
@@ -1567,6 +1572,8 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		}
 		$image = $next_image;
 		$time_adjustment = $image->time_estimate();
+		delete_transient( 'ewww_image_optimizer_bulk_counter_measures' );
+		delete_transient( 'ewww_image_optimizer_bulk_current_image' );
 	} // End while().
 
 	// Calculate how much time has elapsed since we started.
