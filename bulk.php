@@ -124,18 +124,18 @@ function ewww_image_optimizer_bulk_action_output( $button_text, $fullsize_count,
 	/* translators: %d: number of images */
 	$scanning_starter_message = sprintf( esc_html__( 'Stage 1, %d images left to scan.', 'ewww-image-optimizer' ), $fullsize_count );
 	?>
-		<p id="ewww-nothing" class="ewww-bulk-info" style="display:none"><?php echo esc_html_e( 'There are no images to optimize.', 'ewww-image-optimizer' ); ?></p>
-		<p id="ewww-scanning" class="ewww-bulk-info" style="display:none"><?php echo $scanning_starter_message; ?>&nbsp;<img src='<?php echo $loading_image; ?>' alt='loading'/></p>
+	<p id="ewww-nothing" class="ewww-bulk-info" style="display:none"><?php echo esc_html_e( 'There are no images to optimize.', 'ewww-image-optimizer' ); ?></p>
+	<p id="ewww-scanning" class="ewww-bulk-info" style="display:none"><?php echo $scanning_starter_message; ?>&nbsp;<img src='<?php echo $loading_image; ?>' alt='loading'/></p>
 	<?php
-	if ( 'true' == $resume ) {
-	?>
+	if ( 'true' != $resume ) {
+		?>
 		<form id="ewww-aux-start" class="ewww-bulk-form" method="post" action="">
 			<input id="ewww-aux-first" type="submit" class="button-primary action" value="<?php esc_attr_e( 'Scan for unoptimized images', 'ewww-image-optimizer' ); ?>" />
 			<input id="ewww-aux-again" type="submit" class="button-secondary action" style="display:none" value="<?php esc_attr_e( 'Scan Again', 'ewww-image-optimizer' ); ?>" />
 		</form>
-	<?php
+		<?php
 	} else {
-	?>
+		?>
 		<form id="ewww-bulk-start" class="ewww-bulk-form" method="post" action="">
 			<input id="ewww-aux-first" type="submit" class="button-primary action" value="<?php echo $button_text; ?>" />
 		</form>
