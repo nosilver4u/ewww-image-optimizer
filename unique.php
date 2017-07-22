@@ -118,14 +118,6 @@ function ewww_image_optimizer_notice_os() {
 }
 
 /**
- * Inform the user that only ewww-image-optimizer-cloud is permitted on WP Engine.
- */
-function ewww_image_optimizer_notice_wpengine() {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	echo "<div id='ewww-image-optimizer-warning-wpengine' class='error'><p>" . esc_html__( 'The regular version of the EWWW Image Optimizer plugin is not permitted on WP Engine sites. However, the cloud version has been approved by WP Engine. Please deactivate EWWW Image Optimizer and install EWWW Image Optimizer Cloud to optimize your images.', 'ewww-image-optimizer' ) . '</p></div>';
-}
-
-/**
  * Generates the source and destination paths for the executables that we bundle with the plugin.
  *
  * Paths are determined based on the operating system and architecture.

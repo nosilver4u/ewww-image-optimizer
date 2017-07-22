@@ -31,6 +31,7 @@
 // TODO: check this patch, to see if the use of 'full' causes any issues: https://core.trac.wordpress.org/ticket/37840 .
 // TODO: perhaps have an optional footer thingy that says how many images have been optimized.
 // TODO: integrate AGR, since it's "abandoned", but possibly using gifsicle for better GIFs.
+// TODO: move the wpengine pre-empt to the same place as PHP 5.2 check.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -1099,7 +1100,7 @@ function ewww_image_optimizer_admin_init() {
 	}
 	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
 		// Set the common network settings if they have been POSTed.
-		if ( isset( $_POST['ewww_image_optimizer_debug'] ) && current_user_can( 'manage_network_options' ) && ! get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'ewww_image_optimizer_options-options' ) ) {
+		if ( isset( $_POST['ewww_image_optimizer_jpg_level'] ) && current_user_can( 'manage_network_options' ) && ! get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'ewww_image_optimizer_options-options' ) ) {
 			if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
 				ewwwio_debug_message( print_r( $_POST, true ) );
 			}
