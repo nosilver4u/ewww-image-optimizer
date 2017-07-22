@@ -1572,8 +1572,6 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		}
 		$image = $next_image;
 		$time_adjustment = $image->time_estimate();
-		delete_transient( 'ewww_image_optimizer_bulk_counter_measures' );
-		delete_transient( 'ewww_image_optimizer_bulk_current_image' );
 	} // End while().
 
 	// Calculate how much time has elapsed since we started.
