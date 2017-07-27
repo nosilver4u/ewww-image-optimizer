@@ -503,7 +503,7 @@ function ewww_image_optimizer_optimized_list() {
 	if ( defined( 'EWWW_IMAGE_OPTIMIZER_SCAN_MODE_B' ) && EWWW_IMAGE_OPTIMIZER_SCAN_MODE_B ) { // User manually enabled Plan B.
 		ewwwio_debug_message( 'user chose low memory mode' );
 		$optimized_list = 'user_configured';
-		set_transient( 'ewww_image_optimizer_low_memory_mode', 'user_configured', 60 ); // Put it in low memory mode for at least 10 minutes.
+		set_transient( 'ewww_image_optimizer_low_memory_mode', 'user_configured', 90 ); // Put it in low memory mode for at least 10 minutes.
 		return;
 	}
 	if ( get_transient( 'ewww_image_optimizer_low_memory_mode' ) ) {
@@ -543,7 +543,7 @@ function ewww_image_optimizer_optimized_list() {
 		}
 		$elapsed = microtime( true ) - $started;
 		ewwwio_debug_message( "loading optimized list took $elapsed seconds so far" );
-		if ( $elapsed > 9 ) {
+		if ( $elapsed > 5 ) {
 			ewwwio_debug_message( 'loading optimized list took too long' );
 			$optimized_list = 'large_list';
 			set_transient( 'ewww_image_optimizer_low_memory_mode', 'large_list', 600 ); // Use low memory mode so that we don't waste lots of time pulling a huge list of images repeatedly.
@@ -636,7 +636,6 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	}
 	global $optimized_list;
 	$image_count = 0;
-	$reset_count = 0;
 	$attachments_processed = 0;
 	$attachment_query = '';
 	$images = array();
@@ -1145,6 +1144,10 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	}
 	if ( ! empty( $reset_images ) ) {
 		$ewwwdb->query( "UPDATE $ewwwdb->ewwwio_images SET pending = 1, updated = updated WHERE id IN (" . implode( ',', $reset_images ) . ')' );
+	}
+	if ( 100 > $attachments_processed ) { // in-memory table is too slow.
+		ewwwio_debug_message( 'using in-memory table is too slow, switching to plan b' );
+		set_transient( 'ewww_image_optimizer_low_memory_mode', 'slow_list', 600 ); // Put it in low memory mode for at least 10 minutes.
 	}
 	ewwwio_debug_message( 'storing remaining attachments in scanning_attachments' );
 	ewww_image_optimizer_debug_log();

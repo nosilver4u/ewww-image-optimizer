@@ -96,11 +96,13 @@ function ewww_image_optimizer_aux_images() {
 		$hs_identify = array(
 			'email' => $help_email,
 		);
-		$ewww_debug_array = explode( '<br>', $ewww_debug );
-		$ewww_debug_i = 0;
-		foreach ( $ewww_debug_array as $ewww_debug_line ) {
-			$hs_identify[ 'debug_info_' . $ewww_debug_i ] = $ewww_debug_line;
-			$ewww_debug_i++;
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
+			$ewww_debug_array = explode( '<br>', $ewww_debug );
+			$ewww_debug_i = 0;
+			foreach ( $ewww_debug_array as $ewww_debug_line ) {
+				$hs_identify[ 'debug_info_' . $ewww_debug_i ] = $ewww_debug_line;
+				$ewww_debug_i++;
+			}
 		}
 		?>
 <script type='text/javascript'>

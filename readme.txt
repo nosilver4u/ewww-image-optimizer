@@ -221,9 +221,12 @@ You can find more information about overriding options in the [Documentation](ht
 * added: debug information included automatically with help beacon requests when debugging is enabled
 * added: use wp_raise_memory_limit (WP 4.6+) to avoid memory issues
 * added: use wp_is_ini_value_changeable (WP 4.6+) to avoid errors when raising max_execution_time
+* added: notice to use cloud version on Kinsta sites
 * changed: Better Lossless and Maximum Lossless have been combined for PNG images with more intelligent usage of advpng on the API
 * changed: resize settings moved to new tab
 * changed: various options have been removed from the settings page, but are still available via constants, see removals
+* changed: bulk optimizer will auto-adjust settings if an image fails to optimize
+* changed: bulk scanner will go into fall-back mode if the normal mode is too slow or if the image table takes longer than 5 seconds to load
 * removed: ewww_image_optimizer_delay (Bulk Delay), can be selected on the bulk page instead
 * removed: ewww_image_optimizer_optipng_level (OptiPNG level) option
 * removed: ewww_image_optimizer_pngout_level (PNGOUT level) option

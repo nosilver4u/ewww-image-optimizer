@@ -31,7 +31,6 @@
 // TODO: check this patch, to see if the use of 'full' causes any issues: https://core.trac.wordpress.org/ticket/37840 .
 // TODO: perhaps have an optional footer thingy that says how many images have been optimized.
 // TODO: integrate AGR, since it's "abandoned", but possibly using gifsicle for better GIFs.
-// TODO: move the wpengine pre-empt to the same place as PHP 5.2 check.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -7619,11 +7618,13 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$hs_identify = array(
 			'email' => $help_email,
 		);
-		$ewww_debug_array = explode( '<br>', $ewww_debug );
-		$ewww_debug_i = 0;
-		foreach ( $ewww_debug_array as $ewww_debug_line ) {
-			$hs_identify[ 'debug_info_' . $ewww_debug_i ] = $ewww_debug_line;
-			$ewww_debug_i++;
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
+			$ewww_debug_array = explode( '<br>', $ewww_debug );
+			$ewww_debug_i = 0;
+			foreach ( $ewww_debug_array as $ewww_debug_line ) {
+				$hs_identify[ 'debug_info_' . $ewww_debug_i ] = $ewww_debug_line;
+				$ewww_debug_i++;
+			}
 		}
 		?>
 <script type='text/javascript'>
