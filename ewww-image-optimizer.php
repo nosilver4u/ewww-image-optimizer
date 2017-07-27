@@ -71,7 +71,7 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 50300 ) {
 	 *
 	 * @var string EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL
 	 */
-	define( 'EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL', 'ewww-image-optimizer/ewww-image-optimizer.php' );
+	define( 'EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL', basename( plugin_dir_path( __FILE__ ) ) . '/' . basename( __FILE__ ) );
 	/**
 	 * This is the full system path to the plugin folder.
 	 *

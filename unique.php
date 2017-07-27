@@ -65,7 +65,7 @@ function ewww_image_optimizer_exec_init() {
 		add_action( 'load-upload.php', 'ewww_image_optimizer_tool_init', 9 );
 		add_action( 'load-media-new.php', 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-media_page_ewww-image-optimizer-bulk', 'ewww_image_optimizer_tool_init' );
-		add_action( 'load-settings_page_ewww-image-optimizer/ewww-image-optimizer', 'ewww_image_optimizer_tool_init' );
+		add_action( 'load-settings_page_' . str_replace( '.php', '', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ), 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-plugins.php', 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-ims_gallery_page_ewww-ims-optimize', 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-media_page_ewww-image-optimizer-unoptimized', 'ewww_image_optimizer_tool_init' );
