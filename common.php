@@ -27,7 +27,6 @@
 // TODO: write some tests for update_table and check_table, find_already_opt, and remove_dups.
 // TODO: write some conversion tests.
 // TODO: do a bottom paginator for the show optimized images table.
-// TODO: use wp_http_supports( array( 'ssl' ) ) to detect whether we should use https.
 // TODO: check this patch, to see if the use of 'full' causes any issues: https://core.trac.wordpress.org/ticket/37840 .
 // TODO: perhaps have an optional footer thingy that says how many images have been optimized.
 // TODO: integrate AGR, since it's "abandoned", but possibly using gifsicle for better GIFs.
@@ -2912,20 +2911,13 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 	if ( ! empty( $image['path'] ) ) {
 		$image['path'] = ewww_image_optimizer_relative_path_replace( $image['path'] );
 	}
-	$ewww_cloud_transport = get_transient( 'ewww_image_optimizer_cloud_transport' );
-	if ( empty( $ewww_cloud_transport ) ) {
-		if ( ! ewww_image_optimizer_cloud_verify() ) {
-			return false;
-		} else {
-			$ewww_cloud_transport = get_transient( 'ewww_image_optimizer_cloud_transport' );
-		}
-	}
-	if ( empty( $ewww_cloud_transport ) ) {
-		$ewww_cloud_transport = 'https';
-	}
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
 	$domain = parse_url( get_site_url(), PHP_URL_HOST );
-	$url = "$ewww_cloud_transport://optimize.exactlywww.com/backup/restore.php";
+	$url = 'http://optimize.exactlywww.com/backup/restore.php';
+	$ssl = wp_http_supports( array( 'ssl' ) );
+	if ( $ssl ) {
+		$url = set_url_scheme( $url, 'https' );
+	}
 	$result = wp_remote_post( $url, array(
 		'timeout' => 30,
 		'sslverify' => false,
@@ -3189,9 +3181,7 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 	}
 	add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 	$ewww_cloud_status = get_transient( 'ewww_image_optimizer_cloud_status' );
-	$ewww_cloud_ip = get_transient( 'ewww_image_optimizer_cloud_ip' );
-	$ewww_cloud_transport = get_transient( 'ewww_image_optimizer_cloud_transport' );
-	if ( ! ewww_image_optimizer_detect_wpsf_location_lock() && $cache && preg_match( '/^(\d{1,3}\.){3}\d{1,3}$/', $ewww_cloud_ip ) && preg_match( '/http/', $ewww_cloud_transport ) && preg_match( '/great/', $ewww_cloud_status ) ) {
+	if ( ! ewww_image_optimizer_detect_wpsf_location_lock() && $cache && preg_match( '/great/', $ewww_cloud_status ) ) {
 		ewwwio_debug_message( 'using cached verification' );
 		global $ewwwio_async_key_verification;
 		if ( ! class_exists( 'WP_Background_Process' ) ) {
@@ -3203,62 +3193,31 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 		$ewwwio_async_key_verification->dispatch();
 		return $ewww_cloud_status;
 	}
-	if ( 'https' !== $ewww_cloud_transport && 'http' !== $ewww_cloud_transport ) {
-		$ewww_cloud_transport = 'https';
+	$url = 'http://optimize.exactlywww.com/verify/';
+	$ssl = wp_http_supports( array( 'ssl' ) );
+	if ( $ssl ) {
+		$url = set_url_scheme( $url, 'https' );
 	}
-	if ( preg_match( '/^(\d{1,3}\.){3}\d{1,3}$/', $ewww_cloud_ip ) ) {
-		ewwwio_debug_message( 'using cached ip' );
-		$result = ewww_image_optimizer_cloud_post_key( $ewww_cloud_ip, $ewww_cloud_transport, $api_key );
-		if ( is_wp_error( $result ) ) {
-			$ewww_cloud_transport = 'http';
-			$error_message = $result->get_error_message();
-			ewwwio_debug_message( "verification failed: $error_message" );
-			$result = ewww_image_optimizer_cloud_post_key( $ewww_cloud_ip, $ewww_cloud_transport, $api_key );
-		}
-		if ( is_wp_error( $result ) ) {
-			$error_message = $result->get_error_message();
-			ewwwio_debug_message( "verification failed: $error_message" );
-		} elseif ( ! empty( $result['body'] ) && preg_match( '/(great|exceeded)/', $result['body'] ) ) {
-			$verified = $result['body'];
-			ewwwio_debug_message( "verification success via: $ewww_cloud_transport://$ewww_cloud_ip" );
-		} else {
-			ewwwio_debug_message( "verification failed via: $ewww_cloud_ip" );
-			if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
-				ewwwio_debug_message( print_r( $result, true ) );
-			}
-		}
+	$result = ewww_image_optimizer_cloud_post_key( $url, $api_key );
+	if ( is_wp_error( $result ) ) {
+		$url = set_url_scheme( $url, 'http' );
+		$error_message = $result->get_error_message();
+		ewwwio_debug_message( "verification failed: $error_message" );
+		$result = ewww_image_optimizer_cloud_post_key( $url, $api_key );
 	}
-	if ( empty( $verified ) ) {
-		$ewww_cloud_transport = 'https';
-		$servers = gethostbynamel( 'optimize.exactlywww.com' );
-		if ( empty( $servers ) ) {
-			ewwwio_debug_message( 'unable to resolve servers' );
-			return false;
+	if ( is_wp_error( $result ) ) {
+		$error_message = $result->get_error_message();
+		ewwwio_debug_message( "verification failed via $url: $error_message" );
+	} elseif ( ! empty( $result['body'] ) && preg_match( '/(great|exceeded)/', $result['body'] ) ) {
+		$verified = $result['body'];
+		if ( preg_match( '/exceeded/', $verified ) ) {
+			ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_exceeded', time() + 300 );
 		}
-		if ( ewww_image_optimizer_iterable( $servers ) ) {
-			foreach ( $servers as $ip ) {
-				$result = ewww_image_optimizer_cloud_post_key( $ip, $ewww_cloud_transport, $api_key );
-				if ( is_wp_error( $result ) ) {
-					$ewww_cloud_transport = 'http';
-					$error_message = $result->get_error_message();
-					ewwwio_debug_message( "verification failed via $ewww_cloud_transport://$ip: $error_message" );
-				} elseif ( ! empty( $result['body'] ) && preg_match( '/(great|exceeded)/', $result['body'] ) ) {
-					$verified = $result['body'];
-					if ( preg_match( '/exceeded/', $verified ) ) {
-						ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_exceeded', time() + 300 );
-					}
-					$ewww_cloud_ip = $ip;
-					ewwwio_debug_message( "verification success via: $ewww_cloud_transport://$ewww_cloud_ip" );
-					break;
-				} else {
-					ewwwio_debug_message( "verification failed via: $ip" );
-					if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
-						ewwwio_debug_message( print_r( $result, true ) );
-					}
-				}
-			}
-		} else {
-			ewwwio_debug_message( 'unable to parse server list' );
+		ewwwio_debug_message( "verification success via: $url" );
+	} else {
+		ewwwio_debug_message( "verification failed via: $url" );
+		if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
+			ewwwio_debug_message( print_r( $result, true ) );
 		}
 	}
 	if ( empty( $verified ) ) {
@@ -3266,8 +3225,6 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 		return false;
 	} else {
 		set_transient( 'ewww_image_optimizer_cloud_status', $verified, 3600 );
-		set_transient( 'ewww_image_optimizer_cloud_ip', $ewww_cloud_ip, 3600 );
-		set_transient( 'ewww_image_optimizer_cloud_transport', $ewww_cloud_transport, 3600 );
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) < 20 && ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) < 20 && ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) < 20 && ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) == 0 ) {
 			ewww_image_optimizer_cloud_enable();
 		}
@@ -3280,13 +3237,12 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 /**
  * POSTs the API key to the API for verification.
  *
- * @param string $ip IP address of the server to use.
- * @param string $transport The transport to use: http or https.
+ * @param string $url The address of the server to use.
  * @param string $key The API key to submit via POST.
  * @return array The results of the http POST request.
  */
-function ewww_image_optimizer_cloud_post_key( $ip, $transport, $key ) {
-	$result = wp_remote_post( "$transport://$ip/verify/", array(
+function ewww_image_optimizer_cloud_post_key( $url, $key ) {
+	$result = wp_remote_post( $url, array(
 		'timeout' => 5,
 		'sslverify' => false,
 		'body' => array(
@@ -3303,20 +3259,12 @@ function ewww_image_optimizer_cloud_post_key( $ip, $transport, $key ) {
  */
 function ewww_image_optimizer_cloud_quota() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	// $ewww_cloud_ip = get_transient( 'ewww_image_optimizer_cloud_ip' );
-	$ewww_cloud_transport = get_transient( 'ewww_image_optimizer_cloud_transport' );
-	if ( empty( $ewww_cloud_transport ) ) {
-		if ( ! ewww_image_optimizer_cloud_verify() ) {
-			return '';
-		} else {
-			$ewww_cloud_transport = get_transient( 'ewww_image_optimizer_cloud_transport' );
-		}
-	}
-	if ( empty( $ewww_cloud_transport ) ) {
-		$ewww_cloud_transport = 'https';
-	}
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
-	$url = "$ewww_cloud_transport://optimize.exactlywww.com/quota/";
+	$url = 'http://optimize.exactlywww.com/quota/';
+	$ssl = wp_http_supports( array( 'ssl' ) );
+	if ( $ssl ) {
+		$url = set_url_scheme( $url, 'https' );
+	}
 	$result = wp_remote_post( $url, array(
 		'timeout' => 5,
 		'sslverify' => false,
@@ -3393,16 +3341,11 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		}
 		ewww_image_optimizer_debug_log();
 	}
-	$ewww_cloud_ip = get_transient( 'ewww_image_optimizer_cloud_ip' );
-	$ewww_cloud_transport = get_transient( 'ewww_image_optimizer_cloud_transport' );
 	$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
 	$started = microtime( true );
-	if ( empty( $ewww_cloud_ip ) || empty( $ewww_cloud_transport ) || preg_match( '/exceeded/', $ewww_status ) ) {
+	if ( preg_match( '/exceeded/', $ewww_status ) ) {
 		if ( ! ewww_image_optimizer_cloud_verify() ) {
 			return array( $file, false, 'key verification failed', 0, '' );
-		} else {
-			$ewww_cloud_ip = get_transient( 'ewww_image_optimizer_cloud_ip' );
-			$ewww_cloud_transport = get_transient( 'ewww_image_optimizer_cloud_transport' );
 		}
 	}
 	// Calculate how much time has elapsed since we started.
@@ -3491,7 +3434,11 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	ewwwio_debug_message( "jpg fill: $jpg_fill" );
 	ewwwio_debug_message( "jpg quality: $jpg_quality" );
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
-	$url = "$ewww_cloud_transport://$ewww_cloud_ip/v2/";
+	$url = 'http://optimize.exactlywww.com/v2/';
+	$ssl = wp_http_supports( array( 'ssl' ) );
+	if ( $ssl ) {
+		$url = set_url_scheme( $url, 'https' );
+	}
 	$boundary = wp_generate_password( 24, false );
 
 	$headers = array(
@@ -3539,7 +3486,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 
 	// Retrieve the time when the optimizer starts.
 	$response = wp_remote_post( $url, array(
-		'timeout' => 90,
+		'timeout' => 300,
 		'headers' => $headers,
 		'sslverify' => false,
 		'body' => $payload,
@@ -3601,17 +3548,12 @@ function ewww_image_optimizer_cloud_autorotate( $file, $type ) {
 		}
 		ewww_image_optimizer_debug_log();
 	}
-	$ewww_cloud_ip = get_transient( 'ewww_image_optimizer_cloud_ip' );
-	$ewww_cloud_transport = get_transient( 'ewww_image_optimizer_cloud_transport' );
 	$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
 	$started = microtime( true );
-	if ( empty( $ewww_cloud_ip ) || empty( $ewww_cloud_transport ) || preg_match( '/exceeded/', $ewww_status ) ) {
+	if ( preg_match( '/exceeded/', $ewww_status ) ) {
 		if ( ! ewww_image_optimizer_cloud_verify() ) {
 			ewwwio_debug_message( 'cloud verify failed, image not rotated' );
 			return false;
-		} else {
-			$ewww_cloud_ip = get_transient( 'ewww_image_optimizer_cloud_ip' );
-			$ewww_cloud_transport = get_transient( 'ewww_image_optimizer_cloud_transport' );
 		}
 	}
 	// Calculate how much time has elapsed since we started.
@@ -3625,7 +3567,11 @@ function ewww_image_optimizer_cloud_autorotate( $file, $type ) {
 	ewwwio_debug_message( "file: $file " );
 	ewwwio_debug_message( "type: $type" );
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
-	$url = "$ewww_cloud_transport://$ewww_cloud_ip/rotate/";
+	$url = 'http://optimize.exactlywww.com/rotate/';
+	$ssl = wp_http_supports( array( 'ssl' ) );
+	if ( $ssl ) {
+		$url = set_url_scheme( $url, 'https' );
+	}
 	$boundary = wp_generate_password( 24, false );
 
 	$headers = array(
