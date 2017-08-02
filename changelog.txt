@@ -1,3 +1,29 @@
+= 3.6.0 =
+In an effort to simplify the settings page and make room for new features, many settings have been "hidden" and/or rearranged. It is my hope that this will make it easier for new users to get going with EWWW IO.
+You can find more information about overriding options in the [Documentation](http://docs.ewww.io)
+* added: ability to override any boolean/integer options by defining constant of the same name
+* added: debug information included automatically with help beacon requests when debugging is enabled
+* added: use wp_raise_memory_limit (WP 4.6+) to avoid memory issues
+* added: use wp_is_ini_value_changeable (WP 4.6+) to avoid errors when raising max_execution_time
+* added: notice to use cloud version on Kinsta sites
+* changed: Better Lossless and Maximum Lossless have been combined for PNG images with more intelligent usage of advpng on the API
+* changed: resize settings moved to new tab
+* changed: various options have been removed from the settings page, but are still available via constants, see removals
+* changed: bulk optimizer will auto-adjust settings if an image fails to optimize
+* changed: bulk scanner will go into fall-back mode if the normal mode is too slow or if the image table takes longer than 5 seconds to load
+* changed: images previously compressed by TinyPNG/JPG will be skipped during bulk optimization
+* fixed: Optipng not working properly on Windows servers.
+* fixed: notice on settings and bulk pages when debug mode is disabled
+* removed: ewww_image_optimizer_delay (Bulk Delay), can be selected on the bulk page instead
+* removed: ewww_image_optimizer_optipng_level (OptiPNG level) option
+* removed: ewww_image_optimizer_pngout_level (PNGOUT level) option
+* removed: ewww_image_optimizer_disable_pngout (Disable PNGOUT) option
+* removed: ewww_image_optimizer_skip_size (Skip Small Images) option
+* removed: ewww_image_optimizer_skip_png_size (Skip Large PNG Images) option
+* removed: ewww_image_optimizer_lossy_skip_full (Exclude full-size images from lossy optimization) option
+* removed: ewww_image_optimizer_metadata_skip_full (Exclude full-size images from metadata removal) option
+* removed: ewww_image_optimizer_skip_bundle (Use System Paths) option
+
 = 3.5.1 =
 * added: optional help beacons on bulk and settings pages
 * added: disable deferring of WP Offload S3 uploads with EWWW_IMAGE_OPTIMIZER_NO_DEFER_S3

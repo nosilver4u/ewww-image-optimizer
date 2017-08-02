@@ -667,7 +667,7 @@ function ewww_image_optimizer_path_check( $j = true, $o = true, $g = true, $p = 
 			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_OPTIPNG' ) ) {
 				$optipng = ewww_image_optimizer_find_win_binary( 'optipng', 'o' );
 				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_OPTIPNG' );
-				define( 'EWWW_IMAGE_OPTIMIZER_', $optipng );
+				define( 'EWWW_IMAGE_OPTIMIZER_OPTIPNG', $optipng );
 			} else {
 				$optipng = EWWW_IMAGE_OPTIMIZER_OPTIPNG;
 			}

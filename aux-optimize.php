@@ -73,8 +73,28 @@ function ewww_image_optimizer_aux_images() {
 		esc_html__( 'This will allow us to assist you more quickly.', 'ewww-image-optimizer' );
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 		ewww_image_optimizer_options( 'debug-silent' );
+		?>
+<script type="text/javascript">
+	function selectText(containerid) {
+		var debug_node = document.getElementById(containerid);
+		if (document.selection) {
+			var range = document.body.createTextRange();
+			range.moveToElementText(debug_node);
+			range.select();
+		} else if (window.getSelection) {
+			window.getSelection().selectAllChildren(debug_node);
+		}
+	}
+</script>
+		<?php
 		global $ewww_debug;
-		$output .= '<div id="ewww-debug-info" style="clear:both;background:#ffff99;margin-left:-20px;padding:10px">' . $ewww_debug . '</div>';
+		$output .= '<p style="clear:both"><b>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</b> <button onclick="selectText(' . "'ewww-debug-info'" . ')">' . esc_html__( 'Select All', 'ewww-image-optimizer' ) . '</button>';
+		if ( is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
+			$debug_log_url = plugins_url( '/debug.log', __FILE__ );
+			$output .= "&emsp;<a href='$debug_log_url'>" . esc_html( 'View Debug Log', 'ewww-image-optimizer' ) . "</a> - <a href='admin.php?action=ewww_image_optimizer_delete_debug_log'>" . esc_html( 'Remove Debug Log', 'ewww-image-optimizer' ) . '</a>';
+		}
+		$output .= '</p>';
+		$output .= '<div id="ewww-debug-info" style="background:#ffff99;margin-left:-20px;padding:10px" contenteditable="true">' . $ewww_debug . '</div>';
 		$help_instructions = esc_html__( 'Debugging information will be included with your message automatically.', 'ewww-image-optimizer' ) . ' ' .
 			esc_html__( 'This will allow us to assist you more quickly.', 'ewww-image-optimizer' );
 	}

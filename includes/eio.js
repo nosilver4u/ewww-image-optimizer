@@ -244,7 +244,7 @@ jQuery(document).ready(function($) {
 		.fail(function() {
 			ewww_scan_failures++;
 			if (ewww_scan_failures > 10) {
-				$('#ewww-scanning').html('<span style="color: red"><b>' + ewww_vars.scan_fail + '</b></span>');
+				$('#ewww-scanning').html('<span style="color: red"><b>' + ewww_vars.scan_fail + ':</b> ' + ewww_vars.bulk_fail_more + '</span>');
 			} else {
 				$('#ewww-scanning').html('<span style="color: red"><b>' + ewww_vars.scan_incomplete + '</b></span>');
 				setTimeout(function() {
@@ -509,9 +509,9 @@ jQuery(document).ready(function($) {
 	        })
 		.fail(function() {
 			if (ewww_error_counter == 0) {
-				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.operation_interrupted + '</b></p>');
+				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.operation_interrupted + ':</b> ' + ewww_vars.bulk_fail_more + '</p>');
 			} else {
-				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.temporary_failure + ' ' + ewww_error_counter + '</b></p>');
+				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.temporary_failure + ' ' + ewww_error_counter + ' (' + ewww_vars.bulk_fail_more + ')</b></p>');
 				ewww_error_counter--;
 				setTimeout(function() {
 					ewwwProcessImage();

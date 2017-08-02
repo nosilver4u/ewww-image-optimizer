@@ -459,7 +459,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 		'scan_incomplete' => esc_html__( 'Scan did not complete, will try again', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' />",
 		'operation_stopped' => esc_html__( 'Optimization stopped, reload page to resume.', 'ewww-image-optimizer' ),
 		'operation_interrupted' => esc_html__( 'Operation Interrupted', 'ewww-image-optimizer' ),
-		'temporary_failure' => esc_html__( 'Temporary failure, seconds left to retry:', 'ewww-image-optimizer' ),
+		'temporary_failure' => esc_html__( 'Temporary failure, attempts remaining:', 'ewww-image-optimizer' ),
 		'invalid_response' => esc_html__( 'Received an invalid response from your website, please check for errors in the Developer Tools console of your browser.', 'ewww-image-optimizer' ),
 		'bad_attachment' => esc_html__( 'Previous failure due to broken/missing metadata, skipped resizes for attachment:', 'ewww-image-optimizer' ),
 		'remove_failed' => esc_html__( 'Could not remove image from table.', 'ewww-image-optimizer' ),
@@ -469,6 +469,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 		'time_remaining' => esc_html__( 'remaining', 'ewww-image-optimizer' ),
 		'original_restored' => esc_html__( 'Original Restored', 'ewww-image-optimizer' ),
 		'restoring' => '<p>' . esc_html__( 'Restoring', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
+		'bulk_fail_more' => '<a href="http://docs.ewww.io/article/39-bulk-optimizer-failure" target="_blank" data-beacon-article="596f84f72c7d3a73488b3ca7">' . esc_html__( 'more...', 'ewww-image-optimizer' ) . '</a>',
 	) );
 	// Load the stylesheet for the jquery progressbar.
 	wp_enqueue_style( 'jquery-ui-progressbar', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ) );
@@ -586,6 +587,8 @@ function ewww_image_optimizer_fetch_metadata_batch( $attachments_in ) {
 				$attachment_meta[ $attachment['post_id'] ]['type'] = $attachment['post_mime_type'];
 			}
 			continue;
+		} elseif ( 'tiny_compress_images' == $attachment['meta_key'] ) {
+			$attachment_meta[ $attachment['post_id'] ]['tinypng'] = true;
 		}
 		if ( ! empty( $attachment['post_mime_type'] ) && empty( $attachment_meta[ $attachment['post_id'] ]['type'] ) ) {
 			$attachment_meta[ $attachment['post_id'] ]['type'] = $attachment['post_mime_type'];
@@ -759,6 +762,10 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			clearstatcache();
 			$pending = false;
 			$remote_file = false;
+			if ( ! empty( $attachment_meta[ $selected_id ]['tinypng'] ) ) {
+				ewwwio_debug_message( "TinyPNG already compressed $selected_id" );
+				continue;
+			}
 			if ( empty( $attachment_meta[ $selected_id ]['meta'] ) ) {
 				ewwwio_debug_message( "empty meta for $selected_id" );
 				$meta = array();
@@ -779,7 +786,6 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				ewwwio_debug_message( "missing mime for $selected_id" );
 			}
 
-			ewww_image_optimizer_debug_log();
 			if ( 'application/pdf' != $mime // NOT a pdf...
 				&& ! in_array( $selected_id, $bad_attachments ) // AND NOT a known broken attachment, which would mean we already tried this once before...
 				&& ( // AND...
@@ -1145,7 +1151,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	if ( ! empty( $reset_images ) ) {
 		$ewwwdb->query( "UPDATE $ewwwdb->ewwwio_images SET pending = 1, updated = updated WHERE id IN (" . implode( ',', $reset_images ) . ')' );
 	}
-	if ( 100 > $attachments_processed ) { // in-memory table is too slow.
+	if ( 250 > $attachments_processed ) { // in-memory table is too slow.
 		ewwwio_debug_message( 'using in-memory table is too slow, switching to plan b' );
 		set_transient( 'ewww_image_optimizer_low_memory_mode', 'slow_list', 600 ); // Put it in low memory mode for at least 10 minutes.
 	}

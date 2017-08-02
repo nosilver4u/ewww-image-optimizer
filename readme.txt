@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: image, compress, optimize, optimization, lossless, lossy, photo, picture, seo, jpegmini, tinyjpg, tinypng, webp, wp-cli
 Requires at least: 4.6
 Tested up to: 4.8
-Stable tag: 3.5.1
+Stable tag: 3.6.0
 License: GPLv3
 
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
@@ -147,6 +147,7 @@ Webhosts where the plugin will only work in cloud mode or only some tools are in
 * Hostwinds
 * ipage (JPG only)
 * ipower
+* Kinsta - use EWWW Image Optimizer Cloud fork: https://wordpress.org/plugins/ewww-image-optimizer-cloud/
 * one.com - may not even work in cloud mode
 * WP Engine - use EWWW Image Optimizer Cloud fork: https://wordpress.org/plugins/ewww-image-optimizer-cloud/
 
@@ -214,7 +215,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
-= 3.5.2 =
+= 3.6.0 =
 In an effort to simplify the settings page and make room for new features, many settings have been "hidden" and/or rearranged. It is my hope that this will make it easier for new users to get going with EWWW IO.
 You can find more information about overriding options in the [Documentation](http://docs.ewww.io)
 * added: ability to override any boolean/integer options by defining constant of the same name
@@ -227,6 +228,9 @@ You can find more information about overriding options in the [Documentation](ht
 * changed: various options have been removed from the settings page, but are still available via constants, see removals
 * changed: bulk optimizer will auto-adjust settings if an image fails to optimize
 * changed: bulk scanner will go into fall-back mode if the normal mode is too slow or if the image table takes longer than 5 seconds to load
+* changed: images previously compressed by TinyPNG/JPG will be skipped during bulk optimization
+* fixed: Optipng not working properly on Windows servers.
+* fixed: notice on settings and bulk pages when debug mode is disabled
 * removed: ewww_image_optimizer_delay (Bulk Delay), can be selected on the bulk page instead
 * removed: ewww_image_optimizer_optipng_level (OptiPNG level) option
 * removed: ewww_image_optimizer_pngout_level (PNGOUT level) option
@@ -253,34 +257,14 @@ You can find more information about overriding options in the [Documentation](ht
 * fixed: WebP .htaccess rewrite rules work better on LiteSpeed
 * fixed: WP Symposium integration using old options, scanner now includes avatars folder by default
 
-= 3.4.1 =
-* added: move the Alt WebP script to an external resource by defining EWWW_IMAGE_OPTIMIZER_WEBP_EXTERNAL_SCRIPT
-* changed: API keys are partially revealed, for easier verification
-* changed: API key no longer uses password field to avoid problems with auto-fill
-* changed: API key activation raises JPG and PNG to lossy and enables backups
-* fixed: bulk delay setting not carried over to bulk optimizer
-* fixed: WP Offload S3 uploads images prior to background optimization, resulting in a second upload afterwards
-* fixed: single-site settings override not saving in certain cases on multisite
-* fixed: AMP pages are broken when Alt WebP is enabled with old versions of libxml (less than 2.8.0)
-* removed: unnecessary call to WP Offload S3 update function after optimization
-
-= 3.4.0 =
-* added: optional usage tracking
-* added: close sessions even earlier in background/async handling to prevent lock-ups
-* added: multisite option to network activate and allow individual site configuration
-* changed: disabling resizes must be done on individual sites even when network activated
-* changed: PNG files with empty alpha channels can be converted to JPG without setting a background/fill color
-* fixed: webp migration script sending wrong nonce variable
-* fixed: wp-cli help text was not being parsed properly
-* updated: bundled cwebp to version 0.6.0
-* updated: bundled pngquant to version 2.9.1 (2.8.1 for Windows)
-* deprecated: cwebp will not be updated for Mac OS X 10.9 past 0.5.1
-* obsoleted: FreeBSD 9 and CentOS 5 are "End of Life" and will no longer be tested
-
 = Earlier versions =
 Please refer to the separate changelog.txt file.
 
 == Upgrade Notice ==
+
+= 3.6.0 =
+* API functions have been rewritten to use core WP detection for https capability, please report any errors right away.
+* Several options have been removed from the user interface, see the changelog for details.
 
 = 3.4.0 =
 * Multisite change: disabling resizes must be done on individual sites even when network activated, as those settings are heavily theme-specific.

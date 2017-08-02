@@ -4,7 +4,7 @@
 **Tags:** image, attachment, optimize, optimization, lossless, lossy, photo, picture, seo, compression, gmagick, jpegtran, gifsicle, optipng, pngout, pngquant, jpegmini, tinyjpg, tinypng, webp, wp-cli   
 **Requires at least:** 4.4  
 **Tested up to:** 4.8
-**Stable tag:** 3.5.1
+**Stable tag:** 3.6.0
 **License:** GPLv3
 **Build Status:** [![Build Status](https://travis-ci.org/nosilver4u/ewww-image-optimizer.svg?branch=master)](https://travis-ci.org/nosilver4u/ewww-image-optimizer)
 
@@ -165,6 +165,7 @@ Webhosts where the plugin will only work in cloud mode or only some tools are in
 * Hostwinds
 * ipage (JPG only)
 * ipower
+* Kinsta - use EWWW Image Optimizer Cloud fork: https://wordpress.org/plugins/ewww-image-optimizer-cloud/
 * one.com - may not even work in cloud mode
 * WP Engine - use EWWW Image Optimizer Cloud fork: https://wordpress.org/plugins/ewww-image-optimizer-cloud/
 

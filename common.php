@@ -17,8 +17,6 @@
 // TODO: use a transient to do health checks on the schedule optimizer.
 // TODO: add a column to track compression level used for each image, and later implement a way to (re)compress at a specific compression level.
 // TODO: might be able to use the Custom Bulk Actions in 4.7 to support the bulk optimize drop-down menu.
-// TODO: see if there is a way to query the last couple months (or 30 days) worth of attachments, but only when the user is not using year/month folders. This way, they can catch extraneous images if possible. Use the post_date field, and do a media_scan followed by the folder scan to catch remaining images.
-// TODO: move resizing options into their own sub-menu.
 // TODO: need to make the scheduler so it can resume without having to re-run the queue population, and then we can probably also flush the queue when scheduled opt starts, but later it would be nice to implement the bulk_loop as the aux_loop so that it could handle media properly.
 // TODO: implement a search for the bulk table, or maybe we should just move it to it's own page?
 // TODO: port bulk changes to NextGEN and FlaGallery.
@@ -34,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '351.1' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '360.0' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -7521,25 +7519,24 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$help_instructions = esc_html__( 'Enable the Debugging option and refresh this page to include debugging information with your question.', 'ewww-image-optimizer' ) . ' ' .
 		esc_html__( 'This will allow us to assist you more quickly.', 'ewww-image-optimizer' );
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-	?>
+		?>
 <script type="text/javascript">
 	function selectText(containerid) {
+		var debug_node = document.getElementById(containerid);
 		if (document.selection) {
 			var range = document.body.createTextRange();
-			range.moveToElementText(document.getElementById(containerid));
+			range.moveToElementText(debug_node);
 			range.select();
 		} else if (window.getSelection) {
-			var range = document.createRange();
-			range.selectNode(document.getElementById(containerid));
-			window.getSelection().addRange(range);
+			window.getSelection().selectAllChildren(debug_node);
 		}
 	}
 </script>
 		<?php
 		global $ewww_debug;
-		$debug_log_url = plugins_url( '/debug.log', __FILE__ );
 		echo '<p style="clear:both"><b>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</b> <button onclick="selectText(' . "'ewww-debug-info'" . ')">' . esc_html__( 'Select All', 'ewww-image-optimizer' ) . '</button>';
 		if ( is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
+			$debug_log_url = plugins_url( '/debug.log', __FILE__ );
 			echo "&emsp;<a href='$debug_log_url'>" . esc_html( 'View Debug Log', 'ewww-image-optimizer' ) . "</a> - <a href='admin.php?action=ewww_image_optimizer_delete_debug_log'>" . esc_html( 'Remove Debug Log', 'ewww-image-optimizer' ) . '</a>';
 		}
 		echo '</p>';
