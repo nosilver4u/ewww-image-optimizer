@@ -10,7 +10,7 @@
  * @package EWWW_Image_Optimizer
  */
 
-// TODO: use <picture> element to serve webp.
+// TODO: use <picture> element to serve webp (#54).
 // TODO: see if we can offer a rebuild option, to fill in missing thumbs.
 // TODO: so, if lazy loading support stinks, can we roll our own? that's an image "optimization", right?...
 // TODO: prevent bad ajax errors from firing when we click the toggle on the Optimization Log, and the plugin status from doing 403s...
@@ -20,7 +20,7 @@
 // TODO: need to make the scheduler so it can resume without having to re-run the queue population, and then we can probably also flush the queue when scheduled opt starts, but later it would be nice to implement the bulk_loop as the aux_loop so that it could handle media properly.
 // TODO: implement a search for the bulk table, or maybe we should just move it to it's own page?
 // TODO: port bulk changes to NextGEN and FlaGallery.
-// TODO: make a bulk restore function.
+// TODO: make a bulk restore function, maybe.
 // TODO: Add a custom async function for parallel mode to store image as pending and use the row ID instead of relative path.
 // TODO: write some tests for update_table and check_table, find_already_opt, and remove_dups.
 // TODO: write some conversion tests.
@@ -28,11 +28,20 @@
 // TODO: check this patch, to see if the use of 'full' causes any issues: https://core.trac.wordpress.org/ticket/37840 .
 // TODO: perhaps have an optional footer thingy that says how many images have been optimized.
 // TODO: integrate AGR, since it's "abandoned", but possibly using gifsicle for better GIFs.
+// TODO: prevent chmod from firing if permissions/ownership on ewww folder is not sufficient.
+// TODO: add clarification on 'resize existing images' that they need to configure the 'other' settings.
+// TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
+// TODO: on the above page, perhaps also look at the debugging section to suppress spurious output.
+// TODO: did you know +? is 1 or more non-greedy?
+// TODO: on the single-site settings, include a note that mentions where to find the network settings.
+// TODO: reduce keyword count to 12.
+// TODO: research REQUEST_URI vs. REQUEST_FILENAME for webp htaccess rules.
+// TODO: prevent the 'delete' routine from removing images on old/migrated sites.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '360.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '370.0' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -177,10 +186,17 @@ register_uninstall_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimizer
 // add_action( 'shutdown', 'ewwwio_memory_output' );.
 // Makes sure we flush the debug info to the log on shutdown.
 add_action( 'shutdown', 'ewww_image_optimizer_debug_log' );
+// If ExactDN is enabled.
+if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+	/**
+	 * ExactDN class for parsing image urls and rewriting them.
+	 */
+	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-exactdn.php' );
+}
 // If Alt WebP Rewriting is enabled.
 if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ) {
 	// Start an output buffer before any output starts.
-	add_action( 'template_redirect', 'ewww_image_optimizer_buffer_start' );
+	add_action( 'template_redirect', 'ewww_image_optimizer_webp_buffer_start' );
 	if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
 		// Load the non-minified, non-inline version of the webp rewrite script.
 		add_action( 'wp_enqueue_scripts', 'ewww_image_optimizer_webp_debug_script' );
@@ -245,10 +261,10 @@ function ewww_image_optimizer_ce_webp_enabled() {
 }
 
 /**
- * Starts an output buffer and registers the callback function to do WebP replacement. functions to capture all page output, replace image urls with webp derivatives, and add webp fallback
+ * Starts an output buffer and registers the callback function to do WebP replacement.
  */
-function ewww_image_optimizer_buffer_start() {
-	ob_start( 'ewww_image_optimizer_filter_page_output' );
+function ewww_image_optimizer_webp_buffer_start() {
+	ob_start( 'ewww_image_optimizer_filter_webp_page_output' );
 }
 
 /**
@@ -483,7 +499,7 @@ function ewww_image_optimizer_filter_amp_webp( $buffer ) {
  * @param string $buffer The full HTML page generated since the output buffer was started.
  * @return string The altered buffer containing the full page with WebP images inserted.
  */
-function ewww_image_optimizer_filter_page_output( $buffer ) {
+function ewww_image_optimizer_filter_webp_page_output( $buffer ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// If this is an admin page, don't filter it.
 	if ( ( empty( $buffer ) || is_admin() ) ) {
@@ -1140,6 +1156,8 @@ function ewww_image_optimizer_admin_init() {
 			update_site_option( 'ewww_image_optimizer_exclude_paths', ewww_image_optimizer_exclude_paths_sanitize( $_POST['ewww_image_optimizer_exclude_paths'] ) );
 			$_POST['ewww_image_optimizer_enable_cloudinary'] = ( empty( $_POST['ewww_image_optimizer_enable_cloudinary'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_enable_cloudinary', $_POST['ewww_image_optimizer_enable_cloudinary'] );
+			$_POST['ewww_image_optimizer_exactdn'] = ( empty( $_POST['ewww_image_optimizer_exactdn'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_exactdn', $_POST['ewww_image_optimizer_exactdn'] );
 			$_POST['ewww_image_optimizer_maxmediawidth'] = empty( $_POST['ewww_image_optimizer_maxmediawidth'] ) ? 0 : $_POST['ewww_image_optimizer_maxmediawidth'];
 			update_site_option( 'ewww_image_optimizer_maxmediawidth', (int) $_POST['ewww_image_optimizer_maxmediawidth'] );
 			$_POST['ewww_image_optimizer_maxmediaheight'] = empty( $_POST['ewww_image_optimizer_maxmediaheight'] ) ? 0 : $_POST['ewww_image_optimizer_maxmediaheight'];
@@ -1210,17 +1228,18 @@ function ewww_image_optimizer_admin_init() {
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_include_media_paths', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_aux_paths', 'ewww_image_optimizer_aux_paths_sanitize' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_exclude_paths', 'ewww_image_optimizer_exclude_paths_sanitize' );
+	global $ewwwio_tracking;
+	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_allow_tracking', array( $ewwwio_tracking, 'check_for_settings_optin' ) );
+	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_enable_help', 'boolval' );
+	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_exactdn', 'boolval' );
+	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_resize_detection', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_maxmediawidth', 'intval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_maxmediaheight', 'intval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_maxotherwidth', 'intval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_maxotherheight', 'intval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_resize_existing', 'boolval' );
-	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_resize_detection', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_disable_resizes', 'ewww_image_optimizer_disable_resizes_sanitize' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_disable_resizes_opt', 'ewww_image_optimizer_disable_resizes_sanitize' );
-	global $ewwwio_tracking;
-	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_allow_tracking', array( $ewwwio_tracking, 'check_for_settings_optin' ) );
-	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_enable_help', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_disable_convert_links', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_delete_originals', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_jpg_to_png', 'boolval' );
@@ -1353,8 +1372,8 @@ function ewww_image_optimizer_disable_tools() {
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_PNGQUANT' ) ) {
 		define( 'EWWW_IMAGE_OPTIMIZER_PNGQUANT', false );
 	}
-	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_WEBP' ) ) {
-		define( 'EWWW_IMAGE_OPTIMIZER_WEBP', false );
+	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CWEBP' ) ) {
+		define( 'EWWW_IMAGE_OPTIMIZER_CWEBP', false );
 	}
 	ewwwio_memory( __FUNCTION__ );
 }
@@ -4223,6 +4242,7 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 			}
 		} // End if().
 	} // End if().
+	clearstatcache();
 	if ( ! empty( $filename ) && is_file( $filename ) ) {
 		return $filename;
 	} else {
@@ -6565,7 +6585,7 @@ function ewww_image_optimizer_bulk_action_handler() {
  */
 function ewww_image_optimizer_get_option( $option_name ) {
 	$constant_name = strtoupper( $option_name );
-	if ( defined( $constant_name ) && ( is_int( constant( $constant_name ) || is_bool( constant( $constant_name ) ) ) ) ) {
+	if ( defined( $constant_name ) && ( is_int( constant( $constant_name ) ) || is_bool( constant( $constant_name ) ) ) ) {
 		return constant( $constant_name );
 	}
 	if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
@@ -6768,7 +6788,7 @@ function ewww_image_optimizer_webp_rewrite_verify() {
 		'RewriteCond %{REQUEST_FILENAME} (.*)\.(jpe?g|png)$',
 		'RewriteCond %{REQUEST_FILENAME}.webp -f',
 		'RewriteCond %{QUERY_STRING} !type=original',
-		'RewriteRule (.+)\.(jpe?g|png)$ %{REQUEST_FILENAME}.webp [T=image/webp,E=accept:1,L]',
+		'RewriteRule (.+)\.(jpe?g|png)$ %{REQUEST_URI}.webp [T=image/webp,E=accept:1,L]',
 		'</IfModule>',
 		'<IfModule mod_headers.c>',
 		'Header append Vary Accept env=REDIRECT_accept',
@@ -6896,6 +6916,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewwwio_debug_message( 'WP_CONTENT_DIR: ' . WP_CONTENT_DIR );
 	ewwwio_debug_message( 'home url: ' . get_home_url() );
 	ewwwio_debug_message( 'site url: ' . get_site_url() );
+	ewwwio_debug_message( 'content_url: ' . content_url() );
 	$network_class = $network;
 	if ( empty( $network ) ) {
 		$network_class = 'singlesite';
@@ -6978,6 +6999,25 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	} else {
 		$disable_level = "disabled='disabled'";
 	}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+		$status_output .= '<p><b>ExactDN:</b> ';
+		global $exactdn;
+		if ( $exactdn->get_exactdn_domain() ) {
+			$status_output .= '<span style="color: green">' . esc_html__( 'Verified', 'ewww-image-optimizer' ) . ' </span>';
+		} else {
+			$status_output .= '<span style="color: red">' . esc_html__( 'Not Verified', 'ewww-image-optimizer' ) . '</span>';
+			$collapsible = false;
+		}
+		$status_output .= '</p>';
+	} else {
+		$status_output .= '<p><b>ExactDN:</b> ' . esc_html__( 'Inactive, enable automatic resizing in the Resize Settings', 'ewww-image-optimizer' ) . '</p>';
+		delete_option( 'ewww_image_optimizer_exactdn_domain' );
+		delete_option( 'ewww_image_optimizer_exactdn_failures' );
+		delete_option( 'ewww_image_optimizer_exactdn_validation' );
+		delete_site_option( 'ewww_image_optimizer_exactdn_domain' );
+		delete_site_option( 'ewww_image_optimizer_exactdn_failures' );
+		delete_site_option( 'ewww_image_optimizer_exactdn_validation' );
+	}
 	if ( ! ewww_image_optimizer_full_cloud() && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
 		list ( $jpegtran_src, $optipng_src, $gifsicle_src, $jpegtran_dst, $optipng_dst, $gifsicle_dst ) = ewww_image_optimizer_install_paths();
 	}
@@ -7058,12 +7098,12 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			$collapsible = false;
 		}
 	}
-	if ( EWWW_IMAGE_OPTIMIZER_WEBP && ! $skip['webp'] && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
+	if ( EWWW_IMAGE_OPTIMIZER_CWEBP && ! $skip['webp'] && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
 		$status_output .= '<b>webp:</b> ';
-		if ( EWWW_IMAGE_OPTIMIZER_WEBP ) {
-			$webp_version = ewww_image_optimizer_tool_found( EWWW_IMAGE_OPTIMIZER_WEBP, 'w' );
+		if ( EWWW_IMAGE_OPTIMIZER_CWEBP ) {
+			$webp_version = ewww_image_optimizer_tool_found( EWWW_IMAGE_OPTIMIZER_CWEBP, 'w' );
 			if ( ! $webp_version ) {
-				$webp_version = ewww_image_optimizer_tool_found( EWWW_IMAGE_OPTIMIZER_WEBP, 'wb' );
+				$webp_version = ewww_image_optimizer_tool_found( EWWW_IMAGE_OPTIMIZER_CWEBP, 'wb' );
 			}
 		}
 		if ( ! empty( $webp_version ) ) {
@@ -7353,8 +7393,15 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 
 	$output[] = "<div id='ewww-resize-settings'>\n";
 	$output[] = "<table class='form-table'>\n";
-	// $output[] = "<tr><th><label for='ewww_image_optimizer_resize_detection'>" . esc_html__( 'Resize Detection', 'ewww-image-optimizer' ) . "</label></th><td><input type='checkbox' id='ewww_image_optimizer_resize_detection' name='ewww_image_optimizer_resize_detection' value='true' " . ( ewww_image_optimizer_get_option('ewww_image_optimizer_resize_detection') == TRUE ? "checked='true'" : "" ) . " /> " . esc_html__( 'Will highlight images that need to be resized because the browser is scaling them down. Only visible for Admin users and adds a button to the admin bar to detect scaled images that have been lazy loaded.', 'ewww-image-optimizer' ) . "</td></tr>\n";
-	// ewwwio_debug_message( 'resize detection: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' ) == TRUE ? 'on' : 'off' ) );
+	$output[] = "<tr class='$network_class'><th><label for='ewww_image_optimizer_exactdn'>" . esc_html__( 'ExactDN', 'ewww-image-optimizer' ) .
+		"</label></th><td><input type='checkbox' id='ewww_image_optimizer_exactdn' name='ewww_image_optimizer_exactdn' value='true' " .
+		( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) == true ? "checked='true'" : '' ) . ' /> ' .
+		esc_html__( 'Enables CDN and automatic image resizing to fit your pages.', 'ewww-image-optimizer' ) .
+		' <a href="https://ewww.io/resize/" target="_blank">' . esc_html__( 'Purchase a subscription for this site.', 'ewww-image-optimizer' ) .
+		'</a> <a href="http://docs.ewww.io/article/44-introduction-to-exactdn" target="_blank" data-beacon-article="59bc5ad6042863033a1ce370">' . esc_html__( 'Learn more about ExactDN.', 'ewww-image-optimizer' ) . "</a></td></tr>\n";
+	ewwwio_debug_message( 'ExactDN enabled: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) == true ? 'on' : 'off' ) );
+	$output[] = "<tr><th><label for='ewww_image_optimizer_resize_detection'>" . esc_html__( 'Resize Detection', 'ewww-image-optimizer' ) . "</label></th><td><input type='checkbox' id='ewww_image_optimizer_resize_detection' name='ewww_image_optimizer_resize_detection' value='true' " . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' ) == true ? "checked='true'" : '' ) . ' /> ' . esc_html__( 'Highlight images that need to be resized because the browser is scaling them down. Only visible for Admin users and adds a button to the admin bar to detect scaled images that have been lazy loaded.', 'ewww-image-optimizer' ) . "</td></tr>\n";
+	ewwwio_debug_message( 'resize detection: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' ) == true ? 'on' : 'off' ) );
 	if ( function_exists( 'imsanity_get_max_width_height' ) ) {
 		$output[] = "<tr class='$network_class'><th>&nbsp;</th><td>" .
 			'<p><span style="color: green">' . esc_html__( '*Imsanity settings override the EWWW resize dimensions.', 'ewww-image-optimizer' ) . "</span></p></td></tr>\n";
@@ -7662,6 +7709,8 @@ function ewww_image_optimizer_remove_cloud_key() {
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) > 0 ) {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_pdf_level', 0 );
 	}
+	ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_exceeded', 0 );
+	delete_transient( 'ewww_image_optimizer_cloud_status' );
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_backup_files', '' );
 	$sendback = wp_get_referer();
 	wp_redirect( esc_url_raw( $sendback ) );

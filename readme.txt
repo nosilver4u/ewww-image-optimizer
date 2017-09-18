@@ -4,7 +4,8 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: image, compress, optimize, optimization, lossless, lossy, photo, picture, seo, jpegmini, tinyjpg, tinypng, webp, wp-cli
 Requires at least: 4.6
 Tested up to: 4.8.1
-Stable tag: 3.6.0
+Requires PHP: 5.3
+Stable tag: 3.6.1
 License: GPLv3
 
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
@@ -211,9 +212,17 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 
 == Changelog ==
 
-* Thank you to everyone who donated for a new Macbook, new binaries are here!
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
+
+= 3.7.0 =
+* added: ExactDN with CDN and automatic image resizing
+* fixed: files fetched from S3 not detected by PHP in some cases
+* fixed: option override conflict preventing webp conversion
+
+= 3.6.1 =
+* fixed: bulk optimizer fails to initialize if the bulk_attachments array is set to an empty string
+* fixed: misplaced parenthesis breaks option overrides
 
 = 3.6.0 =
 In an effort to simplify the settings page and make room for new features, many settings have been "hidden" and/or rearranged. It is my hope that this will make it easier for new users to get going with EWWW IO.
@@ -245,7 +254,7 @@ You can find more information about overriding options in the [Documentation](ht
 * added: optional help beacons on bulk and settings pages
 * added: disable deferring of WP Offload S3 uploads with EWWW_IMAGE_OPTIMIZER_NO_DEFER_S3
 * added: override use of wp_add_inline_script with non-standard jQuery by defining EWWW_IMAGE_OPTIMIZER_WEBP_INLINE_FALLBACK
-* fixed: javascript for bulk optimizers in NextGEN, NextCellent and FlaGallery 
+* fixed: javascript for bulk optimizers in NextGEN, NextCellent and FlaGallery
 
 = 3.5.0 =
 * added: compatibility with S3 Uploads by Human Made
@@ -281,7 +290,7 @@ Please refer to the separate changelog.txt file.
 
 == Contact and Credits ==
 
-Written by [Shane Bishop](https://ewww.io). Based upon CW Image Optimizer, which was written by [Jacob Allred](http://www.jacoballred.com/) at [Corban Works, LLC](http://www.corbanworks.com/). CW Image Optimizer was based on WP Smush.it. Jpegtran is the work of the Independent JPEG Group. PEL is the work of Martin Geisler, Lars Olesen, and Erik Oskam.
+Written by [Shane Bishop](https://ewww.io). Based upon CW Image Optimizer, which was written by [Jacob Allred](http://www.jacoballred.com/) at [Corban Works, LLC](http://www.corbanworks.com/). CW Image Optimizer was based on WP Smush.it. Jpegtran is the work of the Independent JPEG Group. PEL is the work of Martin Geisler, Lars Olesen, and Erik Oskam. ExactDN class based upon the Photon module from Jetpack.
 
 = optipng =
 

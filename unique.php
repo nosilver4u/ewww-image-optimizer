@@ -553,7 +553,7 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 					define( 'EWWW_IMAGE_OPTIMIZER_' . $key, $req );
 				}
 				break;
-			case 'WEBP':
+			case 'CWEBP':
 				if ( ! $skip['webp'] && empty( $req ) ) {
 					$missing[] = 'webp';
 					$req = false;
@@ -632,7 +632,7 @@ function ewww_image_optimizer_safemode_check() {
  * @param bool $p True to check pngout.
  * @param bool $q True to check pngquant.
  * @param bool $w True to check cwebp.
- * @return array Path for each tool (indexes JPEGTRAN, OPTIPNG, GIFSICLE, PNGOUT, PNGQUANT, WEBP),
+ * @return array Path for each tool (indexes JPEGTRAN, OPTIPNG, GIFSICLE, PNGOUT, PNGQUANT, CWEBP),
  *               or false for disabled/missing tools.
  */
 function ewww_image_optimizer_path_check( $j = true, $o = true, $g = true, $p = true, $q = true, $w = true ) {
@@ -650,7 +650,7 @@ function ewww_image_optimizer_path_check( $j = true, $o = true, $g = true, $p = 
 			'GIFSICLE' => false,
 			'PNGOUT' => false,
 			'PNGQUANT' => false,
-			'WEBP' => false,
+			'CWEBP' => false,
 		);
 	}
 	if ( 'WINNT' == PHP_OS ) {
@@ -700,12 +700,12 @@ function ewww_image_optimizer_path_check( $j = true, $o = true, $g = true, $p = 
 			}
 		}
 		if ( $w ) {
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_WEBP' ) ) {
+			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CWEBP' ) ) {
 				$webp = ewww_image_optimizer_find_win_binary( 'cwebp', 'w' );
-				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_WEBP' );
-				define( 'EWWW_IMAGE_OPTIMIZER_WEBP', $webp );
+				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_CWEBP' );
+				define( 'EWWW_IMAGE_OPTIMIZER_CWEBP', $webp );
 			} else {
-				$webp = EWWW_IMAGE_OPTIMIZER_WEBP;
+				$webp = EWWW_IMAGE_OPTIMIZER_CWEBP;
 			}
 		}
 	} else {
@@ -777,15 +777,15 @@ function ewww_image_optimizer_path_check( $j = true, $o = true, $g = true, $p = 
 			}
 		}
 		if ( $w ) {
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_WEBP' ) ) {
+			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CWEBP' ) ) {
 				$webp = ewww_image_optimizer_find_nix_binary( 'cwebp', 'w' );
 				if ( ! $webp ) {
 					$webp = ewww_image_optimizer_find_nix_binary( 'cwebp', 'wb' );
 				}
-				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_WEBP' );
-				define( 'EWWW_IMAGE_OPTIMIZER_WEBP', $webp );
+				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_CWEBP' );
+				define( 'EWWW_IMAGE_OPTIMIZER_CWEBP', $webp );
 			} else {
-				$webp = EWWW_IMAGE_OPTIMIZER_WEBP;
+				$webp = EWWW_IMAGE_OPTIMIZER_CWEBP;
 			}
 		}
 	} // End if().
@@ -814,7 +814,7 @@ function ewww_image_optimizer_path_check( $j = true, $o = true, $g = true, $p = 
 		'GIFSICLE' => $gifsicle,
 		'PNGOUT' => $pngout,
 		'PNGQUANT' => $pngquant,
-		'WEBP' => $webp,
+		'CWEBP' => $webp,
 	);
 }
 
@@ -1814,7 +1814,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				}
 			} elseif ( ! $convert ) {
 				// If conversion and optimization are both turned OFF, finish the JPG processing.
-				ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tools['WEBP'] );
+				ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tools['CWEBP'] );
 				break;
 			} // End if().
 			// If the conversion process is turned ON, or if this is a resize and the full-size was converted.
@@ -1920,7 +1920,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					}
 				}
 			} // End if().
-			ewww_image_optimizer_webp_create( $file, $new_size, $type, $tools['WEBP'], $orig_size != $new_size );
+			ewww_image_optimizer_webp_create( $file, $new_size, $type, $tools['CWEBP'], $orig_size != $new_size );
 			break;
 		case 'image/png':
 			$jpg_size = 0;
@@ -2104,7 +2104,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			} elseif ( ! $convert ) {
 				// If conversion and optimization are both disabled we are done here.
 				ewwwio_debug_message( 'calling webp, but neither convert or optimize' );
-				ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tools['WEBP'] );
+				ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tools['CWEBP'] );
 				break;
 			} // End if().
 			// Retrieve the new filesize of the PNG.
@@ -2243,7 +2243,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					}
 				}
 			} // End if().
-			ewww_image_optimizer_webp_create( $file, $new_size, $type, $tools['WEBP'], $orig_size != $new_size );
+			ewww_image_optimizer_webp_create( $file, $new_size, $type, $tools['CWEBP'], $orig_size != $new_size );
 			break;
 		case 'image/gif':
 			// If gif2png is turned on, and the image is in the WordPress media library.
@@ -2394,7 +2394,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					// Let webp know what we're dealing with now.
 					$type = 'image/png';
 					// Normally this would be at the end of the section, but we only want to do webp if the image was successfully converted to a png.
-					ewww_image_optimizer_webp_create( $file, $new_size, $type, $tools['WEBP'], $orig_size != $new_size );
+					ewww_image_optimizer_webp_create( $file, $new_size, $type, $tools['CWEBP'], $orig_size != $new_size );
 					// Successful conversion, so we store the increment.
 					$converted = $filenum;
 				} else {

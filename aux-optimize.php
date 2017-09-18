@@ -295,6 +295,20 @@ function ewww_image_optimizer_aux_images_table_count_pending() {
 }
 
 /**
+ * Find the number of un-optimized (media) images in the ewwwio_images table.
+ *
+ * This is useful to know if we need to alert the user when the bulk attachments array is empty.
+ *
+ * @global object $wpdb
+ * @return int Number of pending media images in queue.
+ */
+function ewww_image_optimizer_aux_images_table_count_pending_media() {
+	global $wpdb;
+	$count = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->ewwwio_images WHERE pending=1 AND gallery='media'" );
+	return $count;
+}
+
+/**
  * Remove all un-optimized images from the ewwwio_images table.
  *
  * @global object $wpdb

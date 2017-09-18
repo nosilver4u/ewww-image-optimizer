@@ -1224,25 +1224,36 @@ function ewww_image_optimizer_bulk_initialize() {
 	}
 	session_write_close();
 	$output = array();
-	// Update the 'bulk resume' option to show that an operation is in progress.
-	update_option( 'ewww_image_optimizer_bulk_resume', 'true' );
 	$attachments = get_option( 'ewww_image_optimizer_bulk_attachments' );
 	if ( ! is_array( $attachments ) && ! empty( $attachments ) ) {
 		$attachments = unserialize( $attachments );
 	}
 	if ( ! is_array( $attachments ) ) {
-		if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
-			die( json_encode( array(
-				'error' => esc_html__( 'Error retrieving list of images', 'ewww-image-optimizer' ),
-				'data' => print_r( $attachments, true ),
-			) ) );
-		} else {
-			die( json_encode( array(
-				'error' => esc_html__( 'Error retrieving list of images', 'ewww-image-optimizer' ),
-				'data' => 'print_r disabled',
-			) ) );
+		// See if we care about the attachment list missing: resizing or converting to be done.
+		if ( ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' ) ||
+			ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' ) ||
+			ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherwidth' ) ||
+			ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherheight' ) ||
+			ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) ||
+			ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' ) ||
+			ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_to_png' ) ) &&
+			ewww_image_optimizer_aux_images_table_count_pending_media()
+		) {
+			if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
+				die( json_encode( array(
+					'error' => esc_html__( 'Error retrieving list of images', 'ewww-image-optimizer' ),
+					'data' => print_r( $attachments, true ),
+				) ) );
+			} else {
+				die( json_encode( array(
+					'error' => esc_html__( 'Error retrieving list of images', 'ewww-image-optimizer' ),
+					'data' => 'print_r disabled',
+				) ) );
+			}
 		}
 	}
+	// Update the 'bulk resume' option to show that an operation is in progress.
+	update_option( 'ewww_image_optimizer_bulk_resume', 'true' );
 	$attachment = (int) array_shift( $attachments );
 	ewwwio_debug_message( "first image: $attachment" );
 	$first_image = new EWWW_Image( $attachment, 'media' );
