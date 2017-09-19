@@ -32,7 +32,7 @@ if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_TOOL_PATH' ) ) {
 }
 
 // Check the PHP version.
-if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 50400 ) {
+if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 50300 ) {
 	/**
 	 * This is the full system path to the plugin folder.
 	 *
