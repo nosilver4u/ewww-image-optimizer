@@ -3,7 +3,7 @@ Contributors: nosilver4u
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW
 Tags: image, compress, optimize, optimization, lossless, lossy, photo, picture, seo, jpegmini, tinyjpg, tinypng, webp, wp-cli
 Requires at least: 4.6
-Tested up to: 4.8.1
+Tested up to: 4.8.2
 Requires PHP: 5.3
 Stable tag: 3.6.1
 License: GPLv3
