@@ -1,19 +1,19 @@
 <?php
 /**
- * WP Background Process
+ * EWWWIO Background Process
  *
- * @package WP-Background-Processing
+ * @package EWWW_Image_Optimizer
  */
 
-if ( ! class_exists( 'WP_Background_Process' ) ) {
+if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 
 	/**
-	 * Abstract WP_Background_Process class.
+	 * Abstract EWWWIO_Background_Process class.
 	 *
 	 * @abstract
 	 * @extends WP_Async_Request
 	 */
-	abstract class WP_Background_Process extends WP_Async_Request {
+	abstract class EWWWIO_Background_Process extends WP_Async_Request {
 
 		/**
 		 * Action
@@ -51,9 +51,20 @@ if ( ! class_exists( 'WP_Background_Process' ) ) {
 		 */
 		protected $cron_interval_identifier;
 
-		// either an 'a' or a 'b', depending on which one is currently running
+		/**
+		 * Either an 'a' or a 'b', depending on which one is currently running.
+		 *
+		 * @var string
+		 * @access protected
+		 */
 		protected $active_queue;
 
+		/**
+		 * Either an 'a' or a 'b', depending on which one is NOT currently running.
+		 *
+		 * @var string
+		 * @access protected
+		 */
 		protected $second_queue;
 
 		/**
@@ -73,7 +84,7 @@ if ( ! class_exists( 'WP_Background_Process' ) ) {
 		 * Dispatch
 		 *
 		 * @access public
-		 * @return void
+		 * @return array The wp_remote_post response.
 		 */
 		public function dispatch() {
 			// Schedule the cron healthcheck.
@@ -103,7 +114,7 @@ if ( ! class_exists( 'WP_Background_Process' ) ) {
 		 */
 		public function save() {
 			$key = $this->generate_key();
-ewwwio_debug_message( "queue $key will be saved to" );
+			ewwwio_debug_message( "queue $key will be saved to" );
 			if ( ! empty( $this->data ) ) {
 				$existing_data = get_option( $key );
 				if ( ! empty( $existing_data ) ) {
@@ -158,7 +169,6 @@ ewwwio_debug_message( "queue $key will be saved to" );
 		 * @return string
 		 */
 		protected function generate_key( $length = 64 ) {
-//			$unique  = md5( microtime() . rand() );
 			$unique  = 'a';
 			if ( $this->is_queue_active( $unique ) ) {
 				$unique = 'b';
@@ -203,21 +213,13 @@ ewwwio_debug_message( "queue $key will be saved to" );
 		protected function is_queue_empty() {
 			global $wpdb;
 
-			$table  = $wpdb->options;
-			$column = 'option_name';
-
-/*			if ( is_multisite() ) {
-				$table  = $wpdb->sitemeta;
-				$column = 'meta_key';
-			}*/
-
-			$key = $this->identifier . '_batch_%';
+			$key = $wpdb->esc_like( $this->identifier . '_batch_' ) . '%';
 
 			$count = $wpdb->get_var( $wpdb->prepare( "
-			SELECT COUNT(*)
-			FROM {$table}
-			WHERE {$column} LIKE %s AND option_value != ''
-		", $key ) );
+				SELECT COUNT(*)
+				FROM $wpdb->options
+				WHERE option_name LIKE %s AND option_value != ''
+			", $key ) );
 
 			return ( $count > 0 ) ? false : true;
 		}
@@ -227,6 +229,8 @@ ewwwio_debug_message( "queue $key will be saved to" );
 		 *
 		 * Check whether the current process is already running
 		 * in a background process.
+		 *
+		 * @return bool
 		 */
 		protected function is_process_running() {
 			if ( get_transient( $this->identifier . '_process_lock' ) ) {
@@ -237,14 +241,20 @@ ewwwio_debug_message( "queue $key will be saved to" );
 			return false;
 		}
 
+		/**
+		 * Is a particular queue active and running.
+		 *
+		 * @param string $queue_id The identifier for a background queue.
+		 * @return bool
+		 */
 		protected function is_queue_active( $queue_id ) {
 			global $wpdb;
 			$process_lock_transient = '_transient_' . $this->identifier . '_process_lock';
-			if ( $wpdb->get_var( "SELECT option_value FROM $wpdb->options WHERE option_name LIKE '$process_lock_transient'" ) == $queue_id ) {
-ewwwio_debug_message( "queue $queue_id is running" );
+			if ( $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name LIKE %s", $process_lock_transient ) ) == $queue_id ) {
+				ewwwio_debug_message( "queue $queue_id is running" );
 				return true;
 			}
-ewwwio_debug_message( "queue $queue_id is not running, checked with: ". $this->identifier . '_process_lock' );
+			ewwwio_debug_message( "queue $queue_id is not running, checked with: " . $this->identifier . '_process_lock' );
 			return false;
 		}
 
@@ -266,6 +276,13 @@ ewwwio_debug_message( "queue $queue_id is not running, checked with: ". $this->i
 			}
 		}
 
+		/**
+		 * Update process lock
+		 *
+		 * Update the process lock so that other instances do not spawn.
+		 *
+		 * @return $this
+		 */
 		protected function update_lock() {
 			if ( empty( $this->active_queue ) ) {
 				return;
@@ -274,7 +291,7 @@ ewwwio_debug_message( "queue $queue_id is not running, checked with: ". $this->i
 			$lock_duration = apply_filters( $this->identifier . '_queue_lock_time', $lock_duration );
 			set_transient( $this->identifier . '_process_lock', $this->active_queue , $lock_duration );
 		}
-			
+
 		/**
 		 * Unlock process
 		 *
@@ -296,31 +313,18 @@ ewwwio_debug_message( "queue $queue_id is not running, checked with: ". $this->i
 		protected function get_batch() {
 			global $wpdb;
 
-			$table        = $wpdb->options;
-			$column       = 'option_name';
-			$key_column   = 'option_id';
-			$value_column = 'option_value';
+			$key = $wpdb->esc_like( $this->identifier . '_batch_' ) . '%';
 
-/*			if ( is_multisite() ) {
-				$table        = $wpdb->sitemeta;
-				$column       = 'meta_key';
-				$key_column   = 'meta_id';
-				$value_column = 'meta_value';
-			}*/
+			$query = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT * FROM $wpdb->options WHERE option_name LIKE %s AND option_value != '' ORDER BY option_id ASC LIMIT 1",
+					$key
+				)
+			);
 
-			$key = $this->identifier . '_batch_%';
-
-			$query = $wpdb->get_row( $wpdb->prepare( "
-			SELECT *
-			FROM {$table}
-			WHERE {$column} LIKE %s AND {$value_column} != ''
-			ORDER BY {$key_column} ASC
-			LIMIT 1
-		", $key ) );
-
-			$batch       = new stdClass();
-			$batch->key  = $query->$column;
-			$batch->data = maybe_unserialize( $query->$value_column );
+			$batch = new stdClass();
+			$batch->key = $query->option_name;
+			$batch->data = maybe_unserialize( $query->option_value );
 			$this->active_queue = substr( $batch->key, -1 );
 			$this->update_lock();
 			return $batch;
@@ -461,6 +465,7 @@ ewwwio_debug_message( "queue $queue_id is not running, checked with: ". $this->i
 			// Adds every 5 minutes to the existing schedules.
 			$schedules[ $this->identifier . '_cron_interval' ] = array(
 				'interval' => MINUTE_IN_SECONDS * $interval,
+				/* translators: %d: number of minutes */
 				'display'  => sprintf( __( 'Every %d Minutes' ), $interval ),
 			);
 
@@ -514,7 +519,6 @@ ewwwio_debug_message( "queue $queue_id is not running, checked with: ". $this->i
 		 * Cancel Process
 		 *
 		 * Stop processing queue items, clear cronjob and delete batch.
-		 *
 		 */
 		public function cancel_process() {
 			if ( ! $this->is_queue_empty() ) {

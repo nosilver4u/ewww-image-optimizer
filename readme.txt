@@ -219,6 +219,9 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * added: ExactDN with CDN and automatic image resizing
 * fixed: files fetched from S3 not detected by PHP in some cases
 * fixed: option override conflict preventing webp conversion
+* fixed: Alt WebP breaks Draw Attention image maps
+* fixed: customized background class conflicts with other plugins using the same class
+* deprecated: PHP 5.3 support will be removed by March 2018
 
 = 3.6.1 =
 * fixed: bulk optimizer fails to initialize if the bulk_attachments array is set to an empty string

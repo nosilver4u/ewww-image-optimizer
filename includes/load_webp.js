@@ -475,7 +475,7 @@ function ewww_load_images(ewww_webp_supported) {
 	(function($) {
 		var attr_prefix = 'data-';
 		function ewww_copy_attrs(ewww_nscript, ewww_img) {
-			var attrs = ['align','alt','border','crossorigin','height','hspace','ismap','longdesc','usemap','vspace','width','accesskey','class','contenteditable','contextmenu','dir','draggable','dropzone','hidden','id','lang','spellcheck','style','tabindex','title','translate','sizes','data-attachment-id','data-permalink','data-orig-size','data-comments-opened','data-image-meta','data-image-title','data-image-description'];
+			var attrs = ['align','alt','border','crossorigin','height','hspace','ismap','longdesc','usemap','vspace','width','accesskey','class','contenteditable','contextmenu','dir','draggable','dropzone','hidden','id','lang','spellcheck','style','tabindex','title','translate','sizes','data-attachment-id','data-permalink','data-orig-size','data-comments-opened','data-image-meta','data-image-title','data-image-description','data-event-trigger','data-highlight-color','data-highlight-opacity','data-highlight-border-color','data-highlight-border-width','data-highlight-border-opacity','data-no-lazy','data-lazy'];
 			for (var i = 0, len = attrs.length; i < len; i++) {
 				var ewww_attr = $(ewww_nscript).attr(attr_prefix + attrs[i]);
 				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {

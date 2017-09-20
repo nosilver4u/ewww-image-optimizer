@@ -2,7 +2,7 @@
 /**
  * Classes for Background and Async processing.
  *
- * This file contains classes and methods that extend WP_Background_Process and
+ * This file contains classes and methods that extend EWWWIO_Background_Process and
  * WP_Async_Request to allow parallel and background processing of images.
  *
  * @link https://ewww.io
@@ -14,23 +14,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * The parent WP_Async_Request class file.
+ * The (grand)parent WP_Async_Request class file.
  */
 require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/wp-async-request.php' );
 
 /**
- * The parent WP_Background_Process class file.
+ * The parent EWWWIO_Background_Process class file.
  */
-require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/wp-background-process.php' );
+require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-background-process.php' );
 
 /**
  * Processes media uploads in background/async mode.
  *
  * Uses a dual-queue system to track uploads to be optimized, handling them one at a time.
  *
- * @see WP_Background_Process
+ * @see EWWWIO_Background_Process
  */
-class EWWWIO_Media_Background_Process extends WP_Background_Process {
+class EWWWIO_Media_Background_Process extends EWWWIO_Background_Process {
 
 	/**
 	 * The action name used to trigger this class extension.
@@ -119,9 +119,9 @@ $ewwwio_media_background = new EWWWIO_Media_Background_Process();
  * time. This is only used for Nextcellent thumbs currently.
  *
  * @deprecated 3.1.3
- * @see WP_Background_Process
+ * @see EWWWIO_Background_Process
  */
-class EWWWIO_Image_Background_Process extends WP_Background_Process {
+class EWWWIO_Image_Background_Process extends EWWWIO_Background_Process {
 
 	/**
 	 * The action name used to trigger this class extension.
@@ -169,9 +169,9 @@ $ewwwio_image_background = new EWWWIO_Image_Background_Process();
  *
  * Uses a dual-queue system to track uploads to be optimized, handling them one at a time.
  *
- * @see WP_Background_Process
+ * @see EWWWIO_Background_Process
  */
-class EWWWIO_Flag_Background_Process extends WP_Background_Process {
+class EWWWIO_Flag_Background_Process extends EWWWIO_Background_Process {
 
 	/**
 	 * The action name used to trigger this class extension.
@@ -247,9 +247,9 @@ $ewwwio_flag_background = new EWWWIO_Flag_Background_Process();
  *
  * Uses a dual-queue system to track uploads to be optimized, handling them one at a time.
  *
- * @see WP_Background_Process
+ * @see EWWWIO_Background_Process
  */
-class EWWWIO_Ngg_Background_Process extends WP_Background_Process {
+class EWWWIO_Ngg_Background_Process extends EWWWIO_Background_Process {
 
 	/**
 	 * The action name used to trigger this class extension.
@@ -325,9 +325,9 @@ $ewwwio_ngg_background = new EWWWIO_Ngg_Background_Process();
  *
  * Uses a dual-queue system to track uploads to be optimized, handling them one at a time.
  *
- * @see WP_Background_Process
+ * @see EWWWIO_Background_Process
  */
-class EWWWIO_Ngg2_Background_Process extends WP_Background_Process {
+class EWWWIO_Ngg2_Background_Process extends EWWWIO_Background_Process {
 
 	/**
 	 * The action name used to trigger this class extension.

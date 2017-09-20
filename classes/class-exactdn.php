@@ -71,7 +71,9 @@ class ExactDN {
 		add_action( 'wp_head', array( $this, 'dns_prefetch' ) );
 
 		// Helpers for manipulated images.
-		add_action( 'wp_enqueue_scripts', array( $this, 'action_wp_enqueue_scripts' ), 9 );
+		if ( defined( 'EXACTDN_RECALC' ) && EXACTDN_RECALC ) {
+			add_action( 'wp_enqueue_scripts', array( $this, 'action_wp_enqueue_scripts' ), 9 );
+		}
 	}
 
 	/**
@@ -587,8 +589,8 @@ class ExactDN {
 							unset( $placeholder_src );
 						}
 
-						// Disable image dimension recalculation via wp-config.php.
-						if ( ! defined( 'EXACTDN_NO_RECALC' ) || ! EXACTDN_NO_RECALC ) {
+						// Enable image dimension recalculation via wp-config.php.
+						if ( defined( 'EXACTDN_RECALC' ) && EXACTDN_RECALC ) {
 							// Remove the width and height arguments from the tag to prevent distortion.
 							$new_tag = preg_replace( '#(?<=\s)(width|height)=["|\']?[\d%]+["|\']?\s?#i', '', $new_tag );
 
