@@ -27,9 +27,9 @@ jQuery(document).ready(function($) {
 		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').show();
 		$('li.ewww-general-nav').addClass('ewww-selected');
-		if($('#ewww_image_optimizer_cloud_key').length){
+		if($('#ewww_image_optimizer_debug').length){
 			$('#ewww-resize-settings').hide();
-			console.log($('#ewww-general-settings').length);
+			console.log($('#ewww_image_optimizer_debug').length);
 		}
 		$('#ewww-optimization-settings').hide();
 		$('#ewww-conversion-settings').hide();

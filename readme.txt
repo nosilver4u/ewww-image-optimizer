@@ -1,7 +1,7 @@
 === EWWW Image Optimizer ===
 Contributors: nosilver4u
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW
-Tags: image, compress, optimize, optimization, lossless, lossy, photo, picture, seo, jpegmini, tinyjpg, tinypng, webp, wp-cli
+Tags: image, compress, optimize, optimization, lossless, lossy, seo, jpegmini, tinyjpg, tinypng, webp, wp-cli
 Requires at least: 4.6
 Tested up to: 4.8.2
 Requires PHP: 5.3
@@ -215,12 +215,16 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
-= 3.7.0 =
+= 3.7.1 =
 * added: ExactDN with CDN and automatic image resizing
+* added: image resize detection for admin users
 * fixed: files fetched from S3 not detected by PHP in some cases
 * fixed: option override conflict preventing webp conversion
 * fixed: Alt WebP breaks Draw Attention image maps
-* fixed: customized background class conflicts with other plugins using the same class
+* fixed: customized WP_Background_Process class conflicts with other plugins using the same class
+* fixed: image deletion could cause deletion of images on source site after cloning database
+* fixed: WebP .htaccess rules using REQUEST_FILENAME instead of REQUEST_URI does not work on some servers
+* fixed: per-site resize settings hidden when API is active network-wide
 * deprecated: PHP 5.3 support will be removed by March 2018
 
 = 3.6.1 =
