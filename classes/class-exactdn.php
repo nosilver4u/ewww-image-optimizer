@@ -1137,7 +1137,6 @@ class ExactDN {
 		wp_enqueue_script( 'exactdn', plugins_url( 'includes/exactdn.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION, true );
 	}
 
-	// TODO: still need to parse.
 	/**
 	 * Generates an ExactDN URL.
 	 *
@@ -1148,6 +1147,14 @@ class ExactDN {
 	 */
 	function generate_url( $image_url, $args = array(), $scheme = null ) {
 		$image_url = trim( $image_url );
+
+		if ( is_null( $scheme ) ) {
+			$site_url = get_home_url();
+			$scheme = 'http';
+			if ( strpos( $site_url, 'https://' ) !== false ) {
+				$scheme = 'https';
+			}
+		}
 
 		/**
 		 * Disables ExactDN URL processing for local development.
@@ -1274,6 +1281,7 @@ class ExactDN {
 				),
 				$exactdn_url
 			);
+			$scheme = 'https';
 		}
 
 		return $this->url_scheme( $exactdn_url, $scheme );
