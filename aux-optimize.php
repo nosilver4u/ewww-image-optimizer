@@ -150,6 +150,7 @@ function ewww_image_optimizer_aux_images() {
 function ewww_image_optimizer_aux_images_table() {
 	// Verify that an authorized user has called function.
 	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) ) {
+		ob_clean();
 		wp_die( esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) );
 	}
 	global $wpdb;
@@ -234,7 +235,7 @@ function ewww_image_optimizer_aux_images_table() {
 	echo '</table>';
 	ewwwio_memory( __FUNCTION__ );
 	ewww_image_optimizer_debug_log();
-	die();
+	wp_die();
 }
 
 /**
@@ -248,8 +249,10 @@ function ewww_image_optimizer_aux_images_table() {
 function ewww_image_optimizer_aux_images_remove() {
 	// Verify that an authorized user has called function.
 	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) ) {
+		ob_clean();
 		wp_die( esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) );
 	}
+	ob_clean();
 	global $wpdb;
 	if ( $wpdb->delete(
 		$wpdb->ewwwio_images,
@@ -260,7 +263,7 @@ function ewww_image_optimizer_aux_images_remove() {
 		echo '1';
 	}
 	ewwwio_memory( __FUNCTION__ );
-	die();
+	wp_die();
 }
 
 /**
@@ -274,9 +277,10 @@ function ewww_image_optimizer_aux_images_table_count() {
 	global $wpdb;
 	$count = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->ewwwio_images WHERE pending=0 AND image_size > 0" );
 	if ( ! empty( $_REQUEST['ewww_inline'] ) ) {
+		ob_clean();
 		echo $count;
 		ewwwio_memory( __FUNCTION__ );
-		die();
+		wp_die();
 	}
 	ewwwio_memory( __FUNCTION__ );
 	return $count;
@@ -393,7 +397,8 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			}
 			set_transient( 'ewww_image_optimizer_aux_iterator', $file_counter - 20, 300 ); // Keep track of where we left off, minus 20 to be safe.
 			$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
-			die( json_encode( array(
+			ob_clean();
+			wp_die( json_encode( array(
 				'remaining' => '<p>' . esc_html__( 'Stage 2, please wait.', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
 				'notice' => '',
 			) ) );
@@ -401,7 +406,8 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 		// TODO: can we tailor this for scheduled opt also?
 		if ( ! empty( $_REQUEST['ewww_scan'] ) && 0 === $file_counter % 100 && ! ewwwio_check_memory_available( 2097000 ) ) {
 			if ( $file_counter < 100 ) {
-				die( json_encode( array(
+				ob_clean();
+				wp_die( json_encode( array(
 					'error' => esc_html__( 'Stage 2 unable to complete due to memory restrictions. Please increase the memory_limit setting for PHP and try again.', 'ewww-image-optimizer' ),
 				) ) );
 			}
@@ -414,7 +420,8 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			}
 			set_transient( 'ewww_image_optimizer_aux_iterator', $file_counter - 20, 300 ); // Keep track of where we left off, minus 20 to be safe.
 			$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
-			die( json_encode( array(
+			ob_clean();
+			wp_die( json_encode( array(
 				'remaining' => '<p>' . esc_html__( 'Stage 2, please wait.', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
 				'notice' => '',
 			) ) );
@@ -697,7 +704,8 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 		/* translators: %d: number of images */
 		$ready_msg = sprintf( esc_html( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', $image_count, 'ewww-image-optimizer' ) ), $image_count )
 			. ' <a href="http://docs.ewww.io/article/20-why-do-i-have-so-many-images-on-my-site" target="_blank" data-beacon-article="58598744c697912ffd6c3eb4">' . esc_html__( 'Why are there so many images?', 'ewww-image-optimizer' ) . '</a>';
-		die( json_encode( array(
+		ob_clean();
+		wp_die( json_encode( array(
 			'ready' => $image_count,
 			'message' => $ready_msg,
 		) ) );
@@ -716,6 +724,7 @@ function ewww_image_optimizer_aux_images_cleanup( $auto = false ) {
 	// Verify that an authorized user has started the optimizer.
 	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 	if ( ! $auto && ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) ) {
+		ob_clean();
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
 	$stored_last = get_option( 'ewww_image_optimizer_aux_last' );
@@ -723,10 +732,11 @@ function ewww_image_optimizer_aux_images_cleanup( $auto = false ) {
 	// All done, so we can update the bulk options with empty values.
 	update_option( 'ewww_image_optimizer_aux_resume', '' );
 	if ( ! $auto ) {
+		ob_clean();
 		// And let the user know we are done.
 		echo '<p><b>' . esc_html__( 'Finished', 'ewww-image-optimizer' ) . '</b></p>';
 		ewwwio_memory( __FUNCTION__ );
-		die();
+		wp_die();
 	}
 }
 
