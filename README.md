@@ -34,6 +34,11 @@ Images can be optimized using tools on your own server for free (jpegtran, optip
 If you need a version of this plugin for API use only, see [EWWW Image Optimizer Cloud](https://wordpress.org/plugins/ewww-image-optimizer-cloud/). It is much more compact as it does not contain any binaries or any mention of the exec() function.
 
 
+### Automatic Resizing ###
+
+With ExactDN support, images will be automatically resized to fit the page and device size. ExactDN also enables automatic WebP and Retina images when needed.
+
+
 ### Support 
 
 If you need assistance using the plugin, please visit our [Support Page](https://ewww.io/contact-us/). The forums are community supported only.
