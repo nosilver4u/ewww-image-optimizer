@@ -1,7 +1,7 @@
 # EWWW Image Optimizer 
 **Contributors:** nosilver4u  
 **Donate link:** https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW  
-**Tags:** image, attachment, optimize, optimization, lossless, lossy, photo, picture, seo, compression, gmagick, jpegtran, gifsicle, optipng, pngout, pngquant, jpegmini, tinyjpg, tinypng, webp, wp-cli   
+**Tags:** image, attachment, optimize, optimization, lossless, lossy, seo, compression, gmagick, jpegtran, gifsicle, optipng, pngout, pngquant, jpegmini, tinyjpg, tinypng, webp, wp-cli   
 **Requires at least:** 4.6
 **Tested up to:** 4.8.2
 **Stable tag:** 3.7.0

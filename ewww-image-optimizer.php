@@ -59,6 +59,11 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 50300 ) {
 	add_action( 'admin_notices', 'ewww_image_optimizer_notice_wpengine' );
 	// Loads the plugin translations.
 	add_action( 'plugins_loaded', 'ewww_image_optimizer_false_init' );
+} elseif ( defined( 'FLYWHEEL_CONFIG_DIR' ) ) {
+	add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_flywheel' );
+	add_action( 'admin_notices', 'ewww_image_optimizer_notice_flywheel' );
+	// Loads the plugin translations.
+	add_action( 'plugins_loaded', 'ewww_image_optimizer_false_init' );
 } else {
 	/**
 	 * The full path of the plugin file (this file).
@@ -152,4 +157,11 @@ function ewww_image_optimizer_notice_wpengine() {
  */
 function ewww_image_optimizer_notice_kinsta() {
 	echo "<div id='ewww-image-optimizer-warning-kinsta' class='error'><p>" . esc_html__( 'The regular version of the EWWW Image Optimizer plugin is not permitted on Kinsta sites. Please deactivate EWWW Image Optimizer and install EWWW Image Optimizer Cloud to optimize your images.', 'ewww-image-optimizer' ) . '</p></div>';
+}
+
+/**
+ * Inform the user that only ewww-image-optimizer-cloud is permitted on Flywheel.
+ */
+function ewww_image_optimizer_notice_flywheel() {
+	echo "<div id='ewww-image-optimizer-warning-flywheel' class='error'><p>" . esc_html__( 'The regular version of the EWWW Image Optimizer plugin is not permitted on Flywheel sites. Please deactivate EWWW Image Optimizer and install EWWW Image Optimizer Cloud to optimize your images.', 'ewww-image-optimizer' ) . '</p></div>';
 }
