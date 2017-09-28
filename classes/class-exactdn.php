@@ -842,6 +842,23 @@ class ExactDN {
 	 * @return array An array of ExactDN image urls and widths.
 	 */
 	public function filter_srcset_array( $sources = array(), $size_array = array(), $image_src = '', $image_meta = array(), $attachment_id = 0 ) {
+		// Don't foul up the admin side of things, unless a plugin wants to.
+		if ( is_admin() &&
+			/**
+			 * Provide plugins a way of running ExactDN for images in the WordPress Dashboard (wp-admin).
+			 *
+			 * @param bool false Stop ExactDN from being run on the Dashboard. Default to false, use true to run in wp-admin.
+			 * @param array $args {
+			 *     Array of image details.
+			 *
+			 *     @type string|bool  $image Image URL or false.
+			 *     @type int          $attachment_id Attachment ID of the image.
+			 * }
+			 */
+			false === apply_filters( 'exactdn_admin_allow_image_srcset', false, compact( 'image_src', 'attachment_id' ) )
+		) {
+			return $sources;
+		}
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
@@ -916,7 +933,7 @@ class ExactDN {
 
 			if ( abs( $constrained_size[0] - $expected_size[0] ) <= 1 && abs( $constrained_size[1] - $expected_size[1] ) <= 1 ) {
 				$crop = 'soft';
-				$base = $this->get_content_width() ? $this->get_content_width() : 1000; // Provide a default width if none set by the theme.
+				$base = $this->get_content_width() ? $this->get_content_width() : 1900; // Provide a default width if none set by the theme.
 			} else {
 				$crop = 'hard';
 				$base = $reqwidth;
@@ -929,7 +946,7 @@ class ExactDN {
 
 				$newwidth = $base * $multiplier;
 				foreach ( $currentwidths as $currentwidth ) {
-					// If a new width would be within 100 pixes of an existing one or larger than the full size image, skip.
+					// If a new width would be within 50 pixels of an existing one or larger than the full size image, skip.
 					if ( abs( $currentwidth - $newwidth ) < 50 || ( $newwidth > $fullwidth ) ) {
 						continue 2; // Back to the foreach ( $multipliers as $multiplier ).
 					}
@@ -973,7 +990,7 @@ class ExactDN {
 		}
 		$content_width = $this->get_content_width();
 		if ( ! $content_width ) {
-			$content_width = 1000;
+			$content_width = 1900;
 		}
 
 		if ( ( is_array( $size ) && $size[0] < $content_width ) ) {
