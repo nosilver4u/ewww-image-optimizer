@@ -56,7 +56,6 @@ class ExactDN {
 		add_filter( 'the_content', array( $this, 'filter_the_content' ), 999999 );
 		// Start an output buffer before any output starts.
 		add_action( 'template_redirect', array( $this, 'buffer_start' ), 1 );
-		add_filter( 'get_post_galleries', array( $this, 'filter_the_galleries' ), 999999 );
 		add_filter( 'widget_media_image_instance', array( $this, 'filter_the_image_widget' ), 999999 );
 
 		// Core image retrieval.
