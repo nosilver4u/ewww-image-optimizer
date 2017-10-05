@@ -357,6 +357,7 @@ class ExactDN {
 	 * @return string The content with ExactDN image urls.
 	 */
 	function filter_the_content( $content ) {
+		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		$images = $this->parse_images_from_html( $content );
 
 		if ( ! empty( $images ) ) {
@@ -613,6 +614,7 @@ class ExactDN {
 	 * @return array
 	 */
 	function filter_the_image_widget( $instance ) {
+		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		if ( ! $instance['attachment_id'] && $instance['url'] ) {
 			$this->generate_url( $instance['url'], array(
 				'w' => $instance['width'],
@@ -634,6 +636,7 @@ class ExactDN {
 	 * @return string|bool
 	 */
 	function filter_image_downsize( $image, $attachment_id, $size ) {
+		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		// Don't foul up the admin side of things, unless a plugin wants to.
 		if ( is_admin() &&
 			/**
@@ -673,6 +676,7 @@ class ExactDN {
 
 		// Get the image URL and proceed with ExactDN replacement if successful.
 		$image_url = wp_get_attachment_url( $attachment_id );
+		ewwwio_debug_message( $image_url );
 
 		// Set this to true later when we know we have size meta.
 		$has_size_meta = false;
@@ -841,6 +845,7 @@ class ExactDN {
 	 * @return array An array of ExactDN image urls and widths.
 	 */
 	public function filter_srcset_array( $sources = array(), $size_array = array(), $image_src = '', $image_meta = array(), $attachment_id = 0 ) {
+		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		// Don't foul up the admin side of things, unless a plugin wants to.
 		if ( is_admin() &&
 			/**
@@ -984,6 +989,7 @@ class ExactDN {
 	 * @return array An array of media query breakpoints.
 	 */
 	public function filter_sizes( $sizes, $size ) {
+		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		if ( ! doing_filter( 'the_content' ) ) {
 			return $sizes;
 		}
