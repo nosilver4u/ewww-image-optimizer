@@ -7424,7 +7424,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		esc_html__( 'Enables CDN and automatic image resizing to fit your pages.', 'ewww-image-optimizer' ) .
 		' <a href="https://ewww.io/resize/" target="_blank">' . esc_html__( 'Purchase a subscription for your site.', 'ewww-image-optimizer' ) . '</a>' .
 		'<p class="description">' . // esc_html__( 'WebP Conversion', 'ewww-image-optimizer' ) . '<br>' .
-		esc_html__( 'Retina Support', 'ewww-image-optimizer' ) . '<br>' .
+		esc_html__( 'Retina Support, use WP Retina 2x for best results', 'ewww-image-optimizer' ) . '<br>' .
 		esc_html__( 'Maximum Lossless Compression', 'ewww-image-optimizer' ) . '<br>' .
 		esc_html__( 'Adjustable Quality', 'ewww-image-optimizer' ) . '<br>' .
 		'<a href="http://docs.ewww.io/article/44-introduction-to-exactdn" target="_blank" data-beacon-article="59bc5ad6042863033a1ce370">' . esc_html__( 'Learn more about ExactDN', 'ewww-image-optimizer' ) . '</a>' .
