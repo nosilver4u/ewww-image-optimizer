@@ -537,7 +537,6 @@ class ExactDN {
 						}
 					}
 
-
 					// If width is available, constrain to $content_width.
 					if ( false !== $width && false === strpos( $width, '%' ) && is_numeric( $content_width ) ) {
 						if ( $width > $content_width && false !== $height && false === strpos( $height, '%' ) ) {
@@ -603,7 +602,6 @@ class ExactDN {
 					ewwwio_debug_message( "width $width" );
 					ewwwio_debug_message( "height $height" );
 					ewwwio_debug_message( "transform $transform" );
-
 
 					$exactdn_url = $this->generate_url( $src, $args );
 					ewwwio_debug_message( "new url $exactdn_url" );
@@ -710,7 +708,7 @@ class ExactDN {
 		$image_url = wp_get_attachment_url( $attachment_id );
 		ewwwio_debug_message( $image_url );
 		ewwwio_debug_message( $attachment_id );
-		if ( is_string( $size) || is_int( $size ) ) {
+		if ( is_string( $size ) || is_int( $size ) ) {
 			ewwwio_debug_message( $size );
 		} elseif ( is_array( $size ) ) {
 			foreach ( $size as $dimension ) {
@@ -945,7 +943,7 @@ class ExactDN {
 
 			$url = $source['url'];
 			list( $width, $height ) = $this->parse_dimensions_from_filename( $url );
-			if ( ! $resize_existing && $source['descriptor'] === 'w' && $source['value'] == $width ) {
+			if ( ! $resize_existing && 'w' === $source['descriptor'] && $source['value'] == $width ) {
 				$sources[ $i ]['url'] = $this->generate_url( $source['url'] );
 				continue;
 			}
