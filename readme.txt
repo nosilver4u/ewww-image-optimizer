@@ -147,7 +147,7 @@ Webhosts where things work (mostly) out of the box:
 Webhosts where the plugin will only work in cloud mode or only some tools are installed locally:
 
 * Cloudways
-* Flywheel
+* Flywheel - use EWWW Image Optimizer Cloud fork: https://wordpress.org/plugins/ewww-image-optimizer-cloud/
 * Gandi
 * Hostwinds
 * ipage (JPG only)
@@ -219,7 +219,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
-= 3.7.1 =
+= 3.7.3 =
 * added: ExactDN with CDN and automatic image resizing
 * added: image resize detection for admin users
 * changed: WP core, theme, and plugin images are excluded from lossy optimization
@@ -230,6 +230,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * fixed: image deletion could cause deletion of images on source site after cloning database
 * fixed: WebP .htaccess rules using REQUEST_FILENAME instead of REQUEST_URI does not work on some servers
 * fixed: per-site resize settings hidden when API is active network-wide
+* fixed: network-wide settings not saving properly
 * deprecated: PHP 5.3 support will be removed by March 2018
 
 = 3.6.1 =

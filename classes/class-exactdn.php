@@ -74,7 +74,7 @@ class ExactDN {
 		add_action( 'template_redirect', array( $this, 'buffer_start' ), 1 );
 
 		// Core image retrieval.
-		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), 10, 3 );
+		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), 11, 3 );
 
 		// Responsive image srcset substitution.
 		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_array' ), 1001, 5 );
