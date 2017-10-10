@@ -747,6 +747,11 @@ class ExactDN {
 			return $image;
 		}
 
+		if ( function_exists( 'aq_resize' ) ) {
+			ewwwio_debug_message( 'aq_resize detected, image_downsize filter disabled' );
+			return $image;
+		}
+
 		if ( $this->filtering_the_content || $this->filtering_the_page ) {
 			ewwwio_debug_message( 'end image_downsize early' );
 			return $image;
