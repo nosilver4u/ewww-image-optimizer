@@ -422,7 +422,7 @@ class ExactDN {
 				$src_orig = $images['img_url'][ $index ];
 				ewwwio_debug_message( $src );
 				// Not a local image.
-				if ( false === strpos( $src, $upload_domain ) ) {
+				if ( false === strpos( $src, $upload_domain ) && false === strpos( $src, 'exactdn.com' ) ) {
 					ewwwio_debug_message( 'not local, skipping' );
 					continue;
 				}
@@ -616,6 +616,18 @@ class ExactDN {
 							$new_tag = preg_replace( '#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i', '\1' . $this->generate_url( $images['link_url'][ $index ] ) . '\2', $new_tag, 1 );
 						}
 
+						// Insert new image src into the srcset as well, if we have a width.
+						if ( false !== $width && false === strpos( $width, '%' ) ) {
+							ewwwio_debug_message( 'checking to see if srcset width already exists' );
+							$srcset_url = $exactdn_url . ' ' . $width . 'w, ';
+							if ( false === strpos( $tag, $width . 'w' ) ) {
+								// For double-quotes...
+								$new_tag = str_replace( 'srcset="', 'srcset="' . $srcset_url, $new_tag );
+								// and for single-quotes.
+								$new_tag = str_replace( "srcset='", "srcset='" . $srcset_url, $new_tag );
+							}
+						}
+
 						// Supplant the original source value with our ExactDN URL.
 						$exactdn_url = esc_url( $exactdn_url );
 						$new_tag = str_replace( $src_orig, $exactdn_url, $new_tag );
@@ -642,8 +654,40 @@ class ExactDN {
 						// Replace original tag with modified version.
 						$content = str_replace( $tag, $new_tag, $content );
 					}
+				} elseif ( ! preg_match( '#data-lazy-(original|src)=#i', $images['img_tag'][ $index ] ) && $this->validate_image_url( $src, true ) ) {
+					ewwwio_debug_message( 'found a potential exactdn src url to insert into srcset' );
+					// Find the width attribute.
+					$width = false;
+					// First, check the image tag.
+					if ( preg_match( '#width=["|\']?([\d%]+)["|\']?#i', $tag, $width_string ) ) {
+						$width = $width_string[1];
+						ewwwio_debug_message( 'found the width' );
+						// Insert new image src into the srcset as well, if we have a width.
+						if ( false !== $width && false === strpos( $width, '%' ) && false !== strpos( $src, $width ) && false !== strpos( $src, 'exactdn.com' ) ) {
+							$new_tag = $tag;
+							$exactdn_url = $src;
+							ewwwio_debug_message( 'checking to see if srcset width already exists' );
+							$srcset_url = $exactdn_url . ' ' . $width . 'w, ';
+							if ( false === strpos( $tag, $width . 'w' ) ) {
+								ewwwio_debug_message( 'src not in srcset, adding' );
+								// For double-quotes...
+								$new_tag = str_replace( 'srcset="', 'srcset="' . $srcset_url, $new_tag );
+								// and for single-quotes.
+								$new_tag = str_replace( "srcset='", "srcset='" . $srcset_url, $new_tag );
+								// Replace original tag with modified version.
+								$content = str_replace( $tag, $new_tag, $content );
+							}
+						}
+					}
 				} // End if().
 			} // End foreach().
+			if ( defined( 'EXACTDN_ALL_THE_THINGS' ) && EXACTDN_ALL_THE_THINGS ) {
+				ewwwio_debug_message( 'rewriting all other wp_content urls' );
+				$exactdn_domain = $this->get_exactdn_domain();
+				if ( $exactdn_domain && $upload_domain && $this->filtering_the_page ) {
+					$content = preg_replace( '#(https?)://' . $upload_domain . '/(.+?)wp-(includes|content)#i', '$1://' . $exactdn_domain . '/$2wp-$3', $content );
+				}
+			}
 		} // End if();
 		ewwwio_debug_message( 'done parsing page' );
 		$this->filtering_the_content = false;
@@ -1081,10 +1125,11 @@ class ExactDN {
 	 * Though ExactDN functions address some of the URL issues, we should avoid unnecessary processing if we know early on that the image isn't supported.
 	 *
 	 * @param string $url The image url to be validated.
+	 * @param bool   $exactdn_is_valid Optional. Whether an ExactDN URL should be considered valid. Default false.
 	 * @uses wp_parse_args
 	 * @return bool
 	 */
-	protected function validate_image_url( $url ) {
+	protected function validate_image_url( $url, $exactdn_is_valid = false ) {
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		$parsed_url = parse_url( $url );
 		// TODO: add a parameter to allow validation of exactdn urls.
@@ -1128,7 +1173,7 @@ class ExactDN {
 		}
 
 		// Bail if the image already went through ExactDN.
-		if ( preg_match( '#.exactdn.com$#i', $url_info['host'] ) ) {
+		if ( ! $exactdn_is_valid && preg_match( '#.exactdn.com$#i', $url_info['host'] ) ) {
 			ewwwio_debug_message( 'exactdn image' );
 			return false;
 		}

@@ -1786,7 +1786,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					// Copy all the metadata.
 					$copy_opt = 'all';
 				}
-				if ( $orig_size > 102400 ) {
+				if ( $orig_size > 10240 ) {
 					$progressive = '-progressive';
 				} else {
 					$progressive = '';
@@ -2198,7 +2198,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 						// Copy all the metadata.
 						$copy_opt = 'all';
 					}
-					if ( $jpg_size > 102400 ) {
+					if ( $jpg_size > 10240 ) {
 						$progressive = '-progressive';
 					} else {
 						$progressive = '';
