@@ -701,7 +701,7 @@ class ExactDN {
 	/**
 	 * Filter post thumbnail image retrieval, passing images through ExactDN.
 	 *
-	 * @param string|bool  $image Defaults to false, but may be a url if another plugin/theme has already filtered the value.
+	 * @param array|bool   $image Defaults to false, but may be a url if another plugin/theme has already filtered the value.
 	 * @param int          $attachment_id The ID number for the image attachment.
 	 * @param string|array $size The name of the image size or an array of width and height. Default 'medium'.
 	 * @uses is_admin, apply_filters, wp_get_attachment_url, this::validate_image_url, this::image_sizes, this::generate_url
@@ -721,7 +721,7 @@ class ExactDN {
 			 * @param array $args {
 			 *     Array of image details.
 			 *
-			 *     @type string|bool  $image Image URL or false.
+			 *     @type array|bool  $image Image URL or false.
 			 *     @type int          $attachment_id Attachment ID of the image.
 			 *     @type array|string $size Image size. Can be a string (name of the image size, e.g. full) or an array of height and width.
 			 * }
@@ -1159,7 +1159,7 @@ class ExactDN {
 		if (
 			( 'http' != $url_info['scheme'] || ! in_array( $url_info['port'], array( 80, null ) ) ) &&
 			/**
-			 * Allow ExactDN to fetch images that are served via HTTPS.
+			 * Tells ExactDN to ignore images that are served via HTTPS.
 			 *
 			 * @param bool $reject_https Should ExactDN ignore images using the HTTPS scheme. Default to false.
 			 */
@@ -1378,9 +1378,18 @@ class ExactDN {
 		}
 
 		ewwwio_debug_message( $image_url_parts['host'] );
+
+		// Figure out which CDN (sub)domain to use.
+		$domain = $this->get_exactdn_domain();
+		if ( empty( $domain ) ) {
+			ewwwio_debug_message( 'no exactdn domain configured' );
+			return $image_url;
+		}
+		ewwwio_debug_message( $domain );
+
 		// You can't run an ExactDN URL through again because query strings are stripped.
 		// So if the image is already an ExactDN URL, append the new arguments to the existing URL.
-		if ( $this->get_exactdn_domain() === $image_url_parts['host'] ) {
+		if ( $domain === $image_url_parts['host'] ) {
 			ewwwio_debug_message( 'url already has exactdn domain' );
 			$exactdn_url = add_query_arg( $args, $image_url );
 			return $this->url_scheme( $exactdn_url, $scheme );
@@ -1395,13 +1404,6 @@ class ExactDN {
 			return $image_url;
 		}
 
-		// Figure out which CDN (sub)domain to use.
-		$domain = $this->get_exactdn_domain();
-		if ( empty( $domain ) ) {
-			ewwwio_debug_message( 'no exactdn domain configured' );
-			return $image_url;
-		}
-		ewwwio_debug_message( $domain );
 		$domain = trailingslashit( esc_url( $domain ) );
 		$exactdn_url  = $domain . ltrim( $image_url_parts['path'], '/' );
 		ewwwio_debug_message( "bare exactdn url: $exactdn_url" );

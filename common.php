@@ -562,6 +562,16 @@ function ewww_image_optimizer_filter_webp_page_output( $buffer ) {
 		}
 		$html->encoding = 'utf-8';
 		$home_url = get_site_url();
+		ewwwio_debug_message( "home url: $home_url" );
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+			global $exactdn;
+			$exactdn_domain = $exactdn->get_exactdn_domain();
+			$home_url_parts = $exactdn->parse_url( $home_url );
+			if ( ! empty( $home_url_parts['host'] ) && $exactdn_domain ) {
+				$home_url = str_replace( $home_url_parts['host'], $exactdn_domain, $home_url );
+				ewwwio_debug_message( "new home url: $home_url" );
+			}
+		}
 		$webp_paths = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' );
 		if ( ! is_array( $webp_paths ) ) {
 			$webp_paths = array();
@@ -7024,7 +7034,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	} else {
 		$disable_level = "disabled='disabled'";
 	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+	if ( class_exists( 'Jetpack_Photon' ) && Jetpack::is_module_active( 'photon' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+		$status_output .= '<p><b>ExactDN:</b> <span style="color: red">' . esc_html__( 'Inactive, please disable the Image Performance option on the Jetpack Dashboard.', 'ewww-image-optimizer' ) . '</span></p>';
+		$collapsible = false;
+	} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		$status_output .= '<p><b>ExactDN:</b> ';
 		global $exactdn;
 		if ( $exactdn->get_exactdn_domain() ) {
@@ -7576,7 +7589,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		'<p><b>' . esc_html_x( 'VPS:', 'abbreviation for Virtual Private Server', 'ewww-image-optimizer' ) . "</b><br>\n" .
 		"<a href='https://www.digitalocean.com/?refcode=89ef0197ec7e'>DigitalOcean</a><br>\n" .
 		"</p>\n" .
-		'<p><b>' . esc_html_x( 'CDN:', 'abbreviation for Content Delivery Network', 'ewww-image-optimizer' ) . "</b><br><a target='_blank' href='http://tracking.maxcdn.com/c/91625/36539/378'>" . esc_html__( 'Add MaxCDN to increase website speeds dramatically! Sign Up Now and Save 25%.', 'ewww-image-optimizer' ) . "</a></p>\n" .
+		'<p><b>' . esc_html_x( 'CDN:', 'abbreviation for Content Delivery Network', 'ewww-image-optimizer' ) . "</b><br><a target='_blank' href='https://ewww.io/resize/'>" . esc_html__( 'Add ExactDN to increase website speeds dramatically! Sign up before October 31st and save 44%.', 'ewww-image-optimizer' ) . "</a></p>\n" .
 		"</div>\n" .
 		"</div>\n";
 	ewwwio_debug_message( 'max_execution_time: ' . ini_get( 'max_execution_time' ) );
