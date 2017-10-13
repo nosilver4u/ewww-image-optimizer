@@ -231,6 +231,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * fixed: WebP .htaccess rules using REQUEST_FILENAME instead of REQUEST_URI does not work on some servers
 * fixed: per-site resize settings hidden when API is active network-wide
 * fixed: network-wide settings not saving properly
+* fixed: notice of undefined index with some configurations of the Shield security plugin
 * deprecated: PHP 5.3 support will be removed by March 2018
 
 = 3.6.1 =

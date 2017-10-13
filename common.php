@@ -5453,7 +5453,7 @@ function ewww_image_optimizer_detect_wpsf_location_lock() {
 		if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
 			ewwwio_debug_message( print_r( $shield_user_man, true ) );
 		}
-		if ( 'Y' == $shield_user_man['session_lock_location'] ) {
+		if ( ! empty( $shield_user_man['session_lock_location'] ) && 'Y' == $shield_user_man['session_lock_location'] ) {
 			return true;
 		}
 	}
