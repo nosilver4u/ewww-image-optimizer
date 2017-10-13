@@ -689,7 +689,7 @@ class ExactDN {
 				ewwwio_debug_message( 'rewriting all other wp_content urls' );
 				$exactdn_domain = $this->get_exactdn_domain();
 				if ( $exactdn_domain && $upload_domain && $this->filtering_the_page ) {
-					$content = preg_replace( '#(https?)://' . $upload_domain . '/(.+?)wp-(includes|content)#i', '$1://' . $exactdn_domain . '/$2wp-$3', $content );
+					$content = preg_replace( '#(https?)://' . $upload_domain . '/(.+?)?wp-(includes|content)#i', '$1://' . $exactdn_domain . '/$2wp-$3', $content );
 				}
 			}
 		} // End if();
