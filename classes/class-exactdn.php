@@ -689,7 +689,12 @@ class ExactDN {
 				ewwwio_debug_message( 'rewriting all other wp_content urls' );
 				$exactdn_domain = $this->get_exactdn_domain();
 				if ( $exactdn_domain && $upload_domain && $this->filtering_the_page ) {
+					// Pre-empt rewriting of wp-includes and wp-content if the extension is php/ashx by using a temporary placeholder.
+					$content = preg_replace( '#(https?)://(.+?)/wp-content/(.+?)\.php#i', '$1://$2/wpcontent/$3.php', $content );
+					$content = preg_replace( '#(https?)://(.+?)/wp-content/(.+?)\.ashx#i', '$1://$2/wpcontent/$3.ashx', $content );
 					$content = preg_replace( '#(https?)://' . $upload_domain . '/(.+?)?wp-(includes|content)#i', '$1://' . $exactdn_domain . '/$2wp-$3', $content );
+					$content = preg_replace( '#(https?)://(.+?)/wpcontent/(.+?)\.php#i', '$1://$2/wp-content/$3.php', $content );
+					$content = preg_replace( '#(https?)://(.+?)/wpcontent/(.+?)\.ashx#i', '$1://$2/wp-content/$3.ashx', $content );
 				}
 			}
 		} // End if();
