@@ -54,6 +54,22 @@ class ExactDN {
 	public $filtering_the_content = false;
 
 	/**
+	 * The ExactDN domain/zone.
+	 *
+	 * @access private
+	 * @var float $elapsed_time
+	 */
+	private $exactdn_domain = false;
+
+	/**
+	 * Allow us to track how much overhead ExactDN introduces.
+	 *
+	 * @access private
+	 * @var float $elapsed_time
+	 */
+	private $elapsed_time = 0;
+
+	/**
 	 * Register (once) actions and filters for ExactDN. If you want to use this class, use the global.
 	 */
 	function __construct() {
@@ -110,6 +126,8 @@ class ExactDN {
 		// If we have a domain, verify it.
 		if ( $this->verify_domain( $exactdn_domain ) ) {
 			delete_option( 'ewww_image_optimizer_exactdn_failures' );
+			$this->exactdn_domain = $exactdn_domain;
+			ewwwio_debug_message( 'exactdn_domain: ' . $exactdn_domain );
 			return true;
 		} elseif ( get_option( 'ewww_image_optimizer_exactdn_failures' ) < 2 ) {
 			$failures = get_option( 'ewww_image_optimizer_exactdn_failures' );
@@ -383,6 +401,7 @@ class ExactDN {
 		$this->filtering_the_page = true;
 		$content = $this->filter_the_content( $content );
 		$this->filtering_the_page = false;
+		ewwwio_debug_message( "parsing page took $this->elapsed_time seconds" );
 		return $content;
 	}
 
@@ -393,6 +412,7 @@ class ExactDN {
 	 * @return string The content with ExactDN image urls.
 	 */
 	function filter_the_content( $content ) {
+		$started = microtime( true );
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		$images = $this->parse_images_from_html( $content );
 
@@ -685,21 +705,23 @@ class ExactDN {
 					}
 				} // End if().
 			} // End foreach().
-			if ( defined( 'EXACTDN_ALL_THE_THINGS' ) && EXACTDN_ALL_THE_THINGS ) {
+			if ( $this->filtering_the_page && defined( 'EXACTDN_ALL_THE_THINGS' ) && EXACTDN_ALL_THE_THINGS ) {
 				ewwwio_debug_message( 'rewriting all other wp_content urls' );
-				$exactdn_domain = $this->get_exactdn_domain();
-				if ( $exactdn_domain && $upload_domain && $this->filtering_the_page ) {
+				if ( $this->exactdn_domain && $upload_domain ) {
+					$escaped_upload_domain = str_replace( '.', '\.', $upload_domain );
+					ewwwio_debug_message( $escaped_upload_domain );
 					// Pre-empt rewriting of wp-includes and wp-content if the extension is php/ashx by using a temporary placeholder.
-					$content = preg_replace( '#(https?)://(.+?)/wp-content/(.+?)\.php#i', '$1://$2/wpcontent/$3.php', $content );
-					$content = preg_replace( '#(https?)://(.+?)/wp-content/(.+?)\.ashx#i', '$1://$2/wpcontent/$3.ashx', $content );
-					$content = preg_replace( '#(https?)://' . $upload_domain . '/(.+?)?wp-(includes|content)#i', '$1://' . $exactdn_domain . '/$2wp-$3', $content );
-					$content = preg_replace( '#(https?)://(.+?)/wpcontent/(.+?)\.php#i', '$1://$2/wp-content/$3.php', $content );
-					$content = preg_replace( '#(https?)://(.+?)/wpcontent/(.+?)\.ashx#i', '$1://$2/wp-content/$3.ashx', $content );
+					$content = preg_replace( '#(https?)://' . $escaped_upload_domain . '([^"' . "'" . '?>]+?)?/wp-content/([^"' . "'" . '?>]+?)\.(php|ashx)#i', '$1://' . $upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
+					$content = preg_replace( '#(https?)://' . $escaped_upload_domain . '/([^"' . "'" . '?>]+?)?wp-(includes|content)#i', '$1://' . $this->exactdn_domain . '/$2wp-$3', $content );
+					$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );
 				}
 			}
 		} // End if();
 		ewwwio_debug_message( 'done parsing page' );
 		$this->filtering_the_content = false;
+		$elapsed_time = microtime( true ) - $started;
+		ewwwio_debug_message( "parsing the_content took $elapsed_time seconds" );
+		$this->elapsed_time += microtime( true ) - $started;
 		return $content;
 	}
 
@@ -714,6 +736,7 @@ class ExactDN {
 	 * @return string|bool
 	 */
 	function filter_image_downsize( $image, $attachment_id, $size ) {
+		$started = microtime( true );
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		// Don't foul up the admin side of things, unless a plugin wants to.
 		if ( is_admin() &&
@@ -949,6 +972,9 @@ class ExactDN {
 			ewwwio_debug_message( $image[0] );
 		}
 		ewwwio_debug_message( 'end image_downsize' );
+		$elapsed_time = microtime( true ) - $started;
+		ewwwio_debug_message( "parsing image_downsize took $elapsed_time seconds" );
+		$this->elapsed_time += microtime( true ) - $started;
 		return $image;
 	}
 
@@ -965,6 +991,7 @@ class ExactDN {
 	 * @return array An array of ExactDN image urls and widths.
 	 */
 	public function filter_srcset_array( $sources = array(), $size_array = array(), $image_src = '', $image_meta = array(), $attachment_id = 0 ) {
+		$started = microtime( true );
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		// Don't foul up the admin side of things, unless a plugin wants to.
 		if ( is_admin() &&
@@ -1106,6 +1133,9 @@ class ExactDN {
 				$sources = array_replace( $sources, $newsources );
 			}
 		} // if ( isset( $image_meta['width'] ) && isset( $image_meta['file'] ) )
+		$elapsed_time = microtime( true ) - $started;
+		ewwwio_debug_message( "parsing srcset took $elapsed_time seconds" );
+		$this->elapsed_time += microtime( true ) - $started;
 		return $sources;
 	}
 
@@ -1118,6 +1148,7 @@ class ExactDN {
 	 * @return array An array of media query breakpoints.
 	 */
 	public function filter_sizes( $sizes, $size ) {
+		$started = microtime( true );
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		if ( ! doing_filter( 'the_content' ) ) {
 			return $sizes;
@@ -1131,6 +1162,9 @@ class ExactDN {
 			return $sizes;
 		}
 
+		$elapsed_time = microtime( true ) - $started;
+		ewwwio_debug_message( "parsing sizes took $elapsed_time seconds" );
+		$this->elapsed_time += microtime( true ) - $started;
 		return sprintf( '(max-width: %1$dpx) 100vw, %1$dpx', $content_width );
 	}
 
@@ -1180,15 +1214,15 @@ class ExactDN {
 			return false;
 		}
 
-		// Bail if the image already went through Photon to avoid conflicts.
-		if ( preg_match( '#^i[\d]{1}.wp.com$#i', $url_info['host'] ) ) {
-			ewwwio_debug_message( 'photon image' );
+		// Bail if the image already went through ExactDN.
+		if ( ! $exactdn_is_valid && strpos( $url_info['host'], '.exactdn.com' ) ) {
+			ewwwio_debug_message( 'exactdn image' );
 			return false;
 		}
 
-		// Bail if the image already went through ExactDN.
-		if ( ! $exactdn_is_valid && preg_match( '#.exactdn.com$#i', $url_info['host'] ) ) {
-			ewwwio_debug_message( 'exactdn image' );
+		// Bail if the image already went through Photon to avoid conflicts.
+		if ( preg_match( '#^i[\d]{1}.wp.com$#i', $url_info['host'] ) ) {
+			ewwwio_debug_message( 'photon image' );
 			return false;
 		}
 
@@ -1385,16 +1419,14 @@ class ExactDN {
 		ewwwio_debug_message( $image_url_parts['host'] );
 
 		// Figure out which CDN (sub)domain to use.
-		$domain = $this->get_exactdn_domain();
-		if ( empty( $domain ) ) {
+		if ( empty( $this->exactdn_domain ) ) {
 			ewwwio_debug_message( 'no exactdn domain configured' );
 			return $image_url;
 		}
-		ewwwio_debug_message( $domain );
 
 		// You can't run an ExactDN URL through again because query strings are stripped.
 		// So if the image is already an ExactDN URL, append the new arguments to the existing URL.
-		if ( $domain === $image_url_parts['host'] ) {
+		if ( $this->exactdn_domain === $image_url_parts['host'] ) {
 			ewwwio_debug_message( 'url already has exactdn domain' );
 			$exactdn_url = add_query_arg( $args, $image_url );
 			return $this->url_scheme( $exactdn_url, $scheme );
@@ -1409,8 +1441,8 @@ class ExactDN {
 			return $image_url;
 		}
 
-		$domain = trailingslashit( esc_url( $domain ) );
-		$exactdn_url  = $domain . ltrim( $image_url_parts['path'], '/' );
+		$domain = 'http://' . $this->exactdn_domain . '/';
+		$exactdn_url = $domain . ltrim( $image_url_parts['path'], '/' );
 		ewwwio_debug_message( "bare exactdn url: $exactdn_url" );
 
 		/**
@@ -1499,10 +1531,9 @@ class ExactDN {
 	 * Adds link to header which enables DNS prefetching for faster speed.
 	 */
 	function dns_prefetch() {
-		$exactdn_domain = $this->get_exactdn_domain();
-		if ( $exactdn_domain ) {
+		if ( $this->exactdn_domain ) {
 			echo "\r\n";
-			printf( "<link rel='dns-prefetch' href='%s'>\r\n", '//' . esc_attr( $exactdn_domain ) );
+			printf( "<link rel='dns-prefetch' href='%s'>\r\n", '//' . esc_attr( $this->exactdn_domain ) );
 		}
 	}
 }
