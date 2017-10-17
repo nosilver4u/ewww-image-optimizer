@@ -3,8 +3,9 @@
 **Donate link:** https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW  
 **Tags:** image, attachment, optimize, optimization, lossless, lossy, seo, compression, gmagick, jpegtran, gifsicle, optipng, pngout, pngquant, jpegmini, tinyjpg, tinypng, webp, wp-cli   
 **Requires at least:** 4.6
+**Requires PHP:** 5.3
 **Tested up to:** 4.9
-**Stable tag:** 3.7.4
+**Stable tag:** 4.0.0
 **License:** GPLv3
 **Build Status:** [![Build Status](https://travis-ci.org/nosilver4u/ewww-image-optimizer.svg?branch=master)](https://travis-ci.org/nosilver4u/ewww-image-optimizer)
 
@@ -36,7 +37,7 @@ If you need a version of this plugin for API use only, see [EWWW Image Optimizer
 
 ### Automatic Resizing ###
 
-With ExactDN support, images will be automatically resized to fit the page and device size. ExactDN also enables automatic WebP and Retina images when needed.
+With ExactDN support, images will be automatically resized to fit the page and device size. ExactDN also enables basic retina support and automatic lossless compression.
 
 
 ### Support 
@@ -133,47 +134,7 @@ If these steps do not work, additional documentation is available at http://docs
 
 ### Webhosts 
 
-In general, these lists only apply to shared hosting services. If the providers below have VPS or dedicated server options, those will likely work just fine. If you have any contributions or corrections to these lists, please contact me via the form at https://ewww.io
-
-Webhosts where things work (mostly) out of the box:
-
-* [A2 Hosting](https://partners.a2hosting.com/solutions.php?id=5959&url=638): EWWW IO is installed automatically for new sites, and is fully supported by A2 (referral link). Their Turbo+SSD hosting is very nice (and still cheap).
-* [aghosted](https://aghosted.com/)
-* [Arvixe](http://www.arvixe.com)
-* [Bluehost](https://www.bluehost.com)
-* [CiviHosting](https://civihosting.com/)
-* [DigitalBerg](https://www.digitalberg.com)
-* [Dreamhost](https://www.dreamhost.com)
-* [GoDaddy](https://www.godaddy.com) (only with PHP 5.3+)
-* [gPowerHost](https://gpowerhost.com/)
-* [HostGator](http://www.hostgator.com)
-* [Hetzner Online](https://www.hetzner.de)
-* [Hosterdam](http://www.hosterdam.com) (FreeBSD)
-* [HostMonster](https://www.hostmonster.com)
-* [iFastNet](https://ifastnet.com/portal/) (with custom php.ini from customer support)
-* [inmotion](http://www.inmotionhosting.com)
-* [Liquid Web](https://www.liquidweb.com)
-* [Namecheap](https://www.namecheap.com)
-* [The Open Host](https://theopenhost.com)
-* [OVH](https://www.ovh.co.uk)
-* [Site5] (https://www.site5.com) (tools must be built manually, or contact Site5 support for assistance)
-* [SiteGround](https://www.siteground.com)
-* [Spry Servers](https://www.spryservers.net)
-* [WebFaction](https://www.webfaction.com)
-* [1&1](https://www.1and1.com) (pngout requires manual upload and permissions fix)
-
-Webhosts where the plugin will only work in cloud mode or only some tools are installed locally:
-
-* Cloudways
-* Flywheel
-* Gandi
-* Hostwinds
-* ipage (JPG only)
-* ipower
-* Kinsta - use EWWW Image Optimizer Cloud fork: https://wordpress.org/plugins/ewww-image-optimizer-cloud/
-* one.com - may not even work in cloud mode
-* WP Engine - use EWWW Image Optimizer Cloud fork: https://wordpress.org/plugins/ewww-image-optimizer-cloud/
-
+To find out if your webhost works with the EWWW Image Optimizer, you can check the [official list](http://docs.ewww.io/article/43-supported-web-hosts).
 
 
 ## Frequently Asked Questions 
