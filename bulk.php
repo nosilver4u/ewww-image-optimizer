@@ -648,11 +648,11 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	$reset_images = array();
 	$queued_ids = array();
 	$field_formats = array(
-		'%s', // path
-		'%s', // gallery
-		'%d', // orig_size
-		'%d', // attachment_id
-		'%s', // resize
+		'%s', // path.
+		'%s', // gallery.
+		'%d', // orig_size.
+		'%d', // attachment_id.
+		'%s', // resize.
 		'%d', // pending.
 	);
 	ewwwio_debug_message( 'scanning for media attachments' );

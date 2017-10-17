@@ -2099,11 +2099,11 @@ function ewww_image_optimizer_network_admin_menu() {
 		// Add options page to the settings menu.
 		$permissions = apply_filters( 'ewww_image_optimizer_superadmin_permissions', '' );
 		$ewww_network_options_page = add_submenu_page(
-			'settings.php',                        // Slug of parent
-			'EWWW Image Optimizer',                // Page Title
-			'EWWW Image Optimizer',                // Menu title
-			$permissions,                          // Capability
-			EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE,      // Slug
+			'settings.php',                        // Slug of parent.
+			'EWWW Image Optimizer',                // Page Title.
+			'EWWW Image Optimizer',                // Menu title.
+			$permissions,                          // Capability.
+			EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE,      // Slug.
 			'ewww_image_optimizer_network_options' // Function to call.
 		);
 	}
@@ -2142,19 +2142,19 @@ function ewww_image_optimizer_admin_menu() {
 	if ( ! is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
 		// Add options page to the settings menu.
 		$ewww_options_page = add_options_page(
-			'EWWW Image Optimizer',                                                      // Page title
-			'EWWW Image Optimizer',                                                      // Menu title
-			apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ), // Capability
-			EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE,                                            // Slug
+			'EWWW Image Optimizer',                                                      // Page title.
+			'EWWW Image Optimizer',                                                      // Menu title.
+			apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ), // Capability.
+			EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE,                                            // Slug.
 			'ewww_image_optimizer_options'                                               // Function to call.
 		);
 	} else {
 		// Add options page to the single-site settings menu.
 		$ewww_options_page = add_options_page(
-			'EWWW Image Optimizer',                                                      // Page title
-			'EWWW Image Optimizer',                                                      // Menu title
-			apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ), // Capability
-			EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE,                                            // Slug
+			'EWWW Image Optimizer',                                                      // Page title.
+			'EWWW Image Optimizer',                                                      // Menu title.
+			apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ), // Capability.
+			EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE,                                            // Slug.
 			'ewww_image_optimizer_network_singlesite_options'                            // Function to call.
 		);
 	}
