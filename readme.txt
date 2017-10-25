@@ -179,6 +179,9 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.0.1 =
+* fixed: ExactDN option not disabled when verification fails too many times
+
 = 4.0.0 =
 * added: ExactDN with CDN and automatic image resizing
 * added: image resize detection for admin users

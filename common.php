@@ -11,7 +11,6 @@
  */
 
 // TODO: use <picture> element to serve webp (#54).
-// TODO: see if we can offer a rebuild option, to fill in missing thumbs.
 // TODO: so, if lazy loading support stinks, can we roll our own? that's an image "optimization", right?...
 // TODO: prevent bad ajax errors from firing when we click the toggle on the Optimization Log, and the plugin status from doing 403s...
 // TODO: use a transient to do health checks on the schedule optimizer.
@@ -20,7 +19,6 @@
 // TODO: need to make the scheduler so it can resume without having to re-run the queue population, and then we can probably also flush the queue when scheduled opt starts, but later it would be nice to implement the bulk_loop as the aux_loop so that it could handle media properly.
 // TODO: implement a search for the bulk table, or maybe we should just move it to it's own page?
 // TODO: port bulk changes to NextGEN and FlaGallery.
-// TODO: make a bulk restore function, maybe.
 // TODO: Add a custom async function for parallel mode to store image as pending and use the row ID instead of relative path.
 // TODO: write some tests for update_table and check_table, find_already_opt, and remove_dups.
 // TODO: write some conversion tests.
@@ -29,7 +27,6 @@
 // TODO: perhaps have an optional footer thingy that says how many images have been optimized.
 // TODO: integrate AGR, since it's "abandoned", but possibly using gifsicle for better GIFs.
 // TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
-// TODO: did you know +? is 1 or more non-greedy?
 // TODO: on images without srscet, add 2x and 3x versions anyway.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -6744,6 +6741,7 @@ function ewww_image_optimizer_savings() {
 				switch_to_blog( $blog_id );
 				ewwwio_debug_message( "getting savings for site: $blog_id" );
 				$table_name = $wpdb->prefix . 'ewwwio_images';
+				ewwwio_debug_message( "table name is $table_name" );
 				if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) != $table_name ) {
 					ewww_image_optimizer_install_table();
 				}
@@ -6760,6 +6758,7 @@ function ewww_image_optimizer_savings() {
 		ewwwio_debug_message( 'querying savings for single site' );
 		$total_savings = 0;
 		$table_name = $wpdb->ewwwio_images;
+		ewwwio_debug_message( "table name is $table_name" );
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) != $table_name ) {
 			ewww_image_optimizer_install_table();
 		}
@@ -7581,14 +7580,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		"<p><a href='https://wordpress.org/support/view/plugin-reviews/ewww-image-optimizer#postform'>" . esc_html__( 'Write a review.', 'ewww-image-optimizer' ) . "</a></p>\n" .
 		/* translators: %s: Paypal (link) */
 		'<p>' . sprintf( esc_html__( 'Contribute directly via %s.',  'ewww-image-optimizer' ), "<a href='https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=MKMQKCBFFG3WW'>Paypal</a>" ) . "</p>\n" .
-		'<p>' . esc_html__( 'Use any of these referral links to show your appreciation:', 'ewww-image-optimizer' ) . "</p>\n" .
-		'<p><b>' . esc_html__( 'Web Hosting:', 'ewww-image-optimizer' ) . "</b><br>\n" .
-		"<a href='http://www.a2hosting.com/?aid=b6322137'>A2 Hosting:</a> " . esc_html_x( 'with automatic EWWW IO setup', 'A2 Hosting:', 'ewww-image-optimizer' ) . "<br>\n" .
-		"<a href='http://www.shareasale.com/r.cfm?b=394686&u=1481701&m=41388&urllink='>WP Engine</a><br>\n" .
-		"</p>\n" .
-		'<p><b>' . esc_html_x( 'VPS:', 'abbreviation for Virtual Private Server', 'ewww-image-optimizer' ) . "</b><br>\n" .
-		"<a href='https://www.digitalocean.com/?refcode=89ef0197ec7e'>DigitalOcean</a><br>\n" .
-		"</p>\n" .
+		'<p>' . esc_html__( 'Signup for premium image optimization:', 'ewww-image-optimizer' ) . "<br>\n" .
+		"<a target='_blank' href='https://ewww.io/plans/'>" . esc_html__( 'Compress', 'ewww-image-optimizer' ) . "</a><br>\n" .
+		"<a target='_blank' href='https://ewww.io/resize/'>" . esc_html__( 'Resize', 'ewww-image-optimizer' ) . "</a></p>\n" .
 		'<p><b>' . esc_html_x( 'CDN:', 'abbreviation for Content Delivery Network', 'ewww-image-optimizer' ) . "</b><br><a target='_blank' href='https://ewww.io/resize/'>" . esc_html__( 'Add ExactDN to increase website speeds dramatically! Sign up before October 31st and save 44%.', 'ewww-image-optimizer' ) . "</a></p>\n" .
 		"</div>\n" .
 		"</div>\n";

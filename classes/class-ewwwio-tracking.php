@@ -191,6 +191,8 @@ class EWWWIO_Tracking {
 
 		ewwwio_debug_message( 'finished reporting' );
 		if ( is_wp_error( $request ) ) {
+			$error_message = $request->get_error_message();
+			ewwwio_debug_message( "check-in failed: $error_message" );
 			return $request;
 		}
 

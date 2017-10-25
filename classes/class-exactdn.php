@@ -116,22 +116,35 @@ class ExactDN {
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		// If we don't have a domain yet, go grab one.
 		if ( ! $this->get_exactdn_domain() ) {
+			ewwwio_debug_message( 'attempting to activate exactDN' );
 			$exactdn_domain = $this->activate_site();
 		} else {
+			ewwwio_debug_message( 'grabbing existing exactDN domain' );
 			$exactdn_domain = $this->get_exactdn_domain();
 		}
 		if ( ! $exactdn_domain ) {
+			if ( get_option( 'ewww_image_optimizer_exactdn_failures' ) < 5 ) {
+				$failures = (int) get_option( 'ewww_image_optimizer_exactdn_failures' );
+				$failures++;
+				ewwwio_debug_message( "could not activate ExactDN, failures: $failures" );
+				update_option( 'ewww_image_optimizer_exactdn_failures', $failures );
+				return false;
+			}
+			delete_option( 'ewww_image_optimizer_exactdn' );
+			delete_site_option( 'ewww_image_optimizer_exactdn' );
 			return false;
 		}
 		// If we have a domain, verify it.
 		if ( $this->verify_domain( $exactdn_domain ) ) {
+			ewwwio_debug_message( 'verified existing exactDN domain' );
 			delete_option( 'ewww_image_optimizer_exactdn_failures' );
 			$this->exactdn_domain = $exactdn_domain;
 			ewwwio_debug_message( 'exactdn_domain: ' . $exactdn_domain );
 			return true;
-		} elseif ( get_option( 'ewww_image_optimizer_exactdn_failures' ) < 2 ) {
-			$failures = get_option( 'ewww_image_optimizer_exactdn_failures' );
+		} elseif ( get_option( 'ewww_image_optimizer_exactdn_failures' ) < 10 ) {
+			$failures = (int) get_option( 'ewww_image_optimizer_exactdn_failures' );
 			$failures++;
+			ewwwio_debug_message( "could not verify existing exactDN domain, failures: $failures" );
 			update_option( 'ewww_image_optimizer_exactdn_failures', $failures );
 			$this->set_exactdn_checkin( time() + 3600 );
 			return false;
