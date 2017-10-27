@@ -2160,6 +2160,8 @@ function ewww_image_optimizer_admin_menu() {
 		add_media_page( esc_html__( 'Dynamic Image Debugging', 'ewww-image-optimizer' ), esc_html__( 'Dynamic Image Debugging', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-dynamic-debug', 'ewww_image_optimizer_dynamic_image_debug' );
 		// Add Image Queue Debugging to allow clearing and checking queues.
 		add_media_page( esc_html__( 'Image Queue Debugging', 'ewww-image-optimizer' ), esc_html__( 'Image Queue Debugging', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-queue-debug', 'ewww_image_optimizer_image_queue_debug' );
+		// Add debug log page for viewing the log on hosts where you can't directly access it.
+		add_media_page( esc_html__( 'EWWW IO Debug Log', 'ewww-image-optimizer' ), esc_html__( 'EWWW IO Debug Log', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-debug-log-display', 'ewww_image_optimizer_debug_log_display' );
 	}
 	if ( is_plugin_active( 'image-store/ImStore.php' ) || is_plugin_active_for_network( 'image-store/ImStore.php' ) ) {
 		// Adds an optimize page for Image Store galleries and images.
@@ -7822,6 +7824,19 @@ function ewwwio_debug_message( $message ) {
 			global $ewww_debug;
 			$ewww_debug = "not logging message, memory limit is $memory_limit";
 		}
+	}
+}
+
+/**
+ * Loads the logfile and displays it in the WP admin.
+ */
+function ewww_image_optimizer_debug_log_display() {
+	if ( file_exists( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
+		$ewww_debug_log = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' );
+		$ewww_debug_log = str_replace( "\n", '<br>', $ewww_debug_log );
+		echo $ewww_debug_log;
+	} else {
+		esc_html_e( 'The Debug Log is empty.', 'ewww-image-optimizer' );
 	}
 }
 
