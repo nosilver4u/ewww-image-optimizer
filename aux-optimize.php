@@ -446,11 +446,14 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 				$already_optimized = ewww_image_optimizer_find_already_optimized( $path );
 			}
 
-			if ( $already_optimized || isset( $optimized_list[ $path ] ) ) {
-				if ( ! $already_optimized ) {
+			if ( is_array( $already_optimized ) || isset( $optimized_list[ $path ] ) ) {
+				if ( ! $already_optimized && is_array( $optimized_list ) ) {
 					$already_optimized = $optimized_list[ $path ];
 				}
-				if ( ! empty( $already_optimized['pending'] ) ) {
+				if ( ! is_array( $already_optimized ) ) {
+					$already_optimized = array();
+				}
+				if ( is_array( $already_optimized ) && ! empty( $already_optimized['pending'] ) ) {
 					ewwwio_debug_message( "pending record for $path" );
 					continue;
 				}
