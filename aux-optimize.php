@@ -442,19 +442,21 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			}
 
 			$already_optimized = false;
-			if ( is_string( $optimized_list ) ) {
+			if ( ! is_array( $optimized_list ) && is_string( $optimized_list ) ) {
 				$already_optimized = ewww_image_optimizer_find_already_optimized( $path );
+			} elseif ( is_array( $optimized_list ) && isset( $optimized_list[ $path ] ) && ! empty( $optimized_list[ $path ] ) ) {
+				$already_optimized = $optimized_list[ $path ];
 			}
 
-			if ( ( is_array( $already_optimized ) && $already_optimized ) || isset( $optimized_list[ $path ] ) ) {
-				if ( ! $already_optimized && is_array( $optimized_list[ $path ] ) ) {
+			if ( is_array( $already_optimized ) && ! empty( $already_optimized ) ) {
+/*				if ( ! $already_optimized && is_array( $optimized_list[ $path ] ) ) {
 					$already_optimized = $optimized_list[ $path ];
 				}
 				if ( ! is_array( $already_optimized ) ) {
 					$already_optimized = array();
-				}
+				} */
 				ewwwio_debug_message( print_r( $already_optimized, true ) );
-				if ( is_array( $already_optimized ) && ! empty( $already_optimized['pending'] ) ) {
+				if ( ! empty( $already_optimized['pending'] ) ) {
 					ewwwio_debug_message( "pending record for $path" );
 					continue;
 				}
