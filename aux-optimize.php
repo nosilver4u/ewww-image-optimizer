@@ -446,8 +446,8 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 				$already_optimized = ewww_image_optimizer_find_already_optimized( $path );
 			}
 
-			if ( is_array( $already_optimized ) || isset( $optimized_list[ $path ] ) ) {
-				if ( ! $already_optimized && is_array( $optimized_list ) ) {
+			if ( ( is_array( $already_optimized ) && $already_optimized ) || isset( $optimized_list[ $path ] ) ) {
+				if ( ! $already_optimized && is_array( $optimized_list[ $path ] ) ) {
 					$already_optimized = $optimized_list[ $path ];
 				}
 				if ( ! is_array( $already_optimized ) ) {
