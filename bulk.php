@@ -980,7 +980,6 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				} elseif ( is_array( $optimized_list ) && isset( $optimized_list[ $file_path ] ) ) {
 					$already_optimized = $optimized_list[ $file_path ];
 				}
-//				if ( is_array( $already_optimized ) && ( ! $remote_file || ! empty( $_REQUEST['ewww_force'] ) ) ) {
 				if ( is_array( $already_optimized ) && ! empty( $already_optimized ) ) {
 					ewwwio_debug_message( 'potential match found' );
 					ewww_image_optimizer_debug_log();
