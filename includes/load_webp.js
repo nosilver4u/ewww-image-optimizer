@@ -564,11 +564,11 @@ function ewww_load_images(ewww_webp_supported) {
 				$(this).attr('data-lazy-src', $(this).attr('data-lazy-img-src'));
 				var ewww_attr = $(this).attr('data-srcset');
 				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-						$(this).attr('srcset', ewww_attr);
+					$(this).attr('srcset', ewww_attr);
 				}
 				var ewww_attr = $(this).attr('data-lazy-srcset-img');
 				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-						$(ewww_img).attr('data-lazy-srcset', ewww_attr);
+					$(ewww_img).attr('data-lazy-srcset', ewww_attr);
 				}
 			}
 			$(this).removeClass('ewww_webp_lazy_load');
@@ -618,6 +618,18 @@ function ewww_load_images(ewww_webp_supported) {
 				var ewww_attr = $(this).attr('data-srcset-img');
 				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
 					$(ewww_img).attr('srcset', ewww_attr);
+				}
+				var ewww_attr = $(this).attr('data-orig-file');
+				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
+					$(ewww_img).attr('data-orig-file', ewww_attr);
+				}
+				var ewww_attr = $(this).attr('data-medium-file');
+				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
+					$(ewww_img).attr('data-medium-file', ewww_attr);
+				}
+				var ewww_attr = $(this).attr('data-large-file');
+				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
+					$(ewww_img).attr('data-large-file', ewww_attr);
 				}
 			}
 			ewww_img = ewww_copy_attrs(this, ewww_img);
