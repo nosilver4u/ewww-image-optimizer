@@ -656,7 +656,7 @@ class ExactDN {
 						// Insert new image src into the srcset as well, if we have a width.
 						if ( false !== $width && false === strpos( $width, '%' ) ) {
 							ewwwio_debug_message( 'checking to see if srcset width already exists' );
-							$srcset_url = $exactdn_url . ' ' . $width . 'w, ';
+							$srcset_url = $exactdn_url . ' ' . (int) $width . 'w, ';
 							if ( false === strpos( $tag, $width . 'w' ) ) {
 								// For double-quotes...
 								$new_tag = str_replace( 'srcset="', 'srcset="' . $srcset_url, $new_tag );
@@ -704,7 +704,7 @@ class ExactDN {
 							$new_tag = $tag;
 							$exactdn_url = $src;
 							ewwwio_debug_message( 'checking to see if srcset width already exists' );
-							$srcset_url = $exactdn_url . ' ' . $width . 'w, ';
+							$srcset_url = $exactdn_url . ' ' . (int) $width . 'w, ';
 							if ( false === strpos( $tag, $width . 'w' ) ) {
 								ewwwio_debug_message( 'src not in srcset, adding' );
 								// For double-quotes...
@@ -1117,7 +1117,7 @@ class ExactDN {
 
 			foreach ( $multipliers as $multiplier ) {
 
-				$newwidth = $base * $multiplier;
+				$newwidth = intval( $base * $multiplier );
 				foreach ( $currentwidths as $currentwidth ) {
 					// If a new width would be within 50 pixels of an existing one or larger than the full size image, skip.
 					if ( abs( $currentwidth - $newwidth ) < 50 || ( $newwidth > $fullwidth ) ) {

@@ -182,6 +182,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 = 4.0.1 =
 * fixed: ExactDN option not disabled when verification fails too many times
 * fixed: theme scanner sometimes skipped images on PHP 5.3
+* fixed: invalid (float) width parameters for srcset attributes
 
 = 4.0.0 =
 * added: ExactDN with CDN and automatic image resizing
