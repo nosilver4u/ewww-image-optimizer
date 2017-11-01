@@ -141,7 +141,7 @@ class ExactDN {
 			$this->exactdn_domain = $exactdn_domain;
 			ewwwio_debug_message( 'exactdn_domain: ' . $exactdn_domain );
 			return true;
-		} elseif ( get_option( 'ewww_image_optimizer_exactdn_failures' ) < 10 ) {
+		} elseif ( get_option( 'ewww_image_optimizer_exactdn_failures' ) < 5 ) {
 			$failures = (int) get_option( 'ewww_image_optimizer_exactdn_failures' );
 			$failures++;
 			ewwwio_debug_message( "could not verify existing exactDN domain, failures: $failures" );
