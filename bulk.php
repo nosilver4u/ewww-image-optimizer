@@ -568,7 +568,7 @@ function ewww_image_optimizer_optimized_list() {
  */
 function ewww_image_optimizer_fetch_metadata_batch( $attachments_in ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( ! preg_match( "/^[\d,]+$/", $attachments_in ) ) {
+	if ( ! preg_match( '/^[\d,]+$/', $attachments_in ) ) {
 		ewwwio_debug_message( 'invalid attachments string' );
 		return array();
 	}
@@ -724,8 +724,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			$selected_ids = array_splice( $attachment_ids, 0, $max_query );
 			array_walk( $selected_ids, 'intval' );
 			ewwwio_debug_message( 'selected items: ' . count( $selected_ids ) );
-			$attachments_in = implode( ",", $selected_ids );
-			//$attachments_in = "'" . implode( "','", $selected_ids ) . "'";
+			$attachments_in = implode( ',', $selected_ids );
 		} else {
 			ewwwio_debug_message( 'no array found' );
 			ob_clean();
