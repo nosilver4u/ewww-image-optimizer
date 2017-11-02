@@ -362,10 +362,14 @@ jQuery(document).ready(function($) {
 	});
 	}
 	function ewwwUpdateQuota() {
-		ewww_quota_update_data.ewww_wpnonce = ewww_vars._wpnonce;
-		$.post(ajaxurl, ewww_quota_update_data, function(response) {
-			$('#ewww-bulk-credits-available').html(response);
-		});
+		if ($('#ewww-bulk-credits-available').length > 0) {
+			ewww_quota_update_data.ewww_wpnonce = ewww_vars._wpnonce;
+			$.post(ajaxurl, ewww_quota_update_data, function(response) {
+				$('#ewww-bulk-credits-available').html(response);
+			});
+		} else {
+			console.log( 'no quota to update' );
+		}
 	}
 	function ewwwStartOpt () {
 		ewww_k = 0;
@@ -447,6 +451,7 @@ jQuery(document).ready(function($) {
 				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_response.error + '</b></p>');
 				clearInterval(ewww_quota_update);
 				clearInterval(ewww_countdown);
+				ewwwUpdateQuota();
 			}
 			else if (ewww_k == 9) {
 				if ( ewww_response.results ) {

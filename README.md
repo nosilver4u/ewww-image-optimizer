@@ -5,7 +5,7 @@
 **Requires at least:** 4.6
 **Requires PHP:** 5.3
 **Tested up to:** 4.9
-**Stable tag:** 4.0.0
+**Stable tag:** 4.0.1
 **License:** GPLv3
 **Build Status:** [![Build Status](https://travis-ci.org/nosilver4u/ewww-image-optimizer.svg?branch=master)](https://travis-ci.org/nosilver4u/ewww-image-optimizer)
 

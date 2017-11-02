@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '400.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '401.0' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -3415,6 +3415,8 @@ function ewww_image_optimizer_cloud_quota() {
 				/* translators: 1: Number of images */
 				_n( '%1$d image credit remaining.', '%1$d image credits remaining.', $real_quota, 'ewww-image-optimizer' ), $real_quota
 			) );
+		} elseif ( 0 == $quota[0] && 0 == $quota[1] && 0 == $quota[2] ) {
+			return esc_html__( 'no credits remaining, please purchase more.', 'ewww-image-optimizer' );
 		} else {
 			return esc_html( sprintf(
 				/* translators: 1: Number of image credits used 2: Number of image credits available 3: days until subscription renewal */
@@ -7100,7 +7102,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		if ( preg_match( '/great/', $verify_cloud ) ) {
 			$status_output .= '<span style="color: green">' . esc_html__( 'Verified,', 'ewww-image-optimizer' ) . ' </span>' . ewww_image_optimizer_cloud_quota();
 		} elseif ( preg_match( '/exceeded/', $verify_cloud ) ) {
-			$status_output .= '<span style="color: orange">' . esc_html__( 'Verified,', 'ewww-image-optimizer' ) . ' </span>' . ewww_image_optimizer_cloud_quota();
+			$status_output .= '<span style="color: orange">' . esc_html__( 'Verified,', 'ewww-image-optimizer' ) . '</span> <a href="https://ewww.io/plans/" target="_blank">' . ewww_image_optimizer_cloud_quota() . '</a>';
 			$collapsible    = false;
 		} else {
 			$status_output .= '<span style="color: red">' . esc_html__( 'Not Verified', 'ewww-image-optimizer' ) . '</span>';
@@ -7399,7 +7401,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$output[] = "<tr class='$network_class'><th><label for='ewww_image_optimizer_cloud_notkey'>" . esc_html__( 'Cloud optimization API Key', 'ewww-image-optimizer' ) . "</label></th><td><input type='text' id='ewww_image_optimizer_cloud_notkey' name='ewww_image_optimizer_cloud_notkey' readonly='readonly' value='****************************" . substr( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), 28 ) . "' size='32' /> <a href='admin.php?action=ewww_image_optimizer_remove_cloud_key&site=$blog_id'>" . esc_html__( 'Remove API key', 'ewww-image-optimizer' ) . "</a></td></tr>\n";
 		$output[] = "<input type='hidden' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='" . ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) . "' />\n";
 	} else {
-		$output[] = "<tr class='$network_class'><th><label for='ewww_image_optimizer_cloud_key'>" . esc_html__( 'Cloud optimization API Key', 'ewww-image-optimizer' ) . "</label></th><td><input type='text' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='' size='32' /> " . esc_html__( 'API Key will be validated when you save your settings.', 'ewww-image-optimizer' ) . " <a href='https://ewww.io/plans/'>" . esc_html__( 'Purchase an API key.', 'ewww-image-optimizer' ) . "</a></td></tr>\n";
+		$output[] = "<tr class='$network_class'><th><label for='ewww_image_optimizer_cloud_key'>" . esc_html__( 'Cloud optimization API Key', 'ewww-image-optimizer' ) . "</label></th><td><input type='text' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='' size='32' /> " . esc_html__( 'API Key will be validated when you save your settings.', 'ewww-image-optimizer' ) . " <a href='https://ewww.io/plans/' target='_blank'>" . esc_html__( 'Purchase an API key.', 'ewww-image-optimizer' ) . "</a></td></tr>\n";
 	}
 	$output[] = "<tr class='$network_class'><th><label for='ewww_image_optimizer_debug'>" . esc_html__( 'Debugging', 'ewww-image-optimizer' ) . "</label></th><td><input type='checkbox' id='ewww_image_optimizer_debug' name='ewww_image_optimizer_debug' value='true' " . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) == true ? "checked='true'" : '' ) . ' /> ' . esc_html__( 'Use this to provide information for support purposes, or if you feel comfortable digging around in the code to fix a problem you are experiencing.', 'ewww-image-optimizer' ) . "</td></tr>\n";
 	$output[] = "<tr class='$network_class'><th><label for='ewww_image_optimizer_jpegtran_copy'>" . esc_html__( 'Remove metadata', 'ewww-image-optimizer' ) . "</label></th>\n" .
