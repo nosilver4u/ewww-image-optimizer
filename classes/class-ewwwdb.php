@@ -71,7 +71,7 @@ class EwwwDB extends wpdb {
 		 */
 		ewwwio_debug_message( 'we have records to store via ewwwdb' );
 		$multi_formats = array();
-		$values = array();
+		$values        = array();
 		foreach ( $data as $record ) {
 			if ( ! ewww_image_optimizer_iterable( $record ) ) {
 				continue;
@@ -89,14 +89,14 @@ class EwwwDB extends wpdb {
 				}
 
 				$formats[] = $value['format'];
-				$values[] = $value['value'];
+				$values[]  = $value['value'];
 			}
 			$multi_formats[] = '(' . implode( ',', $formats ) . ')';
 		}
-		$first = reset( $data );
-		$fields = '`' . implode( '`, `', array_keys( $first ) ) . '`';
-		$multi_formats = implode( ',', $multi_formats );
-		$sql = "INSERT INTO `$table` ($fields) VALUES $multi_formats";
+		$first                     = reset( $data );
+		$fields                    = '`' . implode( '`, `', array_keys( $first ) ) . '`';
+		$multi_formats             = implode( ',', $multi_formats );
+		$sql                       = "INSERT INTO `$table` ($fields) VALUES $multi_formats";
 		$this->check_current_query = false;
 		return $this->query( $this->prepare( $sql, $values ) );
 	}

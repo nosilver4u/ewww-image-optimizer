@@ -169,12 +169,12 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		 * @return string
 		 */
 		protected function generate_key( $length = 64 ) {
-			$unique  = 'a';
+			$unique = 'a';
 			if ( $this->is_queue_active( $unique ) ) {
 				$unique = 'b';
 			}
 			$this->second_queue = $unique;
-			$prepend = $this->identifier . '_batch_';
+			$prepend            = $this->identifier . '_batch_';
 
 			return substr( $prepend . $unique, 0, $length );
 		}
@@ -289,7 +289,7 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 			}
 			$lock_duration = ( property_exists( $this, 'queue_lock_time' ) ) ? $this->queue_lock_time : 60; // 1 minute
 			$lock_duration = apply_filters( $this->identifier . '_queue_lock_time', $lock_duration );
-			set_transient( $this->identifier . '_process_lock', $this->active_queue , $lock_duration );
+			set_transient( $this->identifier . '_process_lock', $this->active_queue, $lock_duration );
 		}
 
 		/**
@@ -322,9 +322,9 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 				)
 			);
 
-			$batch = new stdClass();
-			$batch->key = $query->option_name;
-			$batch->data = maybe_unserialize( $query->option_value );
+			$batch              = new stdClass();
+			$batch->key         = $query->option_name;
+			$batch->data        = maybe_unserialize( $query->option_value );
 			$this->active_queue = substr( $batch->key, -1 );
 			$this->update_lock();
 			return $batch;

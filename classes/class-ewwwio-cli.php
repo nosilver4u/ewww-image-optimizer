@@ -272,7 +272,7 @@ function ewww_image_optimizer_bulk_flag( $delay = 0 ) {
 		// Record the starting time for the current image (in microseconds).
 		$started = microtime( true );
 		// Retrieve the meta for the current ID.
-		$meta = new flagMeta( $id );
+		$meta      = new flagMeta( $id );
 		$file_path = $meta->image->imagePath;
 		// Optimize the full-size version.
 		$fres = ewww_image_optimizer( $file_path, 3, false, false, true );
@@ -282,7 +282,7 @@ function ewww_image_optimizer_bulk_flag( $delay = 0 ) {
 		if ( ! empty( $meta->image->meta_data['webview'] ) ) {
 			// Determine path of the webview.
 			$web_path = $meta->image->webimagePath;
-			$wres = ewww_image_optimizer( $web_path, 3, false, true );
+			$wres     = ewww_image_optimizer( $web_path, 3, false, true );
 			/* translators: %s: compression results */
 			WP_CLI::line( sprintf( __( 'Optimized size – %s', 'ewww-image-optimizer' ), html_entity_decode( $wres[1] ) ) );
 		}
@@ -367,7 +367,7 @@ function ewww_image_optimizer_bulk_ngg( $delay = 0 ) {
 		// Creating the 'registry' object for working with nextgen.
 		$registry = C_Component_Registry::get_instance();
 		// Creating a database storage object from the 'registry' object.
-		$storage  = $registry->get_utility( 'I_Gallery_Storage' );
+		$storage = $registry->get_utility( 'I_Gallery_Storage' );
 		// Get an image object.
 		$image = $storage->object->_image_mapper->find( $id );
 		$image = $ewwwngg->ewww_added_new_image( $image, $storage );

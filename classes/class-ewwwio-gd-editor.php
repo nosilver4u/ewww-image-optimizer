@@ -37,10 +37,10 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				if ( $current_size && $this->size['width'] == $current_size[0] && $this->size['height'] == $current_size[1] ) {
 					ewwwio_debug_message( "existing file has same dimensions, not saving $filename" );
 					return array(
-						'path' => $filename,
-						'file' => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
-						'width' => $this->size['width'],
-						'height' => $this->size['height'],
+						'path'      => $filename,
+						'file'      => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
+						'width'     => $this->size['width'],
+						'height'    => $this->size['height'],
 						'mime-type' => $mime_type,
 					);
 				}
@@ -99,7 +99,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				ewwwio_debug_message( print_r( $this, true ) );
 			}
 			$info = pathinfo( $this->file );
-			$dir = $info['dirname'];
+			$dir  = $info['dirname'];
 			if ( ewww_image_optimizer_iterable( $metadata ) ) {
 				foreach ( $metadata as $size ) {
 					$filename = trailingslashit( $dir ) . $size['file'];
@@ -160,10 +160,10 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				if ( $current_size && $this->size['width'] == $current_size[0] && $this->size['height'] == $current_size[1] ) {
 					ewwwio_debug_message( "existing file has same dimensions, not saving $filename" );
 					return array(
-						'path' => $filename,
-						'file' => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
-						'width' => $this->size['width'],
-						'height' => $this->size['height'],
+						'path'      => $filename,
+						'file'      => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
+						'width'     => $this->size['width'],
+						'height'    => $this->size['height'],
 						'mime-type' => $mime_type,
 					);
 				}
@@ -232,10 +232,10 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				if ( $current_size && $this->size['width'] == $current_size[0] && $this->size['height'] == $current_size[1] ) {
 					ewwwio_debug_message( "existing file has same dimensions, not saving $filename" );
 					return array(
-						'path' => $filename,
-						'file' => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
-						'width' => $this->size['width'],
-						'height' => $this->size['height'],
+						'path'      => $filename,
+						'file'      => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
+						'width'     => $this->size['width'],
+						'height'    => $this->size['height'],
 						'mime-type' => $mime_type,
 					);
 				}
@@ -304,10 +304,10 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				if ( $current_size && $this->size['width'] == $current_size[0] && $this->size['height'] == $current_size[1] ) {
 					ewwwio_debug_message( "existing file has same dimensions, not saving $filename" );
 					return array(
-						'path' => $filename,
-						'file' => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
-						'width' => $this->size['width'],
-						'height' => $this->size['height'],
+						'path'      => $filename,
+						'file'      => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
+						'width'     => $this->size['width'],
+						'height'    => $this->size['height'],
 						'mime-type' => $mime_type,
 					);
 				}

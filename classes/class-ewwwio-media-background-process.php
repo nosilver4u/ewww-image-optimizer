@@ -56,20 +56,21 @@ class EWWWIO_Media_Background_Process extends EWWWIO_Background_Process {
 	protected function task( $item ) {
 		session_write_close();
 		global $ewww_defer;
-		$ewww_defer = false;
+		$ewww_defer   = false;
 		$max_attempts = 15;
-		$id = $item['id'];
+		$id           = $item['id'];
 		if ( empty( $item['attempts'] ) ) {
 			$item['attempts'] = 0;
 			sleep( 4 ); // On the first attempt, hold off and wait for the db to catch up.
 		}
 		ewwwio_debug_message( "background processing $id, type: " . $item['type'] );
-		$type = $item['type'];
+		$type        = $item['type'];
 		$image_types = array(
 			'image/jpeg',
 			'image/png',
 			'image/gif',
 		);
+
 		$meta = wp_get_attachment_metadata( $id, true );
 		if ( in_array( $type, $image_types ) && empty( $meta ) && $item['attempts'] < $max_attempts ) {
 			$item['attempts']++;
@@ -360,7 +361,7 @@ class EWWWIO_Ngg2_Background_Process extends EWWWIO_Background_Process {
 		// Creating the 'registry' object for working with nextgen.
 		$registry = C_Component_Registry::get_instance();
 		// Creating a database storage object from the 'registry' object.
-		$storage  = $registry->get_utility( 'I_Gallery_Storage' );
+		$storage = $registry->get_utility( 'I_Gallery_Storage' );
 		// Get a NextGEN image object.
 		$image = $storage->object->_image_mapper->find( $id );
 		if ( ! is_object( $image ) && $item['attempts'] < $max_attempts ) {
@@ -441,8 +442,9 @@ class EWWWIO_Async_Request extends WP_Async_Request {
 			$file_path = $this->find_file( $_POST['ewwwio_path'] );
 			if ( ! empty( $file_path ) ) {
 				ewwwio_debug_message( "processing async optimization request for {$_POST['ewwwio_path']}" );
-				$ewww_image = new EWWW_Image( $id, 'media', $file_path );
+				$ewww_image         = new EWWW_Image( $id, 'media', $file_path );
 				$ewww_image->resize = 'full';
+
 				list( $file, $msg, $conv, $original ) = ewww_image_optimizer( $file_path, 1, false, false, true );
 			} else {
 				ewwwio_debug_message( "could not process async optimization request for {$_POST['ewwwio_path']}" );
@@ -451,8 +453,9 @@ class EWWWIO_Async_Request extends WP_Async_Request {
 			$file_path = $this->find_file( $_POST['ewwwio_path'] );
 			if ( ! empty( $file_path ) ) {
 				ewwwio_debug_message( "processing async optimization request for {$_POST['ewwwio_path']}" );
-				$ewww_image = new EWWW_Image( $id, 'media', $file_path );
+				$ewww_image         = new EWWW_Image( $id, 'media', $file_path );
 				$ewww_image->resize = ( empty( $size ) ? null : $size );
+
 				list( $file, $msg, $conv, $original ) = ewww_image_optimizer( $file_path );
 			} else {
 				ewwwio_debug_message( "could not process async optimization request for {$_POST['ewwwio_path']}" );
@@ -483,18 +486,19 @@ class EWWWIO_Async_Request extends WP_Async_Request {
 			return $file_path;
 		}
 		// Retrieve the location of the WordPress upload folder.
-		$upload_dir = wp_upload_dir();
+		$upload_dir  = wp_upload_dir();
 		$upload_path = trailingslashit( $upload_dir['basedir'] );
-		$file = $upload_path . $file_path;
+		$file        = $upload_path . $file_path;
 		if ( is_file( $file ) ) {
 			return $file;
 		}
 		$upload_path = trailingslashit( WP_CONTENT_DIR );
-		$file = $upload_path . $file_path;
+		$file        = $upload_path . $file_path;
 		if ( is_file( $file ) ) {
 			return $file;
 		}
 		$upload_path .= 'uploads/';
+
 		$file = $upload_path . $file_path;
 		if ( is_file( $file ) ) {
 			return $file;

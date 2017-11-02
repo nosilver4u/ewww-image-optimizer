@@ -36,10 +36,10 @@ if ( class_exists( 'WP_Image_Editor_Gmagick' ) ) {
 				if ( $current_size && $this->size['width'] == $current_size[0] && $this->size['height'] == $current_size[1] ) {
 					ewwwio_debug_message( "existing file has same dimensions, not saving $filename" );
 					return array(
-						'path' => $filename,
-						'file' => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
-						'width' => $this->size['width'],
-						'height' => $this->size['height'],
+						'path'      => $filename,
+						'file'      => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
+						'width'     => $this->size['width'],
+						'height'    => $this->size['height'],
 						'mime-type' => $mime_type,
 					);
 				}

@@ -87,8 +87,8 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		function ewww_added_new_image( $id, $meta ) {
 			global $ewww_image;
 			// Retrieve the image path.
-			$file_path = $meta->image->imagePath;
-			$ewww_image = new EWWW_Image( $id, 'nextcell', $file_path );
+			$file_path          = $meta->image->imagePath;
+			$ewww_image         = new EWWW_Image( $id, 'nextcell', $file_path );
 			$ewww_image->resize = 'full';
 			// Run the optimizer on the current image.
 			$fres = ewww_image_optimizer( $file_path, 2, false, false, true );
@@ -117,8 +117,8 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			// If we have a path to work with.
 			if ( $gallery_path ) {
 				// Construct the absolute path of the current image.
-				$file_path = trailingslashit( $gallery_path ) . $image['filename'];
-				$ewww_image = new EWWW_Image( $image['id'], 'nextcell', $file_path );
+				$file_path          = trailingslashit( $gallery_path ) . $image['filename'];
+				$ewww_image         = new EWWW_Image( $image['id'], 'nextcell', $file_path );
 				$ewww_image->resize = 'full';
 				// Run the optimizer on the current image.
 				$res = ewww_image_optimizer( ABSPATH . $file_path, 2, false, false, true );
@@ -147,7 +147,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				} elseif ( ! empty( $_POST['image'] ) && is_numeric( $_POST['image'] ) ) {
 					$id = (int) $_POST['image'];
 				}
-				$ewww_image = new EWWW_Image( $id, 'nextcell', $filename );
+				$ewww_image         = new EWWW_Image( $id, 'nextcell', $filename );
 				$ewww_image->resize = 'thumbnail';
 				ewww_image_optimizer( $filename );
 			}
@@ -272,8 +272,8 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			// Retrieve the metadata for the image.
 			$meta = new nggMeta( $id );
 			// Retrieve the image path.
-			$file_path = $meta->image->imagePath;
-			$ewww_image = new EWWW_Image( $id, 'nextcell', $file_path );
+			$file_path          = $meta->image->imagePath;
+			$ewww_image         = new EWWW_Image( $id, 'nextcell', $file_path );
 			$ewww_image->resize = 'full';
 			// Run the optimizer on the current image.
 			$fres = ewww_image_optimizer( $file_path, 2, false, false, true );
@@ -283,8 +283,8 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				'ewww_image_optimizer' => $fres[1],
 			) );
 			// Get the filepath of the thumbnail image.
-			$thumb_path = $meta->image->thumbPath;
-			$ewww_image = new EWWW_Image( $id, 'nextcell', $thumb_path );
+			$thumb_path         = $meta->image->thumbPath;
+			$ewww_image         = new EWWW_Image( $id, 'nextcell', $thumb_path );
 			$ewww_image->resize = 'thumbnail';
 			// Run the optimization on the thumbnail.
 			$tres = ewww_image_optimizer( $thumb_path, 2, false, true );
@@ -320,7 +320,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				// Get the optimization status for the image.
 				$status = $meta->get_META( 'ewww_image_optimizer' );
 				$output = "<div id='ewww-nextcellent-status-$id'>";
-				$msg = '';
+				$msg    = '';
 				// Get the file path of the image.
 				$file_path = $meta->image->imagePath;
 				// Get the mimetype of the image.
@@ -372,7 +372,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				}
 				$backup_available = false;
 				global $wpdb;
-				$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT image_size,orig_size,resize,converted,level,backup,updated FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'nextcell' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
+				$optimized_images  = $wpdb->get_results( $wpdb->prepare( "SELECT image_size,orig_size,resize,converted,level,backup,updated FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'nextcell' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
 				$ewww_manual_nonce = wp_create_nonce( 'ewww-manual-' . $id );
 				// If we have a valid status, display it, the image size, and give a re-optimize link.
 				if ( ! empty( $optimized_images ) ) {
@@ -551,7 +551,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 					global $nggdb;
 					// Reset the resume status, not allowed here.
 					update_option( 'ewww_image_optimizer_bulk_ngg_resume', '' );
-					$ids = array();
+					$ids  = array();
 					$gids = array_map( 'intval', $_REQUEST['doaction'] );
 					// For each gallery we are given.
 					foreach ( $gids as $gid ) {
@@ -588,15 +588,15 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			wp_enqueue_style( 'ngg-jqueryui' );
 			// Include all the vars we need for javascript.
 			wp_localize_script( 'ewwwbulkscript', 'ewww_vars', array(
-				'_wpnonce' => wp_create_nonce( 'ewww-image-optimizer-bulk' ),
-				'gallery' => 'nextgen',
-				'attachments' => count( $images ),
-				'scan_fail' => esc_html__( 'Operation timed out, you may need to increase the max_execution_time for PHP', 'ewww-image-optimizer' ),
-				'operation_stopped' => esc_html__( 'Optimization stopped, reload page to resume.', 'ewww-image-optimizer' ),
+				'_wpnonce'              => wp_create_nonce( 'ewww-image-optimizer-bulk' ),
+				'gallery'               => 'nextgen',
+				'attachments'           => count( $images ),
+				'scan_fail'             => esc_html__( 'Operation timed out, you may need to increase the max_execution_time for PHP', 'ewww-image-optimizer' ),
+				'operation_stopped'     => esc_html__( 'Optimization stopped, reload page to resume.', 'ewww-image-optimizer' ),
 				'operation_interrupted' => esc_html__( 'Operation Interrupted', 'ewww-image-optimizer' ),
-				'temporary_failure' => esc_html__( 'Temporary failure, seconds left to retry:', 'ewww-image-optimizer' ),
-				'remove_failed' => esc_html__( 'Could not remove image from table.', 'ewww-image-optimizer' ),
-				'optimized' => esc_html__( 'Optimized', 'ewww-image-optimizer' ),
+				'temporary_failure'     => esc_html__( 'Temporary failure, seconds left to retry:', 'ewww-image-optimizer' ),
+				'remove_failed'         => esc_html__( 'Could not remove image from table.', 'ewww-image-optimizer' ),
+				'optimized'             => esc_html__( 'Optimized', 'ewww-image-optimizer' ),
 			) );
 		}
 
@@ -605,7 +605,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 */
 		function ewww_ngg_bulk_init() {
 			$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
-			$output = array();
+			$output      = array();
 			if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) {
 				$output['error'] = esc_html__( 'Access denied.', 'ewww-image-optimizer' );
 				ob_clean();
@@ -623,7 +623,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				ob_clean();
 				wp_die( json_encode( $output ) );
 			}
-			$id = array_shift( $attachments );
+			$id        = array_shift( $attachments );
 			$file_name = $this->ewww_ngg_bulk_filename( $id );
 			// Let the user know we are starting.
 			$loading_image = plugins_url( '/images/wpspin.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
@@ -662,8 +662,8 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 */
 		function ewww_ngg_bulk_loop() {
 			global $ewww_defer;
-			$ewww_defer = false;
-			$output = array();
+			$ewww_defer  = false;
+			$output      = array();
 			$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 			if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) {
 				$outupt['error'] = esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' );
@@ -683,10 +683,10 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			// Find out what time we started, in microseconds.
 			$started = microtime( true );
 			// Get the list of attachments remaining from the db.
-			$attachments = get_option( 'ewww_image_optimizer_bulk_ngg_attachments' );
-			$id = array_shift( $attachments );
+			$attachments         = get_option( 'ewww_image_optimizer_bulk_ngg_attachments' );
+			$id                  = array_shift( $attachments );
 			list( $fres, $tres ) = $this->ewww_ngg_optimize( $id );
-			$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
+			$ewww_status         = get_transient( 'ewww_image_optimizer_cloud_status' );
 			if ( ! empty( $ewww_status ) && preg_match( '/exceeded/', $ewww_status ) ) {
 				$output['error'] = esc_html__( 'License Exceeded', 'ewww-image-optimizer' );
 				ob_clean();
@@ -704,14 +704,14 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			// Output how much time we spent.
 			$elapsed = microtime( true ) - $started;
 			/* Translators: %s: localized number of seconds */
-			$output['results'] .= sprintf( esc_html( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, 'ewww-image-optimizer' ) ) . '</p>', number_format_i18n( $elapsed ) );
+			$output['results']  .= sprintf( esc_html( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, 'ewww-image-optimizer' ) ) . '</p>', number_format_i18n( $elapsed ) );
 			$output['completed'] = 1;
 			// Store the list back in the db.
 			update_option( 'ewww_image_optimizer_bulk_ngg_attachments', $attachments, false );
 			if ( ! empty( $attachments ) ) {
 				$next_attachment = array_shift( $attachments );
-				$next_file = $this->ewww_ngg_bulk_filename( $next_attachment );
-				$loading_image = plugins_url( '/images/wpspin.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
+				$next_file       = $this->ewww_ngg_bulk_filename( $next_attachment );
+				$loading_image   = plugins_url( '/images/wpspin.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
 				if ( $next_file ) {
 					$output['next_file'] = '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . " <b>$next_file</b>&nbsp;<img src='$loading_image' alt='loading'/></p>";
 				} else {
@@ -763,7 +763,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				'ewww_vars',
 				array(
 					'optimizing' => '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . " <img src='$loading_image' /></p>",
-					'restoring' => '<p>' . esc_html__( 'Restoring', 'ewww-image-optimizer' ) . " <img src='$loading_image' /></p>",
+					'restoring'  => '<p>' . esc_html__( 'Restoring', 'ewww-image-optimizer' ) . " <img src='$loading_image' /></p>",
 				)
 			);
 		}

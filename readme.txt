@@ -185,6 +185,8 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * fixed: invalid (float) width parameters for srcset attributes
 * fixed: Jetpack lightbox and carousel were not fully working with Alt WebP
 * fixed: WooCommerce lightbox and gallery not working with Alt WebP
+* fixed: incorrect message about scanning scope when selecting images from media library for bulk optimization
+* security: fixed wildcard LIKE queries to allow proper escaping
 
 = 4.0.0 =
 * added: ExactDN with CDN and automatic image resizing

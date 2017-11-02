@@ -97,7 +97,7 @@ class EWWWIO_HS_Beacon {
 		if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) && ! current_user_can( 'manage_network_options' ) ) {
 			return;
 		}
-		$optin_url = 'admin.php?action=ewww_opt_into_hs_beacon';
+		$optin_url  = 'admin.php?action=ewww_opt_into_hs_beacon';
 		$optout_url = 'admin.php?action=ewww_opt_out_of_hs_beacon';
 		echo '<div class="updated"><p>';
 		esc_html_e( 'Enable the support beacon, which gives you access to documentation and our support team right from your WordPress dashboard. To assist you more efficiently, we may collect the current url, IP address, browser/device information, and debugging information.', 'ewww-image-optimizer' );
