@@ -610,22 +610,47 @@ function ewww_load_images(ewww_webp_supported) {
 				var ewww_attr = $(this).attr('data-webp-orig-file');
 				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
 					$(ewww_img).attr('data-orig-file', ewww_attr);
-				}
+				} else {
+                                        var ewww_attr = $(this).attr('data-orig-file');
+                                        if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
+                                                $(ewww_img).attr('data-orig-file', ewww_attr);
+                                        }
+                                }
 				var ewww_attr = $(this).attr('data-webp-medium-file');
 				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
 					$(ewww_img).attr('data-medium-file', ewww_attr);
+				} else {
+                                        var ewww_attr = $(this).attr('data-medium-file');
+                                        if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
+                                                $(ewww_img).attr('data-medium-file', ewww_attr);
+                                        }
 				}
 				var ewww_attr = $(this).attr('data-webp-large-file');
 				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
 					$(ewww_img).attr('data-large-file', ewww_attr);
+				} else {
+                                        var ewww_attr = $(this).attr('data-large-file');
+                                        if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
+                                                $(ewww_img).attr('data-large-file', ewww_attr);
+                                        }
 				}
 				var ewww_attr = $(this).attr('data-webp-large_image');
 				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
 					$(ewww_img).attr('data-large_image', ewww_attr);
+				} else {
+                                        var ewww_attr = $(this).attr('data-large_image');
+                                        if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
+                                                $(ewww_img).attr('data-large_image', ewww_attr);
+                                        }
 				}
 				var ewww_attr = $(this).attr('data-webp-src');
 				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
 					$(ewww_img).attr('data-src', ewww_attr);
+				} else {
+                                        var ewww_attr = $(this).attr('data-src');
+                                        if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
+                                                $(ewww_img).attr('data-src', ewww_attr);
+                                        }
 				}
 			} else {
 				$(ewww_img).attr('src', $(this).attr('data-img'));

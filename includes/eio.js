@@ -367,8 +367,6 @@ jQuery(document).ready(function($) {
 			$.post(ajaxurl, ewww_quota_update_data, function(response) {
 				$('#ewww-bulk-credits-available').html(response);
 			});
-		} else {
-			console.log( 'no quota to update' );
 		}
 	}
 	function ewwwStartOpt () {
