@@ -6949,11 +6949,11 @@ function ewww_image_optimizer_array_search( $needle, $haystack ) {
 /**
  * Clear output buffers without throwing a fit.
  */
- function ewwwio_ob_clean() {
-	 if ( ob_get_length() ) {
-		 ob_end_clean();
-	 }
- }
+function ewwwio_ob_clean() {
+	if ( ob_get_length() ) {
+		ob_end_clean();
+	}
+}
 
 /**
  * Retrieves a list of registered image sizes.
