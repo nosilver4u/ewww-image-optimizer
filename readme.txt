@@ -179,6 +179,12 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.0.2 =
+* fixed: WooCommerce images still not working with Alt WebP in all cases
+* fixed: ob_clean() breaks AJAX actions when there is no buffer to clean
+* fixed: notice on NextCellent gallery management pages
+* fixed: missing JS for AJAX actions in NextCellent
+
 = 4.0.1 =
 * fixed: ExactDN option not disabled when verification fails too many times
 * fixed: theme scanner sometimes skipped images on PHP 5.3

@@ -11,7 +11,7 @@
  */
 
 // TODO: use <picture> element to serve webp (#54).
-// TODO: so, if lazy loading support stinks, can we roll our own? that's an image "optimization", right?...
+// TODO: attempt lazy load support with a3 plugin and one from automattic for starters.
 // TODO: prevent bad ajax errors from firing when we click the toggle on the Optimization Log, and the plugin status from doing 403s...
 // TODO: use a transient to do health checks on the schedule optimizer.
 // TODO: add a column to track compression level used for each image, and later implement a way to (re)compress at a specific compression level.
@@ -28,6 +28,7 @@
 // TODO: integrate AGR, since it's "abandoned", but possibly using gifsicle for better GIFs.
 // TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
 // TODO: on images without srscet, add 2x and 3x versions anyway.
+// TODO: check what happens to WebP images when restoring original from backups.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -2813,7 +2814,7 @@ function ewww_image_optimizer_manual() {
 		if ( ! wp_doing_ajax() ) {
 			wp_die( esc_html__( 'You do not have permission to optimize images.', 'ewww-image-optimizer' ) );
 		}
-		ob_clean();
+		ewwwio_ob_clean();
 		wp_die( json_encode( array(
 			'error' => esc_html__( 'You do not have permission to optimize images.', 'ewww-image-optimizer' ),
 		) ) );
@@ -2824,7 +2825,7 @@ function ewww_image_optimizer_manual() {
 		if ( ! wp_doing_ajax() ) {
 			wp_die( esc_html__( 'No attachment ID was provided.', 'ewww-image-optimizer' ) );
 		}
-		ob_clean();
+		ewwwio_ob_clean();
 		wp_die( json_encode( array(
 			'error' => esc_html__( 'No attachment ID was provided.', 'ewww-image-optimizer' ),
 		) ) );
@@ -2836,7 +2837,7 @@ function ewww_image_optimizer_manual() {
 		if ( ! wp_doing_ajax() ) {
 			wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 		}
-		ob_clean();
+		ewwwio_ob_clean();
 		wp_die( json_encode( array(
 			'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ),
 		) ) );
@@ -2856,7 +2857,7 @@ function ewww_image_optimizer_manual() {
 		if ( ! wp_doing_ajax() ) {
 			wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 		}
-		ob_clean();
+		ewwwio_ob_clean();
 		wp_die( json_encode( array(
 			'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ),
 		) ) );
@@ -2874,7 +2875,7 @@ function ewww_image_optimizer_manual() {
 		if ( ! wp_doing_ajax() ) {
 			wp_die( esc_html__( 'License exceeded', 'ewww-image-optimizer' ) );
 		}
-		ob_clean();
+		ewwwio_ob_clean();
 		wp_die( json_encode( array(
 			'error' => esc_html__( 'License exceeded', 'ewww-image-optimizer' ),
 		) ) );
@@ -2892,7 +2893,7 @@ function ewww_image_optimizer_manual() {
 		return;
 	}
 	ewwwio_memory( __FUNCTION__ );
-	ob_clean();
+	ewwwio_ob_clean();
 	wp_die( json_encode( array(
 		'success'  => $success,
 		'basename' => $basename,
@@ -2968,7 +2969,7 @@ function ewww_image_optimizer_cloud_restore_single_image_handler() {
 	$permissions = apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
 	if ( false === current_user_can( $permissions ) ) {
 		// Display error message if insufficient permissions.
-		ob_clean();
+		ewwwio_ob_clean();
 		wp_die( json_encode( array(
 			'error' => esc_html__( 'You do not have permission to optimize images.', 'ewww-image-optimizer' ),
 		) ) );
@@ -2976,13 +2977,13 @@ function ewww_image_optimizer_cloud_restore_single_image_handler() {
 	// Make sure we didn't accidentally get to this page without an attachment to work on.
 	if ( empty( $_REQUEST['ewww_image_id'] ) ) {
 		// Display an error message since we don't have anything to work on.
-		ob_clean();
+		ewwwio_ob_clean();
 		wp_die( json_encode( array(
 			'error' => esc_html__( 'No image ID was provided.', 'ewww-image-optimizer' ),
 		) ) );
 	}
 	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) ) {
-		ob_clean();
+		ewwwio_ob_clean();
 		wp_die( json_encode( array(
 			'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ),
 		) ) );
@@ -2990,12 +2991,12 @@ function ewww_image_optimizer_cloud_restore_single_image_handler() {
 	session_write_close();
 	$image = (int) $_REQUEST['ewww_image_id'];
 	if ( ewww_image_optimizer_cloud_restore_single_image( $image ) ) {
-		ob_clean();
+		ewwwio_ob_clean();
 		wp_die( json_encode( array(
 			'success' => 1,
 		) ) );
 	}
-	ob_clean();
+	ewwwio_ob_clean();
 	wp_die( json_encode( array(
 		'error' => esc_html__( 'Unable to restore image.', 'ewww-image-optimizer' ),
 	) ) );
@@ -6873,7 +6874,7 @@ function ewww_image_optimizer_htaccess_path() {
  * Called via AJAX, adds WebP rewrite rules to the .htaccess file.
  */
 function ewww_image_optimizer_webp_rewrite() {
-	ob_clean();
+	ewwwio_ob_clean();
 	// Verify that the user is properly authorized.
 	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-settings' ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
@@ -7672,7 +7673,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		'<p>' . esc_html__( 'Signup for premium image optimization:', 'ewww-image-optimizer' ) . "<br>\n" .
 		"<a target='_blank' href='https://ewww.io/plans/'>" . esc_html__( 'Compress', 'ewww-image-optimizer' ) . "</a><br>\n" .
 		"<a target='_blank' href='https://ewww.io/resize/'>" . esc_html__( 'Resize', 'ewww-image-optimizer' ) . "</a></p>\n" .
-		'<p><b>' . esc_html_x( 'CDN:', 'abbreviation for Content Delivery Network', 'ewww-image-optimizer' ) . "</b><br><a target='_blank' href='https://ewww.io/resize/'>" . esc_html__( 'Add ExactDN to increase website speeds dramatically! Sign up before October 31st and save 44%.', 'ewww-image-optimizer' ) . "</a></p>\n" .
+		'<p><b>' . esc_html_x( 'CDN:', 'abbreviation for Content Delivery Network', 'ewww-image-optimizer' ) . "</b><br><a target='_blank' href='https://ewww.io/resize/'>" . esc_html__( 'Add ExactDN to increase website speeds dramatically!', 'ewww-image-optimizer' ) . "</a></p>\n" .
 		"</div>\n" .
 		"</div>\n";
 	ewwwio_debug_message( 'max_execution_time: ' . ini_get( 'max_execution_time' ) );
