@@ -316,7 +316,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				// Need this file to work with metadata.
 				require_once( WP_CONTENT_DIR . '/plugins/nextcellent-gallery-nextgen-legacy/lib/meta.php' );
 				// Get the metadata for the image.
-				$meta = new nggMeta( $id );
+				$meta   = new nggMeta( $id );
 				$output = "<div id='ewww-nextcellent-status-$id'>";
 				$msg    = '';
 				// Get the file path of the image.
