@@ -461,7 +461,12 @@ class ExactDN {
 				$src_orig = $images['img_url'][ $index ];
 				ewwwio_debug_message( $src );
 				// Not a local image.
-				if ( false === strpos( $src, $upload_domain ) && false === strpos( $src, 'exactdn.com' ) ) {
+				if ( false === strpos( $src, $upload_domain ) && 
+					false === strpos( $src, 'exactdn.com' ) && 
+					false === strpos( $src, 'exactdn.net' ) &&
+					false === strpos( $src, 'exactcdn.com' ) &&
+					false === strpos( $src, 'exactcdn.net' )
+				) {
 					ewwwio_debug_message( 'not local, skipping' );
 					continue;
 				}
@@ -702,7 +707,14 @@ class ExactDN {
 						$width = $width_string[1];
 						ewwwio_debug_message( 'found the width' );
 						// Insert new image src into the srcset as well, if we have a width.
-						if ( false !== $width && false === strpos( $width, '%' ) && false !== strpos( $src, $width ) && false !== strpos( $src, 'exactdn.com' ) ) {
+						if ( false !== $width &&
+							false === strpos( $width, '%' ) &&
+							false !== strpos( $src, $width ) && 
+							( false !== strpos( $src, 'exactdn.com' ) ||
+								false !== strpos( $src, 'exactdn.net ) ||
+								false !== strpos( $src, 'exactcdn.com ) ||
+								false !== strpos( $src, 'exactcdn.net ) )
+						) {
 							$new_tag     = $tag;
 							$exactdn_url = $src;
 							ewwwio_debug_message( 'checking to see if srcset width already exists' );
@@ -1235,6 +1247,18 @@ class ExactDN {
 
 		// Bail if the image already went through ExactDN.
 		if ( ! $exactdn_is_valid && strpos( $url_info['host'], '.exactdn.com' ) ) {
+			ewwwio_debug_message( 'exactdn image' );
+			return false;
+		}
+		if ( ! $exactdn_is_valid && strpos( $url_info['host'], '.exactdn.net' ) ) {
+			ewwwio_debug_message( 'exactdn image' );
+			return false;
+		}
+		if ( ! $exactdn_is_valid && strpos( $url_info['host'], '.exactcdn.com' ) ) {
+			ewwwio_debug_message( 'exactdn image' );
+			return false;
+		}
+		if ( ! $exactdn_is_valid && strpos( $url_info['host'], '.exactcdn.net' ) ) {
 			ewwwio_debug_message( 'exactdn image' );
 			return false;
 		}

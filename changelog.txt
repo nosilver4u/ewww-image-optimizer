@@ -1,3 +1,9 @@
+= 4.0.2 =
+* fixed: WooCommerce images still not working with Alt WebP in all cases
+* fixed: ob_clean() breaks AJAX actions when there is no buffer to clean
+* fixed: notice on NextCellent gallery management pages
+* fixed: missing JS for AJAX actions in NextCellent
+
 = 4.0.1 =
 * fixed: ExactDN option not disabled when verification fails too many times
 * fixed: theme scanner sometimes skipped images on PHP 5.3

@@ -29,6 +29,8 @@
 // TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
 // TODO: on images without srscet, add 2x and 3x versions anyway.
 // TODO: check what happens to WebP images when restoring original from backups.
+// TODO: remove htaccess rules when Alt WebP turns on, and have a button to remove the rules too.
+// TODO: add metadata param for ExactDN, or add instructions to docs or something like that.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
