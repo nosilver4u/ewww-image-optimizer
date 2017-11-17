@@ -1,8 +1,21 @@
 jQuery(document).ready(function($) {
 	var ewww_error_counter = 30;
 	if (!ewww_vars.scan_fail) {
-		$('#ewww-webp-rewrite').submit(function() {
+		$('#ewww-webp-rewrite #ewww-webp-insert').click(function() {
 			var ewww_webp_rewrite_action = 'ewww_webp_rewrite';
+			var ewww_webp_rewrite_data = {
+				action: ewww_webp_rewrite_action,
+				ewww_wpnonce: ewww_vars._wpnonce,
+			};
+			$.post(ajaxurl, ewww_webp_rewrite_data, function(response) {
+				$('#ewww-webp-rewrite-status').html('<b>' + response + '</b>');
+				ewww_webp_image = document.getElementById("webp-image").src;
+				document.getElementById("webp-image").src = ewww_webp_image + '#' + new Date().getTime();
+			});
+			return false;
+		});
+		$('#ewww-webp-rewrite #ewww-webp-remove').click(function() {
+			var ewww_webp_rewrite_action = 'ewww_webp_unwrite';
 			var ewww_webp_rewrite_data = {
 				action: ewww_webp_rewrite_action,
 				ewww_wpnonce: ewww_vars._wpnonce,
