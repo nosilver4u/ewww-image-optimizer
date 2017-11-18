@@ -340,7 +340,7 @@ class EWWWIO_Tracking {
 			echo '<div class="updated"><p>';
 				/* translators: %s: admin email as configured in settings */
 				printf( esc_html__( 'Allow EWWW Image Optimizer to track plugin usage? Opt-in to tracking and receive 500 free image credits in your admin email: %s. No sensitive data is tracked.', 'ewww-image-optimizer' ), $admin_email );
-				echo '&nbsp;<a href="http://docs.ewww.io/article/23-usage-tracking">' . esc_html__( 'Learn more.', 'ewww-image-optimizer' ) . '</a>';
+				echo '&nbsp;<a href="http://docs.ewww.io/article/23-usage-tracking" target="_blank" data-beacon-article="591f3a8e2c7d3a057f893d91">' . esc_html__( 'Learn more.', 'ewww-image-optimizer' ) . '</a>';
 				echo '<a href="' . esc_url( $optin_url ) . '" class="button-secondary" style="margin-left:5px;">' . esc_html__( 'Allow', 'ewww-image-optimizer' ) . '</a>';
 				echo '<a href="' . esc_url( $optout_url ) . '" class="button-secondary" style="margin-left:5px">' . esc_html__( 'Do not allow', 'ewww-image-optimizer' ) . '</a>';
 			echo '</p></div>';

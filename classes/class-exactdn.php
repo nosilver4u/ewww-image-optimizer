@@ -461,7 +461,8 @@ class ExactDN {
 				$src_orig = $images['img_url'][ $index ];
 				ewwwio_debug_message( $src );
 				// Not a local image.
-				if ( false === strpos( $src, $upload_domain ) &&
+				if (
+					false === strpos( $src, $upload_domain ) &&
 					false === strpos( $src, 'exactdn.com' ) &&
 					false === strpos( $src, 'exactdn.net' ) &&
 					false === strpos( $src, 'exactcdn.com' ) &&
@@ -707,13 +708,16 @@ class ExactDN {
 						$width = $width_string[1];
 						ewwwio_debug_message( 'found the width' );
 						// Insert new image src into the srcset as well, if we have a width.
-						if ( false !== $width &&
+						if (
+							false !== $width &&
 							false === strpos( $width, '%' ) &&
 							false !== strpos( $src, $width ) &&
-							( false !== strpos( $src, 'exactdn.com' ) ||
+							(
+								false !== strpos( $src, 'exactdn.com' ) ||
 								false !== strpos( $src, 'exactdn.net' ) ||
 								false !== strpos( $src, 'exactcdn.com' ) ||
-								false !== strpos( $src, 'exactcdn.net' ) )
+								false !== strpos( $src, 'exactcdn.net' )
+							)
 						) {
 							$new_tag     = $tag;
 							$exactdn_url = $src;
