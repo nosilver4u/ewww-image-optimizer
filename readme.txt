@@ -184,6 +184,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * added: button to remove WebP rewrite rules
 * added: informational notice on thumbnail rebuild pages of how the plugins interact
 * changed: WebP rewrite rules removed automatically when ExactDN is enabled, use Alt WebP instead
+* fixed: multisite settings set to defaults when single-site resize settings are submitted
 
 = 4.0.2 =
 * fixed: WooCommerce images still not working with Alt WebP in all cases
