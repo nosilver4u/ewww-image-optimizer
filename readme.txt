@@ -5,7 +5,7 @@ Tags: image, compress, optimize, optimization, lossless, lossy, seo, jpegmini, t
 Requires at least: 4.6
 Tested up to: 4.9
 Requires PHP: 5.3
-Stable tag: 4.0.2
+Stable tag: 4.0.3
 License: GPLv3
 
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
@@ -184,6 +184,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * added: button to remove WebP rewrite rules
 * added: informational notice on thumbnail rebuild pages of how the plugins interact
 * changed: WebP rewrite rules removed automatically when ExactDN is enabled, use Alt WebP instead
+* changed: ExactDN now removes metadata if option is enabled
 * fixed: multisite settings set to defaults when single-site resize settings are submitted
 
 = 4.0.2 =

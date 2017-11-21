@@ -24,19 +24,16 @@
 // TODO: write some conversion tests.
 // TODO: do a bottom paginator for the show optimized images table.
 // TODO: check this patch, to see if the use of 'full' causes any issues: https://core.trac.wordpress.org/ticket/37840 .
-// TODO: perhaps have an optional footer thingy that says how many images have been optimized.
 // TODO: integrate AGR, since it's "abandoned", but possibly using gifsicle for better GIFs.
 // TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
 // TODO: on images without srscet, add 2x and 3x versions anyway.
 // TODO: check what happens to WebP images when restoring original from backups.
-// TODO: remove htaccess rules when Alt WebP turns on, and have a button to remove the rules too.
-// TODO: add metadata param for ExactDN, or add instructions to docs or something like that.
 // TODO: use got_mod_rewrite to warn folks not to bother with webp htaccess.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '402.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '403.0' );
 
 // Initialize a couple globals.
 $ewww_debug = '';

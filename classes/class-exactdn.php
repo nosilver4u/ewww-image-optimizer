@@ -1421,6 +1421,9 @@ class ExactDN {
 			return $image_url;
 		}
 
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpegtran_copy' ) ) {
+			$args['strip'] = 'all';
+		}
 		/**
 		 * Filter the original image URL before it goes through ExactDN.
 		 *
