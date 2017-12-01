@@ -92,14 +92,14 @@ abstract class PelEntry
     /**
      * The {@link PelTag} of this entry.
      *
-     * @var PelTag
+     * @var int
      */
     protected $tag;
 
     /**
      * The {@link PelFormat} of this entry.
      *
-     * @var PelFormat
+     * @var int
      */
     protected $format;
 
@@ -113,7 +113,7 @@ abstract class PelEntry
     /**
      * Return the tag of this entry.
      *
-     * @return PelTag the tag of this entry.
+     * @return int the tag of this entry.
      */
     public function getTag()
     {
@@ -153,7 +153,7 @@ abstract class PelEntry
     /**
      * Return the format of this entry.
      *
-     * @return PelFormat the format of this entry.
+     * @return int the format of this entry.
      */
     public function getFormat()
     {

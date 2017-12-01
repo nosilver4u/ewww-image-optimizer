@@ -244,7 +244,7 @@ class ExactDN {
 		if ( ! $domain ) {
 			return;
 		}
-		if ( strlen( $domain > 76 ) ) {
+		if ( strlen( $domain ) > 80 ) {
 			ewwwio_debug_message( "$domain too long" );
 			return false;
 		}

@@ -4640,13 +4640,15 @@ function ewww_image_optimizer_resize_upload( $file ) {
 		ewwwio_debug_message( 'no image editor function' );
 		return false;
 	}
+
+	// From here...
 	remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
 	$editor = wp_get_image_editor( $file );
 	if ( is_wp_error( $editor ) ) {
 		ewwwio_debug_message( 'could not get image editor' );
 		return false;
 	}
-	// Rotation should not happen here anymore, so don't worry about it breaking the dimensions.
+	// Rotation only happens on existing media here, so we need to swap dimension when we rotate by 90.
 	$orientation = ewww_image_optimizer_get_orientation( $file, $type );
 	$rotated     = false;
 	switch ( $orientation ) {
@@ -4682,6 +4684,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
 		ewwwio_debug_message( 'error saving resized image' );
 	}
 	add_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
+	// to here is replaced by cloud/API function.
 	$new_size = ewww_image_optimizer_filesize( $new_file );
 	if ( $new_size && $new_size < $orig_size ) {
 		// Use this action to perform any operations on the original file before it is overwritten with the new, smaller file.
@@ -4690,6 +4693,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
 		// TODO: see if there is a way to just check that meta exists on the new image.
 		// Use PEL to get the exif (if Remove Meta is unchecked) and GD is in use, so we can save it to the new image.
 		if ( 'image/jpeg' === $type && ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_skip_full' ) || ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpegtran_copy' ) ) && ! ewww_image_optimizer_imagick_support() ) {
+			ewwwio_debug_message( 'manually copying metadata for GD' );
 			$old_jpeg = new PelJpeg( $file );
 			$old_exif = $old_jpeg->getExif();
 			$new_jpeg = new PelJpeg( $new_file );
@@ -7379,6 +7383,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			$toolkit_output = str_replace( 'color: red', 'color: gray', $toolkit_output );
 		}
 		$status_output .= $toolkit_output;
+	} else {
+		ewww_image_optimizer_gd_support();
+		ewww_image_optimizer_gmagick_support();
+		ewww_image_optimizer_imagick_support();
 	} // End if().
 	$mimetype_output = '<b>' . esc_html__( 'Only need one of these:', 'ewww-image-optimizer' ) . ' </b><br>';
 	// Initialize this variable to check for the 'file' command if we don't have any php libraries we can use.

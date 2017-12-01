@@ -33,55 +33,18 @@ namespace lsolesen\pel;
  * descendants of the {@link PelEntry} class --- the class itself is
  * abstract and so it cannot be instantiated.
  *
- * @author Martin Geisler <mgeisler@users.sourceforge.net>
+ * @author Vinzenz Rosenkranz <vinzenz.rosenkranz@gmail.com>
  * @license http://www.gnu.org/licenses/gpl.html GNU General Public
  *          License (GPL)
  * @package PEL
  */
 
 /**
- * Exception indicating a problem with an entry.
+ * An exception thrown when the makernotes IFD is malformed.
  *
- * @author Martin Geisler <mgeisler@users.sourceforge.net>
  * @package PEL
  * @subpackage Exception
  */
-class PelEntryException extends PelException
+class PelMakerNotesMalformedException extends PelException
 {
-
-    /**
-     * The IFD type (if known).
-     *
-     * @var int
-     */
-    protected $type;
-
-    /**
-     * The tag of the entry (if known).
-     *
-     * @var int
-     */
-    protected $tag;
-
-    /**
-     * Get the IFD type associated with the exception.
-     *
-     * @return int one of {@link PelIfd::IFD0}, {@link PelIfd::IFD1},
-     *         {@link PelIfd::EXIF}, {@link PelIfd::GPS}, or {@link
-     *         PelIfd::INTEROPERABILITY}. If no type is set, null is returned.
-     */
-    public function getIfdType()
-    {
-        return $this->type;
-    }
-
-    /**
-     * Get the tag associated with the exception.
-     *
-     * @return int the tag. If no tag is set, null is returned.
-     */
-    public function getTag()
-    {
-        return $this->tag;
-    }
 }
