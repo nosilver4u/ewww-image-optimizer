@@ -29,6 +29,7 @@
 // TODO: on images without srscet, add 2x and 3x versions anyway.
 // TODO: check what happens to WebP images when restoring original from backups.
 // TODO: use got_mod_rewrite to warn folks not to bother with webp htaccess.
+// TODO: fix ExactDN failure after multisite save settings.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -1194,11 +1195,8 @@ function ewww_image_optimizer_admin_init() {
 	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
 		ewwwio_debug_message( 'saving network settings' );
 		// Set the common network settings if they have been POSTed.
-		if ( isset( $_POST['option_page'] ) && false !== strpos( $_POST['option_page'], 'ewww_image_optimizer_options' ) && isset( $_POST['ewww_image_optimizer_jpg_level'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'ewww_image_optimizer_options-options' ) && current_user_can( 'manage_network_options' ) && ! get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
+		if ( isset( $_POST['option_page'] ) && false !== strpos( $_POST['option_page'], 'ewww_image_optimizer_options' ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'ewww_image_optimizer_options-options' ) && current_user_can( 'manage_network_options' ) && ! get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) && false === strpos( $_POST['_wp_http_referer'], 'options-general' ) ) {
 			ewwwio_debug_message( 'network-wide settings, no override' );
-			if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
-				ewwwio_debug_message( print_r( $_POST, true ) );
-			}
 			$_POST['ewww_image_optimizer_cloud_key'] = empty( $_POST['ewww_image_optimizer_cloud_key'] ) ? '' : $_POST['ewww_image_optimizer_cloud_key'];
 			update_site_option( 'ewww_image_optimizer_cloud_key', ewww_image_optimizer_cloud_key_sanitize( $_POST['ewww_image_optimizer_cloud_key'] ) );
 			$_POST['ewww_image_optimizer_debug'] = ( empty( $_POST['ewww_image_optimizer_debug'] ) ? false : true );
@@ -7223,7 +7221,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		if ( $exactdn->get_exactdn_domain() ) {
 			$status_output .= '<span style="color: green">' . esc_html__( 'Verified', 'ewww-image-optimizer' ) . ' </span>';
 		} else {
-			$status_output .= '<span style="color: red">' . esc_html__( 'Not Verified', 'ewww-image-optimizer' ) . '</span>';
+			$status_output .= '<span style="color: red"><a href="https://ewww.io/manage-sites/" target="_blank">' . esc_html__( 'Not Verified', 'ewww-image-optimizer' ) . '</a></span>';
 			$collapsible    = false;
 		}
 		$status_output .= '</p>';
@@ -7492,6 +7490,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			$output[] = "<tr><th><label for='ewww_image_optimizer_allow_tracking'>" . esc_html__( 'Allow Usage Tracking?', 'ewww-image-optimizer' ) . "</label></th><td><input type='checkbox' id='ewww_image_optimizer_allow_tracking' name='ewww_image_optimizer_allow_tracking' value='true' " . ( get_site_option( 'ewww_image_optimizer_allow_tracking' ) == true ? "checked='true'" : '' ) . ' /> ' .
 				esc_html__( 'Allow EWWW Image Optimizer to anonymously track how this plugin is used and help us make the plugin better. Opt-in to tracking and receive 500 API image credits free. No sensitive data is tracked.', 'ewww-image-optimizer' ) . "</td></tr>\n";
 			$output[] = "<input type='hidden' id='ewww_image_optimizer_allow_multisite_override_active' name='ewww_image_optimizer_allow_multisite_override_active' value='0'>";
+			if ( get_site_option( 'ewww_image_optimizer_cloud_key' ) ) {
+				$output[] = "<input type='hidden' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='" . get_site_option( 'ewww_image_optimizer_cloud_key' ) . "' />\n";
+			}
 			foreach ( $output as $line ) {
 				echo $line;
 			}
@@ -7655,11 +7656,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewwwio_debug_message( 'disabled resizes:' );
 	foreach ( $image_sizes as $size => $dimensions ) {
 		if ( 'thumbnail' == $size ) {
-			$output [] = "<tr class='network-singlesite'><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_opt_$size' name='ewww_image_optimizer_disable_resizes_opt[$size]' value='true' " . ( ! empty( $disabled_sizes_opt[ $size ] ) ? "checked='true'" : '' ) . " /></td><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_$size' name='ewww_image_optimizer_disable_resizes[$size]' value='true' disabled /></td><td><label for='ewww_image_optimizer_disable_resizes_$size'>$size - {$dimensions['width']}x{$dimensions['height']}</label></td></tr>\n";
+			$output[] = "<tr class='network-singlesite'><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_opt_$size' name='ewww_image_optimizer_disable_resizes_opt[$size]' value='true' " . ( ! empty( $disabled_sizes_opt[ $size ] ) ? "checked='true'" : '' ) . " /></td><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_$size' name='ewww_image_optimizer_disable_resizes[$size]' value='true' disabled /></td><td><label for='ewww_image_optimizer_disable_resizes_$size'>$size - {$dimensions['width']}x{$dimensions['height']}</label></td></tr>\n";
 		} elseif ( 'pdf-full' == $size ) {
-			$output [] = "<tr class='network-singlesite'><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_opt_$size' name='ewww_image_optimizer_disable_resizes_opt[$size]' value='true' " . ( ! empty( $disabled_sizes_opt[ $size ] ) ? "checked='true'" : '' ) . " /></td><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_$size' name='ewww_image_optimizer_disable_resizes[$size]' value='true' " . ( ! empty( $disabled_sizes[ $size ] ) ? "checked='true'" : '' ) . " /></td><td><label for='ewww_image_optimizer_disable_resizes_$size'>$size - <span class='description'>" . esc_html__( 'Disabling creation of the full-size preview for PDF files will disable all PDF preview sizes', 'ewww-image-optimizer' ) . "</span></label></td></tr>\n";
+			$output[] = "<tr class='network-singlesite'><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_opt_$size' name='ewww_image_optimizer_disable_resizes_opt[$size]' value='true' " . ( ! empty( $disabled_sizes_opt[ $size ] ) ? "checked='true'" : '' ) . " /></td><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_$size' name='ewww_image_optimizer_disable_resizes[$size]' value='true' " . ( ! empty( $disabled_sizes[ $size ] ) ? "checked='true'" : '' ) . " /></td><td><label for='ewww_image_optimizer_disable_resizes_$size'>$size - <span class='description'>" . esc_html__( 'Disabling creation of the full-size preview for PDF files will disable all PDF preview sizes', 'ewww-image-optimizer' ) . "</span></label></td></tr>\n";
 		} else {
-			$output [] = "<tr class='network-singlesite'><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_opt_$size' name='ewww_image_optimizer_disable_resizes_opt[$size]' value='true' " . ( ! empty( $disabled_sizes_opt[ $size ] ) ? "checked='true'" : '' ) . " /></td><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_$size' name='ewww_image_optimizer_disable_resizes[$size]' value='true' " . ( ! empty( $disabled_sizes[ $size ] ) ? "checked='true'" : '' ) . " /></td><td><label for='ewww_image_optimizer_disable_resizes_$size'>$size - {$dimensions['width']}x{$dimensions['height']}</label></td></tr>\n";
+			$output[] = "<tr class='network-singlesite'><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_opt_$size' name='ewww_image_optimizer_disable_resizes_opt[$size]' value='true' " . ( ! empty( $disabled_sizes_opt[ $size ] ) ? "checked='true'" : '' ) . " /></td><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_$size' name='ewww_image_optimizer_disable_resizes[$size]' value='true' " . ( ! empty( $disabled_sizes[ $size ] ) ? "checked='true'" : '' ) . " /></td><td><label for='ewww_image_optimizer_disable_resizes_$size'>$size - {$dimensions['width']}x{$dimensions['height']}</label></td></tr>\n";
 		}
 		ewwwio_debug_message( $size . ': ' . ( ! empty( $disabled_sizes_opt[ $size ] ) ? 'optimization=disabled ' : 'optimization=enabled ' ) . ( ! empty( $disabled_sizes[ $size ] ) ? 'creation=disabled' : 'creation=enabled' ) );
 	}

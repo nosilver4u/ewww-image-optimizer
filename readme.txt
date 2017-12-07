@@ -179,6 +179,10 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.0.5 =
+* fixed: multisite settings would not save in certain circumstances
+* fixed: compression levels reset for API users on multisite after toggling single-site override on and off
+
 = 4.0.4 =
 * fixed: ExactDN domain validation failing on length check for some domains
 * updated: PEL for better EXIF preservation

@@ -2476,8 +2476,12 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $recreate = false ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Change the file extension.
-	$webpfile = $file . '.webp';
-	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
+	$webpfile    = $file . '.webp';
+	$bypass_webp = apply_filters( 'ewww_image_optimizer_bypass_webp', false, $file );
+	if ( true === $bypass_webp ) {
+		ewwwio_debug_message( "webp generation bypassed: $file" );
+		return;
+	} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
 		return;
 	} elseif ( is_file( $webpfile ) && empty( $_REQUEST['ewww_force'] ) && ! $recreate ) {
 		ewwwio_debug_message( 'webp file exists, not forcing or recreating' );
