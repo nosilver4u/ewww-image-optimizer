@@ -376,6 +376,7 @@ class ExactDN {
 				$height = 2 * $height;
 			}
 			if ( $width && $height ) {
+				ewwwio_debug_message( "found w$width h$height" );
 				return array( $width, $height );
 			}
 		}
@@ -549,7 +550,7 @@ class ExactDN {
 
 							// Basic check on returned post object.
 							if ( is_object( $attachment ) && ! is_wp_error( $attachment ) && 'attachment' == $attachment->post_type ) {
-								$src_per_wp = wp_get_attachment_image_src( $attachment_id, isset( $size ) ? $size : 'full' );
+								$src_per_wp = wp_get_attachment_image_src( $attachment_id, 'full' );
 
 								if ( $this->validate_image_url( $src_per_wp[0] ) ) {
 									ewwwio_debug_message( "detected $width filenamew $filename_width" );
@@ -1083,6 +1084,7 @@ class ExactDN {
 			} else {
 				$url = $this->strip_image_dimensions_maybe( $url );
 			}
+			ewwwio_debug_message( "building srcs from $url" );
 
 			$args = array();
 			if ( 'w' === $source['descriptor'] ) {
@@ -1183,6 +1185,7 @@ class ExactDN {
 		} // if ( isset( $image_meta['width'] ) && isset( $image_meta['file'] ) )
 		$elapsed_time = microtime( true ) - $started;
 		ewwwio_debug_message( "parsing srcset took $elapsed_time seconds" );
+		/* ewwwio_debug_message( print_r( $sources, true ) ); */
 		$this->elapsed_time += microtime( true ) - $started;
 		return $sources;
 	}
@@ -1272,19 +1275,23 @@ class ExactDN {
 
 		$new_w = $dimensions[0];
 		$new_h = $dimensions[1];
+		ewwwio_debug_message( "full size dims: w{$meta['width']} h{$meta['height']}" );
+		ewwwio_debug_message( "smart crop dims: w$new_w h$new_h" );
 		if ( ! empty( $args['zoom'] ) ) {
 			$new_w = round( $args['zoom'] * $new_w );
 			$new_h = round( $args['zoom'] * $new_h );
+			ewwwio_debug_message( "zooming: {$args['zoom']} w$new_w h$new_h" );
 		}
 		if ( ! $new_w || ! $new_h ) {
 			ewwwio_debug_message( 'empty dimension, not cropping' );
 			return $args;
 		}
-		$size_ratio = max( $new_w / $meta['width'], $new_h, $meta['height'] );
+		$size_ratio = max( $new_w / $meta['width'], $new_h / $meta['height'] );
 		$crop_w     = round( $new_w / $size_ratio );
 		$crop_h     = round( $new_h / $size_ratio );
 		$s_x        = floor( ( $meta['width'] - $crop_w ) * $focus_point[0] );
 		$s_y        = floor( ( $meta['height'] - $crop_h ) * $focus_point[1] );
+		ewwwio_debug_message( "doing the math with size_ratio of $size_ratio" );
 
 		$args = array( 'crop' => $s_x . 'px,' . $s_y . 'px,' . $crop_w . 'px,' . $crop_h . 'px' ) + $args;
 		ewwwio_debug_message( $args['crop'] );
@@ -1396,7 +1403,7 @@ class ExactDN {
 		$stripped_src = $src;
 
 		// Build URL, first removing WP's resized string so we pass the original image to ExactDN.
-		if ( preg_match( '#(-\d+x\d+)\.(' . implode( '|', $this->extensions ) . '){1}$#i', $src, $src_parts ) ) {
+		if ( preg_match( '#(-\d+x\d+)\.(' . implode( '|', $this->extensions ) . '){1}(?:\?.+)?$#i', $src, $src_parts ) ) {
 			$stripped_src = str_replace( $src_parts[1], '', $src );
 			$upload_dir   = wp_get_upload_dir();
 
@@ -1406,6 +1413,7 @@ class ExactDN {
 			if ( file_exists( $upload_dir['basedir'] . $file_path ) ) {
 				$src = $stripped_src;
 			}
+			ewwwio_debug_message( 'stripped dims' );
 		}
 		return $src;
 	}
