@@ -54,6 +54,14 @@ class ExactDN {
 	public $filtering_the_content = false;
 
 	/**
+	 * List of permitted domains for ExactDN rewriting.
+	 *
+	 * @access public
+	 * @var array $allowed_domains
+	 */
+	public $allowed_domains = array();
+
+	/**
 	 * The ExactDN domain/zone.
 	 *
 	 * @access private
@@ -107,6 +115,12 @@ class ExactDN {
 		if ( defined( 'EXACTDN_RECALC' ) && EXACTDN_RECALC ) {
 			add_action( 'wp_enqueue_scripts', array( $this, 'action_wp_enqueue_scripts' ), 9 );
 		}
+
+		// Find the "local" domain.
+		$upload_dir          = wp_upload_dir( null, false );
+		$this->upload_domain = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : $this->parse_url( $upload_dir['baseurl'], PHP_URL_HOST );
+		ewwwio_debug_message( "allowing images from here: $this->upload_domain" );
+		$this->allowed_domains[] = $this->upload_domain;
 	}
 
 	/**
@@ -442,10 +456,7 @@ class ExactDN {
 			}
 			$resize_existing = defined( 'EXACTDN_RESIZE_EXISTING' ) && EXACTDN_RESIZE_EXISTING;
 
-			$image_sizes   = $this->image_sizes();
-			$upload_dir    = wp_upload_dir( null, false );
-			$upload_domain = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : $this->parse_url( $upload_dir['baseurl'], PHP_URL_HOST );
-			ewwwio_debug_message( "allowing images from here: $upload_domain" );
+			$image_sizes = $this->image_sizes();
 
 			foreach ( $images[0] as $index => $tag ) {
 				// Default to resize, though fit may be used in certain cases where a dimension cannot be ascertained.
@@ -461,17 +472,6 @@ class ExactDN {
 				$src      = $images['img_url'][ $index ];
 				$src_orig = $images['img_url'][ $index ];
 				ewwwio_debug_message( $src );
-				// Not a local image.
-				if (
-					false === strpos( $src, $upload_domain ) &&
-					false === strpos( $src, 'exactdn.com' ) &&
-					false === strpos( $src, 'exactdn.net' ) &&
-					false === strpos( $src, 'exactcdn.com' ) &&
-					false === strpos( $src, 'exactcdn.net' )
-				) {
-					ewwwio_debug_message( 'not local, skipping' );
-					continue;
-				}
 
 				/**
 				 * Allow specific images to be skipped by ExactDN.
@@ -741,11 +741,11 @@ class ExactDN {
 			} // End foreach().
 			if ( $this->filtering_the_page && defined( 'EXACTDN_ALL_THE_THINGS' ) && EXACTDN_ALL_THE_THINGS ) {
 				ewwwio_debug_message( 'rewriting all other wp_content urls' );
-				if ( $this->exactdn_domain && $upload_domain ) {
-					$escaped_upload_domain = str_replace( '.', '\.', $upload_domain );
+				if ( $this->exactdn_domain && $this->upload_domain ) {
+					$escaped_upload_domain = str_replace( '.', '\.', $this->upload_domain );
 					ewwwio_debug_message( $escaped_upload_domain );
 					// Pre-empt rewriting of wp-includes and wp-content if the extension is php/ashx by using a temporary placeholder.
-					$content = preg_replace( '#(https?)://' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)\.(php|ashx)#i', '$1://' . $upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
+					$content = preg_replace( '#(https?)://' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)\.(php|ashx)#i', '$1://' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
 					$content = preg_replace( '#(https?)://' . $escaped_upload_domain . '/([^"\'?>]+?)?wp-(includes|content)#i', '$1://' . $this->exactdn_domain . '/$2wp-$3', $content );
 					$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );
 				}
@@ -1299,13 +1299,30 @@ class ExactDN {
 	}
 
 	/**
+	 * Make sure the image domain is on the list of approved domains.
+	 *
+	 * @param string $domain The hostname to validate.
+	 * @return bool True if the hostname is allowed, false otherwise.
+	 */
+	public function allow_image_domain( $domain ) {
+		$domain = trim( $domain );
+		foreach ( $this->allowed_domains as $allowed ) {
+			$allowed = trim( $allowed );
+			if ( $domain === $allowed ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Ensure image URL is valid for ExactDN.
 	 * Though ExactDN functions address some of the URL issues, we should avoid unnecessary processing if we know early on that the image isn't supported.
 	 *
 	 * @param string $url The image url to be validated.
 	 * @param bool   $exactdn_is_valid Optional. Whether an ExactDN URL should be considered valid. Default false.
 	 * @uses wp_parse_args
-	 * @return bool
+	 * @return bool True if the url is considerd valid, false otherwise.
 	 */
 	protected function validate_image_url( $url, $exactdn_is_valid = false ) {
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
@@ -1364,7 +1381,7 @@ class ExactDN {
 
 		// Bail if the image already went through Photon to avoid conflicts.
 		if ( preg_match( '#^i[\d]{1}.wp.com$#i', $url_info['host'] ) ) {
-			ewwwio_debug_message( 'photon image' );
+			ewwwio_debug_message( 'photon/wp.com image' );
 			return false;
 		}
 
@@ -1377,6 +1394,12 @@ class ExactDN {
 		// Ensure image extension is acceptable.
 		if ( ! in_array( strtolower( pathinfo( $url_info['path'], PATHINFO_EXTENSION ) ), $this->extensions ) ) {
 			ewwwio_debug_message( 'invalid extension' );
+			return false;
+		}
+
+		// Make sure this is an allowed image domain/hostname for ExactDN on this site.
+		if ( ! $this->allow_image_domain( $url_info['host'] ) ) {
+			ewwwio_debug_message( 'invalid host for ExactDN' );
 			return false;
 		}
 
