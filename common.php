@@ -3073,7 +3073,7 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 		$new_type = ewww_image_optimizer_mimetype( $image['path'] . '.tmp', 'i' );
 		$old_type = '';
 		if ( is_file( $image['path'] ) ) {
-			$old_type = ewww_image_optimizer_mimetype( $image['path'] );
+			$old_type = ewww_image_optimizer_mimetype( $image['path'], 'i' );
 		}
 		if ( ! in_array( $new_type, $enabled_types ) ) {
 			return false;

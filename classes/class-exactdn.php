@@ -104,6 +104,9 @@ class ExactDN {
 			ewwwio_debug_message( 'aq_resize detected, image_downsize filter disabled' );
 		}
 
+		// Overrides for admin-ajax images.
+		add_filter( 'exactdn_admin_allow_image_downsize', array( $this, 'allow_admin_image_downsize' ), 10, 2 );
+
 		// Responsive image srcset substitution.
 		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_array' ), 1001, 5 );
 		add_filter( 'wp_calculate_image_sizes', array( $this, 'filter_sizes' ), 1, 2 ); // Early so themes can still filter.
@@ -758,6 +761,23 @@ class ExactDN {
 		ewwwio_debug_message( "parsing the_content took $elapsed_time seconds" );
 		$this->elapsed_time += microtime( true ) - $started;
 		return $content;
+	}
+
+	/**
+	 * Allow resizing of images for some admin-ajax requests.
+	 *
+	 * @param bool  $allow Will normally be false, unless already modified by another function.
+	 * @param array $image Bunch of information about the image, but we don't care about that here.
+	 * @return bool True if it's an allowable admin-ajax request, false for all other admin requests.
+	 */
+	function allow_admin_image_downsize( $allow, $image ) {
+		if ( ! wp_doing_ajax() ) {
+			return $allow;
+		}
+		if ( ! empty( $_POST['action'] ) && 'eddvbugm_viewport_downloads' == $_POST['action'] ) {
+			return true;
+		}
+		return $allow;
 	}
 
 	/**

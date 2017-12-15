@@ -180,8 +180,14 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.0.5 =
+* added: enable lossy compression with ExactDN: http://docs.ewww.io/article/47-getting-more-from-exactdn
+* added: disable WebP for specific files with ewww_image_optimizer_bypass_webp filter
+* added: ExactDN obeys focus point from Theia Smart Thumbnails plugin
+* added: admin-ajax requests for eddvbugm loader work with ExactDN
 * fixed: multisite settings would not save in certain circumstances
 * fixed: compression levels reset for API users on multisite after toggling single-site override on and off
+* fixed: media library items with non-local images rewritten incorrectly by ExactDN
+* fixed: restoring images throws errors on PHP 7.1
 
 = 4.0.4 =
 * fixed: ExactDN domain validation failing on length check for some domains
