@@ -34,7 +34,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '404.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '405.0' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -1546,7 +1546,7 @@ function ewww_image_optimizer_install_table() {
 			if ( strpos( $column_collate, 'utf8' ) === false ) {
 				ewwwio_debug_message( 'converting path column to utf8' );
 				$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images CHANGE path path BLOB" );
-				if ( $wpdb->has_cap( 'utf8mb4_520' && strpos( $db_collation, 'utf8mb4' ) ) ) {
+				if ( $wpdb->has_cap( 'utf8mb4_520' ) && strpos( $db_collation, 'utf8mb4' ) ) {
 					ewwwio_debug_message( 'using mb4 version 5.20' );
 					$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images DROP INDEX path_image_size" );
 					$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images CONVERT TO CHARACTER SET utf8mb4, CHANGE path path TEXT" );
