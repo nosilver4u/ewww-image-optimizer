@@ -1525,8 +1525,8 @@ class ExactDN {
 	 * Suppress query args for certain files, typically for placholder images.
 	 *
 	 * @param array|string $args Array of ExactDN arguments.
-	 * @param string $image_url Image URL.
-	 * @param string|null $scheme Image scheme. Default to null.
+	 * @param string       $image_url Image URL.
+	 * @param string|null  $scheme Image scheme. Default to null.
 	 * @return array Empty if it matches our search, otherwise just $args untouched.
 	 */
 	function exactdn_remove_args( $args, $image_url, $scheme ) {
