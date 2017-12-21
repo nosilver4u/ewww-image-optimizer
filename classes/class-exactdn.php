@@ -106,6 +106,8 @@ class ExactDN {
 
 		// Overrides for admin-ajax images.
 		add_filter( 'exactdn_admin_allow_image_downsize', array( $this, 'allow_admin_image_downsize' ), 10, 2 );
+		// Overrides for "pass through" images.
+		add_filter( 'exactdn_pre_args', array( $this, 'exactdn_remove_args' ), 10, 3 );
 
 		// Responsive image srcset substitution.
 		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_array' ), 1001, 5 );
@@ -1517,6 +1519,24 @@ class ExactDN {
 	 */
 	public function action_wp_enqueue_scripts() {
 		wp_enqueue_script( 'exactdn', plugins_url( 'includes/exactdn.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION, true );
+	}
+
+	/**
+	 * Suppress query args for certain files, typically for placholder images.
+	 *
+	 * @param array|string $args Array of ExactDN arguments.
+	 * @param string $image_url Image URL.
+	 * @param string|null $scheme Image scheme. Default to null.
+	 * @return array Empty if it matches our search, otherwise just $args untouched.
+	 */
+	function exactdn_remove_args( $args, $image_url, $scheme ) {
+		if ( strpos( $image_url, 'revslider/admin/assets/images/dummy.png' ) ) {
+			return array();
+		}
+		if ( strpos( $image_url, 'lazy_placeholder.gif' ) ) {
+			return array();
+		}
+		return $args;
 	}
 
 	/**
