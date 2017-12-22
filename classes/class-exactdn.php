@@ -1695,7 +1695,13 @@ class ExactDN {
 		ewwwio_debug_message( "exactdn url with args: $exactdn_url" );
 
 		if ( isset( $image_url_parts['scheme'] ) && 'https' == $image_url_parts['scheme'] ) {
-			$scheme = 'https';
+			$exactdn_url = add_query_arg(
+				array(
+					'ssl' => 1,
+				),
+				$exactdn_url
+			);
+			$scheme      = 'https';
 		}
 
 		return $this->url_scheme( $exactdn_url, $scheme );
