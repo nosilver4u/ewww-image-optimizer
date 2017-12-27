@@ -1055,15 +1055,16 @@ function ewww_image_optimizer_mimetype( $path, $case ) {
 			ewwwio_debug_message( "file command: {$filetype[0]}" );
 			// If we've found a proper binary.
 			if ( ( strpos( $filetype[0], 'ELF' ) && strpos( $filetype[0], 'executable' ) )
-				|| strpos( $filetype[0], 'Mach-O universal binary' )
-				|| strpos( $filetype[0], 'Mach-O fat file with' )
+				|| false !== strpos( $filetype[0], 'Mach-O universal binary' )
+				|| false !== strpos( $filetype[0], 'Mach-O fat file with' )
+				|| false !== strpos( $filetype[0], 'Mach-O 64-bit x86_64 executable' )
 			) {
 				$type = 'application/x-executable';
 			}
 		}
 	}
 	// If we are dealing with a binary, and found an executable.
-	if ( 'b' === $case && preg_match( '/executable|octet-stream|dosexec/', $type ) ) {
+	if ( 'b' === $case && preg_match( '/executable|octet-stream|dosexec|x-mach-binary/', $type ) ) {
 		ewwwio_memory( __FUNCTION__ );
 		return $type;
 		// Otherwise, if we are dealing with an image.
