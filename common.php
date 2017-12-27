@@ -7958,6 +7958,23 @@ function ewww_image_optimizer_resize_detection_script() {
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' ) ) {
 		wp_enqueue_script( 'ewww-resize-detection', plugins_url( '/includes/resize_detection.js', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 	}
+	add_filter( 'autoptimize_filter_js_exclude', 'ewww_image_optimizer_autoptimize_js_exclude', -1, 2 );
+}
+
+/**
+ * Makes sure the resize detection script is excluded from Autoptimize functions.
+ *
+ * @param string $jsexcludes A list of exclusions from Autoptimize.
+ * @param string $content The page content being parsed by Autoptimize.
+ * @return string The JS excludes plus one more.
+ */
+function ewww_image_optimizer_autoptimize_js_exclude( $jsexcludes = '', $content = '' ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( is_array( $jsexcludes ) ) {
+		$jsexcludes['includes/resize_detection.js'] = '';
+		return $jsexludes;
+	}
+	return $jsexcludes . ', includes/resize_detection.js';
 }
 
 /**
