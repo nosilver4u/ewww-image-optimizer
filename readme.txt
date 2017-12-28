@@ -179,6 +179,13 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.0.6 =
+* fixed: resize_detection.js being combined with other scripts by Autoptimize
+* fixed: retina optimization not deferred in async mode
+* fixed: PDF files could trigger license exceeded message
+* fixed: binary detection not fully function with MacOS and PHP 7.2
+* changed: dummy images have no args appended with exactdn except for ssl flag
+
 = 4.0.5 =
 * added: enable lossy compression with ExactDN: http://docs.ewww.io/article/47-getting-more-from-exactdn
 * added: CSS/JS minification with ExactDN, see http://docs.ewww.io/article/47-getting-more-from-exactdn
