@@ -30,11 +30,12 @@
 // TODO: check what happens to WebP images when restoring original from backups.
 // TODO: use got_mod_rewrite to warn folks not to bother with webp htaccess.
 // TODO: fix ExactDN failure after multisite save settings.
+// TODO: add ExactDN compat with A3 lazy.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '405.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '405.4' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -126,6 +127,8 @@ add_action( 'plugins_loaded', 'ewww_image_optimizer_preinit' );
 add_action( 'init', 'ewww_image_optimizer_gallery_support' );
 // Initializes the plugin for admin interactions, like saving network settings and scheduling cron jobs.
 add_action( 'admin_init', 'ewww_image_optimizer_admin_init' );
+// Checks to see if thumb regen or other similar operation is running via REST API.
+add_action( 'rest_api_init', 'ewww_image_optimizer_restapi_compat_check' );
 // Legacy (non-AJAX) action hook for manually optimizing an image.
 add_action( 'admin_action_ewww_image_optimizer_manual_optimize', 'ewww_image_optimizer_manual' );
 // Legacy (non-AJAX) action hook for manually restoring a converted image.
@@ -1410,22 +1413,29 @@ function ewww_image_optimizer_ajax_compat_check() {
 	if ( ! wp_doing_ajax() ) {
 		return;
 	}
-	// Check for (Force) Regenerate Thumbnails action (includes MLP regnerate).
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	// Check for (Force) Regenerate Thumbnails action (includes MLP regenerate).
 	if ( ! empty( $_REQUEST['action'] ) ) {
 		if ( 'regeneratethumbnail' == $_REQUEST['action'] ||
 			'meauh_save_image' == $_REQUEST['action'] ||
 			'hotspot_save' == $_REQUEST['action']
 		) {
+			ewwwio_debug_message( 'doing regeneratethumbnail' );
 			ewww_image_optimizer_image_sizes( false );
+			return;
 		}
 	}
 	// Check for other MLP actions, including multi-regen.
 	if ( ! empty( $_REQUEST['action'] ) && class_exists( 'MaxGalleriaMediaLib' ) && ( 'regen_mlp_thumbnails' == $_REQUEST['action'] || 'move_media' == $_REQUEST['action'] || 'copy_media' == $_REQUEST['action'] || 'maxgalleria_rename_image' == $_REQUEST['action'] ) ) {
+		ewwwio_debug_message( 'doing regen_mlp_thumbnails' );
 		ewww_image_optimizer_image_sizes( false );
+		return;
 	}
 	// Check for MLP upload.
 	if ( ! empty( $_REQUEST['action'] ) && class_exists( 'MaxGalleriaMediaLib' ) && ! empty( $_REQUEST['nonce'] ) && 'upload_attachment' == $_REQUEST['action'] ) {
+		ewwwio_debug_message( 'doing maxgalleria upload' );
 		ewww_image_optimizer_image_sizes( false );
+		return;
 	}
 }
 
@@ -1441,6 +1451,20 @@ if ( ! function_exists( 'wp_doing_ajax' ) ) {
 	 */
 	function wp_doing_ajax() {
 		return apply_filters( 'wp_doing_ajax', defined( 'DOING_AJAX' ) && DOING_AJAX );
+	}
+}
+
+/**
+ * Checks to see if this is a REST API request, and whether the WP_Image_Editor hooks should be undone.
+ *
+ * @since 4.0.6
+ */
+function ewww_image_optimizer_restapi_compat_check() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( ! empty( $GLOBALS['wp']->query_vars['rest_route'] ) && false !== strpos( $GLOBALS['wp']->query_vars['rest_route'], '/regenerate-thumbnails' ) ) {
+		ewwwio_debug_message( 'doing regenerate-thumbnails via REST' );
+		ewww_image_optimizer_image_sizes( false );
+		return;
 	}
 }
 
