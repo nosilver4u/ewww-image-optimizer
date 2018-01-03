@@ -1,13 +1,14 @@
 # EWWW Image Optimizer 
-**Contributors:** nosilver4u  
 **Donate link:** https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW  
-**Tags:** image, attachment, optimize, optimization, lossless, lossy, seo, compression, gmagick, jpegtran, gifsicle, optipng, pngout, pngquant, jpegmini, tinyjpg, tinypng, webp, wp-cli   
-**Requires at least:** 4.6
-**Requires PHP:** 5.3
-**Tested up to:** 4.9.1
-**Stable tag:** 4.0.5
-**License:** GPLv3
-**Build Status:** [![Build Status](https://travis-ci.org/nosilver4u/ewww-image-optimizer.svg?branch=master)](https://travis-ci.org/nosilver4u/ewww-image-optimizer)
+**Minimum WordPress:** 4.6
+**Minimum PHP:** 5.3
+
+[![Build Status](https://travis-ci.org/nosilver4u/ewww-image-optimizer.svg?branch=master)](https://travis-ci.org/nosilver4u/ewww-image-optimizer)
+[![WordPress Plugin Downloads](https://img.shields.io/wordpress/plugin/dt/ewww-image-optimizer.svg)](https://wordpress.org/plugins/ewww-image-optimizer/)
+[![WordPress Plugin Rating](https://img.shields.io/wordpress/plugin/r/ewww-image-optimizer.svg)](https://wordpress.org/support/plugin/ewww-image-optimizer/reviews/)
+[![WordPress Plugin Version](https://img.shields.io/wordpress/plugin/v/ewww-image-optimizer.svg)](https://wordpress.org/plugins/ewww-image-optimizer/)
+[![WordPress Tested Up To](https://img.shields.io/wordpress/v/ewww-image-optimizer.svg)](https://wordpress.org/plugins/ewww-image-optimizer/)
+[![GNU General Public License 3.0](https://img.shields.io/github/license/nosilver4u/ewww-image-optimizer.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
 
