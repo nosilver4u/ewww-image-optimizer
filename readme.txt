@@ -179,6 +179,9 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.0.7 =
+* fixed: wp-emoji script not rewritten by EXACTDN_ALL_THE_THINGS
+
 = 4.0.6 =
 * changed: dummy images have no args appended with exactdn except for ssl flag
 * fixed: resize_detection.js being combined with other scripts by Autoptimize

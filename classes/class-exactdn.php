@@ -753,6 +753,7 @@ class ExactDN {
 					$content = preg_replace( '#(https?)://' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)\.(php|ashx)#i', '$1://' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
 					$content = preg_replace( '#(https?)://' . $escaped_upload_domain . '/([^"\'?>]+?)?wp-(includes|content)#i', '$1://' . $this->exactdn_domain . '/$2wp-$3', $content );
 					$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );
+					$content = preg_replace( '#(concatemoji":"https?:\\\/\\\/)' . $escaped_upload_domain . '([^"\'?>]+?)wp-emoji-release.min.js\?ver=(\w)#', '$1' . $this->exactdn_domain . '$2wp-emoji-release.min.js?ver=$3', $content );
 				}
 			}
 		} // End if();
