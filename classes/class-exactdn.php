@@ -1537,6 +1537,9 @@ class ExactDN {
 		if ( strpos( $image_url, 'lazy_placeholder.gif' ) ) {
 			return array();
 		}
+		if ( strpos( $image_url, 'essential-grid/public/assets/images/' ) ) {
+			return array();
+		}
 		return $args;
 	}
 

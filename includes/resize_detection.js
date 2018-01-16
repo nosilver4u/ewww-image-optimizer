@@ -23,7 +23,6 @@ function checkImageSizes() {
                 if (wrongWidth || wrongHeight) {
                     img.style.border = "3px #3eadc9 dotted";
                     img.style.margin = "-3px";
-                    img.style.background = "black";
                     img.title = "Forced to wrong size: " +
                         img.width + "x" + img.height + ", natural is " +
                         img.naturalWidth + "x" + img.naturalHeight + "!";
