@@ -1425,6 +1425,17 @@ function ewww_image_optimizer_ajax_compat_check() {
 			return;
 		}
 	}
+	// Check for Image Watermark plugin.
+	if ( ! empty( $_POST['iw-action'] ) ) {
+		$action = $_POST['iw-action'];
+		ewwwio_debug_message( "doing $action" );
+		remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
+		if ( 'applywatermark' === $action ) {
+			remove_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15 );
+			add_action( 'iw_after_apply_watermark', 'ewww_image_optimizer_single_size_optimize', 10, 2 );
+		}
+		return;
+	}
 	// Check for other MLP actions, including multi-regen.
 	if ( ! empty( $_REQUEST['action'] ) && class_exists( 'MaxGalleriaMediaLib' ) && ( 'regen_mlp_thumbnails' == $_REQUEST['action'] || 'move_media' == $_REQUEST['action'] || 'copy_media' == $_REQUEST['action'] || 'maxgalleria_rename_image' == $_REQUEST['action'] ) ) {
 		ewwwio_debug_message( 'doing regen_mlp_thumbnails' );
@@ -1437,6 +1448,89 @@ function ewww_image_optimizer_ajax_compat_check() {
 		ewww_image_optimizer_image_sizes( false );
 		return;
 	}
+}
+
+/**
+ * Optimize a single image from an attachment, based on the size and ID.
+ *
+ * @param int    $id The attachment ID number.
+ * @param string $size The slug/name of the image size.
+ */
+function ewww_image_optimizer_single_size_optimize( $id, $size ) {
+	// TODO: may be able to bring in a meta or filename param from IW eventually.
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	session_write_close();
+	$meta = wp_get_attachment_metadata( $id );
+	global $wpdb;
+	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+		ewww_image_optimizer_db_init();
+		global $ewwwdb;
+	} else {
+		$ewwwdb = $wpdb;
+	}
+	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
+	ewwwio_debug_message( "retrieved file path: $file_path" );
+	$type            = ewww_image_optimizer_mimetype( $file_path, 'i' );
+	$supported_types = array(
+		'image/jpeg',
+		'image/png',
+		'image/gif',
+		'application/pdf',
+	);
+	if ( ! in_array( $type, $supported_types ) ) {
+		ewwwio_debug_message( "mimetype not supported: $id" );
+		return;
+	}
+	if ( 'full' == $size ) {
+		$ewww_image         = new EWWW_Image( $id, 'media', $file_path );
+		$ewww_image->resize = 'full';
+
+		// Run the optimization and store the results.
+		ewww_image_optimizer( $file_path, 4, false, false, true );
+		return;
+	}
+	// Resized version, continue.
+	if ( isset( $meta['sizes'] ) && is_array( $meta['sizes'][ $size ] ) ) {
+		$disabled_sizes = get_option( 'ewww_image_optimizer_disable_resizes_opt' );
+		ewwwio_debug_message( "processing size: $size" );
+		$base_dir = trailingslashit( dirname( $file_path ) );
+		$data     = $meta['sizes'][ $size ];
+		if ( strpos( $size, 'webp' ) === 0 ) {
+			return;
+		}
+		if ( ! empty( $disabled_sizes[ $size ] ) ) {
+			return;
+		}
+		if ( ! empty( $disabled_sizes['pdf-full'] ) && 'full' == $size ) {
+			return;
+		}
+		if ( empty( $data['file'] ) ) {
+			return;
+		}
+		// If this is a unique size.
+		$resize_path = $base_dir . $data['file'];
+		if ( 'application/pdf' == $type && 'full' == $size ) {
+			$size = 'pdf-full';
+			ewwwio_debug_message( 'processing full size pdf preview' );
+		}
+		$ewww_image         = new EWWW_Image( $id, 'media', $resize_path );
+		$ewww_image->resize = $size;
+		// Run the optimization and store the results.
+		ewww_image_optimizer( $resize_path );
+		// Optimize retina images, if they exist.
+		if ( function_exists( 'wr2x_get_retina' ) ) {
+			$retina_path = wr2x_get_retina( $resize_path );
+		} else {
+			$retina_path = false;
+		}
+		if ( $retina_path && is_file( $retina_path ) ) {
+			$ewww_image         = new EWWW_Image( $id, 'media', $retina_path );
+			$ewww_image->resize = $size . '-retina';
+			ewww_image_optimizer( $retina_path );
+		} else {
+			ewww_image_optimizer_hidpi_optimize( $resize_path );
+		}
+	} // End if().
 }
 
 if ( ! function_exists( 'wp_doing_ajax' ) ) {
