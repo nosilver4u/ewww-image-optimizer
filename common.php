@@ -2021,7 +2021,7 @@ function ewww_image_optimizer_pte_check( $data ) {
  * @param string $old_filepath The previous filename of the image.
  * @param string $new_filepath The new filename of the image.
  */
-function ewww_image_optimizer_path_renamed ( $post, $old_filepath, $new_filepath ) {
+function ewww_image_optimizer_path_renamed( $post, $old_filepath, $new_filepath ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$optimized_query = ewww_image_optimizer_find_already_optimized( $old_filepath );
 	if ( is_array( $optimized_query ) && ! empty( $optimized_query['id'] ) ) {
