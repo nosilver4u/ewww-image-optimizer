@@ -3,9 +3,12 @@
 
 window.onload = function() {
 	checkImageSizes();
-	document.getElementById('wp-admin-bar-resize-detection').onclick = function() {
-		checkImageSizes();
-	};
+	var adminBarButton = document.getElementById('wp-admin-bar-resize-detection');
+	if (adminBarButton) {
+		adminBarButton.onclick = function() {
+			checkImageSizes();
+		};
+	}
 }
 function checkImageSizes() {
     // Find images which have width or height different than their natural

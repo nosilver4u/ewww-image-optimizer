@@ -183,6 +183,7 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * added: full compatibility with Image Watermark plugin
 * added: dummy images for Essential Grid whitelisted with ExactDN
 * fixed: wp-emoji script not rewritten by EXACTDN_ALL_THE_THINGS
+* fixed: resize detection script throws error when admin bar is hidden
 
 = 4.0.6 =
 * changed: dummy images have no args appended with exactdn except for ssl flag
