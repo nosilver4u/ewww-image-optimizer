@@ -328,6 +328,7 @@ class EWWWIO_Tracking {
 			return;
 		}
 		if (
+			stristr( network_site_url( '/' ), '.local' ) !== false ||
 			stristr( network_site_url( '/' ), 'dev' ) !== false ||
 			stristr( network_site_url( '/' ), 'localhost' ) !== false ||
 			stristr( network_site_url( '/' ), ':8888' ) !== false // This is common with MAMP on OS X.

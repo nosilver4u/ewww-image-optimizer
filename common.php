@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '406.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '406.4' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -155,6 +155,8 @@ add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_media_scripts' );
 add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_settings_script' );
 // Enables scheduled optimization via wp-cron.
 add_action( 'ewww_image_optimizer_auto', 'ewww_image_optimizer_auto' );
+// Correct records for files renamed by MFR.
+add_action( 'mfrh_path_renamed', 'ewww_image_optimizer_path_renamed', 10, 3 );
 // Correct any records in the table created during retina generation.
 add_action( 'wr2x_retina_file_added', 'ewww_image_optimizer_retina', 20, 2 );
 // AJAX action hook for inserting WebP rewrite rules into .htaccess.
@@ -2010,6 +2012,37 @@ function ewww_image_optimizer_pte_check( $data ) {
 		}
 	}
 	return $data;
+}
+
+/**
+ * Updates paths in the database after Media File Rename has run.
+ *
+ * @param array  $post The post information for the image attachment.
+ * @param string $old_filepath The previous filename of the image.
+ * @param string $new_filepath The new filename of the image.
+ */
+function ewww_image_optimizer_path_renamed ( $post, $old_filepath, $new_filepath ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$optimized_query = ewww_image_optimizer_find_already_optimized( $old_filepath );
+	if ( is_array( $optimized_query ) && ! empty( $optimized_query['id'] ) ) {
+		global $wpdb;
+		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+			ewww_image_optimizer_db_init();
+			global $ewwwdb;
+		} else {
+			$ewwwdb = $wpdb;
+		}
+		ewwwio_debug_message( "$old_filepath changed to $new_filepath" );
+		// Replace the 'temp' path in the database with the real path.
+		$ewwwdb->update( $ewwwdb->ewwwio_images,
+			array(
+				'path' => ewww_image_optimizer_relative_path_remove( $new_filepath ),
+			),
+			array(
+				'id' => $optimized_query['id'],
+			)
+		);
+	}
 }
 
 /**
