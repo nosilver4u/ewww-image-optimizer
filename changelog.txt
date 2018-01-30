@@ -7,8 +7,8 @@
 * fixed: compatibility with Regenerate Thumbnails version 3
 
 = 4.0.5 =
-* added: enable lossy compression with ExactDN: http://docs.ewww.io/article/47-getting-more-from-exactdn
-* added: CSS/JS minification with ExactDN, see http://docs.ewww.io/article/47-getting-more-from-exactdn
+* added: enable lossy compression with ExactDN: https://docs.ewww.io/article/47-getting-more-from-exactdn
+* added: CSS/JS minification with ExactDN, see https://docs.ewww.io/article/47-getting-more-from-exactdn
 * added: disable WebP for specific files with ewww_image_optimizer_bypass_webp filter
 * added: ExactDN obeys focus point from Theia Smart Thumbnails plugin
 * added: admin-ajax requests for eddvbugm loader work with ExactDN
@@ -66,7 +66,7 @@
 
 = 3.6.0 =
 In an effort to simplify the settings page and make room for new features, many settings have been "hidden" and/or rearranged. It is my hope that this will make it easier for new users to get going with EWWW IO.
-You can find more information about overriding options in the [Documentation](http://docs.ewww.io)
+You can find more information about overriding options in the [Documentation](https://docs.ewww.io)
 * added: ability to override any boolean/integer options by defining constant of the same name
 * added: debug information included automatically with help beacon requests when debugging is enabled
 * added: use wp_raise_memory_limit (WP 4.6+) to avoid memory issues

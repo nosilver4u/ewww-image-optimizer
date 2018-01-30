@@ -473,7 +473,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 		'time_remaining'        => esc_html__( 'remaining', 'ewww-image-optimizer' ),
 		'original_restored'     => esc_html__( 'Original Restored', 'ewww-image-optimizer' ),
 		'restoring'             => '<p>' . esc_html__( 'Restoring', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
-		'bulk_fail_more'        => '<a href="http://docs.ewww.io/article/39-bulk-optimizer-failure" target="_blank" data-beacon-article="596f84f72c7d3a73488b3ca7">' . esc_html__( 'more...', 'ewww-image-optimizer' ) . '</a>',
+		'bulk_fail_more'        => '<a href="https://docs.ewww.io/article/39-bulk-optimizer-failure" target="_blank" data-beacon-article="596f84f72c7d3a73488b3ca7">' . esc_html__( 'more...', 'ewww-image-optimizer' ) . '</a>',
 	) );
 	// Load the stylesheet for the jquery progressbar.
 	wp_enqueue_style( 'jquery-ui-progressbar', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ) );

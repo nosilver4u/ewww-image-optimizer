@@ -63,7 +63,7 @@ Can generate WebP versions of your images, and enables you to serve even smaller
 
 = WP-CLI =
 
-Allows you to run all Bulk Optimization processes from your command line, instead of the web interface. It is much faster, and allows you to do things like run it in 'screen' or via regular cron (instead of wp-cron, which can be unpredictable on low-traffic sites). Install WP-CLI from wp-cli.org, and run 'wp-cli.phar help ewwwio optimize' for more information or see the [Docs](http://docs.ewww.io/article/25-optimizing-with-wp-cli).
+Allows you to run all Bulk Optimization processes from your command line, instead of the web interface. It is much faster, and allows you to do things like run it in 'screen' or via regular cron (instead of wp-cron, which can be unpredictable on low-traffic sites). Install WP-CLI from wp-cli.org, and run 'wp-cli.phar help ewwwio optimize' for more information or see the [Docs](https://docs.ewww.io/article/25-optimizing-with-wp-cli).
 
 = FooGallery =
 
@@ -111,21 +111,21 @@ To receive updates when new strings are available for translation, you can signu
 1. *Recommended* Visit the settings page to enable/disable specific tools and turn on advanced optimization features.
 1. Done!
 
-If these steps do not work, additional documentation is available at http://docs.ewww.io. If you need further assistance using the plugin, please visit our [Support Page](https://ewww.io/contact-us/). The forums are community supported only.
+If these steps do not work, additional documentation is available at https://docs.ewww.io. If you need further assistance using the plugin, please visit our [Support Page](https://ewww.io/contact-us/). The forums are community supported only.
 
 = Webhosts =
 
-To find out if your webhost works with the EWWW Image Optimizer, you can check the [official list](http://docs.ewww.io/article/43-supported-web-hosts).
+To find out if your webhost works with the EWWW Image Optimizer, you can check the [official list](https://docs.ewww.io/article/43-supported-web-hosts).
 
 == Frequently Asked Questions ==
 
 = Google Pagespeed says my images need compressing or resizing, but I already optimized all my images. What do I do? =
 
-Try this for starters: http://docs.ewww.io/article/5-pagespeed-says-my-images-need-more-work
+Try this for starters: https://docs.ewww.io/article/5-pagespeed-says-my-images-need-more-work
 
 = The plugin complains that I'm missing something, what do I do? =
 
-This article will walk you through installing the required tools (and the alternatives if installation does not work): http://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something
+This article will walk you through installing the required tools (and the alternatives if installation does not work): https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something
 
 = Does the plugin replace existing images? =
 
@@ -137,7 +137,7 @@ Yes, you can, set it up on the Resize tab.
 
 = Can I lower the compression setting for JPGs to save more space? =
 
-The lossy JPG optimization using TinyJPG and JPEGmini will determine the ideal quality setting and give you the best results, but you can also adjust the default quality for conversion and resizing. More information: http://docs.ewww.io/article/12-jpq-quality-and-wordpress
+The lossy JPG optimization using TinyJPG and JPEGmini will determine the ideal quality setting and give you the best results, but you can also adjust the default quality for conversion and resizing. More information: https://docs.ewww.io/article/12-jpq-quality-and-wordpress
 
 = The bulk optimizer doesn't seem to be working, what can I do? =
 
@@ -195,8 +195,8 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * fixed: compatibility with Regenerate Thumbnails version 3
 
 = 4.0.5 =
-* added: enable lossy compression with ExactDN: http://docs.ewww.io/article/47-getting-more-from-exactdn
-* added: CSS/JS minification with ExactDN, see http://docs.ewww.io/article/47-getting-more-from-exactdn
+* added: enable lossy compression with ExactDN: https://docs.ewww.io/article/47-getting-more-from-exactdn
+* added: CSS/JS minification with ExactDN, see https://docs.ewww.io/article/47-getting-more-from-exactdn
 * added: disable WebP for specific files with ewww_image_optimizer_bypass_webp filter
 * added: ExactDN obeys focus point from Theia Smart Thumbnails plugin
 * added: admin-ajax requests for eddvbugm loader work with ExactDN

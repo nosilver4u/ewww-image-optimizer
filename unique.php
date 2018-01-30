@@ -242,7 +242,7 @@ function ewww_image_optimizer_tool_folder_permissions_notice() {
 		sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), htmlentities( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . '.</strong> ' .
 		esc_html__( 'Please adjust permissions or create the folder. If you have installed the tools elsewhere on your system, check the option to Use System Paths.', 'ewww-image-optimizer' ) . ' ' .
 		/* translators: 1: Settings Page (link) 2: Installation Instructions (link) */
-		sprintf( esc_html__( 'For more details, visit the %1$s or the %2$s.', 'ewww-image-optimizer' ), "<a href='$settings_page'>" . esc_html__( 'Settings Page', 'ewww-image-optimizer' ) . '</a>', "<a href='http://docs.ewww.io/'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
+		sprintf( esc_html__( 'For more details, visit the %1$s or the %2$s.', 'ewww-image-optimizer' ), "<a href='$settings_page'>" . esc_html__( 'Settings Page', 'ewww-image-optimizer' ) . '</a>', "<a href='https://docs.ewww.io/'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
 }
 
 /**
@@ -263,7 +263,7 @@ function ewww_image_optimizer_tool_installation_failed_notice() {
 		sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), htmlentities( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . '.</strong> ' .
 		esc_html__( 'Please adjust permissions or create the folder. If you have installed the tools elsewhere on your system, check the option to Use System Paths.', 'ewww-image-optimizer' ) . ' ' .
 		/* translators: 1: Settings Page (link) 2: Installation Instructions (link) */
-		sprintf( esc_html__( 'For more details, visit the %1$s or the %2$s.', 'ewww-image-optimizer' ), "<a href='$settings_page'>" . esc_html__( 'Settings Page', 'ewww-image-optimizer' ) . '</a>', "<a href='http://docs.ewww.io/'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
+		sprintf( esc_html__( 'For more details, visit the %1$s or the %2$s.', 'ewww-image-optimizer' ), "<a href='$settings_page'>" . esc_html__( 'Settings Page', 'ewww-image-optimizer' ) . '</a>', "<a href='https://docs.ewww.io/'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
 }
 
 /**
@@ -585,7 +585,7 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 		}
 		echo "<div id='ewww-image-optimizer-warning-opt-missing' class='error'><p>" .
 		/* translators: 1-6: jpegtran, optipng, pngout, pngquant, gifsicle, and cwebp (links) 7: Settings Page (link) 8: Installation Instructions (link) */
-		sprintf( esc_html__( 'EWWW Image Optimizer uses %1$s, %2$s, %3$s, %4$s, %5$s, and %6$s. You are missing: %7$s. Please install via the %8$s or the %9$s.', 'ewww-image-optimizer' ), "<a href='http://jpegclub.org/jpegtran/'>jpegtran</a>", "<a href='http://optipng.sourceforge.net/'>optipng</a>", "<a href='http://advsys.net/ken/utils.htm'>pngout</a>", "<a href='http://pngquant.org/'>pngquant</a>", "<a href='http://www.lcdf.org/gifsicle/'>gifsicle</a>", "<a href='https://developers.google.com/speed/webp/'>cwebp</a>", $msg, "<a href='$settings_page'>" . esc_html__( 'Settings Page', 'ewww-image-optimizer' ) . '</a>', "<a href='http://docs.ewww.io/'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
+		sprintf( esc_html__( 'EWWW Image Optimizer uses %1$s, %2$s, %3$s, %4$s, %5$s, and %6$s. You are missing: %7$s. Please install via the %8$s or the %9$s.', 'ewww-image-optimizer' ), "<a href='http://jpegclub.org/jpegtran/'>jpegtran</a>", "<a href='http://optipng.sourceforge.net/'>optipng</a>", "<a href='http://advsys.net/ken/utils.htm'>pngout</a>", "<a href='http://pngquant.org/'>pngquant</a>", "<a href='http://www.lcdf.org/gifsicle/'>gifsicle</a>", "<a href='https://developers.google.com/speed/webp/'>cwebp</a>", $msg, "<a href='$settings_page'>" . esc_html__( 'Settings Page', 'ewww-image-optimizer' ) . '</a>', "<a href='https://docs.ewww.io/'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
 		ewwwio_memory( __FUNCTION__ );
 	}
 }

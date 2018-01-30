@@ -703,7 +703,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 		ewwwio_memory( __FUNCTION__ );
 		/* translators: %d: number of images */
 		$ready_msg = sprintf( esc_html( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', $image_count, 'ewww-image-optimizer' ) ), $image_count )
-			. ' <a href="http://docs.ewww.io/article/20-why-do-i-have-so-many-images-on-my-site" target="_blank" data-beacon-article="58598744c697912ffd6c3eb4">' . esc_html__( 'Why are there so many images?', 'ewww-image-optimizer' ) . '</a>';
+			. ' <a href="https://docs.ewww.io/article/20-why-do-i-have-so-many-images-on-my-site" target="_blank" data-beacon-article="58598744c697912ffd6c3eb4">' . esc_html__( 'Why are there so many images?', 'ewww-image-optimizer' ) . '</a>';
 		ewwwio_ob_clean();
 		die( json_encode( array(
 			'ready'   => $image_count,

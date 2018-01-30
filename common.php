@@ -1856,7 +1856,7 @@ function ewww_image_optimizer_network_settings_saved() {
  */
 function ewww_image_optimizer_thumbnail_regen_notice() {
 	echo "<div id='ewww-image-optimizer-thumb-regen-notice' class='notice notice-info is-dismissible'><p><strong>" . esc_html__( 'New thumbnails will be optimized by the EWWW Image Optimizer as they are generated. You may wish to disable the plugin and run a bulk optimize later to speed up the process.', 'ewww-image-optimizer' ) . '</strong>';
-	echo '&nbsp;<a href="http://docs.ewww.io/article/49-regenerate-thumbnails" target="_blank" data-beacon-article="5a0f84ed2c7d3a272c0dc801">' . esc_html__( 'Learn more.', 'ewww-image-optimizer' ) . '</a></p></div>';
+	echo '&nbsp;<a href="https://docs.ewww.io/article/49-regenerate-thumbnails" target="_blank" data-beacon-article="5a0f84ed2c7d3a272c0dc801">' . esc_html__( 'Learn more.', 'ewww-image-optimizer' ) . '</a></p></div>';
 }
 
 /**
@@ -7329,7 +7329,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$output[] = "<h1>EWWW Image Optimizer</h1>\n";
 	$output[] = "<div id='ewww-container-left' style='float: left; margin-right: 225px;'>\n";
 	$output[] = "<p><a href='https://ewww.io/'>" . esc_html__( 'Plugin Home Page', 'ewww-image-optimizer' ) . '</a> | ' .
-		"<a href='http://docs.ewww.io/'>" . esc_html__( 'Documentation', 'ewww-image-optimizer' ) . '</a> | ' .
+		"<a href='https://docs.ewww.io/'>" . esc_html__( 'Documentation', 'ewww-image-optimizer' ) . '</a> | ' .
 		"<a href='https://ewww.io/contact-us/'>" . esc_html__( 'Plugin Support', 'ewww-image-optimizer' ) . '</a> | ' .
 		"<a href='https://ewww.io/status/'>" . esc_html__( 'Cloud Status', 'ewww-image-optimizer' ) . '</a> | ' .
 		"<a href='https://ewww.io/downloads/s3-image-optimizer/'>" . esc_html__( 'S3 Image Optimizer', 'ewww-image-optimizer' ) . "</a></p>\n";
@@ -7794,7 +7794,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		esc_html__( 'Retina Support, use WP Retina 2x for best results', 'ewww-image-optimizer' ) . '<br>' .
 		esc_html__( 'Maximum Lossless Compression', 'ewww-image-optimizer' ) . '<br>' .
 		esc_html__( 'Adjustable Quality', 'ewww-image-optimizer' ) . '<br>' .
-		'<a href="http://docs.ewww.io/article/44-introduction-to-exactdn" target="_blank" data-beacon-article="59bc5ad6042863033a1ce370">' . esc_html__( 'Learn more about ExactDN', 'ewww-image-optimizer' ) . '</a>' .
+		'<a href="https://docs.ewww.io/article/44-introduction-to-exactdn" target="_blank" data-beacon-article="59bc5ad6042863033a1ce370">' . esc_html__( 'Learn more about ExactDN', 'ewww-image-optimizer' ) . '</a>' .
 		"</p></td></tr>\n";
 	ewwwio_debug_message( 'ExactDN enabled: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) == true ? 'on' : 'off' ) );
 	$output[] = "<tr class='$network_class'><th><label for='ewww_image_optimizer_resize_detection'>" . esc_html__( 'Resize Detection', 'ewww-image-optimizer' ) . "</label></th><td><input type='checkbox' id='ewww_image_optimizer_resize_detection' name='ewww_image_optimizer_resize_detection' value='true' " . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' ) == true ? "checked='true'" : '' ) . ' /> ' . esc_html__( 'Highlight images that need to be resized because the browser is scaling them down. Only visible for Admin users and adds a button to the admin bar to detect scaled images that have been lazy loaded.', 'ewww-image-optimizer' ) . "</td></tr>\n";
