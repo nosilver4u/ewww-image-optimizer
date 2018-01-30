@@ -634,7 +634,9 @@ class ExactDN {
 						$src = $this->strip_image_dimensions_maybe( $src );
 					}
 
-					$args = $this->maybe_smart_crop( $args, $attachment_id );
+					if ( ! empty( $attachment_id ) ) {
+						$args = $this->maybe_smart_crop( $args, $attachment_id );
+					}
 
 					/**
 					 * Filter the array of ExactDN arguments added to an image.
@@ -1544,6 +1546,9 @@ class ExactDN {
 			return array();
 		}
 		if ( strpos( $image_url, 'essential-grid/public/assets/images/' ) ) {
+			return array();
+		}
+		if ( strpos( $image_url, 'LayerSlider/static/img' ) ) {
 			return array();
 		}
 		return $args;
