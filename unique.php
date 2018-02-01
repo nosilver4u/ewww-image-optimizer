@@ -1012,12 +1012,44 @@ function ewww_image_optimizer_mimetype( $path, $case ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	ewwwio_debug_message( "testing mimetype: $path" );
 	$type = false;
-	if ( 'i' === $case && preg_match( '/^RIFF.+WEBPVP8/', file_get_contents( $path, null, null, 0, 16 ) ) ) {
-		return 'image/webp';
-	}
 	// For S3 images/files, don't attempt to read the file, just use the quick (filename) mime check.
 	if ( 'i' === $case && strpos( $path, 's3' ) === 0 ) {
 		return ewww_image_optimizer_quick_mimetype( $path );
+	}
+	if ( 'i' === $case && preg_match( '/^RIFF.+WEBPVP8/', file_get_contents( $path, null, null, 0, 16 ) ) ) {
+		/* return 'image/webp'; */
+	}
+	if ( 'i' === $case ) {
+		$fhandle = fopen( $path, 'rb' );
+		if ( $fhandle ) {
+			// Read first 12 bytes, which equates to 24 hex characters.
+			$magic = bin2hex( fread( $fhandle, 12 ) );
+			if ( 0 === strpos( $magic, '52494646' ) && 16 === strpos( $magic, '57454250' ) ) {
+				$type = 'image/webp';
+				ewwwio_debug_message( "ewwwio type: $type" );
+				return $type;
+			}
+			if ( 'ffd8ff' === substr( $magic, 0, 6 ) ) {
+				$type = 'image/jpeg';
+				ewwwio_debug_message( "ewwwio type: $type" );
+				return $type;
+			}
+			if ( '89504e470d0a1a0a' === substr( $magic, 0, 16 ) ) {
+				$type = 'image/png';
+				ewwwio_debug_message( "ewwwio type: $type" );
+				return $type;
+			}
+			if ( '474946383761' === substr( $magic, 0, 12 ) || '474946383961' === substr( $magic, 0, 12 ) ) {
+				$type = 'image/gif';
+				ewwwio_debug_message( "ewwwio type: $type" );
+				return $type;
+			}
+			if ( '25504446' === substr( $magic, 0, 8 ) ) {
+				$type = 'application/pdf';
+				ewwwio_debug_message( "ewwwio type: $type" );
+				return $type;
+			}
+		}
 	}
 	if ( function_exists( 'finfo_file' ) && defined( 'FILEINFO_MIME' ) ) {
 		// Create a finfo resource.

@@ -6074,6 +6074,8 @@ function ewww_image_optimizer_quick_mimetype( $path ) {
 			return 'image/png';
 		case 'gif':
 			return 'image/gif';
+		case 'webp':
+			return 'image/webp';
 		case 'pdf':
 			return 'application/pdf';
 		default:
