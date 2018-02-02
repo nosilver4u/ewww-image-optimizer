@@ -1049,8 +1049,40 @@ function ewww_image_optimizer_mimetype( $path, $case ) {
 				ewwwio_debug_message( "ewwwio type: $type" );
 				return $type;
 			}
+			ewwwio_debug_message( "match not found for image: $magic" );
+		} else {
+			ewwwio_debug_message( 'could not open for reading' );
 		}
 	}
+	if ( 'b' === $case ) {
+		$fhandle = fopen( $path, 'rb' );
+		if ( $fhandle ) {
+			// Read first 4 bytes, which equates to 8 hex characters.
+			$magic = bin2hex( fread( $fhandle, 4 ) );
+			// Mac (Mach-O) binary.
+			if ( 'cffaedfe' === $magic || 'feedface' === $magic || 'feedfacf' === $magic || 'cefaedfe' === $magic || 'cafebabe' === $magic ) {
+				$type = 'application/x-executable';
+				ewwwio_debug_message( "ewwwio type: $type" );
+				return $type;
+			}
+			// ELF (Linux or BSD) binary.
+			if ( '7f454c46' === $magic ) {
+				$type = 'application/x-executable';
+				ewwwio_debug_message( "ewwwio type: $type" );
+				return $type;
+			}
+			// MS (DOS) binary.
+			if ( '4d519000' === $magic ) {
+				$type = 'application/x-executable';
+				ewwwio_debug_message( "ewwwio type: $type" );
+				return $type;
+			}
+			ewwwio_debug_message( "match not found for binary: $magic" );
+		} else {
+			ewwwio_debug_message( 'could not open for reading' );
+		}
+	}
+	return false;
 	if ( function_exists( 'finfo_file' ) && defined( 'FILEINFO_MIME' ) ) {
 		// Create a finfo resource.
 		$finfo = finfo_open( FILEINFO_MIME );
