@@ -179,13 +179,17 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
-= 4.0.7 =
+= 4.1.0 =
+* SECURITY: gifsicle and optipng have been updated to address security flaws
 * added: full compatibility with Image Watermark plugin
 * added: dummy images for Essential Grid and Layer Slider whitelisted with ExactDN
 * added: compatibility with Visual Composer and Essential Grid async/AJAX loaders
 * added: compatibility with Media File Renamer
+* changed: ExactDN rewrites all wp-content and wp-includes urls by default
+* changed: Solaris/SunOS binary builds use OpenIndiana 2017.10, let me know if they break
 * fixed: wp-emoji script not rewritten by EXACTDN_ALL_THE_THINGS
 * fixed: resize detection script throws error when admin bar is hidden
+* updated: pngquant version 2.11.7
 
 = 4.0.6 =
 * changed: dummy images have no args appended with exactdn except for ssl flag
@@ -253,6 +257,10 @@ Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO user
 Please refer to the separate changelog.txt file.
 
 == Upgrade Notice ==
+
+= 4.1.0 =
+* Security update: gifsicle and optipng have been updated to resolve security flaws.
+* ExactDN now processes JS/CSS/Fonts for even more speed.
 
 = 4.0.0 =
 * Introduced new ExactDN with CDN and automatic image resizing.

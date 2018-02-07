@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '406.4' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '406.5' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -1147,6 +1147,9 @@ function ewww_image_optimizer_upgrade() {
 		}
 		if ( get_option( 'ewww_image_optimizer_version' ) < 280 ) {
 			ewww_image_optimizer_migrate_settings_to_levels();
+		}
+		if ( get_option( 'ewww_image_optimizer_version' ) < 407 ) {
+			add_site_option( 'exactdn_all_the_things', true );
 		}
 		ewww_image_optimizer_remove_obsolete_settings();
 		update_option( 'ewww_image_optimizer_version', EWWW_IMAGE_OPTIMIZER_VERSION );

@@ -515,7 +515,11 @@ class ExactDN {
 					if ( preg_match( '#width=["|\']?([\d%]+)["|\']?#i', $images['img_tag'][ $index ], $width_string ) ) {
 						$width = $width_string[1];
 					}
-
+					if ( preg_match( '#max-width:\s?(\d+)px#', $images['img_tag'][ $index ], $max_width_string ) ) {
+						if ( $max_width_string[1] && ( ! $width || $max_width_string[1] < $width ) ) {
+							$width = $max_width_string[1];
+						}
+					}
 					if ( preg_match( '#height=["|\']?([\d%]+)["|\']?#i', $images['img_tag'][ $index ], $height_string ) ) {
 						$height = $height_string[1];
 					}
@@ -746,7 +750,7 @@ class ExactDN {
 					}
 				} // End if().
 			} // End foreach().
-			if ( $this->filtering_the_page && defined( 'EXACTDN_ALL_THE_THINGS' ) && EXACTDN_ALL_THE_THINGS ) {
+			if ( $this->filtering_the_page && ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ) {
 				ewwwio_debug_message( 'rewriting all other wp_content urls' );
 				if ( $this->exactdn_domain && $this->upload_domain ) {
 					$escaped_upload_domain = str_replace( '.', '\.', $this->upload_domain );
