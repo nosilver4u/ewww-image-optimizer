@@ -929,8 +929,11 @@ class EWWW_Image {
 		$type       = ewww_image_optimizer_quick_mimetype( $this->file );
 		$image_size = ( empty( $this->opt_size ) ? $this->orig_size : $this->opt_size );
 		if ( empty( $image_size ) ) {
-			$this->orig_size = filesize( $this->file );
+			$this->orig_size = ewww_image_optimizer_filesize( $this->file );
 			$image_size      = $this->orig_size;
+			if ( ! $image_size ) {
+				return 5;
+			}
 		}
 		switch ( $type ) {
 			case 'image/jpeg':

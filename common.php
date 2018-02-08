@@ -6736,7 +6736,7 @@ function ewww_image_optimizer_migrate_meta_to_db( $id, $meta, $bail_early = fals
 	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
 	if ( ! is_file( $file_path ) && ( class_exists( 'WindowsAzureStorageUtil' ) || class_exists( 'Amazon_S3_And_CloudFront' ) ) ) {
 		// Construct a $file_path and proceed IF a supported CDN plugin is installed.
-		$file_path = get_attached_file( $selected_id );
+		$file_path = get_attached_file( $id );
 		if ( ! $file_path ) {
 			ewwwio_debug_message( 'no file found for remote attachment' );
 			// $meta = ewww_image_optimizer_clean_meta( $meta );
