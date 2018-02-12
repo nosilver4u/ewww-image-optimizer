@@ -163,7 +163,7 @@ Yes, you can, set it up on the Advanced tab.
 
 ### Can I lower the compression setting for JPGs to save more space? 
 
-The lossy optimization using TinyJPG and JPEGmini will determine the ideal quality setting and give you the best results, but you can also adjust the default quality for conversion and resizing. More information here: https://docs.ewww.io/article/12-jpq-quality-and-wordpress
+The lossy optimization using the API will determine the ideal quality setting and give you the best results, but you can also adjust the default quality for conversion and resizing. More information here: https://docs.ewww.io/article/12-jpq-quality-and-wordpress
 
 
 ### The bulk optimizer doesn't seem to be working, what can I do? 
@@ -179,7 +179,7 @@ I've tested it on Windows (with Apache), Linux, Mac OSX, FreeBSD 9, and Solaris 
 
 ### How are JPGs optimized? 
 
-Lossless optimization is done with the command *jpegtran -copy all -optimize -progressive -outfile optimized-file original-file*. Optionally, the -copy switch gets the 'none' parameter if you choose to strip metadata from your JPGs on the options page. Lossy optimization is done using the outstanding TinyJPG and JPEGmini utilities.
+Lossless optimization is done with the command *jpegtran -copy all -optimize -progressive -outfile optimized-file original-file*. Optionally, the -copy switch gets the 'none' parameter if you choose to strip metadata from your JPGs on the options page.
 
 
 ### How are PNGs optimized? 
@@ -197,8 +197,6 @@ Using the command *gifsicle -b -O3 --careful original file*. This is particularl
 That's not a question, but since I made it up, I'll answer it. See these resources:  
 https://developers.google.com/speed/docs/insights/OptimizeImages
 http://developer.yahoo.com/performance/rules.html#opt_images  
-
-Pngout, TinyJPG/TinyPNG, JPEGmini, and Pngquant were recommended by EWWW IO users. Pngout (usually) optimizes better than Optipng, and best when they are used together. TinyJPG is the best lossy compression tool that I have found for JPG images. Pngquant is an excellent lossy optimizer for PNGs, and is one of the tools used by TinyPNG.
 
 ## Screenshots 
 
