@@ -31,6 +31,7 @@
 // TODO: use got_mod_rewrite to warn folks not to bother with webp htaccess.
 // TODO: fix ExactDN failure after multisite save settings.
 // TODO: add ExactDN compat with A3 lazy.
+// TODO: can svg/use tags be exluded from all the things?
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -7602,14 +7603,15 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	} elseif ( $file_command_check ) {
 		$collapsible = false;
 	}
-	if ( 'getimagesize' == $mimetype_tool && ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) ) {
+	if ( false && 'getimagesize' == $mimetype_tool && ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) ) {
 		$collapsible = false;
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_pdf_level', 0 );
 	} elseif ( $mimetype_tool ) {
 		$mimetype_output = str_replace( 'color: red', 'color: gray', $mimetype_output );
 	}
 	ewwwio_debug_message( "mimetype function in use: $mimetype_tool" );
-	$status_output .= $mimetype_output;
+	// The whole mimetype section can go away when we're comfortable that nothing has broken.
+	/* $status_output .= $mimetype_output; */
 	$status_output .= $extra_tool_output;
 	$status_output .= '<strong>' . esc_html( 'Background and Parallel optimization (faster uploads):', 'ewww-image-optimizer' ) . '</strong><br>';
 	if ( defined( 'EWWW_DISABLE_ASYNC' ) && EWWW_DISABLE_ASYNC ) {
@@ -7621,7 +7623,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	} elseif ( ewww_image_optimizer_detect_wpsf_location_lock() ) {
 		$status_output .= '<span style="color: orange; font-weight: bolder">' . esc_html__( "Disabled by Shield's Lock to Location feature", 'ewww-image-optimizer' ) . '</p>';
 	} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_parallel_optimization' ) ) {
-		$status_output .= '<span>' . esc_html__( 'Enable Parallel Optimization in Advanced Settings', 'ewww-image-optimizer' ) . '</span>';
+		$status_output .= '<span>' . esc_html__( 'Background mode active, enable Parallel Optimization in Advanced Settings', 'ewww-image-optimizer' ) . '</span>';
 	} else {
 		$status_output .= '<span style="color: green; font-weight: bolder">' . esc_html__( 'Fully Enabled', 'ewww-image-optimizer' ) . '</span>';
 	}
@@ -7719,7 +7721,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		"</select></td></tr>\n";
 	ewwwio_debug_message( 'gif level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) );
 	$disable_pdf_level = $disable_level;
-	if ( 'getimagesize' == $mimetype_tool ) {
+	if ( false && 'getimagesize' == $mimetype_tool ) {
 		$disable_pdf_level = "disabled='disabled'";
 		$output[]          = "<tr class='$network_class'><th>&nbsp;</th><td>";
 		$output[]          = "<p class='$network_class description'>" . esc_html__( '*PDF optimization cannot be enabled because the fileinfo extension is missing.', 'ewww-image-optimizer' ) . "</p></td></tr>\n";
