@@ -32,6 +32,8 @@
 // TODO: fix ExactDN failure after multisite save settings.
 // TODO: add ExactDN compat with A3 lazy.
 // TODO: can svg/use tags be exluded from all the things?
+// TODO: make the force checkbox persistent.
+// TODO: detect WPFC web rules.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

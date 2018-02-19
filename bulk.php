@@ -967,7 +967,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			foreach ( $attachment_images as $size => $file_path ) {
 				ewwwio_debug_message( "here is a path $file_path" );
 				ewww_image_optimizer_debug_log();
-				if ( ! $remote_file && strpos( $file_path, 's3' ) !== 0 && ! defined( 'EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER' ) ) {
+				if ( ! $remote_file && strpos( $file_path, 's3' ) !== 0 && ! defined( 'EWWW_IMAGE_OPTIMIZER_RELATIVE' ) ) {
 					$file_path = realpath( $file_path );
 				}
 				if ( empty( $file_path ) ) {

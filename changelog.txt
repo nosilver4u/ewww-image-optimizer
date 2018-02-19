@@ -1,3 +1,17 @@
+= 4.1.0 =
+* SECURITY: gifsicle and optipng have been updated to address security flaws
+* added: full compatibility with Image Watermark plugin
+* added: dummy images for Essential Grid and Layer Slider whitelisted with ExactDN
+* added: compatibility with Visual Composer and Essential Grid async/AJAX loaders
+* added: compatibility with Media File Renamer
+* changed: ExactDN rewrites all wp-content and wp-includes urls by default
+* changed: mime-type detection function does not rely on fileinfo extension anymore
+* changed: Solaris/SunOS binary builds use OpenIndiana 2017.10, let me know if they break
+* fixed: wp-emoji script not rewritten by EXACTDN_ALL_THE_THINGS
+* fixed: resize detection script throws error when admin bar is hidden
+* fixed: warnings when WP Offload S3 set to delete local files, props ianmjones
+* updated: pngquant version 2.11.7
+
 = 4.0.6 =
 * changed: dummy images have no args appended with exactdn except for ssl flag
 * fixed: resize_detection.js being combined with other scripts by Autoptimize
@@ -94,7 +108,7 @@ You can find more information about overriding options in the [Documentation](ht
 * added: optional help beacons on bulk and settings pages
 * added: disable deferring of WP Offload S3 uploads with EWWW_IMAGE_OPTIMIZER_NO_DEFER_S3
 * added: override use of wp_add_inline_script with non-standard jQuery by defining EWWW_IMAGE_OPTIMIZER_WEBP_INLINE_FALLBACK
-* fixed: javascript for bulk optimizers in NextGEN, NextCellent and FlaGallery 
+* fixed: javascript for bulk optimizers in NextGEN, NextCellent and FlaGallery
 
 = 3.5.0 =
 * added: compatibility with S3 Uploads by Human Made
