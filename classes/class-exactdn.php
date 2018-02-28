@@ -547,10 +547,12 @@ class ExactDN {
 					list( $filename_width, $filename_height ) = $this->parse_dimensions_from_filename( $src );
 					// WP Attachment ID, if uploaded to this site.
 					preg_match( '#class=["|\']?[^"\']*wp-image-([\d]+)[^"\']*["|\']?#i', $images['img_tag'][ $index ], $attachment_id );
-					if ( empty( $attachment_id ) ) {
+					if ( ! ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' ) && empty( $attachment_id ) ) {
+						ewwwio_debug_message( 'looking for attachment id' );
 						$attachment_id = array( attachment_url_to_postid( $src ) );
 					}
-					if ( ! empty( $attachment_id ) ) {
+					if ( ! ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' ) && ! empty( $attachment_id ) ) {
+						ewwwio_debug_message( 'using attachment id to get source image' );
 						$attachment_id = intval( array_pop( $attachment_id ) );
 
 						if ( $attachment_id ) {
@@ -638,7 +640,8 @@ class ExactDN {
 						$src = $this->strip_image_dimensions_maybe( $src );
 					}
 
-					if ( ! empty( $attachment_id ) ) {
+					if ( ! ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' ) && ! empty( $attachment_id ) ) {
+						ewwwio_debug_message( 'using attachment id to check smart crop' );
 						$args = $this->maybe_smart_crop( $args, $attachment_id );
 					}
 

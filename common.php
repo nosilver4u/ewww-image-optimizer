@@ -560,10 +560,16 @@ function ewww_image_optimizer_filter_webp_page_output( $buffer ) {
 	}
 	$uri = $_SERVER['REQUEST_URI'];
 	// Based on the uri, if this is a cornerstone editing page, don't filter the response.
-	if ( strpos( $uri, '&cornerstone=1' ) || strpos( $uri, 'cornerstone-endpoint' ) !== false ) {
+	if ( ! empty( $_GET['cornerstone'] ) || strpos( $uri, 'cornerstone-endpoint' ) !== false ) {
 		return $buffer;
 	}
 	if ( ! empty( $_GET['et_fb'] ) ) {
+		return $buffer;
+	}
+	if ( ! empty( $_GET['tatsu'] ) ) {
+		return $buffer;
+	}
+	if ( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === $_POST['action'] ) {
 		return $buffer;
 	}
 	// Modify buffer here, and then return the updated code.
