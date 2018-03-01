@@ -4451,6 +4451,9 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 		ewwwio_debug_message( "unfiltered fullsize path: $filename" );
 		$temp_file = download_url( $full_url );
 		if ( ! is_wp_error( $temp_file ) ) {
+			if ( ! is_dir( dirname( $filename ) ) ) {
+				wp_mkdir_p( dirname( $filename ) );
+			}
 			rename( $temp_file, $filename );
 		}
 		// Resized versions, so we'll grab those too.
@@ -4487,6 +4490,9 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 					ewwwio_debug_message( "fetching $resize_url to $resize_path" );
 					$temp_file = download_url( $resize_url );
 					if ( ! is_wp_error( $temp_file ) ) {
+						if ( ! is_dir( dirname( $resize_path ) ) ) {
+							wp_mkdir_p( dirname( $resize_path ) );
+						}
 						rename( $temp_file, $resize_path );
 					}
 				}
@@ -4503,6 +4509,9 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 		ewwwio_debug_message( "fullsize path: $filename" );
 		$temp_file = download_url( $full_url );
 		if ( ! is_wp_error( $temp_file ) ) {
+			if ( ! is_dir( dirname( $filename ) ) ) {
+				wp_mkdir_p( dirname( $filename ) );
+			}
 			rename( $temp_file, $filename );
 		}
 		// Resized versions, so we'll grab those too.
@@ -4541,6 +4550,9 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 					ewwwio_debug_message( "fetching $resize_url to $resize_path" );
 					$temp_file = download_url( $resize_url );
 					if ( ! is_wp_error( $temp_file ) ) {
+						if ( ! is_dir( dirname( $resize_path ) ) ) {
+							wp_mkdir_p( dirname( $resize_path ) );
+						}
 						rename( $temp_file, $resize_path );
 					}
 				}
