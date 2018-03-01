@@ -126,6 +126,14 @@ class ExactDN {
 		$this->upload_domain = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : $this->parse_url( $upload_dir['baseurl'], PHP_URL_HOST );
 		ewwwio_debug_message( "allowing images from here: $this->upload_domain" );
 		$this->allowed_domains[] = $this->upload_domain;
+		if ( strpos( $this->upload_domain, 'www' ) === false ) {
+			$this->allowed_domains[] = 'www.' . $this->upload_domain;
+		} else {
+			$nonwww = ltrim( 'www.', $this->upload_domain );
+			if ( $nonwww !== $this->upload_domain ) {
+				$this->allowed_domains[] = $nonwww;
+			}
+		}
 	}
 
 	/**
@@ -1365,7 +1373,6 @@ class ExactDN {
 	protected function validate_image_url( $url, $exactdn_is_valid = false ) {
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		$parsed_url = parse_url( $url );
-		// TODO: add a parameter to allow validation of exactdn urls.
 		if ( ! $parsed_url ) {
 			ewwwio_debug_message( 'could not parse' );
 			return false;

@@ -178,6 +178,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.1.1 =
+* fixed: missing www preventing rewrites for ExactDN
 * fixed: relative path support not working properly for Pantheon users
 
 = 4.1.0 =
