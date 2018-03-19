@@ -643,6 +643,7 @@ function ewww_image_optimizer_path_check( $j = true, $o = true, $g = true, $p = 
 	$pngout   = false;
 	$pngquant = false;
 	$webp     = false;
+	ewww_image_optimizer_define_noexec();
 	if ( EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
 		return array(
 			'JPEGTRAN' => false,

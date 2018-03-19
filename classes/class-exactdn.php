@@ -121,6 +121,12 @@ class ExactDN {
 			add_action( 'wp_enqueue_scripts', array( $this, 'action_wp_enqueue_scripts' ), 9 );
 		}
 
+		// Get all the script/css urls and rewrite them (if enabled).
+		if ( ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ) {
+			add_filter( 'style_loader_src', array( $this, 'parse_enqueue' ) );
+			add_filter( 'script_loader_src', array( $this, 'parse_enqueue' ) );
+		}
+
 		// Find the "local" domain.
 		$upload_dir          = wp_upload_dir( null, false );
 		$this->upload_domain = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : $this->parse_url( $upload_dir['baseurl'], PHP_URL_HOST );
@@ -770,7 +776,6 @@ class ExactDN {
 					$content = preg_replace( '#(https?)://' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)\.(php|ashx)#i', '$1://' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
 					$content = preg_replace( '#(https?)://' . $escaped_upload_domain . '/([^"\'?>]+?)?wp-(includes|content)#i', '$1://' . $this->exactdn_domain . '/$2wp-$3', $content );
 					$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );
-					$content = preg_replace( '#(concatemoji":"https?:\\\/\\\/)' . $escaped_upload_domain . '([^"\'?>]+?)wp-emoji-release.min.js\?ver=(\w)#', '$1' . $this->exactdn_domain . '$2wp-emoji-release.min.js?ver=$3', $content );
 				}
 			}
 		} // End if();
@@ -1566,6 +1571,59 @@ class ExactDN {
 			return array();
 		}
 		return $args;
+	}
+
+	/**
+	 * Converts a local script/css url to use ExactDN.
+	 *
+	 * @param string $url URL to the resource being parsed.
+	 * @return string The ExactDN version of the resource, if it was local.
+	 */
+	function parse_enqueue( $url ) {
+		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		if ( is_admin() ) {
+			return $url;
+		}
+		$parsed_url = parse_url( $url );
+
+		// Unable to parse.
+		if ( ! $parsed_url || ! is_array( $parsed_url ) || empty( $parsed_url['host'] ) || empty( $parsed_url['path'] ) ) {
+			ewwwio_debug_message( 'src url no good' );
+			return $url;
+		}
+
+		// Make sure this is an allowed image domain/hostname for ExactDN on this site.
+		if ( ! $this->allow_image_domain( $parsed_url['host'] ) ) {
+			ewwwio_debug_message( 'invalid host for ExactDN' );
+			return $url;
+		}
+
+		// Figure out which CDN (sub)domain to use.
+		if ( empty( $this->exactdn_domain ) ) {
+			ewwwio_debug_message( 'no exactdn domain configured' );
+			return $url;
+		}
+
+		// You can't run an ExactDN URL through again because query strings are stripped.
+		// So if the image is already an ExactDN URL, append the new arguments to the existing URL.
+		if ( $this->exactdn_domain === $parsed_url['host'] ) {
+			ewwwio_debug_message( 'url already has exactdn domain' );
+			return $url;
+		}
+
+		// If a resource doesn't have a version string, we add one to help with cache-busting.
+		if ( empty( $parsed_url['query'] ) ) {
+			/**
+			 * Allows a custom version string for resources that are missing one.
+			 *
+			 * @param string EWWW IO version.
+			 */
+			$parsed_url['query'] = apply_filters( 'exactdn_version_string', EWWW_IMAGE_OPTIMIZER_VERSION );
+		}
+
+		$exactdn_url = '//' . $this->exactdn_domain . '/' . ltrim( $parsed_url['path'], '/' ) . '?' . $parsed_url['query'];
+		ewwwio_debug_message( "exactdn css/script url: $exactdn_url" );
+		return $exactdn_url;
 	}
 
 	/**
