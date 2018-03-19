@@ -220,7 +220,7 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
  * Display a notice that PHP version 5.3 support is going away.
  */
 function ewww_image_optimizer_php53_warning() {
-	echo "<div id='ewww-image-optimizer-notice-php53' class='notice-info is-dismissible'><p><strong>" . esc_html__( 'The next major release of EWWW Image Optimizer will require PHP 5.4 or greater. Newer versions of PHP, like 5.6, 7.0 and 7.1, are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</strong></p></div>';
+	echo "<div id='ewww-image-optimizer-notice-php53' class='notice notice-info is-dismissible'><p>" . esc_html__( 'The next major release of EWWW Image Optimizer will require PHP 5.4 or greater. Newer versions of PHP, like 5.6, 7.0 and 7.1, are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</p></div>';
 }
 
 /**
@@ -3870,7 +3870,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		$msg       = '';
 		if ( 100 > strlen( $response['body'] ) && strpos( $response['body'], 'invalid' ) ) {
 			ewwwio_debug_message( 'License Invalid' );
-			ewww_image_optimizer_remove_cloud_key( false );
+			ewww_image_optimizer_remove_cloud_key( 'none' );
 		} elseif ( 100 > strlen( $response['body'] ) && strpos( $response['body'], 'exceeded' ) ) {
 			ewwwio_debug_message( 'License Exceeded' );
 			set_transient( 'ewww_image_optimizer_cloud_status', 'exceeded', 3600 );
@@ -8220,9 +8220,9 @@ function ewww_image_optimizer_filter_network_singlesite_settings_page( $input ) 
  *
  * @param boolean $admin Is the function triggered from the wp-admin. Default true.
  */
-function ewww_image_optimizer_remove_cloud_key( $admin = true ) {
+function ewww_image_optimizer_remove_cloud_key( $redirect = false ) {
 	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' );
-	if ( $admin && false === current_user_can( $permissions ) ) {
+	if ( 'none' !== $redirect && false === current_user_can( $permissions ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_key', '' );
@@ -8245,7 +8245,7 @@ function ewww_image_optimizer_remove_cloud_key( $admin = true ) {
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_exceeded', 0 );
 	delete_transient( 'ewww_image_optimizer_cloud_status' );
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_backup_files', '' );
-	if ( $admin ) {
+	if ( 'none' !== $redirect ) {
 		$sendback = wp_get_referer();
 		wp_redirect( esc_url_raw( $sendback ) );
 		exit;
