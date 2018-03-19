@@ -8218,9 +8218,9 @@ function ewww_image_optimizer_filter_network_singlesite_settings_page( $input ) 
 /**
  * Removes the API key currently installed.
  *
- * @param boolean $admin Is the function triggered from the wp-admin. Default true.
+ * @param boolean|string $redirect Should the plugin do a silent redirect back to the referring page? Default true.
  */
-function ewww_image_optimizer_remove_cloud_key( $redirect = false ) {
+function ewww_image_optimizer_remove_cloud_key( $redirect = true ) {
 	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' );
 	if ( 'none' !== $redirect && false === current_user_can( $permissions ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
