@@ -181,10 +181,13 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: detect WP Fastest Cache WebP rewrite rules
 * added: notice if WebP conversion enabled but mod_rewrite or mod_headers is missing
 * added: better debugging when background/async mode is blocked
-* changed: PHP 5.3 will no longer be support on next major release
 * changed: CSS/JS files are filtered pre-emptively by ExactDN to avoid quirks with emoji scripts
 * fixed: warning during wp_cron for undefined constant
 * fixed: invalid or expired keys would still attempt optimization
+* fixed: WebP files are orphaned when using Media File Renamer
+* deprecated: PHP 5.3 will no longer be supported in 4.2
+* deprecated: PHP 5.4 support will be removed by July 2018
+* deprecated: PHP 5.5 support will be removed by October 2018
 
 = 4.1.1 =
 * added: reduce ExactDN load time by suppressing db queries with EXACTDN_PREVENT_DB_QUERIES

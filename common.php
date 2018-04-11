@@ -31,6 +31,7 @@
 // TODO: add ExactDN compat with A3 lazy.
 // TODO: can svg/use tags be exluded from all the things?
 // TODO: make the force checkbox persistent.
+// TODO: find the link between attachment ID numbers in WPML.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -220,7 +221,7 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
  * Display a notice that PHP version 5.3 support is going away.
  */
 function ewww_image_optimizer_php53_warning() {
-	echo "<div id='ewww-image-optimizer-notice-php53' class='notice notice-info is-dismissible'><p>" . esc_html__( 'The next major release of EWWW Image Optimizer will require PHP 5.4 or greater. Newer versions of PHP, like 5.6, 7.0 and 7.1, are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</p></div>';
+	echo '<div id="ewww-image-optimizer-notice-php53" class="notice notice-info is-dismissible"><p><a href="https://docs.ewww.io/article/55-upgrading-php" target="_blank" data-beacon-article="5ab2baa6042863478ea7c2ae">' . esc_html__( 'The next major release of EWWW Image Optimizer will require PHP 5.4 or greater. Newer versions of PHP, like 5.6, 7.0 and 7.1, are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</a></p></div>';
 }
 
 /**
@@ -2097,6 +2098,13 @@ function ewww_image_optimizer_path_renamed( $post, $old_filepath, $new_filepath 
 			)
 		);
 	}
+	// Look for WebP variants and rename them.
+	$old_webp = $old_filepath . '.webp';
+	$new_webp = $new_filepath . '.webp';
+	if ( is_file( $old_webp ) && ! is_file( $new_webp ) ) {
+		ewwwio_debug_message( "renaming $old_webp to $new_webp" );
+		rename( $old_webp, $new_webp );
+	}
 }
 
 /**
@@ -3511,6 +3519,10 @@ function ewww_image_optimizer_cloud_useragent( $useragent ) {
  */
 function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$sanitize = false;
+	if ( ! empty( $api_key ) ) {
+		$sanitize = true;
+	}
 	if ( empty( $api_key ) && ! ( ! empty( $_REQUEST['option_page'] ) && 'ewww_image_optimizer_options' == $_REQUEST['option_page'] ) ) {
 		$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
 	} elseif ( empty( $api_key ) && ! empty( $_POST['ewww_image_optimizer_cloud_key'] ) ) {
@@ -3572,8 +3584,14 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 		if ( preg_match( '/exceeded/', $verified ) ) {
 			ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_exceeded', time() + 300 );
 		}
+		if ( ! $sanitize && false !== strpos( $result['body'], 'expired' ) ) {
+			ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_key', '' );
+		}
 		ewwwio_debug_message( "verification success via: $url" );
 	} else {
+		if ( ! $sanitize && ! empty( $result['body'] ) && false !== strpos( $result['body'], 'invalid' ) ) {
+			ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_key', '' );
+		}
 		ewwwio_debug_message( "verification failed via: $url" );
 		if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
 			ewwwio_debug_message( print_r( $result, true ) );
@@ -3799,8 +3817,11 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	ewwwio_debug_message( "jpg fill: $jpg_fill" );
 	ewwwio_debug_message( "jpg quality: $jpg_quality" );
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
-	$url     = 'http://optimize.exactlywww.com/v2/';
-	$ssl     = wp_http_supports( array( 'ssl' ) );
+	if ( empty( $api_key ) ) {
+			return array( $file, false, 'key verification failed', 0, '' );
+	}
+	$url = 'http://optimize.exactlywww.com/v2/';
+	$ssl = wp_http_supports( array( 'ssl' ) );
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
 	}
@@ -3936,8 +3957,11 @@ function ewww_image_optimizer_cloud_autorotate( $file, $type ) {
 	ewwwio_debug_message( "file: $file " );
 	ewwwio_debug_message( "type: $type" );
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
-	$url     = 'http://optimize.exactlywww.com/rotate/';
-	$ssl     = wp_http_supports( array( 'ssl' ) );
+	if ( empty( $api_key ) ) {
+		return false;
+	}
+	$url = 'http://optimize.exactlywww.com/rotate/';
+	$ssl = wp_http_supports( array( 'ssl' ) );
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
 	}
@@ -7203,7 +7227,9 @@ function ewww_image_optimizer_webp_rewrite_verify() {
 		'</IfModule>',
 		'AddType image/webp .webp',
 	);
-	ewwwio_debug_message( print_r( $current_rules, true ) );
+	if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
+		ewwwio_debug_message( print_r( $current_rules, true ) );
+	}
 	if ( empty( $current_rules ) ||
 		! ewww_image_optimizer_array_search( '{HTTP_ACCEPT} image/webp', $current_rules ) ||
 		! ewww_image_optimizer_array_search( '{REQUEST_FILENAME}.webp', $current_rules ) ||
