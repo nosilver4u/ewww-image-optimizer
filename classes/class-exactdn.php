@@ -70,6 +70,14 @@ class ExactDN {
 	private $exactdn_domain = false;
 
 	/**
+	 * The detected site scheme (http/https).
+	 *
+	 * @access private
+	 * @var string $scheme
+	 */
+	private $scheme = false;
+
+	/**
 	 * Allow us to track how much overhead ExactDN introduces.
 	 *
 	 * @access private
@@ -90,6 +98,15 @@ class ExactDN {
 		// Make sure we have an ExactDN domain to use.
 		if ( ! $this->setup() ) {
 			return;
+		}
+
+		if ( ! $this->scheme ) {
+			$site_url = get_home_url();
+			$scheme   = 'http';
+			if ( strpos( $site_url, 'https://' ) !== false ) {
+				$scheme = 'https';
+			}
+			$this->scheme = $scheme;
 		}
 
 		// Images in post content and galleries.
@@ -1638,7 +1655,7 @@ class ExactDN {
 			$parsed_url['query'] = apply_filters( 'exactdn_version_string', EWWW_IMAGE_OPTIMIZER_VERSION );
 		}
 
-		$exactdn_url = '//' . $this->exactdn_domain . '/' . ltrim( $parsed_url['path'], '/' ) . '?' . $parsed_url['query'];
+		$exactdn_url = $this->scheme . '://' . $this->exactdn_domain . '/' . ltrim( $parsed_url['path'], '/' ) . '?' . $parsed_url['query'];
 		ewwwio_debug_message( "exactdn css/script url: $exactdn_url" );
 		return $exactdn_url;
 	}
@@ -1656,11 +1673,7 @@ class ExactDN {
 		$image_url = trim( $image_url );
 
 		if ( is_null( $scheme ) ) {
-			$site_url = get_home_url();
-			$scheme   = 'http';
-			if ( strpos( $site_url, 'https://' ) !== false ) {
-				$scheme = 'https';
-			}
+			$scheme = $this->scheme;
 		}
 
 		/**
