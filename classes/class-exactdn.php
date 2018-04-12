@@ -144,6 +144,11 @@ class ExactDN {
 			add_filter( 'script_loader_src', array( $this, 'parse_enqueue' ) );
 		}
 
+		// Configure Autoptimize with our CDN domain.
+		if ( defined( 'AUTOPTIMIZE_PLUGIN_DIR' ) && ! ewww_image_optimizer_get_option( 'autoptimize_cdn_url' ) ) {
+			ewww_image_optimizer_set_option( 'autoptimize_cdn_url', '//' . $this->exactdn_domain );
+		}
+
 		// Find the "local" domain.
 		$upload_dir          = wp_upload_dir( null, false );
 		$this->upload_domain = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : $this->parse_url( $upload_dir['baseurl'], PHP_URL_HOST );
@@ -1655,7 +1660,7 @@ class ExactDN {
 			$parsed_url['query'] = apply_filters( 'exactdn_version_string', EWWW_IMAGE_OPTIMIZER_VERSION );
 		}
 
-		$exactdn_url = $this->scheme . '://' . $this->exactdn_domain . '/' . ltrim( $parsed_url['path'], '/' ) . '?' . $parsed_url['query'];
+		$exactdn_url = '//' . $this->exactdn_domain . '/' . ltrim( $parsed_url['path'], '/' ) . '?' . $parsed_url['query'];
 		ewwwio_debug_message( "exactdn css/script url: $exactdn_url" );
 		return $exactdn_url;
 	}

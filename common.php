@@ -194,6 +194,11 @@ if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 	 * ExactDN class for parsing image urls and rewriting them.
 	 */
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-exactdn.php' );
+} else {
+	// Un-configure Autoptimize CDN domain.
+	if ( defined( 'AUTOPTIMIZE_PLUGIN_DIR' ) && strpos( ewww_image_optimizer_get_option( 'autoptimize_cdn_url' ), 'exactdn' ) ) {
+		ewww_image_optimizer_set_option( 'autoptimize_cdn_url', '' );
+	}
 }
 // If Alt WebP Rewriting is enabled.
 if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ) {
@@ -2381,6 +2386,10 @@ function ewww_image_optimizer_network_deactivate( $network_wide ) {
 	global $wpdb;
 	wp_clear_scheduled_hook( 'ewww_image_optimizer_auto' );
 	wp_clear_scheduled_hook( 'ewww_image_optimizer_defer' );
+	// Un-configure Autoptimize CDN domain.
+	if ( defined( 'AUTOPTIMIZE_PLUGIN_DIR' ) && strpos( ewww_image_optimizer_get_option( 'autoptimize_cdn_url' ), 'exactdn' ) ) {
+		ewww_image_optimizer_set_option( 'autoptimize_cdn_url', '' );
+	}
 	if ( $network_wide ) {
 		$blogs = $wpdb->get_results( $wpdb->prepare( "SELECT blog_id FROM $wpdb->blogs WHERE site_id = %d", $wpdb->siteid ), ARRAY_A );
 		if ( ewww_image_optimizer_iterable( $blogs ) ) {
@@ -2388,6 +2397,10 @@ function ewww_image_optimizer_network_deactivate( $network_wide ) {
 				switch_to_blog( $blog['blog_id'] );
 				wp_clear_scheduled_hook( 'ewww_image_optimizer_auto' );
 				wp_clear_scheduled_hook( 'ewww_image_optimizer_defer' );
+				// Un-configure Autoptimize CDN domain.
+				if ( defined( 'AUTOPTIMIZE_PLUGIN_DIR' ) && strpos( get_option( 'autoptimize_cdn_url' ), 'exactdn' ) ) {
+					update_option( 'autoptimize_cdn_url', '' );
+				}
 				restore_current_blog();
 			}
 		}
