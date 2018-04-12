@@ -577,7 +577,24 @@ class ExactDN {
 							if ( is_object( $attachment ) && ! is_wp_error( $attachment ) && 'attachment' == $attachment->post_type ) {
 								$src_per_wp = wp_get_attachment_image_src( $attachment_id, 'full' );
 
-								if ( $this->validate_image_url( $src_per_wp[0] ) ) {
+								if ( $src_per_wp && is_array( $src_per_wp ) ) {
+									ewwwio_debug_message( "src retrieved from db: {$src_per_wp[0]}, checking for match" );
+									$fullsize_url_path = $this->parse_url( $src_per_wp[0], PHP_URL_PATH );
+									if ( is_null( $fullsize_url_path ) ) {
+										$src_per_wp = false;
+									} elseif ( $fullsize_url_path ) {
+										$fullsize_url_basename = pathinfo( $fullsize_url_path, PATHINFO_FILENAME );
+										ewwwio_debug_message( "looking for $fullsize_url_basename in $src" );
+										if ( strpos( wp_basename( $src ), $fullsize_url_basename ) === false ) {
+											ewwwio_debug_message( 'fullsize url does not match' );
+											$src_per_wp = false;
+										}
+									} else {
+										$src_per_wp = false;
+									}
+								}
+
+								if ( $src_per_wp && $this->validate_image_url( $src_per_wp[0] ) ) {
 									ewwwio_debug_message( "detected $width filenamew $filename_width" );
 									if ( $resize_existing || ( $width && $filename_width != $width ) ) {
 										ewwwio_debug_message( 'resizing existing or width does not match' );
@@ -631,7 +648,7 @@ class ExactDN {
 					}
 
 					// Detect if image source is for a custom-cropped thumbnail and prevent further URL manipulation.
-					if ( ! $fullsize_url && preg_match_all( '#-e[a-z0-9]+(-\d+x\d+)?\.(' . implode( '|', $this->extensions ) . '){1}$#i', basename( $src ), $filename ) ) {
+					if ( ! $fullsize_url && preg_match_all( '#-e[a-z0-9]+(-\d+x\d+)?\.(' . implode( '|', $this->extensions ) . '){1}$#i', wp_basename( $src ), $filename ) ) {
 						$fullsize_url = true;
 					}
 
@@ -1377,7 +1394,7 @@ class ExactDN {
 	 */
 	protected function validate_image_url( $url, $exactdn_is_valid = false ) {
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-		$parsed_url = parse_url( $url );
+		$parsed_url = $this->parse_url( $url );
 		if ( ! $parsed_url ) {
 			ewwwio_debug_message( 'could not parse' );
 			return false;
@@ -1580,11 +1597,11 @@ class ExactDN {
 	 * @return string The ExactDN version of the resource, if it was local.
 	 */
 	function parse_enqueue( $url ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		if ( is_admin() ) {
 			return $url;
 		}
-		$parsed_url = parse_url( $url );
+		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$parsed_url = $this->parse_url( $url );
 
 		// Unable to parse.
 		if ( ! $parsed_url || ! is_array( $parsed_url ) || empty( $parsed_url['host'] ) || empty( $parsed_url['path'] ) ) {

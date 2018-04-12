@@ -32,11 +32,12 @@
 // TODO: can svg/use tags be exluded from all the things?
 // TODO: make the force checkbox persistent.
 // TODO: find the link between attachment ID numbers in WPML.
+// TODO: match Adaptive Images functionality with ExactDN.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '411.2' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '413.0' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -3454,6 +3455,9 @@ function ewww_image_optimizer_cloud_key_sanitize( $key ) {
 	$key = trim( $key );
 	if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
 		ewwwio_debug_message( print_r( $_REQUEST, true ) );
+	}
+	if ( empty( $key ) ) {
+		return '';
 	}
 	if ( ewww_image_optimizer_cloud_verify( false, $key ) ) {
 		add_settings_error( 'ewww_image_optimizer_cloud_key', 'ewwwio-cloud-key', esc_html__( 'Successfully validated API key, happy optimizing!', 'ewww-image-optimizer' ), 'updated' );
