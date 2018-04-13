@@ -145,9 +145,7 @@ class ExactDN {
 		}
 
 		// Configure Autoptimize with our CDN domain.
-		if ( defined( 'AUTOPTIMIZE_PLUGIN_DIR' ) && ! ewww_image_optimizer_get_option( 'autoptimize_cdn_url' ) ) {
-			ewww_image_optimizer_set_option( 'autoptimize_cdn_url', '//' . $this->exactdn_domain );
-		}
+		add_filter( 'autoptimize_filter_cssjs_multidomain', array( $this, 'autoptimize_cdn_url' ) );
 
 		// Find the "local" domain.
 		$upload_dir          = wp_upload_dir( null, false );
@@ -1874,6 +1872,19 @@ class ExactDN {
 			echo "\r\n";
 			printf( "<link rel='dns-prefetch' href='%s'>\r\n", '//' . esc_attr( $this->exactdn_domain ) );
 		}
+	}
+
+	/**
+	 * Adds the ExactDN domain to the list of 'local' domains for Autoptimize.
+	 *
+	 * @param array $domains A list of domains considered 'local' by Autoptimize.
+	 * @return array The same list, with the ExactDN domain appended.
+	 */
+	function autoptimize_cdn_url( $domains ) {
+		if ( is_array( $domains ) ) {
+			$domains[] = $this->exactdn_domain;
+		}
+		return $domains;
 	}
 }
 
