@@ -34,6 +34,8 @@
 // TODO: find the link between attachment ID numbers in WPML.
 // TODO: match Adaptive Images functionality with ExactDN.
 // TODO: add a re-test button for async mode.
+// TODO: handle relative urls with ExactDN.
+// TODO: unique.php line 1190 handle exec and the array stuff better.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
