@@ -162,8 +162,12 @@ function ewww_image_optimizer_install_paths() {
 		$webp_dst     = $tool_path . 'cwebp';
 	}
 	if ( PHP_OS == 'FreeBSD' ) {
-		$arch_type = php_uname( 'm' );
-		ewwwio_debug_message( "CPU architecture: $arch_type" );
+		if ( ewww_image_optimizer_function_exists( 'php_uname' ) ) {
+			$arch_type = php_uname( 'm' );
+			ewwwio_debug_message( "CPU architecture: $arch_type" );
+		} else {
+			ewwwio_debug_message( 'CPU architecture unknown, php_uname disabled' );
+		}
 		$gifsicle_src = EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'gifsicle-fbsd';
 		$optipng_src  = EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'optipng-fbsd';
 		$jpegtran_src = EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'jpegtran-fbsd';
@@ -176,8 +180,12 @@ function ewww_image_optimizer_install_paths() {
 		$webp_dst     = $tool_path . 'cwebp';
 	}
 	if ( PHP_OS == 'Linux' ) {
-		$arch_type = php_uname( 'm' );
-		ewwwio_debug_message( "CPU architecture: $arch_type" );
+		if ( ewww_image_optimizer_function_exists( 'php_uname' ) ) {
+			$arch_type = php_uname( 'm' );
+			ewwwio_debug_message( "CPU architecture: $arch_type" );
+		} else {
+			ewwwio_debug_message( 'CPU architecture unknown, php_uname disabled' );
+		}
 		$gifsicle_src = EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'gifsicle-linux';
 		$optipng_src  = EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'optipng-linux';
 		$jpegtran_src = EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'jpegtran-linux';
@@ -2648,7 +2656,10 @@ function ewww_image_optimizer_install_pngout() {
 			if ( is_wp_error( $download_result ) ) {
 				$pngout_error = $download_result->get_error_message();
 			} else {
-				$arch_type = php_uname( 'm' );
+				$arch_type = 'i686';
+				if ( ewww_image_optimizer_function_exists( 'php_uname' ) ) {
+					$arch_type = php_uname( 'm' );
+				}
 				exec( "$tar xzf $download_result -C " . ewww_image_optimizer_escapeshellarg( EWWW_IMAGE_OPTIMIZER_BINARY_PATH ) . ' pngout-' . $latest . '-' . $os_string . '-static/' . $arch_type . '/pngout-static' );
 				if ( file_exists( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-' . $os_string . '-static/' . $arch_type . '/pngout-static' ) ) {
 					if ( ! rename( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-' . $os_string . '-static/' . $arch_type . '/pngout-static', $tool_path . 'pngout-static' ) ) {
@@ -2673,7 +2684,7 @@ function ewww_image_optimizer_install_pngout() {
 				$pngout_error = $download_result->get_error_message();
 			} else {
 				exec( "$tar xzf $download_result -C " . ewww_image_optimizer_escapeshellarg( EWWW_IMAGE_OPTIMIZER_BINARY_PATH ) . ' pngout-' . $latest . '-darwin/pngout' );
-				if ( file_exists( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-' . $os_string . '-static/' . $arch_type . '/pngout-static' ) ) {
+				if ( file_exists( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-darwin/pngout' ) ) {
 					if ( ! rename( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-darwin/pngout', $tool_path . 'pngout-static' ) ) {
 						if ( empty( $pngout_error ) ) {
 							$pngout_error = __( 'could not move pngout', 'ewww-image-optimizer' );

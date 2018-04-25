@@ -181,6 +181,8 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * changed: better compatibility between Autoptimize and ExactDN
 * fixed: CSS, JS, and other resources could be skipped by ExactDN in certain circumstances
 * fixed: Jupiter theme captcha incompatible with ExactDN
+* fixed: prevent calls to php_uname when it is disabled
+* fixed: MacOS X installer for PNGOUT
 
 = 4.1.3 =
 * fixed: infinite loop when removing invalid API key
