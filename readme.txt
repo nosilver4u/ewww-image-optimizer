@@ -180,6 +180,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 = 4.1.4 =
 * added: disable ExactDN attachment ID queries if they take too long
 * changed: better compatibility between Autoptimize and ExactDN
+* changed: .webp files removed when restoring original from API
 * fixed: CSS, JS, and other resources could be skipped by ExactDN in certain circumstances
 * fixed: Jupiter theme captcha incompatible with ExactDN
 * fixed: prevent calls to php_uname when it is disabled

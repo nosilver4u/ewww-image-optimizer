@@ -26,7 +26,6 @@
 // TODO: integrate AGR, since it's "abandoned", but possibly using gifsicle for better GIFs.
 // TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
 // TODO: on images without srscet, add 2x and 3x versions anyway.
-// TODO: check what happens to WebP images when restoring original from backups.
 // TODO: fix ExactDN failure after multisite save settings.
 // TODO: add ExactDN compat with A3 lazy.
 // TODO: can svg/use tags be exluded from all the things?
@@ -3326,6 +3325,9 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 		}
 		if ( empty( $old_type ) || $old_type == $new_type ) {
 			if ( rename( $image['path'] . '.tmp', $image['path'] ) ) {
+				if ( is_file( $image['path'] . '.webp' ) && is_writable( $image['path'] . '.webp' ) ) {
+					unlink( $image['path'] . '.webp' );
+				}
 				// Set the results to nothing.
 				$ewwwdb->query( "UPDATE $ewwwdb->ewwwio_images SET results = '', image_size = 0, updates = 0, updated=updated, level = 0 WHERE id = {$image['id']}" );
 				return true;
@@ -6332,6 +6334,12 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 	// Once we get to the EWWW IO custom column.
 	if ( 'ewww-image-optimizer' == $column_name ) {
 		$output = '';
+		if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
+			$duplicate_of = get_post_meta( $id, 'wpml_media_duplicate_of', true );
+			if ( ! empty( $duplicate_of ) ) {
+				$id = $duplicate_of;
+			}
+		}
 		if ( null == $meta ) {
 			// Retrieve the metadata.
 			$meta = wp_get_attachment_metadata( $id );
