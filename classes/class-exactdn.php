@@ -120,6 +120,8 @@ class ExactDN {
 		} else {
 			ewwwio_debug_message( 'aq_resize detected, image_downsize filter disabled' );
 		}
+		// Disable image_downsize filter during themify_make_image_size().
+		add_filter( 'themify_image_script_use_large_size', array( $this, 'disable_image_downsize' ) );
 
 		// Overrides for admin-ajax images.
 		add_filter( 'exactdn_admin_allow_image_downsize', array( $this, 'allow_admin_image_downsize' ), 10, 2 );
@@ -146,6 +148,14 @@ class ExactDN {
 
 		// Configure Autoptimize with our CDN domain.
 		add_filter( 'autoptimize_filter_cssjs_multidomain', array( $this, 'autoptimize_cdn_url' ) );
+		if ( defined( 'AUTOPTIMIZE_PLUGIN_DIR' ) ) {
+			$ao_cdn_url = ewww_image_optimizer_get_option( 'autoptimize_cdn_url' );
+			if ( empty( $ao_cdn_url ) ) {
+				ewww_image_optimizer_set_option( 'autoptimize_cdn_url', '//' . $this->exactdn_domain );
+			} elseif ( strpos( $ao_cdn_url, 'exactdn' ) && '//' . $this->exactdn_domain !== $ao_cdn_url ) {
+				ewww_image_optimizer_set_option( 'autoptimize_cdn_url', '//' . $this->exactdn_domain );
+			}
+		}
 
 		// Find the "local" domain.
 		$upload_dir          = wp_upload_dir( null, false );
@@ -850,6 +860,17 @@ class ExactDN {
 	}
 
 	/**
+	 * Disable resizing of images during image_downsize().
+	 *
+	 * @param mixed $param Could be anything, we just pass it along untouched.
+	 * @return mixed Just the same value, going back out the door.
+	 */
+	function disable_image_downsize( $param ) {
+		remove_filter( 'image_downsize', array( $this, 'filter_image_downsize' ) );
+		return $param;
+	}
+
+	/**
 	 * Filter post thumbnail image retrieval, passing images through ExactDN.
 	 *
 	 * @param array|bool   $image Defaults to false, but may be a url if another plugin/theme has already filtered the value.
@@ -1051,22 +1072,26 @@ class ExactDN {
 				if ( ! $width || ! $height ) {
 					return $image;
 				}
+				ewwwio_debug_message( "requested w$width by h$height" );
 
 				$image_meta = wp_get_attachment_metadata( $attachment_id );
 				if ( isset( $image_meta['width'], $image_meta['height'] ) ) {
-					$image_resized = image_resize_dimensions( $image_meta['width'], $image_meta['height'], $width, $height );
+					$image_resized = image_resize_dimensions( $image_meta['width'], $image_meta['height'], $width, $height, true );
 
 					if ( $image_resized ) { // This could be false when the requested image size is larger than the full-size image.
 						$width  = $image_resized[6];
 						$height = $image_resized[7];
+						ewwwio_debug_message( "using resize dims w$width by h$height" );
 					} else {
 						$width  = $image_meta['width'];
 						$height = $image_meta['height'];
+						ewwwio_debug_message( "using meta dims w$width by h$height" );
 					}
 					$has_size_meta = true;
 				}
 
 				list( $width, $height ) = image_constrain_size_for_editor( $width, $height, $size );
+				ewwwio_debug_message( "constrained to w$width by h$height" );
 
 				// Expose arguments to a filter before passing to ExactDN.
 				$exactdn_args = array(
@@ -1632,7 +1657,7 @@ class ExactDN {
 
 		// Make sure this is an allowed image domain/hostname for ExactDN on this site.
 		if ( ! $this->allow_image_domain( $parsed_url['host'] ) ) {
-			ewwwio_debug_message( 'invalid host for ExactDN' );
+			ewwwio_debug_message( "invalid host for ExactDN: {$parsed_url['host']}" );
 			return $url;
 		}
 
