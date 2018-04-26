@@ -867,7 +867,15 @@ class ExactDN {
 	 */
 	function disable_image_downsize( $param = false ) {
 		remove_filter( 'image_downsize', array( $this, 'filter_image_downsize' ) );
+		add_action( 'themify_after_post_image', array( $this, 'enable_image_downsize' ) );
 		return $param;
+	}
+
+	/**
+	 * Re-enable resizing of images during image_downsize().
+	 */
+	function enable_image_downsize() {
+		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), 10, 3 );
 	}
 
 	/**
@@ -930,7 +938,6 @@ class ExactDN {
 			return $image;
 		}
 
-		ewwwio_debug_message( print_r( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ), true ) );
 		// Get the image URL and proceed with ExactDN replacement if successful.
 		$image_url = wp_get_attachment_url( $attachment_id );
 		ewwwio_debug_message( $image_url );
