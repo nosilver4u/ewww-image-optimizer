@@ -120,8 +120,8 @@ class ExactDN {
 		} else {
 			ewwwio_debug_message( 'aq_resize detected, image_downsize filter disabled' );
 		}
-		// Disable image_downsize filter during themify_make_image_size().
-		add_filter( 'themify_image_script_use_large_size', array( $this, 'disable_image_downsize' ) );
+		// Disable image_downsize filter during themify_get_image().
+		add_action( 'themify_before_post_image', array( $this, 'disable_image_downsize' ) );
 
 		// Overrides for admin-ajax images.
 		add_filter( 'exactdn_admin_allow_image_downsize', array( $this, 'allow_admin_image_downsize' ), 10, 2 );
@@ -862,10 +862,10 @@ class ExactDN {
 	/**
 	 * Disable resizing of images during image_downsize().
 	 *
-	 * @param mixed $param Could be anything, we just pass it along untouched.
+	 * @param mixed $param Could be anything (or nothing), we just pass it along untouched.
 	 * @return mixed Just the same value, going back out the door.
 	 */
-	function disable_image_downsize( $param ) {
+	function disable_image_downsize( $param = false ) {
 		remove_filter( 'image_downsize', array( $this, 'filter_image_downsize' ) );
 		return $param;
 	}
