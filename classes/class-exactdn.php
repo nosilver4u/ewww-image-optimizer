@@ -930,6 +930,7 @@ class ExactDN {
 			return $image;
 		}
 
+		ewwwio_debug_message( print_r( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ), true ) );
 		// Get the image URL and proceed with ExactDN replacement if successful.
 		$image_url = wp_get_attachment_url( $attachment_id );
 		ewwwio_debug_message( $image_url );
