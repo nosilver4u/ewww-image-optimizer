@@ -178,6 +178,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.1.4 =
+* added: disable ExactDN attachment ID queries if they take too long
 * changed: better compatibility between Autoptimize and ExactDN
 * fixed: CSS, JS, and other resources could be skipped by ExactDN in certain circumstances
 * fixed: Jupiter theme captcha incompatible with ExactDN
@@ -185,6 +186,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: MacOS X installer for PNGOUT
 * fixed: prevent notices due to empty output from exec()
 * fixed: ExactDN fails to crop when image_downsize() is called with explicit dimensions
+* fixed: ExactDN breaks image resizing with Themify themes
 
 = 4.1.3 =
 * fixed: infinite loop when removing invalid API key
