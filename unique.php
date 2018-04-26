@@ -1107,64 +1107,6 @@ function ewww_image_optimizer_mimetype( $path, $case ) {
 		}
 	}
 	return false;
-	if ( function_exists( 'finfo_file' ) && defined( 'FILEINFO_MIME' ) ) {
-		// Create a finfo resource.
-		$finfo = finfo_open( FILEINFO_MIME );
-		// Retrieve the mimetype.
-		$type = explode( ';', finfo_file( $finfo, $path ) );
-		$type = $type[0];
-		finfo_close( $finfo );
-		ewwwio_debug_message( "finfo_file: $type" );
-	}
-	// See if we can use the getimagesize function.
-	if ( empty( $type ) && function_exists( 'getimagesize' ) && 'i' === $case && strpos( ewww_image_optimizer_quick_mimetype( $path ), 'pdf' ) === false ) {
-		// Run getimagesize on the file.
-		$type = getimagesize( $path );
-		// Make sure we have results.
-		if ( false !== $type ) {
-			// Store the mime-type.
-			$type = $type['mime'];
-		}
-		ewwwio_debug_message( "getimagesize: $type" );
-	}
-	// See if we can use mime_content_type.
-	if ( empty( $type ) && function_exists( 'mime_content_type' ) ) {
-		// Retrieve and store the mime-type.
-		$type = mime_content_type( $path );
-		ewwwio_debug_message( "mime_content_type: $type" );
-	}
-	// If nothing else has worked, try the 'file' command.
-	if ( ( empty( $type ) || 'application/x-executable' != $type ) && 'b' === $case ) {
-		// Find the 'file' command.
-		$file = ewww_image_optimizer_find_nix_binary( 'file', 'f' );
-		if ( $file ) {
-			// Run 'file' on the file in question.
-			exec( "$file $path", $filetype );
-			ewwwio_debug_message( "file command: {$filetype[0]}" );
-			// If we've found a proper binary.
-			if ( ( strpos( $filetype[0], 'ELF' ) && strpos( $filetype[0], 'executable' ) )
-				|| false !== strpos( $filetype[0], 'Mach-O universal binary' )
-				|| false !== strpos( $filetype[0], 'Mach-O fat file with' )
-				|| false !== strpos( $filetype[0], 'Mach-O 64-bit x86_64 executable' )
-			) {
-				$type = 'application/x-executable';
-			}
-		}
-	}
-	// If we are dealing with a binary, and found an executable.
-	if ( 'b' === $case && preg_match( '/executable|octet-stream|dosexec|x-mach-binary/', $type ) ) {
-		ewwwio_memory( __FUNCTION__ );
-		return $type;
-		// Otherwise, if we are dealing with an image.
-	} elseif ( 'i' === $case ) {
-		ewwwio_memory( __FUNCTION__ );
-		return $type;
-		// If all else fails, bail.
-	} else {
-		ewwwio_debug_message( 'no mime functions or not a binary' );
-		ewwwio_memory( __FUNCTION__ );
-		return false;
-	}
 }
 
 /**
@@ -1192,8 +1134,11 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 	switch ( $tool ) {
 		case 'j': // jpegtran.
 			exec( $path . ' -v ' . EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'sample.jpg 2>&1', $jpegtran_version );
-			if ( ! empty( $jpegtran_version ) ) {
+			if ( ewww_image_optimizer_iterable( $jpegtran_version ) ) {
 				ewwwio_debug_message( "$path: {$jpegtran_version[0]}" );
+			} else {
+				ewwwio_debug_message( "$path: invalid output" );
+				break;
 			}
 			foreach ( $jpegtran_version as $jout ) {
 				if ( preg_match( '/Independent JPEG Group/', $jout ) ) {
@@ -1218,8 +1163,11 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			break;
 		case 'o': // optipng.
 			exec( $path . ' -v 2>&1', $optipng_version );
-			if ( ! empty( $optipng_version ) ) {
+			if ( ewww_image_optimizer_iterable( $optipng_version ) ) {
 				ewwwio_debug_message( "$path: {$optipng_version[0]}" );
+			} else {
+				ewwwio_debug_message( "$path: invalid output" );
+				break;
 			}
 			if ( ! empty( $optipng_version ) && strpos( $optipng_version[0], 'OptiPNG' ) === 0 ) {
 				ewwwio_debug_message( 'optimizer found' );
@@ -1242,8 +1190,11 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			break;
 		case 'g': // gifsicle.
 			exec( $path . ' --version 2>&1', $gifsicle_version );
-			if ( ! empty( $gifsicle_version ) ) {
+			if ( ewww_image_optimizer_iterable( $gifsicle_version ) ) {
 				ewwwio_debug_message( "$path: {$gifsicle_version[0]}" );
+			} else {
+				ewwwio_debug_message( "$path: invalid output" );
+				break;
 			}
 			if ( ! empty( $gifsicle_version ) && strpos( $gifsicle_version[0], 'LCDF Gifsicle' ) === 0 ) {
 				ewwwio_debug_message( 'optimizer found' );
@@ -1266,8 +1217,11 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			break;
 		case 'p': // pngout.
 			exec( "$path 2>&1", $pngout_version );
-			if ( ! empty( $pngout_version ) ) {
+			if ( ewww_image_optimizer_iterable( $pngout_version ) ) {
 				ewwwio_debug_message( "$path: {$pngout_version[0]}" );
+			} else {
+				ewwwio_debug_message( "$path: invalid output" );
+				break;
 			}
 			if ( ! empty( $pngout_version ) && strpos( $pngout_version[0], 'PNGOUT' ) === 0 ) {
 				ewwwio_debug_message( 'optimizer found' );
@@ -1290,8 +1244,11 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			break;
 		case 'q': // pngquant.
 			exec( $path . ' -V 2>&1', $pngquant_version );
-			if ( ! empty( $pngquant_version ) ) {
+			if ( ewww_image_optimizer_iterable( $pngquant_version ) ) {
 				ewwwio_debug_message( "$path: {$pngquant_version[0]}" );
+			} else {
+				ewwwio_debug_message( "$path: invalid output" );
+				break;
 			}
 			if ( ! empty( $pngquant_version ) && substr( $pngquant_version[0], 0, 3 ) >= 2.0 ) {
 				ewwwio_debug_message( 'optimizer found' );
@@ -1314,8 +1271,11 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			break;
 		case 'i': // ImageMagick.
 			exec( "$path -version 2>&1", $convert_version );
-			if ( ! empty( $convert_version ) ) {
+			if ( ewww_image_optimizer_iterable( $convert_version ) ) {
 				ewwwio_debug_message( "$path: {$convert_version[0]}" );
+			} else {
+				ewwwio_debug_message( "$path: invalid output" );
+				break;
 			}
 			if ( ! empty( $convert_version ) && strpos( $convert_version[0], 'ImageMagick' ) ) {
 				ewwwio_debug_message( 'imagemagick found' );
@@ -1324,8 +1284,11 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			break;
 		case 'f': // file.
 			exec( "$path -v 2>&1", $file_version );
-			if ( ! empty( $file_version[1] ) ) {
+			if ( ewww_image_optimizer_iterable( $file_version ) ) {
 				ewwwio_debug_message( "$path: {$file_version[1]}" );
+			} else {
+				ewwwio_debug_message( "$path: invalid output" );
+				break;
 			}
 			if ( ! empty( $file_version[1] ) && preg_match( '/magic/', $file_version[1] ) ) {
 				ewwwio_debug_message( 'file binary found' );
@@ -1337,8 +1300,11 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			break;
 		case 'n': // nice.
 			exec( "$path 2>&1", $nice_output );
-			if ( is_array( $nice_output ) && isset( $nice_output[0] ) ) {
+			if ( ewww_image_optimizer_iterable( $nice_output ) && isset( $nice_output[0] ) ) {
 				ewwwio_debug_message( "$path: {$nice_output[0]}" );
+			} else {
+				ewwwio_debug_message( "$path: invalid output" );
+				break;
 			}
 			if ( is_array( $nice_output ) && isset( $nice_output[0] ) && preg_match( '/usage/', $nice_output[0] ) ) {
 				ewwwio_debug_message( 'nice found' );
@@ -1350,8 +1316,11 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			break;
 		case 't': // tar.
 			exec( "$path --version 2>&1", $tar_version );
-			if ( ! empty( $tar_version[0] ) ) {
+			if ( ewww_image_optimizer_iterable( $tar_version ) ) {
 				ewwwio_debug_message( "$path: {$tar_version[0]}" );
+			} else {
+				ewwwio_debug_message( "$path: invalid output" );
+				break;
 			}
 			if ( ! empty( $tar_version[0] ) && preg_match( '/bsdtar/', $tar_version[0] ) ) {
 				ewwwio_debug_message( 'tar found' );
@@ -1363,8 +1332,11 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			break;
 		case 'w': // cwebp.
 			exec( "$path -version 2>&1", $webp_version );
-			if ( ! empty( $webp_version ) ) {
+			if ( ewww_image_optimizer_iterable( $webp_version ) ) {
 				ewwwio_debug_message( "$path: {$webp_version[0]}" );
+			} else {
+				ewwwio_debug_message( "$path: invalid output" );
+				break;
 			}
 			if ( ! empty( $webp_version ) && preg_match( '/0.\d.\d/', $webp_version[0] ) ) {
 				ewwwio_debug_message( 'optimizer found' );

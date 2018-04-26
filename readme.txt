@@ -183,6 +183,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: Jupiter theme captcha incompatible with ExactDN
 * fixed: prevent calls to php_uname when it is disabled
 * fixed: MacOS X installer for PNGOUT
+* fixed: prevent notices due to empty output from exec()
 
 = 4.1.3 =
 * fixed: infinite loop when removing invalid API key
