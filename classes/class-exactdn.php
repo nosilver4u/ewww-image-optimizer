@@ -546,6 +546,11 @@ class ExactDN {
 					$placeholder_src_orig = $src;
 					$src                  = $lazy_load_src[1];
 					$src_orig             = $lazy_load_src[1];
+				} elseif ( strpos( $images['img_tag'][ $index ], 'a3-lazy-load/assets/images/lazy_placeholder' ) && preg_match( '#data-src=["|\'](.+?)["|\']#i', $images['img_tag'][ $index ], $lazy_load_src ) ) {
+					$placeholder_src      = $src;
+					$placeholder_src_orig = $src;
+					$src                  = $lazy_load_src[1];
+					$src_orig             = $lazy_load_src[1];
 				}
 
 				// Check if image URL should be used with ExactDN.

@@ -177,8 +177,9 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
-= 4.1.4 =
+= 4.2.0 =
 * added: disable ExactDN attachment ID queries if they take too long
+* added: ExactDN compatibility with a3 Lazy Load
 * changed: better compatibility between Autoptimize and ExactDN
 * changed: .webp files removed when restoring original from API
 * fixed: CSS, JS, and other resources could be skipped by ExactDN in certain circumstances
@@ -188,6 +189,8 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: prevent notices due to empty output from exec()
 * fixed: ExactDN fails to crop when image_downsize() is called with explicit dimensions
 * fixed: ExactDN breaks image resizing with Themify themes
+* fixed: WPML media duplicates not recognized as optimized
+* removed: PHP 5.3 no longer supported
 
 = 4.1.3 =
 * fixed: infinite loop when removing invalid API key
