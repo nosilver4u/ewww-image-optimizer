@@ -455,11 +455,6 @@ function ewww_image_optimizer_define_noexec() {
 		define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
 		ewwwio_debug_message( 'exec seems to be disabled' );
 		ewww_image_optimizer_disable_tools();
-		// Otherwise, query the php settings for safe mode.
-	} elseif ( ewww_image_optimizer_safemode_check() ) {
-		define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
-		ewwwio_debug_message( 'safe mode appears to be enabled' );
-		ewww_image_optimizer_disable_tools();
 	} else {
 		define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', false );
 	}
@@ -483,18 +478,6 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 			define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
 		}
 		ewwwio_debug_message( 'exec seems to be disabled' );
-		ewww_image_optimizer_disable_tools();
-		return;
-		// Otherwise, query the php settings for safe mode.
-	} elseif ( ewww_image_optimizer_safemode_check() ) {
-		if ( 'quiet' !== $quiet ) {
-			// Display a warning to the user.
-			echo "<div id='ewww-image-optimizer-warning-safemode' class='error'><p>" . esc_html__( 'Safe Mode is turned on for PHP. This plugin cannot operate in Safe Mode unless you have an API key.', 'ewww-image-optimizer' ) . '</p></div>';
-		}
-		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
-			define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
-		}
-		ewwwio_debug_message( 'safe mode appears to be enabled' );
 		ewww_image_optimizer_disable_tools();
 		return;
 	} else {
@@ -609,26 +592,6 @@ function ewww_image_optimizer_exec_check() {
 		return true;
 	}
 	return false;
-}
-
-/**
- * Checks if safe mode is on.
- *
- * @return bool True if safe mode is enabled.
- */
-function ewww_image_optimizer_safemode_check() {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	$safe_mode = ini_get( 'safe_mode' );
-	ewwwio_debug_message( "safe_mode = $safe_mode" );
-	switch ( strtolower( $safe_mode ) ) {
-		case 'off':
-			return false;
-		case 'on':
-		case true:
-			return true;
-		default:
-			return false;
-	}
 }
 
 /**

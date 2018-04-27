@@ -225,10 +225,10 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 }
 
 /**
- * Display a notice that PHP version 5.3 support is going away.
+ * Display a notice that PHP version 5.4 support is going away.
  */
-function ewww_image_optimizer_php53_warning() {
-	echo '<div id="ewww-image-optimizer-notice-php53" class="notice notice-info is-dismissible"><p><a href="https://docs.ewww.io/article/55-upgrading-php" target="_blank" data-beacon-article="5ab2baa6042863478ea7c2ae">' . esc_html__( 'The next major release of EWWW Image Optimizer will require PHP 5.4 or greater. Newer versions of PHP, like 5.6, 7.0 and 7.1, are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</a></p></div>';
+function ewww_image_optimizer_php54_warning() {
+	echo '<div id="ewww-image-optimizer-notice-php54" class="notice notice-info is-dismissible"><p><a href="https://docs.ewww.io/article/55-upgrading-php" target="_blank" data-beacon-article="5ab2baa6042863478ea7c2ae">' . esc_html__( 'The next major release of EWWW Image Optimizer will require PHP 5.5 or greater. Newer versions of PHP, like 5.6, 7.0 and 7.1, are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</a></p></div>';
 }
 
 /**
@@ -1076,9 +1076,6 @@ if ( ! function_exists( 'boolval' ) ) {
  */
 function ewww_image_optimizer_stl_check() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( ewww_image_optimizer_safemode_check() ) {
-		return false;
-	}
 	if ( defined( 'EWWW_IMAGE_OPTIMIZER_DISABLE_STL' ) && EWWW_IMAGE_OPTIMIZER_DISABLE_STL ) {
 		ewwwio_debug_message( 'stl disabled by user' );
 		return false;
@@ -1421,9 +1418,10 @@ function ewww_image_optimizer_admin_init() {
 		}
 	}
 	ewww_image_optimizer_ajax_compat_check();
-	if ( defined( 'PHP_VERSION_ID' ) && PHP_VERSION_ID < 50400 ) {
-		add_action( 'network_admin_notices', 'ewww_image_optimizer_php53_warning' );
-		add_action( 'admin_notices', 'ewww_image_optimizer_php53_warning' );
+	// Remove the false when the next bump is coming.
+	if ( false && defined( 'PHP_VERSION_ID' ) && PHP_VERSION_ID < 50500 ) {
+		add_action( 'network_admin_notices', 'ewww_image_optimizer_php54_warning' );
+		add_action( 'admin_notices', 'ewww_image_optimizer_php54_warning' );
 	}
 	ewwwio_memory( __FUNCTION__ );
 }
@@ -7625,12 +7623,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		}
 	}
 	if ( ! ewww_image_optimizer_full_cloud() ) {
-		if ( ewww_image_optimizer_safemode_check() ) {
-			$status_output .= 'safe mode: <span style="color: red; font-weight: bolder">' . esc_html__( 'On', 'ewww-image-optimizer' ) . '</span>&emsp;&emsp;';
-			$collapsible    = false;
-		} else {
-			$status_output .= 'safe mode: <span style="color: green; font-weight: bolder">' . esc_html__( 'Off', 'ewww-image-optimizer' ) . '</span>&emsp;&emsp;';
-		}
 		if ( ewww_image_optimizer_exec_check() ) {
 			$status_output .= 'exec(): <span style="color: red; font-weight: bolder">' . esc_html__( 'Disabled', 'ewww-image-optimizer' ) . '</span>&emsp;&emsp;';
 			$collapsible    = false;

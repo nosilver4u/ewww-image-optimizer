@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: image, compress, optimize, optimization, lossless, lossy, seo, tinyjpg, tinypng, webp, wp-cli
 Requires at least: 4.6
 Tested up to: 4.9
-Requires PHP: 5.3
+Requires PHP: 5.4
 Stable tag: 4.1.3
 License: GPLv3
 
