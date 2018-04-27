@@ -180,6 +180,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 = 4.2.0 =
 * added: disable ExactDN attachment ID queries if they take too long
 * added: ExactDN compatibility with a3 Lazy Load
+* added: ability to re-test async/background mode if it gets disabled
 * changed: better compatibility between Autoptimize and ExactDN
 * changed: .webp files removed when restoring original from API
 * fixed: CSS, JS, and other resources could be skipped by ExactDN in certain circumstances
