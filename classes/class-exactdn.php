@@ -170,6 +170,7 @@ class ExactDN {
 				$this->allowed_domains[] = $nonwww;
 			}
 		}
+		$this->allowed_domains = apply_filters( 'exactdn_allowed_domains', $this->allowed_domains );
 	}
 
 	/**
@@ -823,12 +824,12 @@ class ExactDN {
 		if ( $this->filtering_the_page && ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ) {
 			ewwwio_debug_message( 'rewriting all other wp_content urls' );
 			if ( $this->exactdn_domain && $this->upload_domain ) {
-				$escaped_upload_domain = str_replace( '.', '\.', $this->upload_domain );
+				$escaped_upload_domain = str_replace( '.', '\.', ltrim( $this->upload_domain, 'w.' ) );
 				ewwwio_debug_message( $escaped_upload_domain );
 				// Pre-empt rewriting of wp-includes and wp-content if the extension is php/ashx by using a temporary placeholder.
-				$content = preg_replace( '#(https?)://' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)\.(php|ashx)#i', '$1://' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
+				$content = preg_replace( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)\.(php|ashx)#i', '$1://' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
 				$content = str_replace( 'wp-content/themes/jupiter"', '?wpcontent-bypass?/themes/jupiter"', $content );
-				$content = preg_replace( '#(https?)://' . $escaped_upload_domain . '/([^"\'?>]+?)?wp-(includes|content)#i', '$1://' . $this->exactdn_domain . '/$2wp-$3', $content );
+				$content = preg_replace( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?wp-(includes|content)#i', '$1://' . $this->exactdn_domain . '/$2wp-$3', $content );
 				$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );
 			}
 		}
