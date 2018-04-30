@@ -62,6 +62,14 @@ class ExactDN {
 	public $allowed_domains = array();
 
 	/**
+	 * Indicates if full verification was achieved.
+	 *
+	 * @access public
+	 * @var bool $fully_verified
+	 */
+	public $fully_verified = false;
+
+	/**
 	 * The ExactDN domain/zone.
 	 *
 	 * @access private
@@ -210,7 +218,7 @@ class ExactDN {
 			$failures++;
 			ewwwio_debug_message( "could not verify existing exactDN domain, failures: $failures" );
 			update_option( 'ewww_image_optimizer_exactdn_failures', $failures );
-			$this->set_exactdn_checkin( time() + 3600 );
+			$this->set_exactdn_checkin( time() + 600 );
 			return false;
 		}
 		delete_option( 'ewww_image_optimizer_exactdn_domain' );
@@ -267,6 +275,28 @@ class ExactDN {
 			ewwwio_debug_message( 'not time yet' );
 			return true;
 		}
+
+		// Real world test with a known image file.
+		$test_url     = plugins_url( '/images/testorig.jpg', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
+		$local_domain = $this->parse_url( $test_url, PHP_URL_HOST );
+		$test_url     = str_replace( $local_domain, $domain, $test_url );
+		ewwwio_debug_message( "test url is $test_url" );
+		$test_result = wp_remote_get( $test_url );
+		if ( is_wp_error( $test_result ) ) {
+			$error_message = $test_result->get_error_message();
+			ewwwio_debug_message( "exactdn verification request failed: $error_message" );
+			return false;
+		} elseif ( ! empty( $test_result['body'] ) && strlen( $test_result['body'] ) > 300 ) {
+			if ( 'ffd8ff' === bin2hex( substr( $test_result['body'], 0, 3 ) ) ) {
+				ewwwio_debug_message( 'exactdn (real-world) verification succeeded' );
+				$this->set_exactdn_checkin( time() + 3600 );
+				return true;
+			}
+			ewwwio_debug_message( 'mime check failed' . bin2hex( substr( $test_result['body'], 0, 3 ) ) );
+		}
+		return false;
+
+		// Secondary test against the API db.
 		$url = 'http://optimize.exactlywww.com/exactdn/verify.php';
 		$ssl = wp_http_supports( array( 'ssl' ) );
 		if ( $ssl ) {
@@ -285,6 +315,7 @@ class ExactDN {
 		} elseif ( ! empty( $result['body'] ) && strpos( $result['body'], 'error' ) === false ) {
 			$response = json_decode( $result['body'], true );
 			if ( ! empty( $response['success'] ) ) {
+				ewwwio_debug_message( 'exactdn (secondary) verification succeeded' );
 				$this->set_exactdn_checkin( time() + 86400 );
 				return true;
 			}
