@@ -190,6 +190,8 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: prevent notices due to empty output from exec()
 * fixed: ExactDN fails to crop when image_downsize() is called with explicit dimensions
 * fixed: ExactDN breaks image resizing with Themify themes
+* fixed: multi-site settings throws error during submission when ExactDN is active
+* fixed: single-site override option displayed when plugin activated per-site
 * fixed: WPML media duplicates not recognized as optimized
 * removed: PHP 5.3 no longer supported
 

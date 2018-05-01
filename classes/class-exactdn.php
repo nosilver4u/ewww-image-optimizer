@@ -62,14 +62,6 @@ class ExactDN {
 	public $allowed_domains = array();
 
 	/**
-	 * Indicates if full verification was achieved.
-	 *
-	 * @access public
-	 * @var bool $fully_verified
-	 */
-	public $fully_verified = false;
-
-	/**
 	 * The ExactDN domain/zone.
 	 *
 	 * @access private
@@ -213,16 +205,23 @@ class ExactDN {
 			$this->exactdn_domain = $exactdn_domain;
 			ewwwio_debug_message( 'exactdn_domain: ' . $exactdn_domain );
 			return true;
-		} elseif ( get_option( 'ewww_image_optimizer_exactdn_failures' ) < 5 ) {
+		} elseif ( $this->get_exactdn_option( 'checkin' ) < time() - 5 && get_option( 'ewww_image_optimizer_exactdn_failures' ) < 10 ) {
 			$failures = (int) get_option( 'ewww_image_optimizer_exactdn_failures' );
 			$failures++;
 			ewwwio_debug_message( "could not verify existing exactDN domain, failures: $failures" );
 			update_option( 'ewww_image_optimizer_exactdn_failures', $failures );
-			$this->set_exactdn_checkin( time() + 600 );
+			$this->set_exactdn_option( 'checkin', time() + 300 );
+			return false;
+		} elseif ( get_option( 'ewww_image_optimizer_exactdn_failures' ) < 10 ) {
+			$failures = (int) get_option( 'ewww_image_optimizer_exactdn_failures' );
+			ewwwio_debug_message( 'could not verify existing exactDN domain, waiting for ' . human_time_diff( $this->get_exactdn_option( 'checkin' ) ) );
+			ewwwio_debug_message( 10 - $failures . ' attempts remaining' );
 			return false;
 		}
 		delete_option( 'ewww_image_optimizer_exactdn_domain' );
+		delete_option( 'ewww_image_optimizer_exactdn_verified' );
 		delete_site_option( 'ewww_image_optimizer_exactdn_domain' );
+		delete_site_option( 'ewww_image_optimizer_exactdn_verified' );
 		return false;
 	}
 
@@ -268,11 +267,17 @@ class ExactDN {
 	 * @return bool Whether the domain is still valid.
 	 */
 	function verify_domain( $domain ) {
+		if ( empty( $domain ) ) {
+			return false;
+		}
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		// Check the time, to see how long it has been since we verified the domain.
-		$last_checkin = $this->get_exactdn_checkin();
+		$last_checkin = $this->get_exactdn_option( 'checkin' );
 		if ( ! empty( $last_checkin ) && $last_checkin > time() ) {
-			ewwwio_debug_message( 'not time yet' );
+			ewwwio_debug_message( 'not time yet: ' . human_time_diff( $this->get_exactdn_option( 'checkin' ) ) );
+			if ( $this->get_exactdn_option( 'suspended' ) ) {
+				return false;
+			}
 			return true;
 		}
 
@@ -285,15 +290,19 @@ class ExactDN {
 		if ( is_wp_error( $test_result ) ) {
 			$error_message = $test_result->get_error_message();
 			ewwwio_debug_message( "exactdn verification request failed: $error_message" );
+			$this->set_exactdn_option( 'suspended', 1 );
 			return false;
 		} elseif ( ! empty( $test_result['body'] ) && strlen( $test_result['body'] ) > 300 ) {
 			if ( 'ffd8ff' === bin2hex( substr( $test_result['body'], 0, 3 ) ) ) {
 				ewwwio_debug_message( 'exactdn (real-world) verification succeeded' );
-				$this->set_exactdn_checkin( time() + 3600 );
+				$this->set_exactdn_option( 'checkin', time() + 3600 );
+				$this->set_exactdn_option( 'verified', 1 );
+				$this->set_exactdn_option( 'suspended', 0 );
 				return true;
 			}
 			ewwwio_debug_message( 'mime check failed' . bin2hex( substr( $test_result['body'], 0, 3 ) ) );
 		}
+		$this->set_exactdn_option( 'suspended', 1 );
 		return false;
 
 		// Secondary test against the API db.
@@ -316,7 +325,7 @@ class ExactDN {
 			$response = json_decode( $result['body'], true );
 			if ( ! empty( $response['success'] ) ) {
 				ewwwio_debug_message( 'exactdn (secondary) verification succeeded' );
-				$this->set_exactdn_checkin( time() + 86400 );
+				$this->set_exactdn_option( 'checkin', time() + 86400 );
 				return true;
 			}
 		} elseif ( ! empty( $result['body'] ) ) {
@@ -356,7 +365,6 @@ class ExactDN {
 	 * @return string The ExactDN domain name for this site or network.
 	 */
 	function get_exactdn_domain() {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		if ( defined( 'EXACTDN_DOMAIN' ) && EXACTDN_DOMAIN ) {
 			return $this->sanitize_domain( EXACTDN_DOMAIN );
 		}
@@ -369,21 +377,20 @@ class ExactDN {
 	}
 
 	/**
-	 * Get the ExactDN last check-in time.
+	 * Get the ExactDN option.
 	 *
-	 * @return int The last time we verified the ExactDN domain.
+	 * @return int The numerical value of the option.
 	 */
-	function get_exactdn_checkin() {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	function get_exactdn_option( $option_name ) {
 		if ( defined( 'EXACTDN_DOMAIN' ) && EXACTDN_DOMAIN ) {
-			return (int) get_option( 'ewww_image_optimizer_exactdn_validation' );
+			return (int) get_option( 'ewww_image_optimizer_exactdn_' . $option_name );
 		}
 		if ( is_multisite() ) {
 			if ( ! SUBDOMAIN_INSTALL ) {
-				return (int) get_site_option( 'ewww_image_optimizer_exactdn_validation' );
+				return (int) get_site_option( 'ewww_image_optimizer_exactdn_' . $option_name );
 			}
 		}
-		return (int) get_option( 'ewww_image_optimizer_exactdn_validation' );
+		return (int) get_option( 'ewww_image_optimizer_exactdn_' . $option_name );
 	}
 
 	/**
@@ -411,21 +418,22 @@ class ExactDN {
 	}
 
 	/**
-	 * Set the last check-in time for ExactDN.
+	 * Set an option for ExactDN.
 	 *
-	 * @param int $time The last time we verified the ExactDN domain.
+	 * @param string $option_name The name of the ExactDN option.
+	 * @param int    $option_value The value to set for the ExactDN option.
 	 */
-	function set_exactdn_checkin( $time ) {
+	function set_exactdn_option( $option_name, $option_value ) {
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		if ( defined( 'EXACTDN_DOMAIN' ) && EXACTDN_DOMAIN ) {
-			return update_option( 'ewww_image_optimizer_exactdn_validation', $time );
+			return update_option( 'ewww_image_optimizer_exactdn_' . $option_name, $option_value );
 		}
 		if ( is_multisite() ) {
 			if ( ! SUBDOMAIN_INSTALL ) {
-				return update_site_option( 'ewww_image_optimizer_exactdn_validation', $time );
+				return update_site_option( 'ewww_image_optimizer_exactdn_' . $option_name, $option_value );
 			}
 		}
-		return update_option( 'ewww_image_optimizer_exactdn_validation', $time );
+		return update_option( 'ewww_image_optimizer_exactdn_' . $option_name, $option_value );
 	}
 
 	/**
