@@ -379,6 +379,7 @@ class ExactDN {
 	/**
 	 * Get the ExactDN option.
 	 *
+	 * @param string $option_name The name of the ExactDN option.
 	 * @return int The numerical value of the option.
 	 */
 	function get_exactdn_option( $option_name ) {
