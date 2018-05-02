@@ -296,7 +296,7 @@ class ExactDN {
 				$this->set_exactdn_option( 'suspended', 1 );
 				return false;
 			} elseif ( ! empty( $test_result['body'] ) && strlen( $test_result['body'] ) > 300 ) {
-				if ( $test_result['response']['code'] === 200 && 'ffd8ff' === bin2hex( substr( $test_result['body'], 0, 3 ) ) ) {
+				if ( 200 === $test_result['response']['code'] && 'ffd8ff' === bin2hex( substr( $test_result['body'], 0, 3 ) ) ) {
 					ewwwio_debug_message( 'exactdn (real-world) verification succeeded' );
 					$this->set_exactdn_option( 'checkin', time() + 3600 );
 					$this->set_exactdn_option( 'verified', 1, false );

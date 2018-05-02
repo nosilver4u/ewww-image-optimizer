@@ -183,6 +183,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: ability to re-test async/background mode if it gets disabled
 * changed: better compatibility between Autoptimize and ExactDN
 * changed: .webp files removed when restoring original from API
+* changed: Force re-optimize checkbox persists up to an hour if bulk optimizer is interrupted
 * fixed: CSS, JS, and other resources could be skipped by ExactDN in certain circumstances
 * fixed: Jupiter theme captcha incompatible with ExactDN
 * fixed: prevent calls to php_uname when it is disabled

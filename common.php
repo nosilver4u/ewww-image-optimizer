@@ -27,7 +27,6 @@
 // TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
 // TODO: on images without srscet, add 2x and 3x versions anyway.
 // TODO: can svg/use tags be exluded from all the things?
-// TODO: make the force checkbox persistent.
 // TODO: find the link between attachment ID numbers in WPML.
 // TODO: match Adaptive Images functionality with ExactDN.
 // TODO: handle relative urls with ExactDN.

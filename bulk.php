@@ -108,8 +108,9 @@ function ewww_image_optimizer_bulk_head_output() {
 			</div>
 		</div>
 		<form class="ewww-bulk-form">
-			<p><label for="ewww-force" style="font-weight: bold"><?php esc_html_e( 'Force re-optimize', 'ewww-image-optimizer' ); ?></label>&emsp;<input type="checkbox" id="ewww-force" name="ewww-force">
-			&nbsp;<?php esc_html_e( 'Previously optimized images will be skipped by default, check this box before scanning to override.', 'ewww-image-optimizer' ); ?></p>
+			<p><label for="ewww-force" style="font-weight: bold"><?php esc_html_e( 'Force re-optimize', 'ewww-image-optimizer' ); ?></label>
+				&emsp;<input type="checkbox" id="ewww-force" name="ewww-force"<?php echo ( get_transient( 'ewww_image_optimizer_force_reopt' ) ) ? ' checked' : ''; ?>>
+				&nbsp;<?php esc_html_e( 'Previously optimized images will be skipped by default, check this box before scanning to override.', 'ewww-image-optimizer' ); ?></p>
 			<p><label for="ewww-delay" style="font-weight: bold"><?php esc_html_e( 'Choose how long to pause between images (in seconds, 0 = disabled)', 'ewww-image-optimizer' ); ?></label>&emsp;<input type="text" id="ewww-delay" name="ewww-delay" value="<?php echo $delay; ?>"></p>
 			<div id="ewww-delay-slider" style="width:50%"></div>
 		</form>
@@ -667,6 +668,12 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	// Retrieve the time when the scan starts.
 	$started        = microtime( true );
 	$attachment_ids = get_option( 'ewww_image_optimizer_scanning_attachments' );
+	// Make the Force Re-optimize option persistent.
+	if ( ! empty( $_REQUEST['ewww_force'] ) ) {
+		set_transient( 'ewww_image_optimizer_force_reopt', true, HOUR_IN_SECONDS );
+	} else {
+		delete_transient( 'ewww_image_optimizer_force_reopt' );
+	}
 
 	if ( ! empty( $attachment_ids ) && count( $attachment_ids ) > 300 ) {
 		ewww_image_optimizer_debug_log();
@@ -1477,6 +1484,12 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 	$started = microtime( true );
 	// Prevent the scheduled optimizer from firing during a bulk optimization.
 	set_transient( 'ewww_image_optimizer_no_scheduled_optimization', true, 10 * MINUTE_IN_SECONDS );
+	// Make the Force Re-optimize option persistent.
+	if ( ! empty( $_REQUEST['ewww_force'] ) ) {
+		set_transient( 'ewww_image_optimizer_force_reopt', true, HOUR_IN_SECONDS );
+	} else {
+		delete_transient( 'ewww_image_optimizer_force_reopt' );
+	}
 	// Find out if our nonce is on it's last leg/tick.
 	if ( ! empty( $_REQUEST['ewww_wpnonce'] ) ) {
 		$tick = wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' );
@@ -1677,6 +1690,7 @@ function ewww_image_optimizer_bulk_cleanup() {
 	update_option( 'ewww_image_optimizer_bulk_resume', '' );
 	update_option( 'ewww_image_optimizer_bulk_attachments', '', false );
 	delete_transient( 'ewww_image_optimizer_skip_aux' );
+	delete_transient( 'ewww_image_optimizer_force_reopt' );
 	// Let the user know we are done.
 	ewwwio_memory( __FUNCTION__ );
 	ewwwio_ob_clean();
