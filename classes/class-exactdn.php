@@ -281,21 +281,9 @@ class ExactDN {
 			return true;
 		}
 
-		// Prelim test with a know valid image to ensure https capability.
-		$use_real_test = false;
-		$sim_url       = 'https://optimize.exactlywww.com/exactdn/testorig.jpg';
-		$sim_result    = wp_remote_get( $sim_url );
-		if ( is_wp_error( $sim_result ) ) {
-			$error_message = $sim_result->get_error_message();
-			ewwwio_debug_message( "exactdn (simulated) verification request failed: $error_message" );
-		} elseif ( ! empty( $sim_result['body'] ) && strlen( $sim_result['body'] ) > 300 ) {
-			if ( 'ffd8ff' === bin2hex( substr( $sim_result['body'], 0, 3 ) ) ) {
-				ewwwio_debug_message( 'exactdn (simulated) verification succeeded' );
-				$use_real_test = true;
-			}
-		}
+		$this->check_verify_method();
 
-		if ( $use_real_test ) {
+		if ( $this->get_exactdn_option( 'verify_method' ) > 0 ) {
 			// Test with an image file that should be available on the ExactDN zone.
 			$test_url     = plugins_url( '/images/testorig.jpg', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
 			$local_domain = $this->parse_url( $test_url, PHP_URL_HOST );
@@ -308,10 +296,10 @@ class ExactDN {
 				$this->set_exactdn_option( 'suspended', 1 );
 				return false;
 			} elseif ( ! empty( $test_result['body'] ) && strlen( $test_result['body'] ) > 300 ) {
-				if ( 'ffd8ff' === bin2hex( substr( $test_result['body'], 0, 3 ) ) ) {
+				if ( $test_result['response']['code'] === 200 && 'ffd8ff' === bin2hex( substr( $test_result['body'], 0, 3 ) ) ) {
 					ewwwio_debug_message( 'exactdn (real-world) verification succeeded' );
 					$this->set_exactdn_option( 'checkin', time() + 3600 );
-					$this->set_exactdn_option( 'verified', 1 );
+					$this->set_exactdn_option( 'verified', 1, false );
 					$this->set_exactdn_option( 'suspended', 0 );
 					return true;
 				}
@@ -343,7 +331,7 @@ class ExactDN {
 			if ( ! empty( $response['success'] ) ) {
 				ewwwio_debug_message( 'exactdn (secondary) verification succeeded' );
 				$this->set_exactdn_option( 'checkin', time() + 3600 );
-				$this->set_exactdn_option( 'verified', 1 );
+				$this->set_exactdn_option( 'verified', 1, false );
 				$this->set_exactdn_option( 'suspended', 0 );
 				return true;
 			}
@@ -356,6 +344,30 @@ class ExactDN {
 		}
 		$this->set_exactdn_option( 'suspended', 1 );
 		return false;
+	}
+
+	/**
+	 * Run a simulation to decide which verification method to use.
+	 */
+	function check_verify_method() {
+		if ( ! $this->get_exactdn_option( 'verify_method' ) ) {
+			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+			// Prelim test with a known valid image to ensure http(s) connectivity.
+			$sim_url    = 'https://optimize.exactlywww.com/exactdn/testorig.jpg';
+			$sim_result = wp_remote_get( $sim_url );
+			if ( is_wp_error( $sim_result ) ) {
+				$error_message = $sim_result->get_error_message();
+				ewwwio_debug_message( "exactdn (simulated) verification request failed: $error_message" );
+			} elseif ( ! empty( $sim_result['body'] ) && strlen( $sim_result['body'] ) > 300 ) {
+				if ( 'ffd8ff' === bin2hex( substr( $sim_result['body'], 0, 3 ) ) ) {
+					ewwwio_debug_message( 'exactdn (simulated) verification succeeded' );
+					$this->set_exactdn_option( 'verify_method', 1, false );
+					return;
+				}
+			}
+			ewwwio_debug_message( 'exactdn (simulated) verification request failed, error unknown' );
+			$this->set_exactdn_option( 'verify_method', -1, false );
+		}
 	}
 
 	/**
@@ -444,18 +456,19 @@ class ExactDN {
 	 *
 	 * @param string $option_name The name of the ExactDN option.
 	 * @param int    $option_value The value to set for the ExactDN option.
+	 * @param bool   $autoload Optional. Whether to load the option when WordPress starts up.
 	 */
-	function set_exactdn_option( $option_name, $option_value ) {
+	function set_exactdn_option( $option_name, $option_value, $autoload = null ) {
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		if ( defined( 'EXACTDN_DOMAIN' ) && EXACTDN_DOMAIN ) {
-			return update_option( 'ewww_image_optimizer_exactdn_' . $option_name, $option_value );
+			return update_option( 'ewww_image_optimizer_exactdn_' . $option_name, $option_value, $autoload );
 		}
 		if ( is_multisite() ) {
 			if ( ! SUBDOMAIN_INSTALL ) {
 				return update_site_option( 'ewww_image_optimizer_exactdn_' . $option_name, $option_value );
 			}
 		}
-		return update_option( 'ewww_image_optimizer_exactdn_' . $option_name, $option_value );
+		return update_option( 'ewww_image_optimizer_exactdn_' . $option_name, $option_value, $autoload );
 	}
 
 	/**
