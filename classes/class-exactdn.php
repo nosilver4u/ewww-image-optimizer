@@ -281,29 +281,45 @@ class ExactDN {
 			return true;
 		}
 
-		// Real world test with a known image file.
-		$test_url     = plugins_url( '/images/testorig.jpg', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
-		$local_domain = $this->parse_url( $test_url, PHP_URL_HOST );
-		$test_url     = str_replace( $local_domain, $domain, $test_url );
-		ewwwio_debug_message( "test url is $test_url" );
-		$test_result = wp_remote_get( $test_url );
-		if ( is_wp_error( $test_result ) ) {
-			$error_message = $test_result->get_error_message();
-			ewwwio_debug_message( "exactdn verification request failed: $error_message" );
+		// Prelim test with a know valid image to ensure https capability.
+		$use_real_test = false;
+		$sim_url       = 'https://optimize.exactlywww.com/exactdn/testorig.jpg';
+		$sim_result    = wp_remote_get( $sim_url );
+		if ( is_wp_error( $sim_result ) ) {
+			$error_message = $sim_result->get_error_message();
+			ewwwio_debug_message( "exactdn (simulated) verification request failed: $error_message" );
+		} elseif ( ! empty( $sim_result['body'] ) && strlen( $sim_result['body'] ) > 300 ) {
+			if ( 'ffd8ff' === bin2hex( substr( $sim_result['body'], 0, 3 ) ) ) {
+				ewwwio_debug_message( 'exactdn (simulated) verification succeeded' );
+				$use_real_test = true;
+			}
+		}
+
+		if ( $use_real_test ) {
+			// Test with an image file that should be available on the ExactDN zone.
+			$test_url     = plugins_url( '/images/testorig.jpg', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
+			$local_domain = $this->parse_url( $test_url, PHP_URL_HOST );
+			$test_url     = str_replace( $local_domain, $domain, $test_url );
+			ewwwio_debug_message( "test url is $test_url" );
+			$test_result = wp_remote_get( $test_url );
+			if ( is_wp_error( $test_result ) ) {
+				$error_message = $test_result->get_error_message();
+				ewwwio_debug_message( "exactdn verification request failed: $error_message" );
+				$this->set_exactdn_option( 'suspended', 1 );
+				return false;
+			} elseif ( ! empty( $test_result['body'] ) && strlen( $test_result['body'] ) > 300 ) {
+				if ( 'ffd8ff' === bin2hex( substr( $test_result['body'], 0, 3 ) ) ) {
+					ewwwio_debug_message( 'exactdn (real-world) verification succeeded' );
+					$this->set_exactdn_option( 'checkin', time() + 3600 );
+					$this->set_exactdn_option( 'verified', 1 );
+					$this->set_exactdn_option( 'suspended', 0 );
+					return true;
+				}
+				ewwwio_debug_message( 'mime check failed' . bin2hex( substr( $test_result['body'], 0, 3 ) ) );
+			}
 			$this->set_exactdn_option( 'suspended', 1 );
 			return false;
-		} elseif ( ! empty( $test_result['body'] ) && strlen( $test_result['body'] ) > 300 ) {
-			if ( 'ffd8ff' === bin2hex( substr( $test_result['body'], 0, 3 ) ) ) {
-				ewwwio_debug_message( 'exactdn (real-world) verification succeeded' );
-				$this->set_exactdn_option( 'checkin', time() + 3600 );
-				$this->set_exactdn_option( 'verified', 1 );
-				$this->set_exactdn_option( 'suspended', 0 );
-				return true;
-			}
-			ewwwio_debug_message( 'mime check failed' . bin2hex( substr( $test_result['body'], 0, 3 ) ) );
 		}
-		$this->set_exactdn_option( 'suspended', 1 );
-		return false;
 
 		// Secondary test against the API db.
 		$url = 'http://optimize.exactlywww.com/exactdn/verify.php';
@@ -320,20 +336,25 @@ class ExactDN {
 		if ( is_wp_error( $result ) ) {
 			$error_message = $result->get_error_message();
 			ewwwio_debug_message( "exactdn verification request failed: $error_message" );
+			$this->set_exactdn_option( 'suspended', 1 );
 			return false;
 		} elseif ( ! empty( $result['body'] ) && strpos( $result['body'], 'error' ) === false ) {
 			$response = json_decode( $result['body'], true );
 			if ( ! empty( $response['success'] ) ) {
 				ewwwio_debug_message( 'exactdn (secondary) verification succeeded' );
-				$this->set_exactdn_option( 'checkin', time() + 86400 );
+				$this->set_exactdn_option( 'checkin', time() + 3600 );
+				$this->set_exactdn_option( 'verified', 1 );
+				$this->set_exactdn_option( 'suspended', 0 );
 				return true;
 			}
 		} elseif ( ! empty( $result['body'] ) ) {
 			$response      = json_decode( $result['body'], true );
 			$error_message = $response['error'];
 			ewwwio_debug_message( "exactdn activation request failed: $error_message" );
+			$this->set_exactdn_option( 'suspended', 1 );
 			return false;
 		}
+		$this->set_exactdn_option( 'suspended', 1 );
 		return false;
 	}
 

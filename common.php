@@ -31,6 +31,7 @@
 // TODO: find the link between attachment ID numbers in WPML.
 // TODO: match Adaptive Images functionality with ExactDN.
 // TODO: handle relative urls with ExactDN.
+// TODO: make ExactDN work automatically with multi-site.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
