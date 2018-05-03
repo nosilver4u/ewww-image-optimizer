@@ -27,7 +27,6 @@
 // TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
 // TODO: on images without srscet, add 2x and 3x versions anyway.
 // TODO: can svg/use tags be exluded from all the things?
-// TODO: find the link between attachment ID numbers in WPML.
 // TODO: match Adaptive Images functionality with ExactDN.
 // TODO: handle relative urls with ExactDN.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -6347,12 +6346,6 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 	// Once we get to the EWWW IO custom column.
 	if ( 'ewww-image-optimizer' == $column_name ) {
 		$output = '';
-		if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
-			$duplicate_of = apply_filters( 'wpml_object_id', $original_id, 'attachment' );
-			if ( ! empty( $duplicate_of ) && is_numeric( $dupicate_of ) ) {
-				$id = $duplicate_of;
-			}
-		}
 		if ( null == $meta ) {
 			// Retrieve the metadata.
 			$meta = wp_get_attachment_metadata( $id );
