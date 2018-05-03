@@ -11,7 +11,7 @@
  */
 
 // TODO: use <picture> element to serve webp (#54).
-// TODO: attempt lazy load support with a3 plugin and one from automattic for alt webp.
+// TODO: attempt lazy load support with a3 plugin and one from automattic for alt webp. or are we back here: https://developers.google.com/web/fundamentals/performance/lazy-loading-guidance/images-and-video/
 // TODO: prevent bad ajax errors from firing when we click the toggle on the Optimization Log, and the plugin status from doing 403s...
 // TODO: use a transient to do health checks on the schedule optimizer.
 // TODO: add a column to track compression level used for each image, and later implement a way to (re)compress at a specific compression level.
@@ -6349,8 +6349,8 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 	if ( 'ewww-image-optimizer' == $column_name ) {
 		$output = '';
 		if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
-			$duplicate_of = get_post_meta( $id, 'wpml_media_duplicate_of', true );
-			if ( ! empty( $duplicate_of ) ) {
+			$duplicate_of = apply_filters( 'wpml_object_id', $original_id, 'attachment' );
+			if ( ! empty( $duplicate_of ) && is_numeric( $dupicate_of ) ) {
 				$id = $duplicate_of;
 			}
 		}

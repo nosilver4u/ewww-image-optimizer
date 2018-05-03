@@ -193,7 +193,6 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: ExactDN breaks image resizing with Themify themes
 * fixed: multi-site settings throws error during submission when ExactDN is active
 * fixed: single-site override option displayed when plugin activated per-site
-* fixed: WPML media duplicates not recognized as optimized
 * removed: PHP 5.3 no longer supported
 
 = 4.1.3 =
