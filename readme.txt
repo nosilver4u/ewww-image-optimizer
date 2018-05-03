@@ -5,7 +5,7 @@ Tags: image, compress, optimize, optimization, lossless, lossy, seo, tinyjpg, ti
 Requires at least: 4.6
 Tested up to: 4.9
 Requires PHP: 5.4
-Stable tag: 4.1.3
+Stable tag: 4.2.0
 License: GPLv3
 
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
@@ -234,72 +234,14 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: warnings when WP Offload S3 set to delete local files, props ianmjones
 * updated: pngquant version 2.11.7
 
-= 4.0.6 =
-* changed: dummy images have no args appended with exactdn except for ssl flag
-* fixed: resize_detection.js being combined with other scripts by Autoptimize
-* fixed: retina optimization not deferred in async mode
-* fixed: PDF files could trigger license exceeded message
-* fixed: binary detection not fully functional with MacOS and PHP 7.2
-* fixed: compatibility with Regenerate Thumbnails version 3
-
-= 4.0.5 =
-* added: enable lossy compression with ExactDN: https://docs.ewww.io/article/47-getting-more-from-exactdn
-* added: CSS/JS minification with ExactDN, see https://docs.ewww.io/article/47-getting-more-from-exactdn
-* added: disable WebP for specific files with ewww_image_optimizer_bypass_webp filter
-* added: ExactDN obeys focus point from Theia Smart Thumbnails plugin
-* added: admin-ajax requests for eddvbugm loader work with ExactDN
-* fixed: multisite settings would not save in certain circumstances
-* fixed: compression levels reset for API users on multisite after toggling single-site override on and off
-* fixed: media library items with non-local images rewritten incorrectly by ExactDN
-* fixed: restoring images throws errors on PHP 7.1
-* fixed: has_cap with invalid argument not recognizing utf8-mb4 v5.2
-
-= 4.0.4 =
-* fixed: ExactDN domain validation failing on length check for some domains
-* updated: PEL for better EXIF preservation
-
-= 4.0.3 =
-* added: support for additional ExactDN root domains
-* added: button to remove WebP rewrite rules
-* added: informational notice on thumbnail rebuild pages of how the plugins interact
-* changed: WebP rewrite rules removed automatically when ExactDN is enabled, use Alt WebP instead
-* changed: ExactDN now removes metadata if option is enabled
-* fixed: multisite settings set to defaults when single-site resize settings are submitted
-
-= 4.0.2 =
-* fixed: WooCommerce images still not working with Alt WebP in all cases
-* fixed: ob_clean() breaks AJAX actions when there is no buffer to clean
-* fixed: notice on NextCellent gallery management pages
-* fixed: missing JS for AJAX actions in NextCellent
-
-= 4.0.1 =
-* fixed: ExactDN option not disabled when verification fails too many times
-* fixed: theme scanner sometimes skipped images on PHP 5.3
-* fixed: invalid (float) width parameters for srcset attributes
-* fixed: Jetpack lightbox and carousel were not fully working with Alt WebP
-* fixed: WooCommerce lightbox and gallery not working with Alt WebP
-* fixed: incorrect message about scanning scope when selecting images from media library for bulk optimization
-* security: fixed wildcard LIKE queries to allow proper escaping
-
-= 4.0.0 =
-* added: ExactDN with CDN and automatic image resizing
-* added: image resize detection for admin users
-* changed: WP core, theme, and plugin images are excluded from lossy optimization
-* fixed: files fetched from S3 not detected by PHP in some cases
-* fixed: option override conflict preventing webp conversion
-* fixed: Alt WebP breaks Draw Attention image maps
-* fixed: customized WP_Background_Process class conflicts with other plugins using the same class
-* fixed: image deletion could cause deletion of images on source site after cloning database
-* fixed: WebP .htaccess rules using REQUEST_FILENAME instead of REQUEST_URI does not work on some servers
-* fixed: per-site resize settings hidden when API is active network-wide
-* fixed: network-wide settings not saving properly
-* fixed: notice of undefined index with some configurations of the Shield security plugin
-* deprecated: PHP 5.3 support will be removed by March 2018
-
 = Earlier versions =
 Please refer to the separate changelog.txt file.
 
 == Upgrade Notice ==
+
+= 4.2.0 =
+* ExactDN verification rewritten, please report any issues immediately.
+* PHP 5.3 support discontinued, see https://docs.ewww.io/article/55-upgrading-php
 
 = 4.1.0 =
 * Security update: gifsicle and optipng have been updated to resolve security flaws.
@@ -311,12 +253,6 @@ Please refer to the separate changelog.txt file.
 = 3.6.0 =
 * API functions have been rewritten to use core WP detection for https capability, please report any errors right away.
 * Several options have been removed from the user interface, see the changelog for details.
-
-= 3.4.0 =
-* Multisite change: disabling resizes must be done on individual sites even when network activated, as those settings are heavily theme-specific.
-
-= 3.3.0 =
-* Requires PHP 5.3+. All sites hosted on Pantheon will now use "relative" paths. Existing Pantheon sites will need to update the ewwwio_images table to match (contact support for help), or disable this function by setting EWWW_IMAGE_OPTIMIZER_RELATIVE to false in wp-config.php.
 
 == Contact and Credits ==
 

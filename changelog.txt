@@ -1,3 +1,21 @@
+= 4.2.0 =
+* added: disable ExactDN attachment ID queries if they take too long
+* added: ExactDN compatibility with a3 Lazy Load
+* added: ability to re-test async/background mode if it gets disabled
+* changed: better compatibility between Autoptimize and ExactDN
+* changed: .webp files removed when restoring original from API
+* changed: Force re-optimize checkbox persists up to an hour if bulk optimizer is interrupted
+* fixed: CSS, JS, and other resources could be skipped by ExactDN in certain circumstances
+* fixed: Jupiter theme captcha incompatible with ExactDN
+* fixed: prevent calls to php_uname when it is disabled
+* fixed: MacOS X installer for PNGOUT
+* fixed: prevent notices due to empty output from exec()
+* fixed: ExactDN fails to crop when image_downsize() is called with explicit dimensions
+* fixed: ExactDN breaks image resizing with Themify themes
+* fixed: multi-site settings throws error during submission when ExactDN is active
+* fixed: single-site override option displayed when plugin activated per-site
+* removed: PHP 5.3 no longer supported
+
 = 4.1.3 =
 * fixed: infinite loop when removing invalid API key
 * fixed: img elements with incorrect attachment ID being replaced with wrong image src
