@@ -179,6 +179,8 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 
 = 4.2.1 =
 * fixed: EXACTDN_LOCAL_DOMAIN does not work with auto-verification
+* fixed: uncaught error during upgrade when 'SHOW FULL COLUMNS' fails
+* fixed: async simulation gets 403 error
 
 = 4.2.0 =
 * added: disable ExactDN attachment ID queries if they take too long

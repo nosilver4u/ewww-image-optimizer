@@ -285,7 +285,7 @@ class ExactDN {
 
 		if ( ! defined( 'EXACTDN_LOCAL_DOMAIN' ) && $this->get_exactdn_option( 'verify_method' ) > 0 ) {
 			// Test with an image file that should be available on the ExactDN zone.
-			$test_url     = plugins_url( '/images/testorig.jpg', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
+			$test_url     = plugins_url( '/images/test.png', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
 			$local_domain = $this->parse_url( $test_url, PHP_URL_HOST );
 			$test_url     = str_replace( $local_domain, $domain, $test_url );
 			ewwwio_debug_message( "test url is $test_url" );
@@ -296,14 +296,15 @@ class ExactDN {
 				$this->set_exactdn_option( 'suspended', 1 );
 				return false;
 			} elseif ( ! empty( $test_result['body'] ) && strlen( $test_result['body'] ) > 300 ) {
-				if ( 200 === $test_result['response']['code'] && 'ffd8ff' === bin2hex( substr( $test_result['body'], 0, 3 ) ) ) {
+				if ( 200 === $test_result['response']['code'] &&
+					( '89504e470d0a1a0a' === bin2hex( substr( $test_result['body'], 0, 8 ) ) || '52494646' === bin2hex( substr( $test_result['body'], 0, 4 ) ) ) ) {
 					ewwwio_debug_message( 'exactdn (real-world) verification succeeded' );
 					$this->set_exactdn_option( 'checkin', time() + 3600 );
 					$this->set_exactdn_option( 'verified', 1, false );
 					$this->set_exactdn_option( 'suspended', 0 );
 					return true;
 				}
-				ewwwio_debug_message( 'mime check failed' . bin2hex( substr( $test_result['body'], 0, 3 ) ) );
+				ewwwio_debug_message( 'mime check failed: ' . bin2hex( substr( $test_result['body'], 0, 3 ) ) );
 			}
 			$this->set_exactdn_option( 'suspended', 1 );
 			return false;

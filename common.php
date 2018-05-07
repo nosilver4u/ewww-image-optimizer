@@ -1730,7 +1730,7 @@ function ewww_image_optimizer_install_table() {
 		ewwwio_debug_message( 'upgrading table and checking collation for path, table exists' );
 		$wpdb->query( "UPDATE $wpdb->ewwwio_images SET updated = '1971-01-01 00:00:00' WHERE updated < '1001-01-01 00:00:01'" );
 		$column_collate = $wpdb->get_col_charset( $wpdb->ewwwio_images, 'path' );
-		if ( ! empty( $column_collate ) && 'utf8mb4' !== $column_collate ) {
+		if ( ! empty( $column_collate ) && ! is_wp_error( $column_collate ) && 'utf8mb4' !== $column_collate ) {
 			$path_index_size = 255;
 			ewwwio_debug_message( "current column collation: $column_collate" );
 			if ( strpos( $column_collate, 'utf8' ) === false ) {
@@ -7916,6 +7916,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					'body'      => array(
 						'ewwwio_test_verify' => '949c34123cf2a4e4ce2f985135830df4a1b2adc24905f53d2fd3f5df5b16293245',
 					),
+					'cookies'   => $_COOKIE,
 					'sslverify' => false,
 				);
 				$async_response  = wp_remote_post( esc_url_raw( $admin_ajax_url ), $async_post_args );
@@ -7923,7 +7924,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					$error_message = $async_response->get_error_message();
 					ewwwio_debug_message( "async test failed: $error_message" );
 				} elseif ( is_array( $async_response ) && isset( $async_response['body'] ) ) {
-					ewwwio_debug_message( 'async success, possibly: ' . $async_response['body'] );
+					ewwwio_debug_message( 'async success, possibly (response should be empty): ' . $async_response['body'] );
+					if ( ! empty( $async_response['response']['code'] ) ) {
+						ewwwio_debug_message( 'async response code: ' . $async_response['response']['code'] );
+					}
 				} else {
 					ewwwio_debug_message( 'no async error, but no body either' );
 				}
