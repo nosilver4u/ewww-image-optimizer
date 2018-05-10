@@ -29,6 +29,7 @@
 // TODO: can svg/use tags be exluded from all the things?
 // TODO: match Adaptive Images functionality with ExactDN.
 // TODO: handle relative urls with ExactDN.
+// TODO: escape html responses in the debugging output, particular in the async test.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -7924,7 +7925,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					$error_message = $async_response->get_error_message();
 					ewwwio_debug_message( "async test failed: $error_message" );
 				} elseif ( is_array( $async_response ) && isset( $async_response['body'] ) ) {
-					ewwwio_debug_message( 'async success, possibly (response should be empty): ' . $async_response['body'] );
+					ewwwio_debug_message( 'async success, possibly (response should be empty): ' . esc_html( substr( $async_response['body'], 0, 100 ) ) );
 					if ( ! empty( $async_response['response']['code'] ) ) {
 						ewwwio_debug_message( 'async response code: ' . $async_response['response']['code'] );
 					}

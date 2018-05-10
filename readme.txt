@@ -177,6 +177,9 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.2.2 =
+* fixed: async test outputs unescaped html on settings page when debugging enabled
+
 = 4.2.1 =
 * fixed: EXACTDN_LOCAL_DOMAIN does not work with auto-verification
 * fixed: uncaught error during upgrade when 'SHOW FULL COLUMNS' fails
