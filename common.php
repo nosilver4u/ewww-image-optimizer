@@ -8407,7 +8407,7 @@ function ewwwio_debug_message( $message ) {
 			$message     = str_replace( "\n\n\n", '<br>', $message );
 			$message     = str_replace( "\n\n", '<br>', $message );
 			$message     = str_replace( "\n", '<br>', $message );
-			$ewww_debug .= "$message<br>";
+			$ewww_debug .= utf8_encode( "$message<br>" );
 		} else {
 			global $ewww_debug;
 			$ewww_debug = "not logging message, memory limit is $memory_limit";
@@ -8447,9 +8447,9 @@ function ewww_image_optimizer_debug_log() {
 				touch( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' );
 			}
 		}
-		if ( filesize( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) + strlen( $ewww_debug ) + 4000000 + memory_get_usage( true ) <= $memory_limit ) {
-			$ewww_debug_log = str_replace( '<br>', "\n", $ewww_debug );
-			file_put_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log', $timestamp . $ewww_debug_log, FILE_APPEND );
+		if ( filesize( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) + strlen( $ewww_debug ) * 2 + 4000000 + memory_get_usage( true ) <= $memory_limit ) {
+			$ewww_debug = str_replace( '<br>', "\n", $ewww_debug );
+			file_put_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log', $timestamp . $ewww_debug, FILE_APPEND );
 		}
 	}
 	$ewww_debug = '';

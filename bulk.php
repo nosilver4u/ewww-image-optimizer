@@ -1549,12 +1549,13 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 				$meta = wp_get_attachment_metadata( $image->attachment_id );
 			}
 			$new_dimensions = ewww_image_optimizer_resize_upload( $image->file );
-			if ( is_array( $new_dimensions ) ) {
+			if ( ! empty( $new_dimensions ) && is_array( $new_dimensions ) ) {
 				$meta['width']  = $new_dimensions[0];
 				$meta['height'] = $new_dimensions[1];
 			}
 		}
 		list( $file, $msg, $converted, $original ) = ewww_image_optimizer( $image->file, 1, false, false, 'full' == $image->resize );
+		//ewww_image_optimizer_debug_log();
 		// Gotta make sure we don't delete a pending record if the license is exceeded, so the license check goes first.
 		$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
 		if ( ! empty( $ewww_status ) && preg_match( '/exceeded/', $ewww_status ) ) {
@@ -1628,6 +1629,7 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		$time_adjustment = $image->time_estimate();
 	} // End while().
 
+	ewwwio_debug_message( 'ending loop for now' );
 	// Calculate how much time has elapsed since we started.
 	$elapsed = microtime( true ) - $started;
 	// Output how much time has elapsed since we started.

@@ -411,13 +411,13 @@ jQuery(document).ready(function($) {
 			} catch (err) {
 				is_json = false;
 			}
-			if ( ! is_json ) {
-				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.invalid_response + '</b></p>');
+			if ( ! is_json || ! response ) {
+				$('#ewww-bulk-loading').append('<p style="color: red"><b>' + ewww_vars.invalid_response + '</b></p>');
 				console.log( response );
 				return false;
 			}
 			if ( ewww_init_response.error ) {
-				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_init_response.error + '</b></p>');
+				$('#ewww-bulk-loading').append('<p style="color: red"><b>' + ewww_init_response.error + '</b></p>');
 				if ( ewww_init_response.data ) {
 					console.log( ewww_init_response.data );
 				}
@@ -450,16 +450,22 @@ jQuery(document).ready(function($) {
 			} catch (err) {
 				is_json = false;
 			}
-			if ( ! is_json ) {
-				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.invalid_response + '</b></p>');
-				console.log( response );
+			if ( ! is_json || ! response ) {
+				$('#ewww-bulk-loading').append('<p style="color: red"><b>' + ewww_vars.invalid_response + '</b></p>');
+				clearInterval(ewww_quota_update);
+				clearInterval(ewww_countdown);
+				if ( ! response ) {
+					console.log( 'empty response' );
+				} else {
+					console.log( response );
+				}
 				return false;
 			}
 			ewww_i += ewww_response.completed;
 			$('#ewww-bulk-progressbar').progressbar( "option", "value", ewww_i );
 			$('#ewww-bulk-counter').html(ewww_vars.optimized + ' ' + ewww_i + '/' + ewww_attachments);
 			if ( ewww_response.error ) {
-				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_response.error + '</b></p>');
+				$('#ewww-bulk-loading').append('<p style="color: red"><b>' + ewww_response.error + '</b></p>');
 				clearInterval(ewww_quota_update);
 				clearInterval(ewww_countdown);
 				ewwwUpdateQuota();
