@@ -1555,7 +1555,6 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 			}
 		}
 		list( $file, $msg, $converted, $original ) = ewww_image_optimizer( $image->file, 1, false, false, 'full' == $image->resize );
-		//ewww_image_optimizer_debug_log();
 		// Gotta make sure we don't delete a pending record if the license is exceeded, so the license check goes first.
 		$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
 		if ( ! empty( $ewww_status ) && preg_match( '/exceeded/', $ewww_status ) ) {
