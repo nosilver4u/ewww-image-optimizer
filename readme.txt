@@ -178,6 +178,9 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.2.2 =
+* changed: S3 uploads no longer deferred until after optimization by default, define EWWW_IMAGE_OPTIMIZER_DEFER_S3 as true to override
+* changed: image editor extensions can be disabled separately from media library optimization via EWWW_IMAGE_OPTIMIZER_DISABLE_EDITOR
+* changed: use exactdn url instead of standard API url for verification simulation and fallback
 * fixed: async test outputs unescaped html on settings page when debugging enabled
 * fixed: debugging uses extra memory when dumping output to file
 * fixed: json_encode dies silently when passing non-utf8 data, results in AJAX/bulk errors

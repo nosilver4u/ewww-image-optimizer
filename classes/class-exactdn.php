@@ -294,6 +294,9 @@ class ExactDN {
 				$error_message = $test_result->get_error_message();
 				ewwwio_debug_message( "exactdn verification request failed: $error_message" );
 				$this->set_exactdn_option( 'suspended', 1 );
+				if ( ! empty( $test_result['response']['code'] ) ) {
+					ewwwio_debug_message( 'exactdn response code: ' . $test_result['response']['code'] );
+				}
 				return false;
 			} elseif ( ! empty( $test_result['body'] ) && strlen( $test_result['body'] ) > 300 ) {
 				if ( 200 === $test_result['response']['code'] &&
@@ -354,7 +357,7 @@ class ExactDN {
 		if ( ! $this->get_exactdn_option( 'verify_method' ) ) {
 			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 			// Prelim test with a known valid image to ensure http(s) connectivity.
-			$sim_url    = 'https://optimize.exactlywww.com/exactdn/testorig.jpg';
+			$sim_url    = 'https://optimize.exactdn.com/exactdn/testorig.jpg';
 			$sim_result = wp_remote_get( $sim_url );
 			if ( is_wp_error( $sim_result ) ) {
 				$error_message = $sim_result->get_error_message();

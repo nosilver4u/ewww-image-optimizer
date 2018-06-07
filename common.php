@@ -35,13 +35,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '421.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '421.1' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
 $ewww_defer = true;
 
-if ( WP_DEBUG ) {
+if ( WP_DEBUG && function_exists( 'memory_get_usage' ) ) {
 	$ewww_memory = 'plugin load: ' . memory_get_usage( true ) . "\n";
 }
 
@@ -76,12 +76,16 @@ if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
 		// Resizes and auto-rotates images.
 		add_filter( 'wp_handle_upload', 'ewww_image_optimizer_handle_upload' );
 	}
-	// Turns off the ewwwio_image_editor during uploads.
-	add_action( 'add_attachment', 'ewww_image_optimizer_add_attachment' );
-	// Turns off ewwwio_image_editor during Enable Media Replace.
-	add_filter( 'emr_unfiltered_get_attached_file', 'ewww_image_optimizer_image_sizes' );
-	// Enables direct integration to the editor's save function.
-	add_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
+	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_editor' ) ) {
+		// Turns off the ewwwio_image_editor during uploads.
+		add_action( 'add_attachment', 'ewww_image_optimizer_add_attachment' );
+		// Turns off ewwwio_image_editor during Enable Media Replace.
+		add_filter( 'emr_unfiltered_get_attached_file', 'ewww_image_optimizer_image_sizes' );
+		// Checks to see if thumb regen or other similar operation is running via REST API.
+		add_action( 'rest_api_init', 'ewww_image_optimizer_restapi_compat_check' );
+		// Enables direct integration to the editor's save function.
+		add_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
+	}
 	// Processes an image via the metadata after upload.
 	add_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
 	// Add hook for PTE confirmation to make sure new resizes are optimized.
@@ -93,8 +97,6 @@ if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
 }
 // Makes sure the optimizer never optimizes it's own testing images.
 add_filter( 'ewww_image_optimizer_bypass', 'ewww_image_optimizer_ignore_self', 10, 2 );
-// This filter turns off ewwwio_image_editor during save from the actual image editor and ensures that we parse the resizes list during the image editor save function.
-add_filter( 'load_image_to_edit_path', 'ewww_image_optimizer_editor_save_pre' );
 // Adds a column to the media library list view to display optimization results.
 add_filter( 'manage_media_columns', 'ewww_image_optimizer_columns' );
 // Outputs the actual column information for each attachment.
@@ -117,6 +119,8 @@ add_filter( 'ewww_image_optimizer_settings', 'ewww_image_optimizer_filter_settin
 add_filter( 'myarcade_filter_screenshot', 'ewww_image_optimizer_myarcade_thumbnail' );
 // Processes thumbnails created by MyArcadePlugin.
 add_filter( 'myarcade_filter_thumbnail', 'ewww_image_optimizer_myarcade_thumbnail' );
+// This filter turns off ewwwio_image_editor during save from the actual image editor and ensures that we parse the resizes list during the image editor save function.
+add_filter( 'load_image_to_edit_path', 'ewww_image_optimizer_editor_save_pre' );
 // Allows the user to override the default JPG quality used by WordPress.
 add_filter( 'jpeg_quality', 'ewww_image_optimizer_set_jpg_quality' );
 // Makes sure the plugin bypasses any files affected by the Folders to Ignore setting.
@@ -127,8 +131,6 @@ add_action( 'plugins_loaded', 'ewww_image_optimizer_preinit' );
 add_action( 'init', 'ewww_image_optimizer_gallery_support' );
 // Initializes the plugin for admin interactions, like saving network settings and scheduling cron jobs.
 add_action( 'admin_init', 'ewww_image_optimizer_admin_init' );
-// Checks to see if thumb regen or other similar operation is running via REST API.
-add_action( 'rest_api_init', 'ewww_image_optimizer_restapi_compat_check' );
 // Legacy (non-AJAX) action hook for manually optimizing an image.
 add_action( 'admin_action_ewww_image_optimizer_manual_optimize', 'ewww_image_optimizer_manual' );
 // Legacy (non-AJAX) action hook for manually restoring a converted image.
@@ -2091,7 +2093,7 @@ function ewww_image_optimizer_restore_editor_hooks( $metadata = false ) {
  */
 function ewww_image_optimizer_editor_save_pre( $image ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
+	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_editor' ) ) {
 		remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
 		add_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_restore_editor_hooks', 1 );
 		add_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
@@ -4851,15 +4853,26 @@ function ewww_image_optimizer_autorotate( $file ) {
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) < 20 ) {
 		// Read the exif, if it fails, we won't autorotate.
-		$jpeg = new PelJpeg( $file );
-		$exif = $jpeg->getExif();
-		if ( null == $exif ) {
+		try {
+			$jpeg = new PelJpeg( $file );
+			$exif = $jpeg->getExif();
+		} catch ( PelDataWindowOffsetException $pelerror ) {
+			ewwwio_debug_message( 'pel exception: ' . $pelerror->getMessage() );
+			$exif = null;
+		} catch ( PelDataWindowOffsetException $pelerror ) {
+			ewwwio_debug_message( 'pel exception: ' . $pelerror->getMessage() );
+			$exif = null;
+		} catch ( Exception $pelerror ) {
+			ewwwio_debug_message( 'pel exception: ' . $pelerror->getMessage() );
+			$exif = null;
+		}
+		if ( is_null( $exif ) ) {
 			ewwwio_debug_message( 'could not work with PelJpeg object, no rotation happening here' );
 		} elseif ( ewww_image_optimizer_jpegtran_autorotate( $file, $type, $orientation ) ) {
 			// Use PEL to correct the orientation flag when metadata was preserved.
 			$jpeg = new PelJpeg( $file );
 			$exif = $jpeg->getExif();
-			if ( null != $exif ) {
+			if ( ! is_null( $exif ) ) {
 				$tiff        = $exif->getTiff();
 				$ifd0        = $tiff->getIfd();
 				$orientation = $ifd0->getEntry( PelTag::ORIENTATION );
@@ -5012,10 +5025,21 @@ function ewww_image_optimizer_resize_upload( $file ) {
 		// Use PEL to get the exif (if Remove Meta is unchecked) and GD is in use, so we can save it to the new image.
 		if ( 'image/jpeg' === $type && ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_skip_full' ) || ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpegtran_copy' ) ) && ! ewww_image_optimizer_imagick_support() ) {
 			ewwwio_debug_message( 'manually copying metadata for GD' );
-			$old_jpeg = new PelJpeg( $file );
-			$old_exif = $old_jpeg->getExif();
-			$new_jpeg = new PelJpeg( $new_file );
-			if ( null != $old_exif ) {
+			try {
+				$old_jpeg = new PelJpeg( $file );
+				$old_exif = $old_jpeg->getExif();
+				$new_jpeg = new PelJpeg( $new_file );
+			} catch ( PelDataWindowOffsetException $pelerror ) {
+				ewwwio_debug_message( 'pel exception: ' . $pelerror->getMessage() );
+				$old_exif = null;
+			} catch ( PelDataWindowOffsetException $pelerror ) {
+				ewwwio_debug_message( 'pel exception: ' . $pelerror->getMessage() );
+				$old_exif = null;
+			} catch ( Exception $pelerror ) {
+				ewwwio_debug_message( 'pel exception: ' . $pelerror->getMessage() );
+				$old_exif = null;
+			}
+			if ( ! is_null( $old_exif ) ) {
 				if ( $rotated ) {
 					$tiff        = $old_exif->getTiff();
 					$ifd0        = $tiff->getIfd();
@@ -5475,7 +5499,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 	}
 	if ( ewww_image_optimizer_test_background_opt( $type ) ) {
 		add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
-		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NO_DEFER_S3' ) || ! EWWW_IMAGE_OPTIMIZER_NO_DEFER_S3 ) {
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_defer_s3' ) ) {
 			ewwwio_debug_message( 's3 upload deferred' );
 			add_filter( 'as3cf_pre_update_attachment_metadata', '__return_true' );
 		}
