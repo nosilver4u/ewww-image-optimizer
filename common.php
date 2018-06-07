@@ -2067,7 +2067,9 @@ function ewww_image_optimizer_image_sizes( $sizes ) {
  */
 function ewww_image_optimizer_restore_editor_hooks( $metadata = false ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	add_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
+	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_editor' ) ) {
+		add_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
+	}
 	if ( function_exists( 'wr2x_wp_generate_attachment_metadata' ) ) {
 		remove_filter( 'wp_generate_attachment_metadata', 'wr2x_wp_generate_attachment_metadata' );
 		add_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_retina_wrapper' );
@@ -2167,6 +2169,9 @@ function ewww_image_optimizer_path_renamed( $post, $old_filepath, $new_filepath 
  * @return array The unaltered metadata.
  */
 function ewww_image_optimizer_retina_wrapper( $meta ) {
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_editor' ) ) {
+		return $meta;
+	}
 	remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
 	if ( class_exists( 'Meow_WR2X_Core' ) ) {
 		global $wr2x_core;
@@ -5014,7 +5019,9 @@ function ewww_image_optimizer_resize_upload( $file ) {
 	if ( is_wp_error( $saved ) ) {
 		ewwwio_debug_message( 'error saving resized image' );
 	}
-	add_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
+	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_editor' ) ) {
+		add_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
+	}
 	// to here is replaced by cloud/API function.
 	$new_size = ewww_image_optimizer_filesize( $new_file );
 	if ( $new_size && $new_size < $orig_size ) {

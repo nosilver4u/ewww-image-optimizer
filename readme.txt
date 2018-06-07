@@ -184,6 +184,8 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: async test outputs unescaped html on settings page when debugging enabled
 * fixed: debugging uses extra memory when dumping output to file
 * fixed: json_encode dies silently when passing non-utf8 data, results in AJAX/bulk errors
+* fixed: disabled auto-optimization bypassed for resizes when max dimensions are set
+* updated: PEL library for maintaining metadata during JPG auto-rotation
 
 = 4.2.1 =
 * fixed: EXACTDN_LOCAL_DOMAIN does not work with auto-verification
