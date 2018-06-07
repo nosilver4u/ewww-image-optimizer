@@ -115,7 +115,7 @@ function ewww_image_optimizer_aux_images() {
 			'zIndex'            => 100000,
 		);
 		$hs_identify  = array(
-			'email' => $help_email,
+			'email' => utf8_encode( $help_email ),
 		);
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 			$ewww_debug_array = explode( '<br>', $ewww_debug );
@@ -405,7 +405,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			set_transient( 'ewww_image_optimizer_aux_iterator', $file_counter - 20, 300 ); // Keep track of where we left off, minus 20 to be safe.
 			$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
 			ewwwio_ob_clean();
-			die( json_encode( array(
+			die( ewwwio_json_encode( array(
 				'remaining' => '<p>' . esc_html__( 'Stage 2, please wait.', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
 				'notice'    => '',
 			) ) );
@@ -414,7 +414,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 		if ( ! empty( $_REQUEST['ewww_scan'] ) && 0 === $file_counter % 100 && ! ewwwio_check_memory_available( 2097000 ) ) {
 			if ( $file_counter < 100 ) {
 				ewwwio_ob_clean();
-				die( json_encode( array(
+				die( ewwwio_json_encode( array(
 					'error' => esc_html__( 'Stage 2 unable to complete due to memory restrictions. Please increase the memory_limit setting for PHP and try again.', 'ewww-image-optimizer' ),
 				) ) );
 			}
@@ -428,7 +428,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			set_transient( 'ewww_image_optimizer_aux_iterator', $file_counter - 20, 300 ); // Keep track of where we left off, minus 20 to be safe.
 			$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
 			ewwwio_ob_clean();
-			die( json_encode( array(
+			die( ewwwio_json_encode( array(
 				'remaining' => '<p>' . esc_html__( 'Stage 2, please wait.', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
 				'notice'    => '',
 			) ) );
@@ -711,7 +711,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 		$ready_msg = sprintf( esc_html( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', $image_count, 'ewww-image-optimizer' ) ), $image_count )
 			. ' <a href="https://docs.ewww.io/article/20-why-do-i-have-so-many-images-on-my-site" target="_blank" data-beacon-article="58598744c697912ffd6c3eb4">' . esc_html__( 'Why are there so many images?', 'ewww-image-optimizer' ) . '</a>';
 		ewwwio_ob_clean();
-		die( json_encode( array(
+		die( ewwwio_json_encode( array(
 			'ready'   => $image_count,
 			'message' => $ready_msg,
 		) ) );

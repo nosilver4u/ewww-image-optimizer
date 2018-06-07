@@ -180,6 +180,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 = 4.2.2 =
 * fixed: async test outputs unescaped html on settings page when debugging enabled
 * fixed: debugging uses extra memory when dumping output to file
+* fixed: json_encode dies silently when passing non-utf8 data, results in AJAX/bulk errors
 
 = 4.2.1 =
 * fixed: EXACTDN_LOCAL_DOMAIN does not work with auto-verification

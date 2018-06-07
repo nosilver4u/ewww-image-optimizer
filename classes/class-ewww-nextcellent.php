@@ -166,7 +166,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 					wp_die( esc_html__( 'You do not have permission to optimize images.', 'ewww-image-optimizer' ) );
 				}
 				ewwwio_ob_clean();
-				wp_die( json_encode( array(
+				wp_die( ewwwio_json_encode( array(
 					'error' => esc_html__( 'You do not have permission to optimize images.', 'ewww-image-optimizer' ),
 				) ) );
 			}
@@ -176,7 +176,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 					wp_die( esc_html__( 'No attachment ID was provided.', 'ewww-image-optimizer' ) );
 				}
 				ewwwio_ob_clean();
-				wp_die( json_encode( array(
+				wp_die( ewwwio_json_encode( array(
 					'error' => esc_html__( 'No attachment ID was provided.', 'ewww-image-optimizer' ),
 				) ) );
 			}
@@ -187,7 +187,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 						wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 				}
 				ewwwio_ob_clean();
-				wp_die( json_encode( array(
+				wp_die( ewwwio_json_encode( array(
 					'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ),
 				) ) );
 			}
@@ -202,7 +202,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				die;
 			}
 			ewwwio_ob_clean();
-			wp_die( json_encode( array(
+			wp_die( ewwwio_json_encode( array(
 				'success' => $success,
 			) ) );
 		}
@@ -218,7 +218,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 					wp_die( esc_html__( 'You do not have permission to optimize images.', 'ewww-image-optimizer' ) );
 				}
 				ewwwio_ob_clean();
-				wp_die( json_encode( array(
+				wp_die( ewwwio_json_encode( array(
 					'error' => esc_html__( 'You do not have permission to optimize images.', 'ewww-image-optimizer' ),
 				) ) );
 			}
@@ -228,7 +228,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 					wp_die( esc_html__( 'No attachment ID was provided.', 'ewww-image-optimizer' ) );
 				}
 				ewwwio_ob_clean();
-				wp_die( json_encode( array(
+				wp_die( ewwwio_json_encode( array(
 					'error' => esc_html__( 'No attachment ID was provided.', 'ewww-image-optimizer' ),
 				) ) );
 			}
@@ -239,14 +239,14 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 						wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 				}
 				ewwwio_ob_clean();
-				wp_die( json_encode( array(
+				wp_die( ewwwio_json_encode( array(
 					'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ),
 				) ) );
 			}
 			ewww_image_optimizer_cloud_restore_from_meta_data( $id, 'nextcell' );
 			$success = $this->ewww_manage_image_custom_column( 'ewww_image_optimizer', $id, true );
 			ewwwio_ob_clean();
-			wp_die( json_encode( array(
+			wp_die( ewwwio_json_encode( array(
 				'success' => $success,
 			) ) );
 		}
@@ -448,7 +448,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				}
 				/* translators: %d: number of images */
 				$selected_images_text = sprintf( esc_html( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', count( $attachments ), 'ewww-image-optimizer' ) ), count( $attachments ) );
-					?>
+				?>
 					<div id="ewww-bulk-loading"></div>
 					<div id="ewww-bulk-progressbar"></div>
 					<div id="ewww-bulk-counter"></div>
@@ -607,7 +607,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) {
 				$output['error'] = esc_html__( 'Access denied.', 'ewww-image-optimizer' );
 				ewwwio_ob_clean();
-				wp_die( json_encode( $output ) );
+				wp_die( ewwwio_json_encode( $output ) );
 			}
 			// Toggle the resume flag to indicate an operation is in progress.
 			update_option( 'ewww_image_optimizer_bulk_ngg_resume', 'true' );
@@ -619,7 +619,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			if ( ! is_array( $attachments ) ) {
 				$output['error'] = esc_html__( 'Error retrieving list of images' );
 				ewwwio_ob_clean();
-				wp_die( json_encode( $output ) );
+				wp_die( ewwwio_json_encode( $output ) );
 			}
 			$id        = array_shift( $attachments );
 			$file_name = $this->ewww_ngg_bulk_filename( $id );
@@ -631,7 +631,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				$output['results'] = '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . ' <b>' . $file_name . "</b>&nbsp;<img src='$loading_image' alt='loading'/></p>";
 			}
 			ewwwio_ob_clean();
-			wp_die( json_encode( $output ) );
+			wp_die( ewwwio_json_encode( $output ) );
 		}
 
 		/**
@@ -666,7 +666,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) {
 				$outupt['error'] = esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' );
 				ewwwio_ob_clean();
-				wp_die( json_encode( $output ) );
+				wp_die( ewwwio_json_encode( $output ) );
 			}
 			session_write_close();
 			// Find out if our nonce is on it's last leg/tick.
@@ -688,7 +688,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			if ( ! empty( $ewww_status ) && preg_match( '/exceeded/', $ewww_status ) ) {
 				$output['error'] = esc_html__( 'License Exceeded', 'ewww-image-optimizer' );
 				ewwwio_ob_clean();
-				wp_die( json_encode( $output ) );
+				wp_die( ewwwio_json_encode( $output ) );
 			}
 			// Output the results of the optimization.
 			if ( $fres[0] ) {
@@ -719,7 +719,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				$output['done'] = 1;
 			}
 			ewwwio_ob_clean();
-			wp_die( json_encode( $output ) );
+			wp_die( ewwwio_json_encode( $output ) );
 		}
 
 		/**
