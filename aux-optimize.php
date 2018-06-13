@@ -706,10 +706,23 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 	update_option( 'ewww_image_optimizer_bulk_resume', '' );
 	ewww_image_optimizer_debug_log();
 	if ( wp_doing_ajax() ) {
+		$verify_cloud = ewww_image_optimizer_cloud_verify( false );
+		$usage        = false;
+		if ( preg_match( '/great/', $verify_cloud ) ) {
+			$usage = ewww_image_optimizer_cloud_quota( true );
+		}
 		ewwwio_memory( __FUNCTION__ );
 		/* translators: %d: number of images */
-		$ready_msg = sprintf( esc_html( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', $image_count, 'ewww-image-optimizer' ) ), $image_count )
-			. ' <a href="https://docs.ewww.io/article/20-why-do-i-have-so-many-images-on-my-site" target="_blank" data-beacon-article="58598744c697912ffd6c3eb4">' . esc_html__( 'Why are there so many images?', 'ewww-image-optimizer' ) . '</a>';
+		$ready_msg = sprintf( esc_html( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', $image_count, 'ewww-image-optimizer' ) ), $image_count );
+		if ( is_array( $usage ) && ! $usage['metered'] ) {
+			$credits_available = $usage['licensed'] - $usage['consumed'];
+			if ( $credits_available < $image_count ) {
+				$ready_msg .= ' ' . esc_html__( 'You do not appear to have enough image credits to complete this operation.', 'ewww-image-optimizer' );
+			}
+		}
+		if ( $image_count > 1000 ) {
+			$ready_msg .= ' <a href="https://docs.ewww.io/article/20-why-do-i-have-so-many-images-on-my-site" target="_blank" data-beacon-article="58598744c697912ffd6c3eb4">' . esc_html__( 'Why are there so many images?', 'ewww-image-optimizer' ) . '</a>';
+		}
 		ewwwio_ob_clean();
 		die( ewwwio_json_encode( array(
 			'ready'   => $image_count,

@@ -3356,7 +3356,7 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 	) );
 	if ( is_wp_error( $result ) ) {
 		$error_message = $result->get_error_message();
-		ewwwio_debug_message( "quota request failed: $error_message" );
+		ewwwio_debug_message( "restore request failed: $error_message" );
 		ewwwio_memory( __FUNCTION__ );
 		return false;
 	} elseif ( ! empty( $result['body'] ) && strpos( $result['body'], 'missing' ) === false ) {
@@ -3702,12 +3702,13 @@ function ewww_image_optimizer_cloud_post_key( $url, $key ) {
 /**
  * Checks the configured API key for quota information.
  *
+ * @param bool $raw True to return the usage array as-is.
  * @return string A message with how many credits they have used/left and possibly a renwal date.
  */
-function ewww_image_optimizer_cloud_quota() {
+function ewww_image_optimizer_cloud_quota( $raw = false ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
-	$url     = 'http://optimize.exactlywww.com/quota/';
+	$url     = 'http://optimize.exactlywww.com/quota/v2/';
 	$ssl     = wp_http_supports( array( 'ssl' ) );
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
@@ -3727,30 +3728,37 @@ function ewww_image_optimizer_cloud_quota() {
 		return '';
 	} elseif ( ! empty( $result['body'] ) ) {
 		ewwwio_debug_message( "quota data retrieved: {$result['body']}" );
-		$quota = explode( ' ', $result['body'] );
+		// $quota = explode( ' ', $result['body'] );.
+		$quota = json_decode( $result['body'], true );
+		if ( ! is_array( $quota ) ) {
+			return '';
+		}
 		ewwwio_memory( __FUNCTION__ );
-		if ( 0 == $quota[0] && $quota[1] > 0 ) {
+		if ( $raw ) {
+			return $quota;
+		}
+		if ( 0 == $quota['licensed'] && $quota['consumed'] > 0 ) {
 			return esc_html( sprintf(
 				/* translators: 1: Number of images 2: Number of days until renewal */
-				_n( 'optimized %1$d images, usage will reset in %2$d day.', 'optimized %1$d images, usage will reset in %2$d days.', $quota[2], 'ewww-image-optimizer' ), $quota[1], $quota[2]
+				_n( 'optimized %1$d images, renewal is in %2$d day.', 'optimized %1$d images, renewal is in %2$d days.', $quota['days'], 'ewww-image-optimizer' ), $quota['consumed'], $quota['days']
 			) );
-		} elseif ( 0 == $quota[0] && $quota[1] < 0 ) {
+		} elseif ( 0 == $quota['licensed'] && $quota['consumed'] < 0 ) {
 			return esc_html( sprintf(
 				/* translators: 1: Number of images */
-				_n( '%1$d image credit remaining.', '%1$d image credits remaining.', abs( $quota[1] ), 'ewww-image-optimizer' ), abs( $quota[1] )
+				_n( '%1$d image credit remaining.', '%1$d image credits remaining.', abs( $quota['consumed'] ), 'ewww-image-optimizer' ), abs( $quota['consumed'] )
 			) );
-		} elseif ( $quota[0] > 0 && $quota[1] < 0 ) {
-			$real_quota = $quota[0] - $quota[1];
+		} elseif ( $quota['licensed'] > 0 && $quota['consumed'] < 0 ) {
+			$real_quota = $quota['licensed'] - $quota['consumed'];
 			return esc_html( sprintf(
 				/* translators: 1: Number of images */
 				_n( '%1$d image credit remaining.', '%1$d image credits remaining.', $real_quota, 'ewww-image-optimizer' ), $real_quota
 			) );
-		} elseif ( 0 == $quota[0] && 0 == $quota[1] && 0 == $quota[2] ) {
+		} elseif ( 0 == $quota['licensed'] && 0 == $quota['consumed'] && 0 == $quota['days'] && 0 == $quota['metered'] ) {
 			return esc_html__( 'no credits remaining, please purchase more.', 'ewww-image-optimizer' );
 		} else {
 			return esc_html( sprintf(
 				/* translators: 1: Number of image credits used 2: Number of image credits available 3: days until subscription renewal */
-				_n( 'used %1$d of %2$d, usage will reset in %3$d day.', 'used %1$d of %2$d, usage will reset in %3$d days.', $quota[2], 'ewww-image-optimizer' ), $quota[1], $quota[0], $quota[2]
+				_n( 'used %1$d of %2$d, usage will reset in %3$d day.', 'used %1$d of %2$d, usage will reset in %3$d days.', $quota['days'], 'ewww-image-optimizer' ), $quota['consumed'], $quota['licensed'], $quota['days']
 			) );
 		}
 	}
