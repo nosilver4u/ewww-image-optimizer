@@ -191,7 +191,7 @@ register_uninstall_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimizer
 // Makes sure we flush the debug info to the log on shutdown.
 add_action( 'shutdown', 'ewww_image_optimizer_debug_log' );
 // If ExactDN is enabled.
-if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && empty( $_GET['exactdn_disable'] ) ) {
 	/**
 	 * ExactDN class for parsing image urls and rewriting them.
 	 */

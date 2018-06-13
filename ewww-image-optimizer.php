@@ -69,7 +69,7 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 50400 ) {
 	add_action( 'admin_notices', 'ewww_image_optimizer_notice_flywheel' );
 	// Loads the plugin translations.
 	add_action( 'plugins_loaded', 'ewww_image_optimizer_false_init' );
-} else {
+} elseif ( empty( $_GET['ewwwio_disable'] ) ) {
 	/**
 	 * The full path of the plugin file (this file).
 	 *
