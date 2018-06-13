@@ -3572,8 +3572,9 @@ function ewww_image_optimizer_cloud_enable() {
  * @return string The useragent with the EWWW IO version appended.
  */
 function ewww_image_optimizer_cloud_useragent( $useragent ) {
-	$useragent .= ' EWWW/' . EWWW_IMAGE_OPTIMIZER_VERSION . ' ';
-	ewwwio_memory( __FUNCTION__ );
+	if ( strpos( $useragent, 'EWWW' ) === false ) {
+		$useragent .= ' EWWW/' . EWWW_IMAGE_OPTIMIZER_VERSION . ' ';
+	}
 	return $useragent;
 }
 
@@ -3711,6 +3712,7 @@ function ewww_image_optimizer_cloud_quota() {
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
 	}
+	add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 	$result = wp_remote_post( $url, array(
 		'timeout'   => 5,
 		'sslverify' => false,
@@ -3940,7 +3942,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	$payload .= "Upload\r\n";
 	$payload .= '--' . $boundary . '--';
 
-	// Retrieve the time when the optimizer starts.
+	add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 	$response = wp_remote_post( $url, array(
 		'timeout'   => 300,
 		'headers'   => $headers,
@@ -4070,6 +4072,7 @@ function ewww_image_optimizer_cloud_autorotate( $file, $type ) {
 	$payload .= "Upload\r\n";
 	$payload .= '--' . $boundary . '--';
 
+	add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 	$response = wp_remote_post( $url, array(
 		'timeout'   => 60,
 		'headers'   => $headers,

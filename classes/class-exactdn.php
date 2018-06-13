@@ -236,6 +236,7 @@ class ExactDN {
 		if ( $ssl ) {
 			$url = set_url_scheme( $url, 'https' );
 		}
+		add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 		$result = wp_remote_post( $url, array(
 			'timeout' => 10,
 			'body'    => array(
@@ -289,6 +290,7 @@ class ExactDN {
 			$local_domain = $this->parse_url( $test_url, PHP_URL_HOST );
 			$test_url     = str_replace( $local_domain, $domain, $test_url );
 			ewwwio_debug_message( "test url is $test_url" );
+			add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 			$test_result = wp_remote_get( $test_url );
 			if ( is_wp_error( $test_result ) ) {
 				$error_message = $test_result->get_error_message();
@@ -319,6 +321,7 @@ class ExactDN {
 		if ( $ssl ) {
 			$url = set_url_scheme( $url, 'https' );
 		}
+		add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 		$result = wp_remote_post( $url, array(
 			'timeout' => 10,
 			'body'    => array(
@@ -357,7 +360,8 @@ class ExactDN {
 		if ( ! $this->get_exactdn_option( 'verify_method' ) ) {
 			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 			// Prelim test with a known valid image to ensure http(s) connectivity.
-			$sim_url    = 'https://optimize.exactdn.com/exactdn/testorig.jpg';
+			$sim_url = 'https://optimize.exactdn.com/exactdn/testorig.jpg';
+			add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 			$sim_result = wp_remote_get( $sim_url );
 			if ( is_wp_error( $sim_result ) ) {
 				$error_message = $sim_result->get_error_message();
