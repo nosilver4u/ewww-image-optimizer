@@ -1169,8 +1169,9 @@ function ewww_image_optimizer_gallery_support() {
 				$ngg = ewww_image_optimizer_get_plugin_version( trailingslashit( WP_PLUGIN_DIR ) . $active_plugin );
 				// Include the file that loads the nextgen gallery optimization functions.
 				ewwwio_debug_message( 'Nextgen version: ' . $ngg['Version'] );
-				if ( preg_match( '/^2\./', $ngg['Version'] ) ) { // For Nextgen 2 support.
-					ewwwio_debug_message( "loading nextgen2 support for $active_plugin" );
+				if ( 1 < intval( substr( $ngg['Version'], 0, 1 ) ) ) { // For Nextgen 2+ support.
+					$nextgen_major_version = substr( $ngg['Version'], 0, 1 );
+					ewwwio_debug_message( "loading nextgen $nextgen_major_version support for $active_plugin" );
 					require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-nextgen.php' );
 				} else {
 					preg_match( '/\d+\.\d+\.(\d+)/', $ngg['Version'], $nextgen_minor_version );
@@ -7578,6 +7579,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			$status_output .= '<span style="color: red">' . esc_html__( 'Not Verified', 'ewww-image-optimizer' ) . '</span>';
 			$collapsible    = false;
 		}
+		$status_output .= ' <a target="_blank" href="https://history.exactlywww.com/show/?api_key=' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) . '">' . esc_html__( 'View Usage', 'ewww-image-optimizer' ) . '</a>';
 		$status_output .= "</p>\n";
 		$disable_level  = '';
 	} else {
