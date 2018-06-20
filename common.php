@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '421.1' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '422.0' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -131,6 +131,8 @@ add_action( 'plugins_loaded', 'ewww_image_optimizer_preinit' );
 add_action( 'init', 'ewww_image_optimizer_gallery_support' );
 // Initializes the plugin for admin interactions, like saving network settings and scheduling cron jobs.
 add_action( 'admin_init', 'ewww_image_optimizer_admin_init' );
+// Get admin color scheme and save it for later.
+add_action( 'admin_head', 'ewww_image_optimizer_save_admin_colors' );
 // Legacy (non-AJAX) action hook for manually optimizing an image.
 add_action( 'admin_action_ewww_image_optimizer_manual_optimize', 'ewww_image_optimizer_manual' );
 // Legacy (non-AJAX) action hook for manually restoring a converted image.
@@ -561,12 +563,6 @@ function ewww_image_optimizer_filter_amp_webp( $buffer ) {
 		$buffer = $html->saveHTML( $html->documentElement );
 		libxml_clear_errors();
 		libxml_use_internal_errors( $libxml_previous_error_reporting );
-		if ( false ) { // Set to true for extra debugging.
-			ewwwio_debug_message( 'html head' );
-			ewwwio_debug_message( $html_head[0] );
-			ewwwio_debug_message( 'buffer beginning' );
-			ewwwio_debug_message( substr( $buffer, 0, 500 ) );
-		}
 		if ( false ) { // Set to true for extra debugging.
 			ewwwio_debug_message( 'buffer after replacement' );
 			ewwwio_debug_message( substr( $buffer, 0, 500 ) );
@@ -1005,7 +1001,7 @@ function ewww_image_optimizer_filter_webp_page_output( $buffer ) {
 			ewwwio_debug_message( 'buffer beginning' );
 			ewwwio_debug_message( substr( $buffer, 0, 500 ) );
 		}
-		if ( ! empty( $html_head ) ) {
+		if ( ! empty( $html_head ) && is_array( $html_head ) ) {
 			$buffer = preg_replace( '/<html.+>\s.*<head>/', $html_head[0], $buffer );
 		}
 		// Do some cleanup for the Easy Social Share Buttons for WordPress plugin (can't have <li> elements with newlines between them).
@@ -1079,14 +1075,14 @@ if ( ! function_exists( 'boolval' ) ) {
  * @return string The JSON-encoded version of the value.
  */
 function ewwwio_json_encode( $value ) {
-	if ( is_string( $value ) && function_exists( 'utf8_encode' ) ) {
+	if ( is_string( $value ) && function_exists( 'utf8_encode' ) && ! seems_utf8( $value ) ) {
 		$value = utf8_encode( $value );
 	} elseif ( is_string( $value ) && ! seems_utf8( $value ) ) {
 		$value = '';
 	} elseif ( is_array( $value ) ) {
 		$parsed_value = array();
 		foreach ( $value as $key => $data ) {
-			if ( is_string( $data ) && function_exists( 'utf8_encode' ) ) {
+			if ( is_string( $data ) && function_exists( 'utf8_encode' ) && ! seems_utf8( $data ) ) {
 				$data = utf8_encode( $data );
 			} elseif ( is_string( $data ) && ! seems_utf8( $data ) ) {
 				$data = '';
@@ -1700,11 +1696,57 @@ function ewww_image_optimizer_progressbar_style() {
 }
 
 /**
+ * Grabs the color scheme information from the current admin theme and saves it for later.
+ *
+ * @global $ewwwio_admin_color The color we want to use for theming.
+ * @global array $_wp_admin_css_colors An array of available admin color/theme objects.
+ */
+function ewww_image_optimizer_save_admin_colors() {
+	global $ewwwio_admin_color;
+	global $_wp_admin_css_colors;
+	if ( function_exists( 'wp_add_inline_style' ) ) {
+		$user_info = wp_get_current_user();
+		if (
+			is_array( $_wp_admin_css_colors ) &&
+			! empty( $user_info->admin_color ) &&
+			is_object( $_wp_admin_css_colors[ $user_info->admin_color ] ) &&
+			is_array( $_wp_admin_css_colors[ $user_info->admin_color ]->colors ) &&
+			! empty( $_wp_admin_css_colors[ $user_info->admin_color ]->colors[2] ) &&
+			preg_match( '/^\#([0-9a-fA-F]){3,6}$/', $_wp_admin_css_colors[ $user_info->admin_color ]->colors[2] )
+		) {
+			$ewwwio_admin_color = $_wp_admin_css_colors[ $user_info->admin_color ]->colors[2];
+		}
+	}
+	if ( empty( $ewwwio_admin_color ) ) {
+		$ewwwio_admin_color = '#0073aa';
+	}
+	ewwwio_debug_message( "admin color selected: $ewwwio_admin_color" );
+}
+/**
  * Determines the background color to use based on the selected admin theme.
  */
 function ewww_image_optimizer_admin_background() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	global $ewwwio_admin_color;
+	if ( ! empty( $ewwwio_admin_color ) && preg_match( '/^\#([0-9a-fA-F]){3,6}$/', $ewwwio_admin_color ) ) {
+		ewwwio_debug_message( "admin color previously saved: $ewwwio_admin_color" );
+		return $ewwwio_admin_color;
+	}
 	if ( function_exists( 'wp_add_inline_style' ) ) {
 		$user_info = wp_get_current_user();
+		global $_wp_admin_css_colors;
+		if (
+			is_array( $_wp_admin_css_colors ) &&
+			! empty( $user_info->admin_color ) &&
+			is_object( $_wp_admin_css_colors[ $user_info->admin_color ] ) &&
+			is_array( $_wp_admin_css_colors[ $user_info->admin_color ]->colors ) &&
+			! empty( $_wp_admin_css_colors[ $user_info->admin_color ]->colors[2] ) &&
+			preg_match( '/^\#([0-9a-fA-F]){3,6}$/', $_wp_admin_css_colors[ $user_info->admin_color ]->colors[2] )
+		) {
+			$ewwwio_admin_color = $_wp_admin_css_colors[ $user_info->admin_color ]->colors[2];
+			ewwwio_debug_message( "had to go searching for admin color: $ewwwio_admin_color" );
+			return $ewwwio_admin_color;
+		}
 		switch ( $user_info->admin_color ) {
 			case 'midnight':
 				return '#e14d43';
@@ -5599,6 +5641,14 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		}
 		ewww_image_optimizer_hidpi_optimize( $file );
 	}
+
+	// See if we are forcing re-optimization per the user's request.
+	if ( ! empty( $_REQUEST['ewww_force'] ) ) {
+		$force = true;
+	} else {
+		$force = false;
+	}
+
 	// Resized versions, so we can continue.
 	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 		$disabled_sizes = get_option( 'ewww_image_optimizer_disable_resizes_opt' );
@@ -5757,11 +5807,6 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		$increment        = (int) apply_filters( 'ewww_image_optimizer_background_timer_increment', 1 );
 		$timer_max        = (int) apply_filters( 'ewww_image_optimizer_background_timer_max', 20 );
 		$processing_sizes = array();
-		if ( ! empty( $_REQUEST['ewww_force'] ) ) {
-			$force = true;
-		} else {
-			$force = false;
-		}
 		global $ewwwio_async_optimize_media;
 		if ( ! class_exists( 'WP_Background_Process' ) ) {
 			require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
@@ -8423,7 +8468,7 @@ function ewww_image_optimizer_autoptimize_js_exclude( $jsexcludes = '', $content
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( is_array( $jsexcludes ) ) {
 		$jsexcludes['includes/resize_detection.js'] = '';
-		return $jsexludes;
+		return $jsexcludes;
 	}
 	return $jsexcludes . ', includes/resize_detection.js';
 }

@@ -45,7 +45,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			add_action( 'wp_ajax_ewww_flag_cloud_restore', array( $this, 'ewww_flag_cloud_restore' ) );
 			add_action( 'admin_action_ewww_flag_manual', array( $this, 'ewww_flag_manual' ) );
 			add_action( 'admin_menu', array( $this, 'ewww_flag_bulk_menu' ) );
-			add_action( 'admin_enqueue_scripts', array( $this, 'ewww_flag_bulk_script' ) );
+			add_action( 'admin_enqueue_scripts', array( $this, 'ewww_flag_bulk_script' ), PHP_INT_MAX );
 			add_action( 'wp_ajax_bulk_flag_init', array( $this, 'ewww_flag_bulk_init' ) );
 			add_action( 'wp_ajax_bulk_flag_filename', array( $this, 'ewww_flag_bulk_filename' ) );
 			add_action( 'wp_ajax_bulk_flag_loop', array( $this, 'ewww_flag_bulk_loop' ) );
@@ -77,6 +77,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		 * Displays the bulk optimiizer html output.
 		 */
 		function ewww_flag_bulk() {
+			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 			// If there is POST data, make sure bulkaction and doaction are the values we want.
 			if ( ! empty( $_POST ) && empty( $_REQUEST['ewww_reset'] ) ) {
 				// If there is no requested bulk action, do nothing.
@@ -178,6 +179,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		 * @param string $hook The hook value for the current page.
 		 */
 		function ewww_flag_bulk_script( $hook ) {
+			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 			// Make sure we are being hooked from a valid location.
 			if ( 'flagallery_page_flag-bulk-optimize' != $hook && 'flagallery_page_flag-manage-gallery' != $hook ) {
 				return;
@@ -199,6 +201,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			$resume = get_option( 'ewww_image_optimizer_bulk_flag_resume' );
 			// Check if we are being asked to optimize galleries or images rather than a full bulk optimize.
 			if ( ! empty( $_REQUEST['doaction'] ) ) {
+				ewwwio_debug_message( 'possible batch image request' );
 				// See if the bulk operation requested is from the manage images page.
 				if ( 'manage-images' == $_REQUEST['page'] && 'bulk_optimize_images' == $_REQUEST['bulkaction'] ) {
 					// Check the referring page and nonce.
@@ -207,6 +210,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 					update_option( 'ewww_image_optimizer_bulk_flag_resume', '' );
 					// Retrieve the image IDs from POST.
 					$ids = array_map( 'intval', $_REQUEST['doaction'] );
+					ewwwio_debug_message( 'batch image request from image list' );
 				}
 				// See if the bulk operation requested is from the manage galleries page.
 				if ( 'manage-galleries' == $_REQUEST['page'] && 'bulk_optimize_galleries' == $_REQUEST['bulkaction'] ) {
@@ -225,6 +229,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 							$ids[] = $image->pid;
 						}
 					}
+					ewwwio_debug_message( 'batch image request from gallery list' );
 				}
 			} elseif ( ! empty( $resume ) ) {
 				// If there is an operation to resume, get those IDs from the db.
@@ -241,7 +246,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			// Add the styling for the progressbar.
 			wp_enqueue_style( 'jquery-ui-progressbar', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ) );
 			// Prepare a few variables to be used by the javascript code.
-			wp_localize_script('ewwwbulkscript', 'ewww_vars', array(
+			wp_localize_script( 'ewwwbulkscript', 'ewww_vars', array(
 				'_wpnonce'              => wp_create_nonce( 'ewww-image-optimizer-bulk' ),
 				'gallery'               => 'flag',
 				'attachments'           => count( $ids ),
@@ -352,6 +357,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		 * Manually process an image from the gallery.
 		 */
 		function ewww_flag_manual() {
+			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 			// Make sure the current user has appropriate permissions.
 			$permissions = apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
 			if ( false === current_user_can( $permissions ) ) {
@@ -428,6 +434,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		 * Restore an image from the API.
 		 */
 		function ewww_flag_cloud_restore() {
+			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 			// Check permission of current user.
 			$permissions = apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
 			if ( false === current_user_can( $permissions ) ) {
@@ -475,6 +482,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		 * Initialize the bulk operation.
 		 */
 		function ewww_flag_bulk_init() {
+			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 			$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 			if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) {
 				ewwwio_ob_clean();
@@ -513,6 +521,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		 * @return string|bool The name of the first image in the queue, or false.
 		 */
 		function ewww_flag_bulk_filename( $id ) {
+			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 			// Need this file to work with flag meta.
 			require_once( WP_CONTENT_DIR . '/plugins/flash-album-gallery/lib/meta.php' );
 			// Retrieve the meta for the current ID.
@@ -530,6 +539,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		 * Process each image during the bulk operation.
 		 */
 		function ewww_flag_bulk_loop() {
+			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 			global $ewww_defer;
 			$ewww_defer  = false;
 			$output      = array();
@@ -617,6 +627,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		 * Finish the bulk operation, and clear out the bulk_flag options.
 		 */
 		function ewww_flag_bulk_cleanup() {
+			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 			$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 			if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) {
 				ewwwio_ob_clean();
@@ -636,6 +647,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		 * @param string $hook The hook value for the current page.
 		 */
 		function ewww_flag_manual_actions_script( $hook ) {
+			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 			if ( 'flagallery_page_flag-manage-gallery' != $hook ) {
 				return;
 			}
@@ -674,6 +686,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		 * @param int $id The ID number of the image being displayed.
 		 */
 		function ewww_manage_image_custom_column( $id ) {
+			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 			$output = "<div id='ewww-flag-status-$id'>";
 			// Get the metadata.
 			$meta = new flagMeta( $id );

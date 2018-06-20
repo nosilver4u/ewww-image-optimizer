@@ -5,7 +5,7 @@ Tags: image, compress, optimize, optimization, lossless, lossy, seo, tinyjpg, ti
 Requires at least: 4.6
 Tested up to: 4.9
 Requires PHP: 5.4
-Stable tag: 4.2.1
+Stable tag: 4.2.2
 License: GPLv3
 
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
@@ -188,6 +188,10 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: json_encode dies silently when passing non-utf8 data, results in AJAX/bulk errors
 * fixed: disabled auto-optimization bypassed for resizes when max dimensions are set
 * fixed: NextGEN support disabled for version 3
+* fixed: progressbar color does not match admin theme for NextGEN/Nextcellent
+* fixed: optimization details overlay styling missing for NextGEN
+* fixed: FlAGallery batch optimization from Manage Galleries/Images broken
+* fixed: undefined variable notices for resize detection and forced re-optimization
 * updated: PEL library for maintaining metadata during JPG auto-rotation
 
 = 4.2.1 =

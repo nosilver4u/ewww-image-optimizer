@@ -584,6 +584,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			wp_register_style( 'ngg-jqueryui', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ) );
 			// Enqueue the progressbar styling.
 			wp_enqueue_style( 'ngg-jqueryui' );
+			wp_add_inline_style( 'ngg-jqueryui', '.ui-widget-header { background-color: ' . ewww_image_optimizer_admin_background() . '; }' );
 			// Include all the vars we need for javascript.
 			wp_localize_script( 'ewwwbulkscript', 'ewww_vars', array(
 				'_wpnonce'              => wp_create_nonce( 'ewww-image-optimizer-bulk' ),
