@@ -95,6 +95,8 @@ if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
 	// Processes a MediaPress image via the metadata after upload.
 	add_filter( 'mpp_generate_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
 }
+// Skips resizing for images with 'noresize' in the filename.
+add_filter( 'ewww_image_optimizer_resize_dimensions', 'ewww_image_optimizer_noresize', 10, 2 );
 // Makes sure the optimizer never optimizes it's own testing images.
 add_filter( 'ewww_image_optimizer_bypass', 'ewww_image_optimizer_ignore_self', 10, 2 );
 // Adds a column to the media library list view to display optimization results.
@@ -4945,6 +4947,20 @@ function ewww_image_optimizer_autorotate( $file ) {
 		return;
 	}
 	ewww_image_optimizer_cloud_autorotate( $file, $type );
+}
+
+/**
+ * Skips resizing for any image with 'noresize' in the filename.
+ *
+ * @param array  $dimensions The configured dimensions for resizing.
+ * @param string $filename The filename of the uploaded image.
+ * @return array The new dimensions for resizing.
+ */
+function ewww_image_optimizer_noresize( $dimensions, $filename ) {
+	if ( strpos( $filename, 'noresize' ) !== false ) {
+		return array( 0, 0 );
+	}
+	return $dimensions;
 }
 
 /**

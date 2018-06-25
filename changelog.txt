@@ -10,7 +10,7 @@
 * fixed: disabled auto-optimization bypassed for resizes when max dimensions are set
 * fixed: NextGEN support disabled for version 3
 * fixed: progressbar color does not match admin theme for NextGEN/Nextcellent
-* fixed: optimization details overlay styling missing for NextGEN
+* fixed: optimization details overlay styling missing for NextGEN with some locales
 * fixed: FlAGallery batch optimization from Manage Galleries/Images broken
 * fixed: undefined variable notices for resize detection and forced re-optimization
 * updated: PEL library for maintaining metadata during JPG auto-rotation
