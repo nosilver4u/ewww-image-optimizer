@@ -177,6 +177,10 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.2.3 =
+* added: skip resizing for images with noresize in the filename
+* fixed: exactdn test verification attempts to access WP_Error as an array
+
 = 4.2.2 =
 * added: view pages with ExactDN or the entire plugin disabled via GET paramaters: ewwwio_disable and exactdn_disable
 * changed: moved to v2 quota endpoint for API

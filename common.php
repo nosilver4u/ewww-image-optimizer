@@ -29,8 +29,7 @@
 // TODO: can svg/use tags be exluded from all the things?
 // TODO: match Adaptive Images functionality with ExactDN.
 // TODO: handle relative urls with ExactDN.
-// TODO: escape html responses in the debugging output, particular in the async test.
-// TODO: check all instances of json_encode for safety.
+// TODO: can we fix minify/combine for WP Rocket and WPFC when ExactDN is active?
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
