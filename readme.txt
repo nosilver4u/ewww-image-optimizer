@@ -179,6 +179,8 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 
 = 4.2.3 =
 * added: skip resizing for images with noresize in the filename
+* added: notice about plugins that remove query strings when ExactDN is active
+* changed: cache busting for ExactDN uses theme directory modified time with fallback to EWWW IO version
 * fixed: exactdn test verification attempts to access WP_Error as an array
 
 = 4.2.2 =

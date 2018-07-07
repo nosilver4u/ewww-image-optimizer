@@ -1773,12 +1773,16 @@ class ExactDN {
 
 		// If a resource doesn't have a version string, we add one to help with cache-busting.
 		if ( empty( $parsed_url['query'] ) ) {
+			$modified = ewww_image_optimizer_function_exists( 'filemtime' ) ? filemtime( get_template_directory() ) : '';
+			if ( empty( $modified ) ) {
+				$modified = (int) EWWW_IMAGE_OPTIMIZER_VERSION;
+			}
 			/**
 			 * Allows a custom version string for resources that are missing one.
 			 *
 			 * @param string EWWW IO version.
 			 */
-			$parsed_url['query'] = apply_filters( 'exactdn_version_string', EWWW_IMAGE_OPTIMIZER_VERSION );
+			$parsed_url['query'] = apply_filters( 'exactdn_version_string', "m=$modified" );
 		}
 
 		$exactdn_url = '//' . $this->exactdn_domain . '/' . ltrim( $parsed_url['path'], '/' ) . '?' . $parsed_url['query'];
