@@ -35,6 +35,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			add_action( 'admin_action_ewww_ngg_manual', array( $this, 'ewww_ngg_manual' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'ewww_ngg_manual_actions_script' ) );
 			add_action( 'admin_menu', array( $this, 'ewww_ngg_bulk_menu' ) );
+			add_action( 'admin_menu', array( $this, 'ewww_ngg_update_menu' ), PHP_INT_MAX - 1 );
 			add_action( 'admin_head', array( $this, 'ewww_ngg_bulk_actions_script' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'ewww_ngg_bulk_script' ), 20 );
 			add_action( 'wp_ajax_bulk_ngg_preview', array( $this, 'ewww_ngg_bulk_preview' ) );
@@ -43,6 +44,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			add_action( 'wp_ajax_bulk_ngg_loop', array( $this, 'ewww_ngg_bulk_loop' ) );
 			add_action( 'wp_ajax_bulk_ngg_cleanup', array( $this, 'ewww_ngg_bulk_cleanup' ) );
 			add_action( 'ngg_generated_image', array( $this, 'ewww_ngg_generated_image' ), 10, 2 );
+			add_filter( 'ngg_get_image_size_params', array( $this, 'ewww_ngg_quality_param' ), 10, 2 );
 		}
 
 		/**
@@ -53,6 +55,51 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				return;
 			}
 			add_submenu_page( NGGFOLDER, esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), apply_filters( 'ewww_image_optimizer_manual_permissions', '' ), 'ewww-ngg-bulk', array( &$this, 'ewww_ngg_bulk_preview' ) );
+			remove_submenu_page( 'nextgen-gallery', 'ngg_imagify' );
+		}
+
+		/**
+		 * Removes unnecessary menu items from the NextGEN menu.
+		 */
+		function ewww_ngg_update_menu() {
+			if ( ! defined( 'NGGFOLDER' ) ) {
+				return;
+			}
+			remove_submenu_page( NGGFOLDER, 'ngg_imagify' );
+		}
+
+		/**
+		 * Keep the NextGEN quality level sane and inline with user settings.
+		 *
+		 * @param array  $params The image sizing parameters.
+		 * @param string $size The name of the size being processed.
+		 * @return array The image sizing parameters, sanitized.
+		 */
+		function ewww_ngg_quality_param( $params, $size ) {
+			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+			$settings = C_NextGen_Settings::get_instance();
+			if ( is_array( $params ) ) {
+				ewwwio_debug_message( 'params is an array' );
+				if ( ! empty( $params['quality'] ) && 100 == $params['quality'] ) {
+					$wp_quality = (int) apply_filters( 'jpeg_quality', 82, 'image_resize' );
+					// If the size is full and the WP default has not been altered, go for higher quality. Otherwise, obey the current WP setting.
+					$params['quality'] = 'full' === $size && 82 === $wp_quality ? 90 : $wp_quality;
+					ewwwio_debug_message( "setting quality for ngg to {$params['quality']} for $size" );
+				}
+			}
+			if ( empty( $params ) || empty( $params['quality'] ) ) {
+				$wp_quality = (int) apply_filters( 'jpeg_quality', 82, 'image_resize' );
+				if ( 'full' === $size ) {
+					$ngg_quality = (int) $settings->imgQuality;
+				} else {
+					$ngg_quality = (int) $settings->thumbquality;
+				}
+				if ( empty( $ngg_quality ) || 100 === $ngg_quality ) {
+					$params['quality'] = 'full' === $size && 82 === $wp_quality ? 90 : $wp_quality;
+					ewwwio_debug_message( "setting quality for ngg to {$params['quality']} for $size" );
+				}
+			}
+			return $params;
 		}
 
 		/**

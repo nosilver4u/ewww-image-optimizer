@@ -30,6 +30,9 @@
 // TODO: match Adaptive Images functionality with ExactDN.
 // TODO: handle relative urls with ExactDN.
 // TODO: can we fix minify/combine for WP Rocket and WPFC when ExactDN is active?
+// TODO: is there a way to detect the noscript/head conflict for libxml pre-2.8.0, or perhaps just detect Woo and libxml...
+// TODO: warn about large PNG uploads.
+// TODO: can some of the bulk "fallbacks" be implemented for async processing?
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

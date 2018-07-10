@@ -177,6 +177,9 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.2.4 =
+* changed: filter NextGEN quality to prevent oversized thumbs
+
 = 4.2.3 =
 * added: skip resizing for images with noresize in the filename
 * added: notice about plugins that remove query strings when ExactDN is active
