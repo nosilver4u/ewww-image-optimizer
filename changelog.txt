@@ -1,3 +1,9 @@
+= 4.2.3 =
+* added: skip resizing for images with noresize in the filename
+* added: notice about plugins that remove query strings when ExactDN is active
+* changed: cache busting for ExactDN uses theme directory modified time with fallback to EWWW IO version
+* fixed: exactdn test verification attempts to access WP_Error as an array
+
 = 4.2.2 =
 * added: view pages with ExactDN or the entire plugin disabled via GET paramaters: ewwwio_disable and exactdn_disable
 * changed: moved to v2 quota endpoint for API

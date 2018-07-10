@@ -5,7 +5,7 @@ Tags: image, compress, optimize, optimization, lossless, lossy, seo, tinyjpg, ti
 Requires at least: 4.6
 Tested up to: 4.9
 Requires PHP: 5.4
-Stable tag: 4.2.2
+Stable tag: 4.2.3
 License: GPLv3
 
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
@@ -222,45 +222,6 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: multi-site settings throws error during submission when ExactDN is active
 * fixed: single-site override option displayed when plugin activated per-site
 * removed: PHP 5.3 no longer supported
-
-= 4.1.3 =
-* fixed: infinite loop when removing invalid API key
-* fixed: img elements with incorrect attachment ID being replaced with wrong image src
-* fixed: ExactDN CSS and JS parsing incompatible with Autoptimize
-
-= 4.1.2 =
-* added: detect WP Fastest Cache WebP rewrite rules
-* added: notice if WebP conversion enabled but mod_rewrite or mod_headers is missing
-* added: better debugging when background/async mode is blocked
-* changed: CSS/JS files are filtered pre-emptively by ExactDN to avoid quirks with emoji scripts
-* fixed: warning during wp_cron for undefined constant
-* fixed: invalid or expired keys would still attempt optimization
-* fixed: WebP files are orphaned when using Media File Renamer
-* deprecated: PHP 5.3 will no longer be supported in 4.2
-* deprecated: PHP 5.4 support will be removed by July 2018
-* deprecated: PHP 5.5 support will be removed by October 2018
-
-= 4.1.1 =
-* added: reduce ExactDN load time by suppressing db queries with EXACTDN_PREVENT_DB_QUERIES
-* added: $fullsize indicator added to pre/post optimization hooks, props Schweinepriester
-* fixed: missing www preventing rewrites for ExactDN
-* fixed: Alt WebP compatibility with Tatsu page builder
-* fixed: relative path support not working properly for Pantheon users
-* fixed: missing directories prevent optimization of S3 files
-
-= 4.1.0 =
-* SECURITY: gifsicle and optipng have been updated to address security flaws
-* added: full compatibility with Image Watermark plugin
-* added: dummy images for Essential Grid and Layer Slider whitelisted with ExactDN
-* added: compatibility with Visual Composer and Essential Grid async/AJAX loaders
-* added: compatibility with Media File Renamer
-* changed: ExactDN rewrites all wp-content and wp-includes urls by default
-* changed: mime-type detection function does not rely on fileinfo extension anymore
-* changed: Solaris/SunOS binary builds use OpenIndiana 2017.10, let me know if they break
-* fixed: wp-emoji script not rewritten by EXACTDN_ALL_THE_THINGS
-* fixed: resize detection script throws error when admin bar is hidden
-* fixed: warnings when WP Offload S3 set to delete local files, props ianmjones
-* updated: pngquant version 2.11.7
 
 = Earlier versions =
 Please refer to the separate changelog.txt file.
