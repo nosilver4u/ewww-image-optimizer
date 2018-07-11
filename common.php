@@ -31,8 +31,8 @@
 // TODO: handle relative urls with ExactDN.
 // TODO: can we fix minify/combine for WP Rocket and WPFC when ExactDN is active?
 // TODO: is there a way to detect the noscript/head conflict for libxml pre-2.8.0, or perhaps just detect Woo and libxml...
-// TODO: warn about large PNG uploads.
 // TODO: can some of the bulk "fallbacks" be implemented for async processing?
+// TODO: can dynamic thumbs be grabbed during manual/bulk processes for NextGEN?
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -2316,6 +2316,9 @@ function ewww_image_optimizer_handle_mpp_upload( $params ) {
  */
 function ewww_image_optimizer_handle_upload( $params ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
+		ewwwio_debug_message( print_r( $params, true ) );
+	}
 	global $ewww_new_image;
 	$ewww_new_image = true;
 	if ( empty( $params['file'] ) ) {
@@ -2328,8 +2331,25 @@ function ewww_image_optimizer_handle_upload( $params ) {
 		$file_path = $params['file'];
 	}
 	ewww_image_optimizer_autorotate( $file_path );
+	$new_image = ewww_image_optimizer_autoconvert( $file_path );
+	if ( $new_image ) {
+		if ( ! empty( $params['tmp_name'] ) && $params['tmp_name'] == $file_path ) {
+			$params['tmp_name'] = $new_image;
+		}
+		if ( ! empty( $params['file'] ) && $params['file'] == $file_path ) {
+			$params['file'] = $new_image;
+		}
+		if ( ! empty( $params['url'] ) && basename( $file_path ) == basename( $params['url'] ) ) {
+			$params['url'] = trailingslashit( dirname( $params['url'] ) ) . basename( $new_image );
+		}
+		$params['type'] = ewww_image_optimizer_mimetype( $new_image, 'i' );
+		if ( is_file( $file_path ) ) {
+			unlink( $file_path );
+		}
+		$file_path = $new_image;
+	}
 	// NOTE: if you use the ewww_image_optimizer_defer_resizing filter to defer the resize operation, only the "other" dimensions will apply
-	// resize here unless the user chose to defer resizing or imsanity is enabled with a max size.
+	// Resize here unless the user chose to defer resizing or imsanity is enabled with a max size.
 	if ( ! apply_filters( 'ewww_image_optimizer_defer_resizing', false ) && ! function_exists( 'imsanity_get_max_width_height' ) ) {
 		if ( empty( $params['type'] ) ) {
 			$mime_type = ewww_image_optimizer_mimetype( $file_path, 'i' );
@@ -4899,7 +4919,7 @@ function ewww_image_optimizer_raise_memory_limit( $memory_limit ) {
  */
 function ewww_image_optimizer_autorotate( $file ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( defined( 'EWWW_IMAGE_OPTIMIZER_NO_ROTATE' ) && EWWW_IMAGE_OPTIMIZER_NO_ROTATE ) {
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_no_rotate' ) ) {
 		return;
 	}
 	if ( function_exists( 'wp_raise_memory_limit' ) ) {
@@ -4949,6 +4969,32 @@ function ewww_image_optimizer_autorotate( $file ) {
 		return;
 	}
 	ewww_image_optimizer_cloud_autorotate( $file, $type );
+}
+
+/**
+ * If a PNG image is over the threshold, see if we can make it smaller as a JPG.
+ *
+ * @param string $file The file to check for conversion.
+ */
+function ewww_image_optimizer_autoconvert( $file ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_autoconvert' ) ) {
+		return;
+	}
+	if ( function_exists( 'wp_raise_memory_limit' ) ) {
+		wp_raise_memory_limit( 'image' );
+	}
+	$type = ewww_image_optimizer_mimetype( $file, 'i' );
+	if ( 'image/png' != $type ) {
+		ewwwio_debug_message( 'not a PNG, no conversion needed' );
+		return;
+	}
+	$orig_size = ewww_image_optimizer_filesize( $file );
+	if ( $orig_size < 350000 ) {
+		return;
+	}
+	$ewww_image = new EWWW_Image( 0, '', $file );
+	return $ewww_image->convert( $file, false );
 }
 
 /**
@@ -5028,7 +5074,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
 		return false;
 	}
 	$crop = false;
-	if ( $oldwidth > $maxwidth && $maxwidth && $oldheight > $maxheight && $maxheight && apply_filters( 'ewww_image_optimizer_crop_image', false ) ) {
+	if ( $oldwidth >= $maxwidth && $maxwidth && $oldheight >= $maxheight && $maxheight && apply_filters( 'ewww_image_optimizer_crop_image', false ) ) {
 		$crop      = true;
 		$newwidth  = $maxwidth;
 		$newheight = $maxheight;
@@ -6304,7 +6350,7 @@ function ewww_image_optimizer_unique_filename( $file, $fileext ) {
 	// Set the increment to 1 (but allow the user to override it).
 	$filenum = apply_filters( 'ewww_image_optimizer_converted_filename_suffix', 1 );
 	// But it must be only letters, numbers, or underscores.
-	$filenum = ( preg_match( '/^[\w\d]*$/', $filenum ) ? $filenum : 1 );
+	$filenum = ( preg_match( '/^[\w\d]+$/', $filenum ) ? $filenum : 1 );
 	$suffix  = ( ! empty( $filenum ) ? '-' . $filenum : '' );
 	// While a file exists with the current increment.
 	while ( file_exists( $filename . $suffix . $fileext ) ) {

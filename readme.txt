@@ -178,7 +178,11 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.2.4 =
+* added: auto-convert large PNG images to JPG during upload, define EWWW_IMAGE_OPTIMIZER_DISABLE_AUTOCONVERT to skip
 * changed: filter NextGEN quality to prevent oversized thumbs
+* changed: allow crop via filter even when one dimension is the same as the original
+* fixed: unique filename function producing names with a hyphen and no digits
+* fixed: encoded ampersands within the path portion of a url prevent ExactDN parsing
 
 = 4.2.3 =
 * added: skip resizing for images with noresize in the filename
