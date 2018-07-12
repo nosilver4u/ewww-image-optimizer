@@ -159,7 +159,7 @@ class ExactDN {
 
 		// Find the "local" domain.
 		$upload_dir          = wp_upload_dir( null, false );
-		$this->upload_domain = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : $this->parse_url( $upload_dir['baseurl'], PHP_URL_HOST );
+		$this->upload_domain = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? $this->parse_url( EXACTDN_LOCAL_DOMAIN, PHP_URL_HOST ) : $this->parse_url( $upload_dir['baseurl'], PHP_URL_HOST );
 		ewwwio_debug_message( "allowing images from here: $this->upload_domain" );
 		$this->allowed_domains[] = $this->upload_domain;
 		if ( strpos( $this->upload_domain, 'www' ) === false ) {
@@ -1332,6 +1332,8 @@ class ExactDN {
 			is_array( $multipliers )
 			/** This filter is already documented in class-exactdn.php */
 			&& ! apply_filters( 'exactdn_skip_image', false, $url, null )
+			/** The original url is valid/allowed. */
+			&& $this->validate_image_url( $url )
 			/** Verify basic meta is intact. */
 			&& isset( $image_meta['width'] ) && isset( $image_meta['height'] ) && isset( $image_meta['file'] )
 			/** Verify we have the requested width/height. */
