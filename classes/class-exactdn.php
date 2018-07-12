@@ -1990,6 +1990,9 @@ class ExactDN {
 		if ( 0 === strpos( $url, '//' ) ) {
 			$url = ( is_ssl() ? 'https:' : 'http:' ) . $url;
 		}
+		if ( false === strpos( $url, 'http' ) && '/' !== substr( $url, 0, 1 ) ) {
+			$url = ( is_ssl() ? 'https://' : 'http://' ) . $url;
+		}
 		// Because encoded ampersands in the filename break things.
 		$url = str_replace( '&#038;', '&', $url );
 		return parse_url( $url, $component );
