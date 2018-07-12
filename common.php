@@ -322,12 +322,12 @@ function ewww_image_optimizer_webp_buffer_start() {
 /**
  * Copies attributes from the original img element to the noscript element.
  *
- * @param object $image A DOMElement (extension of DOMNode) representing an img element.
- * @param object $nscript Passed by reference, a DOMElement that will be given all the (known) attributes of $image.
+ * @param string $image The full text of the img element.
+ * @param string $nscript A noscript element that will be given all the (known) attributes of $image.
  * @param string $prefix Optional. Value to prepend to all attribute names. Default 'data-'.
  */
-function ewww_image_optimizer_webp_attr_copy( $image, &$nscript, $prefix = 'data-' ) {
-	if ( ! is_object( $image ) || ! is_object( $nscript ) ) {
+function ewww_image_optimizer_webp_attr_copy( $image, $nscript, $prefix = 'data-' ) {
+	if ( ! is_string( $image ) || ! is_string( $nscript ) ) {
 		return;
 	}
 	$attributes = array(
@@ -379,8 +379,9 @@ function ewww_image_optimizer_webp_attr_copy( $image, &$nscript, $prefix = 'data
 		'data-large_image_height',
 	);
 	foreach ( $attributes as $attribute ) {
-		if ( $image->getAttribute( $attribute ) ) {
-			$nscript->setAttribute( $prefix . $attribute, $image->getAttribute( $attribute ) );
+		// if ( $image->getAttribute( $attribute ) ) {.
+		if ( false !== strpos( $image, $attribute ) && preg_match( '#' . $attribute . '=["|\'](.+?)["|\']#i', $attr_matches ) ) {
+			return rtrim( $nscript, '>' ) . ' ' . $prefix . $attr_matches[0] . '>';
 		}
 	}
 }
@@ -717,7 +718,7 @@ function ewww_image_optimizer_filter_webp_page_output( $buffer ) {
 					if ( $image->getAttribute( 'data-large_image' ) && $image->getAttribute( 'data-src' ) ) {
 						ewww_image_optimizer_webp_woocommerce_replace( $image, $nscript, $home_url, $valid_path );
 					}
-					ewww_image_optimizer_webp_attr_copy( $image, $nscript );
+					$nscript = ewww_image_optimizer_webp_attr_copy( $image, $nscript );
 					$nscript->setAttribute( 'class', 'ewww_webp' );
 					$image->parentNode->replaceChild( $nscript, $image );
 					$nscript->appendChild( $image );
