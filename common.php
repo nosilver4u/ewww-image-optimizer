@@ -325,10 +325,11 @@ function ewww_image_optimizer_webp_buffer_start() {
  * @param string $image The full text of the img element.
  * @param string $nscript A noscript element that will be given all the (known) attributes of $image.
  * @param string $prefix Optional. Value to prepend to all attribute names. Default 'data-'.
+ * @return string The modified noscript tag.
  */
 function ewww_image_optimizer_webp_attr_copy( $image, $nscript, $prefix = 'data-' ) {
 	if ( ! is_string( $image ) || ! is_string( $nscript ) ) {
-		return;
+		return $nscript;
 	}
 	$attributes = array(
 		'align',
@@ -380,10 +381,14 @@ function ewww_image_optimizer_webp_attr_copy( $image, $nscript, $prefix = 'data-
 	);
 	foreach ( $attributes as $attribute ) {
 		// if ( $image->getAttribute( $attribute ) ) {.
-		if ( false !== strpos( $image, $attribute ) && preg_match( '#' . $attribute . '=["|\'](.+?)["|\']#i', $attr_matches ) ) {
-			return rtrim( $nscript, '>' ) . ' ' . $prefix . $attr_matches[0] . '>';
+		if ( false !== strpos( $image, $attribute ) && preg_match( '#' . $attribute . '=\'(.+?)\'#i', $attr_matches ) ) {
+			$nscript = rtrim( $nscript, '>' ) . ' ' . $prefix . $attr_matches[0] . '>';
+		}
+		if ( false !== strpos( $image, $attribute ) && preg_match( '#' . $attribute . '="(.+?)"#i', $attr_matches ) ) {
+			$nscript = rtrim( $nscript, '>' ) . ' ' . $prefix . $attr_matches[0] . '>';
 		}
 	}
+	return $nscript;
 }
 
 /**
@@ -422,13 +427,14 @@ function ewww_image_optimizer_webp_srcset_replace( $srcset, $home_url, $valid_pa
 /**
  * Replaces images with the Jetpack data attributes with their .webp derivatives.
  *
- * @param object $image A DOMElement (extension of DOMNode) representing an img element.
- * @param object $nscript Passed by reference, a DOMElement that will be assigned the jetpack data attributes.
+ * @param string $image The full text of the img element.
+ * @param string $nscript A noscript element that will be assigned the jetpack data attributes.
  * @param string $home_url The 'home' url for the WordPress site.
  * @param bool   $valid_path True if a CDN path has been specified and matches the img element.
+ * @return string The modified noscript tag.
  */
-function ewww_image_optimizer_webp_jetpack_replace( $image, &$nscript, $home_url, $valid_path ) {
-	if ( $image->getAttribute( 'data-orig-file' ) ) {
+function ewww_image_optimizer_webp_jetpack_replace( $image, $nscript, $home_url, $valid_path ) {
+	if ( preg_match( '#data-orig-file=["|\']([^\s]+?)["|\']#is', $image, $attr_matches ) ) {
 		$origfilepath = ABSPATH . str_replace( $home_url, '', $image->getAttribute( 'data-orig-file' ) );
 		ewwwio_debug_message( "looking for data-orig-file on disk: $origfilepath" );
 		if ( $valid_path || is_file( $origfilepath . '.webp' ) ) {
@@ -455,17 +461,19 @@ function ewww_image_optimizer_webp_jetpack_replace( $image, &$nscript, $home_url
 		}
 		$nscript->setAttribute( 'data-large-file', $image->getAttribute( 'data-large-file' ) );
 	}
+	return $nscript;
 }
 
 /**
  * Replaces images with the WooCommerce data attributes with their .webp derivatives.
  *
- * @param object $image A DOMElement (extension of DOMNode) representing an img element.
- * @param object $nscript Passed by reference, a DOMElement that will be assigned the WooCommerce data attributes.
+ * @param string $image The full text of the img element.
+ * @param string $nscript A noscript element that will be assigned the WooCommerce data attributes.
  * @param string $home_url The 'home' url for the WordPress site.
  * @param bool   $valid_path True if a CDN path has been specified and matches the img element.
+ * @return string The modified noscript tag.
  */
-function ewww_image_optimizer_webp_woocommerce_replace( $image, &$nscript, $home_url, $valid_path ) {
+function ewww_image_optimizer_webp_woocommerce_replace( $image, $nscript, $home_url, $valid_path ) {
 	if ( $image->getAttribute( 'data-large_image' ) ) {
 		$largefilepath = ABSPATH . str_replace( $home_url, '', $image->getAttribute( 'data-large_image' ) );
 		ewwwio_debug_message( "looking for data-large_image on disk: $largefilepath" );
@@ -484,6 +492,7 @@ function ewww_image_optimizer_webp_woocommerce_replace( $image, &$nscript, $home
 		}
 		$nscript->setAttribute( 'data-src', $image->getAttribute( 'data-src' ) );
 	}
+	return $nscript;
 }
 
 /**
@@ -713,10 +722,10 @@ function ewww_image_optimizer_filter_webp_page_output( $buffer ) {
 						$nscript->setAttribute( 'data-srcset-img', $srcset );
 					}
 					if ( $image->getAttribute( 'data-orig-file' ) && $image->getAttribute( 'data-medium-file' ) && $image->getAttribute( 'data-large-file' ) ) {
-						ewww_image_optimizer_webp_jetpack_replace( $image, $nscript, $home_url, $valid_path );
+						$nscript = ewww_image_optimizer_webp_jetpack_replace( $image, $nscript, $home_url, $valid_path );
 					}
 					if ( $image->getAttribute( 'data-large_image' ) && $image->getAttribute( 'data-src' ) ) {
-						ewww_image_optimizer_webp_woocommerce_replace( $image, $nscript, $home_url, $valid_path );
+						$nscript = ewww_image_optimizer_webp_woocommerce_replace( $image, $nscript, $home_url, $valid_path );
 					}
 					$nscript = ewww_image_optimizer_webp_attr_copy( $image, $nscript );
 					$nscript->setAttribute( 'class', 'ewww_webp' );
