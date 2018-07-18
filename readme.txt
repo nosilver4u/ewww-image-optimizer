@@ -183,6 +183,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * changed: allow crop via filter even when one dimension is the same as the original
 * fixed: unique filename function producing names with a hyphen and no digits
 * fixed: encoded ampersands within the path portion of a url prevent ExactDN parsing
+* fixed: entering a decimal for bulk delay does nothing
 
 = 4.2.3 =
 * added: skip resizing for images with noresize in the filename
