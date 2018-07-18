@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Enables EWWW IO to filter the page content and replace img elements with WebP markup.
  */
-class EWWWIO_Alt_Webp {
+class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 
 	/**
 	 * The Alt WebP inline script contents. Current length 10781.
