@@ -211,6 +211,10 @@ if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && empty(
 // If Alt WebP Rewriting is enabled.
 if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ) {
 	/**
+	 * Page Parsing class for working with HTML content.
+	 */
+	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-page-parser.php' );
+	/**
 	 * Alt WebP class for parsing image urls and rewriting them for WebP support.
 	 */
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-alt-webp.php' );
@@ -7578,7 +7582,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	}
 	echo apply_filters( 'ewww_image_optimizer_settings', $output );
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_ce_webp_enabled() ) {
-		ewww_image_optimizer_webp_inline_script();
+		global $ewwwio_alt_webp;
+		$ewwwio_alt_webp->inline_script();
 	}
 
 	$help_instructions = esc_html__( 'Enable the Debugging option and refresh this page to include debugging information with your question.', 'ewww-image-optimizer' ) . ' ' .
