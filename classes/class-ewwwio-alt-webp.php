@@ -36,7 +36,6 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 		}
 		// Start an output buffer before any output starts.
 		add_action( 'template_redirect', array( $this, 'buffer_start' ) );
-		ewwwio_debug_message( 'registered the buffer_start method' );
 		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
 			// Load the non-minified, non-inline version of the webp rewrite script.
 			add_action( 'wp_enqueue_scripts', array( $this, 'debug_script' ) );
@@ -58,7 +57,6 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	 * Starts an output buffer and registers the callback function to do WebP replacement.
 	 */
 	function buffer_start() {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		ob_start( array( $this, 'filter_page_output' ) );
 	}
 
@@ -395,14 +393,15 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 		if ( ! is_array( $webp_paths ) ) {
 			$webp_paths = array();
 		}
-		$home_relative_url = preg_replace( '/https?:/', '', $home_url );
+		$home_url          = trailingslashit( $home_url );
+		$home_relative_url = trailingslashit( preg_replace( '/https?:/', '', $home_url ) );
 		$images            = $this->get_images_from_html( $buffer, false );
 		if ( ewww_image_optimizer_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
 				$srcset     = '';
 				$valid_path = false;
-				ewwwio_debug_message( 'parsing an image' );
-				$file = $image['img_url'][ $index ];
+				$file       = $images['img_url'][ $index ];
+				ewwwio_debug_message( "parsing an image: $file" );
 				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
 					// Check for CDN paths within the img src attribute.
 					foreach ( $webp_paths as $webp_path ) {
@@ -424,7 +423,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 					$this->set_attribute( $nscript, 'data-webp', $file . '.webp' );
 					$srcset = $this->get_attribute( $image, 'srcset' );
 					if ( $srcset ) {
-						$srcset_webp = ewww_image_optimizer_webp_srcset_replace( $srcset, $home_url, $valid_path );
+						$srcset_webp = $this->srcset_replace( $srcset, $home_url, $valid_path );
 						if ( $srcset_webp ) {
 							$this->set_attribute( $nscript, 'data-srcset-webp', $srcset_webp );
 						}
@@ -436,7 +435,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 					if ( $this->get_attribute( $image, 'data-large_image' ) && $this->get_attribute( $image, 'data-src' ) ) {
 						$nscript = $this->woocommerce_replace( $image, $nscript, $home_url, $valid_path );
 					}
-					$nscript = ewww_image_optimizer_webp_attr_copy( $image, $nscript );
+					$nscript = $this->attr_copy( $image, $nscript );
 					$this->set_attribute( $nscript, 'class', 'ewww_webp' );
 					// TODO TODO: we are right here.
 					$buffer = str_replace( $image, $nscript . $image . '</noscript>', $buffer );
