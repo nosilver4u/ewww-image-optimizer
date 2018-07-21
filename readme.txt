@@ -179,6 +179,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 
 = 4.2.4 =
 * added: auto-convert large PNG images to JPG during upload, define EWWW_IMAGE_OPTIMIZER_DISABLE_AUTOCONVERT to skip
+* added: use file modification time to add query strings on JS/CSS files for cache invalidation on ExactDN
 * changed: filter NextGEN quality to prevent oversized thumbs
 * changed: allow crop via filter even when one dimension is the same as the original
 * fixed: unique filename function producing names with a hyphen and no digits

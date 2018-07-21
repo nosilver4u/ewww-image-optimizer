@@ -1773,8 +1773,9 @@ class ExactDN {
 			return $url;
 		}
 
+		global $wp_version;
 		// If a resource doesn't have a version string, we add one to help with cache-busting.
-		if ( empty( $parsed_url['query'] ) ) {
+		if ( ( empty( $parsed_url['query'] ) || 'ver=' . $wp_version == $parsed_url['query'] ) && false !== strpos( $url, 'wp-content/' ) ) {
 			$modified = ewww_image_optimizer_function_exists( 'filemtime' ) ? filemtime( get_template_directory() ) : '';
 			if ( empty( $modified ) ) {
 				$modified = (int) EWWW_IMAGE_OPTIMIZER_VERSION;
@@ -1944,12 +1945,7 @@ class ExactDN {
 		ewwwio_debug_message( "exactdn url with args: $exactdn_url" );
 
 		if ( isset( $image_url_parts['scheme'] ) && 'https' == $image_url_parts['scheme'] ) {
-			$exactdn_url = add_query_arg(
-				array(
-					'ssl' => 1,
-				),
-				$exactdn_url
-			);
+			$exactdn_url = add_query_arg( 'ssl', 1, $exactdn_url );
 			$scheme      = 'https';
 		}
 
