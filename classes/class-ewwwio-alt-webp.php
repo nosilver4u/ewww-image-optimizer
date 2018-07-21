@@ -160,7 +160,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 				if ( $valid_path || is_file( $srcfilepath . '.webp' ) ) {
 					if ( $this->parsing_exactdn ) {
 						$srcset = str_replace( $srcurl . ',', add_query_arg( 'webp', 1, $srcurl ) . ',', $srcset );
-						$srcset = str_replace( $srcurl . ' ', add_query_arg( 'webp', 1, $srcurl ) . ' ', $srcset ); // TODO: this isn't working quite right, see webp=10.
+						$srcset = str_replace( $srcurl . ' ', add_query_arg( 'webp', 1, $srcurl ) . ' ', $srcset );
 					} else {
 						$srcset = str_replace( $srcurl, $srcurl . '.webp', $srcset ); // TODO: make sure this still works.
 					}
