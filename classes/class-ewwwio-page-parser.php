@@ -138,11 +138,13 @@ class EWWWIO_Page_Parser {
 			$new_element = preg_replace( '#' . $name . '\s*=\s*(["\'])([^\1]+?)\1#is', "$name=$1$value$1", $element );
 			if ( $new_element !== $element ) {
 				$element = $new_element;
+				return;
 			}
 			$element = preg_replace( '#' . $name . '\s*=\s*([^\s]+?)#is', '', $element );
 		}
 		if ( false === strpos( $value, '"' ) ) {
 			$element = rtrim( $element, '>' ) . " $name=\"$value\">";
+			return;
 		}
 		$element = rtrim( $element, '>' ) . " $name='$value'>";
 	}

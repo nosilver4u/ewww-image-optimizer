@@ -158,11 +158,11 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 				$srcfilepath = ABSPATH . str_replace( $home_url, '', $srcurl );
 				ewwwio_debug_message( "looking for srcurl on disk: $srcfilepath" );
 				if ( $valid_path || is_file( $srcfilepath . '.webp' ) ) {
-					if ( $this->parsing_exactdn ) {
+					if ( $this->parsing_exactdn && $valid_path ) {
 						$srcset = str_replace( $srcurl . ',', add_query_arg( 'webp', 1, $srcurl ) . ',', $srcset );
 						$srcset = str_replace( $srcurl . ' ', add_query_arg( 'webp', 1, $srcurl ) . ' ', $srcset );
 					} else {
-						$srcset = str_replace( $srcurl, $srcurl . '.webp', $srcset ); // TODO: make sure this still works.
+						$srcset = str_replace( $srcurl, $srcurl . '.webp', $srcset );
 					}
 					$found_webp = true;
 					ewwwio_debug_message( "replacing $srcurl in $srcset" );
@@ -186,32 +186,47 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	 * @return string The modified noscript tag.
 	 */
 	function jetpack_replace( $image, $nscript, $home_url, $valid_path ) {
-		if ( preg_match( '#data-orig-file=["|\']([^\s]+?)["|\']#is', $image, $attr_matches ) ) {
-			$origfilepath = ABSPATH . str_replace( $home_url, '', $image->getAttribute( 'data-orig-file' ) );
+		$data_orig_file = $this->get_attribute( $image, 'data-orig-file' );
+		if ( $data_orig_file ) {
+			$origfilepath = ABSPATH . str_replace( $home_url, '', $data_orig_file );
 			ewwwio_debug_message( "looking for data-orig-file on disk: $origfilepath" );
 			if ( $valid_path || is_file( $origfilepath . '.webp' ) ) {
-				$nscript->setAttribute( 'data-webp-orig-file', $image->getAttribute( 'data-orig-file' ) . '.webp' );
+				if ( $this->parsing_exactdn && $valid_path ) {
+					$this->set_attribute( $nscript, 'data-webp-orig-file', add_query_arg( 'webp', 1, $data_orig_file ) );
+				} else {
+					$this->set_attribute( $nscript, 'data-webp-orig-file', $data_orig_file . '.webp' );
+				}
 				ewwwio_debug_message( "replacing $origfilepath in data-orig-file" );
 			}
-			$nscript->setAttribute( 'data-orig-file', $image->getAttribute( 'data-orig-file' ) );
+			$this->set_attribute( $nscript, 'data-orig-file', $data_orig_file );
 		}
-		if ( $image->getAttribute( 'data-medium-file' ) ) {
-			$mediumfilepath = ABSPATH . str_replace( $home_url, '', $image->getAttribute( 'data-medium-file' ) );
+		$data_medium_file = $this->get_attribute( $image, 'data-medium-file' );
+		if ( $data_medium_file ) {
+			$mediumfilepath = ABSPATH . str_replace( $home_url, '', $data_medium_file );
 			ewwwio_debug_message( "looking for data-medium-file on disk: $mediumfilepath" );
 			if ( $valid_path || is_file( $mediumfilepath . '.webp' ) ) {
-				$nscript->setAttribute( 'data-webp-medium-file', $image->getAttribute( 'data-medium-file' ) . '.webp' );
+				if ( $this->parsing_exactdn && $valid_path ) {
+					$this->set_attribute( $nscript, 'data-webp-medium-file', add_query_arg( 'webp', 1, $data_medium_file ) );
+				} else {
+					$this->set_attribute( $nscript, 'data-webp-medium-file', $data_medium_file . '.webp' );
+				}
 				ewwwio_debug_message( "replacing $mediumfilepath in data-medium-file" );
 			}
-			$nscript->setAttribute( 'data-medium-file', $image->getAttribute( 'data-medium-file' ) );
+			$this->set_attribute( $nscript, 'data-medium-file', $data_medium_file );
 		}
-		if ( $image->getAttribute( 'data-large-file' ) ) {
-			$largefilepath = ABSPATH . str_replace( $home_url, '', $image->getAttribute( 'data-large-file' ) );
+		$data_large_file = $this->get_attribute( $image, 'data-large-file' );
+		if ( $data_large_file ) {
+			$largefilepath = ABSPATH . str_replace( $home_url, '', $data_large_file );
 			ewwwio_debug_message( "looking for data-large-file on disk: $largefilepath" );
 			if ( $valid_path || is_file( $largefilepath . '.webp' ) ) {
-				$nscript->setAttribute( 'data-webp-large-file', $image->getAttribute( 'data-large-file' ) . '.webp' );
+				if ( $this->parsing_exactdn && $valid_path ) {
+					$this->set_attribute( $nscript, 'data-webp-large-file', add_query_arg( 'webp', 1, $data_large_file ) );
+				} else {
+					$this->set_attribute( $nscript, 'data-webp-large-file', $data_large_file . '.webp' );
+				}
 				ewwwio_debug_message( "replacing $largefilepath in data-large-file" );
 			}
-			$nscript->setAttribute( 'data-large-file', $image->getAttribute( 'data-large-file' ) );
+			$this->set_attribute( $nscript, 'data-large-file', $data_large_file );
 		}
 		return $nscript;
 	}
@@ -226,23 +241,33 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	 * @return string The modified noscript tag.
 	 */
 	function woocommerce_replace( $image, $nscript, $home_url, $valid_path ) {
-		if ( $image->getAttribute( 'data-large_image' ) ) {
-			$largefilepath = ABSPATH . str_replace( $home_url, '', $image->getAttribute( 'data-large_image' ) );
+		$data_large_image = $this->get_attribute( $image, 'data-large_image' );
+		if ( $data_large_image ) {
+			$largefilepath = ABSPATH . str_replace( $home_url, '', $data_large_image );
 			ewwwio_debug_message( "looking for data-large_image on disk: $largefilepath" );
 			if ( $valid_path || is_file( $largefilepath . '.webp' ) ) {
-				$nscript->setAttribute( 'data-webp-large_image', $image->getAttribute( 'data-large_image' ) . '.webp' );
+				if ( $this->parsing_exactdn && $valid_path ) {
+					$this->set_attribute( $nscript, 'data-webp-large_image', add_query_arg( 'webp', 1, $data_large_image ) );
+				} else {
+					$this->set_attribute( $nscript, 'data-webp-large_image', $data_large_image . '.webp' );
+				}
 				ewwwio_debug_message( "replacing $largefilepath in data-large_image" );
 			}
-			$nscript->setAttribute( 'data-large_image', $image->getAttribute( 'data-large_image' ) );
+			$this->set_attribute( $nscript, 'data-large_image', $data_large_image );
 		}
-		if ( $image->getAttribute( 'data-src' ) ) {
-			$srcpath = ABSPATH . str_replace( $home_url, '', $image->getAttribute( 'data-src' ) );
+		$data_src = $this->get_attribute( $image, 'data-src' );
+		if ( $data_src ) {
+			$srcpath = ABSPATH . str_replace( $home_url, '', $data_src );
 			ewwwio_debug_message( "looking for data-src on disk: $srcpath" );
 			if ( $valid_path || is_file( $srcpath . '.webp' ) ) {
-				$nscript->setAttribute( 'data-webp-src', $image->getAttribute( 'data-src' ) . '.webp' );
+				if ( $this->parsing_exactdn && $valid_path ) {
+					$this->set_attribute( $nscript, 'data-webp-src', add_query_arg( 'webp', 1, $data_src ) );
+				} else {
+					$this->set_attribute( $nscript, 'data-webp-src', $data_src . '.webp' );
+				}
 				ewwwio_debug_message( "replacing $srcpath in data-src" );
 			}
-			$nscript->setAttribute( 'data-src', $image->getAttribute( 'data-src' ) );
+			$this->set_attribute( $nscript, 'data-src', $data_src );
 		}
 		return $nscript;
 	}
@@ -461,6 +486,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 					$this->set_attribute( $nscript, 'class', 'ewww_webp' );
 					$buffer = str_replace( $image, $nscript . $image . '</noscript>', $buffer );
 				}
+				// TODO: we are right here.
 				// Look for NextGEN attributes that need to be altered.
 				if ( empty( $file ) && $this->get_attribute( $image, 'data-src' ) && $this->get_attribute( $image, 'data-thumbnail' ) ) {
 					$file  = $this->get_attribute( $image, 'data-src' );
