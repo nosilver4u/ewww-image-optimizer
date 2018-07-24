@@ -900,6 +900,7 @@ class ExactDN {
 				} // End if().
 			} // End foreach().
 		} // End if();
+		// TODO: Rewrite urls with nextgen-image/ in the url, and also see if we can account for <picture><source> tags from NextGEN.
 		if ( $this->filtering_the_page && ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ) {
 			ewwwio_debug_message( 'rewriting all other wp_content urls' );
 			if ( $this->exactdn_domain && $this->upload_domain ) {

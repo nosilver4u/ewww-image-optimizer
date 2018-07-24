@@ -78,6 +78,24 @@ class EWWWIO_Page_Parser {
 	}
 
 	/**
+	 * Match all elements by tag name in a block of HTML. Does not retrieve contents or closing tags.
+	 *
+	 * @param string $content Some HTML.
+	 * @param string $tag_name The name of the elements to retrieve.
+	 * @return array An array of $elements.
+	 */
+	function get_elements_from_html( $content, $tag_name ) {
+		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		if ( ! ctype_alpha( $tag_name ) ) {
+			return array();
+		}
+		if ( preg_match_all( '#<' . $tag_name . '[^>]+?>#is', $content, $elements ) ) {
+			return $elements[0];
+		}
+		return array();
+	}
+
+	/**
 	 * Try to determine height and width from strings WP appends to resized image filenames.
 	 *
 	 * @param string $src The image URL.
@@ -147,5 +165,16 @@ class EWWWIO_Page_Parser {
 			return;
 		}
 		$element = rtrim( $element, '>' ) . " $name='$value'>";
+	}
+
+	/**
+	 * Remove an attribute from an HTML element.
+	 *
+	 * @param string $element The HTML element to modify. Passed by reference.
+	 * @param string $name The name of the attribute to remove.
+	 */
+	function remove_attribute( &$element, $name ) {
+		$element = preg_replace( '#' . $name . '\s*=\s*(["\'])([^\1]+?)\1#is', '', $element );
+		$element = preg_replace( '#' . $name . '\s*=\s*([^\s]+?)#is', '', $element );
 	}
 }
