@@ -37,7 +37,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '423.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '423.24' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -1118,17 +1118,21 @@ function ewww_image_optimizer_stl_check() {
  * Checks if a function is disabled or does not exist.
  *
  * @param string $function The name of a function to test.
+ * @param bool   $debug Whether to output debugging.
  * @return bool True if the function is available, False if not.
  */
-function ewww_image_optimizer_function_exists( $function ) {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+function ewww_image_optimizer_function_exists( $function, $debug = false ) {
 	if ( function_exists( 'ini_get' ) ) {
 		$disabled = @ini_get( 'disable_functions' );
-		ewwwio_debug_message( "disable_functions: $disabled" );
+		if ( $debug ) {
+			ewwwio_debug_message( "disable_functions: $disabled" );
+		}
 	}
 	if ( extension_loaded( 'suhosin' ) && function_exists( 'ini_get' ) ) {
 		$suhosin_disabled = @ini_get( 'suhosin.executor.func.blacklist' );
-		ewwwio_debug_message( "suhosin_blacklist: $suhosin_disabled" );
+		if ( $debug ) {
+			ewwwio_debug_message( "suhosin_blacklist: $suhosin_disabled" );
+		}
 		if ( ! empty( $suhosin_disabled ) ) {
 			$suhosin_disabled = explode( ',', $suhosin_disabled );
 			$suhosin_disabled = array_map( 'trim', $suhosin_disabled );
@@ -1724,16 +1728,13 @@ function ewww_image_optimizer_save_admin_colors() {
 	if ( empty( $ewwwio_admin_color ) ) {
 		$ewwwio_admin_color = '#0073aa';
 	}
-	ewwwio_debug_message( "admin color selected: $ewwwio_admin_color" );
 }
 /**
  * Determines the background color to use based on the selected admin theme.
  */
 function ewww_image_optimizer_admin_background() {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $ewwwio_admin_color;
 	if ( ! empty( $ewwwio_admin_color ) && preg_match( '/^\#([0-9a-fA-F]){3,6}$/', $ewwwio_admin_color ) ) {
-		ewwwio_debug_message( "admin color previously saved: $ewwwio_admin_color" );
 		return $ewwwio_admin_color;
 	}
 	if ( function_exists( 'wp_add_inline_style' ) ) {
@@ -1748,7 +1749,6 @@ function ewww_image_optimizer_admin_background() {
 			preg_match( '/^\#([0-9a-fA-F]){3,6}$/', $_wp_admin_css_colors[ $user_info->admin_color ]->colors[2] )
 		) {
 			$ewwwio_admin_color = $_wp_admin_css_colors[ $user_info->admin_color ]->colors[2];
-			ewwwio_debug_message( "had to go searching for admin color: $ewwwio_admin_color" );
 			return $ewwwio_admin_color;
 		}
 		switch ( $user_info->admin_color ) {
@@ -1770,7 +1770,6 @@ function ewww_image_optimizer_admin_background() {
 				return '#0073aa';
 		}
 	}
-	ewwwio_memory( __FUNCTION__ );
 }
 
 /**
@@ -1893,9 +1892,7 @@ function ewww_image_optimizer_install_table() {
 	// Include the upgrade library to install/upgrade a table.
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 	$updates = dbDelta( $sql );
-	if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
-		ewwwio_debug_message( 'db upgrade results: ' . print_r( $updates, true ) );
-	}
+	ewwwio_debug_message( 'db upgrade results: ' . implode( '<br>', $updates ) );
 
 	// Make sure some of our options are not autoloaded (since they can be huge).
 	$bulk_attachments = get_option( 'ewww_image_optimizer_bulk_attachments', '' );
@@ -2074,8 +2071,8 @@ function ewww_image_optimizer_load_editor( $editors ) {
 	if ( ! in_array( 'EWWWIO_Gmagick_Editor', $editors ) && class_exists( 'WP_Image_Editor_Gmagick' ) ) {
 		array_unshift( $editors, 'EWWWIO_Gmagick_Editor' );
 	}
-	if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
-		ewwwio_debug_message( 'loading image editors: ' . print_r( $editors, true ) );
+	if ( is_array( $editors ) ) {
+		ewwwio_debug_message( 'loading image editors: ' . implode( '<br>', $editors ) );
 	}
 	ewwwio_memory( __FUNCTION__ );
 	return $editors;
@@ -7440,8 +7437,8 @@ function ewww_image_optimizer_webp_rewrite_verify() {
 		'</IfModule>',
 		'AddType image/webp .webp',
 	);
-	if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
-		ewwwio_debug_message( print_r( $current_rules, true ) );
+	if ( is_array( $current_rules ) ) {
+		ewwwio_debug_message( 'current rules: ' . implode( '<br>', $current_rules ) );
 	}
 	if ( empty( $current_rules ) ||
 		! ewww_image_optimizer_array_search( '{HTTP_ACCEPT} image/webp', $current_rules ) ||
@@ -7536,8 +7533,8 @@ function ewww_image_optimizer_get_image_sizes() {
 	global $_wp_additional_image_sizes;
 	$sizes       = array();
 	$image_sizes = get_intermediate_image_sizes();
-	if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
-		ewwwio_debug_message( print_r( $image_sizes, true ) );
+	if ( is_array( $image_sizes ) ) {
+		ewwwio_debug_message( 'sizes: ' . implode( '<br>', $image_sizes ) );
 	}
 	if ( false ) { // set to true to enable more debugging.
 		ewwwio_debug_message( print_r( $_wp_additional_image_sizes, true ) );
@@ -8176,6 +8173,15 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewwwio_debug_message( 'ExactDN lossy: ' . intval( ewww_image_optimizer_get_option( 'exactdn_lossy' ) ) );
 	ewwwio_debug_message( 'ExactDN resize existing: ' . ( ewww_image_optimizer_get_option( 'exactdn_resize_existing' ) == true ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'ExactDN attachment queries: ' . ( ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' ) == true ? 'off' : 'on' ) );
+	if ( defined( 'EXACTDN_EXCLUDE' ) && EXACTDN_EXCLUDE ) {
+		if ( is_string( EXACTDN_EXCLUDE ) ) {
+			ewwwio_debug_message( 'ExactDN user exclusions : ' . EXACTDN_EXCLUDE );
+		} elseif ( is_array( EXACTDN_EXCLUDE ) ) {
+			ewwwio_debug_message( 'ExactDN user exclusions : ' . implode( ',', EXACTDN_EXCLUDE ) );
+		} else {
+			ewwwio_debug_message( 'ExactDN user exclusions invalid data type' );
+		}
+	}
 	$output[] = "<tr class='$network_class'><th><label for='ewww_image_optimizer_resize_detection'>" . esc_html__( 'Resize Detection', 'ewww-image-optimizer' ) . "</label></th><td><input type='checkbox' id='ewww_image_optimizer_resize_detection' name='ewww_image_optimizer_resize_detection' value='true' " . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' ) == true ? "checked='true'" : '' ) . ' /> ' . esc_html__( 'Highlight images that need to be resized because the browser is scaling them down. Only visible for Admin users and adds a button to the admin bar to detect scaled images that have been lazy loaded.', 'ewww-image-optimizer' ) . "</td></tr>\n";
 	ewwwio_debug_message( 'resize detection: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' ) == true ? 'on' : 'off' ) );
 	if ( function_exists( 'imsanity_get_max_width_height' ) ) {
@@ -8334,12 +8340,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		"</div>\n";
 	ewwwio_debug_message( 'max_execution_time: ' . ini_get( 'max_execution_time' ) );
 	ewww_image_optimizer_stl_check();
-	if ( ! ewww_image_optimizer_function_exists( 'sleep' ) ) {
-		ewwwio_debug_message( 'sleep disabled' );
-	}
-	if ( ! ewww_image_optimizer_function_exists( 'print_r' ) ) {
-		ewwwio_debug_message( 'print_r disabled' );
-	}
+	ewww_image_optimizer_function_exists( 'sleep', true );
 	ewwwio_check_memory_available();
 	if ( 'debug-silent' === $network ) {
 		return;

@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class ExactDN {
 
 	/**
-	 * Allowed extensions are currently only images. Might add PDF/CSS/JS at some point.
+	 * Allowed image extensions.
 	 *
 	 * @access private
 	 * @var array $extensions
@@ -28,6 +28,15 @@ class ExactDN {
 		'jpe',
 		'png',
 	);
+
+
+	/**
+	 * A list of user-defined exclusions, populated by validate_user_exclusions().
+	 *
+	 * @access protected
+	 * @var array $user_exclusions
+	 */
+	protected $user_exclusions = array();
 
 	/**
 	 * A list of image sizes registered for attachments.
@@ -171,6 +180,7 @@ class ExactDN {
 			}
 		}
 		$this->allowed_domains = apply_filters( 'exactdn_allowed_domains', $this->allowed_domains );
+		$this->validate_user_exclusions();
 	}
 
 	/**
@@ -474,6 +484,28 @@ class ExactDN {
 			}
 		}
 		return update_option( 'ewww_image_optimizer_exactdn_' . $option_name, $option_value, $autoload );
+	}
+
+	/**
+	 * Validate the user-defined exclusions for "all the things" rewriting.
+	 */
+	function validate_user_exclusions() {
+		if ( defined( 'EXACTDN_EXCLUDE' ) && EXACTDN_EXCLUDE ) {
+			$user_exclusions = EXACTDN_EXCLUDE;
+		}
+		if ( ! empty( $user_exclusions ) ) {
+			if ( is_string( $user_exclusions ) ) {
+				$user_exclusions = array( $user_exclusions );
+			}
+			if ( is_array( $user_exclusions ) ) {
+				foreach ( $user_exclusions as $exclusion ) {
+					if ( false !== strpos( $exclusion, 'wp-content' ) ) {
+						$exclusion = preg_replace( '#([^"\'?>]+?)?wp-content/#i', '', $exclusion );
+					}
+					$this->user_exclusions[] = ltrim( $exclusion, '/' );
+				}
+			}
+		}
 	}
 
 	/**
@@ -905,10 +937,14 @@ class ExactDN {
 			if ( $this->exactdn_domain && $this->upload_domain ) {
 				$escaped_upload_domain = str_replace( '.', '\.', ltrim( $this->upload_domain, 'w.' ) );
 				ewwwio_debug_message( $escaped_upload_domain );
-				// Pre-empt rewriting of wp-includes and wp-content if the extension is php/ashx by using a temporary placeholder.
+				if ( ! empty( $this->user_exclusions ) ) {
+					ewwwio_debug_message( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)?(' . implode( '|', $this->user_exclusions ) . ')#i' );
+					$content = preg_replace( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)?(' . implode( '|', $this->user_exclusions ) . ')#i', '$1://' . $this->upload_domain . '$2/?wpcontent-bypass?/$3$4', $content );
+				}
+				// Pre-empt rewriting of wp-includes and wp-content if the extension is not allowed by using a temporary placeholder.
 				$content = preg_replace( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)\.(php|ashx|m4v|mov|wvm|qt|webm|ogv|mp4|m4p|mpg|mpeg|mpv)#i', '$1://' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
 				$content = str_replace( 'wp-content/themes/jupiter"', '?wpcontent-bypass?/themes/jupiter"', $content );
-				$content = preg_replace( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?wp-(includes|content)#i', '$1://' . $this->exactdn_domain . '/$2wp-$3', $content );
+				$content = preg_replace( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?(nextgen-image|wp-includes|wp-content)/#i', '$1://' . $this->exactdn_domain . '/$2$3/', $content );
 				$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );
 			}
 		}
@@ -1748,6 +1784,14 @@ class ExactDN {
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		$parsed_url = $this->parse_url( $url );
 
+		if ( $this->user_exclusions ) {
+			foreach ( $this->user_exclusions as $exclusion ) {
+				if ( false !== strpos( $url, $exclusion ) ) {
+					ewwwio_debug_message( "user excluded $url via $exclusion" );
+					return $url;
+				}
+			}
+		}
 		// Unable to parse.
 		if ( ! $parsed_url || ! is_array( $parsed_url ) || empty( $parsed_url['host'] ) || empty( $parsed_url['path'] ) ) {
 			ewwwio_debug_message( 'src url no good' );
