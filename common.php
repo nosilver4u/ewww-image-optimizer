@@ -37,7 +37,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '423.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '423.034' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -8164,4 +8164,26 @@ function ewwwio_memory_output() {
 		$ewww_memory = '';
 	}
 }
+
+/**
+ * Dumps data from any filter.
+ *
+ * @param mixed $var Could be anything, really.
+ * @param mixed $var2 Default false. Could be anything, really.
+ * @param mixed $var3 Default false. Could be anything, really.
+ * @return mixed Whatever they gave us.
+ */
+function ewwwio_dump_var( $var, $var2 = false, $var3 = false ) {
+	if ( ! ewww_image_optimizer_function_exists( 'print_r' ) ) {
+		return $var;
+	}
+	ewwwio_debug_message( 'dumping var' );
+	ewwwio_debug_message( print_r( $var, true ) );
+	ewwwio_debug_message( 'dumping var2' );
+	ewwwio_debug_message( print_r( $var2, true ) );
+	ewwwio_debug_message( 'dumping var3' );
+	ewwwio_debug_message( print_r( $var3, true ) );
+	return $var;
+}
+add_filter( 'ngg_pro_lightbox_images_queue', 'ewwwio_dump_var' );
 ?>

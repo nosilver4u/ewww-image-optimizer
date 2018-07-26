@@ -78,6 +78,21 @@ class EWWWIO_Page_Parser {
 	}
 
 	/**
+	 * Match all sources wrapped in <picture> tags in a block of HTML.
+	 *
+	 * @param string $content Some HTML.
+	 * @return array An array of $pictures matches, containing full elements with ending tags.
+	 */
+	function get_picture_tags_from_html( $content ) {
+		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$pictures = array();
+		if ( preg_match_all( '#(?:<picture[^>]*?>\s*)(?:<source[^>]*?>)+(?:.*?</picture>)?#is', $content, $pictures ) ) {
+			return $pictures[0];
+		}
+		return array();
+	}
+
+	/**
 	 * Match all elements by tag name in a block of HTML. Does not retrieve contents or closing tags.
 	 *
 	 * @param string $content Some HTML.

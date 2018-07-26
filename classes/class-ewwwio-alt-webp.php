@@ -16,12 +16,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 
 	/**
-	 * The Alt WebP inline script contents. Current length 10781.
+	 * The Alt WebP inline script contents. Current length 10794.
 	 *
 	 * @access private
 	 * @var string $inline_script
 	 */
-	private $inline_script = 'function check_webp_feature(t,e){var a={alpha:"UklGRkoAAABXRUJQVlA4WAoAAAAQAAAAAAAAAAAAQUxQSAwAAAARBxAR/Q9ERP8DAABWUDggGAAAABQBAJ0BKgEAAQAAAP4AAA3AAP7mtQAAAA==",animation:"UklGRlIAAABXRUJQVlA4WAoAAAASAAAAAAAAAAAAQU5JTQYAAAD/////AABBTk1GJgAAAAAAAAAAAAAAAAAAAGQAAABWUDhMDQAAAC8AAAAQBxAREYiI/gcA"},i=!1,r=new Image;r.onload=function(){var t=r.width>0&&r.height>0;i=!0,e(t)},r.onerror=function(){i=!1,e(!1)},r.src="data:image/webp;base64,"+a[t]}function ewww_load_images(t){jQuery(document).arrive(".ewww_webp",function(){ewww_load_images(t)}),function(e){function a(t,a){for(var r=["align","alt","border","crossorigin","height","hspace","ismap","longdesc","usemap","vspace","width","accesskey","class","contenteditable","contextmenu","dir","draggable","dropzone","hidden","id","lang","spellcheck","style","tabindex","title","translate","sizes","data-caption","data-attachment-id","data-permalink","data-orig-size","data-comments-opened","data-image-meta","data-image-title","data-image-description","data-event-trigger","data-highlight-color","data-highlight-opacity","data-highlight-border-color","data-highlight-border-width","data-highlight-border-opacity","data-no-lazy","data-lazy","data-large_image_width","data-large_image_height"],n=0,o=r.length;n<o;n++){var s=e(t).attr(i+r[n]);void 0!==s&&!1!==s&&e(a).attr(r[n],s)}return a}var i="data-";t&&(e(".batch-image img, .image-wrapper a, .ngg-pro-masonry-item a").each(function(){var t=e(this).attr("data-webp");void 0!==t&&!1!==t&&e(this).attr("data-src",t),void 0!==(t=e(this).attr("data-webp-thumbnail"))&&!1!==t&&e(this).attr("data-thumbnail",t)}),e(".image-wrapper a, .ngg-pro-masonry-item a").each(function(){var t=e(this).attr("data-webp");void 0!==t&&!1!==t&&e(this).attr("href",t)}),e(".rev_slider ul li").each(function(){var t=e(this).attr("data-webp-thumb");void 0!==t&&!1!==t&&e(this).attr("data-thumb",t);for(var a=1;a<11;)void 0!==(t=e(this).attr("data-webp-param"+a))&&!1!==t&&e(this).attr("data-param"+a,t),a++}),e(".rev_slider img").each(function(){var t=e(this).attr("data-webp-lazyload");void 0!==t&&!1!==t&&e(this).attr("data-lazyload",t)}),e("div.woocommerce-product-gallery__image").each(function(){var t=e(this).attr("data-webp-thumb");void 0!==t&&!1!==t&&e(this).attr("data-thumb",t)})),e("img.ewww_webp_lazy_retina").each(function(){if(t)void 0!==(a=e(this).attr("data-srcset-webp"))&&!1!==a&&e(this).attr("data-srcset",a);else{var a=e(this).attr("data-srcset-img");void 0!==a&&!1!==a&&e(this).attr("data-srcset",a)}e(this).removeClass("ewww_webp_lazy_retina")}),e("video").each(function(){if(t)void 0!==(a=e(this).attr("data-poster-webp"))&&!1!==a&&e(this).attr("poster",a);else{var a=e(this).attr("data-poster-image");void 0!==a&&!1!==a&&e(this).attr("poster",a)}}),e("img.ewww_webp_lazy_load").each(function(){if(t)e(this).attr("data-lazy-src",e(this).attr("data-lazy-webp-src")),void 0!==(a=e(this).attr("data-srcset-webp"))&&!1!==a&&e(this).attr("srcset",a),void 0!==(a=e(this).attr("data-lazy-srcset-webp"))&&!1!==a&&e(this).attr("data-lazy-srcset",a);else{e(this).attr("data-lazy-src",e(this).attr("data-lazy-img-src"));var a=e(this).attr("data-srcset");void 0!==a&&!1!==a&&e(this).attr("srcset",a),void 0!==(a=e(this).attr("data-lazy-srcset-img"))&&!1!==a&&e(ewww_img).attr("data-lazy-srcset",a)}e(this).removeClass("ewww_webp_lazy_load")}),e(".ewww_webp_lazy_hueman").each(function(){var i=document.createElement("img");if(e(i).attr("src",e(this).attr("data-src")),t)e(i).attr("data-src",e(this).attr("data-webp-src")),void 0!==(r=e(this).attr("data-srcset-webp"))&&!1!==r&&e(i).attr("data-srcset",r);else{e(i).attr("data-src",e(this).attr("data-img"));var r=e(this).attr("data-srcset-img");void 0!==r&&!1!==r&&e(i).attr("data-srcset",r)}i=a(this,i),e(this).after(i),e(this).removeClass("ewww_webp_lazy_hueman")}),e(".ewww_webp").each(function(){var i=document.createElement("img");if(t)e(i).attr("src",e(this).attr("data-webp")),void 0!==(r=e(this).attr("data-srcset-webp"))&&!1!==r&&e(i).attr("srcset",r),void 0!==(r=e(this).attr("data-webp-orig-file"))&&!1!==r?e(i).attr("data-orig-file",r):void 0!==(r=e(this).attr("data-orig-file"))&&!1!==r&&e(i).attr("data-orig-file",r),void 0!==(r=e(this).attr("data-webp-medium-file"))&&!1!==r?e(i).attr("data-medium-file",r):void 0!==(r=e(this).attr("data-medium-file"))&&!1!==r&&e(i).attr("data-medium-file",r),void 0!==(r=e(this).attr("data-webp-large-file"))&&!1!==r?e(i).attr("data-large-file",r):void 0!==(r=e(this).attr("data-large-file"))&&!1!==r&&e(i).attr("data-large-file",r),void 0!==(r=e(this).attr("data-webp-large_image"))&&!1!==r?e(i).attr("data-large_image",r):void 0!==(r=e(this).attr("data-large_image"))&&!1!==r&&e(i).attr("data-large_image",r),void 0!==(r=e(this).attr("data-webp-src"))&&!1!==r?e(i).attr("data-src",r):void 0!==(r=e(this).attr("data-src"))&&!1!==r&&e(i).attr("data-src",r);else{e(i).attr("src",e(this).attr("data-img"));var r=e(this).attr("data-srcset-img");void 0!==r&&!1!==r&&e(i).attr("srcset",r),void 0!==(r=e(this).attr("data-orig-file"))&&!1!==r&&e(i).attr("data-orig-file",r),void 0!==(r=e(this).attr("data-medium-file"))&&!1!==r&&e(i).attr("data-medium-file",r),void 0!==(r=e(this).attr("data-large-file"))&&!1!==r&&e(i).attr("data-large-file",r),void 0!==(r=e(this).attr("data-large_image"))&&!1!==r&&e(i).attr("data-large_image",r),void 0!==(r=e(this).attr("data-src"))&&!1!==r&&e(i).attr("data-src",r)}i=a(this,i),e(this).after(i),e(this).removeClass("ewww_webp")})}(jQuery),jQuery.fn.isotope&&jQuery.fn.imagesLoaded&&(jQuery(".fusion-posts-container-infinite").imagesLoaded(function(){jQuery(".fusion-posts-container-infinite").hasClass("isotope")&&jQuery(".fusion-posts-container-infinite").isotope()}),jQuery(".fusion-portfolio:not(.fusion-recent-works) .fusion-portfolio-wrapper").imagesLoaded(function(){jQuery(".fusion-portfolio:not(.fusion-recent-works) .fusion-portfolio-wrapper").isotope()}))}var Arrive=function(t,e,a){"use strict";function i(t,e,a){o.addMethod(e,a,t.unbindEvent),o.addMethod(e,a,t.unbindEventWithSelectorOrCallback),o.addMethod(e,a,t.unbindEventWithSelectorAndCallback)}function r(t){t.arrive=l.bindEvent,i(l,t,"unbindArrive"),t.leave=c.bindEvent,i(c,t,"unbindLeave")}if(t.MutationObserver&&"undefined"!=typeof HTMLElement){var n=0,o=function(){var e=HTMLElement.prototype.matches||HTMLElement.prototype.webkitMatchesSelector||HTMLElement.prototype.mozMatchesSelector||HTMLElement.prototype.msMatchesSelector;return{matchesSelector:function(t,a){return t instanceof HTMLElement&&e.call(t,a)},addMethod:function(t,e,a){var i=t[e];t[e]=function(){return a.length==arguments.length?a.apply(this,arguments):"function"==typeof i?i.apply(this,arguments):void 0}},callCallbacks:function(t){for(var e,a=0;e=t[a];a++)e.callback.call(e.elem)},checkChildNodesRecursively:function(t,e,a,i){for(var r,n=0;r=t[n];n++)a(r,e,i)&&i.push({callback:e.callback,elem:r}),r.childNodes.length>0&&o.checkChildNodesRecursively(r.childNodes,e,a,i)},mergeArrays:function(t,e){var a,i={};for(a in t)i[a]=t[a];for(a in e)i[a]=e[a];return i},toElementsArray:function(e){return void 0===e||"number"==typeof e.length&&e!==t||(e=[e]),e}}}(),s=function(){var t=function(){this._eventsBucket=[],this._beforeAdding=null,this._beforeRemoving=null};return t.prototype.addEvent=function(t,e,a,i){var r={target:t,selector:e,options:a,callback:i,firedElems:[]};return this._beforeAdding&&this._beforeAdding(r),this._eventsBucket.push(r),r},t.prototype.removeEvent=function(t){for(var e,a=this._eventsBucket.length-1;e=this._eventsBucket[a];a--)t(e)&&(this._beforeRemoving&&this._beforeRemoving(e),this._eventsBucket.splice(a,1))},t.prototype.beforeAdding=function(t){this._beforeAdding=t},t.prototype.beforeRemoving=function(t){this._beforeRemoving=t},t}(),d=function(e,i){var r=new s,n=this,d={fireOnAttributesModification:!1};return r.beforeAdding(function(a){var r,o=a.target;a.selector,a.callback;o!==t.document&&o!==t||(o=document.getElementsByTagName("html")[0]),r=new MutationObserver(function(t){i.call(this,t,a)});var s=e(a.options);r.observe(o,s),a.observer=r,a.me=n}),r.beforeRemoving(function(t){t.observer.disconnect()}),this.bindEvent=function(t,e,a){e=o.mergeArrays(d,e);for(var i=o.toElementsArray(this),n=0;n<i.length;n++)r.addEvent(i[n],t,e,a)},this.unbindEvent=function(){var t=o.toElementsArray(this);r.removeEvent(function(e){for(var i=0;i<t.length;i++)if(this===a||e.target===t[i])return!0;return!1})},this.unbindEventWithSelectorOrCallback=function(t){var e,i=o.toElementsArray(this),n=t;e="function"==typeof t?function(t){for(var e=0;e<i.length;e++)if((this===a||t.target===i[e])&&t.callback===n)return!0;return!1}:function(e){for(var r=0;r<i.length;r++)if((this===a||e.target===i[r])&&e.selector===t)return!0;return!1},r.removeEvent(e)},this.unbindEventWithSelectorAndCallback=function(t,e){var i=o.toElementsArray(this);r.removeEvent(function(r){for(var n=0;n<i.length;n++)if((this===a||r.target===i[n])&&r.selector===t&&r.callback===e)return!0;return!1})},this},l=new function(){function t(t,e,i){if(o.matchesSelector(t,e.selector)&&(t._id===a&&(t._id=n++),-1==e.firedElems.indexOf(t._id))){if(e.options.onceOnly){if(0!==e.firedElems.length)return;e.me.unbindEventWithSelectorAndCallback.call(e.target,e.selector,e.callback)}e.firedElems.push(t._id),i.push({callback:e.callback,elem:t})}}var e={fireOnAttributesModification:!1,onceOnly:!1,existing:!1},i=(l=new d(function(t){var e={attributes:!1,childList:!0,subtree:!0};return t.fireOnAttributesModification&&(e.attributes=!0),e},function(e,a){e.forEach(function(e){var i=e.addedNodes,r=e.target,n=[];null!==i&&i.length>0?o.checkChildNodesRecursively(i,a,t,n):"attributes"===e.type&&t(r,a,n)&&n.push({callback:a.callback,elem:node}),o.callCallbacks(n)})})).bindEvent;return l.bindEvent=function(t,a,r){void 0===r?(r=a,a=e):a=o.mergeArrays(e,a);var n=o.toElementsArray(this);if(a.existing){for(var s=[],d=0;d<n.length;d++)for(var l=n[d].querySelectorAll(t),c=0;c<l.length;c++)s.push({callback:r,elem:l[c]});if(a.onceOnly&&s.length)return r.call(s[0].elem);setTimeout(o.callCallbacks,1,s)}i.call(this,t,a,r)},l},c=new function(){function t(t,e){return o.matchesSelector(t,e.selector)}var e={},a=(c=new d(function(t){return{childList:!0,subtree:!0}},function(e,a){e.forEach(function(e){var i=e.removedNodes,r=(e.target,[]);null!==i&&i.length>0&&o.checkChildNodesRecursively(i,a,t,r),o.callCallbacks(r)})})).bindEvent;return c.bindEvent=function(t,i,r){void 0===r?(r=i,i=e):i=o.mergeArrays(e,i),a.call(this,t,i,r)},c};e&&r(e.fn),r(HTMLElement.prototype),r(NodeList.prototype),r(HTMLCollection.prototype),r(HTMLDocument.prototype),r(Window.prototype);var h={};return i(l,h,"unbindAllArrive"),i(c,h,"unbindAllLeave"),h}}(window,"undefined"==typeof jQuery?null:jQuery,void 0);"undefined"!=typeof jQuery&&check_webp_feature("alpha",ewww_load_images);';
+	private $inline_script = 'var Arrive=function(d,t,c){"use strict";if(d.MutationObserver&&"undefined"!=typeof HTMLElement){var a,e,i=0,h=(a=HTMLElement.prototype.matches||HTMLElement.prototype.webkitMatchesSelector||HTMLElement.prototype.mozMatchesSelector||HTMLElement.prototype.msMatchesSelector,{matchesSelector:function(t,e){return t instanceof HTMLElement&&a.call(t,e)},addMethod:function(t,e,a){var i=t[e];t[e]=function(){return a.length==arguments.length?a.apply(this,arguments):"function"==typeof i?i.apply(this,arguments):void 0}},callCallbacks:function(t){for(var e,a=0;e=t[a];a++)e.callback.call(e.elem)},checkChildNodesRecursively:function(t,e,a,i){for(var r,n=0;r=t[n];n++)a(r,e,i)&&i.push({callback:e.callback,elem:r}),0<r.childNodes.length&&h.checkChildNodesRecursively(r.childNodes,e,a,i)},mergeArrays:function(t,e){var a,i={};for(a in t)i[a]=t[a];for(a in e)i[a]=e[a];return i},toElementsArray:function(t){return void 0===t||"number"==typeof t.length&&t!==d||(t=[t]),t}}),u=((e=function(){this._eventsBucket=[],this._beforeAdding=null,this._beforeRemoving=null}).prototype.addEvent=function(t,e,a,i){var r={target:t,selector:e,options:a,callback:i,firedElems:[]};return this._beforeAdding&&this._beforeAdding(r),this._eventsBucket.push(r),r},e.prototype.removeEvent=function(t){for(var e,a=this._eventsBucket.length-1;e=this._eventsBucket[a];a--)t(e)&&(this._beforeRemoving&&this._beforeRemoving(e),this._eventsBucket.splice(a,1))},e.prototype.beforeAdding=function(t){this._beforeAdding=t},e.prototype.beforeRemoving=function(t){this._beforeRemoving=t},e),o=function(r,n){var o=new u,s=this,l={fireOnAttributesModification:!1};return o.beforeAdding(function(e){var t,a=e.target;e.selector,e.callback;a!==d.document&&a!==d||(a=document.getElementsByTagName("html")[0]),t=new MutationObserver(function(t){n.call(this,t,e)});var i=r(e.options);t.observe(a,i),e.observer=t,e.me=s}),o.beforeRemoving(function(t){t.observer.disconnect()}),this.bindEvent=function(t,e,a){e=h.mergeArrays(l,e);for(var i=h.toElementsArray(this),r=0;r<i.length;r++)o.addEvent(i[r],t,e,a)},this.unbindEvent=function(){var a=h.toElementsArray(this);o.removeEvent(function(t){for(var e=0;e<a.length;e++)if(this===c||t.target===a[e])return!0;return!1})},this.unbindEventWithSelectorOrCallback=function(a){var t,i=h.toElementsArray(this),r=a;t="function"==typeof a?function(t){for(var e=0;e<i.length;e++)if((this===c||t.target===i[e])&&t.callback===r)return!0;return!1}:function(t){for(var e=0;e<i.length;e++)if((this===c||t.target===i[e])&&t.selector===a)return!0;return!1},o.removeEvent(t)},this.unbindEventWithSelectorAndCallback=function(a,i){var r=h.toElementsArray(this);o.removeEvent(function(t){for(var e=0;e<r.length;e++)if((this===c||t.target===r[e])&&t.selector===a&&t.callback===i)return!0;return!1})},this},r=new function(){var l={fireOnAttributesModification:!1,onceOnly:!1,existing:!1};function n(t,e,a){if(h.matchesSelector(t,e.selector)&&(t._id===c&&(t._id=i++),-1==e.firedElems.indexOf(t._id))){if(e.options.onceOnly){if(0!==e.firedElems.length)return;e.me.unbindEventWithSelectorAndCallback.call(e.target,e.selector,e.callback)}e.firedElems.push(t._id),a.push({callback:e.callback,elem:t})}}var d=(r=new o(function(t){var e={attributes:!1,childList:!0,subtree:!0};return t.fireOnAttributesModification&&(e.attributes=!0),e},function(t,r){t.forEach(function(t){var e=t.addedNodes,a=t.target,i=[];null!==e&&0<e.length?h.checkChildNodesRecursively(e,r,n,i):"attributes"===t.type&&n(a,r,i)&&i.push({callback:r.callback,elem:node}),h.callCallbacks(i)})})).bindEvent;return r.bindEvent=function(t,e,a){void 0===a?(a=e,e=l):e=h.mergeArrays(l,e);var i=h.toElementsArray(this);if(e.existing){for(var r=[],n=0;n<i.length;n++)for(var o=i[n].querySelectorAll(t),s=0;s<o.length;s++)r.push({callback:a,elem:o[s]});if(e.onceOnly&&r.length)return a.call(r[0].elem);setTimeout(h.callCallbacks,1,r)}d.call(this,t,e,a)},r},s=new function(){var i={};function r(t,e){return h.matchesSelector(t,e.selector)}var n=(s=new o(function(t){return{childList:!0,subtree:!0}},function(t,i){t.forEach(function(t){var e=t.removedNodes,a=(t.target,[]);null!==e&&0<e.length&&h.checkChildNodesRecursively(e,i,r,a),h.callCallbacks(a)})})).bindEvent;return s.bindEvent=function(t,e,a){void 0===a?(a=e,e=i):e=h.mergeArrays(i,e),n.call(this,t,e,a)},s};t&&f(t.fn),f(HTMLElement.prototype),f(NodeList.prototype),f(HTMLCollection.prototype),f(HTMLDocument.prototype),f(Window.prototype);var n={};return l(r,n,"unbindAllArrive"),l(s,n,"unbindAllLeave"),n}function l(t,e,a){h.addMethod(e,a,t.unbindEvent),h.addMethod(e,a,t.unbindEventWithSelectorOrCallback),h.addMethod(e,a,t.unbindEventWithSelectorAndCallback)}function f(t){t.arrive=r.bindEvent,l(r,t,"unbindArrive"),t.leave=s.bindEvent,l(s,t,"unbindLeave")}}(window,"undefined"==typeof jQuery?null:jQuery,void 0);function check_webp_feature(t,e){var a=new Image;a.onload=function(){var t=0<a.width&&0<a.height;!0,e(t)},a.onerror=function(){e(!1)},a.src="data:image/webp;base64,"+{alpha:"UklGRkoAAABXRUJQVlA4WAoAAAAQAAAAAAAAAAAAQUxQSAwAAAARBxAR/Q9ERP8DAABWUDggGAAAABQBAJ0BKgEAAQAAAP4AAA3AAP7mtQAAAA==",animation:"UklGRlIAAABXRUJQVlA4WAoAAAASAAAAAAAAAAAAQU5JTQYAAAD/////AABBTk1GJgAAAAAAAAAAAAAAAAAAAGQAAABWUDhMDQAAAC8AAAAQBxAREYiI/gcA"}[t]}function ewww_load_images(i){jQuery(document).arrive(".ewww_webp",function(){ewww_load_images(i)}),function(o){function a(t,e){for(var a=["align","alt","border","crossorigin","height","hspace","ismap","longdesc","usemap","vspace","width","accesskey","class","contenteditable","contextmenu","dir","draggable","dropzone","hidden","id","lang","spellcheck","style","tabindex","title","translate","sizes","data-caption","data-attachment-id","data-permalink","data-orig-size","data-comments-opened","data-image-meta","data-image-title","data-image-description","data-event-trigger","data-highlight-color","data-highlight-opacity","data-highlight-border-color","data-highlight-border-width","data-highlight-border-opacity","data-no-lazy","data-lazy","data-large_image_width","data-large_image_height"],i=0,r=a.length;i<r;i++){var n=o(t).attr("data-"+a[i]);void 0!==n&&!1!==n&&o(e).attr(a[i],n)}return e}i&&(o(".batch-image img, .image-wrapper a, .ngg-pro-masonry-item a, .ngg-galleria-offscreen-seo-wrapper a").each(function(){var t;void 0!==(t=o(this).attr("data-webp"))&&!1!==t&&o(this).attr("data-src",t),void 0!==(t=o(this).attr("data-webp-thumbnail"))&&!1!==t&&o(this).attr("data-thumbnail",t)}),o(".image-wrapper a, .ngg-pro-masonry-item a").each(function(){var t=o(this).attr("data-webp");void 0!==t&&!1!==t&&o(this).attr("href",t)}),o(".rev_slider ul li").each(function(){void 0!==(e=o(this).attr("data-webp-thumb"))&&!1!==e&&o(this).attr("data-thumb",e);for(var t=1;t<11;){var e;void 0!==(e=o(this).attr("data-webp-param"+t))&&!1!==e&&o(this).attr("data-param"+t,e),t++}}),o(".rev_slider img").each(function(){var t=o(this).attr("data-webp-lazyload");void 0!==t&&!1!==t&&o(this).attr("data-lazyload",t)}),o("div.woocommerce-product-gallery__image").each(function(){var t=o(this).attr("data-webp-thumb");void 0!==t&&!1!==t&&o(this).attr("data-thumb",t)})),o("img.ewww_webp_lazy_retina").each(function(){var t;i?void 0!==(t=o(this).attr("data-srcset-webp"))&&!1!==t&&o(this).attr("data-srcset",t):void 0!==(t=o(this).attr("data-srcset-img"))&&!1!==t&&o(this).attr("data-srcset",t);o(this).removeClass("ewww_webp_lazy_retina")}),o("video").each(function(){var t;i?void 0!==(t=o(this).attr("data-poster-webp"))&&!1!==t&&o(this).attr("poster",t):void 0!==(t=o(this).attr("data-poster-image"))&&!1!==t&&o(this).attr("poster",t)}),o("img.ewww_webp_lazy_load").each(function(){var t;i?(o(this).attr("data-lazy-src",o(this).attr("data-lazy-webp-src")),void 0!==(t=o(this).attr("data-srcset-webp"))&&!1!==t&&o(this).attr("srcset",t),void 0!==(t=o(this).attr("data-lazy-srcset-webp"))&&!1!==t&&o(this).attr("data-lazy-srcset",t)):(o(this).attr("data-lazy-src",o(this).attr("data-lazy-img-src")),void 0!==(t=o(this).attr("data-srcset"))&&!1!==t&&o(this).attr("srcset",t),void 0!==(t=o(this).attr("data-lazy-srcset-img"))&&!1!==t&&o(ewww_img).attr("data-lazy-srcset",t));o(this).removeClass("ewww_webp_lazy_load")}),o(".ewww_webp_lazy_hueman").each(function(){var t,e=document.createElement("img");(o(e).attr("src",o(this).attr("data-src")),i)?(o(e).attr("data-src",o(this).attr("data-webp-src")),void 0!==(t=o(this).attr("data-srcset-webp"))&&!1!==t&&o(e).attr("data-srcset",t)):(o(e).attr("data-src",o(this).attr("data-img")),void 0!==(t=o(this).attr("data-srcset-img"))&&!1!==t&&o(e).attr("data-srcset",t));e=a(this,e),o(this).after(e),o(this).removeClass("ewww_webp_lazy_hueman")}),o(".ewww_webp").each(function(){var t=document.createElement("img");if(i){if(o(t).attr("src",o(this).attr("data-webp")),void 0!==(e=o(this).attr("data-srcset-webp"))&&!1!==e&&o(t).attr("srcset",e),void 0!==(e=o(this).attr("data-webp-orig-file"))&&!1!==e)o(t).attr("data-orig-file",e);else void 0!==(e=o(this).attr("data-orig-file"))&&!1!==e&&o(t).attr("data-orig-file",e);if(void 0!==(e=o(this).attr("data-webp-medium-file"))&&!1!==e)o(t).attr("data-medium-file",e);else void 0!==(e=o(this).attr("data-medium-file"))&&!1!==e&&o(t).attr("data-medium-file",e);if(void 0!==(e=o(this).attr("data-webp-large-file"))&&!1!==e)o(t).attr("data-large-file",e);else void 0!==(e=o(this).attr("data-large-file"))&&!1!==e&&o(t).attr("data-large-file",e);if(void 0!==(e=o(this).attr("data-webp-large_image"))&&!1!==e)o(t).attr("data-large_image",e);else void 0!==(e=o(this).attr("data-large_image"))&&!1!==e&&o(t).attr("data-large_image",e);if(void 0!==(e=o(this).attr("data-webp-src"))&&!1!==e)o(t).attr("data-src",e);else void 0!==(e=o(this).attr("data-src"))&&!1!==e&&o(t).attr("data-src",e)}else{var e;o(t).attr("src",o(this).attr("data-img")),void 0!==(e=o(this).attr("data-srcset-img"))&&!1!==e&&o(t).attr("srcset",e),void 0!==(e=o(this).attr("data-orig-file"))&&!1!==e&&o(t).attr("data-orig-file",e),void 0!==(e=o(this).attr("data-medium-file"))&&!1!==e&&o(t).attr("data-medium-file",e),void 0!==(e=o(this).attr("data-large-file"))&&!1!==e&&o(t).attr("data-large-file",e),void 0!==(e=o(this).attr("data-large_image"))&&!1!==e&&o(t).attr("data-large_image",e),void 0!==(e=o(this).attr("data-src"))&&!1!==e&&o(t).attr("data-src",e)}t=a(this,t),o(this).after(t),o(this).removeClass("ewww_webp")})}(jQuery),jQuery.fn.isotope&&jQuery.fn.imagesLoaded&&(jQuery(".fusion-posts-container-infinite").imagesLoaded(function(){jQuery(".fusion-posts-container-infinite").hasClass("isotope")&&jQuery(".fusion-posts-container-infinite").isotope()}),jQuery(".fusion-portfolio:not(.fusion-recent-works) .fusion-portfolio-wrapper").imagesLoaded(function(){jQuery(".fusion-portfolio:not(.fusion-recent-works) .fusion-portfolio-wrapper").isotope()}))}"undefined"!=typeof jQuery&&check_webp_feature("alpha",ewww_load_images);';
 
 
 	/**
@@ -155,17 +155,23 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 				if ( is_numeric( substr( $srcurl, 0, 1 ) ) ) {
 					continue;
 				}
+				$trailing = ' ';
+				if ( ',' === substr( $srcurl, -1 ) ) {
+					$trailing = ',';
+					$srcurl   = rtrim( $srcurl, ',' );
+				}
 				$srcfilepath = ABSPATH . str_replace( $home_url, '', $srcurl );
 				ewwwio_debug_message( "looking for srcurl on disk: $srcfilepath" );
-				if ( $valid_path || is_file( $srcfilepath . '.webp' ) ) {
-					if ( $this->parsing_exactdn && $valid_path ) {
-						$srcset = str_replace( $srcurl . ',', add_query_arg( 'webp', 1, $srcurl ) . ',', $srcset );
-						$srcset = str_replace( $srcurl . ' ', add_query_arg( 'webp', 1, $srcurl ) . ' ', $srcset );
+				if ( $this->parsing_exactdn || $valid_path || is_file( $srcfilepath . '.webp' ) ) {
+					if ( $this->parsing_exactdn ) {
+						if ( false !== strpos( $srcurl, $this->exactdn_domain ) ) {
+							$srcset = str_replace( $srcurl . $trailing, add_query_arg( 'webp', 1, $srcurl ) . $trailing, $srcset );
+						}
 					} else {
-						$srcset = str_replace( $srcurl, $srcurl . '.webp', $srcset );
+						$srcset = str_replace( $srcurl . $trailing, $srcurl . '.webp' . $trailing, $srcset );
 					}
 					$found_webp = true;
-					ewwwio_debug_message( "replacing $srcurl in $srcset" );
+					/* ewwwio_debug_message( "replacing $srcurl in $srcset" ); */
 				}
 			}
 		}
@@ -190,9 +196,11 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 		if ( $data_orig_file ) {
 			$origfilepath = ABSPATH . str_replace( $home_url, '', $data_orig_file );
 			ewwwio_debug_message( "looking for data-orig-file on disk: $origfilepath" );
-			if ( $valid_path || is_file( $origfilepath . '.webp' ) ) {
-				if ( $this->parsing_exactdn && $valid_path ) {
-					$this->set_attribute( $nscript, 'data-webp-orig-file', add_query_arg( 'webp', 1, $data_orig_file ) );
+			if ( $this->parsing_exactdn || $valid_path || is_file( $origfilepath . '.webp' ) ) {
+				if ( $this->parsing_exactdn ) {
+					if ( false !== strpos( $data_orig_file, $this->exactdn_domain ) ) {
+						$this->set_attribute( $nscript, 'data-webp-orig-file', add_query_arg( 'webp', 1, $data_orig_file ) );
+					}
 				} else {
 					$this->set_attribute( $nscript, 'data-webp-orig-file', $data_orig_file . '.webp' );
 				}
@@ -204,9 +212,11 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 		if ( $data_medium_file ) {
 			$mediumfilepath = ABSPATH . str_replace( $home_url, '', $data_medium_file );
 			ewwwio_debug_message( "looking for data-medium-file on disk: $mediumfilepath" );
-			if ( $valid_path || is_file( $mediumfilepath . '.webp' ) ) {
-				if ( $this->parsing_exactdn && $valid_path ) {
-					$this->set_attribute( $nscript, 'data-webp-medium-file', add_query_arg( 'webp', 1, $data_medium_file ) );
+			if ( $this->parsing_exactdn || $valid_path || is_file( $mediumfilepath . '.webp' ) ) {
+				if ( $this->parsing_exactdn ) {
+					if ( false !== strpos( $data_medium_file, $this->exactdn_domain ) ) {
+						$this->set_attribute( $nscript, 'data-webp-medium-file', add_query_arg( 'webp', 1, $data_medium_file ) );
+					}
 				} else {
 					$this->set_attribute( $nscript, 'data-webp-medium-file', $data_medium_file . '.webp' );
 				}
@@ -218,9 +228,11 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 		if ( $data_large_file ) {
 			$largefilepath = ABSPATH . str_replace( $home_url, '', $data_large_file );
 			ewwwio_debug_message( "looking for data-large-file on disk: $largefilepath" );
-			if ( $valid_path || is_file( $largefilepath . '.webp' ) ) {
-				if ( $this->parsing_exactdn && $valid_path ) {
-					$this->set_attribute( $nscript, 'data-webp-large-file', add_query_arg( 'webp', 1, $data_large_file ) );
+			if ( $this->parsing_exactdn || $valid_path || is_file( $largefilepath . '.webp' ) ) {
+				if ( $this->parsing_exactdn ) {
+					if ( false !== strpos( $data_large_file, $this->exactdn_domain ) ) {
+						$this->set_attribute( $nscript, 'data-webp-large-file', add_query_arg( 'webp', 1, $data_large_file ) );
+					}
 				} else {
 					$this->set_attribute( $nscript, 'data-webp-large-file', $data_large_file . '.webp' );
 				}
@@ -245,9 +257,11 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 		if ( $data_large_image ) {
 			$largefilepath = ABSPATH . str_replace( $home_url, '', $data_large_image );
 			ewwwio_debug_message( "looking for data-large_image on disk: $largefilepath" );
-			if ( $valid_path || is_file( $largefilepath . '.webp' ) ) {
-				if ( $this->parsing_exactdn && $valid_path ) {
-					$this->set_attribute( $nscript, 'data-webp-large_image', add_query_arg( 'webp', 1, $data_large_image ) );
+			if ( $this->parsing_exactdn || $valid_path || is_file( $largefilepath . '.webp' ) ) {
+				if ( $this->parsing_exactdn ) {
+					if ( false !== strpos( $data_large_image, $this->exactdn_domain ) ) {
+						$this->set_attribute( $nscript, 'data-webp-large_image', add_query_arg( 'webp', 1, $data_large_image ) );
+					}
 				} else {
 					$this->set_attribute( $nscript, 'data-webp-large_image', $data_large_image . '.webp' );
 				}
@@ -259,9 +273,11 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 		if ( $data_src ) {
 			$srcpath = ABSPATH . str_replace( $home_url, '', $data_src );
 			ewwwio_debug_message( "looking for data-src on disk: $srcpath" );
-			if ( $valid_path || is_file( $srcpath . '.webp' ) ) {
-				if ( $this->parsing_exactdn && $valid_path ) {
-					$this->set_attribute( $nscript, 'data-webp-src', add_query_arg( 'webp', 1, $data_src ) );
+			if ( $this->parsing_exactdn || $valid_path || is_file( $srcpath . '.webp' ) ) {
+				if ( $this->parsing_exactdn ) {
+					if ( false !== strpos( $data_src, $this->exactdn_domain ) ) {
+						$this->set_attribute( $nscript, 'data-webp-src', add_query_arg( 'webp', 1, $data_src ) );
+					}
 				} else {
 					$this->set_attribute( $nscript, 'data-webp-src', $data_src . '.webp' );
 				}
@@ -420,10 +436,10 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 		ewwwio_debug_message( "home url: $home_url" );
 		if ( class_exists( 'ExactDN' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 			global $exactdn;
-			$exactdn_domain = $exactdn->get_exactdn_domain();
-			$home_url_parts = $exactdn->parse_url( $home_url );
-			if ( ! empty( $home_url_parts['host'] ) && $exactdn_domain ) {
-				$home_url = str_replace( $home_url_parts['host'], $exactdn_domain, $home_url );
+			$this->exactdn_domain = $exactdn->get_exactdn_domain();
+			$home_url_parts       = $exactdn->parse_url( $home_url );
+			if ( ! empty( $home_url_parts['host'] ) && $this->exactdn_domain ) {
+				$home_url = str_replace( $home_url_parts['host'], $this->exactdn_domain, $home_url );
 				ewwwio_debug_message( "new home url: $home_url" );
 				$this->parsing_exactdn = true;
 			}
@@ -450,21 +466,21 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 						}
 					}
 				}
-				if ( $this->parsing_exactdn && false !== strpos( $file, $exactdn_domain ) ) {
-					$valid_path = true;
-				} elseif ( strpos( $file, $home_relative_url ) === 0 ) {
+				if ( strpos( $file, $home_relative_url ) === 0 ) {
 					$filepath = str_replace( $home_relative_url, ABSPATH, $file );
 				} else {
 					$filepath = str_replace( $home_url, ABSPATH, $file );
 				}
 				ewwwio_debug_message( "the image is at $filepath" );
 				// If a CDN path match was found, or .webp image existsence is confirmed, and this is not a lazy-load 'dummy' image.
-				if ( ( $valid_path || is_file( $filepath . '.webp' ) ) && ! strpos( $file, 'assets/images/dummy.png' ) && ! strpos( $file, 'base64,R0lGOD' ) && ! strpos( $file, 'lazy-load/images/1x1' ) ) {
+				if ( ( $this->parsing_exactdn || $valid_path || is_file( $filepath . '.webp' ) ) && ! strpos( $file, 'assets/images/dummy.png' ) && ! strpos( $file, 'base64,R0lGOD' ) && ! strpos( $file, 'lazy-load/images/1x1' ) ) {
 					ewwwio_debug_message( 'found a webp image or forced path' );
 					$nscript = '<noscript>';
 					$this->set_attribute( $nscript, 'data-img', $file );
-					if ( $this->parsing_exactdn && $valid_path ) {
-						$this->set_attribute( $nscript, 'data-webp', add_query_arg( 'webp', 1, $file ) );
+					if ( $this->parsing_exactdn ) {
+						if ( false !== strpos( $file, $this->exactdn_domain ) ) {
+							$this->set_attribute( $nscript, 'data-webp', add_query_arg( 'webp', 1, $file ) );
+						}
 					} else {
 						$this->set_attribute( $nscript, 'data-webp', $file . '.webp' );
 					}
@@ -485,34 +501,6 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 					$nscript = $this->attr_copy( $image, $nscript );
 					$this->set_attribute( $nscript, 'class', 'ewww_webp' );
 					$buffer = str_replace( $image, $nscript . $image . '</noscript>', $buffer );
-				}
-				// TODO: Do we need this nextgen bit anymore? See what Imagely rep says.
-				// Look for NextGEN attributes that need to be altered.
-				if ( empty( $file ) && $this->get_attribute( $image, 'data-src' ) && $this->get_attribute( $image, 'data-thumbnail' ) ) {
-					$file  = $this->get_attribute( $image, 'data-src' );
-					$thumb = $this->get_attribute( $image, 'data-thumbnail' );
-					ewwwio_debug_message( "checking webp for ngg data-src: $file" );
-					$filepath = ABSPATH . str_replace( $home_url, '', $file );
-					ewwwio_debug_message( "checking webp for ngg data-thumbnail: $thumb" );
-					$thumbpath = ABSPATH . str_replace( $home_url, '', $thumb );
-					if ( ! $valid_path && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
-						// Check the image for configured CDN paths.
-						foreach ( $webp_paths as $webp_path ) {
-							if ( strpos( $file, $webp_path ) !== false ) {
-								$valid_path = true;
-							}
-						}
-					}
-					if ( $valid_path || is_file( $filepath . '.webp' ) ) {
-						ewwwio_debug_message( "found webp for ngg data-src: $filepath" );
-						$this->set_attribute( $image, 'data-webp', $file . '.webp' );
-						$buffer = str_replace( $images['img_tag'][ $index ], $image, $buffer );
-					}
-					if ( $valid_path || is_file( $thumbpath . '.webp' ) ) {
-						ewwwio_debug_message( "found webp for ngg data-thumbnail: $thumbpath" );
-						$this->set_attribute( $image, 'data-webp-thumbnail', $thumb . '.webp' );
-						$buffer = str_replace( $images['img_tag'][ $index ], $image, $buffer );
-					}
 				}
 				// NOTE: lazy loads are shutoff for now, since they don't work consistently
 				// WP Retina 2x lazy loads.
@@ -617,9 +605,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 					$lazyload = $this->get_attribute( $image, 'data-lazyload' );
 					if ( ! empty( $lazyload ) ) {
 						$lazyloadpath = ABSPATH . str_replace( $home_url, '', $lazyload );
-						if ( ! $valid_path && $this->parsing_exactdn && false !== strpos( $file, $exactdn_domain ) ) {
-							$valid_path = true;
-						} elseif ( ! $valid_path && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
+						if ( ! $valid_path && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
 							// Check the image for configured CDN paths.
 							foreach ( $webp_paths as $webp_path ) {
 								if ( strpos( $lazyload, $webp_path ) !== false ) {
@@ -627,9 +613,11 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 								}
 							}
 						}
-						if ( $valid_path || is_file( $lazyloadpath . '.webp' ) ) {
-							if ( $this->parsing_exactdn && $valid_path ) {
-								$this->set_attribute( $image, 'data-webp-lazyload', add_query_arg( 'webp', 1, $lazyload ) );
+						if ( $this->parsing_exactdn || $valid_path || is_file( $lazyloadpath . '.webp' ) ) {
+							if ( $this->parsing_exactdn ) {
+								if ( false !== strpos( $lazyload, $this->exactdn_domain ) ) {
+									$this->set_attribute( $image, 'data-webp-lazyload', add_query_arg( 'webp', 1, $lazyload ) );
+								}
 							} else {
 								$this->set_attribute( $image, 'data-webp-lazyload', $lazyload . '.webp' );
 							}
@@ -642,6 +630,41 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 		} // End if().
 		// TODO: need to test Slider Revolution stuff above and below.
 		// TODO: NextGEN <picture> and <source> elements in Pro Horizontal Filmstrip (and possibly others).
+		// TODO: make sure webp is working for every layout in NextGEN...
+		// NextGEN images listed as picture/source elements.
+		$pictures = $this->get_picture_tags_from_html( $buffer );
+		if ( ewww_image_optimizer_iterable( $pictures ) ) {
+			foreach ( $pictures as $index => $picture ) {
+				$sources = $this->get_elements_from_html( $picture, 'source' );
+				if ( ewww_image_optimizer_iterable( $sources ) ) {
+					foreach ( $sources as $source ) {
+						ewwwio_debug_message( "parsing a picture: $source" );
+						if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
+							// Check for CDN paths within the img src attribute.
+							foreach ( $webp_paths as $webp_path ) {
+								if ( strpos( $source, $webp_path ) !== false ) {
+									$valid_path = true;
+									ewwwio_debug_message( 'found valid forced/cdn path' );
+								}
+							}
+						}
+						$srcset = $this->get_attribute( $source, 'srcset' );
+						if ( $srcset ) {
+							$srcset_webp = $this->srcset_replace( $srcset, $home_url, $valid_path );
+							if ( $srcset_webp ) {
+								$source_webp = str_replace( $srcset, $srcset_webp, $source );
+								$this->set_attribute( $source_webp, 'type', 'image/webp' );
+								$picture = str_replace( $source, $source_webp . $source, $picture );
+							}
+						}
+					}
+					if ( $picture != $pictures[ $index ] ) {
+						ewwwio_debug_message( 'found webp for picture element' );
+						$buffer = str_replace( $pictures[ $index ], $picture, $buffer );
+					}
+				}
+			}
+		}
 		// NextGEN slides listed as 'a' elements.
 		$links = $this->get_elements_from_html( $buffer, 'a' );
 		if ( ewww_image_optimizer_iterable( $links ) ) {
@@ -651,9 +674,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 				$thumb = $this->get_attribute( $link, 'data-thumbnail' );
 				if ( $file && $thumb ) {
 					$valid_path = false;
-					if ( $this->parsing_exactdn && false !== strpos( $file, $exactdn_domain ) ) {
-						$valid_path = true;
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
+					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
 						// Check the image for configured CDN paths.
 						foreach ( $webp_paths as $webp_path ) {
 							if ( strpos( $file, $webp_path ) !== false ) {
@@ -665,19 +686,23 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 					$filepath = ABSPATH . str_replace( $home_url, '', $file );
 					ewwwio_debug_message( "checking webp for ngg data-thumbnail: $thumb" );
 					$thumbpath = ABSPATH . str_replace( $home_url, '', $thumb );
-					if ( $valid_path || is_file( $filepath . '.webp' ) ) {
-						if ( $this->parsing_exactdn && $valid_path ) {
-							$this->set_attribute( $link, 'data-webp', add_query_arg( 'webp', 1, $file ) );
+					if ( $this->parsing_exactdn || $valid_path || is_file( $filepath . '.webp' ) ) {
+						if ( $this->parsing_exactdn ) {
+							if ( false !== strpos( $file, $this->exactdn_domain ) ) {
+								$this->set_attribute( $link, 'data-webp', add_query_arg( 'webp', 1, $file ) );
+							}
 						} else {
-							$link->set_attribute( $link, 'data-webp', $file . '.webp' );
+							$this->set_attribute( $link, 'data-webp', $file . '.webp' );
 						}
 						ewwwio_debug_message( "found webp for ngg data-src: $filepath" );
 					}
-					if ( $valid_path || is_file( $thumbpath . '.webp' ) ) {
-						if ( $this->parsing_exactdn && $valid_path ) {
-							$this->set_attribute( $link, 'data-webp-thumbnail', add_query_arg( 'webp', 1, $thumb ) );
+					if ( $this->parsing_exactdn || $valid_path || is_file( $thumbpath . '.webp' ) ) {
+						if ( $this->parsing_exactdn ) {
+							if ( false !== strpos( $thumb, $this->exactdn_domain ) ) {
+								$this->set_attribute( $link, 'data-webp-thumbnail', add_query_arg( 'webp', 1, $thumb ) );
+							}
 						} else {
-							$link->set_attribute( $link, 'data-webp-thumbnail', $thumb . '.webp' );
+							$this->set_attribute( $link, 'data-webp-thumbnail', $thumb . '.webp' );
 						}
 						ewwwio_debug_message( "found webp for ngg data-thumbnail: $thumbpath" );
 					}
@@ -695,9 +720,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 				if ( $this->get_attribute( $listitem, 'data-title' ) === 'Slide' && ( $this->get_attribute( $listitem, 'data-lazyload' ) || $this->get_attribute( $listitem, 'data-thumb' ) ) ) {
 					$thumb      = $this->get_attribute( $listitem, 'data-thumb' );
 					$valid_path = false;
-					if ( $this->parsing_exactdn && false !== strpos( $thumb, $exactdn_domain ) ) {
-						$valid_path = true;
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
+					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
 						// Check the image for configured CDN paths.
 						foreach ( $webp_paths as $webp_path ) {
 							if ( strpos( $thumb, $webp_path ) !== false ) {
@@ -707,9 +730,11 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 					}
 					ewwwio_debug_message( "checking webp for revslider data-thumb: $thumb" );
 					$thumbpath = str_replace( $home_url, ABSPATH, $thumb );
-					if ( $valid_path || is_file( $thumbpath . '.webp' ) ) {
-						if ( $this->parsing_exactdn && $valid_path ) {
-							$this->set_attribute( $listitem, 'data-webp-thumb', add_query_arg( 'webp', 1, $thumb ) );
+					if ( $this->parsing_exactdn || $valid_path || is_file( $thumbpath . '.webp' ) ) {
+						if ( $this->parsing_exactdn ) {
+							if ( false !== strpos( $thumb, $this->exactdn_domain ) ) {
+								$this->set_attribute( $listitem, 'data-webp-thumb', add_query_arg( 'webp', 1, $thumb ) );
+							}
 						} else {
 							$this->set_attribute( $listitem, 'data-webp-thumb', $thumb . '.webp' );
 						}
@@ -723,9 +748,11 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 							if ( strpos( $parameter, 'http' ) === 0 ) {
 								$parameter_path = str_replace( $home_url, ABSPATH, $parameter );
 								ewwwio_debug_message( "looking for $parameter_path" );
-								if ( $valid_path || is_file( $parameter_path . '.webp' ) ) {
-									if ( $this->parsing_exactdn && $valid_path ) {
-										$this->set_attribute( $listitem, 'data-webp-param' . $param_num, add_query_arg( 'webp', 1, $parameter ) );
+								if ( $this->parsing_exactdn || $valid_path || is_file( $parameter_path . '.webp' ) ) {
+									if ( $this->parsing_exactdn ) {
+										if ( false !== strpos( $parameter, $this->exactdn_domain ) ) {
+											$this->set_attribute( $listitem, 'data-webp-param' . $param_num, add_query_arg( 'webp', 1, $parameter ) );
+										}
 									} else {
 										$this->set_attribute( $listitem, 'data-webp-param' . $param_num, $parameter . '.webp' );
 									}
@@ -750,9 +777,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 				$div_class = $this->get_attribute( $div, 'class' );
 				if ( $div_class && $thumb && strpos( $div_class, 'woocommerce-product-gallery__image' ) !== false ) {
 					$valid_path = false;
-					if ( $this->parsing_exactdn && false !== strpos( $thumb, $exactdn_domain ) ) {
-						$valid_path = true;
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
+					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
 						// Check the image for configured CDN paths.
 						foreach ( $webp_paths as $webp_path ) {
 							if ( strpos( $thumb, $webp_path ) !== false ) {
@@ -762,9 +787,11 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 					}
 					ewwwio_debug_message( "checking webp for WC data-thumb: $thumb" );
 					$thumbpath = ABSPATH . str_replace( $home_url, '', $thumb );
-					if ( $valid_path || is_file( $thumbpath . '.webp' ) ) {
-						if ( $this->parsing_exactdn && $valid_path ) {
-							$this->set_attribute( $div, 'data-webp-thumb', add_query_arg( 'webp', 1, $thumb ) );
+					if ( $this->parsing_exactdn || $valid_path || is_file( $thumbpath . '.webp' ) ) {
+						if ( $this->parsing_exactdn ) {
+							if ( false !== strpos( $thumb, $this->exactdn_domain ) ) {
+								$this->set_attribute( $div, 'data-webp-thumb', add_query_arg( 'webp', 1, $thumb ) );
+							}
 						} else {
 							$this->set_attribute( $div, 'data-webp-thumb', $thumb . '.webp' );
 						}
@@ -782,9 +809,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 				$file = $this->get_attribute( $video, 'poster' );
 				if ( $file ) {
 					$valid_path = false;
-					if ( $this->parsing_exactdn && false !== strpos( $file, $exactdn_domain ) ) {
-						$valid_path = true;
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
+					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
 						// Check the image for configured CDN paths.
 						foreach ( $webp_paths as $webp_path ) {
 							if ( strpos( $file, $webp_path ) !== false ) {
@@ -794,9 +819,11 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 					}
 					ewwwio_debug_message( "checking webp for video poster: $file" );
 					$filepath = ABSPATH . str_replace( $home_url, '', $file );
-					if ( $valid_path || is_file( $filepath . '.webp' ) ) {
-						if ( $this->parsing_exactdn && $valid_path ) {
-							$this->set_attribute( $video, 'data-poster-webp', add_query_arg( 'webp', 1, $file ) );
+					if ( $this->parsing_exactdn || $valid_path || is_file( $filepath . '.webp' ) ) {
+						if ( $this->parsing_exactdn ) {
+							if ( $this->parsing_exactdn && false !== strpos( $file, $this->exactdn_domain ) ) {
+								$this->set_attribute( $video, 'data-poster-webp', add_query_arg( 'webp', 1, $file ) );
+							}
 						} else {
 							$this->set_attribute( $video, 'data-poster-webp', $file . '.webp' );
 						}
@@ -820,7 +847,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	 */
 	function debug_script() {
 		if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
-			wp_enqueue_script( 'ewww-webp-load-script', plugins_url( '/includes/load_webp.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+			wp_enqueue_script( 'ewww-webp-load-script', plugins_url( '/includes/load_webp.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
 		}
 	}
 
@@ -829,7 +856,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	 */
 	function min_external_script() {
 		if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
-			wp_enqueue_script( 'ewww-webp-load-script', plugins_url( '/includes/load_webp.min.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+			wp_enqueue_script( 'ewww-webp-load-script', plugins_url( '/includes/load_webp.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
 		}
 	}
 
