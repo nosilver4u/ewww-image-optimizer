@@ -143,6 +143,7 @@ class ExactDN {
 
 		// Filter for NextGEN image urls within JS.
 		add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ) );
+		add_filter( 'ngg_get_image_url', array( $this, 'ngg_get_image_url' ) );
 
 		// DNS prefetching.
 		add_action( 'wp_head', array( $this, 'dns_prefetch' ) );
@@ -1788,6 +1789,20 @@ class ExactDN {
 			}
 		}
 		return $images;
+	}
+
+	/**
+	 * Handle image urls within NextGEN.
+	 *
+	 * @param string $image A url for a NextGEN image.
+	 * @return string The ExactDNified image url.
+	 */
+	function ngg_get_image_url( $image ) {
+		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		if ( $this->validate_image_url( $image ) ) {
+			return $this->generate_url( $image );
+		}
+		return $image;
 	}
 
 	/**

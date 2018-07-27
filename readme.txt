@@ -181,6 +181,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: auto-convert large PNG images to JPG during upload, define EWWW_IMAGE_OPTIMIZER_DISABLE_AUTOCONVERT to skip
 * added: use file modification time to add query strings on JS/CSS files for cache invalidation on ExactDN
 * added: use EXACTDN_EXCLUDE in wp-config.php to bypass ExactDN for JS, CSS, etc.
+* added: NextGEN image urls properly rewritten for ExactDN
 * changed: resizing uses the primary media dimensions unless the "other" dimensions are configured
 * changed: Resize Other Images removed from GUI, configure via Overrides tab
 * changed: filter NextGEN quality to prevent oversized thumbs
