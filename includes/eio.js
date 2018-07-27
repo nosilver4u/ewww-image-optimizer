@@ -38,6 +38,7 @@ jQuery(document).ready(function($) {
 			$('#ewww-status-collapse').hide();
 		});
 		$('#ewww-webp-settings').hide();
+		$('#ewww-exactdn-settings').hide();
 		$('#ewww-general-settings').show();
 		$('li.ewww-general-nav').addClass('ewww-selected');
 		if($('#ewww_image_optimizer_debug').length){
@@ -52,6 +53,7 @@ jQuery(document).ready(function($) {
 			$('.ewww-tab a').blur();
 			$('#ewww-webp-settings').show();
 			$('#ewww-general-settings').hide();
+			$('#ewww-exactdn-settings').hide();
 			$('#ewww-optimization-settings').hide();
 			$('#ewww-resize-settings').hide();
 			$('#ewww-conversion-settings').hide();
@@ -62,6 +64,18 @@ jQuery(document).ready(function($) {
 			$('.ewww-tab a').blur();
 			$('#ewww-webp-settings').hide();
 			$('#ewww-general-settings').show();
+			$('#ewww-exactdn-settings').hide();
+			$('#ewww-optimization-settings').hide();
+			$('#ewww-resize-settings').hide();
+			$('#ewww-conversion-settings').hide();
+		});
+		$('.ewww-exactdn-nav').click(function() {
+			$('.ewww-tab-nav li').removeClass('ewww-selected');
+			$('li.ewww-exactdn-nav').addClass('ewww-selected');
+			$('.ewww-tab a').blur();
+			$('#ewww-webp-settings').hide();
+			$('#ewww-general-settings').hide();
+			$('#ewww-exactdn-settings').show();
 			$('#ewww-optimization-settings').hide();
 			$('#ewww-resize-settings').hide();
 			$('#ewww-conversion-settings').hide();
@@ -72,6 +86,7 @@ jQuery(document).ready(function($) {
 			$('.ewww-tab a').blur();
 			$('#ewww-webp-settings').hide();
 			$('#ewww-general-settings').hide();
+			$('#ewww-exactdn-settings').hide();
 			$('#ewww-optimization-settings').show();
 			$('#ewww-resize-settings').hide();
 			$('#ewww-conversion-settings').hide();
@@ -82,6 +97,7 @@ jQuery(document).ready(function($) {
 			$('.ewww-tab a').blur();
 			$('#ewww-webp-settings').hide();
 			$('#ewww-general-settings').hide();
+			$('#ewww-exactdn-settings').hide();
 			$('#ewww-optimization-settings').hide();
 			$('#ewww-resize-settings').show();
 			$('#ewww-conversion-settings').hide();
@@ -92,6 +108,7 @@ jQuery(document).ready(function($) {
 			$('.ewww-tab a').blur();
 			$('#ewww-webp-settings').hide();
 			$('#ewww-general-settings').hide();
+			$('#ewww-exactdn-settings').hide();
 			$('#ewww-optimization-settings').hide();
 			$('#ewww-resize-settings').hide();
 			$('#ewww-conversion-settings').show();

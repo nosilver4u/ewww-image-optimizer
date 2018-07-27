@@ -141,6 +141,9 @@ class ExactDN {
 		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_array' ), 1001, 5 );
 		add_filter( 'wp_calculate_image_sizes', array( $this, 'filter_sizes' ), 1, 2 ); // Early so themes can still filter.
 
+		// Filter for NextGEN image urls within JS.
+		add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ) );
+
 		// DNS prefetching.
 		add_action( 'wp_head', array( $this, 'dns_prefetch' ) );
 
@@ -179,7 +182,16 @@ class ExactDN {
 				$this->allowed_domains[] = $nonwww;
 			}
 		}
+		$wpml_domains = apply_filters( 'wpml_setting', array(), 'language_domains' );
+		if ( ewww_image_optimizer_iterable( $wpml_domains ) ) {
+			ewwwio_debug_message( 'wpml domains: ' . implode( ',', $wpml_domains ) );
+			$this->allowed_domains[] = $this->parse_url( get_option( 'home' ), PHP_URL_HOST );
+			foreach ( $wpml_domains as $wpml_domain ) {
+				$this->allowed_domains[] = $wpml_domain;
+			}
+		}
 		$this->allowed_domains = apply_filters( 'exactdn_allowed_domains', $this->allowed_domains );
+		ewwwio_debug_message( 'allowed domains: ' . implode( ',', $this->allowed_domains ) );
 		$this->validate_user_exclusions();
 	}
 
@@ -1639,8 +1651,8 @@ class ExactDN {
 			return false;
 		}
 
-		// Ensure image extension is acceptable.
-		if ( ! in_array( strtolower( pathinfo( $url_info['path'], PATHINFO_EXTENSION ) ), $this->extensions ) ) {
+		// Ensure image extension is acceptable, unless it's a dynamic NextGEN image.
+		if ( ! in_array( strtolower( pathinfo( $url_info['path'], PATHINFO_EXTENSION ) ), $this->extensions ) && false === strpos( $url_info['path'], 'nextgen-image/' ) ) {
 			ewwwio_debug_message( 'invalid extension' );
 			return false;
 		}
@@ -1738,6 +1750,44 @@ class ExactDN {
 		}
 
 		return is_array( self::$image_sizes ) ? self::$image_sizes : array();
+	}
+
+	/**
+	 * Handle image urls within the NextGEN pro lightbox displays.
+	 *
+	 * @param array $images An array of NextGEN images and associate attributes.
+	 * @return array The ExactDNified array of images.
+	 */
+	function ngg_pro_lightbox_images_queue( $images ) {
+		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		if ( ewww_image_optimizer_iterable( $images ) ) {
+			foreach ( $images as $index => $image ) {
+				if ( ! empty( $image['image'] ) && $this->validate_image_url( $image['image'] ) ) {
+					$images[ $index ]['image'] = $this->generate_url( $image['image'] );
+				}
+				if ( ! empty( $image['thumb'] ) && $this->validate_image_url( $image['thumb'] ) ) {
+					$images[ $index ]['thumb'] = $this->generate_url( $image['thumb'] );
+				}
+				if ( ! empty( $image['full_image'] ) && $this->validate_image_url( $image['full_image'] ) ) {
+					$images[ $index ]['full_image'] = $this->generate_url( $image['full_image'] );
+				}
+				if ( ewww_image_optimizer_iterable( $image['srcsets'] ) ) {
+					foreach ( $image['srcsets'] as $size => $srcset ) {
+						if ( $this->validate_image_url( $srcset ) ) {
+							$images[ $index ]['srcsets'][ $size ] = $this->generate_url( $srcset );
+						}
+					}
+				}
+				if ( ewww_image_optimizer_iterable( $image['full_srcsets'] ) ) {
+					foreach ( $image['full_srcsets'] as $size => $srcset ) {
+						if ( $this->validate_image_url( $srcset ) ) {
+							$images[ $index ]['full_srcsets'][ $size ] = $this->generate_url( $srcset );
+						}
+					}
+				}
+			}
+		}
+		return $images;
 	}
 
 	/**
@@ -1953,7 +2003,7 @@ class ExactDN {
 		// However some source images are served via PHP so check the no-query-string extension.
 		// For future proofing, this is a blacklist of common issues rather than a whitelist.
 		$extension = pathinfo( $image_url_parts['path'], PATHINFO_EXTENSION );
-		if ( empty( $extension ) || in_array( $extension, array( 'php', 'ashx' ) ) ) {
+		if ( ( empty( $extension ) && false === strpos( $image_url_parts['path'], 'nextgen-image/' ) ) || in_array( $extension, array( 'php', 'ashx' ) ) ) {
 			ewwwio_debug_message( 'bad extension' );
 			return $image_url;
 		}
