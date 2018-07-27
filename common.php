@@ -4916,7 +4916,7 @@ function ewww_image_optimizer_raise_memory_limit( $memory_limit ) {
  */
 function ewww_image_optimizer_autorotate( $file ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_no_rotate' ) ) {
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_autorotate' ) ) {
 		return;
 	}
 	if ( function_exists( 'wp_raise_memory_limit' ) ) {

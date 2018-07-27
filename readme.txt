@@ -183,6 +183,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: use EXACTDN_EXCLUDE in wp-config.php to bypass ExactDN for JS, CSS, etc.
 * changed: filter NextGEN quality to prevent oversized thumbs
 * changed: allow crop via filter even when one dimension is the same as the original
+* changed: auto-rotate function disabled with EWWW_IMAGE_OPTIMIZER_DISABLE_AUTOROTATE
 * fixed: unique filename function producing names with a hyphen and no digits
 * fixed: encoded ampersands within the path portion of a url prevent ExactDN parsing
 * fixed: entering a decimal for bulk delay does nothing
