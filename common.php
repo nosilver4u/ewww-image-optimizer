@@ -7969,7 +7969,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			"<li class='ewww-tab ewww-resize-nav'><span class='ewww-tab-hidden'>" . esc_html__( 'Resize', 'ewww-image-optimizer' ) . "</span></li>\n" .
 			"<li class='ewww-tab ewww-conversion-nav'><span class='ewww-tab-hidden'>" . esc_html__( 'Convert', 'ewww-image-optimizer' ) . "</span></li>\n" .
 			"<li class='ewww-tab ewww-webp-nav'><span class='ewww-tab-hidden'>" . esc_html__( 'WebP', 'ewww-image-optimizer' ) . "</span></li>\n" .
-			"<li class='ewww-tab ewww-overrides-nav'><span class='ewww-tab-hidden'><a href='https://docs.ewww.io/article/40-override-options' target='_blank' data-beacon-article='59710ce4042863033a1b45a6'><span class='ewww-tab-hidden'>" . esc_html__( 'Overrides', 'ewww-image-optimizer' ) . "</a></span></li>\n" .
+			"<li class='ewww-tab ewww-overrides-nav'><span class='ewww-tab-hidden'><a href='https://docs.ewww.io/article/40-override-options' target='_blank'><span class='ewww-tab-hidden'>" . esc_html__( 'Overrides', 'ewww-image-optimizer' ) . "</a></span></li>\n" .
 		"</ul>\n";
 	}
 	if ( 'network-multisite' == $network ) {
@@ -8107,7 +8107,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		ewwwio_debug_message( 'pngout disabled: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_pngout' ) == true ? 'yes' : 'no' ) );
 		ewwwio_debug_message( 'pngout level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_pngout_level' ) );
 	}
-	$output[] = "<tr class='$network_class'><th><span><label for='ewww_image_optimizer_jpg_quality'>" . esc_html__( 'JPG quality level:', 'ewww-image-optimizer' ) . "</label></th><td><input type='text' id='ewww_image_optimizer_jpg_quality' name='ewww_image_optimizer_jpg_quality' class='small-text' value='" . ewww_image_optimizer_jpg_quality() . "' /> " . esc_html__( 'Valid values are 1-100.', 'ewww-image-optimizer' ) . "\n<p class='description'>" . esc_html__( 'Use this to override the default WordPress quality level of 82. Applies to image editing, resizing, PNG to JPG conversion, and JPG to WebP conversion. Does not affect the original uploaded image unless maximum dimensions are set and resizing occurs.', 'ewww-image-optimizer' ) . "</p></td></tr>\n";
+	$output[] = "<tr class='$network_class'><th><span><label for='ewww_image_optimizer_jpg_quality'>" . esc_html__( 'JPG quality level:', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/11-advanced-configuration', '58542afac697912ffd6c18c0,58543c69c697912ffd6c19a7' ) . "</th><td><input type='text' id='ewww_image_optimizer_jpg_quality' name='ewww_image_optimizer_jpg_quality' class='small-text' value='" . ewww_image_optimizer_jpg_quality() . "' /> " . esc_html__( 'Valid values are 1-100.', 'ewww-image-optimizer' ) . "\n<p class='description'>" . esc_html__( 'Use this to override the default WordPress quality level of 82. Applies to image editing, resizing, PNG to JPG conversion, and JPG to WebP conversion. Does not affect the original uploaded image unless maximum dimensions are set and resizing occurs.', 'ewww-image-optimizer' ) . "</p></td></tr>\n";
 	$output[] = "<tr class='$network_class'><th><label for='ewww_image_optimizer_parallel_optimization'>" . esc_html__( 'Parallel optimization', 'ewww-image-optimizer' ) . "</label></th><td><input type='checkbox' id='ewww_image_optimizer_parallel_optimization' name='ewww_image_optimizer_parallel_optimization' value='true' " . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_parallel_optimization' ) == true ? "checked='true'" : '' ) . ' /> ' . esc_html__( 'All resizes generated from a single upload are optimized in parallel for faster optimization. If this is causing performance issues, disable parallel optimization to reduce the load on your server.', 'ewww-image-optimizer' ) . "</td></tr>\n";
 	ewwwio_debug_message( 'parallel optimization: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_parallel_optimization' ) == true ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'background optimization: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) == true ? 'on' : 'off' ) );
@@ -8482,6 +8482,27 @@ function ewww_image_optimizer_filter_network_singlesite_settings_page( $input ) 
 	}
 	ewwwio_memory( __FUNCTION__ );
 	return $output;
+}
+
+/**
+ * Displays a help icon linked to the docs.
+ *
+ * @param string $link A link to the documentation.
+ * @param string $hsid The HelpScout ID for the docs article. Optional.
+ * @return string An HTML hyperlink element with a help icon.
+ */
+function ewwwio_help_link( $link, $hsid = '' ) {
+	$help_icon   = plugins_url( '/images/question-circle.png', __FILE__ );
+	$beacon_attr = '';
+	$link_class  = 'ewww-help-icon';
+	if ( strpos( $hsid, ',' ) ) {
+		$beacon_attr = " data-beacon-articles='$hsid'";
+		$link_class  = 'ewww-help-beacon-multi';
+	} elseif ( $hsid ) {
+		$beacon_attr = " data-beacon-article='$hsid'";
+		$link_class  = 'ewww-help-beacon-single';
+	}
+	return "<a class='$link_class' href='$link' target='_blank' style='margin: 3px'$beacon_attr><img title='help' src='$help_icon'></a>";
 }
 
 /**

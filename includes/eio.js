@@ -113,6 +113,23 @@ jQuery(document).ready(function($) {
 			$('#ewww-resize-settings').hide();
 			$('#ewww-conversion-settings').show();
 		});
+		if (typeof(HS) !== 'undefined' ) {
+			$('.ewww-overrides-nav').click(function() {
+				HS.beacon.ready(function() {
+					event.preventDefault();
+					HS.beacon.show('59710ce4042863033a1b45a6');
+				});
+			});
+			$('.ewww-help-beacon-multi').click(function() {
+				var hsids = $(this).attr('data-beacon-articles');
+				hsids = hsids.split(',');
+				HS.beacon.ready(function() {
+					event.preventDefault();
+					HS.beacon.suggest(hsids);
+					HS.beacon.open();
+				});
+			});
+		}
 		return false;
 	} else {
 	$(function() {
