@@ -1,4 +1,4 @@
-jQuery(document).on( 'click', '.ewww-manual-optimize', function() {
+jQuery(document).on('click', '.ewww-manual-optimize', function() {
 	var post_id = jQuery(this).data('id');
 	var ewww_nonce = jQuery(this).data('nonce');
 	var ewww_manual_optimize_data = {
@@ -18,7 +18,7 @@ jQuery(document).on( 'click', '.ewww-manual-optimize', function() {
 	});
 	return false;
 });
-jQuery(document).on( 'click', '.ewww-manual-convert', function() {
+jQuery(document).on('click', '.ewww-manual-convert', function() {
 	var post_id = jQuery(this).data('id');
 	var ewww_nonce = jQuery(this).data('nonce');
 	var ewww_manual_optimize_data = {
@@ -43,7 +43,7 @@ jQuery(document).on( 'click', '.ewww-manual-convert', function() {
 	});
 	return false;
 });
-jQuery(document).on( 'click', '.ewww-manual-restore', function() {
+jQuery(document).on('click', '.ewww-manual-restore', function() {
 	var post_id = jQuery(this).data('id');
 	var ewww_nonce = jQuery(this).data('nonce');
 	var ewww_manual_optimize_data = {
@@ -66,7 +66,7 @@ jQuery(document).on( 'click', '.ewww-manual-restore', function() {
 	});
 	return false;
 });
-jQuery(document).on( 'click', '.ewww-manual-cloud-restore', function() {
+jQuery(document).on('click', '.ewww-manual-cloud-restore', function() {
 	var post_id = jQuery(this).data('id');
 	var ewww_nonce = jQuery(this).data('nonce');
 	var ewww_manual_optimize_data = {
@@ -82,10 +82,10 @@ jQuery(document).on( 'click', '.ewww-manual-cloud-restore', function() {
 		} else if (ewww_manual_response.success) {
 			jQuery('#ewww-media-status-' + post_id ).html( ewww_manual_response.success );
 		}
-/*		if (ewww_manual_response.basename) {
-			var attachment_span = jQuery('#post-' + post_id + ' .column-title .filename .screen-reader-text').html();
-			jQuery('#post-' + post_id + ' .column-title .filename').html('<span class="screen-reader-text">' + attachment_span + '</span>' + ewww_manual_response.basename);
-		}*/
 	});
 	return false;
+});
+jQuery(document).on('click', '.ewww-show-debug-meta', function() {
+	var post_id = jQuery(this).data('id');
+	jQuery('#ewww-debug-meta-' + post_id).toggle();
 });

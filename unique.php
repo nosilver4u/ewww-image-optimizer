@@ -1562,6 +1562,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		// Tell the user optimization was skipped.
 		return array( false, __( 'Optimization skipped', 'ewww-image-optimizer' ), $converted, $file );
 	}
+	global $ewww_image;
 	global $s3_uploads_image;
 	if ( empty( $s3_uploads_image ) ) {
 		$s3_uploads_image = false;
@@ -1631,6 +1632,9 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			unset( $s3_uploads_image );
 		}
 		return array( false, __( 'Unsupported file type', 'ewww-image-optimizer' ) . ": $type", $converted, $original );
+	}
+	if ( ! is_object( $ewww_image ) || ! $ewww_image instanceof EWWW_Image || $ewww_image->file != $file ) {
+		$ewww_image = new EWWW_Image( 0, '', $file );
 	}
 	if ( ! EWWW_IMAGE_OPTIMIZER_CLOUD ) {
 		ewww_image_optimizer_define_noexec();
@@ -1746,6 +1750,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					return array( $file, $results_msg, $converted, $original );
 				}
 			}
+			$ewww_image->level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' );
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) > 10 ) {
 				list( $file, $converted, $result, $new_size, $backup_hash ) = ewww_image_optimizer_cloud_optimizer( $file, $type, $convert, $pngfile, 'image/png', $skip_lossy );
 				if ( $converted ) {
@@ -2010,6 +2015,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					return array( $file, $results_msg, $converted, $original );
 				}
 			}
+			$ewww_image->level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' );
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) >= 20 && ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 				list( $file, $converted, $result, $new_size, $backup_hash ) = ewww_image_optimizer_cloud_optimizer(
 					$file,
@@ -2300,6 +2306,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					return array( $file, $results_msg, $converted, $original );
 				}
 			}
+			$ewww_image->level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' );
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) == 10 ) {
 				list( $file, $converted, $result, $new_size, $backup_hash ) = ewww_image_optimizer_cloud_optimizer( $file, $type, $convert, $pngfile, 'image/png', $skip_lossy );
 				if ( $converted ) {
@@ -2441,6 +2448,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					return array( $file, $results_msg, false, $original );
 				}
 			}
+			$ewww_image->level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' );
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) > 0 ) {
 				list( $file, $converted, $result, $new_size, $backup_hash ) = ewww_image_optimizer_cloud_optimizer( $file, $type );
 			}

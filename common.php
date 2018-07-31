@@ -12,12 +12,9 @@
 
 // TODO: use <picture> element to serve webp (#54).
 // TODO: attempt lazy load support with a3 plugin and one from automattic for alt webp. or are we back here: https://developers.google.com/web/fundamentals/performance/lazy-loading-guidance/images-and-video/
-// TODO: prevent bad ajax errors from firing when we click the toggle on the Optimization Log, and the plugin status from doing 403s...
-// TODO: use a transient to do health checks on the schedule optimizer.
-// TODO: add a column to track compression level used for each image, and later implement a way to (re)compress at a specific compression level.
+// TODO: implement a way to (re)compress at a specific compression level.
 // TODO: might be able to use the Custom Bulk Actions in 4.7 to support the bulk optimize drop-down menu.
 // TODO: need to make the scheduler so it can resume without having to re-run the queue population, and then we can probably also flush the queue when scheduled opt starts, but later it would be nice to implement the bulk_loop as the aux_loop so that it could handle media properly.
-// TODO: implement a search for the bulk table, or maybe we should just move it to it's own page?
 // TODO: Add a custom async function for parallel mode to store image as pending and use the row ID instead of relative path.
 // TODO: write some tests for update_table and check_table, find_already_opt, and remove_dups.
 // TODO: write some conversion tests.
@@ -26,13 +23,15 @@
 // TODO: integrate AGR, since it's "abandoned", but possibly using gifsicle for better GIFs.
 // TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
 // TODO: on images without srscet, add 2x and 3x versions anyway.
-// TODO: can svg/use tags be exluded from all the things?
 // TODO: match Adaptive Images functionality with ExactDN.
 // TODO: handle relative urls with ExactDN.
-// TODO: can we fix minify/combine for WP Rocket and WPFC when ExactDN is active?
-// TODO: is there a way to detect the noscript/head conflict for libxml pre-2.8.0, or perhaps just detect Woo and libxml...
+// TODO: see if we can parse all use tags and use the bypass mechanism to avoid ExactDM + SVG issues.
 // TODO: can some of the bulk "fallbacks" be implemented for async processing?
 // TODO: can dynamic thumbs be grabbed during manual/bulk processes for NextGEN?
+// TODO: figure out how to make the IO column toggle-friendly in NextGEN.
+// TODO: one-click "upgrade" from core to cloud on required platforms.
+// TODO: add a note on grid view that they can view opt results in list mode.
+// TODO: scope=row on th in settings table.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -1462,7 +1461,7 @@ function ewww_image_optimizer_admin_init() {
 	}
 	ewww_image_optimizer_ajax_compat_check();
 	// Remove the false when the next bump is coming.
-	if ( false && defined( 'PHP_VERSION_ID' ) && PHP_VERSION_ID < 50500 ) {
+	if ( defined( 'PHP_VERSION_ID' ) && PHP_VERSION_ID < 50500 ) {
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_php54_warning' );
 		add_action( 'admin_notices', 'ewww_image_optimizer_php54_warning' );
 	}
@@ -4277,11 +4276,20 @@ function ewww_image_optimizer_check_table( $file, $orig_size ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	ewwwio_debug_message( "checking for $file with size: $orig_size" );
 	global $s3_uploads_image;
+	global $ewww_image;
 	if ( class_exists( 'S3_Uploads' ) && ! empty( $s3_uploads_image ) && $s3_uploads_image != $file ) {
 		$file = $s3_uploads_image;
 		ewwwio_debug_message( "overriding check with: $file" );
 	}
-	$image = ewww_image_optimizer_find_already_optimized( $file );
+	$image = array();
+	if ( ! is_object( $ewww_image ) || ! $ewww_image instanceof EWWW_Image || $ewww_image->file != $file ) {
+		$ewww_image = new EWWW_Image( 0, '', $file );
+	}
+	if ( ! empty( $ewww_image->record ) ) {
+		$image = $ewww_image->record;
+	} else {
+		$image = false;
+	}
 	if ( is_array( $image ) && $image['image_size'] == $orig_size ) {
 		$prev_string = ' - ' . __( 'Previously Optimized', 'ewww-image-optimizer' );
 		if ( preg_match( '/' . __( 'License exceeded', 'ewww-image-optimizer' ) . '/', $image['results'] ) ) {
@@ -4362,6 +4370,7 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 	$updates = array(
 		'path'       => ewww_image_optimizer_relative_path_remove( $attachment ),
 		'converted'  => $converted,
+		'level'      => 0,
 		'image_size' => $opt_size,
 		'results'    => $results_msg,
 		'updates'    => 1,
@@ -4381,6 +4390,9 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 		}
 		if ( is_object( $ewww_image ) && $ewww_image instanceof EWWW_Image && $ewww_image->resize ) {
 			$updates['resize'] = $ewww_image->resize;
+		}
+		if ( is_object( $ewww_image ) && $ewww_image instanceof EWWW_Image && $ewww_image->level ) {
+			$updates['level'] = $ewww_image->level;
 		}
 		$updates['orig_size'] = $orig_size;
 		$updates['updated']   = date( 'Y-m-d H:i:s' );
@@ -4405,6 +4417,9 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 		}
 		if ( empty( $already_optimized['resize'] ) && is_object( $ewww_image ) && $ewww_image instanceof EWWW_Image && $ewww_image->resize ) {
 			$updates['resize'] = $ewww_image->resize;
+		}
+		if ( is_object( $ewww_image ) && $ewww_image instanceof EWWW_Image && $ewww_image->level ) {
+			$updates['level'] = $ewww_image->level;
 		}
 		if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
 			ewwwio_debug_message( print_r( $updates, true ) );
@@ -6532,9 +6547,10 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			$meta = wp_get_attachment_metadata( $id );
 		}
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && ! $return_output && ewww_image_optimizer_function_exists( 'print_r' ) ) {
-			$print_meta = print_r( $meta, true );
-			$print_meta = preg_replace( array( '/ /', '/\n+/' ), array( '&nbsp;', '<br />' ), $print_meta );
-			$output    .= '<div style="background-color:#ffff99;font-size: 10px;padding: 10px;margin:-10px -10px 10px;line-height: 1.1em">' . $print_meta . '</div>';
+			$print_meta   = print_r( $meta, true );
+			$print_meta   = preg_replace( array( '/ /', '/\n+/' ), array( '&nbsp;', '<br />' ), $print_meta );
+			$debug_button = esc_html__( 'Show Metadata', 'ewww-image-optimizer' );
+			$output      .= "<button type='button' class='ewww-show-debug-meta' data-id='$id'>$debug_button</button><div id='ewww-debug-meta-$id' style='background-color:#ffff99;font-size: 10px;padding: 10px;margin:3px -10px 10px;line-height: 1.1em;display: none;'>$print_meta</div>";
 		}
 		$output  .= "<div id='ewww-media-status-$id'>";
 		$ewww_cdn = false;
@@ -7268,6 +7284,7 @@ function ewww_image_optimizer_settings_script( $hook ) {
 		return;
 	}
 	wp_enqueue_script( 'ewwwbulkscript', plugins_url( '/includes/eio.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+	wp_enqueue_style( 'jquery-ui-tooltip-custom', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 	wp_enqueue_script( 'postbox' );
 	wp_enqueue_script( 'dashboard' );
 	wp_localize_script( 'ewwwbulkscript', 'ewww_vars', array(
@@ -7670,7 +7687,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		) .
 		"</p>\n";
 	$status_output = "<div id='ewww-widgets' class='metabox-holder'><div class='meta-box-sortables'><div id='ewww-status' class='postbox'>\n" .
-		"<h2 class='hndle'>" . esc_html__( 'Plugin Status', 'ewww-image-optimizer' ) . "&emsp;STATUS_PLACEHOLDER</h2>\n<div class='inside'>";
+		"<h2 class='ewww-hndle'>" . esc_html__( 'Plugin Status', 'ewww-image-optimizer' ) . "&emsp;STATUS_PLACEHOLDER</h2>\n<div class='inside'>";
 	$total_savings = ewww_image_optimizer_savings();
 	if ( $total_savings ) {
 		$status_output .= '<b>' . esc_html__( 'Total Savings:', 'ewww-image-optimizer' ) . "</b> <span id='ewww-total-savings'>" . ewww_image_optimizer_size_format( $total_savings, 2 ) . '</span><br>';
@@ -8359,22 +8376,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$help_instructions = esc_html__( 'Enable the Debugging option and refresh this page to include debugging information with your question.', 'ewww-image-optimizer' ) . ' ' .
 		esc_html__( 'This will allow us to assist you more quickly.', 'ewww-image-optimizer' );
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-		?>
-<script type="text/javascript">
-	function selectText(containerid) {
-		var debug_node = document.getElementById(containerid);
-		if (document.selection) {
-			var range = document.body.createTextRange();
-			range.moveToElementText(debug_node);
-			range.select();
-		} else if (window.getSelection) {
-			window.getSelection().selectAllChildren(debug_node);
-		}
-	}
-</script>
-		<?php
 		global $ewww_debug;
-		echo '<p style="clear:both"><b>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</b> <button onclick="selectText(' . "'ewww-debug-info'" . ')">' . esc_html__( 'Select All', 'ewww-image-optimizer' ) . '</button>';
+		echo '<p style="clear:both"><b>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</b> <button id="ewww-copy-debug">' . esc_html__( 'Copy', 'ewww-image-optimizer' ) . '</button>';
 		if ( is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
 			$debug_log_url = plugins_url( '/debug.log', __FILE__ );
 			echo "&emsp;<a href='$debug_log_url'>" . esc_html( 'View Debug Log', 'ewww-image-optimizer' ) . "</a> - <a href='admin.php?action=ewww_image_optimizer_delete_debug_log'>" . esc_html( 'Remove Debug Log', 'ewww-image-optimizer' ) . '</a>';
@@ -8385,7 +8388,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			esc_html__( 'This will allow us to assist you more quickly.', 'ewww-image-optimizer' );
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
-		/* $help_instructions = esc_html__( 'Please turn on the Debugging option. Then copy and paste the Debug Information from the bottom of the settings page. This will allow us to assist you more quickly.', 'ewww-image-optimizer' ); */
 		$current_user = wp_get_current_user();
 		$help_email   = $current_user->user_email;
 		$hs_config    = array(
