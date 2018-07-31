@@ -88,21 +88,21 @@ function ewww_image_optimizer_bulk_head_output() {
 		<div id="ewww-bulk-widgets" class="metabox-holder" style="display:none">
 			<div class="meta-box-sortables">
 				<div id="ewww-bulk-last" class="postbox">
-					<button type="button" class="handlediv button-link" aria-expanded="true">
+					<button type="button" class="ewww-handlediv button-link" aria-expanded="true">
 						<span class="screen-reader-text"><?php esc_html_e( 'Click to toggle', 'ewww-image-optimizer' ); ?></span>
-						<span class="toggle-indicator" aria-hidden="true"></span>
+						<span class="toggle-indicator" aria-hidden="false"></span>
 					</button>
-					<h2 class="hndle"><span><?php esc_html_e( 'Last Batch Optimized', 'ewww-image-optimizer' ); ?></span></h2>
+					<h2 class="ewww-hndle"><span><?php esc_html_e( 'Last Batch Optimized', 'ewww-image-optimizer' ); ?></span></h2>
 					<div class="inside"></div>
 				</div>
 			</div>
 			<div class="meta-box-sortables">
 				<div id="ewww-bulk-status" class="postbox">
-					<button type="button" class="handlediv button-link" aria-expanded="true">
+					<button type="button" class="ewww-handlediv button-link" aria-expanded="true">
 						<span class="screen-reader-text"><?php esc_html_e( 'Click to toggle', 'ewww-image-optimizer' ); ?></span>
-						<span class="toggle-indicator" aria-hidden="true"></span>
+						<span class="toggle-indicator" aria-hidden="false"></span>
 					</button>
-					<h2 class="hndle"><span><?php esc_html_e( 'Optimization Log', 'ewww-image-optimizer' ); ?></span></h2>
+					<h2 class="ewww-hndle"><span><?php esc_html_e( 'Optimization Log', 'ewww-image-optimizer' ); ?></span></h2>
 					<div class="inside"></div>
 				</div>
 			</div>
@@ -1645,7 +1645,9 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 	update_option( 'ewww_image_optimizer_bulk_attachments', $attachments, false );
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 		global $ewww_debug;
-		$output['results'] .= '<div style="background-color:#ffff99;">' . $ewww_debug . '</div>';
+		$debug_button       = esc_html__( 'Show Debug Output', 'ewww-image-optimizer' );
+		$debug_id           = uniqid();
+		$output['results'] .= "<button type='button' class='ewww-show-debug-meta' data-id='$debug_id'>$debug_button</button><div class='ewww-debug-meta-$debug_id' style='background-color:#ffff99;display:none;'>$ewww_debug</div>";
 	}
 	if ( ! empty( $next_image->file ) ) {
 		$next_file = esc_html( $next_image->file );
