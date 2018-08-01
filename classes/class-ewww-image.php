@@ -87,6 +87,12 @@ class EWWW_Image {
 	 * @var int $level
 	 */
 	public $level = 0;
+	/**
+	 * Raw db record.
+	 *
+	 * @var array $record
+	 */
+	public $record = array();
 
 	/**
 	 * Creates an image record, either from a pending record in the database, or from a file path.
@@ -175,6 +181,7 @@ class EWWW_Image {
 		$this->converted     = ewww_image_optimizer_relative_path_replace( $new_image['converted'] );
 		$this->gallery       = ( empty( $gallery ) ? $new_image['gallery'] : $gallery );
 		$this->backup        = $new_image['backup'];
+		$this->record        = $new_image;
 	}
 
 	/**

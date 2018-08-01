@@ -177,12 +177,23 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
-= 4.2.4 =
+= 4.2.9 =
 * added: auto-convert large PNG images to JPG during upload, define EWWW_IMAGE_OPTIMIZER_DISABLE_AUTOCONVERT to skip
+* added: use file modification time to add query strings on JS/CSS files for cache invalidation on ExactDN
+* added: use EXACTDN_EXCLUDE in wp-config.php to bypass ExactDN for JS, CSS, etc.
+* added: NextGEN image urls properly rewritten for ExactDN
+* changed: resizing uses the primary media dimensions unless the "other" dimensions are configured
+* changed: Resize Other Images removed from GUI, configure via Overrides tab
 * changed: filter NextGEN quality to prevent oversized thumbs
 * changed: allow crop via filter even when one dimension is the same as the original
+* changed: auto-rotate function disabled with EWWW_IMAGE_OPTIMIZER_DISABLE_AUTOROTATE
+* changed: one-click copy for debug info, and debug collapsed by default in media library and bulk results
+* fixed: uploading images in the Gutenberg editor uses the wrong resize dimensions
 * fixed: unique filename function producing names with a hyphen and no digits
 * fixed: encoded ampersands within the path portion of a url prevent ExactDN parsing
+* fixed: entering a decimal for bulk delay does nothing
+* fixed: if urls on a localized WPML domain are using the default domain, ExactDN ignores them
+* fixed: toggle for plugin status and bulk status generate admin-ajax.php 403 errors
 
 = 4.2.3 =
 * added: skip resizing for images with noresize in the filename

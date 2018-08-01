@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class ExactDN {
 
 	/**
-	 * Allowed extensions are currently only images. Might add PDF/CSS/JS at some point.
+	 * Allowed image extensions.
 	 *
 	 * @access private
 	 * @var array $extensions
@@ -28,6 +28,15 @@ class ExactDN {
 		'jpe',
 		'png',
 	);
+
+
+	/**
+	 * A list of user-defined exclusions, populated by validate_user_exclusions().
+	 *
+	 * @access protected
+	 * @var array $user_exclusions
+	 */
+	protected $user_exclusions = array();
 
 	/**
 	 * A list of image sizes registered for attachments.
@@ -132,6 +141,10 @@ class ExactDN {
 		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_array' ), 1001, 5 );
 		add_filter( 'wp_calculate_image_sizes', array( $this, 'filter_sizes' ), 1, 2 ); // Early so themes can still filter.
 
+		// Filter for NextGEN image urls within JS.
+		add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ) );
+		add_filter( 'ngg_get_image_url', array( $this, 'ngg_get_image_url' ) );
+
 		// DNS prefetching.
 		add_action( 'wp_head', array( $this, 'dns_prefetch' ) );
 
@@ -159,7 +172,7 @@ class ExactDN {
 
 		// Find the "local" domain.
 		$upload_dir          = wp_upload_dir( null, false );
-		$this->upload_domain = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : $this->parse_url( $upload_dir['baseurl'], PHP_URL_HOST );
+		$this->upload_domain = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? $this->parse_url( EXACTDN_LOCAL_DOMAIN, PHP_URL_HOST ) : $this->parse_url( $upload_dir['baseurl'], PHP_URL_HOST );
 		ewwwio_debug_message( "allowing images from here: $this->upload_domain" );
 		$this->allowed_domains[] = $this->upload_domain;
 		if ( strpos( $this->upload_domain, 'www' ) === false ) {
@@ -170,7 +183,17 @@ class ExactDN {
 				$this->allowed_domains[] = $nonwww;
 			}
 		}
+		$wpml_domains = apply_filters( 'wpml_setting', array(), 'language_domains' );
+		if ( ewww_image_optimizer_iterable( $wpml_domains ) ) {
+			ewwwio_debug_message( 'wpml domains: ' . implode( ',', $wpml_domains ) );
+			$this->allowed_domains[] = $this->parse_url( get_option( 'home' ), PHP_URL_HOST );
+			foreach ( $wpml_domains as $wpml_domain ) {
+				$this->allowed_domains[] = $wpml_domain;
+			}
+		}
 		$this->allowed_domains = apply_filters( 'exactdn_allowed_domains', $this->allowed_domains );
+		ewwwio_debug_message( 'allowed domains: ' . implode( ',', $this->allowed_domains ) );
+		$this->validate_user_exclusions();
 	}
 
 	/**
@@ -474,6 +497,28 @@ class ExactDN {
 			}
 		}
 		return update_option( 'ewww_image_optimizer_exactdn_' . $option_name, $option_value, $autoload );
+	}
+
+	/**
+	 * Validate the user-defined exclusions for "all the things" rewriting.
+	 */
+	function validate_user_exclusions() {
+		if ( defined( 'EXACTDN_EXCLUDE' ) && EXACTDN_EXCLUDE ) {
+			$user_exclusions = EXACTDN_EXCLUDE;
+		}
+		if ( ! empty( $user_exclusions ) ) {
+			if ( is_string( $user_exclusions ) ) {
+				$user_exclusions = array( $user_exclusions );
+			}
+			if ( is_array( $user_exclusions ) ) {
+				foreach ( $user_exclusions as $exclusion ) {
+					if ( false !== strpos( $exclusion, 'wp-content' ) ) {
+						$exclusion = preg_replace( '#([^"\'?>]+?)?wp-content/#i', '', $exclusion );
+					}
+					$this->user_exclusions[] = ltrim( $exclusion, '/' );
+				}
+			}
+		}
 	}
 
 	/**
@@ -906,10 +951,9 @@ class ExactDN {
 			if ( $this->exactdn_domain && $this->upload_domain ) {
 				$escaped_upload_domain = str_replace( '.', '\.', ltrim( $this->upload_domain, 'w.' ) );
 				ewwwio_debug_message( $escaped_upload_domain );
-				// Pre-empt rewriting of wp-includes and wp-content if the extension is php/ashx by using a temporary placeholder.
 				$content = preg_replace( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)\.(php|ashx|m4v|mov|wvm|qt|webm|ogv|mp4|m4p|mpg|mpeg|mpv)#i', '$1://' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
 				$content = str_replace( 'wp-content/themes/jupiter"', '?wpcontent-bypass?/themes/jupiter"', $content );
-				$content = preg_replace( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?wp-(includes|content)#i', '$1://' . $this->exactdn_domain . '/$2wp-$3', $content );
+				$content = preg_replace( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?(nextgen-image|wp-includes|wp-content)/#i', '$1://' . $this->exactdn_domain . '/$2$3/', $content );
 				$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );
 			}
 		}
@@ -1333,6 +1377,8 @@ class ExactDN {
 			is_array( $multipliers )
 			/** This filter is already documented in class-exactdn.php */
 			&& ! apply_filters( 'exactdn_skip_image', false, $url, null )
+			/** The original url is valid/allowed. */
+			&& $this->validate_image_url( $url )
 			/** Verify basic meta is intact. */
 			&& isset( $image_meta['width'] ) && isset( $image_meta['height'] ) && isset( $image_meta['file'] )
 			/** Verify we have the requested width/height. */
@@ -1602,8 +1648,8 @@ class ExactDN {
 			return false;
 		}
 
-		// Ensure image extension is acceptable.
-		if ( ! in_array( strtolower( pathinfo( $url_info['path'], PATHINFO_EXTENSION ) ), $this->extensions ) ) {
+		// Ensure image extension is acceptable, unless it's a dynamic NextGEN image.
+		if ( ! in_array( strtolower( pathinfo( $url_info['path'], PATHINFO_EXTENSION ) ), $this->extensions ) && false === strpos( $url_info['path'], 'nextgen-image/' ) ) {
 			ewwwio_debug_message( 'invalid extension' );
 			return false;
 		}
@@ -1704,6 +1750,58 @@ class ExactDN {
 	}
 
 	/**
+	 * Handle image urls within the NextGEN pro lightbox displays.
+	 *
+	 * @param array $images An array of NextGEN images and associate attributes.
+	 * @return array The ExactDNified array of images.
+	 */
+	function ngg_pro_lightbox_images_queue( $images ) {
+		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		if ( ewww_image_optimizer_iterable( $images ) ) {
+			foreach ( $images as $index => $image ) {
+				if ( ! empty( $image['image'] ) && $this->validate_image_url( $image['image'] ) ) {
+					$images[ $index ]['image'] = $this->generate_url( $image['image'] );
+				}
+				if ( ! empty( $image['thumb'] ) && $this->validate_image_url( $image['thumb'] ) ) {
+					$images[ $index ]['thumb'] = $this->generate_url( $image['thumb'] );
+				}
+				if ( ! empty( $image['full_image'] ) && $this->validate_image_url( $image['full_image'] ) ) {
+					$images[ $index ]['full_image'] = $this->generate_url( $image['full_image'] );
+				}
+				if ( ewww_image_optimizer_iterable( $image['srcsets'] ) ) {
+					foreach ( $image['srcsets'] as $size => $srcset ) {
+						if ( $this->validate_image_url( $srcset ) ) {
+							$images[ $index ]['srcsets'][ $size ] = $this->generate_url( $srcset );
+						}
+					}
+				}
+				if ( ewww_image_optimizer_iterable( $image['full_srcsets'] ) ) {
+					foreach ( $image['full_srcsets'] as $size => $srcset ) {
+						if ( $this->validate_image_url( $srcset ) ) {
+							$images[ $index ]['full_srcsets'][ $size ] = $this->generate_url( $srcset );
+						}
+					}
+				}
+			}
+		}
+		return $images;
+	}
+
+	/**
+	 * Handle image urls within NextGEN.
+	 *
+	 * @param string $image A url for a NextGEN image.
+	 * @return string The ExactDNified image url.
+	 */
+	function ngg_get_image_url( $image ) {
+		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		if ( $this->validate_image_url( $image ) ) {
+			return $this->generate_url( $image );
+		}
+		return $image;
+	}
+
+	/**
 	 * Enqueue ExactDN helper script
 	 */
 	public function action_wp_enqueue_scripts() {
@@ -1747,6 +1845,14 @@ class ExactDN {
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		$parsed_url = $this->parse_url( $url );
 
+		if ( $this->user_exclusions ) {
+			foreach ( $this->user_exclusions as $exclusion ) {
+				if ( false !== strpos( $url, $exclusion ) ) {
+					ewwwio_debug_message( "user excluded $url via $exclusion" );
+					return $url;
+				}
+			}
+		}
 		// Unable to parse.
 		if ( ! $parsed_url || ! is_array( $parsed_url ) || empty( $parsed_url['host'] ) || empty( $parsed_url['path'] ) ) {
 			ewwwio_debug_message( 'src url no good' );
@@ -1772,8 +1878,9 @@ class ExactDN {
 			return $url;
 		}
 
+		global $wp_version;
 		// If a resource doesn't have a version string, we add one to help with cache-busting.
-		if ( empty( $parsed_url['query'] ) ) {
+		if ( ( empty( $parsed_url['query'] ) || 'ver=' . $wp_version == $parsed_url['query'] ) && false !== strpos( $url, 'wp-content/' ) ) {
 			$modified = ewww_image_optimizer_function_exists( 'filemtime' ) ? filemtime( get_template_directory() ) : '';
 			if ( empty( $modified ) ) {
 				$modified = (int) EWWW_IMAGE_OPTIMIZER_VERSION;
@@ -1907,7 +2014,7 @@ class ExactDN {
 		// However some source images are served via PHP so check the no-query-string extension.
 		// For future proofing, this is a blacklist of common issues rather than a whitelist.
 		$extension = pathinfo( $image_url_parts['path'], PATHINFO_EXTENSION );
-		if ( empty( $extension ) || in_array( $extension, array( 'php', 'ashx' ) ) ) {
+		if ( ( empty( $extension ) && false === strpos( $image_url_parts['path'], 'nextgen-image/' ) ) || in_array( $extension, array( 'php', 'ashx' ) ) ) {
 			ewwwio_debug_message( 'bad extension' );
 			return $image_url;
 		}
@@ -1943,12 +2050,7 @@ class ExactDN {
 		ewwwio_debug_message( "exactdn url with args: $exactdn_url" );
 
 		if ( isset( $image_url_parts['scheme'] ) && 'https' == $image_url_parts['scheme'] ) {
-			$exactdn_url = add_query_arg(
-				array(
-					'ssl' => 1,
-				),
-				$exactdn_url
-			);
+			$exactdn_url = add_query_arg( 'ssl', 1, $exactdn_url );
 			$scheme      = 'https';
 		}
 
@@ -1988,6 +2090,9 @@ class ExactDN {
 	function parse_url( $url, $component = -1 ) {
 		if ( 0 === strpos( $url, '//' ) ) {
 			$url = ( is_ssl() ? 'https:' : 'http:' ) . $url;
+		}
+		if ( false === strpos( $url, 'http' ) && '/' !== substr( $url, 0, 1 ) ) {
+			$url = ( is_ssl() ? 'https://' : 'http://' ) . $url;
 		}
 		// Because encoded ampersands in the filename break things.
 		$url = str_replace( '&#038;', '&', $url );
