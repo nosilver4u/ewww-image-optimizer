@@ -485,7 +485,7 @@ function ewww_load_images(ewww_webp_supported) {
 			return ewww_img;
 		}
 		if (ewww_webp_supported) {
-			$('.batch-image img, .image-wrapper a, .ngg-pro-masonry-item a').each(function() {
+			$('.batch-image img, .image-wrapper a, .ngg-pro-masonry-item a, .ngg-galleria-offscreen-seo-wrapper a').each(function() {
 				var ewww_attr = $(this).attr('data-webp');
 				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
 					$(this).attr('data-src', ewww_attr);
