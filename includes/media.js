@@ -89,3 +89,13 @@ jQuery(document).on('click', '.ewww-show-debug-meta', function() {
 	var post_id = jQuery(this).data('id');
 	jQuery('#ewww-debug-meta-' + post_id).toggle();
 });
+jQuery(document).on('click', '#ewww-image-optimizer-media-listmode .notice-dismiss', function() {
+	var ewww_dismiss_media_data = {
+		action: 'ewww_dismiss_media_notice',
+	};
+	jQuery.post(ajaxurl, ewww_dismiss_media_data, function(response) {
+		if (response) {
+			console.log(response);
+		}
+	});
+});

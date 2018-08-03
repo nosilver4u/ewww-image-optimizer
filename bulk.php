@@ -242,7 +242,7 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 			break;
 		case 'ngg':
 			// See if we were given attachment IDs to work with via GET/POST.
-			if ( ! empty( $_REQUEST['ewww_inline'] ) || get_option( 'ewww_image_optimizer_bulk_ngg_resume' ) ) {
+			if ( ! empty( $_REQUEST['doaction'] ) || get_option( 'ewww_image_optimizer_bulk_ngg_resume' ) ) {
 				// Retrieve the attachment IDs that were pre-loaded in the database.
 				$attachment_ids = get_option( 'ewww_image_optimizer_bulk_ngg_attachments' );
 				array_walk( $attachment_ids, 'intval' );
@@ -257,7 +257,8 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 			// Creating a database storage object from the 'registry' object.
 			$storage = $registry->get_utility( 'I_Gallery_Storage' );
 			// Get an array of sizes available for the $image.
-			$sizes  = $storage->get_image_sizes();
+			$sizes = $storage->get_image_sizes();
+			global $ewwwngg;
 			$offset = 0;
 			while ( $attachments = $wpdb->get_col( "SELECT meta_data FROM $wpdb->nggpictures $attachment_query LIMIT $offset, $max_query" ) ) { // WPCS: unprepared SQL ok.
 				foreach ( $attachments as $attachment ) {
@@ -273,8 +274,9 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 					if ( empty( $meta['ewww_image_optimizer'] ) ) {
 							$unoptimized_full++;
 					}
-					if ( ewww_image_optimizer_iterable( $sizes ) ) {
-						foreach ( $sizes as $size ) {
+					$ngg_sizes = $ewwwngg->maybe_get_more_sizes( $sizes, $meta );
+					if ( ewww_image_optimizer_iterable( $ngg_sizes ) ) {
+						foreach ( $ngg_sizes as $size ) {
 							if ( 'full' !== $size ) {
 								$resize_count++;
 								if ( empty( $meta[ $size ]['ewww_image_optimizer'] ) ) {

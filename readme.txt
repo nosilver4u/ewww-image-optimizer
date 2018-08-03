@@ -182,18 +182,22 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: use file modification time to add query strings on JS/CSS files for cache invalidation on ExactDN
 * added: use EXACTDN_EXCLUDE in wp-config.php to bypass ExactDN for JS, CSS, etc.
 * added: NextGEN image urls properly rewritten for ExactDN
+* added: NextGEN dynamic thumbs included during manual/bulk optimization
+* added: auto-installer for Cloud plugin when running EWWW IO on a "banned" webhost
 * changed: resizing uses the primary media dimensions unless the "other" dimensions are configured
 * changed: Resize Other Images removed from GUI, configure via Overrides tab
 * changed: filter NextGEN quality to prevent oversized thumbs
 * changed: allow crop via filter even when one dimension is the same as the original
 * changed: auto-rotate function disabled with EWWW_IMAGE_OPTIMIZER_DISABLE_AUTOROTATE
 * changed: one-click copy for debug info, and debug collapsed by default in media library and bulk results
+* changed: bulk operations for batches of NextGEN images now use the bulk optimizer page instead of loading inline
 * fixed: uploading images in the Gutenberg editor uses the wrong resize dimensions
 * fixed: unique filename function producing names with a hyphen and no digits
 * fixed: encoded ampersands within the path portion of a url prevent ExactDN parsing
 * fixed: entering a decimal for bulk delay does nothing
 * fixed: if urls on a localized WPML domain are using the default domain, ExactDN ignores them
 * fixed: toggle for plugin status and bulk status generate admin-ajax.php 403 errors
+* deprecated: PHP 5.4 support will be removed in the next major release (version 4.4)
 
 = 4.2.3 =
 * added: skip resizing for images with noresize in the filename

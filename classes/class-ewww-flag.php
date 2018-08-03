@@ -125,21 +125,21 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			<div id="ewww-bulk-widgets" class="metabox-holder" style="display:none">
 				<div class="meta-box-sortables">
 					<div id="ewww-bulk-last" class="postbox">
-						<button type="button" class="handlediv button-link" aria-expanded="true">
+						<button type="button" class="ewww-handlediv button-link" aria-expanded="true">
 							<span class="screen-reader-text"><?php esc_html_e( 'Click to toggle', 'ewww-image-optimizer' ); ?></span>
 							<span class="toggle-indicator" aria-hidden="true"></span>
 						</button>
-						<h2 class="hndle"><span><?php esc_html_e( 'Last Image Optimized', 'ewww-image-optimizer' ); ?></span></h2>
+						<h2 class="ewww-hndle"><span><?php esc_html_e( 'Last Image Optimized', 'ewww-image-optimizer' ); ?></span></h2>
 						<div class="inside"></div>
 					</div>
 				</div>
 				<div class="meta-box-sortables">
 					<div id="ewww-bulk-status" class="postbox">
-						<button type="button" class="handlediv button-link" aria-expanded="true">
+						<button type="button" class="ewww-handlediv button-link" aria-expanded="true">
 							<span class="screen-reader-text"><?php esc_html_e( 'Click to toggle', 'ewww-image-optimizer' ); ?></span>
 							<span class="toggle-indicator" aria-hidden="true"></span>
 						</button>
-						<h2 class="hndle"><span><?php esc_html_e( 'Optimization Log', 'ewww-image-optimizer' ); ?></span></h2>
+						<h2 class="ewww-hndle"><span><?php esc_html_e( 'Optimization Log', 'ewww-image-optimizer' ); ?></span></h2>
 						<div class="inside"></div>
 					</div>
 				</div>
@@ -691,9 +691,10 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			// Get the metadata.
 			$meta = new flagMeta( $id );
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && ewww_image_optimizer_function_exists( 'print_r' ) ) {
-				$print_meta = print_r( $meta->image->meta_data, true );
-				$print_meta = preg_replace( array( '/ /', '/\n+/' ), array( '&nbsp;', '<br />' ), esc_html( $print_meta ) );
-				echo '<div style="background-color:#ffff99;font-size: 10px;padding: 10px;margin:-10px -10px 10px;line-height: 1.1em">' . $print_meta . '</div>';
+				$print_meta   = print_r( $meta->image->meta_data, true );
+				$print_meta   = preg_replace( array( '/ /', '/\n+/' ), array( '&nbsp;', '<br />' ), esc_html( $print_meta ) );
+				$debug_button = esc_html__( 'Show Metadata', 'ewww-image-optimizer' );
+				echo "<button type='button' class='ewww-show-debug-meta' data-id='$id'>$debug_button</button><div id='ewww-debug-meta-$id' style='background-color:#ffff99;font-size: 10px;padding: 10px;margin:3px -10px 10px;line-height: 1.1em;display: none;'>$print_meta</div>";
 			}
 			// Get the image path from the meta.
 			$file_path = $meta->image->imagePath;

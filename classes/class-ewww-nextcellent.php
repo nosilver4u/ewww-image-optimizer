@@ -458,21 +458,21 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			<div id="ewww-bulk-widgets" class="metabox-holder" style="display:none">
 				<div class="meta-box-sortables">
 				<div id="ewww-bulk-last" class="postbox">
-					<button type="button" class="handlediv button-link" aria-expanded="true">
+					<button type="button" class="ewww-handlediv button-link" aria-expanded="true">
 						<span class="screen-reader-text"><?php esc_html_e( 'Click to toggle', 'ewww-image-optimizer' ); ?></span>
 						<span class="toggle-indicator" aria-hidden="true"></span>
 					</button>
-					<h2 class="hndle"><span><?php esc_html_e( 'Last Image Optimized', 'ewww-image-optimizer' ); ?></span></h2>
+					<h2 class="ewww-hndle"><span><?php esc_html_e( 'Last Image Optimized', 'ewww-image-optimizer' ); ?></span></h2>
 					<div class="inside"></div>
 				</div>
 				</div>
 				<div class="meta-box-sortables">
 				<div id="ewww-bulk-status" class="postbox">
-					<button type="button" class="handlediv button-link" aria-expanded="true">
+					<button type="button" class="ewww-handlediv button-link" aria-expanded="true">
 						<span class="screen-reader-text"><?php esc_html_e( 'Click to toggle', 'ewww-image-optimizer' ); ?></span>
 						<span class="toggle-indicator" aria-hidden="true"></span>
 					</button>
-					<h2 class="hndle"><span><?php esc_html_e( 'Optimization Log', 'ewww-image-optimizer' ); ?></span></h2>
+					<h2 class="ewww-hndle"><span><?php esc_html_e( 'Optimization Log', 'ewww-image-optimizer' ); ?></span></h2>
 					<div class="inside"></div>
 				</div>
 				</div>

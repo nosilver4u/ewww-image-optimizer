@@ -945,12 +945,17 @@ class ExactDN {
 				} // End if().
 			} // End foreach().
 		} // End if();
-		// TODO: Rewrite urls with nextgen-image/ in the url, and also see if we can account for <picture><source> tags from NextGEN.
 		if ( $this->filtering_the_page && ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ) {
 			ewwwio_debug_message( 'rewriting all other wp_content urls' );
 			if ( $this->exactdn_domain && $this->upload_domain ) {
 				$escaped_upload_domain = str_replace( '.', '\.', ltrim( $this->upload_domain, 'w.' ) );
 				ewwwio_debug_message( $escaped_upload_domain );
+				if ( ! empty( $this->user_exclusions ) ) {
+					$content = preg_replace( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)?(' . implode( '|', $this->user_exclusions ) . ')#i', '$1://' . $this->upload_domain . '$2/?wpcontent-bypass?/$3$4', $content );
+				}
+				// Pre-empt rewriting of simple-social-icons SVG (because they aren't allowed in use tags.
+				$content = preg_replace( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/plugins/simple-social-icons#i', '$1://' . $this->upload_domain . '$2/?wpcontent-bypass?/plugins/simple-social-icons', $content );
+				// Pre-empt rewriting of wp-includes and wp-content if the extension is not allowed by using a temporary placeholder.
 				$content = preg_replace( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)\.(php|ashx|m4v|mov|wvm|qt|webm|ogv|mp4|m4p|mpg|mpeg|mpv)#i', '$1://' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
 				$content = str_replace( 'wp-content/themes/jupiter"', '?wpcontent-bypass?/themes/jupiter"', $content );
 				$content = preg_replace( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?(nextgen-image|wp-includes|wp-content)/#i', '$1://' . $this->exactdn_domain . '/$2$3/', $content );
@@ -1794,6 +1799,23 @@ class ExactDN {
 	 * @return string The ExactDNified image url.
 	 */
 	function ngg_get_image_url( $image ) {
+		// Don't foul up the admin side of things, unless a plugin wants to.
+		if ( is_admin() &&
+			/**
+			 * Provide plugins a way of running ExactDN for images in the WordPress Dashboard (wp-admin).
+			 *
+			 * @param bool false Stop ExactDN from being run on the Dashboard. Default to false, use true to run in wp-admin.
+			 * @param array $args {
+			 *     Array of image details.
+			 *
+			 *     @type string|bool  $image Image URL or false.
+			 *     @type int          $attachment_id Attachment ID of the image.
+			 * }
+			 */
+			false === apply_filters( 'exactdn_admin_allow_ngg_url', false, $image )
+		) {
+			return $image;
+		}
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		if ( $this->validate_image_url( $image ) ) {
 			return $this->generate_url( $image );

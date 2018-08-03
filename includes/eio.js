@@ -211,30 +211,6 @@ jQuery(document).ready(function($) {
 		var ewww_init_action = 'bulk_ngg_init';
 		var ewww_loop_action = 'bulk_ngg_loop';
 		var ewww_cleanup_action = 'bulk_ngg_cleanup';
-		// this loads inline on the nextgen gallery management pages
-		if (!document.getElementById('ewww-bulk-loading')) {
-			var ewww_preview_data = {
-			        action: ewww_preview_action,
-				ewww_inline: 1,
-			};
-			$.post(ajaxurl, ewww_preview_data, function(response) {
-        	               	$('.wrap').prepend(response);
-				$(function() {
-					$("#ewww-delay-slider").slider({
-						min: 0,
-						max: 30,
-						value: $("#ewww-delay").val(),
-						slide: function(event, ui) {
-							$("#ewww-delay").val(ui.value);
-						}
-					});
-				});
-				$('#ewww-bulk-start').submit(function() {
-					ewwwStartOpt();
-					return false;
-				});
-			});
-		}
 	} else {
 		var ewww_scan_action = 'bulk_scan';
 		var ewww_init_action = 'bulk_init';

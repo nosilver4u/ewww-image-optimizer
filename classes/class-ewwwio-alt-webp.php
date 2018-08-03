@@ -631,8 +631,9 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 		// TODO: need to test Slider Revolution stuff above and below.
 		// TODO: NextGEN <picture> and <source> elements in Pro Horizontal Filmstrip (and possibly others).
 		// TODO: make sure webp is working for every layout in NextGEN...
+		// NextGEN parsing disabled until we have a full working solution.
 		// NextGEN images listed as picture/source elements.
-		$pictures = $this->get_picture_tags_from_html( $buffer );
+		/* $pictures = $this->get_picture_tags_from_html( $buffer ); */
 		if ( ewww_image_optimizer_iterable( $pictures ) ) {
 			foreach ( $pictures as $index => $picture ) {
 				$sources = $this->get_elements_from_html( $picture, 'source' );
@@ -666,7 +667,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 			}
 		}
 		// NextGEN slides listed as 'a' elements.
-		$links = $this->get_elements_from_html( $buffer, 'a' );
+		/* $links = $this->get_elements_from_html( $buffer, 'a' ); */
 		if ( ewww_image_optimizer_iterable( $links ) ) {
 			foreach ( $links as $index => $link ) {
 				ewwwio_debug_message( "parsing a link $link" );
