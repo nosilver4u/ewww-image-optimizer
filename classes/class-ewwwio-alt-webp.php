@@ -33,6 +33,14 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	protected $parsing_exactdn = false;
 
 	/**
+	 * Allowed paths for "forced" WebP.
+	 *
+	 * @access protected
+	 * @var array $webp_paths
+	 */
+	protected $webp_paths = array();
+
+	/**
 	 * Register (once) actions and filters for Alt WebP.
 	 */
 	function __construct() {
@@ -45,6 +53,28 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 		}
 		// Start an output buffer before any output starts.
 		add_action( 'template_redirect', array( $this, 'buffer_start' ), 0 );
+		// Filter for NextGEN image urls within JS.
+		add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ), 11 );
+
+		$this->home_url = trailingslashit( get_site_url() );
+		ewwwio_debug_message( "home url: $this->home_url" );
+		$this->relative_home_url = preg_replace( '/https?:/', '', $this->home_url );
+		ewwwio_debug_message( "relative home url: $this->relative_home_url" );
+
+		$this->webp_paths = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' );
+		if ( ! is_array( $this->webp_paths ) ) {
+			$this->webp_paths = array();
+		}
+		if ( class_exists( 'ExactDN' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+			global $exactdn;
+			$this->exactdn_domain = $exactdn->get_exactdn_domain();
+			if ( $this->exactdn_domain ) {
+				$this->parsing_exactdn = true;
+				ewwwio_debug_message( 'parsing an exactdn page' );
+			}
+		}
+
+		// Load the appropriate JS.
 		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
 			// Load the non-minified, non-inline version of the webp rewrite script.
 			add_action( 'wp_enqueue_scripts', array( $this, 'debug_script' ) );
@@ -142,36 +172,30 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	 * Replaces images within a srcset attribute with their .webp derivatives.
 	 *
 	 * @param string $srcset A valid srcset attribute from an img element.
-	 * @param string $home_url The 'home' url for the WordPress site.
-	 * @param bool   $valid_path True if a CDN path has been specified and matches the img element.
 	 * @return bool|string False if no changes were made, or the new srcset if any WebP images replaced the originals.
 	 */
-	function srcset_replace( $srcset, $home_url, $valid_path ) {
+	function srcset_replace( $srcset ) {
 		$srcset_urls = explode( ' ', $srcset );
 		$found_webp  = false;
 		if ( ewww_image_optimizer_iterable( $srcset_urls ) ) {
-			ewwwio_debug_message( 'found srcset urls' );
+			ewwwio_debug_message( 'parsing srcset urls' );
 			foreach ( $srcset_urls as $srcurl ) {
 				if ( is_numeric( substr( $srcurl, 0, 1 ) ) ) {
 					continue;
 				}
-				$trailing = ' ';
+				$trailing = '';
 				if ( ',' === substr( $srcurl, -1 ) ) {
 					$trailing = ',';
 					$srcurl   = rtrim( $srcurl, ',' );
+				} elseif ( ' ' === substr( $srcurl, -1 ) ) {
+					$trailing = ' ';
+					$srcurl   = rtrim( $srcurl );
 				}
-				$srcfilepath = ABSPATH . str_replace( $home_url, '', $srcurl );
-				ewwwio_debug_message( "looking for srcurl on disk: $srcfilepath" );
-				if ( $this->parsing_exactdn || $valid_path || is_file( $srcfilepath . '.webp' ) ) {
-					if ( $this->parsing_exactdn ) {
-						if ( false !== strpos( $srcurl, $this->exactdn_domain ) ) {
-							$srcset = str_replace( $srcurl . $trailing, add_query_arg( 'webp', 1, $srcurl ) . $trailing, $srcset );
-						}
-					} else {
-						$srcset = str_replace( $srcurl . $trailing, $srcurl . '.webp' . $trailing, $srcset );
-					}
+				ewwwio_debug_message( "looking for $srcurl from srcset" );
+				if ( $this->validate_image_url( $srcurl ) ) {
+					$srcset = str_replace( $srcurl . $trailing, $this->generate_url( $srcurl ) . $trailing, $srcset );
+					ewwwio_debug_message( "replaced $srcurl in srcset" );
 					$found_webp = true;
-					/* ewwwio_debug_message( "replacing $srcurl in $srcset" ); */
 				}
 			}
 		}
@@ -187,56 +211,33 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	 *
 	 * @param string $image The full text of the img element.
 	 * @param string $nscript A noscript element that will be assigned the jetpack data attributes.
-	 * @param string $home_url The 'home' url for the WordPress site.
-	 * @param bool   $valid_path True if a CDN path has been specified and matches the img element.
 	 * @return string The modified noscript tag.
 	 */
-	function jetpack_replace( $image, $nscript, $home_url, $valid_path ) {
+	function jetpack_replace( $image, $nscript ) {
 		$data_orig_file = $this->get_attribute( $image, 'data-orig-file' );
 		if ( $data_orig_file ) {
-			$origfilepath = ABSPATH . str_replace( $home_url, '', $data_orig_file );
-			ewwwio_debug_message( "looking for data-orig-file on disk: $origfilepath" );
-			if ( $this->parsing_exactdn || $valid_path || is_file( $origfilepath . '.webp' ) ) {
-				if ( $this->parsing_exactdn ) {
-					if ( false !== strpos( $data_orig_file, $this->exactdn_domain ) ) {
-						$this->set_attribute( $nscript, 'data-webp-orig-file', add_query_arg( 'webp', 1, $data_orig_file ) );
-					}
-				} else {
-					$this->set_attribute( $nscript, 'data-webp-orig-file', $data_orig_file . '.webp' );
-				}
-				ewwwio_debug_message( "replacing $origfilepath in data-orig-file" );
+			ewwwio_debug_message( "looking for data-orig-file: $data_orig_file" );
+			if ( $this->validate_image_url( $data_orig_file ) ) {
+				$this->set_attribute( $nscript, 'data-webp-orig-file', $this->generate_url( $data_orig_file ) );
+				ewwwio_debug_message( "replacing $data_orig_file in data-orig-file" );
 			}
 			$this->set_attribute( $nscript, 'data-orig-file', $data_orig_file );
 		}
 		$data_medium_file = $this->get_attribute( $image, 'data-medium-file' );
 		if ( $data_medium_file ) {
-			$mediumfilepath = ABSPATH . str_replace( $home_url, '', $data_medium_file );
-			ewwwio_debug_message( "looking for data-medium-file on disk: $mediumfilepath" );
-			if ( $this->parsing_exactdn || $valid_path || is_file( $mediumfilepath . '.webp' ) ) {
-				if ( $this->parsing_exactdn ) {
-					if ( false !== strpos( $data_medium_file, $this->exactdn_domain ) ) {
-						$this->set_attribute( $nscript, 'data-webp-medium-file', add_query_arg( 'webp', 1, $data_medium_file ) );
-					}
-				} else {
-					$this->set_attribute( $nscript, 'data-webp-medium-file', $data_medium_file . '.webp' );
-				}
-				ewwwio_debug_message( "replacing $mediumfilepath in data-medium-file" );
+			ewwwio_debug_message( "looking for data-medium-file: $data_medium_file" );
+			if ( $this->validate_image_url( $data_medium_file ) ) {
+				$this->set_attribute( $nscript, 'data-webp-medium-file', $this->generate_url( $data_medium_file ) );
+				ewwwio_debug_message( "replacing $data_medium_file in data-medium-file" );
 			}
 			$this->set_attribute( $nscript, 'data-medium-file', $data_medium_file );
 		}
 		$data_large_file = $this->get_attribute( $image, 'data-large-file' );
 		if ( $data_large_file ) {
-			$largefilepath = ABSPATH . str_replace( $home_url, '', $data_large_file );
-			ewwwio_debug_message( "looking for data-large-file on disk: $largefilepath" );
-			if ( $this->parsing_exactdn || $valid_path || is_file( $largefilepath . '.webp' ) ) {
-				if ( $this->parsing_exactdn ) {
-					if ( false !== strpos( $data_large_file, $this->exactdn_domain ) ) {
-						$this->set_attribute( $nscript, 'data-webp-large-file', add_query_arg( 'webp', 1, $data_large_file ) );
-					}
-				} else {
-					$this->set_attribute( $nscript, 'data-webp-large-file', $data_large_file . '.webp' );
-				}
-				ewwwio_debug_message( "replacing $largefilepath in data-large-file" );
+			ewwwio_debug_message( "looking for data-large-file: $data_large_file" );
+			if ( $this->validate_image_url( $data_large_file ) ) {
+				$this->set_attribute( $nscript, 'data-webp-large-file', $this->generate_url( $data_large_file ) );
+				ewwwio_debug_message( "replacing $data_large_file in data-large-file" );
 			}
 			$this->set_attribute( $nscript, 'data-large-file', $data_large_file );
 		}
@@ -248,137 +249,28 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	 *
 	 * @param string $image The full text of the img element.
 	 * @param string $nscript A noscript element that will be assigned the WooCommerce data attributes.
-	 * @param string $home_url The 'home' url for the WordPress site.
-	 * @param bool   $valid_path True if a CDN path has been specified and matches the img element.
 	 * @return string The modified noscript tag.
 	 */
-	function woocommerce_replace( $image, $nscript, $home_url, $valid_path ) {
+	function woocommerce_replace( $image, $nscript ) {
 		$data_large_image = $this->get_attribute( $image, 'data-large_image' );
 		if ( $data_large_image ) {
-			$largefilepath = ABSPATH . str_replace( $home_url, '', $data_large_image );
-			ewwwio_debug_message( "looking for data-large_image on disk: $largefilepath" );
-			if ( $this->parsing_exactdn || $valid_path || is_file( $largefilepath . '.webp' ) ) {
-				if ( $this->parsing_exactdn ) {
-					if ( false !== strpos( $data_large_image, $this->exactdn_domain ) ) {
-						$this->set_attribute( $nscript, 'data-webp-large_image', add_query_arg( 'webp', 1, $data_large_image ) );
-					}
-				} else {
-					$this->set_attribute( $nscript, 'data-webp-large_image', $data_large_image . '.webp' );
-				}
-				ewwwio_debug_message( "replacing $largefilepath in data-large_image" );
+			ewwwio_debug_message( "looking for data-large_image: $data_large_image" );
+			if ( $this->validate_image_url( $data_large_image ) ) {
+				$this->set_attribute( $nscript, 'data-webp-large_image', $this->generate_url( $data_large_image ) );
+				ewwwio_debug_message( "replacing $data_large_image in data-large_image" );
 			}
 			$this->set_attribute( $nscript, 'data-large_image', $data_large_image );
 		}
 		$data_src = $this->get_attribute( $image, 'data-src' );
 		if ( $data_src ) {
-			$srcpath = ABSPATH . str_replace( $home_url, '', $data_src );
-			ewwwio_debug_message( "looking for data-src on disk: $srcpath" );
-			if ( $this->parsing_exactdn || $valid_path || is_file( $srcpath . '.webp' ) ) {
-				if ( $this->parsing_exactdn ) {
-					if ( false !== strpos( $data_src, $this->exactdn_domain ) ) {
-						$this->set_attribute( $nscript, 'data-webp-src', add_query_arg( 'webp', 1, $data_src ) );
-					}
-				} else {
-					$this->set_attribute( $nscript, 'data-webp-src', $data_src . '.webp' );
-				}
-				ewwwio_debug_message( "replacing $srcpath in data-src" );
+			ewwwio_debug_message( "looking for data-src: $data_src" );
+			if ( $this->validate_image_url( $data_src ) ) {
+				$this->set_attribute( $nscript, 'data-webp-src', $this->generate_url( $data_src ) );
+				ewwwio_debug_message( "replacing $data_src in data-src" );
 			}
 			$this->set_attribute( $nscript, 'data-src', $data_src );
 		}
 		return $nscript;
-	}
-
-	/**
-	 * Search for amp-img elements and rewrite them with fallback elements for WebP replacement.
-	 *
-	 * Any amp-img elements will be given the fallback attribute and wrapped inside another amp-img
-	 * element with a WebP src attribute if WebP derivatives exist.
-	 *
-	 * @param string $buffer The entire HTML page from the output buffer.
-	 * @return string The altered buffer containing the full page with WebP images inserted.
-	 */
-	function filter_amp( $buffer ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-		// Modify buffer here, and then return the updated code.
-		if ( class_exists( 'DOMDocument' ) ) {
-			$html = new DOMDocument;
-
-			$libxml_previous_error_reporting = libxml_use_internal_errors( true );
-
-			$html->formatOutput = false;
-			$html->encoding     = 'utf-8';
-			if ( defined( 'LIBXML_VERSION' ) && LIBXML_VERSION < 20800 ) {
-				ewwwio_debug_message( 'libxml version too old for amp: ' . LIBXML_VERSION );
-				return $buffer;
-			} elseif ( ! defined( 'LIBXML_VERSION' ) ) {
-				// When libxml is too old, we dare not modify the buffer.
-				ewwwio_debug_message( 'cannot detect libxml version for amp' );
-				return $buffer;
-			}
-			$html->loadHTML( $buffer );
-			ewwwio_debug_message( 'parsing AMP as html' );
-			$html->encoding = 'utf-8';
-			$home_url       = get_site_url();
-			$webp_paths     = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' );
-			if ( ! is_array( $webp_paths ) ) {
-				$webp_paths = array();
-			}
-			$home_relative_url = preg_replace( '/https?:/', '', $home_url );
-			$images            = $html->getElementsByTagName( 'amp-img' );
-			if ( ewww_image_optimizer_iterable( $images ) ) {
-				foreach ( $images as $image ) {
-					if ( 'amp-img' == $image->parentNode->tagName ) {
-						continue;
-					}
-					$srcset = '';
-					ewwwio_debug_message( 'parsing an AMP image' );
-					$file       = $image->getAttribute( 'src' );
-					$valid_path = false;
-					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
-						// Check for CDN paths within the img src attribute.
-						foreach ( $webp_paths as $webp_path ) {
-							if ( strpos( $file, $webp_path ) !== false ) {
-								$valid_path = true;
-							}
-						}
-					}
-					if ( strpos( $file, $home_relative_url ) === 0 ) {
-						$filepath = str_replace( $home_relative_url, ABSPATH, $file );
-					} else {
-						$filepath = str_replace( $home_url, ABSPATH, $file );
-					}
-					ewwwio_debug_message( "the AMP image is at $filepath" );
-					// If a CDN path match was found, or .webp image existsence is confirmed, and this is not a lazy-load 'dummy' image.
-					if ( ( $valid_path || is_file( $filepath . '.webp' ) ) && ! strpos( $file, 'assets/images/dummy.png' ) && ! strpos( $file, 'base64,R0lGOD' ) && ! strpos( $file, 'lazy-load/images/1x1' ) ) {
-						$parent_image = $image->cloneNode();
-						$parent_image->setAttribute( 'src', $file . '.webp' );
-						if ( $image->getAttribute( 'srcset' ) ) {
-							$srcset      = $image->getAttribute( 'srcset' );
-							$srcset_webp = $this->srcset_replace( $srcset, $home_url, $valid_path );
-							if ( $srcset_webp ) {
-								$parent_image->setAttribute( 'srcset', $srcset_webp );
-							}
-						}
-						$fallback_attr = $html->createAttribute( 'fallback' );
-						$image->appendChild( $fallback_attr );
-						$image->parentNode->replaceChild( $parent_image, $image );
-						$parent_image->appendChild( $image );
-					}
-				} // End foreach().
-			} // End if().
-			ewwwio_debug_message( 'preparing to dump page back to $buffer' );
-			$buffer = $html->saveHTML( $html->documentElement );
-			libxml_clear_errors();
-			libxml_use_internal_errors( $libxml_previous_error_reporting );
-			if ( false ) { // Set to true for extra debugging.
-				ewwwio_debug_message( 'buffer after replacement' );
-				ewwwio_debug_message( substr( $buffer, 0, 500 ) );
-			}
-		} // End if().
-		if ( true ) { // Set to true for extra logging.
-			ewww_image_optimizer_debug_log();
-		}
-		return $buffer;
 	}
 
 	/**
@@ -431,72 +323,32 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 			ewwwio_debug_message( 'noscript-encased images found, bailing' );
 			return $buffer;
 		}
-		// TODO: detect non-utf8 encoding and convert (if necessary).
-		$home_url = get_site_url();
-		ewwwio_debug_message( "home url: $home_url" );
-		if ( class_exists( 'ExactDN' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
-			global $exactdn;
-			$this->exactdn_domain = $exactdn->get_exactdn_domain();
-			$home_url_parts       = $exactdn->parse_url( $home_url );
-			if ( ! empty( $home_url_parts['host'] ) && $this->exactdn_domain ) {
-				$home_url = str_replace( $home_url_parts['host'], $this->exactdn_domain, $home_url );
-				ewwwio_debug_message( "new home url: $home_url" );
-				$this->parsing_exactdn = true;
-			}
-		}
-		$webp_paths = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' );
-		if ( ! is_array( $webp_paths ) ) {
-			$webp_paths = array();
-		}
-		$home_url          = trailingslashit( $home_url );
-		$home_relative_url = trailingslashit( preg_replace( '/https?:/', '', $home_url ) );
-		$images            = $this->get_images_from_html( $buffer, false );
+		/* TODO: detect non-utf8 encoding and convert the buffer (if necessary). */
+
+		$images = $this->get_images_from_html( $buffer, false );
 		if ( ewww_image_optimizer_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
-				$srcset     = '';
-				$valid_path = false;
-				$file       = $images['img_url'][ $index ];
+				$file = $images['img_url'][ $index ];
 				ewwwio_debug_message( "parsing an image: $file" );
-				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
-					// Check for CDN paths within the img src attribute.
-					foreach ( $webp_paths as $webp_path ) {
-						if ( strpos( $file, $webp_path ) !== false ) {
-							$valid_path = true;
-							ewwwio_debug_message( 'found valid forced/cdn path' );
-						}
-					}
-				}
-				if ( strpos( $file, $home_relative_url ) === 0 ) {
-					$filepath = str_replace( $home_relative_url, ABSPATH, $file );
-				} else {
-					$filepath = str_replace( $home_url, ABSPATH, $file );
-				}
-				ewwwio_debug_message( "the image is at $filepath" );
 				// If a CDN path match was found, or .webp image existsence is confirmed, and this is not a lazy-load 'dummy' image.
-				if ( ( $this->parsing_exactdn || $valid_path || is_file( $filepath . '.webp' ) ) && ! strpos( $file, 'assets/images/dummy.png' ) && ! strpos( $file, 'base64,R0lGOD' ) && ! strpos( $file, 'lazy-load/images/1x1' ) ) {
+				if ( $this->validate_image_url( $file ) ) {
 					ewwwio_debug_message( 'found a webp image or forced path' );
 					$nscript = '<noscript>';
 					$this->set_attribute( $nscript, 'data-img', $file );
-					if ( $this->parsing_exactdn ) {
-						if ( false !== strpos( $file, $this->exactdn_domain ) ) {
-							$this->set_attribute( $nscript, 'data-webp', add_query_arg( 'webp', 1, $file ) );
-						}
-					} else {
-						$this->set_attribute( $nscript, 'data-webp', $file . '.webp' );
-					}
+					$this->set_attribute( $nscript, 'data-webp', $this->generate_url( $file ) );
 					$srcset = $this->get_attribute( $image, 'srcset' );
 					if ( $srcset ) {
-						$srcset_webp = $this->srcset_replace( $srcset, $home_url, $valid_path );
+						$srcset_webp = $this->srcset_replace( $srcset );
 						if ( $srcset_webp ) {
 							$this->set_attribute( $nscript, 'data-srcset-webp', $srcset_webp );
 						}
 						$this->set_attribute( $nscript, 'data-srcset-img', $srcset );
 					}
 					if ( $this->get_attribute( $image, 'data-orig-file' ) && $this->get_attribute( $image, 'data-medium-file' ) && $this->get_attribute( $image, 'data-large-file' ) ) {
-						$nscript = $this->jetpack_replace( $image, $nscript, $home_url, $valid_path );
+						$nscript = $this->jetpack_replace( $image, $nscript );
 					}
 					if ( $this->get_attribute( $image, 'data-large_image' ) && $this->get_attribute( $image, 'data-src' ) ) {
-						$nscript = $this->woocommerce_replace( $image, $nscript, $home_url, $valid_path );
+						$nscript = $this->woocommerce_replace( $image, $nscript );
 					}
 					$nscript = $this->attr_copy( $image, $nscript );
 					$this->set_attribute( $nscript, 'class', 'ewww_webp' );
@@ -505,16 +357,8 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 				// NOTE: lazy loads are shutoff for now, since they don't work consistently
 				// WP Retina 2x lazy loads.
 				if ( false && empty( $file ) && $image->getAttribute( 'data-srcset' ) && strpos( $image->getAttribute( 'class' ), 'lazyload' ) ) {
-					$srcset = $image->getAttribute( 'data-srcset' );
-					if ( ! $valid_path && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
-						// Check the image for configured CDN paths.
-						foreach ( $webp_paths as $webp_path ) {
-							if ( strpos( $srcset, $webp_path ) !== false ) {
-								$valid_path = true;
-							}
-						}
-					}
-					$srcset_webp = ewww_image_optimizer_webp_srcset_replace( $srcset, $home_url, $valid_path );
+					$srcset      = $image->getAttribute( 'data-srcset' );
+					$srcset_webp = $this->srcset_replace( $srcset );
 					if ( $srcset_webp ) {
 						$nimage = $html->createElement( 'img' );
 						$nimage->setAttribute( 'data-srcset-webp', $srcset_webp );
@@ -530,14 +374,6 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 					$file  = $image->getAttribute( 'data-src' );
 					ewwwio_debug_message( "checking webp for hueman data-src: $file" );
 					$filepath = ABSPATH . str_replace( $home_url, '', $file );
-					if ( ! $valid_path && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
-						// Check the image for configured CDN paths.
-						foreach ( $webp_paths as $webp_path ) {
-							if ( strpos( $file, $webp_path ) !== false ) {
-								$valid_path = true;
-							}
-						}
-					}
 					if ( $valid_path || is_file( $filepath . '.webp' ) ) {
 						ewwwio_debug_message( "found webp for Hueman lazyload: $filepath" );
 						$nscript = $html->createElement( 'noscript' );
@@ -547,7 +383,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 						$image->setAttribute( 'src', $file );
 						if ( $image->getAttribute( 'data-srcset' ) ) {
 							$srcset      = $image->getAttribute( 'data-srcset' );
-							$srcset_webp = ewww_image_optimizer_webp_srcset_replace( $srcset, $home_url, $valid_path );
+							$srcset_webp = ewww_image_optimizer_webp_srcset_replace( $srcset );
 							if ( $srcset_webp ) {
 								$nscript->setAttribute( 'data-srcset-webp', $srcset_webp );
 							}
@@ -567,14 +403,6 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 					$file = $image->getAttribute( 'data-lazy-src' );
 					ewwwio_debug_message( "checking webp for Lazy Load data-lazy-src: $file" );
 					$filepath = ABSPATH . str_replace( $home_url, '', $file );
-					if ( ! $valid_path && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
-						// Check the image for configured CDN paths.
-						foreach ( $webp_paths as $webp_path ) {
-							if ( strpos( $file, $webp_path ) !== false ) {
-								$valid_path = true;
-							}
-						}
-					}
 					if ( $valid_path || is_file( $filepath . '.webp' ) ) {
 						ewwwio_debug_message( "found webp for Lazy Load: $filepath" );
 						$nimage->setAttribute( 'data-lazy-img-src', $file );
@@ -600,28 +428,13 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 						$image->parentNode->replaceChild( $nimage, $image );
 					}
 				} // End if().
-				// TODO: check to see if this is related to Rev Slider, and mark accordingly. Otherwise, see if we can figure out where this came from and if it is necessary.
+				// TODO: this is related to Rev Slider, figure out how, test it, and mark accordingly.
 				if ( $this->get_attribute( $image, 'data-lazyload' ) ) {
 					$lazyload = $this->get_attribute( $image, 'data-lazyload' );
-					if ( ! empty( $lazyload ) ) {
-						$lazyloadpath = ABSPATH . str_replace( $home_url, '', $lazyload );
-						if ( ! $valid_path && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
-							// Check the image for configured CDN paths.
-							foreach ( $webp_paths as $webp_path ) {
-								if ( strpos( $lazyload, $webp_path ) !== false ) {
-									$valid_path = true;
-								}
-							}
-						}
-						if ( $this->parsing_exactdn || $valid_path || is_file( $lazyloadpath . '.webp' ) ) {
-							if ( $this->parsing_exactdn ) {
-								if ( false !== strpos( $lazyload, $this->exactdn_domain ) ) {
-									$this->set_attribute( $image, 'data-webp-lazyload', add_query_arg( 'webp', 1, $lazyload ) );
-								}
-							} else {
-								$this->set_attribute( $image, 'data-webp-lazyload', $lazyload . '.webp' );
-							}
-							ewwwio_debug_message( "found webp for data-lazyload: $filepath" );
+					if ( $lazyload ) {
+						if ( $this->validate_image_url( $lazyload ) ) {
+							$this->set_attribute( $image, 'data-webp-lazyload', $this->generate_url( $lazyload ) );
+							ewwwio_debug_message( "replacing with webp for data-lazyload: $lazyload" );
 							$buffer = str_replace( $images[0][ $index ], $image, $buffer );
 						}
 					}
@@ -629,29 +442,18 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 			} // End foreach().
 		} // End if().
 		// TODO: need to test Slider Revolution stuff above and below.
-		// TODO: NextGEN <picture> and <source> elements in Pro Horizontal Filmstrip (and possibly others).
 		// TODO: make sure webp is working for every layout in NextGEN...
-		// NextGEN parsing disabled until we have a full working solution.
 		// NextGEN images listed as picture/source elements.
-		/* $pictures = $this->get_picture_tags_from_html( $buffer ); */
+		$pictures = $this->get_picture_tags_from_html( $buffer );
 		if ( ewww_image_optimizer_iterable( $pictures ) ) {
 			foreach ( $pictures as $index => $picture ) {
 				$sources = $this->get_elements_from_html( $picture, 'source' );
 				if ( ewww_image_optimizer_iterable( $sources ) ) {
 					foreach ( $sources as $source ) {
-						ewwwio_debug_message( "parsing a picture: $source" );
-						if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
-							// Check for CDN paths within the img src attribute.
-							foreach ( $webp_paths as $webp_path ) {
-								if ( strpos( $source, $webp_path ) !== false ) {
-									$valid_path = true;
-									ewwwio_debug_message( 'found valid forced/cdn path' );
-								}
-							}
-						}
+						ewwwio_debug_message( "parsing a picture source: $source" );
 						$srcset = $this->get_attribute( $source, 'srcset' );
 						if ( $srcset ) {
-							$srcset_webp = $this->srcset_replace( $srcset, $home_url, $valid_path );
+							$srcset_webp = $this->srcset_replace( $srcset );
 							if ( $srcset_webp ) {
 								$source_webp = str_replace( $srcset, $srcset_webp, $source );
 								$this->set_attribute( $source_webp, 'type', 'image/webp' );
@@ -667,45 +469,22 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 			}
 		}
 		// NextGEN slides listed as 'a' elements.
-		/* $links = $this->get_elements_from_html( $buffer, 'a' ); */
+		$links = $this->get_elements_from_html( $buffer, 'a' );
 		if ( ewww_image_optimizer_iterable( $links ) ) {
 			foreach ( $links as $index => $link ) {
 				ewwwio_debug_message( "parsing a link $link" );
 				$file  = $this->get_attribute( $link, 'data-src' );
 				$thumb = $this->get_attribute( $link, 'data-thumbnail' );
 				if ( $file && $thumb ) {
-					$valid_path = false;
-					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
-						// Check the image for configured CDN paths.
-						foreach ( $webp_paths as $webp_path ) {
-							if ( strpos( $file, $webp_path ) !== false ) {
-								$valid_path = true;
-							}
-						}
-					}
 					ewwwio_debug_message( "checking webp for ngg data-src: $file" );
-					$filepath = ABSPATH . str_replace( $home_url, '', $file );
-					ewwwio_debug_message( "checking webp for ngg data-thumbnail: $thumb" );
-					$thumbpath = ABSPATH . str_replace( $home_url, '', $thumb );
-					if ( $this->parsing_exactdn || $valid_path || is_file( $filepath . '.webp' ) ) {
-						if ( $this->parsing_exactdn ) {
-							if ( false !== strpos( $file, $this->exactdn_domain ) ) {
-								$this->set_attribute( $link, 'data-webp', add_query_arg( 'webp', 1, $file ) );
-							}
-						} else {
-							$this->set_attribute( $link, 'data-webp', $file . '.webp' );
-						}
-						ewwwio_debug_message( "found webp for ngg data-src: $filepath" );
+					if ( $this->validate_image_url( $file ) ) {
+						$this->set_attribute( $link, 'data-webp', $this->generate_url( $file ) );
+						ewwwio_debug_message( "found webp for ngg data-src: $file" );
 					}
-					if ( $this->parsing_exactdn || $valid_path || is_file( $thumbpath . '.webp' ) ) {
-						if ( $this->parsing_exactdn ) {
-							if ( false !== strpos( $thumb, $this->exactdn_domain ) ) {
-								$this->set_attribute( $link, 'data-webp-thumbnail', add_query_arg( 'webp', 1, $thumb ) );
-							}
-						} else {
-							$this->set_attribute( $link, 'data-webp-thumbnail', $thumb . '.webp' );
-						}
-						ewwwio_debug_message( "found webp for ngg data-thumbnail: $thumbpath" );
+					ewwwio_debug_message( "checking webp for ngg data-thumbnail: $thumb" );
+					if ( $this->validate_image_url( $thumb ) ) {
+						$this->set_attribute( $link, 'data-webp-thumbnail', $this->generate_url( $thumb ) );
+						ewwwio_debug_message( "found webp for ngg data-thumbnail: $thumb" );
 					}
 				}
 				if ( $link != $links[ $index ] ) {
@@ -719,27 +498,11 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 			foreach ( $listitems as $index => $listitem ) {
 				ewwwio_debug_message( 'parsing a listitem' );
 				if ( $this->get_attribute( $listitem, 'data-title' ) === 'Slide' && ( $this->get_attribute( $listitem, 'data-lazyload' ) || $this->get_attribute( $listitem, 'data-thumb' ) ) ) {
-					$thumb      = $this->get_attribute( $listitem, 'data-thumb' );
-					$valid_path = false;
-					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
-						// Check the image for configured CDN paths.
-						foreach ( $webp_paths as $webp_path ) {
-							if ( strpos( $thumb, $webp_path ) !== false ) {
-								$valid_path = true;
-							}
-						}
-					}
+					$thumb = $this->get_attribute( $listitem, 'data-thumb' );
 					ewwwio_debug_message( "checking webp for revslider data-thumb: $thumb" );
-					$thumbpath = str_replace( $home_url, ABSPATH, $thumb );
-					if ( $this->parsing_exactdn || $valid_path || is_file( $thumbpath . '.webp' ) ) {
-						if ( $this->parsing_exactdn ) {
-							if ( false !== strpos( $thumb, $this->exactdn_domain ) ) {
-								$this->set_attribute( $listitem, 'data-webp-thumb', add_query_arg( 'webp', 1, $thumb ) );
-							}
-						} else {
-							$this->set_attribute( $listitem, 'data-webp-thumb', $thumb . '.webp' );
-						}
-						ewwwio_debug_message( "found webp for revslider data-thumb: $thumbpath" );
+					if ( $this->validate_image_url( $thumb ) ) {
+						$this->set_attribute( $listitem, 'data-webp-thumb', $this->generate_url( $thumb ) );
+						ewwwio_debug_message( "found webp for revslider data-thumb: $thumb" );
 					}
 					$param_num = 1;
 					while ( $param_num < 11 ) {
@@ -747,17 +510,10 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 						if ( $parameter ) {
 							ewwwio_debug_message( "checking webp for revslider data-param$param_num: $parameter" );
 							if ( strpos( $parameter, 'http' ) === 0 ) {
-								$parameter_path = str_replace( $home_url, ABSPATH, $parameter );
-								ewwwio_debug_message( "looking for $parameter_path" );
-								if ( $this->parsing_exactdn || $valid_path || is_file( $parameter_path . '.webp' ) ) {
-									if ( $this->parsing_exactdn ) {
-										if ( false !== strpos( $parameter, $this->exactdn_domain ) ) {
-											$this->set_attribute( $listitem, 'data-webp-param' . $param_num, add_query_arg( 'webp', 1, $parameter ) );
-										}
-									} else {
-										$this->set_attribute( $listitem, 'data-webp-param' . $param_num, $parameter . '.webp' );
-									}
-									ewwwio_debug_message( "found webp for data-param$param_num: $parameter_path" );
+								ewwwio_debug_message( "looking for $parameter" );
+								if ( $this->validate_image_url( $parameter ) ) {
+									$this->set_attribute( $listitem, 'data-webp-param' . $param_num, $this->generate_url( $parameter ) );
+									ewwwio_debug_message( "found webp for data-param$param_num: $parameter" );
 								}
 							}
 						}
@@ -777,26 +533,10 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 				$thumb     = $this->get_attribute( $div, 'data-thumb' );
 				$div_class = $this->get_attribute( $div, 'class' );
 				if ( $div_class && $thumb && strpos( $div_class, 'woocommerce-product-gallery__image' ) !== false ) {
-					$valid_path = false;
-					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
-						// Check the image for configured CDN paths.
-						foreach ( $webp_paths as $webp_path ) {
-							if ( strpos( $thumb, $webp_path ) !== false ) {
-								$valid_path = true;
-							}
-						}
-					}
 					ewwwio_debug_message( "checking webp for WC data-thumb: $thumb" );
-					$thumbpath = ABSPATH . str_replace( $home_url, '', $thumb );
-					if ( $this->parsing_exactdn || $valid_path || is_file( $thumbpath . '.webp' ) ) {
-						if ( $this->parsing_exactdn ) {
-							if ( false !== strpos( $thumb, $this->exactdn_domain ) ) {
-								$this->set_attribute( $div, 'data-webp-thumb', add_query_arg( 'webp', 1, $thumb ) );
-							}
-						} else {
-							$this->set_attribute( $div, 'data-webp-thumb', $thumb . '.webp' );
-						}
-						ewwwio_debug_message( "found webp for WC data-thumb: $thumbpath" );
+					if ( $this->validate_image_url( $thumb ) ) {
+						$this->set_attribute( $div, 'data-webp-thumb', $this->generate_url( $thumb ) );
+						ewwwio_debug_message( "found webp for WC data-thumb: $thumb" );
 						$buffer = str_replace( $divs[ $index ], $div, $buffer );
 					}
 				}
@@ -809,28 +549,12 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 				ewwwio_debug_message( 'parsing a video element' );
 				$file = $this->get_attribute( $video, 'poster' );
 				if ( $file ) {
-					$valid_path = false;
-					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
-						// Check the image for configured CDN paths.
-						foreach ( $webp_paths as $webp_path ) {
-							if ( strpos( $file, $webp_path ) !== false ) {
-								$valid_path = true;
-							}
-						}
-					}
 					ewwwio_debug_message( "checking webp for video poster: $file" );
-					$filepath = ABSPATH . str_replace( $home_url, '', $file );
-					if ( $this->parsing_exactdn || $valid_path || is_file( $filepath . '.webp' ) ) {
-						if ( $this->parsing_exactdn ) {
-							if ( $this->parsing_exactdn && false !== strpos( $file, $this->exactdn_domain ) ) {
-								$this->set_attribute( $video, 'data-poster-webp', add_query_arg( 'webp', 1, $file ) );
-							}
-						} else {
-							$this->set_attribute( $video, 'data-poster-webp', $file . '.webp' );
-						}
+					if ( $this->validate_image_url( $file ) ) {
+						$this->set_attribute( $video, 'data-poster-webp', $this->generate_url( $file ) );
 						$this->set_attribute( $video, 'data-poster-image', $file );
 						$this->remove_attribute( $video, 'poster' );
-						ewwwio_debug_message( "found webp for video poster: $filepath" );
+						ewwwio_debug_message( "found webp for video poster: $file" );
 						$buffer = str_replace( $videos[ $index ], $video, $buffer );
 					}
 				}
@@ -841,6 +565,104 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 			ewww_image_optimizer_debug_log();
 		}
 		return $buffer;
+	}
+
+	/**
+	 * Handle image urls within the NextGEN pro lightbox displays.
+	 *
+	 * @param array $images An array of NextGEN images and associate attributes.
+	 * @return array The array of images with WebP versions added.
+	 */
+	function ngg_pro_lightbox_images_queue( $images ) {
+		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		if ( ewww_image_optimizer_iterable( $images ) ) {
+			foreach ( $images as $index => $image ) {
+				if ( ! empty( $image['image'] ) && $this->validate_image_url( $image['image'] ) ) {
+					$images[ $index ]['image-webp'] = $this->generate_url( $image['image'] );
+				}
+				if ( ! empty( $image['thumb'] ) && $this->validate_image_url( $image['thumb'] ) ) {
+					$images[ $index ]['thumb-webp'] = $this->generate_url( $image['thumb'] );
+				}
+				if ( ! empty( $image['full_image'] ) && $this->validate_image_url( $image['full_image'] ) ) {
+					$images[ $index ]['full_image_webp'] = $this->generate_url( $image['full_image'] );
+				}
+				if ( ewww_image_optimizer_iterable( $image['srcsets'] ) ) {
+					foreach ( $image['srcsets'] as $size => $srcset ) {
+						if ( $this->validate_image_url( $srcset ) ) {
+							$images[ $index ]['srcsets'][ $size . '-webp' ] = $this->generate_url( $srcset );
+						}
+					}
+				}
+				if ( ewww_image_optimizer_iterable( $image['full_srcsets'] ) ) {
+					foreach ( $image['full_srcsets'] as $size => $srcset ) {
+						if ( $this->validate_image_url( $srcset ) ) {
+							$images[ $index ]['full_srcsets'][ $size . '-webp' ] = $this->generate_url( $srcset );
+						}
+					}
+				}
+			}
+		}
+		return $images;
+	}
+
+	/**
+	 * Checks if the path is a valid "forced" WebP image.
+	 *
+	 * @param string $image The image file.
+	 * @return bool True if the file matches a forced path, false otherwise.
+	 */
+	function validate_image_url( $image ) {
+		ewwwio_debug_message( "webp validation for $image" );
+		if ( strpos( $image, 'assets/images/dummy.png' ) || strpos( $image, 'base64,R0lGOD' ) || strpos( $image, 'lazy-load/images/1x1' ) ) {
+			ewwwio_debug_message( 'lazy load placeholder' );
+			return false;
+		}
+		ewwwio_debug_message( "looking for $this->exactdn_domain in $image" );
+		if ( $this->parsing_exactdn && false !== strpos( $image, $this->exactdn_domain ) ) {
+			ewwwio_debug_message( 'exactdn image' );
+			return true;
+		}
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) && $this->webp_paths ) {
+			// Check the image for configured CDN paths.
+			foreach ( $this->webp_paths as $webp_path ) {
+				if ( strpos( $image, $webp_path ) !== false ) {
+					ewwwio_debug_message( 'forced cdn image' );
+					return true;
+				}
+			}
+		}
+		if ( 0 === strpos( $image, $this->relative_home_url ) ) {
+			$imagepath = str_replace( $this->relative_home_url, ABSPATH, $image );
+		} elseif ( 0 === strpos( $image, $this->home_url ) ) {
+			$imagepath = str_replace( $this->home_url, ABSPATH, $image );
+		} else {
+			ewwwio_debug_message( 'not a valid local image' );
+			return false;
+		}
+		ewwwio_debug_message( "searching on disk for $imagepath.webp" );
+		if ( is_file( $imagepath . '.webp' ) ) {
+			ewwwio_debug_message( 'local image found' );
+			return true;
+		}
+		ewwwio_debug_message( 'all out of options' );
+		return false;
+	}
+
+	/**
+	 * Generate a WebP url.
+	 *
+	 * Adds .webp to the end, or adds a webp parameter for ExactDN urls.
+	 *
+	 * @param string $url The image url.
+	 * @return string The WebP version of the image url.
+	 */
+	function generate_url( $url ) {
+		if ( $this->parsing_exactdn && false !== strpos( $url, $this->exactdn_domain ) ) {
+			return add_query_arg( 'webp', 1, $url );
+		} else {
+			return $url . '.webp';
+		}
+		return $url;
 	}
 
 	/**

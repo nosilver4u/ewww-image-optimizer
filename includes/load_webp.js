@@ -485,6 +485,40 @@ function ewww_load_images(ewww_webp_supported) {
 			return ewww_img;
 		}
 		if (ewww_webp_supported) {
+                        if ( typeof galleries !== 'undefined' ) {
+                                $.each(galleries, function(galleryIndex, gallery) {
+                                        $.each(gallery.images_list, function(nggIndex, nggImage) {
+                                                if (typeof nggImage['image-webp'] !== typeof undefined) {
+                                                        galleries[galleryIndex].images_list[nggIndex]['image'] = nggImage['image-webp'];
+                                                        delete galleries[galleryIndex].images_list[nggIndex]['image-webp'];
+                                                }
+                                                if (typeof nggImage['thumb-webp'] !== typeof undefined) {
+                                                        galleries[galleryIndex].images_list[nggIndex]['thumb'] = nggImage['thumb-webp'];
+                                                        delete galleries[galleryIndex].images_list[nggIndex]['thumb-webp'];
+                                                }
+                                                if (typeof nggImage['full_image_webp'] !== typeof undefined) {
+                                                        galleries[galleryIndex].images_list[nggIndex]['full_image'] = nggImage['full_image_webp'];
+                                                        delete galleries[galleryIndex].images_list[nggIndex]['full_image_webp'];
+                                                }
+                                                if (typeof nggImage['srcsets'] !== typeof undefined) {
+                                                        $.each(nggImage['srcsets'], function(nggSrcsetIndex, nggSrcset) {
+                                                                if (typeof nggImage['srcsets'][nggSrcsetIndex + '-webp'] !== typeof undefined) {
+                                                                        galleries[galleryIndex].images_list[nggIndex]['srcsets'][nggSrcsetIndex] = nggImage['srcsets'][nggSrcsetIndex + '-webp'];
+                                                                        delete galleries[galleryIndex].images_list[nggIndex]['srcsets'][nggSrcsetIndex + '-webp'];
+                                                                }
+                                                        });
+                                                }
+                                                if (typeof nggImage['full_srcsets'] !== typeof undefined) {
+                                                        $.each(nggImage['full_srcsets'], function(nggFSrcsetIndex, nggFSrcset) {
+                                                                if (typeof nggImage['full_srcsets'][nggFSrcsetIndex + '-webp'] !== typeof undefined) {
+                                                                        galleries[galleryIndex].images_list[nggIndex]['full_srcsets'][nggFSrcsetIndex] = nggImage['full_srcsets'][nggFSrcsetIndex + '-webp'];
+                                                                        delete galleries[galleryIndex].images_list[nggIndex]['full_srcsets'][nggFSrcsetIndex + '-webp'];
+                                                                }
+                                                        });
+                                                }
+                                        });
+                                });
+                        }
 			$('.batch-image img, .image-wrapper a, .ngg-pro-masonry-item a, .ngg-galleria-offscreen-seo-wrapper a').each(function() {
 				var ewww_attr = $(this).attr('data-webp');
 				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
@@ -698,3 +732,16 @@ function ewww_load_images(ewww_webp_supported) {
 if ( typeof jQuery !== 'undefined' ) {
 	check_webp_feature('alpha', ewww_load_images);
 }
+var ewww_ngg_galleries_timer = 0;
+var ewww_ngg_galleries = setInterval(function() {
+        if ( typeof galleries !== 'undefined' ) {
+                if ( typeof jQuery !== 'undefined' ) {
+                        check_webp_feature('alpha', ewww_load_images);
+                        clearInterval(ewww_ngg_galleries);
+                }
+        }
+        ewww_ngg_galleries_timer += 25;
+        if (ewww_ngg_galleries_timer > 1000) {
+                clearInterval(ewww_ngg_galleries);
+        }
+}, 25);

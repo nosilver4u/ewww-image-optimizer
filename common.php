@@ -29,11 +29,12 @@
 // TODO: can some of the bulk "fallbacks" be implemented for async processing?
 // Do these for next release...
 // TODO: figure out how to make the IO column toggle-friendly in NextGEN.
+// TODO: remove spurious debugging from Alt WebP validate method after testing is complete.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '423.3' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '423.3364' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -7312,7 +7313,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) == true ? "checked='true'" : '' ) . ' /> ' .
 		esc_html__( 'Enables CDN and automatic image resizing to fit your pages.', 'ewww-image-optimizer' ) .
 		' <a href="https://ewww.io/resize/" target="_blank">' . esc_html__( 'Purchase a subscription for your site.', 'ewww-image-optimizer' ) . '</a>' .
-		'<p class="description">' . // esc_html__( 'WebP Conversion', 'ewww-image-optimizer' ) . '<br>' .
+		'<p class="description">' .
+		esc_html__( 'WebP Conversion', 'ewww-image-optimizer' ) . '<br>' .
 		esc_html__( 'Retina Support, use with WP Retina 2x for best results', 'ewww-image-optimizer' ) . '<br>' .
 		esc_html__( 'Premium Compression', 'ewww-image-optimizer' ) . '<br>' .
 		esc_html__( 'Adjustable Quality', 'ewww-image-optimizer' ) . '<br>' .
@@ -8196,5 +8198,4 @@ function ewwwio_dump_var( $var, $var2 = false, $var3 = false ) {
 	ewwwio_debug_message( print_r( $var3, true ) );
 	return $var;
 }
-add_filter( 'ngg_pro_lightbox_images_queue', 'ewwwio_dump_var' );
 ?>
