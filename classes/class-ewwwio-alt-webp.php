@@ -427,7 +427,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 						$image->parentNode->replaceChild( $nimage, $image );
 					}
 				} // End if().
-				// TODO: this is related to Rev Slider, figure out how, test it, and mark accordingly.
+				// Rev Slider data-lazyload attribute on image elements.
 				if ( $this->get_attribute( $image, 'data-lazyload' ) ) {
 					$lazyload = $this->get_attribute( $image, 'data-lazyload' );
 					if ( $lazyload ) {
@@ -440,7 +440,6 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 				}
 			} // End foreach().
 		} // End if().
-		// TODO: need to test Slider Revolution stuff above and below.
 		// NextGEN images listed as picture/source elements.
 		$pictures = $this->get_picture_tags_from_html( $buffer );
 		if ( ewww_image_optimizer_iterable( $pictures ) ) {
@@ -611,7 +610,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	 */
 	function validate_image_url( $image ) {
 		ewwwio_debug_message( "webp validation for $image" );
-		if ( strpos( $image, 'assets/images/dummy.png' ) || strpos( $image, 'base64,R0lGOD' ) || strpos( $image, 'lazy-load/images/1x1' ) ) {
+		if ( strpos( $image, 'assets/images/dummy.png' ) || strpos( $image, 'base64,R0lGOD' ) || strpos( $image, 'lazy-load/images/1x1' ) || strpos( $image, 'assets/images/transparent.png' ) ) {
 			ewwwio_debug_message( 'lazy load placeholder' );
 			return false;
 		}

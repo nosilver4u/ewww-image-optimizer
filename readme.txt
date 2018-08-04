@@ -184,6 +184,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: NextGEN image urls properly rewritten for ExactDN
 * added: NextGEN dynamic thumbs included during manual/bulk optimization
 * added: auto-installer for Cloud plugin when running EWWW IO on a "banned" webhost
+* added: suggested privacy policy text for users of the API and ExactDN
 * changed: resizing uses the primary media dimensions unless the "other" dimensions are configured
 * changed: Resize Other Images removed from GUI, configure via Overrides tab
 * changed: filter NextGEN quality to prevent oversized thumbs

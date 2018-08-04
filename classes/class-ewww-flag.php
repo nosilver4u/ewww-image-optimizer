@@ -694,7 +694,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 				$print_meta   = print_r( $meta->image->meta_data, true );
 				$print_meta   = preg_replace( array( '/ /', '/\n+/' ), array( '&nbsp;', '<br />' ), esc_html( $print_meta ) );
 				$debug_button = esc_html__( 'Show Metadata', 'ewww-image-optimizer' );
-				echo "<button type='button' class='ewww-show-debug-meta' data-id='$id'>$debug_button</button><div id='ewww-debug-meta-$id' style='background-color:#ffff99;font-size: 10px;padding: 10px;margin:3px -10px 10px;line-height: 1.1em;display: none;'>$print_meta</div>";
+				echo "<button type='button' class='ewww-show-debug-meta button button-secondary' data-id='$id'>$debug_button</button><div id='ewww-debug-meta-$id' style='background-color:#ffff99;font-size: 10px;padding: 10px;margin:3px -10px 10px;line-height: 1.1em;display: none;'>$print_meta</div>";
 			}
 			// Get the image path from the meta.
 			$file_path = $meta->image->imagePath;

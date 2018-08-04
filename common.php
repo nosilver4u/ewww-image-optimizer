@@ -736,6 +736,7 @@ function ewww_image_optimizer_admin_init() {
 			add_action( 'admin_notices', 'ewww_image_optimizer_thumbnail_regen_notice' );
 		}
 	}
+	ewww_image_optimizer_privacy_policy_content();
 	ewww_image_optimizer_ajax_compat_check();
 	// Remove the false when the next bump is coming.
 	if ( defined( 'PHP_VERSION_ID' ) && PHP_VERSION_ID < 50500 ) {
@@ -825,6 +826,22 @@ function ewww_image_optimizer_ajax_compat_check() {
 		ewww_image_optimizer_image_sizes( false );
 		return;
 	}
+}
+
+/**
+ * Adds suggested privacy policy content for site admins.
+ *
+ * Note that this is just a suggestion, it should be customized for your site.
+ */
+function ewww_image_optimizer_privacy_policy_content() {
+	$content = '<p class="privacy-policy-tutorial">';
+	if ( ! defined( 'EWWW_IO_CLOUD_PLUGIN' ) || ! EWWW_IO_CLOUD_PLUGIN ) {
+		$content .= wp_kses_post( __( 'By default, the EWWW Image Optimizer does not store any personal data nor share it with anyone.', 'ewww-image-optimizer' ) ) . '</p><p>';
+	}
+	$content .= wp_kses_post( __( 'If you accept user-submitted images and use the API or ExactDN, those images may be transmitted to third-party servers in foregin countries. If Backup Originals is enabled, images are stored for 30 days. Otherwise, no images are stored on the API for longer than 30 minutes.', 'ewww-image-optimizer' ) ) . '</p>';
+	$content .= '<p><strong>' . wp_kses_post( __( 'Suggested API Text:' ) ) . '</strong> <i>' . wp_kses_post( __( 'User-submitted images may be transmitted to image compression servers in the United States and stored there for up to 30 days.' ) ) . '</i></p>';
+	$content .= '<p><strong>' . wp_kses_post( __( 'Suggested ExactDN Text:' ) ) . '</strong> <i>' . wp_kses_post( __( 'User-submitted images that are displayed on this site will be transmitted and stored on a global network of third-party servers (a CDN).' ) ) . '</i></p>';
+	wp_add_privacy_policy_content( 'EWWW Image Optimizer', $content );
 }
 
 /**
@@ -5796,7 +5813,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			$print_meta   = print_r( $meta, true );
 			$print_meta   = preg_replace( array( '/ /', '/\n+/' ), array( '&nbsp;', '<br />' ), $print_meta );
 			$debug_button = esc_html__( 'Show Metadata', 'ewww-image-optimizer' );
-			$output      .= "<button type='button' class='ewww-show-debug-meta' data-id='$id'>$debug_button</button><div id='ewww-debug-meta-$id' style='background-color:#ffff99;font-size: 10px;padding: 10px;margin:3px -10px 10px;line-height: 1.1em;display: none;'>$print_meta</div>";
+			$output      .= "<button type='button' class='ewww-show-debug-meta button button-secondary' data-id='$id'>$debug_button</button><div id='ewww-debug-meta-$id' style='background-color:#ffff99;font-size: 10px;padding: 10px;margin:3px -10px 10px;line-height: 1.1em;display: none;'>$print_meta</div>";
 		}
 		$output  .= "<div id='ewww-media-status-$id'>";
 		$ewww_cdn = false;
@@ -7596,7 +7613,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		esc_html__( 'This will allow us to assist you more quickly.', 'ewww-image-optimizer' );
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 		global $ewww_debug;
-		echo '<p style="clear:both"><b>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</b> <button id="ewww-copy-debug">' . esc_html__( 'Copy', 'ewww-image-optimizer' ) . '</button>';
+		echo '<p style="clear:both"><b>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</b> <button id="ewww-copy-debug" class="button button-secondary">' . esc_html__( 'Copy', 'ewww-image-optimizer' ) . '</button>';
 		if ( is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
 			$debug_log_url = plugins_url( '/debug.log', __FILE__ );
 			echo "&emsp;<a href='$debug_log_url'>" . esc_html( 'View Debug Log', 'ewww-image-optimizer' ) . "</a> - <a href='admin.php?action=ewww_image_optimizer_delete_debug_log'>" . esc_html( 'Remove Debug Log', 'ewww-image-optimizer' ) . '</a>';
