@@ -29,7 +29,6 @@
 // TODO: can some of the bulk "fallbacks" be implemented for async processing?
 // Do these for next release...
 // TODO: figure out how to make the IO column toggle-friendly in NextGEN.
-// TODO: remove spurious debugging from Alt WebP validate method after testing is complete.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

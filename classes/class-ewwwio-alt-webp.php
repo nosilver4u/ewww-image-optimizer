@@ -65,6 +65,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 		if ( ! is_array( $this->webp_paths ) ) {
 			$this->webp_paths = array();
 		}
+		ewwwio_debug_message( 'forcing any images matching these patterns to webp: ' . implode( ',', $this->webp_paths ) );
 		if ( class_exists( 'ExactDN' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 			global $exactdn;
 			$this->exactdn_domain = $exactdn->get_exactdn_domain();
@@ -177,19 +178,16 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	function srcset_replace( $srcset ) {
 		$srcset_urls = explode( ' ', $srcset );
 		$found_webp  = false;
-		if ( ewww_image_optimizer_iterable( $srcset_urls ) ) {
+		if ( ewww_image_optimizer_iterable( $srcset_urls ) && count( $srcset_urls ) > 1 ) {
 			ewwwio_debug_message( 'parsing srcset urls' );
 			foreach ( $srcset_urls as $srcurl ) {
 				if ( is_numeric( substr( $srcurl, 0, 1 ) ) ) {
 					continue;
 				}
-				$trailing = '';
+				$trailing = ' ';
 				if ( ',' === substr( $srcurl, -1 ) ) {
 					$trailing = ',';
 					$srcurl   = rtrim( $srcurl, ',' );
-				} elseif ( ' ' === substr( $srcurl, -1 ) ) {
-					$trailing = ' ';
-					$srcurl   = rtrim( $srcurl );
 				}
 				ewwwio_debug_message( "looking for $srcurl from srcset" );
 				if ( $this->validate_image_url( $srcurl ) ) {
@@ -198,6 +196,8 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 					$found_webp = true;
 				}
 			}
+		} elseif ( $this->validate_image_url( $srcset ) ) {
+			return $this->generate_url( $srcset );
 		}
 		if ( $found_webp ) {
 			return $srcset;
@@ -320,13 +320,12 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 		// TODO: Eventually route through a custom parsing routine for noscript images.
 		$noscript_images = $this->get_noscript_images_from_html( $buffer );
 		if ( ! empty( $noscript_images ) ) {
-			ewwwio_debug_message( 'noscript-encased images found, bailing' );
-			return $buffer;
+			ewwwio_debug_message( 'noscript-encased images found, will not process any img elements' );
 		}
 		/* TODO: detect non-utf8 encoding and convert the buffer (if necessary). */
 
 		$images = $this->get_images_from_html( $buffer, false );
-		if ( ewww_image_optimizer_iterable( $images[0] ) ) {
+		if ( empty( $noscript_images ) && ewww_image_optimizer_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
 				$file = $images['img_url'][ $index ];
 				ewwwio_debug_message( "parsing an image: $file" );
@@ -442,7 +441,6 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 			} // End foreach().
 		} // End if().
 		// TODO: need to test Slider Revolution stuff above and below.
-		// TODO: make sure webp is working for every layout in NextGEN...
 		// NextGEN images listed as picture/source elements.
 		$pictures = $this->get_picture_tags_from_html( $buffer );
 		if ( ewww_image_optimizer_iterable( $pictures ) ) {
@@ -617,7 +615,6 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 			ewwwio_debug_message( 'lazy load placeholder' );
 			return false;
 		}
-		ewwwio_debug_message( "looking for $this->exactdn_domain in $image" );
 		if ( $this->parsing_exactdn && false !== strpos( $image, $this->exactdn_domain ) ) {
 			ewwwio_debug_message( 'exactdn image' );
 			return true;
@@ -639,12 +636,10 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 			ewwwio_debug_message( 'not a valid local image' );
 			return false;
 		}
-		ewwwio_debug_message( "searching on disk for $imagepath.webp" );
 		if ( is_file( $imagepath . '.webp' ) ) {
-			ewwwio_debug_message( 'local image found' );
+			ewwwio_debug_message( 'local .webp image found' );
 			return true;
 		}
-		ewwwio_debug_message( 'all out of options' );
 		return false;
 	}
 
