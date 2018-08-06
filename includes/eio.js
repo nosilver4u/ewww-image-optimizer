@@ -147,6 +147,12 @@ jQuery(document).ready(function($) {
 					HS.beacon.show('59710ce4042863033a1b45a6');
 				});
 			});
+			$('.ewww-docs-root').click(function() {
+				HS.beacon.ready(function() {
+					event.preventDefault();
+					HS.beacon.open();
+				});
+			});
 			$('.ewww-help-beacon-multi').click(function() {
 				var hsids = $(this).attr('data-beacon-articles');
 				hsids = hsids.split(',');

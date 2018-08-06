@@ -1913,6 +1913,8 @@ class ExactDN {
 			 * @param string EWWW IO version.
 			 */
 			$parsed_url['query'] = apply_filters( 'exactdn_version_string', "m=$modified" );
+		} elseif ( empty( $parsed_url['query'] ) ) {
+			$parsed_url['query'] = '';
 		}
 
 		$exactdn_url = '//' . $this->exactdn_domain . '/' . ltrim( $parsed_url['path'], '/' ) . '?' . $parsed_url['query'];

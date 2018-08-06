@@ -440,7 +440,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 				}
 			} // End foreach().
 		} // End if().
-		// NextGEN images listed as picture/source elements.
+		// Images listed as picture/source elements. Mostly for NextGEN, but should work anywhere.
 		$pictures = $this->get_picture_tags_from_html( $buffer );
 		if ( ewww_image_optimizer_iterable( $pictures ) ) {
 			foreach ( $pictures as $index => $picture ) {

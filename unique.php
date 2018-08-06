@@ -2579,11 +2579,8 @@ function ewww_image_optimizer_install_pngout_wrapper() {
  * @return string The url from whence we came (settings page), with success or error parameters added.
  */
 function ewww_image_optimizer_install_pngout() {
-	if ( PHP_OS != 'WINNT' ) {
-		$tar = ewww_image_optimizer_find_nix_binary( 'tar', 't' );
-	}
-	if ( empty( $tar ) && PHP_OS != 'WINNT' ) {
-		$pngout_error = __( 'tar command not found', 'ewww-image-optimizer' );
+	if ( ! extension_loaded( 'zlib' ) || ! class_exists( 'PharData' ) ) {
+		$pngout_error = __( 'zlib or phar extension missing from PHP', 'ewww-image-optimizer' );
 	}
 	if ( PHP_OS == 'Linux' ) {
 		$os_string = 'linux';
@@ -2595,52 +2592,87 @@ function ewww_image_optimizer_install_pngout() {
 	$tool_path = trailingslashit( EWWW_IMAGE_OPTIMIZER_TOOL_PATH );
 	if ( empty( $pngout_error ) ) {
 		if ( PHP_OS == 'Linux' || PHP_OS == 'FreeBSD' ) {
-			$download_result = ewww_image_optimizer_escapeshellarg( download_url( 'http://static.jonof.id.au/dl/kenutils/pngout-' . $latest . '-' . $os_string . '-static.tar.gz' ) );
+			$download_result = download_url( 'http://static.jonof.id.au/dl/kenutils/pngout-' . $latest . '-' . $os_string . '-static.tar.gz' );
 			if ( is_wp_error( $download_result ) ) {
 				$pngout_error = $download_result->get_error_message();
 			} else {
-				$arch_type = 'i686';
-				if ( ewww_image_optimizer_function_exists( 'php_uname' ) ) {
-					$arch_type = php_uname( 'm' );
-				}
-				exec( "$tar xzf $download_result -C " . ewww_image_optimizer_escapeshellarg( EWWW_IMAGE_OPTIMIZER_BINARY_PATH ) . ' pngout-' . $latest . '-' . $os_string . '-static/' . $arch_type . '/pngout-static' );
-				if ( file_exists( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-' . $os_string . '-static/' . $arch_type . '/pngout-static' ) ) {
-					if ( ! rename( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-' . $os_string . '-static/' . $arch_type . '/pngout-static', $tool_path . 'pngout-static' ) ) {
-						if ( empty( $pngout_error ) ) {
-							$pngout_error = __( 'could not move pngout', 'ewww-image-optimizer' );
-						}
-					}
-					if ( ! chmod( $tool_path . 'pngout-static', 0755 ) ) {
-						if ( empty( $pngout_error ) ) {
-							$pngout_error = __( 'could not set permissions', 'ewww-image-optimizer' );
-						}
-					}
-					$pngout_version = ewww_image_optimizer_tool_found( ewww_image_optimizer_escapeshellarg( $tool_path ) . 'pngout-static', 'p' );
+				if ( ! ewwwio_check_memory_available( filesize( $download_result ) + 1000 ) ) {
+					$pngout_error = __( 'insufficient memory available for installation', 'ewww-image-optimizer' );
 				} else {
-					$pngout_error = __( 'extraction of files failed', 'ewww-image-optimizer' );
+					$arch_type = 'i686';
+					if ( ewww_image_optimizer_function_exists( 'php_uname' ) ) {
+						$arch_type = php_uname( 'm' );
+					}
+
+					$tmpname  = current( explode( '.', $download_result ) );
+					$tmpname .= '-' . uniqid() . '.tar.gz';
+					rename( $download_result, $tmpname );
+					$download_result = $tmpname;
+
+					$pngout_gzipped  = new PharData( $download_result );
+					$pngout_tarball  = $pngout_gzipped->decompress();
+					$download_result = $pngout_tarball->getPath();
+					$pngout_tarball->extractTo(
+						EWWW_IMAGE_OPTIMIZER_BINARY_PATH,
+						'pngout-' . $latest . '-' . $os_string . '-static/' . $arch_type . '/pngout-static',
+						true
+					);
+
+					if ( is_file( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-' . $os_string . '-static/' . $arch_type . '/pngout-static' ) ) {
+						if ( ! rename( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-' . $os_string . '-static/' . $arch_type . '/pngout-static', $tool_path . 'pngout-static' ) ) {
+							if ( empty( $pngout_error ) ) {
+								$pngout_error = __( 'could not move pngout', 'ewww-image-optimizer' );
+							}
+						}
+						if ( ! chmod( $tool_path . 'pngout-static', 0755 ) ) {
+							if ( empty( $pngout_error ) ) {
+								$pngout_error = __( 'could not set permissions', 'ewww-image-optimizer' );
+							}
+						}
+						$pngout_version = ewww_image_optimizer_tool_found( ewww_image_optimizer_escapeshellarg( $tool_path ) . 'pngout-static', 'p' );
+					} else {
+						$pngout_error = __( 'extraction of files failed', 'ewww-image-optimizer' );
+					}
 				}
 			}
 		}
 		if ( PHP_OS == 'Darwin' ) {
-			$download_result = ewww_image_optimizer_escapeshellarg( download_url( 'http://static.jonof.id.au/dl/kenutils/pngout-' . $latest . '-darwin.tar.gz' ) );
+			$latest          = '20150920';
+			$download_result = download_url( 'http://static.jonof.id.au/dl/kenutils/pngout-' . $latest . '-darwin.tar.gz' );
 			if ( is_wp_error( $download_result ) ) {
 				$pngout_error = $download_result->get_error_message();
 			} else {
-				exec( "$tar xzf $download_result -C " . ewww_image_optimizer_escapeshellarg( EWWW_IMAGE_OPTIMIZER_BINARY_PATH ) . ' pngout-' . $latest . '-darwin/pngout' );
-				if ( file_exists( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-darwin/pngout' ) ) {
-					if ( ! rename( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-darwin/pngout', $tool_path . 'pngout-static' ) ) {
-						if ( empty( $pngout_error ) ) {
-							$pngout_error = __( 'could not move pngout', 'ewww-image-optimizer' );
-						}
-					}
-					if ( ! chmod( $tool_path . 'pngout-static', 0755 ) ) {
-						if ( empty( $pngout_error ) ) {
-							$pngout_error = __( 'could not set permissions', 'ewww-image-optimizer' );
-						}
-					}
-					$pngout_version = ewww_image_optimizer_tool_found( ewww_image_optimizer_escapeshellarg( $tool_path ) . 'pngout-static', 'p' );
+				if ( ! ewwwio_check_memory_available( filesize( $download_result ) + 1000 ) ) {
+					$pngout_error = __( 'insufficient memory available for installation', 'ewww-image-optimizer' );
 				} else {
-					$pngout_error = __( 'extraction of files failed', 'ewww-image-optimizer' );
+					$tmpname  = current( explode( '.', $download_result ) );
+					$tmpname .= '-' . uniqid() . '.tar.gz';
+					rename( $download_result, $tmpname );
+					$download_result = $tmpname;
+
+					$pngout_gzipped  = new PharData( $download_result );
+					$pngout_tarball  = $pngout_gzipped->decompress();
+					$download_result = $pngout_tarball->getPath();
+					$pngout_tarball->extractTo(
+						EWWW_IMAGE_OPTIMIZER_BINARY_PATH,
+						'pngout-' . $latest . '-darwin/pngout',
+						true
+					);
+					if ( is_file( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-darwin/pngout' ) ) {
+						if ( ! rename( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-darwin/pngout', $tool_path . 'pngout-static' ) ) {
+							if ( empty( $pngout_error ) ) {
+								$pngout_error = __( 'could not move pngout', 'ewww-image-optimizer' );
+							}
+						}
+						if ( ! chmod( $tool_path . 'pngout-static', 0755 ) ) {
+							if ( empty( $pngout_error ) ) {
+								$pngout_error = __( 'could not set permissions', 'ewww-image-optimizer' );
+							}
+						}
+						$pngout_version = ewww_image_optimizer_tool_found( ewww_image_optimizer_escapeshellarg( $tool_path ) . 'pngout-static', 'p' );
+					} else {
+						$pngout_error = __( 'extraction of files failed', 'ewww-image-optimizer' );
+					}
 				}
 			}
 		}
@@ -2658,6 +2690,9 @@ function ewww_image_optimizer_install_pngout() {
 			$pngout_version = ewww_image_optimizer_tool_found( '"' . $tool_path . 'pngout.exe"', 'p' );
 		}
 	}
+	if ( is_string( $download_result ) && is_writable( $download_result ) ) {
+		unlink( $download_result );
+	}
 	if ( ! empty( $pngout_version ) ) {
 		$sendback = add_query_arg( 'ewww_pngout', 'success', remove_query_arg( array( 'ewww_pngout', 'ewww_error' ), wp_get_referer() ) );
 	}
@@ -2671,6 +2706,16 @@ function ewww_image_optimizer_install_pngout() {
 		);
 	}
 	return $sendback;
+}
+
+/**
+ * Downloads a file to the EWWW IO folder.
+ *
+ * @param string $url The remote url to fetch.
+ * @return string|WP_Error The location of the downloaded file, or a WP_Error object on failure.
+ */
+function ewwwio_download_url( $url ) {
+	return $location;
 }
 
 /**
