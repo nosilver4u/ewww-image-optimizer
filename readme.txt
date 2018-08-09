@@ -198,6 +198,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: entering a decimal for bulk delay does nothing
 * fixed: if urls on a localized WPML domain are using the default domain, ExactDN ignores them
 * fixed: toggle for plugin status and bulk status generate admin-ajax.php 403 errors
+* fixed: PNGOUT installer confirmation notice was missing
 * deprecated: PHP 5.4 support will be removed in the next major release (version 4.4)
 
 = 4.2.3 =

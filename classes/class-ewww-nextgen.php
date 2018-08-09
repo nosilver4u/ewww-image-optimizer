@@ -22,6 +22,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 */
 		public function __construct() {
 			add_filter( 'ngg_manage_images_number_of_columns', array( $this, 'ewww_manage_images_number_of_columns' ) );
+			add_filter( 'ngg_manage_images_columns', array( $this, 'manage_images_columns' ) );
 			add_filter( 'ngg_manage_images_row_actions', array( $this, 'ewww_manage_images_row_actions' ) );
 			if ( ewww_image_optimizer_test_background_opt() ) {
 				add_action( 'ngg_added_new_image', array( $this, 'queue_new_image' ) );
@@ -385,6 +386,19 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		}
 
 		/**
+		 * Adds our column to the list for users to toggle via Screen Options.
+		 *
+		 * @param array $columns A list of existing column names.
+		 * @return array The revised list of column names.
+		 */
+		function manage_images_columns( $columns ) {
+			if ( is_array( $columns ) ) {
+				$columns['ewww_image_optimizer'] = esc_html__( 'Image Optimizer', 'ewww-image-optimizer' );
+			}
+			return $columns;
+		}
+
+		/**
 		 * Filter for ngg_manage_images_number_of_columns hook, changed in NGG 2.0.50ish.
 		 *
 		 * @param int $count The number of columns for the table display.
@@ -407,9 +421,8 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			if ( is_array( $columns ) ) {
 				$columns['ewww_image_optimizer'] = esc_html__( 'Image Optimizer', 'ewww-image-optimizer' );
 				return $columns;
-			} else {
-				return esc_html__( 'Image Optimizer', 'ewww-image-optimizer' );
 			}
+			return esc_html__( 'Image Optimizer', 'ewww-image-optimizer' );
 		}
 
 		/**

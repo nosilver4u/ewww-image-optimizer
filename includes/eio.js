@@ -162,7 +162,51 @@ jQuery(document).ready(function($) {
 					HS.beacon.open();
 				});
 			});
+			$('.ewww-help-beacon-single').click(function() {
+				var hsid = $(this).attr('data-beacon-article');
+				HS.beacon.ready(function() {
+					event.preventDefault();
+					HS.beacon.show(hsid);
+				});
+			});
 		}
+		var radius = 54;
+		var circumference = 2 * Math.PI * radius;
+
+		function progress() {
+			var value = $('#ewww-compress-guage').attr('data-score');
+			var progress = value / 100;
+			var dashoffset = circumference * (1 - progress);
+
+			console.log('progress:', value + '%', '|', 'offset:', dashoffset)
+
+			$('#ewww-compress-guage .ewww-active').css('stroke-dashoffset', dashoffset);
+			var value = $('#ewww-resize-guage').attr('data-score');
+			var progress = value / 100;
+			var dashoffset = circumference * (1 - progress);
+
+			console.log('progress:', value + '%', '|', 'offset:', dashoffset)
+
+			$('#ewww-resize-guage .ewww-active').css('stroke-dashoffset', dashoffset);
+		}
+		$('.ewww-active').css('stroke-dasharray', circumference );
+		progress();
+		$('.ewww-guage').tooltip({
+			items: '.ewww-guage',
+			content: function() {
+				return $(this).next('.ewww-recommend').html();
+			},
+			close: function(event, ui) {
+				ui.tooltip.hover(function() {
+					$(this).stop(true).fadeTo(400, 1);
+				},
+				function() {
+					$(this).fadeOut('400', function() {
+						$(this).remove();
+					});
+				});
+			},
+		});
 		return false;
 	} else {
 	$(function() {
