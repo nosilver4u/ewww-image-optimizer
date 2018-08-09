@@ -192,6 +192,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * changed: auto-rotate function disabled with EWWW_IMAGE_OPTIMIZER_DISABLE_AUTOROTATE
 * changed: one-click copy for debug info, and debug collapsed by default in media library and bulk results
 * changed: bulk operations for batches of NextGEN images now use the bulk optimizer page instead of loading inline
+* fixed: thumbs not generated during WP/LR Sync
 * fixed: uploading images in the Gutenberg editor uses the wrong resize dimensions
 * fixed: unique filename function producing names with a hyphen and no digits
 * fixed: encoded ampersands within the path portion of a url prevent ExactDN parsing

@@ -485,23 +485,12 @@ function ewww_load_images(ewww_webp_supported) {
 			return ewww_img;
 		}
 		if (ewww_webp_supported) {
-                                $(window).on('override_nplModal_methods', function(e, methods) {
-                                        console.log('override starting');
-                                        methods._set_events_backup = methods.set_events;
-                                        methods.set_events = function() {
-                                        console.log('override binding');
-                                                $('#npl_content').bind('npl_images_ready', function(event, gallery_id) {
-                                                        console.log('override about to run');
-                                                        ewww_ngg_plus_load_images(gallery_id);
-                                                });
-                                        }
-                                });
-                        function ewww_ngg_plus_load_images(gallery_id) {
-                        console.log('running ngg load images');
+                        //function ewww_ngg_plus_load_images(gallery_id) {
+                        //console.log('running ngg load images');
                         if ( typeof galleries !== 'undefined' ) {
-                                console.log('galleries defined, parsing gallery #' + gallery_id);
-                                //$.each(galleries, function(galleryIndex, gallery) {
-                                        $.each(galleries[gallery_id].images_list, function(nggIndex, nggImage) {
+                                //console.log('galleries defined, parsing gallery #' + gallery_id);
+                                $.each(galleries, function(galleryIndex, gallery) {
+                                        $.each(gallery.images_list, function(nggIndex, nggImage) {
                                                 if (typeof nggImage['image-webp'] !== typeof undefined) {
                                                         galleries[galleryIndex].images_list[nggIndex]['image'] = nggImage['image-webp'];
                                                         delete galleries[galleryIndex].images_list[nggIndex]['image-webp'];
@@ -531,9 +520,9 @@ function ewww_load_images(ewww_webp_supported) {
                                                         });
                                                 }
                                         });
-                                //});
+                                });
                         }
-                        }
+                        //}
 			$('.batch-image img, .image-wrapper a, .ngg-pro-masonry-item a, .ngg-galleria-offscreen-seo-wrapper a').each(function() {
 				var ewww_attr = $(this).attr('data-webp');
 				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
