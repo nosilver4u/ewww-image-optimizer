@@ -221,7 +221,7 @@
 .ui-widget-content .ui-state-default,
 .ui-widget-header .ui-state-default {
 	border: 1px solid #d3d3d3;
-	background: #e6e6e6 /*url(images/ui-bg_glass_75_e6e6e6_1x400.png)*/ 50% 50% repeat-x;
+	background: #e6e6e6 50% 50% repeat-x;
 	font-weight: normal;
 	color: #555555;
 }
@@ -238,7 +238,7 @@
 .ui-widget-content .ui-state-focus,
 .ui-widget-header .ui-state-focus {
 	border: 1px solid #999999;
-	background: #dadada /*url(images/ui-bg_glass_75_dadada_1x400.png)*/ 50% 50% repeat-x;
+	background: #dadada 50% 50% repeat-x;
 	font-weight: normal;
 	color: #212121;
 }
@@ -253,7 +253,7 @@
 .ui-widget-content .ui-state-active,
 .ui-widget-header .ui-state-active {
 	border: 1px solid #aaaaaa;
-	background: #ffffff /*url(images/ui-bg_glass_65_ffffff_1x400.png)*/ 50% 50% repeat-x;
+	background: #ffffff 50% 50% repeat-x;
 	font-weight: normal;
 	color: #212121;
 }
@@ -316,7 +316,6 @@
 	filter:Alpha(Opacity=35); /* For IE8 - See #6059 */
 }
 /*  jQuery UI Tooltip 1.10.1 */
-
 .ui-tooltip {
         padding: 8px;
         position: absolute;
@@ -326,19 +325,15 @@
 	border-radius: 8px;
 	background: #fff;
 }
-
 body .ui-tooltip {
         border-width: 1px;
 }
-
 .ui-tooltip, .arrow:after {
         border: 1px solid #272727;
 }
-
 .ui-tooltip {
         padding: 5px 10px;
 }
-
 .arrow {
         width: 70px;
         height: 16px;
@@ -349,16 +344,13 @@ body .ui-tooltip {
         bottom: -16px;
         z-index: 99999;
 }
-
 .arrow.top {
         top: -16px;
         bottom: auto;
 }
-
 .arrow.left {
         left: 20%;
 }
-
 .arrow:after {
         content: "";
         position: absolute;
@@ -373,12 +365,11 @@ body .ui-tooltip {
         -o-transform: rotate(45deg);
         tranform: rotate(45deg);
 }
-
 .arrow.top:after {
         bottom: -20px;
         top: auto;
 }
-
+/* media library actions and details */
 a.removeimage, a.restoreimage {
 	cursor: pointer;
 }
@@ -400,10 +391,7 @@ a.removeimage, a.restoreimage {
 .ewww-attachment-detail {
 	padding: 13px 0px 0px;
 }
-.ewww-toggle {
-	color: #0073aa;
-	cursor:pointer;
-}
+/* bulk and settings ui */
 h2.ewww-hndle {
 	font-size: 14px;
 	padding: 8px 12px;
@@ -445,15 +433,11 @@ ul.ewww-blocks {
 ul.ewww-blocks li:first-child {
 	border-left: 0;
 }
-.ewww-row::after {
-	clear: both;
-}
 .ewww-blocks li {
 	border-left: 1px solid #e2e2e2;
 	float: left;
 	margin: 0px;
 	padding: 0px;
-	box-sizing: border-box;
 }
 .ewww-blocks li .ewww-status-detail {
 	display: block;
@@ -469,9 +453,6 @@ ul.ewww-blocks li:first-child {
 	padding: 0;
 	width: 120px;
 	height: 120px;
-}
-.ewww-guage :first-child {
-/*	margin-bottom: 20px; */
 }
 .ewww-guage svg {
 	-webkit-transform: rotate(-90deg);

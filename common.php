@@ -23,11 +23,8 @@
 // TODO: on images without srscet, add 2x and 3x versions anyway.
 // TODO: match Adaptive Images functionality with ExactDN.
 // TODO: handle relative urls with ExactDN.
-// TODO: see if we can parse all use tags and use the bypass mechanism to avoid ExactDM + SVG issues.
+// TODO: see if we can parse all use tags and use the bypass mechanism to avoid ExactDN + SVG issues.
 // TODO: can some of the bulk "fallbacks" be implemented for async processing?
-// Do these for next release...
-// TODO: make sure the new plugin status CSS is cleaned up.
-// TODO: help links in recommendations seem to be having trouble.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -7018,7 +7015,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) > 20 ) {
 				$compress_score += 50;
 			} else {
-				// TODO: Make sure all the recommendations have a help icon or action link.
 				$compress_recommendations[] = esc_html__( 'Enable premium lossy compression for JPG.', 'ewww-image-optimizer' );
 			}
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) > 20 ) {
@@ -7076,7 +7072,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$status_notices .= '</p>';
 	} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		$status_notices          .= '<p><b>ExactDN:</b> ' . esc_html__( 'Inactive, enable to activate automatic resizing and more', 'ewww-image-optimizer' ) . '</p>';
-		$resize_recommendations[] = esc_html__( 'Enable ExactDN for automatic resizing.', 'ewww-image-optimizer' );
+		$resize_recommendations[] = esc_html__( 'Enable ExactDN for automatic resizing.', 'ewww-image-optimizer' ) . ewwwio_help_link( 'https://docs.ewww.io/article/44-introduction-to-exactdn', '59bc5ad6042863033a1ce370,59de6631042863379ddc953c,59c44349042863033a1d06d3,5ada43a12c7d3a0e93678b8c,5a3d278a2c7d3a1943677b52,5a9868eb04286374f7087795,59de68482c7d3a40f0ed6035,592dd69b2c7d3a074e8aed5b' );
 		delete_option( 'ewww_image_optimizer_exactdn_domain' );
 		delete_option( 'ewww_image_optimizer_exactdn_failures' );
 		delete_option( 'ewww_image_optimizer_exactdn_checkin' );
@@ -7098,13 +7094,13 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	) {
 		$resize_score += 30;
 	} else {
-		$resize_recommendations[] = esc_html__( 'Configure maximum image dimensions in Resize settings.', 'ewww-image-optimizer' );
+		$resize_recommendations[] = esc_html__( 'Configure maximum image dimensions in Resize settings.', 'ewww-image-optimizer' ) . ewwwio_help_link( 'https://docs.ewww.io/article/41-resize-settings', '59849911042863033a1ba5f9' );
 	}
 	$jpg_quality = apply_filters( 'jpeg_quality', 82, 'image_resize' );
 	if ( $jpg_quality < 90 && $jpg_quality > 50 ) {
 		$resize_score += 20;
 	} else {
-		$resize_recommendations[] = esc_html__( 'JPG quality level should be between 50 and 90 for optimal resizing.', 'ewww-image-optimizer' );
+		$resize_recommendations[] = esc_html__( 'JPG quality level should be between 50 and 90 for optimal resizing.', 'ewww-image-optimizer' ) . ewwwio_help_link( 'https://docs.ewww.io/article/11-advanced-configuration', '58542afac697912ffd6c18c0,58543c69c697912ffd6c19a7' );
 	}
 	$skip = ewww_image_optimizer_skip_tools();
 	if ( ! $skip['jpegtran'] && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
@@ -7266,10 +7262,12 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$status_notices .= '<span style="color: green; font-weight: bolder">' . esc_html__( 'Fully Enabled', 'ewww-image-optimizer' ) . '</span>';
 	}
 	$status_notices .= "</p>\n";
+	$status_notices .= "<p><a href='https://ewww.io/plans' target='_blank' class='button button-primary'>" . esc_html__( 'Premium Upgrades', 'ewww-image-optimizer' ) . "</a></p>\n";
+
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpegtran_copy' ) == true ) {
 		$compress_score += 5;
 	} else {
-		$compress_recommendations[] = esc_html__( 'Remove metadata from JPG images.', 'ewww-image-optimizer' );
+		$compress_recommendations[] = esc_html__( 'Remove metadata from JPG images.', 'ewww-image-optimizer' ) . ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' );
 	}
 
 	// Begin building of status inside section.
