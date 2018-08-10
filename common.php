@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '423.3376' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '423.3398' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -6938,6 +6938,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewwwio_debug_message( 'content_url: ' . content_url() );
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
 		ewww_image_optimizer_tool_init();
+		ewww_image_optimizer_notice_utils( 'quiet' );
 	}
 	$network_class = $network;
 	if ( empty( $network ) ) {
@@ -7048,7 +7049,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$status_notices .= '<p><b>ExactDN:</b> ';
 		global $exactdn;
 		if ( $exactdn->get_exactdn_domain() && $exactdn->verify_domain( $exactdn->get_exactdn_domain() ) ) {
-			$status_notices .= '<span style="color: green">' . esc_html__( 'Verified', 'ewww-image-optimizer' ) . ' </span>';
+			$status_notices .= '<span style="color: green; font-weight: bolder">' . esc_html__( 'Verified', 'ewww-image-optimizer' ) . ' </span>';
 			if ( defined( 'WP_ROCKET_VERSION' ) ) {
 				$status_notices .= '<br><i>' . esc_html__( 'If you use the File Optimization options within WP Rocket, you should also enter your ExactDN CNAME in the WP Rocket CDN settings (reserved for CSS and Javascript):', 'ewww-image-optimizer' ) . ' ' . $exactdn->get_exactdn_domain() . '</i>';
 			}
@@ -7062,12 +7063,12 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				$compress_recommendations[] = esc_html__( 'Enable premium lossy compression.', 'ewww-image-optimizer' ) . ewwwio_help_link( 'https://docs.ewww.io/article/47-getting-more-from-exactdn', '59de6631042863379ddc953c' );
 			}
 		} elseif ( $exactdn->get_exactdn_domain() && $exactdn->get_exactdn_option( 'verified' ) ) {
-			$status_notices .= '<span style="color: orange">' . esc_html__( 'Temporarily disabled.', 'ewww-image-optimizer' ) . ' </span>';
+			$status_notices .= '<span style="color: orange; font-weight: bolder">' . esc_html__( 'Temporarily disabled.', 'ewww-image-optimizer' ) . ' </span>';
 		} elseif ( $exactdn->get_exactdn_domain() && $exactdn->get_exactdn_option( 'suspended' ) ) {
-			$status_notices .= '<span style="color: orange">' . esc_html__( 'Active, not yet verified.', 'ewww-image-optimizer' ) . ' </span>';
+			$status_notices .= '<span style="color: orange; font-weight: bolder">' . esc_html__( 'Active, not yet verified.', 'ewww-image-optimizer' ) . ' </span>';
 		} else {
 			ewwwio_debug_message( 'could not verify: ' . $exactdn->get_exactdn_domain() );
-			$status_notices .= '<span style="color: red"><a href="https://ewww.io/manage-sites/" target="_blank">' . esc_html__( 'Not Verified', 'ewww-image-optimizer' ) . '</a></span>';
+			$status_notices .= '<span style="color: red; font-weight: bolder"><a href="https://ewww.io/manage-sites/" target="_blank">' . esc_html__( 'Not Verified', 'ewww-image-optimizer' ) . '</a></span>';
 		}
 		if ( function_exists( 'remove_query_strings_link' ) || function_exists( 'rmqrst_loader_src' ) || function_exists( 'qsr_remove_query_strings_1' ) ) {
 			$status_notices .= '<br><i>' . esc_html__( 'Plugins that remove query strings are unnecessary with ExactDN. You may remove them at your convenience.', 'ewww-image-optimizer' ) . '</i>' . ewwwio_help_link( 'https://docs.ewww.io/article/50-exactdn-and-query-strings', '5a3d278a2c7d3a1943677b52' );

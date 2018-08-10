@@ -485,44 +485,6 @@ function ewww_load_images(ewww_webp_supported) {
 			return ewww_img;
 		}
 		if (ewww_webp_supported) {
-                        //function ewww_ngg_plus_load_images(gallery_id) {
-                        //console.log('running ngg load images');
-                        if ( typeof galleries !== 'undefined' ) {
-                                //console.log('galleries defined, parsing gallery #' + gallery_id);
-                                $.each(galleries, function(galleryIndex, gallery) {
-                                        $.each(gallery.images_list, function(nggIndex, nggImage) {
-                                                if (typeof nggImage['image-webp'] !== typeof undefined) {
-                                                        galleries[galleryIndex].images_list[nggIndex]['image'] = nggImage['image-webp'];
-                                                        delete galleries[galleryIndex].images_list[nggIndex]['image-webp'];
-                                                }
-                                                if (typeof nggImage['thumb-webp'] !== typeof undefined) {
-                                                        galleries[galleryIndex].images_list[nggIndex]['thumb'] = nggImage['thumb-webp'];
-                                                        delete galleries[galleryIndex].images_list[nggIndex]['thumb-webp'];
-                                                }
-                                                if (typeof nggImage['full_image_webp'] !== typeof undefined) {
-                                                        galleries[galleryIndex].images_list[nggIndex]['full_image'] = nggImage['full_image_webp'];
-                                                        delete galleries[galleryIndex].images_list[nggIndex]['full_image_webp'];
-                                                }
-                                                if (typeof nggImage['srcsets'] !== typeof undefined) {
-                                                        $.each(nggImage['srcsets'], function(nggSrcsetIndex, nggSrcset) {
-                                                                if (typeof nggImage['srcsets'][nggSrcsetIndex + '-webp'] !== typeof undefined) {
-                                                                        galleries[galleryIndex].images_list[nggIndex]['srcsets'][nggSrcsetIndex] = nggImage['srcsets'][nggSrcsetIndex + '-webp'];
-                                                                        delete galleries[galleryIndex].images_list[nggIndex]['srcsets'][nggSrcsetIndex + '-webp'];
-                                                                }
-                                                        });
-                                                }
-                                                if (typeof nggImage['full_srcsets'] !== typeof undefined) {
-                                                        $.each(nggImage['full_srcsets'], function(nggFSrcsetIndex, nggFSrcset) {
-                                                                if (typeof nggImage['full_srcsets'][nggFSrcsetIndex + '-webp'] !== typeof undefined) {
-                                                                        galleries[galleryIndex].images_list[nggIndex]['full_srcsets'][nggFSrcsetIndex] = nggImage['full_srcsets'][nggFSrcsetIndex + '-webp'];
-                                                                        delete galleries[galleryIndex].images_list[nggIndex]['full_srcsets'][nggFSrcsetIndex + '-webp'];
-                                                                }
-                                                        });
-                                                }
-                                        });
-                                });
-                        }
-                        //}
 			$('.batch-image img, .image-wrapper a, .ngg-pro-masonry-item a, .ngg-galleria-offscreen-seo-wrapper a').each(function() {
 				var ewww_attr = $(this).attr('data-webp');
 				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
@@ -740,7 +702,7 @@ var ewww_ngg_galleries_timer = 0;
 var ewww_ngg_galleries = setInterval(function() {
         if ( typeof galleries !== 'undefined' ) {
                 if ( typeof jQuery !== 'undefined' ) {
-                        check_webp_feature('alpha', ewww_load_images);
+                        check_webp_feature('alpha', ewww_ngg_plus_parse_galleries);
                         clearInterval(ewww_ngg_galleries);
                 }
         }
@@ -749,3 +711,74 @@ var ewww_ngg_galleries = setInterval(function() {
                 clearInterval(ewww_ngg_galleries);
         }
 }, 25);
+function ewww_ngg_plus_parse_galleries(ewww_webp_supported) {
+        if (ewww_webp_supported) {
+                (function($) {
+                        $.each(galleries, function(galleryIndex, gallery) {
+                                galleries[galleryIndex].images_list = ewww_ngg_plus_parse_image_list(gallery.images_list);
+                        });
+                })(jQuery);
+        }
+}
+check_webp_feature('alpha', ewww_ngg_plus_load_galleries);
+function ewww_ngg_plus_load_galleries(ewww_webp_supported) {
+        if (ewww_webp_supported) {
+                (function($) {
+                        $(window).on('ngg.galleria.themeadded', function(event, themename) {
+                                console.log(themename);
+                                window.ngg_galleria._create_backup = window.ngg_galleria.create;
+                                window.ngg_galleria.create = function(gallery_parent, themename) {
+                                        var gallery_id = $(gallery_parent).data('id');
+                                        console.log(gallery_id);
+                                        galleries['gallery_' + gallery_id].images_list = ewww_ngg_plus_parse_image_list(galleries['gallery_' + gallery_id].images_list);
+                                        return window.ngg_galleria._create_backup(gallery_parent, themename);
+                                };
+                        });
+                        $(window).on('override_nplModal_methods', function(e, methods) {
+                                methods._set_events_backup = methods.set_events;
+                                methods.set_events = function() {
+                                        $('#npl_content').bind('npl_images_ready', function(event, gallery_id) {
+                                                var cache = methods.fetch_images.gallery_image_cache[gallery_id];
+                                                cache = ewww_ngg_plus_parse_image_list(cache);
+                                        });
+                                        return methods._set_events_backup();
+                                }
+                        });
+                })(jQuery);
+        }
+}
+function ewww_ngg_plus_parse_image_list(images_list) {
+        (function($) {
+                $.each(images_list, function(nggIndex, nggImage) {
+                        if (typeof nggImage['image-webp'] !== typeof undefined) {
+                                images_list[nggIndex]['image'] = nggImage['image-webp'];
+                                delete images_list[nggIndex]['image-webp'];
+                        }
+                        if (typeof nggImage['thumb-webp'] !== typeof undefined) {
+                                images_list[nggIndex]['thumb'] = nggImage['thumb-webp'];
+                                delete images_list[nggIndex]['thumb-webp'];
+                        }
+                        if (typeof nggImage['full_image_webp'] !== typeof undefined) {
+                                images_list[nggIndex]['full_image'] = nggImage['full_image_webp'];
+                                delete images_list[nggIndex]['full_image_webp'];
+                        }
+                        if (typeof nggImage['srcsets'] !== typeof undefined) {
+                                $.each(nggImage['srcsets'], function(nggSrcsetIndex, nggSrcset) {
+                                        if (typeof nggImage['srcsets'][nggSrcsetIndex + '-webp'] !== typeof undefined) {
+                                                images_list[nggIndex]['srcsets'][nggSrcsetIndex] = nggImage['srcsets'][nggSrcsetIndex + '-webp'];
+                                                delete images_list[nggIndex]['srcsets'][nggSrcsetIndex + '-webp'];
+                                        }
+                                });
+                        }
+                        if (typeof nggImage['full_srcsets'] !== typeof undefined) {
+                                $.each(nggImage['full_srcsets'], function(nggFSrcsetIndex, nggFSrcset) {
+                                        if (typeof nggImage['full_srcsets'][nggFSrcsetIndex + '-webp'] !== typeof undefined) {
+                                                images_list[nggIndex]['full_srcsets'][nggFSrcsetIndex] = nggImage['full_srcsets'][nggFSrcsetIndex + '-webp'];
+                                                delete images_list[nggIndex]['full_srcsets'][nggFSrcsetIndex + '-webp'];
+                                        }
+                                });
+                        }
+                });
+        })(jQuery);
+        return images_list;
+}
