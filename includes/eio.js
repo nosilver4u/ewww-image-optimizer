@@ -173,27 +173,6 @@ jQuery(document).ready(function($) {
 			}
 		}
 		HSregister();
-		var radius = 54;
-		var circumference = 2 * Math.PI * radius;
-
-		function progress() {
-			var value = $('#ewww-compress-guage').attr('data-score');
-			var progress = value / 100;
-			var dashoffset = circumference * (1 - progress);
-
-			console.log('progress:', value + '%', '|', 'offset:', dashoffset)
-
-			$('#ewww-compress-guage .ewww-active').css('stroke-dashoffset', dashoffset);
-			var value = $('#ewww-resize-guage').attr('data-score');
-			var progress = value / 100;
-			var dashoffset = circumference * (1 - progress);
-
-			console.log('progress:', value + '%', '|', 'offset:', dashoffset)
-
-			$('#ewww-resize-guage .ewww-active').css('stroke-dashoffset', dashoffset);
-		}
-		$('.ewww-active').css('stroke-dasharray', circumference );
-		progress();
 		$('.ewww-guage').tooltip({
 			items: '.ewww-guage',
 			content: function() {

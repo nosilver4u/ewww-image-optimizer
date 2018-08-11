@@ -94,10 +94,6 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 			}
 			$metadata = parent::multi_resize( $sizes );
 			ewwwio_debug_message( 'image editor (AGR gd) multi resize' );
-			if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
-				ewwwio_debug_message( print_r( $metadata, true ) );
-				ewwwio_debug_message( print_r( $this, true ) );
-			}
 			$info = pathinfo( $this->file );
 			$dir  = $info['dirname'];
 			if ( ewww_image_optimizer_iterable( $metadata ) ) {

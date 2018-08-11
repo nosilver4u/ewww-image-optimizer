@@ -473,6 +473,10 @@ ul.ewww-blocks li:first-child {
 	stroke: #1d3c71;
 	stroke-linecap: round;
 }
+#ewww-savings-guage .ewww-active {
+	stroke: #3eadc9;
+	stroke-linecap: round;
+}
 #ewww-compress-guage .ewww-score {
 	color: #3eadc9;
 }
@@ -489,6 +493,11 @@ ul.ewww-blocks li:first-child {
 	font-size: 1.3rem;
 	font-weight: bold;
 	line-height: 1.5;
+}
+#ewww-savings-guage .ewww-score {
+	font-size: 1rem;
+	color: #3eadc9;
+	white-space: nowrap;
 }
 .ewww-recommend {
 	display: none;
