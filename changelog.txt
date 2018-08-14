@@ -1,3 +1,6 @@
+= 4.3.1 =
+* fixed: fatal error on older WP versions due to missing privacy policy function
+
 = 4.3.0 =
 * added: Alt WebP enables instant conversion with ExactDN, no need for bulk optimize
 * added: links within settings and other notices for contextual help
