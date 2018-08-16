@@ -195,6 +195,10 @@ add_action( 'shutdown', 'ewww_image_optimizer_debug_log' );
 // If ExactDN is enabled.
 if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && empty( $_GET['exactdn_disable'] ) ) {
 	/**
+	 * Page Parsing class for working with HTML content.
+	 */
+	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-page-parser.php' );
+	/**
 	 * ExactDN class for parsing image urls and rewriting them.
 	 */
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-exactdn.php' );

@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Enables EWWW IO to filter the page content and replace image urls with ExactDN urls.
  */
-class ExactDN {
+class ExactDN extends EWWWIO_Page_Parser {
 
 	/**
 	 * Allowed image extensions.
@@ -21,7 +21,7 @@ class ExactDN {
 	 * @access private
 	 * @var array $extensions
 	 */
-	private $extensions = array(
+	protected $extensions = array(
 		'gif',
 		'jpg',
 		'jpeg',
@@ -147,11 +147,6 @@ class ExactDN {
 
 		// DNS prefetching.
 		add_action( 'wp_head', array( $this, 'dns_prefetch' ) );
-
-		// Helpers for manipulated images.
-		if ( defined( 'EXACTDN_RECALC' ) && EXACTDN_RECALC ) {
-			add_action( 'wp_enqueue_scripts', array( $this, 'action_wp_enqueue_scripts' ), 9 );
-		}
 
 		// Get all the script/css urls and rewrite them (if enabled).
 		if ( ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ) {
@@ -522,56 +517,6 @@ class ExactDN {
 	}
 
 	/**
-	 * Match all images and any relevant <a> tags in a block of HTML.
-	 *
-	 * @param string $content Some HTML.
-	 * @return array An array of $images matches, where $images[0] is
-	 *         an array of full matches, and the link_url, img_tag,
-	 *         and img_url keys are arrays of those matches.
-	 */
-	function parse_images_from_html( $content ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-		$images = array();
-
-		if ( preg_match_all( '#(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src=["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:\s*</a>)?#is', $content, $images ) ) {
-			foreach ( $images as $key => $unused ) {
-				// Simplify the output as much as possible, mostly for confirming test results.
-				if ( is_numeric( $key ) && $key > 0 ) {
-					unset( $images[ $key ] );
-				}
-			}
-			return $images;
-		}
-		return array();
-	}
-
-	/**
-	 * Try to determine height and width from strings WP appends to resized image filenames.
-	 *
-	 * @param string $src The image URL.
-	 * @return array An array consisting of width and height.
-	 */
-	function parse_dimensions_from_filename( $src ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-		$width_height_string = array();
-		ewwwio_debug_message( "looking for dimensions in $src" );
-		if ( preg_match( '#-(\d+)x(\d+)(@2x)?\.(?:' . implode( '|', $this->extensions ) . '){1}(?:\?.+)?$#i', $src, $width_height_string ) ) {
-			$width  = (int) $width_height_string[1];
-			$height = (int) $width_height_string[2];
-
-			if ( strpos( $src, '@2x' ) ) {
-				$width  = 2 * $width;
-				$height = 2 * $height;
-			}
-			if ( $width && $height ) {
-				ewwwio_debug_message( "found w$width h$height" );
-				return array( $width, $height );
-			}
-		}
-		return array( false, false );
-	}
-
-	/**
 	 * Get $content_width, with a filter.
 	 *
 	 * @return bool|string The content width, if set. Default false.
@@ -618,7 +563,7 @@ class ExactDN {
 	function filter_the_content( $content ) {
 		$started = microtime( true );
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-		$images = $this->parse_images_from_html( $content );
+		$images = $this->get_images_from_html( $content, true );
 
 		if ( ! empty( $images ) ) {
 			ewwwio_debug_message( 'we have images to parse' );
@@ -641,6 +586,9 @@ class ExactDN {
 
 				// Flag if we need to munge a fullsize URL.
 				$fullsize_url = false;
+
+				// To be stored and used for later srcset generation.
+				$original_width = 0;
 
 				// Identify image source.
 				$src      = $images['img_url'][ $index ];
@@ -681,22 +629,17 @@ class ExactDN {
 				// Check if image URL should be used with ExactDN.
 				if ( $this->validate_image_url( $src ) ) {
 					ewwwio_debug_message( 'url validated' );
-					// Find the width and height attributes.
-					$width  = false;
-					$height = false;
 
+					// Find the width and height attributes.
 					// First, check the image tag.
-					if ( preg_match( '#width=["|\']?([\d%]+)["|\']?#i', $images['img_tag'][ $index ], $width_string ) ) {
-						$width = $width_string[1];
-					}
+					$width = $this->get_attribute( $images['img_tag'][ $index ], 'width' );
+					// Then check for an inline max-width directive.
 					if ( preg_match( '#max-width:\s?(\d+)px#', $images['img_tag'][ $index ], $max_width_string ) ) {
 						if ( $max_width_string[1] && ( ! $width || $max_width_string[1] < $width ) ) {
 							$width = $max_width_string[1];
 						}
 					}
-					if ( preg_match( '#height=["|\']?([\d%]+)["|\']?#i', $images['img_tag'][ $index ], $height_string ) ) {
-						$height = $height_string[1];
-					}
+					$height = $this->get_attribute( $images['img_tag'][ $index ], 'height' );
 
 					// Can't pass both a relative width and height, so unset the dimensions in favor of not breaking the horizontal layout.
 					if ( false !== strpos( $width, '%' ) && false !== strpos( $height, '%' ) ) {
@@ -718,7 +661,7 @@ class ExactDN {
 						unset( $size );
 					}
 
-					list( $filename_width, $filename_height ) = $this->parse_dimensions_from_filename( $src );
+					list( $filename_width, $filename_height ) = $this->get_dimensions_from_filename( $src );
 					// WP Attachment ID, if uploaded to this site.
 					preg_match( '#class=["|\']?[^"\']*wp-image-([\d]+)[^"\']*["|\']?#i', $images['img_tag'][ $index ], $attachment_id );
 					if ( ! ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' ) && empty( $attachment_id ) ) {
@@ -755,6 +698,7 @@ class ExactDN {
 								}
 
 								if ( $src_per_wp && $this->validate_image_url( $src_per_wp[0] ) ) {
+									$original_width = $src_per_wp[1];
 									ewwwio_debug_message( "detected $width filenamew $filename_width" );
 									if ( $resize_existing || ( $width && $filename_width != $width ) ) {
 										ewwwio_debug_message( 'resizing existing or width does not match' );
@@ -896,23 +840,15 @@ class ExactDN {
 							unset( $placeholder_src );
 						}
 
-						// Enable image dimension recalculation via wp-config.php.
-						if ( defined( 'EXACTDN_RECALC' ) && EXACTDN_RECALC ) {
-							// Remove the width and height arguments from the tag to prevent distortion.
-							$new_tag = preg_replace( '#(?<=\s)(width|height)=["|\']?[\d%]+["|\']?\s?#i', '', $new_tag );
-
-							// Tag an image for dimension checking (via JS).
-							$new_tag = preg_replace( '#(\s?/)?>(\s*</a>)?$#i', ' data-recalc-dims="1"\1>\2', $new_tag );
-						}
 						// Replace original tag with modified version.
 						$content = str_replace( $tag, $new_tag, $content );
 					}
 				} elseif ( ! preg_match( '#data-lazy-(original|src)=#i', $images['img_tag'][ $index ] ) && $this->validate_image_url( $src, true ) ) {
 					ewwwio_debug_message( 'found a potential exactdn src url to insert into srcset' );
 					// Find the width attribute.
-					$width = false;
+					$width = $this->get_attribute( $tag, 'width' );
 					// First, check the image tag.
-					if ( preg_match( '#width=["|\']?([\d%]+)["|\']?#i', $tag, $width_string ) ) {
+					if ( $width ) {
 						$width = $width_string[1];
 						ewwwio_debug_message( 'found the width' );
 						// Insert new image src into the srcset as well, if we have a width.
@@ -943,6 +879,19 @@ class ExactDN {
 						}
 					}
 				} // End if().
+				if ( ! preg_match( '#data-lazy-(original|src)=#i', $images['img_tag'][ $index ] ) && $this->validate_image_url( $src, true ) ) {
+					if ( ! $this->get_attribute( $images['img_tag'][ $index ], 'srcset' ) && ! $this->get_attribute( $images['img_tag'][ $index ], 'sizes' ) ) {
+						list( $filename_width, $filename_height ) = $this->get_dimensions_from_filename( $src );
+						// Alright, we look for $filename_width or $original_width, otherwise try to grok the dimensions if it's a local image.
+						// Also need to somehow check to be sure we don't end up with anything larger than the width as configured above...
+						// --perhaps that can be accomplished just by ensuring all srcset images are smaller than $width.
+						// --probably only way that happens is if the $fullsize_url is used/found.
+						// Then add a srcset and sizes.
+						if ( $width ) { // We somehow have to get the actual width of the image, this is mandatory for srcset calculation.
+						} else {
+						}
+					}
+				}
 			} // End foreach().
 		} // End if();
 		if ( $this->filtering_the_page && ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ) {
@@ -1165,7 +1114,7 @@ class ExactDN {
 					$image_url_basename = wp_basename( $image_url );
 					$intermediate_url   = str_replace( $image_url_basename, $image_meta['sizes'][ $size ]['file'], $image_url );
 
-					list( $filename_width, $filename_height ) = $this->parse_dimensions_from_filename( $intermediate_url );
+					list( $filename_width, $filename_height ) = $this->get_dimensions_from_filename( $intermediate_url );
 					if ( $filename_width && $filename_height && $image_args['width'] === $filename_width && $image_args['height'] === $filename_height ) {
 						$image_url = $intermediate_url;
 					} else {
@@ -1331,7 +1280,7 @@ class ExactDN {
 
 			$url = $source['url'];
 
-			list( $width, $height ) = $this->parse_dimensions_from_filename( $url );
+			list( $width, $height ) = $this->get_dimensions_from_filename( $url );
 			if ( ! $resize_existing && 'w' === $source['descriptor'] && $source['value'] == $width ) {
 				ewwwio_debug_message( "preventing further processing for $url" );
 				$sources[ $i ]['url'] = $this->generate_url( $source['url'] );

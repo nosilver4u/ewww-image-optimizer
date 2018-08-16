@@ -681,9 +681,11 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	 * Enqueue script dependency for alt webp rewriting when running inline.
 	 */
 	function load_jquery() {
-		wp_enqueue_script( 'jquery' );
+		if ( ! wp_script_is( 'jquery', 'done' ) ) {
+			wp_enqueue_script( 'jquery' );
+		}
 		ewwwio_debug_message( 'loading webp script with wp_add_inline_script' );
-		wp_add_inline_script( 'jquery-migrate', $this->inline_script );
+		wp_add_inline_script( 'jquery-core', $this->inline_script );
 	}
 
 	/**
