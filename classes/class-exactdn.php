@@ -1824,6 +1824,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 				}
 			}
 		}
+		if ( false !== strpos( $url, 'wp-admin/admin-ajax.php' ) ) {
+			return $url;
+		}
 		// Unable to parse.
 		if ( ! $parsed_url || ! is_array( $parsed_url ) || empty( $parsed_url['host'] ) || empty( $parsed_url['path'] ) ) {
 			ewwwio_debug_message( 'src url no good' );

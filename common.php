@@ -4288,7 +4288,12 @@ function ewww_image_optimizer_autoconvert( $file ) {
 		return;
 	}
 	$orig_size = ewww_image_optimizer_filesize( $file );
-	if ( $orig_size < 350000 ) {
+	if ( $orig_size < 300000 ) {
+		ewwwio_debug_message( 'not a large PNG, skipping' );
+		return;
+	}
+	if ( ewww_image_optimizer_png_alpha( $file ) && ! ewww_image_optimizer_jpg_background() ) {
+		ewwwio_debug_message( 'alpha detected, skipping' );
 		return;
 	}
 	$ewww_image = new EWWW_Image( 0, '', $file );
