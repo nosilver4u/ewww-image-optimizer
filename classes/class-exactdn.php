@@ -1824,7 +1824,10 @@ class ExactDN extends EWWWIO_Page_Parser {
 				}
 			}
 		}
-		if ( false !== strpos( $url, 'wp-admin/admin-ajax.php' ) ) {
+		if ( false !== strpos( $url, 'wp-admin/' ) ) {
+			return $url;
+		}
+		if ( false !== strpos( $url, 'xmlrpc.php' ) ) {
 			return $url;
 		}
 		// Unable to parse.
