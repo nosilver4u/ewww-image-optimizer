@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: image, compress, resize, optimize, optimization, lossless, lossy, seo, webp, wp-cli, scale, tinypng, tinyjpg
 Requires at least: 4.6
 Tested up to: 4.9
-Requires PHP: 5.4
+Requires PHP: 5.5
 Stable tag: 4.3.2
 License: GPLv3
 
@@ -173,6 +173,13 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
+
+= 4.4.0 =
+* added: ExactDN will fill in srcset/sizes attributes for all images based on detected width for better mobile support
+* fixed: regression with ExactDN and max-width style attributes
+* fixed: WP esc_url mangles ExactDN urls
+* deprecated: PHP 5.5 support will be removed in the next major release (version 4.5)
+* removed: PHP 5.4 no longer supported
 
 = 4.3.2 =
 * changed: prevent dynamic JS/CSS urls within wp-admin/ from being rewritten by ExactDN

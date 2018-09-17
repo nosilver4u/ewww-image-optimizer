@@ -20,8 +20,6 @@
 // TODO: check this patch, to see if the use of 'full' causes any issues: https://core.trac.wordpress.org/ticket/37840 .
 // TODO: integrate AGR, since it's "abandoned", but possibly using gifsicle for better GIFs.
 // TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
-// TODO: on images without srscet, add 2x and 3x versions anyway.
-// TODO: match Adaptive Images functionality with ExactDN.
 // TODO: handle relative urls with ExactDN.
 // TODO: see if we can parse all use tags and use the bypass mechanism to avoid ExactDN + SVG issues.
 // TODO: can some of the bulk "fallbacks" be implemented for async processing?
@@ -744,10 +742,10 @@ function ewww_image_optimizer_admin_init() {
 	}
 	ewww_image_optimizer_privacy_policy_content();
 	ewww_image_optimizer_ajax_compat_check();
-	// Remove the false when the next bump is coming.
-	if ( defined( 'PHP_VERSION_ID' ) && PHP_VERSION_ID < 50500 ) {
-		add_action( 'network_admin_notices', 'ewww_image_optimizer_php54_warning' );
-		add_action( 'admin_notices', 'ewww_image_optimizer_php54_warning' );
+	// Increase the version when the next bump is coming.
+	if ( defined( 'PHP_VERSION_ID' ) && PHP_VERSION_ID < 50600 ) {
+		add_action( 'network_admin_notices', 'ewww_image_optimizer_php55_warning' );
+		add_action( 'admin_notices', 'ewww_image_optimizer_php55_warning' );
 	}
 	ewwwio_memory( __FUNCTION__ );
 }
@@ -847,7 +845,7 @@ function ewww_image_optimizer_privacy_policy_content() {
 	if ( ! defined( 'EWWW_IO_CLOUD_PLUGIN' ) || ! EWWW_IO_CLOUD_PLUGIN ) {
 		$content .= wp_kses_post( __( 'By default, the EWWW Image Optimizer does not store any personal data nor share it with anyone.', 'ewww-image-optimizer' ) ) . '</p><p>';
 	}
-	$content .= wp_kses_post( __( 'If you accept user-submitted images and use the API or ExactDN, those images may be transmitted to third-party servers in foregin countries. If Backup Originals is enabled, images are stored for 30 days. Otherwise, no images are stored on the API for longer than 30 minutes.', 'ewww-image-optimizer' ) ) . '</p>';
+	$content .= wp_kses_post( __( 'If you accept user-submitted images and use the API or ExactDN, those images may be transmitted to third-party servers in foreign countries. If Backup Originals is enabled, images are stored for 30 days. Otherwise, no images are stored on the API for longer than 30 minutes.', 'ewww-image-optimizer' ) ) . '</p>';
 	$content .= '<p><strong>' . wp_kses_post( __( 'Suggested API Text:' ) ) . '</strong> <i>' . wp_kses_post( __( 'User-submitted images may be transmitted to image compression servers in the United States and stored there for up to 30 days.' ) ) . '</i></p>';
 	$content .= '<p><strong>' . wp_kses_post( __( 'Suggested ExactDN Text:' ) ) . '</strong> <i>' . wp_kses_post( __( 'User-submitted images that are displayed on this site will be transmitted and stored on a global network of third-party servers (a CDN).' ) ) . '</i></p>';
 	wp_add_privacy_policy_content( 'EWWW Image Optimizer', $content );
@@ -1303,10 +1301,10 @@ function ewww_image_optimizer_pngout_installed() {
 	}
 }
 /**
- * Display a notice that PHP version 5.4 support is going away.
+ * Display a notice that PHP version 5.5 support is going away.
  */
-function ewww_image_optimizer_php54_warning() {
-	echo '<div id="ewww-image-optimizer-notice-php54" class="notice notice-info is-dismissible"><p><a href="https://docs.ewww.io/article/55-upgrading-php" target="_blank" data-beacon-article="5ab2baa6042863478ea7c2ae">' . esc_html__( 'The next major release of EWWW Image Optimizer will require PHP 5.5 or greater. Newer versions of PHP, like 5.6, 7.0 and 7.1, are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</a></p></div>';
+function ewww_image_optimizer_php55_warning() {
+	echo '<div id="ewww-image-optimizer-notice-php55" class="notice notice-info is-dismissible"><p><a href="https://docs.ewww.io/article/55-upgrading-php" target="_blank" data-beacon-article="5ab2baa6042863478ea7c2ae">' . esc_html__( 'The next major release of EWWW Image Optimizer will require PHP 5.6 or greater. Newer versions of PHP, like 5.6, 7.0 and 7.1, are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</a></p></div>';
 }
 
 /**
