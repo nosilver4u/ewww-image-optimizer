@@ -255,12 +255,15 @@ class ExactDN extends EWWWIO_Page_Parser {
 			$url = set_url_scheme( $url, 'https' );
 		}
 		add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
-		$result = wp_remote_post( $url, array(
-			'timeout' => 10,
-			'body'    => array(
-				'site_url' => $site_url,
-			),
-		) );
+		$result = wp_remote_post(
+			$url,
+			array(
+				'timeout' => 10,
+				'body'    => array(
+					'site_url' => $site_url,
+				),
+			)
+		);
 		if ( is_wp_error( $result ) ) {
 			$error_message = $result->get_error_message();
 			ewwwio_debug_message( "exactdn activation request failed: $error_message" );
@@ -337,12 +340,15 @@ class ExactDN extends EWWWIO_Page_Parser {
 			$url = set_url_scheme( $url, 'https' );
 		}
 		add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
-		$result = wp_remote_post( $url, array(
-			'timeout' => 10,
-			'body'    => array(
-				'alias' => $domain,
-			),
-		) );
+		$result = wp_remote_post(
+			$url,
+			array(
+				'timeout' => 10,
+				'body'    => array(
+					'alias' => $domain,
+				),
+			)
+		);
 		if ( is_wp_error( $result ) ) {
 			$error_message = $result->get_error_message();
 			ewwwio_debug_message( "exactdn verification request failed: $error_message" );
@@ -1668,12 +1674,15 @@ class ExactDN extends EWWWIO_Page_Parser {
 		}
 
 		// Parse URL and ensure needed keys exist, since the array returned by `parse_url` only includes the URL components it finds.
-		$url_info = wp_parse_args( $parsed_url, array(
-			'scheme' => null,
-			'host'   => null,
-			'port'   => null,
-			'path'   => null,
-		) );
+		$url_info = wp_parse_args(
+			$parsed_url,
+			array(
+				'scheme' => null,
+				'host'   => null,
+				'port'   => null,
+				'path'   => null,
+			)
+		);
 
 		// Bail if scheme isn't http or port is set that isn't port 80.
 		if (
