@@ -214,10 +214,12 @@ class EWWW_Image {
 			$mime = 'image/gif';
 		}
 		// Update the attachment post with the new mimetype and id.
-		wp_update_post( array(
-			'ID'             => $this->attachment_id,
-			'post_mime_type' => $mime,
-		) );
+		wp_update_post(
+			array(
+				'ID'             => $this->attachment_id,
+				'post_mime_type' => $mime,
+			)
+		);
 	}
 
 	/**
@@ -834,19 +836,23 @@ class EWWW_Image {
 			if ( ! empty( $image_record ) && is_array( $image_record ) && ! empty( $image_record['id'] ) ) {
 				$id = $image_record['id'];
 			} else { // Insert a new record.
-				$ewwwdb->insert( $ewwwdb->ewwwio_images, array(
-					'path'          => ewww_image_optimizer_relative_path_remove( $new_path ),
-					'converted'     => ewww_image_optimizer_relative_path_remove( $path ),
-					'orig_size'     => filesize( $new_path ),
-					'attachment_id' => $this->attachment_id,
-					'results'       => __( 'No savings', 'ewww-image-optimizer' ),
-					'updated'       => date( 'Y-m-d H:i:s' ),
-					'updates'       => 0,
-				) );
+				$ewwwdb->insert(
+					$ewwwdb->ewwwio_images,
+					array(
+						'path'          => ewww_image_optimizer_relative_path_remove( $new_path ),
+						'converted'     => ewww_image_optimizer_relative_path_remove( $path ),
+						'orig_size'     => filesize( $new_path ),
+						'attachment_id' => $this->attachment_id,
+						'results'       => __( 'No savings', 'ewww-image-optimizer' ),
+						'updated'       => date( 'Y-m-d H:i:s' ),
+						'updates'       => 0,
+					)
+				);
 				return;
 			}
 		}
-		$ewwwdb->update( $ewwwdb->ewwwio_images,
+		$ewwwdb->update(
+			$ewwwdb->ewwwio_images,
 			array(
 				'path'      => ewww_image_optimizer_relative_path_remove( $new_path ),
 				'converted' => ewww_image_optimizer_relative_path_remove( $path ),
@@ -889,7 +895,8 @@ class EWWW_Image {
 				return false;
 			}
 		}
-		$ewwwdb->update( $ewwwdb->ewwwio_images,
+		$ewwwdb->update(
+			$ewwwdb->ewwwio_images,
 			array(
 				'path'       => ewww_image_optimizer_relative_path_remove( $new_path ),
 				'converted'  => '',

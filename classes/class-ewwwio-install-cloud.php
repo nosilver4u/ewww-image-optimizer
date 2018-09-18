@@ -139,20 +139,23 @@ class EWWWIO_Install_Cloud {
 		if ( ! function_exists( 'plugins_api' ) ) {
 			require_once( ABSPATH . 'wp-admin/includes/plugin-install.php' );
 		}
-		$response = plugins_api( 'plugin_information', array(
-			'slug'   => $this->plugin_slug,
-			'fields' => array(
-				'sections'          => false,
-				'short_description' => false,
-				'downloaded'        => false,
-				'rating'            => false,
-				'ratings'           => false,
-				'tags'              => false,
-				'homepage'          => false,
-				'donate_link'       => false,
-				'added'             => false,
-			),
-		) );
+		$response = plugins_api(
+			'plugin_information',
+			array(
+				'slug'   => $this->plugin_slug,
+				'fields' => array(
+					'sections'          => false,
+					'short_description' => false,
+					'downloaded'        => false,
+					'rating'            => false,
+					'ratings'           => false,
+					'tags'              => false,
+					'homepage'          => false,
+					'donate_link'       => false,
+					'added'             => false,
+				),
+			)
+		);
 		if ( is_wp_error( $response ) ) {
 			wp_die( esc_html( $response->get_error_message() ) );
 		} else {

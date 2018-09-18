@@ -457,9 +457,7 @@ function ewww_image_optimizer_bulk_next( $delay, $attachments ) {
 		// Run the optimizer on the current image.
 		$fres = ewww_image_optimizer( $file_path, 2, false, false, true );
 		// Update the metadata of the optimized image.
-		nggdb::update_image_meta( $id, array(
-			'ewww_image_optimizer' => $fres[1],
-		) );
+		nggdb::update_image_meta( $id, array( 'ewww_image_optimizer' => $fres[1] ) );
 		// Output the results of the optimization.
 		WP_CLI::line( __( 'Optimized image:', 'ewww-image-optimizer' ) . $meta->image->filename );
 		/* translators: %s: compression results */
