@@ -351,7 +351,9 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		 * Remove the image editor filter during upload, and add a new filter that will restore it later.
 		 */
 		function ewww_remove_image_editor() {
-			remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
+			global $ewww_preempt_editor;
+			$ewww_preempt_editor = true;
+			/* remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 ); */
 			add_action( 'flag_image_optimized', 'ewww_image_optimizer_restore_editor_hooks' );
 		}
 

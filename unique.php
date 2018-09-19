@@ -1474,6 +1474,87 @@ function ewww_image_optimizer_find_nix_binary( $binary, $switch ) {
 }
 
 /**
+ * Resizes an image with gifsicle to preserve animations.
+ *
+ * @param string   $file The file to resize.
+ * @param int|null $max_w Desired image width.
+ * @param int|null $max_h Desired image height.
+ * @param bool     $crop Optional. Scale by default, crop if true.
+ * @return string|WP_Error The image contents or the error message.
+ */
+function ewww_image_optimizer_gifsicle_resize( $file, $max_w, $max_h, $crop = false ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$tools = ewww_image_optimizer_path_check(
+		false,
+		false,
+		true,
+		false,
+		false,
+		false
+	);
+	if ( empty( $tools['GIFSICLE'] ) ) {
+		return new WP_Error(
+			'image_resize_error',
+			/* translators: %s: name of a tool like jpegtran */
+			sprintf( __( '%s is missing', 'ewww-image-optimizer' ), '<em>gifsicle</em>' )
+		);
+	}
+	ewwwio_debug_message( "file: $file " );
+	ewwwio_debug_message( "width: $max_w" );
+	ewwwio_debug_message( "height: $max_h" );
+	$orig_dimensions = getimagesize( $file );
+	if ( empty( $orig_dimensions ) ) {
+		return new WP_Error( 'image_resize_error', __( 'Invalid image dimensions.', 'ewww-image-optimizer' ) );
+	}
+	$orig_w = $orig_dimensions[0];
+	$orig_h = $orig_dimensions[1];
+
+	$outfile = "$file.tmp";
+	// Run gifsicle.
+	if ( $crop ) {
+		$dims = ewwwio_crop_dimensions( $orig_w, $orig_h, $max_w, $max_h );
+		if ( ! $dims ) {
+			return new WP_Error( 'error_getting_dimensions', __( 'Could not calculate resized image dimensions' ), $file );
+		}
+		ewwwio_debug_message( implode( ',', $dims ) );
+		list( $src_x, $src_y, $dst_w, $dst_h ) = $dims;
+
+		list( $new_w, $new_h ) = wp_constrain_dimensions( $dst_w, $dst_h, $max_w, $max_h );
+
+		$dim_string  = $new_w . 'x' . $new_h;
+		$crop_string = $src_x . ',' . $src_y . '+' . $dst_w . 'x' . $dst_h;
+		ewwwio_debug_message( "resize to $dim_string" );
+		ewwwio_debug_message( "crop to $crop_string" );
+		exec( "{$tools['GIFSICLE']} --crop $crop_string  -o " . ewww_image_optimizer_escapeshellarg( $outfile ) . ' ' . ewww_image_optimizer_escapeshellarg( $file ) );
+		exec( "{$tools['GIFSICLE']} --resize-fit $dim_string  -b " . ewww_image_optimizer_escapeshellarg( $outfile ) );
+	} else {
+		list( $new_w, $new_h ) = wp_constrain_dimensions( $orig_w, $orig_h, $max_w, $max_h );
+
+		$dim_string = $new_w . 'x' . $new_h;
+		exec( "{$tools['GIFSICLE']} --resize-fit $dim_string  -o " . ewww_image_optimizer_escapeshellarg( $outfile ) . ' ' . ewww_image_optimizer_escapeshellarg( $file ) );
+	}
+	ewwwio_debug_message( "$file resized to $outfile" );
+
+	if ( file_exists( $outfile ) ) {
+		$new_type = ewww_image_optimizer_mimetype( $outfile, 'i' );
+		// Check the filesize of the new JPG.
+		$new_size = filesize( $outfile );
+		ewwwio_debug_message( "$outfile exists, testing type and size" );
+	} else {
+		return new WP_Error( 'image_resize_error', 'file does not exist' );
+	}
+
+	if ( 0 == $new_size || 'image/gif' != $new_type ) {
+		unlink( $outfile );
+		return new WP_Error( 'image_resize_error', 'wrong type or zero bytes' );
+	}
+	ewwwio_debug_message( 'resize success' );
+	$image = file_get_contents( $outfile );
+	unlink( $outfile );
+	return $image;
+}
+
+/**
  * Automatically corrects JPG rotation using local jpegtran tool.
  *
  * @param string $file Name of the file to fix.

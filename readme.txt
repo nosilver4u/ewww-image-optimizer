@@ -175,6 +175,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.4.0 =
+* added: preserve animations in GIF images during resize operations
 * added: ExactDN will fill in srcset/sizes attributes for all images based on detected width for better mobile support
 * fixed: regression with ExactDN and max-width style attributes
 * fixed: WP esc_url mangles ExactDN urls

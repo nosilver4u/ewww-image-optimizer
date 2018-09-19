@@ -26,6 +26,10 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 		 */
 		protected function _save( $image, $filename = null, $mime_type = null ) {
 			global $ewww_defer;
+			global $ewww_preempt_editor;
+			if ( ! empty( $ewww_preempt_editor ) ) {
+				return parent::_save( $image, $filename, $mime_type );
+			}
 			list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
 			if ( ! $filename ) {
 				$filename = $this->generate_filename( null, null, $extension );
@@ -98,6 +102,10 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 		 */
 		protected function _save( $image, $filename = null, $mime_type = null ) {
 			global $ewww_defer;
+			global $ewww_preempt_editor;
+			if ( ! empty( $ewww_preempt_editor ) ) {
+				return parent::_save( $image, $filename, $mime_type );
+			}
 			list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
 			if ( ! $filename ) {
 				$filename = $this->generate_filename( null, null, $extension );
@@ -170,6 +178,10 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 		 */
 		protected function _save( $image, $filename = null, $mime_type = null ) {
 			global $ewww_defer;
+			global $ewww_preempt_editor;
+			if ( ! empty( $ewww_preempt_editor ) ) {
+				return parent::_save( $image, $filename, $mime_type );
+			}
 			list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
 			if ( ! $filename ) {
 				$filename = $this->generate_filename( null, null, $extension );
@@ -224,6 +236,10 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 		 * @return WP_Error| array The full path, base filename, width, height, and mimetype.
 		 */
 		protected function _save( $image, $filename = null, $mime_type = null ) {
+			global $ewww_preempt_editor;
+			if ( ! empty( $ewww_preempt_editor ) ) {
+				return parent::_save( $image, $filename, $mime_type );
+			}
 			list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
 			if ( ! $filename ) {
 				$filename = $this->generate_filename( null, null, $extension );
