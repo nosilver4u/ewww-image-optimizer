@@ -121,6 +121,10 @@ add_filter( 'load_image_to_edit_path', 'ewww_image_optimizer_editor_save_pre' );
 add_filter( 'jpeg_quality', 'ewww_image_optimizer_set_jpg_quality' );
 // Makes sure the plugin bypasses any files affected by the Folders to Ignore setting.
 add_filter( 'ewww_image_optimizer_bypass', 'ewww_image_optimizer_ignore_file', 10, 2 );
+// Ensure we populate the queue with webp images for WP Offload S3.
+add_filter( 'as3cf_attachment_file_paths', 'ewww_image_optimizer_as3cf_attachment_file_paths', 10, 2 );
+// Fix the ContentType for WP Offload S3 on WebP images.
+add_filter( 'as3cf_object_meta', 'ewww_image_optimizer_as3cf_object_meta' );
 // Loads the plugin translations.
 add_action( 'plugins_loaded', 'ewww_image_optimizer_preinit' );
 // Checks for nextgen/nextcellent/flagallery existence, and loads the appropriate classes.
@@ -2546,7 +2550,7 @@ function ewww_image_optimizer_manual() {
 	// Update the attachment metadata in the database.
 	$meta_saved = wp_update_attachment_metadata( $attachment_id, $new_meta );
 	if ( ! $meta_saved ) {
-		ewwwio_debug_message( 'failed to save meta' );
+		ewwwio_debug_message( 'failed to save meta, or no changes' );
 	}
 	if ( get_transient( 'ewww_image_optimizer_cloud_status' ) == 'exceeded' || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
 		if ( ! wp_doing_ajax() ) {
@@ -5603,6 +5607,38 @@ function ewww_image_optimizer_detect_wpsf_location_lock() {
 	return false;
 }
 
+/**
+ * Parse image paths for WP Offload S3.
+ *
+ * Adds WebP derivatives so that they can be uploaded.
+ *
+ * @param array $paths The image paths currently queued for upload.
+ * @param int   $id The ID number of the image in the database.
+ * @return array Attachment meta field.
+ */
+function ewww_image_optimizer_as3cf_attachment_file_paths( $paths, $id ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	foreach ( $paths as $size => $path ) {
+		if ( is_string( $path ) ) {
+			$paths[ $size . '-webp' ] = $path . '.webp';
+			ewwwio_debug_message( "added $path.webp to as3cf queue" );
+		}
+	}
+	return $paths;
+}
+/**
+ * Fixes the ContentType for WebP images because WP mimetype detection stinks.
+ *
+ * @param array $args The parameters to be used for the S3 upload.
+ * @return array The same parameters with ContentType corrected.
+ */
+function ewww_image_optimizer_as3cf_object_meta( $args ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( ! empty( $args['SourceFile'] ) && is_file( $args['SourceFile'] ) && empty( $args['ContentType'] ) && false !== strpos( $args['SourceFile'], '.webp' ) ) {
+		$args['ContentType'] = ewww_image_optimizer_quick_mimetype( $args['SourceFile'] );
+	}
+	return $args;
+}
 /**
  * Update the attachment's meta data after being converted.
  *

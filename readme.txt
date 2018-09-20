@@ -179,6 +179,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: ExactDN will fill in srcset/sizes attributes for all images based on detected width for better mobile support
 * fixed: regression with ExactDN and max-width style attributes
 * fixed: WP esc_url mangles ExactDN urls
+* fixed: WebP images missing from S3 when using WP Offload S3
 * deprecated: PHP 5.5 support will be removed in the next major release (version 4.5)
 * removed: PHP 5.4 no longer supported
 

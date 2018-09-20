@@ -326,7 +326,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				ewww_image_optimizer_cloud_init();
 			}
 			$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
-			if ( 'image/gif' === $this->mime_type ) {
+			if ( 'image/gif' === $this->mime_type && function_exists( 'ewww_image_optimizer_path_check' ) ) {
 				ewww_image_optimizer_path_check( false, false, true, false, false, false );
 			}
 			if ( 'image/gif' === $this->mime_type && ( ! defined( 'EWWW_IMAGE_OPTIMIZER_GIFSICLE' ) || ! EWWW_IMAGE_OPTIMIZER_GIFSICLE ) ) {
