@@ -222,11 +222,24 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 	}
 } elseif ( class_exists( 'S3_Uploads_Image_Editor_Imagick' ) ) {
 	/**
-	 * Extension of the WP_Image_Editor_Imagick class to auto-compress edited images.
+	 * Extension of the WP_Image_Editor_Imagick class to auto-compress edited S3 images.
+	 *
+	 * We extend the WP class directly, because extending the S3 class would be too late to work.
+	 * So we pretty much have to duplicate the S3 Uploads class with the IO function thrown in
+	 * the middle: https://github.com/humanmade/S3-Uploads/blob/master/inc/class-s3-uploads-image-editor-imagick.php
 	 *
 	 * @see WP_Image_Editor_Imagick
 	 */
 	class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
+
+		/**
+		 * A temp file created during pdf_setup().
+		 *
+		 * @since 4.4.0
+		 * @var string $temp_file_to_cleanup
+		 */
+		protected $temp_file_to_cleanup = null;
+
 		/**
 		 * Saves a file from the image editor and sends it to S3 after optimization.
 		 *
@@ -238,7 +251,7 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 		protected function _save( $image, $filename = null, $mime_type = null ) {
 			global $ewww_preempt_editor;
 			if ( ! empty( $ewww_preempt_editor ) ) {
-				return parent::_save( $image, $filename, $mime_type );
+				/* return parent::_save( $image, $filename, $mime_type ); */
 			}
 			list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
 			if ( ! $filename ) {
@@ -262,18 +275,18 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 				unset( $s3_uploads_image );
 				return $saved;
 			}
-			if ( file_exists( $saved['path'] ) ) {
+			if ( is_file( $saved['path'] ) ) {
 				$temp_filename = $saved['path'];
 				ewww_image_optimizer( $temp_filename );
 				ewwwio_debug_message( "image editor (s3 uploads) saved: $temp_filename" );
 				$image_size = ewww_image_optimizer_filesize( $temp_filename );
 				ewwwio_debug_message( "image editor size: $image_size" );
 			}
-			$copy_result = copy( $temp_filename, $filename );
-			if ( file_exists( $saved['path'] ) ) {
+			$copy_result = copy( $saved['path'], $filename );
+			if ( is_file( $saved['path'] ) ) {
 				unlink( $saved['path'] );
 			}
-			if ( file_exists( $temp_filename ) ) {
+			if ( is_file( $temp_filename ) ) {
 				unlink( $temp_filename );
 			}
 			if ( ! $copy_result ) {
@@ -285,6 +298,50 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 			unset( $s3_uploads_image );
 			ewwwio_memory( __FUNCTION__ );
 			return $saved;
+		}
+
+		/**
+		 * Custom loader for S3 Uploads.
+		 *
+		 * @since 4.4.0
+		 *
+		 * @return bool|WP_Error True on success, WP_Error on failure.
+		 */
+		public function load() {
+			$result = parent::load();
+
+			// `load` can call pdf_setup() which has to copy the file to a temp local copy.
+			// In this event we want to clean it up once `load` has been completed.
+			if ( $this->temp_file_to_cleanup ) {
+				unlink( $this->temp_file_to_cleanup );
+				$this->temp_file_to_cleanup = null;
+			}
+			return $result;
+		}
+
+		/**
+		 * Sets up Imagick for PDF processing.
+		 * Increases rendering DPI and only loads first page.
+		 *
+		 * @since 4.4.0
+		 *
+		 * @return string|WP_Error File to load or WP_Error on failure.
+		 */
+		protected function pdf_setup() {
+			$temp_filename              = tempnam( get_temp_dir(), 's3-uploads' );
+			$this->temp_file_to_cleanup = $temp_filename;
+			copy( $this->file, $temp_filename );
+
+			try {
+				// By default, PDFs are rendered in a very low resolution.
+				// We want the thumbnail to be readable, so increase the rendering DPI.
+				$this->image->setResolution( 128, 128 );
+
+				// Only load the first page.
+				return $temp_filename . '[0]';
+			} catch ( Exception $e ) {
+				return new WP_Error( 'pdf_setup_failed', $e->getMessage(), $this->file );
+			}
 		}
 	}
 } else {

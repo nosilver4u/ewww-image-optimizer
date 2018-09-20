@@ -1751,9 +1751,7 @@ function ewww_image_optimizer_upload_info() {
 	$upload_info = wp_upload_dir( null, false );
 
 	if ( empty( $upload_info['error'] ) ) {
-		// Errors silenced because of PHP < 5.3.3, yuck.
 		$parse_url = parse_url( $upload_info['baseurl'] );
-
 		if ( $parse_url ) {
 			$baseurlpath = ( ! empty( $parse_url['path'] ) ? trim( $parse_url['path'], '/' ) : '' );
 		} else {

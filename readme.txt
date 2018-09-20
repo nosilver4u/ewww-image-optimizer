@@ -180,6 +180,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: regression with ExactDN and max-width style attributes
 * fixed: WP esc_url mangles ExactDN urls
 * fixed: WebP images missing from S3 when using WP Offload S3
+* fixed: PDF uploads with S3 Uploads plugin
 * deprecated: PHP 5.5 support will be removed in the next major release (version 4.5)
 * removed: PHP 5.4 no longer supported
 
