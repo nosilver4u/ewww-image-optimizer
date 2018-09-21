@@ -177,6 +177,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 = 4.4.0 =
 * added: preserve animations in GIF images during resize operations
 * added: ExactDN will fill in srcset/sizes attributes for all images based on detected width for better mobile support
+* changed: Alt WebP still depends on jQuery, but jQuery can be loaded in async or defer mode
 * fixed: regression with ExactDN and max-width style attributes
 * fixed: WP esc_url mangles ExactDN urls
 * fixed: WebP images missing from S3 when using WP Offload S3
@@ -289,6 +290,28 @@ Please refer to the separate changelog.txt file.
 == Contact and Credits ==
 
 Written by [Shane Bishop](https://ewww.io). Based upon CW Image Optimizer, which was written by [Jacob Allred](http://www.jacoballred.com/) at [Corban Works, LLC](http://www.corbanworks.com/). CW Image Optimizer was based on WP Smush.it. Jpegtran is the work of the Independent JPEG Group. PEL is the work of Martin Geisler, Lars Olesen, and Erik Oskam. ExactDN class based upon the Photon module from Jetpack.
+
+= arrive.js
+
+Copyright (c) 2014-2017 Uzair Farooq
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 
 = optipng =
 

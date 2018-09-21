@@ -11,14 +11,12 @@
  */
 
 // TODO: attempt lazy load support with a3 plugin and one from automattic for alt webp. or are we back here: https://developers.google.com/web/fundamentals/performance/lazy-loading-guidance/images-and-video/
-// TODO: implement a way to (re)compress at a specific compression level.
 // TODO: might be able to use the Custom Bulk Actions in 4.7 to support the bulk optimize drop-down menu.
 // TODO: need to make the scheduler so it can resume without having to re-run the queue population, and then we can probably also flush the queue when scheduled opt starts, but later it would be nice to implement the bulk_loop as the aux_loop so that it could handle media properly.
 // TODO: Add a custom async function for parallel mode to store image as pending and use the row ID instead of relative path.
 // TODO: write some tests for update_table and check_table, find_already_opt, and remove_dups.
 // TODO: write some conversion tests.
 // TODO: check this patch, to see if the use of 'full' causes any issues: https://core.trac.wordpress.org/ticket/37840 .
-// TODO: integrate AGR, since it's "abandoned", but possibly using gifsicle for better GIFs.
 // TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
 // TODO: handle relative urls with ExactDN.
 // TODO: see if we can parse all use tags and use the bypass mechanism to avoid ExactDN + SVG issues.
@@ -27,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '433.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '433.1' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -7968,6 +7966,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			'</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/16-ewww-io-and-webp-images', '5854745ac697912ffd6c1c89,59443d162c7d3a0747cdf9f0' ) . "</th><td><span><input type='checkbox' id='ewww_image_optimizer_webp_for_cdn' name='ewww_image_optimizer_webp_for_cdn' value='true' " .
 			( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) == true ? "checked='true'" : '' ) . ' /> ' .
 			esc_html__( 'Use this if the Apache rewrite rules do not work, or if your images are served from a CDN.', 'ewww-image-optimizer' ) . ' ' .
+			esc_html__( 'Requires jQuery, but may be loaded using async/defer methods or even combined with other scripts.', 'ewww-image-optimizer' ) . ' ' .
 			/* translators: %s: Cache Enabler (link) */
 			( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ? sprintf( esc_html__( 'Sites using a CDN may also use the WebP option in the %s plugin.', 'ewww-image-optimizer' ), '<a href="https://wordpress.org/plugins/cache-enabler/">Cache Enabler</a>' ) : '' ) . '</span></td></tr>';
 	}

@@ -251,7 +251,7 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 		protected function _save( $image, $filename = null, $mime_type = null ) {
 			global $ewww_preempt_editor;
 			if ( ! empty( $ewww_preempt_editor ) ) {
-				/* return parent::_save( $image, $filename, $mime_type ); */
+				return parent::_save( $image, $filename, $mime_type );
 			}
 			list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
 			if ( ! $filename ) {
