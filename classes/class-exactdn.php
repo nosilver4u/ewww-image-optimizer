@@ -2039,7 +2039,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 		$webp_quality = apply_filters( 'jpeg_quality', $jpg_quality, 'image/webp' );
 
 		$more_args = array();
-		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpegtran_copy' ) ) {
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
 			$more_args['strip'] = 'all';
 		}
 		if ( ewww_image_optimizer_get_option( 'exactdn_lossy' ) ) {

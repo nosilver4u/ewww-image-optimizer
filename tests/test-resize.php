@@ -58,9 +58,9 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 	 * Creates a JPG attachment while resizing is enabled (no cropping) using jpegtran.
 	 */
 	function test_scale_jpg_local() {
-		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_jpg_level', 10 );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 10 );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherwidth', 1024 );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherheight', 1024 );
@@ -76,9 +76,9 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 	 * Creates a JPG attachment while resizing is enabled (crop-mode) using jpegtran.
 	 */
 	function test_crop_jpg_local() {
-		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_jpg_level', 10 );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 10 );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherwidth', 1024 );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherheight', 1024 );
@@ -96,9 +96,9 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 	 * Creates a JPG attachment while resizing is enabled (no cropping) using API.
 	 */
 	function test_scale_jpg_cloud() {
-		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_jpg_level', 20 );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 20 );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherwidth', 1024 );
@@ -115,9 +115,9 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 	 * Creates a JPG attachment while resizing is enabled (crop-mode) using API.
 	 */
 	function test_crop_jpg_cloud() {
-		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_jpg_level', 20 );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 20 );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherwidth', 1024 );

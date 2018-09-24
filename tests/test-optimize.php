@@ -128,10 +128,10 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test default JPG optimization with WebP.
 	 */
 	function test_optimize_jpg_10() {
-		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_jpg_level', 10 );
 		update_option( 'ewww_image_optimizer_webp', true );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 10 );
 		update_site_option( 'ewww_image_optimizer_webp', true );
 		$results = $this->optimize_jpg();
@@ -149,10 +149,10 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test lossless JPG and keeps meta with WebP and autorotation tests.
 	 */
 	function test_optimize_jpg_10_keep_meta() {
-		update_option( 'ewww_image_optimizer_jpegtran_copy', '' );
+		update_option( 'ewww_image_optimizer_metadata_remove', '' );
 		update_option( 'ewww_image_optimizer_jpg_level', 10 );
 		update_option( 'ewww_image_optimizer_webp', true );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', '' );
+		update_site_option( 'ewww_image_optimizer_metadata_remove', '' );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 10 );
 		update_site_option( 'ewww_image_optimizer_webp', true );
 		$results = $this->optimize_jpg();
@@ -176,11 +176,11 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test Max Lossless JPG optimization with WebP (API level 20).
 	 */
 	function test_optimize_jpg_20() {
-		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_jpg_level', 20 );
 		update_option( 'ewww_image_optimizer_webp', true );
 		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 20 );
 		update_site_option( 'ewww_image_optimizer_webp', true );
 		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
@@ -201,11 +201,11 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test lossless JPG via API and keeps meta with WebP and autorotation check.
 	 */
 	function test_optimize_jpg_20_keep_meta() {
-		update_option( 'ewww_image_optimizer_jpegtran_copy', '' );
+		update_option( 'ewww_image_optimizer_metadata_remove', '' );
 		update_option( 'ewww_image_optimizer_jpg_level', 20 );
 		update_option( 'ewww_image_optimizer_webp', true );
 		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', '' );
+		update_site_option( 'ewww_image_optimizer_metadata_remove', '' );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 20 );
 		update_site_option( 'ewww_image_optimizer_webp', true );
 		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
@@ -230,10 +230,10 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test Regular Lossy JPG optimization (API level 30).
 	 */
 	function test_optimize_jpg_30() {
-		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_jpg_level', 30 );
 		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 30 );
 		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
 		$results = $this->optimize_jpg();
@@ -247,10 +247,10 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test Max Lossy JPG optimization (API level 40).
 	 */
 	function test_optimize_jpg_40() {
-		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_jpg_level', 40 );
 		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 40 );
 		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
 		$results = $this->optimize_jpg();
@@ -267,12 +267,12 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_png_level', 10 );
 		update_option( 'ewww_image_optimizer_disable_pngout', true );
 		update_option( 'ewww_image_optimizer_optipng_level', 2 );
-		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_webp', true );
 		update_site_option( 'ewww_image_optimizer_png_level', 10 );
 		update_site_option( 'ewww_image_optimizer_disable_pngout', true );
 		update_site_option( 'ewww_image_optimizer_optipng_level', 2 );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_webp', true );
 		$results = $this->optimize_png();
 		update_option( 'ewww_image_optimizer_webp', '' );
@@ -292,11 +292,11 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_png_level', 10 );
 		update_option( 'ewww_image_optimizer_disable_pngout', true );
 		update_option( 'ewww_image_optimizer_optipng_level', 2 );
-		update_option( 'ewww_image_optimizer_jpegtran_copy', '' );
+		update_option( 'ewww_image_optimizer_metadata_remove', '' );
 		update_site_option( 'ewww_image_optimizer_png_level', 10 );
 		update_site_option( 'ewww_image_optimizer_disable_pngout', true );
 		update_site_option( 'ewww_image_optimizer_optipng_level', 2 );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', '' );
+		update_site_option( 'ewww_image_optimizer_metadata_remove', '' );
 		$results = $this->optimize_png();
 		$this->assertEquals( 190775, filesize( $results[0] ) );
 		unlink( $results[0] );
@@ -310,12 +310,12 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_disable_pngout', '' );
 		update_option( 'ewww_image_optimizer_optipng_level', 2 );
 		update_option( 'ewww_image_optimizer_pngout_level', 1 );
-		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_png_level', 10 );
 		update_site_option( 'ewww_image_optimizer_disable_pngout', '' );
 		update_site_option( 'ewww_image_optimizer_optipng_level', 2 );
 		update_site_option( 'ewww_image_optimizer_pngout_level', 1 );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		$results = $this->optimize_png();
 		$this->assertEquals( 180779, filesize( $results[0] ) );
 		unlink( $results[0] );
@@ -328,11 +328,11 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_png_level', 40 );
 		update_option( 'ewww_image_optimizer_disable_pngout', true );
 		update_option( 'ewww_image_optimizer_optipng_level', 2 );
-		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_png_level', 40 );
 		update_site_option( 'ewww_image_optimizer_disable_pngout', true );
 		update_site_option( 'ewww_image_optimizer_optipng_level', 2 );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		$results = $this->optimize_png();
 		$this->assertEquals( 37428, filesize( $results[0] ) );
 		unlink( $results[0] );
@@ -343,10 +343,10 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 */
 	function test_optimize_png_20() {
 		update_option( 'ewww_image_optimizer_png_level', 20 );
-		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
 		update_site_option( 'ewww_image_optimizer_png_level', 20 );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
 		$results = $this->optimize_png();
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
@@ -360,10 +360,10 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 */
 	function test_optimize_png_40() {
 		update_option( 'ewww_image_optimizer_png_level', 40 );
-		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
 		update_site_option( 'ewww_image_optimizer_png_level', 40 );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
 		$results = $this->optimize_png();
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
@@ -377,10 +377,10 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 */
 	function test_optimize_png_50() {
 		update_option( 'ewww_image_optimizer_png_level', 50 );
-		update_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
 		update_site_option( 'ewww_image_optimizer_png_level', 50 );
-		update_site_option( 'ewww_image_optimizer_jpegtran_copy', true );
+		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
 		$results = $this->optimize_png();
 		update_option( 'ewww_image_optimizer_cloud_key', '' );

@@ -1,3 +1,17 @@
+= 4.4.0 =
+* added: preserve animations in GIF images during resize operations
+* added: ExactDN will fill in srcset/sizes attributes for all images based on detected width for better mobile support
+* added: configuration options in the settings page for several "hidden" ExactDN options
+* changed: Alt WebP still depends on jQuery, but jQuery can be loaded in async or defer mode
+* changed: Remove Metadata option has been renamed, if you previously had it configured as an override (JPEGTRAN_COPY), please use the new name: EWWW_IMAGE_OPTIMIZER_METADATA_REMOVE
+* changed: ExactDN uses premium compression by default
+* fixed: regression with ExactDN and max-width style attributes
+* fixed: WP esc_url mangles ExactDN urls
+* fixed: WebP images missing from S3 when using WP Offload S3
+* fixed: PDF uploads with S3 Uploads plugin
+* deprecated: PHP 5.5 support will be removed in the next major release (version 4.5)
+* removed: PHP 5.4 no longer supported
+
 = 4.3.2 =
 * changed: prevent dynamic JS/CSS urls within wp-admin/ from being rewritten by ExactDN
 * fixed: auto-convert PNG to JPG was running on images with transparency

@@ -109,15 +109,29 @@ class EWWWIO_Tracking {
 		$data['memory_limit']     = ewwwio_memory_limit();
 		$data['time_limit']       = (int) ini_get( 'max_execution_time' );
 		$data['operating_system'] = ewww_image_optimizer_function_exists( 'php_uname' ) ? php_uname( 's' ) : '';
+		$data['image_library']    = ewww_image_optimizer_gd_support() ? 'gd' : '';
+		$data['image_library']    = ewww_image_optimizer_imagick_support() ? 'imagick' : '';
+		$data['image_library']    = ewww_image_optimizer_gmagick_support() ? 'gmagick' : '';
 
 		$data['cloud_api']     = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? true : false;
-		$data['keep_metadata'] = ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpegtran_copy' ) ? false : true;
+		$data['keep_metadata'] = ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ? false : true;
 		$data['jpg_level']     = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' );
 		$data['png_level']     = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' );
 		$data['gif_level']     = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' );
 		$data['pdf_level']     = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' );
 		$data['bulk_delay']    = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' );
 		$data['backups']       = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' );
+
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && class_exists( 'ExactDN' ) ) {
+			global $exactdn;
+			if ( $exactdn->get_exactdn_domain() ) {
+				$data['exactdn_lossy']               = (int) ewww_image_optimizer_get_option( 'exactdn_lossy' );
+				$data['exactdn_all_the_things']      = (bool) ewww_image_optimizer_get_option( 'exactdn_all_the_things' );
+				$data['exactdn_resize_existing']     = (bool) ewww_image_optimizer_get_option( 'exactdn_resize_existing' );
+				$data['exactdn_prevent_db_queries']  = (bool) ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' );
+				$data['exactdn_prevent_srcset_fill'] = (bool) ewww_image_optimizer_get_option( 'exactdn_prevent_srcset_fill' );
+			}
+		}
 
 		$data['optipng_level']          = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? 0 : (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_optipng_level' );
 		$data['disable_pngout']         = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_pngout' );

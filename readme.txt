@@ -5,7 +5,7 @@ Tags: image, compress, resize, optimize, optimization, lossless, lossy, seo, web
 Requires at least: 4.6
 Tested up to: 4.9
 Requires PHP: 5.5
-Stable tag: 4.3.2
+Stable tag: 4.4.0
 License: GPLv3
 
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
@@ -177,7 +177,10 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 = 4.4.0 =
 * added: preserve animations in GIF images during resize operations
 * added: ExactDN will fill in srcset/sizes attributes for all images based on detected width for better mobile support
+* added: configuration options in the settings page for several "hidden" ExactDN options
 * changed: Alt WebP still depends on jQuery, but jQuery can be loaded in async or defer mode
+* changed: Remove Metadata option has been renamed, if you previously had it configured as an override (JPEGTRAN_COPY), please use the new name: EWWW_IMAGE_OPTIMIZER_METADATA_REMOVE
+* changed: ExactDN uses premium compression by default
 * fixed: regression with ExactDN and max-width style attributes
 * fixed: WP esc_url mangles ExactDN urls
 * fixed: WebP images missing from S3 when using WP Offload S3
@@ -220,52 +223,6 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: toggle for plugin status and bulk status generate admin-ajax.php 403 errors
 * fixed: PNGOUT installer confirmation notice was missing
 * deprecated: PHP 5.4 support will be removed in the next major release (version 4.4)
-
-= 4.2.3 =
-* added: skip resizing for images with noresize in the filename
-* added: notice about plugins that remove query strings when ExactDN is active
-* changed: cache busting for ExactDN uses theme directory modified time with fallback to EWWW IO version
-* fixed: exactdn test verification attempts to access WP_Error as an array
-
-= 4.2.2 =
-* added: view pages with ExactDN or the entire plugin disabled via GET paramaters: ewwwio_disable and exactdn_disable
-* changed: moved to v2 quota endpoint for API
-* changed: S3 uploads no longer deferred until after optimization by default, define EWWW_IMAGE_OPTIMIZER_DEFER_S3 as true to override
-* changed: image editor extensions can be disabled separately from media library optimization via EWWW_IMAGE_OPTIMIZER_DISABLE_EDITOR
-* changed: use exactdn url instead of standard API url for verification simulation and fallback
-* fixed: async test outputs unescaped html on settings page when debugging enabled
-* fixed: debugging uses extra memory when dumping output to file
-* fixed: json_encode dies silently when passing non-utf8 data, results in AJAX/bulk errors
-* fixed: disabled auto-optimization bypassed for resizes when max dimensions are set
-* fixed: NextGEN support disabled for version 3
-* fixed: progressbar color does not match admin theme for NextGEN/Nextcellent
-* fixed: optimization details overlay styling missing for NextGEN with some locales
-* fixed: FlAGallery batch optimization from Manage Galleries/Images broken
-* fixed: undefined variable notices for resize detection and forced re-optimization
-* updated: PEL library for maintaining metadata during JPG auto-rotation
-
-= 4.2.1 =
-* fixed: EXACTDN_LOCAL_DOMAIN does not work with auto-verification
-* fixed: uncaught error during upgrade when 'SHOW FULL COLUMNS' fails
-* fixed: async simulation gets 403 error
-
-= 4.2.0 =
-* added: disable ExactDN attachment ID queries if they take too long
-* added: ExactDN compatibility with a3 Lazy Load
-* added: ability to re-test async/background mode if it gets disabled
-* changed: better compatibility between Autoptimize and ExactDN
-* changed: .webp files removed when restoring original from API
-* changed: Force re-optimize checkbox persists up to an hour if bulk optimizer is interrupted
-* fixed: CSS, JS, and other resources could be skipped by ExactDN in certain circumstances
-* fixed: Jupiter theme captcha incompatible with ExactDN
-* fixed: prevent calls to php_uname when it is disabled
-* fixed: MacOS X installer for PNGOUT
-* fixed: prevent notices due to empty output from exec()
-* fixed: ExactDN fails to crop when image_downsize() is called with explicit dimensions
-* fixed: ExactDN breaks image resizing with Themify themes
-* fixed: multi-site settings throws error during submission when ExactDN is active
-* fixed: single-site override option displayed when plugin activated per-site
-* removed: PHP 5.3 no longer supported
 
 = Earlier versions =
 Please refer to the separate changelog.txt file.
