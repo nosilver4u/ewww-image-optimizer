@@ -630,8 +630,10 @@ class ExactDN extends EWWWIO_Page_Parser {
 				// Default to resize, though fit may be used in certain cases where a dimension cannot be ascertained.
 				$transform = 'resize';
 
-				// Start with a clean attachment ID each time.
+				// Start with a clean slate each time.
 				$attachment_id = false;
+				$exactdn_url   = false;
+				$width         = false;
 
 				// Flag if we need to munge a fullsize URL.
 				$fullsize_url = false;
