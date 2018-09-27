@@ -54,21 +54,21 @@ function ewww_image_optimizer_exec_init() {
 	if ( EWWW_IMAGE_OPTIMIZER_CLOUD ) {
 		ewwwio_debug_message( 'cloud options enabled, shutting off binaries' );
 		ewww_image_optimizer_disable_tools();
-		// Check if this is an unsupported OS (not Linux or Mac OSX or FreeBSD or Windows or SunOS).
-	} elseif ( defined( 'WPCOMSH_VERSION' ) ) {
+	} elseif ( defined( 'WPCOMSH_VERSION' ) || ! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {
 		if (
 			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
 			empty( $_POST['ewww_image_optimizer_cloud_key'] ) &&
 			( ! is_object( $exactdn ) || ! $exactdn->get_exactdn_domain() )
 		) {
-			add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_wpcom' );
-			add_action( 'admin_notices', 'ewww_image_optimizer_notice_wpcom' );
+			add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_hosting_requires_api' );
+			add_action( 'admin_notices', 'ewww_image_optimizer_notice_hosting_requires_api' );
 		}
 		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
 			define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
 		}
 		ewwwio_debug_message( 'wp.com site, disabling tools' );
 		ewww_image_optimizer_disable_tools();
+		// Check if this is an unsupported OS (not Linux or Mac OSX or FreeBSD or Windows or SunOS).
 	} elseif ( 'Linux' != PHP_OS && 'Darwin' != PHP_OS && 'FreeBSD' != PHP_OS && 'WINNT' != PHP_OS && 'SunOS' != PHP_OS ) {
 		// Call the function to display a notice.
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_os' );
@@ -123,9 +123,9 @@ function ewww_image_optimizer_set_defaults() {
 }
 
 /**
- * Let the user know the plugin requires API/ExactDN to operate at wp.com.
+ * Let the user know the plugin requires API/ExactDN to operate at their webhost.
  */
-function ewww_image_optimizer_notice_wpcom() {
+function ewww_image_optimizer_notice_hosting_requires_api() {
 	if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
 		// Need to include the plugin library for the is_plugin_active function.
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
@@ -135,9 +135,17 @@ function ewww_image_optimizer_notice_wpcom() {
 	} else {
 		$options_page = 'options-general.php';
 	}
+	if ( defined( 'WPCOMSH_VERSION' ) ) {
+		$webhost = 'WordPress.com';
+	} elseif ( ! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {
+		$webhost = 'Pantheon';
+	} else {
+		return;
+	}
 	$settings_url = admin_url( "$options_page?page=" . plugin_basename( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ) );
 	echo "<div id='ewww-image-optimizer-cloud-key-required' class='error'><p><strong>" .
-		esc_html__( 'The EWWW Image Optimizer requires an API key or an ExactDN subscription to optimize images on WordPress.com sites.', 'ewww-image-optimizer-cloud' ) .
+		/* translators: %s: Name of a web host, like WordPress.com or Pantheon. */
+		sprintf( esc_html__( 'The EWWW Image Optimizer requires an API key or an ExactDN subscription to optimize images on %s sites.', 'ewww-image-optimizer-cloud' ), $webhost ) .
 		"</strong> <a href='https://ewww.io/plans/'>" . esc_html__( 'Purchase a subscription.', 'ewww-image-optimizer-cloud' ) .
 		"</a> <a href='$settings_url'>" . esc_html__( 'Then, activate it on the settings page.', 'ewww-image-optimizer-cloud' ) . '</a></p></div>';
 }
