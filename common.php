@@ -3371,10 +3371,11 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 			$newsize = filesize( $tempfile );
 			ewwwio_debug_message( "cloud results: $newsize (new) vs. $orig_size (original)" );
 			rename( $tempfile, $newfile );
-		} elseif ( ewww_image_optimizer_mimetype( $tempfile, 'i' ) == $newtype ) {
+		} elseif ( ! is_null( $newtype ) && ! is_null( $newfile ) && ewww_image_optimizer_mimetype( $tempfile, 'i' ) == $newtype ) {
 			$converted = true;
 			$newsize   = filesize( $tempfile );
 			ewwwio_debug_message( "cloud results: $newsize (new) vs. $orig_size (original)" );
+			ewwwio_debug_message( "renaming file from $tempfile to $newfile" );
 			rename( $tempfile, $newfile );
 			$file = $newfile;
 		} else {
