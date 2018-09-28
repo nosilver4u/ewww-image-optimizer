@@ -6002,6 +6002,9 @@ function ewww_image_optimizer_quick_mimetype( $path ) {
 		case 'pdf':
 			return 'application/pdf';
 		default:
+			if ( empty( $pathextension ) && 0 !== strpos( $path, 's3' ) && is_file( $path ) ) {
+				return ewww_image_optimizer_mimetype( $path, 'i' );
+			}
 			return false;
 	}
 }

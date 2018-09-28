@@ -174,6 +174,11 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be submitted via https://ewww.io/contact-us/ and commented on here: https://trello.com/b/Fp81dWof/ewww-image-optimizer
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.4.2 =
+* added: notice for Pantheon users that an API key is required
+* fixed: optimization failure produces rename() errors
+* fixed: folder scanner ignores files with no extension
+
 = 4.4.1 =
 * fixed: ExactDN srcset fill replaces images with first image on page
 
