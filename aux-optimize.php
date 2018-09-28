@@ -384,7 +384,8 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 		if ( $started && ! empty( $_REQUEST['ewww_scan'] ) && 0 === $file_counter % 100 && microtime( true ) - $started > apply_filters( 'ewww_image_optimizer_timeout', 15 ) ) {
 			if ( ! empty( $reset_images ) ) {
 				array_walk( $reset_images, 'intval' );
-				$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $reset_images ) . ')' ); // WPCS: unprepared SQL ok.
+				$reset_images_sql = '(' . implode( ',', $reset_images ) . ')';
+				$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN $reset_images_sql" ); // WPCS: unprepared SQL ok.
 			}
 			if ( ! empty( $images ) ) {
 				ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
@@ -415,7 +416,8 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			}
 			if ( ! empty( $reset_images ) ) {
 				array_walk( $reset_images, 'intval' );
-				$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $reset_images ) . ')' ); // WPCS: unprepared SQL ok.
+				$reset_images_sql = '(' . implode( ',', $reset_images ) . ')';
+				$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN $reset_images_sql" ); // WPCS: unprepared SQL ok.
 			}
 			if ( ! empty( $images ) ) {
 				ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
@@ -438,7 +440,11 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			if ( preg_match( '/(\/|\\\\)\./', $path ) && apply_filters( 'ewww_image_optimizer_ignore_hidden_files', true ) ) {
 				continue;
 			}
-			$mime = ewww_image_optimizer_quick_mimetype( $path );
+			if ( defined( 'EWWW_IMAGE_OPTIMIZER_REAL_MIME' ) && EWWW_IMAGE_OPTIMIZER_REAL_MIME ) {
+				$mime = ewww_image_optimizer_mimetype( $path, 'i' );
+			} else {
+				$mime = ewww_image_optimizer_quick_mimetype( $path );
+			}
 			if ( ! in_array( $mime, $enabled_types ) ) {
 				continue;
 			}
@@ -512,7 +518,8 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	}
 	if ( ! empty( $reset_images ) ) {
 		array_walk( $reset_images, 'intval' );
-		$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN (" . implode( ',', $reset_images ) . ')' ); // WPCS: unprepared SQL ok.
+		$reset_images_sql = '(' . implode( ',', $reset_images ) . ')';
+		$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN $reset_images_sql" ); // WPCS: unprepared SQL ok.
 	}
 	delete_transient( 'ewww_image_optimizer_aux_iterator' );
 	$end = microtime( true ) - $start;
