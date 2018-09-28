@@ -923,17 +923,17 @@ class ExactDN extends EWWWIO_Page_Parser {
 					if ( ! $this->get_attribute( $images['img_tag'][ $index ], 'srcset' ) && ! $this->get_attribute( $images['img_tag'][ $index ], 'sizes' ) ) {
 						$zoom = false;
 						// If $width is empty, we'll search the url for a width param, then we try searching the img element, with fall back to the filename.
-						if ( empty( $width ) ) {
+						if ( empty( $width ) || ! is_numeric( $width ) ) {
 							// This only searches for w, resize, or fit flags, others are ignored.
 							$width = $this->get_exactdn_width_from_url( $src );
 							if ( $width ) {
 								$zoom = true;
 							}
 						}
-						if ( empty( $width ) ) {
+						if ( empty( $width ) || ! is_numeric( $width ) ) {
 							$width = $this->get_img_width( $images['img_tag'][ $index ] );
 						}
-						if ( empty( $width ) ) {
+						if ( empty( $width ) || ! is_numeric( $width ) ) {
 							list( $width, $discard_height ) = $this->get_dimensions_from_filename( $src );
 						}
 						if ( false !== strpos( $src, 'crop=' ) || false !== strpos( $src, '&h=' ) || false !== strpos( $src, '?h=' ) ) {
@@ -1508,6 +1508,10 @@ class ExactDN extends EWWWIO_Page_Parser {
 			return '';
 		}
 
+		if ( ! is_numeric( $width ) ) {
+			return '';
+		}
+
 		/**
 		 * Filter the multiplier ExactDN uses to create new srcset items.
 		 * Return false to short-circuit and bypass auto-generation.
@@ -1521,7 +1525,10 @@ class ExactDN extends EWWWIO_Page_Parser {
 		 *
 		 * @param int|bool $width The max width for this $url, or false to bypass.
 		 */
-		$width  = apply_filters( 'exactdn_srcset_fill_width', $width, $url );
+		$width = (int) apply_filters( 'exactdn_srcset_fill_width', $width, $url );
+		if ( ! $width ) {
+			return '';
+		}
 		$srcset = '';
 
 		if (

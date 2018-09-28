@@ -178,6 +178,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: notice for Pantheon users that an API key is required
 * fixed: optimization failure produces rename() errors
 * fixed: folder scanner ignores files with no extension
+* fixed: srcset fill generates notices with non-numeric widths
 
 = 4.4.1 =
 * fixed: ExactDN srcset fill replaces images with first image on page
