@@ -223,17 +223,22 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 				ewwwio_debug_message( 'we have received attachment ids via $_REQUEST' );
 				// Retrieve the attachment IDs that were pre-loaded in the database.
 				if ( 'scanning' == $resume ) {
+					ewwwio_debug_message( 'still scanning media - phase 1' );
 					$finished       = (array) get_option( 'ewww_image_optimizer_bulk_attachments' );
 					$remaining      = (array) get_option( 'ewww_image_optimizer_scanning_attachments' );
 					$attachment_ids = array_merge( $finished, $remaining );
 				} elseif ( $resume ) {
 					// This shouldn't ever happen, but doesn't hurt to account for the use case, just in case something changes in the future.
+					ewwwio_debug_message( 'this is the improbable, but it happened' );
 					$attachment_ids = get_option( 'ewww_image_optimizer_bulk_attachments' );
 				} else {
+					ewwwio_debug_message( 'we really did get attachments via $_REQUEST, or so we think' );
 					$attachment_ids = get_option( 'ewww_image_optimizer_scanning_attachments' );
 				}
 				if ( ! empty( $attachment_ids ) ) {
 					$full_count = count( $attachment_ids );
+				} else {
+					$full_count = $wpdb->get_var( "SELECT COUNT(ID) FROM $wpdb->posts WHERE (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%')" );
 				}
 			} else {
 				$full_count = $wpdb->get_var( "SELECT COUNT(ID) FROM $wpdb->posts WHERE (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%')" );

@@ -176,9 +176,12 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 
 = 4.4.2 =
 * added: notice for Pantheon users that an API key is required
+* added: ExactDN fully supports protocol-relative urls for non-image resources
+* changed: better lazy load support in ExactDN
 * fixed: optimization failure produces rename() errors
 * fixed: folder scanner ignores files with no extension
 * fixed: srcset fill generates notices with non-numeric widths
+* fixed: bulk scanner stuck in resume mode with nothing to do
 
 = 4.4.1 =
 * fixed: ExactDN srcset fill replaces images with first image on page

@@ -95,6 +95,14 @@ class ExactDN extends EWWWIO_Page_Parser {
 	private $elapsed_time = 0;
 
 	/**
+	 * Keep track of the attribute we use for srcset, in case a lazy load plugin is active.
+	 *
+	 * @access private
+	 * @var string $srcset_attr
+	 */
+	private $srcset_attr = 'srcset';
+
+	/**
 	 * Register (once) actions and filters for ExactDN. If you want to use this class, use the global.
 	 */
 	function __construct() {
@@ -634,6 +642,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 				$attachment_id = false;
 				$exactdn_url   = false;
 				$width         = false;
+				$lazy          = false;
 
 				// Flag if we need to munge a fullsize URL.
 				$fullsize_url = false;
@@ -657,21 +666,34 @@ class ExactDN extends EWWWIO_Page_Parser {
 				ewwwio_debug_message( 'made it passed the filters' );
 				// Support Lazy Load plugins.
 				// Don't modify $tag yet as we need unmodified version later.
-				if ( preg_match( '#data-lazy-src=["|\'](.+?)["|\']#i', $images['img_tag'][ $index ], $lazy_load_src ) ) {
+				$lazy_load_src = $this->get_attribute( $images['img_tag'][ $index ], 'data-lazy-src' );
+				if ( $lazy_load_src ) {
 					$placeholder_src      = $src;
 					$placeholder_src_orig = $src;
-					$src                  = $lazy_load_src[1];
-					$src_orig             = $lazy_load_src[1];
-				} elseif ( preg_match( '#data-lazy-original=["|\'](.+?)["|\']#i', $images['img_tag'][ $index ], $lazy_load_src ) ) {
+					$src                  = $lazy_load_src;
+					$src_orig             = $lazy_load_src;
+					$this->srcset_attr    = 'data-lazy-srcset';
+					$lazy                 = true;
+				}
+				$lazy_load_src = $this->get_attribute( $images['img_tag'][ $index ], 'data-lazy-original' );
+				if ( ! $lazy && $lazy_load_src ) {
 					$placeholder_src      = $src;
 					$placeholder_src_orig = $src;
-					$src                  = $lazy_load_src[1];
-					$src_orig             = $lazy_load_src[1];
-				} elseif ( strpos( $images['img_tag'][ $index ], 'a3-lazy-load/assets/images/lazy_placeholder' ) && preg_match( '#data-src=["|\'](.+?)["|\']#i', $images['img_tag'][ $index ], $lazy_load_src ) ) {
+					$src                  = $lazy_load_src;
+					$src_orig             = $lazy_load_src;
+					$this->srcset_attr    = 'data-lazy-srcset';
+					$lazy                 = true;
+				}
+				if ( ! $lazy && strpos( $images['img_tag'][ $index ], 'a3-lazy-load/assets/images/lazy_placeholder' ) ) {
+					$lazy_load_src = $this->get_attribute( $images['img_tag'][ $index ], 'data-src' );
+				}
+				if ( ! $lazy && $lazy_load_src ) {
 					$placeholder_src      = $src;
 					$placeholder_src_orig = $src;
-					$src                  = $lazy_load_src[1];
-					$src_orig             = $lazy_load_src[1];
+					$src                  = $lazy_load_src;
+					$src_orig             = $lazy_load_src;
+					$this->srcset_attr    = 'data-srcset';
+					$lazy                 = true;
 				}
 
 				// Check if image URL should be used with ExactDN.
@@ -859,12 +881,11 @@ class ExactDN extends EWWWIO_Page_Parser {
 						// Insert new image src into the srcset as well, if we have a width.
 						if ( false !== $width && false === strpos( $width, '%' ) ) {
 							ewwwio_debug_message( 'checking to see if srcset width already exists' );
-							$srcset_url = $exactdn_url . ' ' . (int) $width . 'w, ';
-							if ( false === strpos( $tag, $width . 'w' ) ) {
-								// For double-quotes...
-								$new_tag = str_replace( 'srcset="', 'srcset="' . $srcset_url, $new_tag );
-								// and for single-quotes.
-								$new_tag = str_replace( "srcset='", "srcset='" . $srcset_url, $new_tag );
+							$srcset_url      = $exactdn_url . ' ' . (int) $width . 'w, ';
+							$new_srcset_attr = $this->get_attribute( $new_tag, $this->srcset_attr );
+							if ( $new_srcset_attr && false === strpos( $new_srcset_attr, ' ' . (int) $width . 'w' ) ) {
+								ewwwio_debug_message( 'src not in srcset, adding' );
+								$this->set_attribute( $new_tag, $this->srcset_attr, $srcset_url . $new_srcset_attr );
 							}
 						}
 
@@ -886,8 +907,8 @@ class ExactDN extends EWWWIO_Page_Parser {
 						// Replace original tag with modified version.
 						$content = str_replace( $tag, $new_tag, $content );
 					}
-				} elseif ( ! preg_match( '#data-lazy-(original|src)=#i', $images['img_tag'][ $index ] ) && $this->validate_image_url( $src, true ) ) {
-					ewwwio_debug_message( 'found a potential exactdn src url to insert into srcset' );
+				} elseif ( ! $lazy && $this->validate_image_url( $src, true ) ) {
+					ewwwio_debug_message( "found a potential exactdn src url to insert into srcset: $src" );
 					// Find the width attribute.
 					$width = $this->get_img_width( $images['img_tag'][ $index ] );
 					if ( $width ) {
@@ -902,13 +923,11 @@ class ExactDN extends EWWWIO_Page_Parser {
 							$new_tag     = $tag;
 							$exactdn_url = $src;
 							ewwwio_debug_message( 'checking to see if srcset width already exists' );
-							$srcset_url = $exactdn_url . ' ' . (int) $width . 'w, ';
-							if ( false === strpos( $tag, $width . 'w' ) ) {
+							$srcset_url      = $exactdn_url . ' ' . (int) $width . 'w, ';
+							$new_srcset_attr = $this->get_attribute( $new_tag, $this->srcset_attr );
+							if ( $new_srcset_attr && false === strpos( $new_srcset_attr, ' ' . (int) $width . 'w' ) ) {
 								ewwwio_debug_message( 'src not in srcset, adding' );
-								// For double-quotes...
-								$new_tag = str_replace( 'srcset="', 'srcset="' . $srcset_url, $new_tag );
-								// and for single-quotes.
-								$new_tag = str_replace( "srcset='", "srcset='" . $srcset_url, $new_tag );
+								$this->set_attribute( $new_tag, $this->srcset_attr, $srcset_url . $new_srcset_attr );
 								// Replace original tag with modified version.
 								$content = str_replace( $tag, $new_tag, $content );
 							}
@@ -919,8 +938,8 @@ class ExactDN extends EWWWIO_Page_Parser {
 				if ( ! empty( $exactdn_url ) ) {
 					$src = $exactdn_url;
 				}
-				if ( ! ewww_image_optimizer_get_option( 'exactdn_prevent_srcset_fill' ) && ! preg_match( '#data-lazy-(original|src)=#i', $images['img_tag'][ $index ] ) && false !== strpos( $src, $this->exactdn_domain ) ) {
-					if ( ! $this->get_attribute( $images['img_tag'][ $index ], 'srcset' ) && ! $this->get_attribute( $images['img_tag'][ $index ], 'sizes' ) ) {
+				if ( ! ewww_image_optimizer_get_option( 'exactdn_prevent_srcset_fill' ) && false !== strpos( $src, $this->exactdn_domain ) ) {
+					if ( ! $this->get_attribute( $images['img_tag'][ $index ], $this->srcset_attr ) && ! $this->get_attribute( $images['img_tag'][ $index ], 'sizes' ) ) {
 						$zoom = false;
 						// If $width is empty, we'll search the url for a width param, then we try searching the img element, with fall back to the filename.
 						if ( empty( $width ) || ! is_numeric( $width ) ) {
@@ -944,7 +963,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 							$srcset = $this->generate_image_srcset( $src, $width, $zoom );
 							if ( $srcset ) {
 								$new_tag = $images['img_tag'][ $index ];
-								$this->set_attribute( $new_tag, 'srcset', $srcset );
+								$this->set_attribute( $new_tag, $this->srcset_attr, $srcset );
 								$this->set_attribute( $new_tag, 'sizes', sprintf( '(max-width: %1$dpx) 100vw, %1$dpx', $width ) );
 								// Replace original tag with modified version.
 								$content = str_replace( $images['img_tag'][ $index ], $new_tag, $content );
@@ -960,14 +979,14 @@ class ExactDN extends EWWWIO_Page_Parser {
 				$escaped_upload_domain = str_replace( '.', '\.', ltrim( $this->upload_domain, 'w.' ) );
 				ewwwio_debug_message( $escaped_upload_domain );
 				if ( ! empty( $this->user_exclusions ) ) {
-					$content = preg_replace( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)?(' . implode( '|', $this->user_exclusions ) . ')#i', '$1://' . $this->upload_domain . '$2/?wpcontent-bypass?/$3$4', $content );
+					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)?(' . implode( '|', $this->user_exclusions ) . ')#i', '$1://' . $this->upload_domain . '$2/?wpcontent-bypass?/$3$4', $content );
 				}
 				// Pre-empt rewriting of simple-social-icons SVG (because they aren't allowed in use tags.
-				$content = preg_replace( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/plugins/simple-social-icons#i', '$1://' . $this->upload_domain . '$2/?wpcontent-bypass?/plugins/simple-social-icons', $content );
+				$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/plugins/simple-social-icons#i', '$1//' . $this->upload_domain . '$2/?wpcontent-bypass?/plugins/simple-social-icons', $content );
 				// Pre-empt rewriting of wp-includes and wp-content if the extension is not allowed by using a temporary placeholder.
-				$content = preg_replace( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)\.(php|ashx|m4v|mov|wvm|qt|webm|ogv|mp4|m4p|mpg|mpeg|mpv)#i', '$1://' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
+				$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)\.(php|ashx|m4v|mov|wvm|qt|webm|ogv|mp4|m4p|mpg|mpeg|mpv)#i', '$1://' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
 				$content = str_replace( 'wp-content/themes/jupiter"', '?wpcontent-bypass?/themes/jupiter"', $content );
-				$content = preg_replace( '#(https?)://(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?(nextgen-image|wp-includes|wp-content)/#i', '$1://' . $this->exactdn_domain . '/$2$3/', $content );
+				$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?(nextgen-image|wp-includes|wp-content)/#i', '$1//' . $this->exactdn_domain . '/$2$3/', $content );
 				$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );
 			}
 		}
@@ -1927,6 +1946,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 			return array();
 		}
 		if ( strpos( $image_url, 'LayerSlider/static/img' ) ) {
+			return array();
+		}
+		if ( strpos( $image_url, 'lazy-load/images/' ) ) {
 			return array();
 		}
 		return $args;
