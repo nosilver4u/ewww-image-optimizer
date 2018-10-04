@@ -21,6 +21,7 @@
 // TODO: handle relative urls with ExactDN.
 // TODO: see if we can parse all use tags and use the bypass mechanism to avoid ExactDN + SVG issues.
 // TODO: can some of the bulk "fallbacks" be implemented for async processing?
+// TODO: add a help icon for force re-opt.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

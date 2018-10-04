@@ -319,8 +319,17 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 
 		// TODO: Eventually route through a custom parsing routine for noscript images.
 		$noscript_images = $this->get_noscript_images_from_html( $buffer );
-		if ( ! empty( $noscript_images ) ) {
-			ewwwio_debug_message( 'noscript-encased images found, will not process any img elements' );
+		if ( ! empty( $noscript_images ) && isset( $noscript_images[0] ) ) {
+			foreach ( $noscript_images[0] as $nindex => $noscript_image ) {
+				if ( strpos( $noscript_image, 'facebook.com/tr?' ) ) {
+					unset( $noscript_images[0][ $nindex ] );
+				}
+			}
+			if ( empty( $noscript_images[0] ) ) {
+				$noscript_images = false;
+			} else {
+				ewwwio_debug_message( 'noscript-encased images found, will not process any img elements' );
+			}
 		}
 		/* TODO: detect non-utf8 encoding and convert the buffer (if necessary). */
 

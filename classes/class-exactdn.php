@@ -554,7 +554,8 @@ class ExactDN extends EWWWIO_Page_Parser {
 	public function get_img_width( $img ) {
 		$width = $this->get_attribute( $img, 'width' );
 		// Then check for an inline max-width directive.
-		if ( preg_match( '#max-width:\s?(\d+)px#', $img, $max_width_string ) ) {
+		$style = $this->get_attribute( $img, 'style' );
+		if ( $style && preg_match( '#max-width:\s?(\d+)px#', $style, $max_width_string ) ) {
 			if ( $max_width_string[1] && ( ! $width || $max_width_string[1] < $width ) ) {
 				$width = $max_width_string[1];
 			}
@@ -676,6 +677,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 					$lazy                 = true;
 				}
 				$lazy_load_src = $this->get_attribute( $images['img_tag'][ $index ], 'data-lazy-original' );
+				// TODO: figure out where this comes from.
 				if ( ! $lazy && $lazy_load_src ) {
 					$placeholder_src      = $src;
 					$placeholder_src_orig = $src;
@@ -1451,7 +1453,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 					}
 				} // foreach ( $currentwidths as $currentwidth ){
 
-				if ( 'soft' == $crop ) {
+				if ( 1 === $multiplier ) {
+					$args = array();
+				} elseif ( 'soft' == $crop ) {
 					$args = array(
 						'w' => $newwidth,
 					);
@@ -1562,7 +1566,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 			foreach ( $multipliers as $multiplier ) {
 				$newwidth = intval( $width * $multiplier );
 
-				if ( $zoom ) {
+				if ( 1 === $multiplier ) {
+					$args = array();
+				} elseif ( $zoom ) {
 					$args = array(
 						'zoom' => $multiplier,
 					);
@@ -2070,13 +2076,13 @@ class ExactDN extends EWWWIO_Page_Parser {
 		$webp_quality = apply_filters( 'jpeg_quality', $jpg_quality, 'image/webp' );
 
 		$more_args = array();
-		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
+		if ( false === strpos( $image_url, 'strip=all' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
 			$more_args['strip'] = 'all';
 		}
-		if ( ewww_image_optimizer_get_option( 'exactdn_lossy' ) ) {
+		if ( false === strpos( $image_url, 'lossy=' ) && ewww_image_optimizer_get_option( 'exactdn_lossy' ) ) {
 			$more_args['lossy'] = is_numeric( ewww_image_optimizer_get_option( 'exactdn_lossy' ) ) ? (int) ewww_image_optimizer_get_option( 'exactdn_lossy' ) : 80;
 		}
-		if ( ! is_null( $jpg_quality ) && 82 != $jpg_quality ) {
+		if ( false === strpos( $image_url, 'quality=' ) && ! is_null( $jpg_quality ) && 82 != $jpg_quality ) {
 			$more_args['quality'] = $jpg_quality;
 		}
 		// Merge given args with the automatic (option-based) args, and also makes sure args is an array if it was previously a string.

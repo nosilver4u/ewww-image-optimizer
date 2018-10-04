@@ -180,6 +180,9 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * changed: better lazy load support in ExactDN
 * fixed: optimization failure produces rename() errors
 * fixed: folder scanner ignores files with no extension
+* fixed: Alt WebP blocks on Facebook tracking pixel
+* fixed: ExactDN srcset functions cause duplicate image requests with zoom=1
+* fixed: ExactDN srcset fill adds double arguments to urls
 * fixed: srcset fill generates notices with non-numeric widths
 * fixed: bulk scanner stuck in resume mode with nothing to do
 
