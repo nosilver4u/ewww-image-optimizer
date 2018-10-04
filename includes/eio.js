@@ -37,6 +37,39 @@ jQuery(document).ready(function($) {
 			$(this).children('.toggle-indicator').attr('aria-hidden', 'false');
 		}
 	});
+	function HSregister() {
+		if (typeof(HS) !== 'undefined' ) {
+			$('.ewww-overrides-nav').click(function() {
+				HS.beacon.ready(function() {
+					event.preventDefault();
+					HS.beacon.show('59710ce4042863033a1b45a6');
+				});
+			});
+			$('.ewww-docs-root').click(function() {
+				HS.beacon.ready(function() {
+					event.preventDefault();
+					HS.beacon.open();
+				});
+			});
+			$('.ewww-help-beacon-multi').click(function() {
+				var hsids = $(this).attr('data-beacon-articles');
+				hsids = hsids.split(',');
+				HS.beacon.ready(function() {
+					event.preventDefault();
+					HS.beacon.suggest(hsids);
+					HS.beacon.open();
+				});
+			});
+			$('.ewww-help-beacon-single').click(function() {
+				var hsid = $(this).attr('data-beacon-article');
+				HS.beacon.ready(function() {
+					event.preventDefault();
+					HS.beacon.show(hsid);
+				});
+			});
+		}
+	}
+	HSregister();
 	if (!ewww_vars.scan_fail) {
 		$('#ewww-webp-rewrite #ewww-webp-insert').click(function() {
 			var ewww_webp_rewrite_action = 'ewww_webp_rewrite';
@@ -140,39 +173,6 @@ jQuery(document).ready(function($) {
 			$('#ewww-resize-settings').hide();
 			$('#ewww-conversion-settings').show();
 		});
-		function HSregister() {
-			if (typeof(HS) !== 'undefined' ) {
-				$('.ewww-overrides-nav').click(function() {
-					HS.beacon.ready(function() {
-						event.preventDefault();
-						HS.beacon.show('59710ce4042863033a1b45a6');
-					});
-				});
-				$('.ewww-docs-root').click(function() {
-					HS.beacon.ready(function() {
-						event.preventDefault();
-						HS.beacon.open();
-					});
-				});
-				$('.ewww-help-beacon-multi').click(function() {
-					var hsids = $(this).attr('data-beacon-articles');
-					hsids = hsids.split(',');
-					HS.beacon.ready(function() {
-						event.preventDefault();
-						HS.beacon.suggest(hsids);
-						HS.beacon.open();
-					});
-				});
-				$('.ewww-help-beacon-single').click(function() {
-					var hsid = $(this).attr('data-beacon-article');
-					HS.beacon.ready(function() {
-						event.preventDefault();
-						HS.beacon.show(hsid);
-					});
-				});
-			}
-		}
-		HSregister();
 		$('.ewww-guage').tooltip({
 			items: '.ewww-guage',
 			content: function() {

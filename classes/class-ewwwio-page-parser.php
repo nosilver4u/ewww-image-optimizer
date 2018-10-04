@@ -9,19 +9,10 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-// TODO: may remove content property.
 /**
  * HTML element and attribute parsing, replacing, etc.
  */
 class EWWWIO_Page_Parser {
-
-	/**
-	 * The content to parse.
-	 *
-	 * @access public
-	 * @var string $content
-	 */
-	public $content = '';
 
 	/**
 	 * Match all images and any relevant <a> tags in a block of HTML.
