@@ -940,6 +940,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 				if ( ! empty( $exactdn_url ) ) {
 					$src = $exactdn_url;
 				}
+				// TODO: prevent multipliers from being larger than a filename detected width.
 				if ( ! ewww_image_optimizer_get_option( 'exactdn_prevent_srcset_fill' ) && false !== strpos( $src, $this->exactdn_domain ) ) {
 					if ( ! $this->get_attribute( $images['img_tag'][ $index ], $this->srcset_attr ) && ! $this->get_attribute( $images['img_tag'][ $index ], 'sizes' ) ) {
 						$zoom = false;
@@ -954,15 +955,16 @@ class ExactDN extends EWWWIO_Page_Parser {
 						if ( empty( $width ) || ! is_numeric( $width ) ) {
 							$width = $this->get_img_width( $images['img_tag'][ $index ] );
 						}
+						list( $filename_width, $discard_height ) = $this->get_dimensions_from_filename( $src );
 						if ( empty( $width ) || ! is_numeric( $width ) ) {
-							list( $width, $discard_height ) = $this->get_dimensions_from_filename( $src );
+							$width = $filename_width;
 						}
 						if ( false !== strpos( $src, 'crop=' ) || false !== strpos( $src, '&h=' ) || false !== strpos( $src, '?h=' ) ) {
 							$width = false;
 						}
 						// Then add a srcset and sizes.
 						if ( $width ) {
-							$srcset = $this->generate_image_srcset( $src, $width, $zoom );
+							$srcset = $this->generate_image_srcset( $src, $width, $zoom, $filename_width );
 							if ( $srcset ) {
 								$new_tag = $images['img_tag'][ $index ];
 								$this->set_attribute( $new_tag, $this->srcset_attr, $srcset );
@@ -1520,11 +1522,11 @@ class ExactDN extends EWWWIO_Page_Parser {
 	 * @param string $url The url of the image.
 	 * @param int    $width Image width to use for calculations.
 	 * @param bool   $zoom Whether to use zoom or w param.
-	 * @uses this::validate_image_url, this::generate_url, this::parse_from_filename
-	 * @uses this::strip_image_dimensions_maybe, this::get_content_width
+	 * @param int    $filename_width The width derived from the filename, or false.
+	 * @uses this::generate_url
 	 * @return string A srcset attribute with ExactDN image urls and widths.
 	 */
-	public function generate_image_srcset( $url, $width, $zoom = false ) {
+	public function generate_image_srcset( $url, $width, $zoom = false, $filename_width = false ) {
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		// Don't foul up the admin side of things.
 		if ( is_admin() ) {
@@ -1565,6 +1567,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 			foreach ( $multipliers as $multiplier ) {
 				$newwidth = intval( $width * $multiplier );
+				if ( $filename_width && $newwidth > $filename_width ) {
+					continue;
+				}
 
 				if ( 1 === $multiplier ) {
 					$args = array();
