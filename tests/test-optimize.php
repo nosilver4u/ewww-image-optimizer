@@ -191,7 +191,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		$this->assertEquals( 1335586, filesize( $results[0] ) );
 		unlink( $results[0] );
-		$this->assertEquals( 277992, filesize( $results[0] . '.webp' ) );
+		$this->assertEquals( 284142, filesize( $results[0] . '.webp' ) );
 		if ( is_file( $results[0] . '.webp' ) ) {
 			unlink( $results[0] . '.webp' );
 		}
@@ -220,7 +220,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$this->assertEquals( ewww_image_optimizer_get_orientation( $results[0], 'image/jpeg' ), 1 );
 		unlink( $results[0] );
 		// size of webp with meta.
-		$this->assertEquals( 297578, filesize( $results[0] . '.webp' ) );
+		$this->assertEquals( 303728, filesize( $results[0] . '.webp' ) );
 		if ( is_file( $results[0] . '.webp' ) ) {
 			unlink( $results[0] . '.webp' );
 		}
@@ -368,7 +368,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$results = $this->optimize_png();
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
-		$this->assertEquals( 37557, filesize( $results[0] ) );
+		$this->assertEquals( 38442, filesize( $results[0] ) );
 		unlink( $results[0] );
 	}
 
