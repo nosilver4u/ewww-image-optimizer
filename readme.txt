@@ -2,10 +2,10 @@
 Contributors: nosilver4u
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW
 Tags: image, compress, resize, optimize, optimization, lossless, lossy, seo, webp, wp-cli, scale, tinypng, tinyjpg
-Requires at least: 4.6
+Requires at least: 4.9
 Tested up to: 4.9
 Requires PHP: 5.5
-Stable tag: 4.4.1
+Stable tag: 4.4.2
 License: GPLv3
 
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
