@@ -7282,7 +7282,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewwwio_debug_message( 'content_url: ' . content_url() );
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
 		if ( defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) && EWWW_IMAGE_OPTIMIZER_CLOUD ) {
-			ewwwio_debug_message
 			ewww_image_optimizer_disable_tools();
 		} else {
 			ewww_image_optimizer_tool_init();
