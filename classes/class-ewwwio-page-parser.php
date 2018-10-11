@@ -34,7 +34,7 @@ class EWWWIO_Page_Parser {
 		}
 		if ( preg_match_all( $search_pattern, $content, $images ) ) {
 			foreach ( $images as $key => $unused ) {
-				// Simplify the output as much as possible, mostly for confirming test results.
+				// Simplify the output as much as possible.
 				if ( is_numeric( $key ) && $key > 0 ) {
 					unset( $images[ $key ] );
 				}

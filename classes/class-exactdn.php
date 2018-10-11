@@ -644,6 +644,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 				$exactdn_url   = false;
 				$width         = false;
 				$lazy          = false;
+				$srcset_fill   = false;
 
 				// Flag if we need to munge a fullsize URL.
 				$fullsize_url = false;
@@ -665,6 +666,22 @@ class ExactDN extends EWWWIO_Page_Parser {
 				}
 
 				ewwwio_debug_message( 'made it passed the filters' );
+
+				// Pre-empt srcset fill if the surrounding link has a background image or if there is a data-desktop attribute indicating a potential slider.
+				if ( strpos( $tag, 'background-image:' ) || strpos( $tag, 'data-desktop=' ) ) {
+					$srcset_fill = false;
+				}
+				/**
+				 * Documented in generate_url, in this case used to detect images that should bypass srcset fill.
+				 *
+				 * @param array|string $args Array of ExactDN arguments.
+				 * @param string $image_url Image URL.
+				 * @param string|null $scheme Image scheme. Default to null.
+				 */
+				$args = apply_filters( 'exactdn_pre_args', array( 'test' => 'lazy-test' ), $src, null );
+				if ( empty( $args ) ) {
+					$srcset_fill = false;
+				}
 				// Support Lazy Load plugins.
 				// Don't modify $tag yet as we need unmodified version later.
 				$lazy_load_src = $this->get_attribute( $images['img_tag'][ $index ], 'data-lazy-src' );
@@ -675,15 +692,15 @@ class ExactDN extends EWWWIO_Page_Parser {
 					$src_orig             = $lazy_load_src;
 					$this->srcset_attr    = 'data-lazy-srcset';
 					$lazy                 = true;
+					$srcset_fill          = true;
 				}
+				// Must be a legacy Jetpack thing as far as I can tell, no matches found in any currently installed plugins.
 				$lazy_load_src = $this->get_attribute( $images['img_tag'][ $index ], 'data-lazy-original' );
-				// TODO: figure out where this comes from.
 				if ( ! $lazy && $lazy_load_src ) {
 					$placeholder_src      = $src;
 					$placeholder_src_orig = $src;
 					$src                  = $lazy_load_src;
 					$src_orig             = $lazy_load_src;
-					$this->srcset_attr    = 'data-lazy-srcset';
 					$lazy                 = true;
 				}
 				if ( ! $lazy && strpos( $images['img_tag'][ $index ], 'a3-lazy-load/assets/images/lazy_placeholder' ) ) {
@@ -695,6 +712,17 @@ class ExactDN extends EWWWIO_Page_Parser {
 					$src                  = $lazy_load_src;
 					$src_orig             = $lazy_load_src;
 					$this->srcset_attr    = 'data-srcset';
+					$lazy                 = true;
+					$srcset_fill          = true;
+				}
+				if ( ! $lazy && strpos( $images['img_tag'][ $index ], 'revslider/admin/assets/images/dummy' ) ) {
+					$lazy_load_src = $this->get_attribute( $images['img_tag'][ $index ], 'data-lazyload' );
+				}
+				if ( ! $lazy && $lazy_load_src ) {
+					$placeholder_src      = $src;
+					$placeholder_src_orig = $src;
+					$src                  = $lazy_load_src;
+					$src_orig             = $lazy_load_src;
 					$lazy                 = true;
 				}
 
@@ -940,8 +968,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 				if ( ! empty( $exactdn_url ) ) {
 					$src = $exactdn_url;
 				}
-				// TODO: prevent multipliers from being larger than a filename detected width.
-				if ( ! ewww_image_optimizer_get_option( 'exactdn_prevent_srcset_fill' ) && false !== strpos( $src, $this->exactdn_domain ) ) {
+				if ( $srcset_fill && ! ewww_image_optimizer_get_option( 'exactdn_prevent_srcset_fill' ) && false !== strpos( $src, $this->exactdn_domain ) ) {
 					if ( ! $this->get_attribute( $images['img_tag'][ $index ], $this->srcset_attr ) && ! $this->get_attribute( $images['img_tag'][ $index ], 'sizes' ) ) {
 						$zoom = false;
 						// If $width is empty, we'll search the url for a width param, then we try searching the img element, with fall back to the filename.

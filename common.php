@@ -18,8 +18,8 @@
 // TODO: write some conversion tests.
 // TODO: check this patch, to see if the use of 'full' causes any issues: https://core.trac.wordpress.org/ticket/37840 .
 // TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
-// TODO: handle relative urls with ExactDN.
-// TODO: see if we can parse all use tags and use the bypass mechanism to avoid ExactDN + SVG issues.
+// TODO: relative urls with ExactDN: https://github.com/nosilver4u/ewww-image-optimizer/issues/17 .
+// TODO: avoid ExactDN + SVG issues in <use> tags: https://github.com/nosilver4u/ewww-image-optimizer/issues/18 .
 // TODO: can some of the bulk "fallbacks" be implemented for async processing?
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
