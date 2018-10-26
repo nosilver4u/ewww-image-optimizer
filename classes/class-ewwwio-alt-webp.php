@@ -322,10 +322,12 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 		if ( ! empty( $noscript_images ) && isset( $noscript_images[0] ) ) {
 			foreach ( $noscript_images[0] as $nindex => $noscript_image ) {
 				if ( strpos( $noscript_image, 'facebook.com/tr?' ) ) {
+					ewwwio_debug_message( 'found fb tracking pixel, unsetting' );
 					unset( $noscript_images[0][ $nindex ] );
 				}
 			}
 			if ( empty( $noscript_images[0] ) ) {
+				ewwwio_debug_message( 'detected empty index 0, toggling $noscript_images' );
 				$noscript_images = false;
 			} else {
 				ewwwio_debug_message( 'noscript-encased images found, will not process any img elements' );
@@ -360,6 +362,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 					}
 					$nscript = $this->attr_copy( $image, $nscript );
 					$this->set_attribute( $nscript, 'class', 'ewww_webp' );
+					ewwwio_debug_message( "going to swap\n$image\nwith\n$nscript" . $image . '</noscript>' );
 					$buffer = str_replace( $image, $nscript . $image . '</noscript>', $buffer );
 				}
 				// NOTE: lazy loads are shutoff for now, since they don't work consistently
