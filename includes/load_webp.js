@@ -480,181 +480,91 @@ function check_webp_feature(feature, callback) {
 }
 function ewww_load_images(ewww_webp_supported) {
 	(function($) {
+                $.fn.extend({
+                        ewwwmaybeattr: function(attr, value) {
+                                if (typeof value !== typeof undefined && value !== false) {
+                                        this.attr(attr, value);
+                                }
+                                return this;
+                        }
+                });
 		var attr_prefix = 'data-';
 		function ewww_copy_attrs(ewww_nscript, ewww_img) {
 			var attrs = ['align','alt','border','crossorigin','height','hspace','ismap','longdesc','usemap','vspace','width','accesskey','class','contenteditable','contextmenu','dir','draggable','dropzone','hidden','id','lang','spellcheck','style','tabindex','title','translate','sizes','data-caption','data-attachment-id','data-permalink','data-orig-size','data-comments-opened','data-image-meta','data-image-title','data-image-description','data-event-trigger','data-highlight-color','data-highlight-opacity','data-highlight-border-color','data-highlight-border-width','data-highlight-border-opacity','data-no-lazy','data-lazy','data-large_image_width','data-large_image_height'];
 			for (var i = 0, len = attrs.length; i < len; i++) {
-				var ewww_attr = $(ewww_nscript).attr(attr_prefix + attrs[i]);
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(ewww_img).attr(attrs[i], ewww_attr);
-				}
+                                $(ewww_img).ewwwmaybeattr(attrs[i], $(ewww_nscript).attr(attr_prefix + attrs[i]));
 			}
 			return ewww_img;
 		}
 		if (ewww_webp_supported) {
 			$('.batch-image img, .image-wrapper a, .ngg-pro-masonry-item a, .ngg-galleria-offscreen-seo-wrapper a').each(function() {
-				var ewww_attr = $(this).attr('data-webp');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(this).attr('data-src', ewww_attr);
-				}
-				var ewww_attr = $(this).attr('data-webp-thumbnail');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(this).attr('data-thumbnail', ewww_attr);
-				}
+				$(this).ewwwmaybeattr('data-src', $(this).attr('data-webp'));
+				$(this).ewwwmaybeattr('data-thumbnail', $(this).attr('data-webp-thumbnail'));
 			});
 			$('.image-wrapper a, .ngg-pro-masonry-item a').each(function() {
-				var ewww_attr = $(this).attr('data-webp');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(this).attr('href', ewww_attr);
-				}
+				$(this).ewwwmaybeattr('href', $(this).attr('data-webp'));
 			});
 			$('.rev_slider ul li').each(function() {
-				var ewww_attr = $(this).attr('data-webp-thumb');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(this).attr('data-thumb', ewww_attr);
-				}
+				$(this).ewwwmaybeattr('data-thumb', $(this).attr('data-webp-thumb'));
 				var param_num = 1;
 				while ( param_num < 11 ) {
-					var ewww_attr = $(this).attr('data-webp-param' + param_num);
-					if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-						$(this).attr('data-param' + param_num, ewww_attr);
-					}
+                                        $(this).ewwwmaybeattr('data-param' + param_num, $(this).attr('data-webp-param' + param_num));
 					param_num++;
 				}
 			});
 			$('.rev_slider img').each(function() {
-				var ewww_attr = $(this).attr('data-webp-lazyload');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(this).attr('data-lazyload', ewww_attr);
-				}
+				$(this).ewwwmaybeattr('data-lazyload', $(this).attr('data-webp-lazyload'));
 			});
 			$('div.woocommerce-product-gallery__image').each(function() {
-				var ewww_attr = $(this).attr('data-webp-thumb');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(this).attr('data-thumb', ewww_attr);
-				}
+				$(this).ewwwmaybeattr('data-thumb', $(this).attr('data-webp-thumb'));
 			});
 		}
+                // we should not need this section, as it should be covered by ewww_webp_lazy_load
 		$('img.ewww_webp_lazy_retina').each(function() {
 			if (ewww_webp_supported) {
-				var ewww_attr = $(this).attr('data-srcset-webp');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(this).attr('data-srcset', ewww_attr);
-				}
-			} else {
-				var ewww_attr = $(this).attr('data-srcset-img');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-						$(this).attr('data-srcset', ewww_attr);
-				}
+				$(this).ewwwmaybeattr('data-srcset', $(this).attr('data-srcset-webp'));
 			}
 			$(this).removeClass('ewww_webp_lazy_retina');
 		});
 		$('video').each(function() {
 			if (ewww_webp_supported) {
-                                var ewww_attr = $(this).attr('data-poster-webp');
-                                if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-                                        $(this).attr('poster', ewww_attr);
-                                }
+				$(this).ewwwmaybeattr('poster', $(this).attr('data-poster-webp'));
                         } else {
-                                var ewww_attr = $(this).attr('data-poster-image');
-                                if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-                                        $(this).attr('poster', ewww_attr);
-                                }
+				$(this).ewwwmaybeattr('poster', $(this).attr('data-poster-image'));
                         }
 		});
 		$('img.ewww_webp_lazy_load').each(function() {
 			if (ewww_webp_supported) {
-				var ewww_attr = $(this).attr('data-srcset-webp');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(this).attr('srcset', ewww_attr);
-				}
-				var ewww_attr = $(this).attr('data-lazy-srcset-webp');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(this).attr('data-lazy-srcset', ewww_attr);
-				}
-				$(this).attr('data-lazy-src', $(this).attr('data-lazy-src-webp'));
+				$(this).ewwwmaybeattr('data-lazy-srcset', $(this).attr('data-lazy-srcset-webp'));
+				$(this).ewwwmaybeattr('data-srcset', $(this).attr('data-srcset-webp'));
+				$(this).ewwwmaybeattr('data-lazy-src', $(this).attr('data-lazy-src-webp'));
+				$(this).ewwwmaybeattr('data-src', $(this).attr('data-src-webp'));
 			}
 			$(this).removeClass('ewww_webp_lazy_load');
 		});
 		$('.ewww_webp').each(function() {
 			var ewww_img = document.createElement('img');
 			if (ewww_webp_supported) {
-				$(ewww_img).attr('src', $(this).attr('data-webp'));
-				var ewww_attr = $(this).attr('data-srcset-webp');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(ewww_img).attr('srcset', ewww_attr);
-				}
-				var ewww_attr = $(this).attr('data-webp-orig-file');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(ewww_img).attr('data-orig-file', ewww_attr);
-				} else {
-                                        var ewww_attr = $(this).attr('data-orig-file');
-                                        if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-                                                $(ewww_img).attr('data-orig-file', ewww_attr);
-                                        }
-                                }
-				var ewww_attr = $(this).attr('data-webp-medium-file');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(ewww_img).attr('data-medium-file', ewww_attr);
-				} else {
-                                        var ewww_attr = $(this).attr('data-medium-file');
-                                        if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-                                                $(ewww_img).attr('data-medium-file', ewww_attr);
-                                        }
-				}
-				var ewww_attr = $(this).attr('data-webp-large-file');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(ewww_img).attr('data-large-file', ewww_attr);
-				} else {
-                                        var ewww_attr = $(this).attr('data-large-file');
-                                        if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-                                                $(ewww_img).attr('data-large-file', ewww_attr);
-                                        }
-				}
-				var ewww_attr = $(this).attr('data-webp-large_image');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(ewww_img).attr('data-large_image', ewww_attr);
-				} else {
-                                        var ewww_attr = $(this).attr('data-large_image');
-                                        if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-                                                $(ewww_img).attr('data-large_image', ewww_attr);
-                                        }
-				}
-				var ewww_attr = $(this).attr('data-webp-src');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(ewww_img).attr('data-src', ewww_attr);
-				} else {
-                                        var ewww_attr = $(this).attr('data-src');
-                                        if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-                                                $(ewww_img).attr('data-src', ewww_attr);
-                                        }
-				}
+                                $(ewww_img).ewwwmaybeattr('src', $(this).attr('data-webp'));
+                                $(ewww_img).ewwwmaybeattr('srcset', $(this).attr('data-srcset-webp'));
+                                $(ewww_img).ewwwmaybeattr('data-orig-file', $(this).attr('data-orig-file'));
+                                $(ewww_img).ewwwmaybeattr('data-orig-file', $(this).attr('data-webp-orig-file'));
+                                $(ewww_img).ewwwmaybeattr('data-medium-file', $(this).attr('data-medium-file'));
+                                $(ewww_img).ewwwmaybeattr('data-medium-file', $(this).attr('data-webp-medium-file'));
+                                $(ewww_img).ewwwmaybeattr('data-large-file', $(this).attr('data-large-file'));
+                                $(ewww_img).ewwwmaybeattr('data-large-file', $(this).attr('data-webp-large-file'));
+                                $(ewww_img).ewwwmaybeattr('data-large_image', $(this).attr('data-large_image'));
+                                $(ewww_img).ewwwmaybeattr('data-large_image', $(this).attr('data-webp-large_image'));
+                                $(ewww_img).ewwwmaybeattr('data-src', $(this).attr('data-src'));
+                                $(ewww_img).ewwwmaybeattr('data-src', $(this).attr('data-webp-src'));
 			} else {
-				$(ewww_img).attr('src', $(this).attr('data-img'));
-				var ewww_attr = $(this).attr('data-srcset-img');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(ewww_img).attr('srcset', ewww_attr);
-				}
-				var ewww_attr = $(this).attr('data-orig-file');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(ewww_img).attr('data-orig-file', ewww_attr);
-				}
-				var ewww_attr = $(this).attr('data-medium-file');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(ewww_img).attr('data-medium-file', ewww_attr);
-				}
-				var ewww_attr = $(this).attr('data-large-file');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(ewww_img).attr('data-large-file', ewww_attr);
-				}
-				var ewww_attr = $(this).attr('data-large_image');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(ewww_img).attr('data-large_image', ewww_attr);
-				}
-				var ewww_attr = $(this).attr('data-src');
-				if (typeof ewww_attr !== typeof undefined && ewww_attr !== false) {
-					$(ewww_img).attr('data-src', ewww_attr);
-				}
+                                $(ewww_img).ewwwmaybeattr('src', $(this).attr('data-img'));
+                                $(ewww_img).ewwwmaybeattr('srcset', $(this).attr('data-srcset-img'));
+                                $(ewww_img).ewwwmaybeattr('data-orig-file', $(this).attr('data-orig-file'));
+                                $(ewww_img).ewwwmaybeattr('data-medium-file', $(this).attr('data-medium-file'));
+                                $(ewww_img).ewwwmaybeattr('data-large-file', $(this).attr('data-large-file'));
+                                $(ewww_img).ewwwmaybeattr('data-large_image', $(this).attr('data-large_image'));
+                                $(ewww_img).ewwwmaybeattr('data-src', $(this).attr('data-src'));
 			}
 			ewww_img = ewww_copy_attrs(this, ewww_img);
 			$(this).after(ewww_img);
