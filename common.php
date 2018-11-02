@@ -21,11 +21,12 @@
 // TODO: relative urls with ExactDN: https://github.com/nosilver4u/ewww-image-optimizer/issues/17 .
 // TODO: avoid ExactDN + SVG issues in <use> tags: https://github.com/nosilver4u/ewww-image-optimizer/issues/18 .
 // TODO: can some of the bulk "fallbacks" be implemented for async processing?
+// TODO: check to see if we can use PHP and WP core is_iterable and is_countable functions.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '442.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '442.11' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
