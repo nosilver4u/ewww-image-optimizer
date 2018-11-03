@@ -178,6 +178,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: Alt WebP supports BJ Lazy Load, a3 Lazy Load, WP Rocket Lazy Load, Jetpack Lazy Load, and WP Retina Lazy Load
 * added: ExactDN rewrites relative image urls that start with a single slash
 * fixed: Alt WebP refuses to process page when FB tracking pixel is present
+* fixed: SVG files within <use> tags throw errors with ExactDN
 
 = 4.4.2 =
 * added: notice for Pantheon users that an API key is required
