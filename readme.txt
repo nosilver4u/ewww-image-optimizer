@@ -3,8 +3,8 @@ Contributors: nosilver4u
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW
 Tags: image, compress, resize, optimize, optimization, lossless, lossy, seo, webp, wp-cli, scale, tinypng, tinyjpg
 Requires at least: 4.9
-Tested up to: 4.9
-Requires PHP: 5.5
+Tested up to: 5.0
+Requires PHP: 5.6
 Stable tag: 4.4.2
 License: GPLv3
 
@@ -179,6 +179,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: ExactDN rewrites relative image urls that start with a single slash
 * fixed: Alt WebP refuses to process page when FB tracking pixel is present
 * fixed: SVG files within <use> tags throw errors with ExactDN
+* removed: PHP 5.5 no longer supported
 
 = 4.4.2 =
 * added: notice for Pantheon users that an API key is required

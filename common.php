@@ -10,7 +10,6 @@
  * @package EWWW_Image_Optimizer
  */
 
-// TODO: attempt lazy load support with a3 plugin and one from automattic for alt webp. or are we back here: https://developers.google.com/web/fundamentals/performance/lazy-loading-guidance/images-and-video/
 // TODO: might be able to use the Custom Bulk Actions in 4.7 to support the bulk optimize drop-down menu.
 // TODO: need to make the scheduler so it can resume without having to re-run the queue population, and then we can probably also flush the queue when scheduled opt starts, but later it would be nice to implement the bulk_loop as the aux_loop so that it could handle media properly.
 // TODO: Add a custom async function for parallel mode to store image as pending and use the row ID instead of relative path.
@@ -18,8 +17,6 @@
 // TODO: write some conversion tests.
 // TODO: check this patch, to see if the use of 'full' causes any issues: https://core.trac.wordpress.org/ticket/37840 .
 // TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
-// TODO: relative urls with ExactDN: https://github.com/nosilver4u/ewww-image-optimizer/issues/17 .
-// TODO: avoid ExactDN + SVG issues in <use> tags: https://github.com/nosilver4u/ewww-image-optimizer/issues/18 .
 // TODO: can some of the bulk "fallbacks" be implemented for async processing?
 // TODO: check to see if we can use PHP and WP core is_iterable and is_countable functions.
 if ( ! defined( 'ABSPATH' ) ) {
