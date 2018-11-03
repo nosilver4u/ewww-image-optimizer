@@ -481,7 +481,7 @@ function check_webp_feature(feature, callback) {
 function ewww_load_images(ewww_webp_supported) {
 	(function($) {
                 $.fn.extend({
-                        ewwwmaybeattr: function(attr, value) {
+                        ewwwattr: function(attr, value) {
                                 if (typeof value !== typeof undefined && value !== false) {
                                         this.attr(attr, value);
                                 }
@@ -492,79 +492,82 @@ function ewww_load_images(ewww_webp_supported) {
 		function ewww_copy_attrs(ewww_nscript, ewww_img) {
 			var attrs = ['align','alt','border','crossorigin','height','hspace','ismap','longdesc','usemap','vspace','width','accesskey','class','contenteditable','contextmenu','dir','draggable','dropzone','hidden','id','lang','spellcheck','style','tabindex','title','translate','sizes','data-caption','data-attachment-id','data-permalink','data-orig-size','data-comments-opened','data-image-meta','data-image-title','data-image-description','data-event-trigger','data-highlight-color','data-highlight-opacity','data-highlight-border-color','data-highlight-border-width','data-highlight-border-opacity','data-no-lazy','data-lazy','data-large_image_width','data-large_image_height'];
 			for (var i = 0, len = attrs.length; i < len; i++) {
-                                $(ewww_img).ewwwmaybeattr(attrs[i], $(ewww_nscript).attr(attr_prefix + attrs[i]));
+                                $(ewww_img).ewwwattr(attrs[i], $(ewww_nscript).attr(attr_prefix + attrs[i]));
 			}
 			return ewww_img;
 		}
 		if (ewww_webp_supported) {
 			$('.batch-image img, .image-wrapper a, .ngg-pro-masonry-item a, .ngg-galleria-offscreen-seo-wrapper a').each(function() {
-				$(this).ewwwmaybeattr('data-src', $(this).attr('data-webp'));
-				$(this).ewwwmaybeattr('data-thumbnail', $(this).attr('data-webp-thumbnail'));
+				$(this).ewwwattr('data-src', $(this).attr('data-webp'));
+				$(this).ewwwattr('data-thumbnail', $(this).attr('data-webp-thumbnail'));
 			});
 			$('.image-wrapper a, .ngg-pro-masonry-item a').each(function() {
-				$(this).ewwwmaybeattr('href', $(this).attr('data-webp'));
+				$(this).ewwwattr('href', $(this).attr('data-webp'));
 			});
 			$('.rev_slider ul li').each(function() {
-				$(this).ewwwmaybeattr('data-thumb', $(this).attr('data-webp-thumb'));
+				$(this).ewwwattr('data-thumb', $(this).attr('data-webp-thumb'));
 				var param_num = 1;
 				while ( param_num < 11 ) {
-                                        $(this).ewwwmaybeattr('data-param' + param_num, $(this).attr('data-webp-param' + param_num));
+                                        $(this).ewwwattr('data-param' + param_num, $(this).attr('data-webp-param' + param_num));
 					param_num++;
 				}
 			});
 			$('.rev_slider img').each(function() {
-				$(this).ewwwmaybeattr('data-lazyload', $(this).attr('data-webp-lazyload'));
+				$(this).ewwwattr('data-lazyload', $(this).attr('data-webp-lazyload'));
 			});
 			$('div.woocommerce-product-gallery__image').each(function() {
-				$(this).ewwwmaybeattr('data-thumb', $(this).attr('data-webp-thumb'));
+				$(this).ewwwattr('data-thumb', $(this).attr('data-webp-thumb'));
 			});
 		}
                 // we should not need this section, as it should be covered by ewww_webp_lazy_load
 		$('img.ewww_webp_lazy_retina').each(function() {
 			if (ewww_webp_supported) {
-				$(this).ewwwmaybeattr('data-srcset', $(this).attr('data-srcset-webp'));
+				$(this).ewwwattr('data-srcset', $(this).attr('data-srcset-webp'));
 			}
 			$(this).removeClass('ewww_webp_lazy_retina');
 		});
 		$('video').each(function() {
 			if (ewww_webp_supported) {
-				$(this).ewwwmaybeattr('poster', $(this).attr('data-poster-webp'));
+				$(this).ewwwattr('poster', $(this).attr('data-poster-webp'));
                         } else {
-				$(this).ewwwmaybeattr('poster', $(this).attr('data-poster-image'));
+				$(this).ewwwattr('poster', $(this).attr('data-poster-image'));
                         }
 		});
 		$('img.ewww_webp_lazy_load').each(function() {
 			if (ewww_webp_supported) {
-				$(this).ewwwmaybeattr('data-lazy-srcset', $(this).attr('data-lazy-srcset-webp'));
-				$(this).ewwwmaybeattr('data-srcset', $(this).attr('data-srcset-webp'));
-				$(this).ewwwmaybeattr('data-lazy-src', $(this).attr('data-lazy-src-webp'));
-				$(this).ewwwmaybeattr('data-src', $(this).attr('data-src-webp'));
+				$(this).ewwwattr('data-lazy-srcset', $(this).attr('data-lazy-srcset-webp'));
+				$(this).ewwwattr('data-srcset', $(this).attr('data-srcset-webp'));
+				$(this).ewwwattr('data-lazy-src', $(this).attr('data-lazy-src-webp'));
+				$(this).ewwwattr('data-src', $(this).attr('data-src-webp'));
+                                $(this).ewwwattr('data-orig-file', $(this).attr('data-webp-orig-file'));
+                                $(this).ewwwattr('data-medium-file', $(this).attr('data-webp-medium-file'));
+                                $(this).ewwwattr('data-large-file', $(this).attr('data-webp-large-file'));
 			}
 			$(this).removeClass('ewww_webp_lazy_load');
 		});
 		$('.ewww_webp').each(function() {
 			var ewww_img = document.createElement('img');
 			if (ewww_webp_supported) {
-                                $(ewww_img).ewwwmaybeattr('src', $(this).attr('data-webp'));
-                                $(ewww_img).ewwwmaybeattr('srcset', $(this).attr('data-srcset-webp'));
-                                $(ewww_img).ewwwmaybeattr('data-orig-file', $(this).attr('data-orig-file'));
-                                $(ewww_img).ewwwmaybeattr('data-orig-file', $(this).attr('data-webp-orig-file'));
-                                $(ewww_img).ewwwmaybeattr('data-medium-file', $(this).attr('data-medium-file'));
-                                $(ewww_img).ewwwmaybeattr('data-medium-file', $(this).attr('data-webp-medium-file'));
-                                $(ewww_img).ewwwmaybeattr('data-large-file', $(this).attr('data-large-file'));
-                                $(ewww_img).ewwwmaybeattr('data-large-file', $(this).attr('data-webp-large-file'));
-                                $(ewww_img).ewwwmaybeattr('data-large_image', $(this).attr('data-large_image'));
-                                $(ewww_img).ewwwmaybeattr('data-large_image', $(this).attr('data-webp-large_image'));
-                                $(ewww_img).ewwwmaybeattr('data-src', $(this).attr('data-src'));
-                                $(ewww_img).ewwwmaybeattr('data-src', $(this).attr('data-webp-src'));
+                                $(ewww_img).ewwwattr('src', $(this).attr('data-webp'));
+                                $(ewww_img).ewwwattr('srcset', $(this).attr('data-srcset-webp'));
+                                $(ewww_img).ewwwattr('data-orig-file', $(this).attr('data-orig-file'));
+                                $(ewww_img).ewwwattr('data-orig-file', $(this).attr('data-webp-orig-file'));
+                                $(ewww_img).ewwwattr('data-medium-file', $(this).attr('data-medium-file'));
+                                $(ewww_img).ewwwattr('data-medium-file', $(this).attr('data-webp-medium-file'));
+                                $(ewww_img).ewwwattr('data-large-file', $(this).attr('data-large-file'));
+                                $(ewww_img).ewwwattr('data-large-file', $(this).attr('data-webp-large-file'));
+                                $(ewww_img).ewwwattr('data-large_image', $(this).attr('data-large_image'));
+                                $(ewww_img).ewwwattr('data-large_image', $(this).attr('data-webp-large_image'));
+                                $(ewww_img).ewwwattr('data-src', $(this).attr('data-src'));
+                                $(ewww_img).ewwwattr('data-src', $(this).attr('data-webp-src'));
 			} else {
-                                $(ewww_img).ewwwmaybeattr('src', $(this).attr('data-img'));
-                                $(ewww_img).ewwwmaybeattr('srcset', $(this).attr('data-srcset-img'));
-                                $(ewww_img).ewwwmaybeattr('data-orig-file', $(this).attr('data-orig-file'));
-                                $(ewww_img).ewwwmaybeattr('data-medium-file', $(this).attr('data-medium-file'));
-                                $(ewww_img).ewwwmaybeattr('data-large-file', $(this).attr('data-large-file'));
-                                $(ewww_img).ewwwmaybeattr('data-large_image', $(this).attr('data-large_image'));
-                                $(ewww_img).ewwwmaybeattr('data-src', $(this).attr('data-src'));
+                                $(ewww_img).ewwwattr('src', $(this).attr('data-img'));
+                                $(ewww_img).ewwwattr('srcset', $(this).attr('data-srcset-img'));
+                                $(ewww_img).ewwwattr('data-orig-file', $(this).attr('data-orig-file'));
+                                $(ewww_img).ewwwattr('data-medium-file', $(this).attr('data-medium-file'));
+                                $(ewww_img).ewwwattr('data-large-file', $(this).attr('data-large-file'));
+                                $(ewww_img).ewwwattr('data-large_image', $(this).attr('data-large_image'));
+                                $(ewww_img).ewwwattr('data-src', $(this).attr('data-src'));
 			}
 			ewww_img = ewww_copy_attrs(this, ewww_img);
 			$(this).after(ewww_img);

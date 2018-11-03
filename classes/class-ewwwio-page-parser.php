@@ -160,17 +160,21 @@ class EWWWIO_Page_Parser {
 	function set_attribute( &$element, $name, $value, $replace = false ) {
 		if ( $replace ) {
 			$new_element = preg_replace( '#' . $name . '\s*=\s*(["\'])([^\1]+?)\1#is', "$name=$1$value$1", $element );
-			if ( $new_element !== $element ) {
+			if ( strpos( $new_element, "$name=" ) ) {
 				$element = $new_element;
 				return;
 			}
 			$element = preg_replace( '#' . $name . '\s*=\s*([^\s]+?)#is', '', $element );
 		}
+		$closing = ' />';
+		if ( false === strpos( $element, '/>' ) ) {
+			$closing = '>';
+		}
 		if ( false === strpos( $value, '"' ) ) {
-			$element = rtrim( $element, '>' ) . " $name=\"$value\">";
+			$element = rtrim( $element, $closing ) . " $name=\"$value\"$closing";
 			return;
 		}
-		$element = rtrim( $element, '>' ) . " $name='$value'>";
+		$element = rtrim( $element, $closing ) . " $name='$value'$closing";
 	}
 
 	/**
