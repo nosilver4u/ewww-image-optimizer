@@ -726,6 +726,11 @@ class ExactDN extends EWWWIO_Page_Parser {
 					$lazy                 = true;
 				}
 
+				// Check for relative urls that start with a slash. Unlikely that we'll attempt relative urls beyond that.
+				if ( '/' === substr( $src, 0, 1 ) && '/' !== substr( $src, 1, 1 ) ) {
+					$src = '//' . $this->upload_domain . $src;
+				}
+
 				// Check if image URL should be used with ExactDN.
 				if ( $this->validate_image_url( $src ) ) {
 					ewwwio_debug_message( 'url validated' );

@@ -175,7 +175,8 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.5.0 =
-* added: Alt WebP supports BJ Lazy Load, a3 Lazy Load, WP Rocket Lazy Load
+* added: Alt WebP supports BJ Lazy Load, a3 Lazy Load, WP Rocket Lazy Load, Jetpack Lazy Load, and WP Retina Lazy Load
+* added: ExactDN rewrites relative image urls that start with a single slash
 * fixed: Alt WebP refuses to process page when FB tracking pixel is present
 
 = 4.4.2 =
