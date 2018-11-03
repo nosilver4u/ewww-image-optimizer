@@ -420,25 +420,32 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 						}
 					}
 				}
-				// WP Retina 2x lazy loads, disabled because we can't get into this loop with an empty src attribute.
-				// TODO: this will need to be moved outside this loop with a separate search based on the Meow_WR2X_Core class existing.
-				if ( false && empty( $file ) && strpos( $image, ' data-srcset=' ) && strpos( $this->get_attribute( $image, 'class' ), 'lazyload' ) ) {
-					$new_image = $image;
-					$srcset    = $this->get_attribute( $new_image, 'data-srcset' );
-					ewwwio_debug_message( 'checking webp for Retina Lazy Load data-src' );
-					if ( $srcset ) {
-						$srcset_webp = $this->srcset_replace( $srcset );
-						if ( $srcset_webp ) {
-							$this->set_attribute( $new_image, 'data-srcset-webp', $srcset_webp );
-						}
-					}
-					if ( $new_image !== $image ) {
-						$this->set_attribute( $new_image, 'class', $this->get_attribute( $new_image, 'class' ) . ' ewww_webp_lazy_load', true );
-						$buffer = str_replace( $image, $new_image, $buffer );
-					}
-				}
 			} // End foreach().
 		} // End if().
+		// Look for images to parse WP Retina Lazy Load.
+		if ( class_exists( 'Meow_WR2X_Core' ) && strpos( $buffer, ' lazyload' ) ) {
+			$images = $this->get_elements_from_html( $buffer, 'img' );
+			if ( ewww_image_optimizer_iterable( $images ) ) {
+				foreach ( $images as $index => $image ) {
+					$file = $this->get_attribute( $image, 'src' );
+					if ( empty( $file ) && strpos( $image, ' data-srcset=' ) && strpos( $this->get_attribute( $image, 'class' ), 'lazyload' ) ) {
+						$new_image = $image;
+						$srcset    = $this->get_attribute( $new_image, 'data-srcset' );
+						ewwwio_debug_message( 'checking webp for Retina Lazy Load data-src' );
+						if ( $srcset ) {
+							$srcset_webp = $this->srcset_replace( $srcset );
+							if ( $srcset_webp ) {
+								$this->set_attribute( $new_image, 'data-srcset-webp', $srcset_webp );
+							}
+						}
+						if ( $new_image !== $image ) {
+							$this->set_attribute( $new_image, 'class', $this->get_attribute( $new_image, 'class' ) . ' ewww_webp_lazy_load', true );
+							$buffer = str_replace( $image, $new_image, $buffer );
+						}
+					}
+				}
+			}
+		}
 		// Images listed as picture/source elements. Mostly for NextGEN, but should work anywhere.
 		$pictures = $this->get_picture_tags_from_html( $buffer );
 		if ( ewww_image_optimizer_iterable( $pictures ) ) {
