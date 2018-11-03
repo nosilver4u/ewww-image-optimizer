@@ -179,6 +179,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: ExactDN rewrites relative image urls that start with a single slash
 * fixed: Alt WebP refuses to process page when FB tracking pixel is present
 * fixed: SVG files within <use> tags throw errors with ExactDN
+* fixed: thumbnail generation fails with S3 Uploads plugin
 * removed: PHP 5.5 no longer supported
 
 = 4.4.2 =

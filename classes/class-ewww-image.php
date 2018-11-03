@@ -122,7 +122,7 @@ class EWWW_Image {
 			$ewwwdb = $wpdb;
 		}
 		$ewwwdb->flush();
-		if ( $path && is_file( $path ) ) {
+		if ( $path && ( is_file( $path ) || 0 === strpos( $path, 's3://' ) ) ) {
 			ewwwio_debug_message( "creating EWWW_Image with $path" );
 			$new_image = ewww_image_optimizer_find_already_optimized( $path );
 			if ( ! $new_image ) {

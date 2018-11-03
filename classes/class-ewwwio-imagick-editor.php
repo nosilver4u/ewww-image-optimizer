@@ -250,9 +250,6 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 		 */
 		protected function _save( $image, $filename = null, $mime_type = null ) {
 			global $ewww_preempt_editor;
-			if ( ! empty( $ewww_preempt_editor ) ) {
-				return parent::_save( $image, $filename, $mime_type );
-			}
 			list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
 			if ( ! $filename ) {
 				$filename = $this->generate_filename( null, null, $extension );
@@ -264,9 +261,7 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 			}
 			$upload_dir = wp_upload_dir();
 
-			if ( strpos( $filename, $upload_dir['basedir'] ) === 0 ) {
-				$temp_filename = tempnam( get_temp_dir(), 's3-uploads' );
-			}
+			$temp_filename = tempnam( get_temp_dir(), 's3-uploads' );
 
 			$saved = parent::_save( $image, $temp_filename, $mime_type );
 
@@ -275,7 +270,7 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 				unset( $s3_uploads_image );
 				return $saved;
 			}
-			if ( is_file( $saved['path'] ) ) {
+			if ( is_file( $saved['path'] ) && empty( $ewww_preempt_editor ) ) {
 				$temp_filename = $saved['path'];
 				ewww_image_optimizer( $temp_filename );
 				ewwwio_debug_message( "image editor (s3 uploads) saved: $temp_filename" );
