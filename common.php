@@ -817,6 +817,13 @@ function ewww_image_optimizer_ajax_compat_check() {
 			ewww_image_optimizer_image_sizes( false );
 			return;
 		}
+		if ( 'mic_crop_image' == $_REQUEST['action'] ) {
+			ewwwio_debug_message( 'doing Manual Image Crop' );
+			if ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) ) {
+				define( 'EWWWIO_EDITOR_OVERWRITE', true );
+			}
+			return;
+		}
 	}
 	// Check for Image Watermark plugin.
 	if ( ! empty( $_POST['iw-action'] ) ) {
@@ -7438,6 +7445,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherwidth' ) ||
 		ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherheight' )
 	) {
+		$resize_score += 30;
+	} elseif ( defined( 'IMSANITY_VERSION' ) ) {
 		$resize_score += 30;
 	} else {
 		$resize_recommendations[] = esc_html__( 'Configure maximum image dimensions in Resize settings.', 'ewww-image-optimizer' ) . ewwwio_help_link( 'https://docs.ewww.io/article/41-resize-settings', '59849911042863033a1ba5f9' );

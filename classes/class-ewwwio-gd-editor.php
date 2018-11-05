@@ -546,6 +546,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				unset( $this->ewww_image );
 				return parent::_save( $image, $filename, $mime_type );
 			}
+			global $ewww_preempt_editor;
 			if ( ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) || ! EWWWIO_EDITOR_OVERWRITE ) && is_file( $filename ) && empty( $ewww_preempt_editor ) ) {
 				ewwwio_debug_message( "detected existing file: $filename" );
 				$current_size = getimagesize( $filename );
