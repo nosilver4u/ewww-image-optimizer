@@ -177,10 +177,12 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 = 4.5.0 =
 * added: Alt WebP supports BJ Lazy Load, a3 Lazy Load, WP Rocket Lazy Load, Jetpack Lazy Load, and WP Retina Lazy Load
 * added: ExactDN rewrites relative image urls that start with a single slash
+* changed: ExactDN srcset markup for smaller images improved
 * fixed: Alt WebP refuses to process page when FB tracking pixel is present
 * fixed: SVG files within <use> tags throw errors with ExactDN
 * fixed: thumbnail generation fails with S3 Uploads plugin
 * fixed: unable to modify WebP conversion option when ExactDN is enabled
+* fixed: ExactDN inserts full-size image without arguments
 * removed: PHP 5.5 no longer supported
 
 = 4.4.2 =

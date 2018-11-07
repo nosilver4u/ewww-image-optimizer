@@ -975,6 +975,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 				}
 				if ( $srcset_fill && ! ewww_image_optimizer_get_option( 'exactdn_prevent_srcset_fill' ) && false !== strpos( $src, $this->exactdn_domain ) ) {
 					if ( ! $this->get_attribute( $images['img_tag'][ $index ], $this->srcset_attr ) && ! $this->get_attribute( $images['img_tag'][ $index ], 'sizes' ) ) {
+						ewwwio_debug_message( "srcset filling with $src" );
 						$zoom = false;
 						// If $width is empty, we'll search the url for a width param, then we try searching the img element, with fall back to the filename.
 						if ( empty( $width ) || ! is_numeric( $width ) ) {
@@ -1385,6 +1386,8 @@ class ExactDN extends EWWWIO_Page_Parser {
 		$upload_dir      = wp_get_upload_dir();
 		$resize_existing = defined( 'EXACTDN_RESIZE_EXISTING' ) && EXACTDN_RESIZE_EXISTING;
 
+		ewwwio_debug_message( 'current list has ' . count( $sources ) . ' image(s)' );
+
 		foreach ( $sources as $i => $source ) {
 			if ( ! $this->validate_image_url( $source['url'] ) ) {
 				continue;
@@ -1430,8 +1433,6 @@ class ExactDN extends EWWWIO_Page_Parser {
 		/**
 		 * At this point, $sources is the original srcset with ExactDN URLs.
 		 * Now, we're going to construct additional sizes based on multiples of the content_width.
-		 * TODO: Then we will also insert additional sizes from the ExactDN feedback loop.
-		 * This will reduce the gap between the largest defined size and the original image.
 		 */
 
 		/**
@@ -1460,7 +1461,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 			$fullheight = $image_meta['height'];
 			$reqwidth   = $size_array[0];
 			$reqheight  = $size_array[1];
-			ewwwio_debug_message( "requested w $reqwidth h $reqheight full w $fullwidth full h $fullheight" );
+			ewwwio_debug_message( "filling additional sizes with requested w $reqwidth h $reqheight full w $fullwidth full h $fullheight" );
 
 			$constrained_size = wp_constrain_dimensions( $fullwidth, $fullheight, $reqwidth );
 			$expected_size    = array( $reqwidth, $reqheight );
@@ -1468,9 +1469,11 @@ class ExactDN extends EWWWIO_Page_Parser {
 			ewwwio_debug_message( $constrained_size[0] );
 			ewwwio_debug_message( $constrained_size[1] );
 			if ( abs( $constrained_size[0] - $expected_size[0] ) <= 1 && abs( $constrained_size[1] - $expected_size[1] ) <= 1 ) {
+				ewwwio_debug_message( 'soft cropping' );
 				$crop = 'soft';
 				$base = $this->get_content_width() ? $this->get_content_width() : 1900; // Provide a default width if none set by the theme.
 			} else {
+				ewwwio_debug_message( 'hard cropping' );
 				$crop = 'hard';
 				$base = $reqwidth;
 			}
@@ -1482,6 +1485,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 			foreach ( $multipliers as $multiplier ) {
 
 				$newwidth = intval( $base * $multiplier );
+				if ( $newwidth < 50 ) {
+					continue;
+				}
 				foreach ( $currentwidths as $currentwidth ) {
 					// If a new width would be within 50 pixels of an existing one or larger than the full size image, skip.
 					if ( abs( $currentwidth - $newwidth ) < 50 || ( $newwidth > $fullwidth ) ) {
@@ -1489,7 +1495,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 					}
 				} // foreach ( $currentwidths as $currentwidth ){
 
-				if ( 1 === $multiplier ) {
+				if ( 1 === $multiplier && abs( $newwidth - $fullwidth ) < 5 ) {
 					$args = array();
 				} elseif ( 'soft' == $crop ) {
 					$args = array(
@@ -1509,7 +1515,10 @@ class ExactDN extends EWWWIO_Page_Parser {
 					'descriptor' => 'w',
 					'value'      => $newwidth,
 				);
+
+				$currentwidths[] = $newwidth;
 			} // foreach ( $multipliers as $multiplier )
+
 			if ( is_array( $newsources ) ) {
 				$sources = array_replace( $sources, $newsources );
 			}
@@ -1588,7 +1597,8 @@ class ExactDN extends EWWWIO_Page_Parser {
 		if ( ! $width ) {
 			return '';
 		}
-		$srcset = '';
+		$srcset        = '';
+		$currentwidths = array();
 
 		if (
 			/** Short-circuit via exactdn_srcset_multipliers filter. */
@@ -1601,6 +1611,15 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 			foreach ( $multipliers as $multiplier ) {
 				$newwidth = intval( $width * $multiplier );
+				if ( $newwidth < 50 ) {
+					continue;
+				}
+				foreach ( $currentwidths as $currentwidth ) {
+					// If a new width would be within 50 pixels of an existing one or larger than the full size image, skip.
+					if ( abs( $currentwidth - $newwidth ) < 50 ) {
+						continue 2; // Back to the foreach ( $multipliers as $multiplier ).
+					}
+				} // foreach ( $currentwidths as $currentwidth ){
 				if ( $filename_width && $newwidth > $filename_width ) {
 					continue;
 				}
@@ -1622,6 +1641,8 @@ class ExactDN extends EWWWIO_Page_Parser {
 					'descriptor' => 'w',
 					'value'      => $newwidth,
 				);
+
+				$currentwidths[] = $newwidth;
 			}
 		}
 		if ( ! empty( $sources ) ) {
