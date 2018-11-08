@@ -5634,7 +5634,7 @@ function ewww_image_optimizer_detect_wpsf_location_lock() {
 function ewww_image_optimizer_as3cf_attachment_file_paths( $paths, $id ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	foreach ( $paths as $size => $path ) {
-		if ( is_string( $path ) ) {
+		if ( is_string( $path ) && is_file( $path . '.webp' ) ) {
 			$paths[ $size . '-webp' ] = $path . '.webp';
 			ewwwio_debug_message( "added $path.webp to as3cf queue" );
 		}
