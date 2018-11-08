@@ -343,7 +343,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 						$this->set_attribute( $new_image, 'class', $this->get_attribute( $new_image, 'class' ) . ' ewww_webp_lazy_load', true );
 						$buffer = str_replace( $image, $new_image, $buffer );
 					}
-				} elseif ( $this->validate_image_url( $file ) ) {
+				} elseif ( $this->validate_image_url( $file ) && false === strpos( $image, 'lazyload' ) ) {
 					// If a CDN path match was found, or .webp image existsence is confirmed, and this is not a lazy-load 'dummy' image.
 					ewwwio_debug_message( 'found a webp image or forced path' );
 					$nscript = '<noscript>';
@@ -428,7 +428,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 			if ( ewww_image_optimizer_iterable( $images ) ) {
 				foreach ( $images as $index => $image ) {
 					$file = $this->get_attribute( $image, 'src' );
-					if ( empty( $file ) && strpos( $image, ' data-srcset=' ) && strpos( $this->get_attribute( $image, 'class' ), 'lazyload' ) ) {
+					if ( ( empty( $file ) || strpos( $image, 'R0lGODlhAQABAIAAAAAAAP' ) ) && strpos( $image, ' data-srcset=' ) && strpos( $this->get_attribute( $image, 'class' ), 'lazyload' ) ) {
 						$new_image = $image;
 						$srcset    = $this->get_attribute( $new_image, 'data-srcset' );
 						ewwwio_debug_message( 'checking webp for Retina Lazy Load data-src' );
