@@ -1097,6 +1097,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 	function filter_image_downsize( $image, $attachment_id, $size ) {
 		$started = microtime( true );
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+
 		// Don't foul up the admin side of things, unless a plugin wants to.
 		if ( is_admin() &&
 			/**
@@ -1104,7 +1105,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 			 *
 			 * Note: enabling this will result in ExactDN URLs added to your post content, which could make migrations across domains (and off ExactDN) a bit more challenging.
 			 *
-			 * @param bool false Stop ExactDN from being run on the Dashboard. Default to false.
+			 * @param bool false Allow ExactDN to run on the Dashboard. Default to false.
 			 * @param array $args {
 			 *     Array of image details.
 			 *
@@ -1116,6 +1117,10 @@ class ExactDN extends EWWWIO_Page_Parser {
 			false === apply_filters( 'exactdn_admin_allow_image_downsize', false, compact( 'image', 'attachment_id', 'size' ) )
 		) {
 			return $image;
+		}
+
+		if ( $this->is_restapi_editor() ) {
+			return $sources;
 		}
 
 		/**
@@ -1380,9 +1385,15 @@ class ExactDN extends EWWWIO_Page_Parser {
 		) {
 			return $sources;
 		}
+
+		if ( $this->is_restapi_editor() ) {
+			return $sources;
+		}
+
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
+
 		$upload_dir      = wp_get_upload_dir();
 		$resize_existing = defined( 'EXACTDN_RESIZE_EXISTING' ) && EXACTDN_RESIZE_EXISTING;
 
@@ -1731,6 +1742,36 @@ class ExactDN extends EWWWIO_Page_Parser {
 		$args = array( 'crop' => $s_x . 'px,' . $s_y . 'px,' . $crop_w . 'px,' . $crop_h . 'px' ) + $args;
 		ewwwio_debug_message( $args['crop'] );
 		return $args;
+	}
+
+	/**
+	 * Check if this is a REST API request to the media endpoint with the editor context.
+	 *
+	 * @return bool True if this is a REST API request to the media endpoint from the editor.
+	 */
+	function is_restapi_editor() {
+		if (
+			! empty( $GLOBALS['wp']->query_vars['rest_route'] ) && false !== strpos( $GLOBALS['wp']->query_vars['rest_route'], '/wp/v2/media/' ) &&
+			! empty( $_REQUEST['context'] ) && 'edit' === $_REQUEST['context'] &&
+			/**
+			 * Provide plugins a way of running ExactDN for images for the REST API (media endpoint).
+			 *
+			 * Note: enabling this will result in ExactDN URLs added to REST API responses, which breaks Gutenberg, and possibly other REST API consumers.
+			 *
+			 * @param bool false Allow ExactDN to run on the REST API media endpoint. Default to false.
+			 * @param array $args {
+			 *     Array of image details.
+			 *
+			 *     @type array|bool  $image Image URL or false.
+			 *     @type int          $attachment_id Attachment ID of the image.
+			 *     @type array|string $size Image size. Can be a string (name of the image size, e.g. full) or an array of height and width.
+			 * }
+			 */
+			false === apply_filters( 'exactdn_restapi_allow_image_downsize', false, compact( 'image', 'attachment_id', 'size' ) )
+		) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
