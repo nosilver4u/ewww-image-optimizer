@@ -175,7 +175,8 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.5.1 =
-* fixed: ExactDN parsing urls for REST API requests from Gutenberg
+* fixed: ExactDN filtering REST API media endpoint for Gutenberg editor requests
+* fixed: ExactDN adding unneeded resize parameters to full-size image urls
 
 = 4.5.0 =
 * added: Alt WebP supports BJ Lazy Load, a3 Lazy Load, WP Rocket Lazy Load, Jetpack Lazy Load, and WP Retina Lazy Load
