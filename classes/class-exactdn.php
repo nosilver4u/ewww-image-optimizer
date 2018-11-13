@@ -140,6 +140,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 		// Disable image_downsize filter during themify_get_image().
 		add_action( 'themify_before_post_image', array( $this, 'disable_image_downsize' ) );
 
+		// Check REST API requests to see if ExactDN should be running.
+		add_filter( 'rest_request_before_callbacks', array( $this, 'parse_restapi_maybe' ), 10, 3 );
+
 		// Overrides for admin-ajax images.
 		add_filter( 'exactdn_admin_allow_image_downsize', array( $this, 'allow_admin_image_downsize' ), 10, 2 );
 		// Overrides for "pass through" images.
@@ -1119,10 +1122,6 @@ class ExactDN extends EWWWIO_Page_Parser {
 			return $image;
 		}
 
-		if ( $this->is_restapi_editor() ) {
-			return $sources;
-		}
-
 		/**
 		 * Provide plugins a way of preventing ExactDN from being applied to images retrieved from WordPress Core.
 		 *
@@ -1382,10 +1381,6 @@ class ExactDN extends EWWWIO_Page_Parser {
 			 */
 			false === apply_filters( 'exactdn_admin_allow_image_srcset', false, compact( 'image_src', 'attachment_id' ) )
 		) {
-			return $sources;
-		}
-
-		if ( $this->is_restapi_editor() ) {
 			return $sources;
 		}
 
@@ -1750,33 +1745,31 @@ class ExactDN extends EWWWIO_Page_Parser {
 	}
 
 	/**
-	 * Check if this is a REST API request to the media endpoint with the editor context.
+	 * Check if this is a REST API request that we should handle (or not).
 	 *
-	 * @return bool True if this is a REST API request to the media endpoint from the editor.
+	 * @param WP_HTTP_Response $response Result to send to the client. Usually a WP_REST_Response.
+	 * @param WP_REST_Server   $handler  ResponseHandler instance (usually WP_REST_Server).
+	 * @param WP_REST_Request  $request  Request used to generate the response.
+	 * @return WP_HTTP_Response The result, unaltered.
 	 */
-	function is_restapi_editor() {
-		if (
-			! empty( $GLOBALS['wp']->query_vars['rest_route'] ) && false !== strpos( $GLOBALS['wp']->query_vars['rest_route'], '/wp/v2/media/' ) &&
-			! empty( $_REQUEST['context'] ) && 'edit' === $_REQUEST['context'] &&
-			/**
-			 * Provide plugins a way of running ExactDN for images for the REST API (media endpoint).
-			 *
-			 * Note: enabling this will result in ExactDN URLs added to REST API responses, which breaks Gutenberg, and possibly other REST API consumers.
-			 *
-			 * @param bool false Allow ExactDN to run on the REST API media endpoint. Default to false.
-			 * @param array $args {
-			 *     Array of image details.
-			 *
-			 *     @type array|bool  $image Image URL or false.
-			 *     @type int          $attachment_id Attachment ID of the image.
-			 *     @type array|string $size Image size. Can be a string (name of the image size, e.g. full) or an array of height and width.
-			 * }
-			 */
-			false === apply_filters( 'exactdn_restapi_allow_image_downsize', false, compact( 'image', 'attachment_id', 'size' ) )
-		) {
-			return true;
+	function parse_restapi_maybe( $response, $handler, $request ) {
+		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		if ( ! is_a( $request, 'WP_REST_Request' ) ) {
+			ewwwio_debug_message( 'oddball REST request or handler' );
+			return $response; // Something isn't right, bail.
 		}
-		return false;
+		$route = $request->get_route();
+		if ( is_string( $route ) ) {
+			ewwwio_debug_message( "current REST route is $route" );
+		}
+		if ( is_string( $route ) && false !== strpos( $route, 'wp/v2/media/' ) && ! empty( $request['context'] ) && 'edit' === $request['context'] ) {
+			ewwwio_debug_message( 'REST API media endpoint from post editor' );
+			// We don't want ExactDN urls anywhere near the editor, so disable everything we can.
+			add_filter( 'exactdn_override_image_downsize', '__return_true', PHP_INT_MAX );
+			add_filter( 'exactdn_skip_image', '__return_true', PHP_INT_MAX ); // This skips existing srcset indices.
+			add_filter( 'exactdn_srcset_multipliers', '__return_false', PHP_INT_MAX ); // This one skips the additional multipliers.
+		}
+		return $response;
 	}
 
 	/**
