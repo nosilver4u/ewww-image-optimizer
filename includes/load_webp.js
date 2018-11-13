@@ -519,13 +519,6 @@ function ewww_load_images(ewww_webp_supported) {
 				$(this).ewwwattr('data-thumb', $(this).attr('data-webp-thumb'));
 			});
 		}
-                // we should not need this section, as it should be covered by ewww_webp_lazy_load
-		$('img.ewww_webp_lazy_retina').each(function() {
-			if (ewww_webp_supported) {
-				$(this).ewwwattr('data-srcset', $(this).attr('data-srcset-webp'));
-			}
-			$(this).removeClass('ewww_webp_lazy_retina');
-		});
 		$('video').each(function() {
 			if (ewww_webp_supported) {
 				$(this).ewwwattr('poster', $(this).attr('data-poster-webp'));
@@ -542,6 +535,10 @@ function ewww_load_images(ewww_webp_supported) {
                                 $(this).ewwwattr('data-orig-file', $(this).attr('data-webp-orig-file'));
                                 $(this).ewwwattr('data-medium-file', $(this).attr('data-webp-medium-file'));
                                 $(this).ewwwattr('data-large-file', $(this).attr('data-webp-large-file'));
+                                var jpsrcset = $(this).attr('srcset');
+                                if (typeof jpsrcset !== typeof undefined && jpsrcset !== false && jpsrcset.includes('R0lGOD')) {
+                                        $(this).ewwwattr('src', $(this).attr('data-lazy-src-webp'));
+                                }
 			}
 			$(this).removeClass('ewww_webp_lazy_load');
 		});
