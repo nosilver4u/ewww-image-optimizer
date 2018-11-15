@@ -175,6 +175,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.5.1 =
+* changed: ExactDN defaults to crop when explicit dimensions are given to image_downsize(), revert to scaling with EXACTDN_IMAGE_DOWNSIZE_SCALE
 * fixed: ExactDN filtering REST API media endpoint for Gutenberg editor requests
 * fixed: ExactDN adding unneeded resize parameters to full-size image urls
 * fixed: Alt WebP skipping images with query strings
