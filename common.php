@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '450.05' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '450.12' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -517,6 +517,7 @@ function ewww_image_optimizer_upgrade() {
 		}
 		ewww_image_optimizer_remove_obsolete_settings();
 		update_option( 'ewww_image_optimizer_version', EWWW_IMAGE_OPTIMIZER_VERSION );
+		ewww_image_optimizer_debug_log();
 	}
 	ewwwio_memory( __FUNCTION__ );
 }
@@ -1116,6 +1117,11 @@ function ewww_image_optimizer_install_table() {
 	$db_collation = $wpdb->get_charset_collate();
 	ewwwio_debug_message( "current collation: $db_collation" );
 
+	// Check if the old path_image_size index exists, and drop it.
+	if ( $wpdb->get_results( "SHOW INDEX FROM $wpdb->ewwwio_images WHERE Key_name = 'path_image_size'", ARRAY_A ) ) {
+		ewwwio_debug_message( 'getting rid of path_image_size index' );
+		$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images DROP INDEX path_image_size" );
+	}
 	// See if the path column exists, and what collation it uses to determine the column index size.
 	if ( $wpdb->get_var( "SHOW TABLES LIKE '$wpdb->ewwwio_images'" ) == $wpdb->ewwwio_images ) {
 		ewwwio_debug_message( 'upgrading table and checking collation for path, table exists' );
@@ -1200,7 +1206,7 @@ function ewww_image_optimizer_install_table() {
 		updated timestamp DEFAULT '1971-01-01 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
 		trace blob,
 		UNIQUE KEY id (id),
-		KEY path_image_size (path($path_index_size),image_size),
+		KEY path (path($path_index_size)),
 		KEY attachment_info (gallery(3),attachment_id)
 	) $db_collation;";
 
