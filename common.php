@@ -811,7 +811,8 @@ function ewww_image_optimizer_ajax_compat_check() {
 	if ( ! empty( $_REQUEST['action'] ) ) {
 		if ( 'regeneratethumbnail' == $_REQUEST['action'] ||
 			'meauh_save_image' == $_REQUEST['action'] ||
-			'hotspot_save' == $_REQUEST['action']
+			'hotspot_save' == $_REQUEST['action'] ||
+			false !== strpos( $_REQUEST['action'], 'wc_regenerate_images' )
 		) {
 			ewwwio_debug_message( 'doing regeneratethumbnail' );
 			ewww_image_optimizer_image_sizes( false );

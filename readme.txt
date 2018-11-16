@@ -176,6 +176,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 
 = 4.5.1 =
 * changed: ExactDN defaults to crop when explicit dimensions are given to image_downsize(), revert to scaling with EXACTDN_IMAGE_DOWNSIZE_SCALE
+* fixed: WooCommerce thumbnail regeneration triggers excessive admin-ajax requests within EWWW IO
 * fixed: ExactDN filtering REST API media endpoint for Gutenberg editor requests
 * fixed: ExactDN adding unneeded resize parameters to full-size image urls
 * fixed: Alt WebP skipping images with query strings
