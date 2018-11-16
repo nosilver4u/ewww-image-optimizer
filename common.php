@@ -39,11 +39,8 @@ if ( ! isset( $wpdb->ewwwio_images ) ) {
 	$wpdb->ewwwio_images = $wpdb->prefix . 'ewwwio_images';
 }
 
-// Check for Pantheon environment, and turn on relative folder usage at level 3.
-if ( ! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) && in_array( $_ENV['PANTHEON_ENVIRONMENT'], array( 'test', 'live', 'dev' ) ) ) {
-	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_RELATIVE' ) ) {
-		define( 'EWWW_IMAGE_OPTIMIZER_RELATIVE', 3 );
-	}
+if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_RELATIVE' ) ) {
+	define( 'EWWW_IMAGE_OPTIMIZER_RELATIVE', true );
 }
 
 // Used for manipulating exif info.
