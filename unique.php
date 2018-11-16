@@ -120,6 +120,7 @@ function ewww_image_optimizer_set_defaults() {
 	add_site_option( 'ewww_image_optimizer_png_level', '10' );
 	add_site_option( 'ewww_image_optimizer_gif_level', '10' );
 	add_site_option( 'ewww_image_optimizer_pdf_level', '0' );
+	add_site_option( 'exactdn_lossy', true );
 }
 
 /**
@@ -1731,11 +1732,11 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	$file_group = 'unknown';
 	if ( function_exists( 'posix_getpwuid' ) ) {
 		$file_owner = posix_getpwuid( fileowner( $file ) );
-		$file_owner = $file_owner['name'];
+		$file_owner = 'xxxxxxxx' . substr( $file_owner['name'], -4 );
 	}
 	if ( function_exists( 'posix_getgrgid' ) ) {
 		$file_group = posix_getgrgid( filegroup( $file ) );
-		$file_group = $file_group['name'];
+		$file_group = 'xxxxx' . substr( $file_group['name'], -5 );
 	}
 	ewwwio_debug_message( "permissions: $file_perms, owner: $file_owner, group: $file_group" );
 	$type = ewww_image_optimizer_mimetype( $file, 'i' );

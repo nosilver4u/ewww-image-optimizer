@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function ewww_image_optimizer_bulk_preview() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	ewwwio_debug_version_info();
 	// Retrieve the attachment IDs that were pre-loaded in the database.
 	echo '<div class="wrap"><h1>' . esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ) . '</h1>';
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) ) {

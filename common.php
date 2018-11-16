@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '450.04' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '450.05' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -486,10 +486,6 @@ function ewww_image_optimizer_upgrade() {
 		ewww_image_optimizer_enable_background_optimization();
 		ewww_image_optimizer_install_table();
 		ewww_image_optimizer_set_defaults();
-		if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) < 30 ) {
-			add_site_option( 'exactdn_lossy', true );
-			update_option( 'exactdn_lossy', true );
-		}
 		// This will get re-enabled if things are too slow.
 		ewww_image_optimizer_set_option( 'exactdn_prevent_db_queries', false );
 		delete_option( 'ewww_image_optimizer_exactdn_verify_method' );
@@ -514,6 +510,10 @@ function ewww_image_optimizer_upgrade() {
 		}
 		if ( get_option( 'ewww_image_optimizer_version' ) > 0 && get_option( 'ewww_image_optimizer_version' ) < 434 && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpegtran_copy' ) ) {
 			ewww_image_optimizer_set_option( 'ewww_image_optimizer_metadata_remove', false );
+		}
+		if ( get_option( 'ewww_image_optimizer_version' ) > 0 && get_option( 'ewww_image_optimizer_version' ) < 440 && ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) < 30 ) ) {
+			add_site_option( 'exactdn_lossy', true );
+			update_option( 'exactdn_lossy', true );
 		}
 		ewww_image_optimizer_remove_obsolete_settings();
 		update_option( 'ewww_image_optimizer_version', EWWW_IMAGE_OPTIMIZER_VERSION );
@@ -5225,7 +5225,13 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 				'type' => $type,
 			)
 		);
-		$ewwwio_media_background->save()->dispatch();
+		if ( 5 > $ewwwio_media_background->count_queue() ) {
+			$ewwwio_media_background->save()->dispatch();
+			ewwwio_debug_message( 'small queue, dispatching post-haste' );
+		} else {
+			ewwwio_debug_message( 'detected queued items in progress, saving without dispatch' );
+			$ewwwio_media_background->save();
+		}
 		set_transient( 'ewwwio-background-in-progress-' . $id, true, 24 * HOUR_IN_SECONDS );
 		if ( $log ) {
 			ewww_image_optimizer_debug_log();
@@ -7280,6 +7286,7 @@ function ewww_image_optimizer_network_singlesite_options() {
  */
 function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	ewwwio_debug_version_info();
 	ewwwio_debug_message( 'ABSPATH: ' . ABSPATH );
 	ewwwio_debug_message( 'WP_CONTENT_DIR: ' . WP_CONTENT_DIR );
 	ewwwio_debug_message( 'home url: ' . get_home_url() );
@@ -8131,7 +8138,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<?php
 	}
 	ewwwio_memory( __FUNCTION__ );
-	ewww_image_optimizer_debug_log();
+	$ewww_debug = '';
 }
 
 /**
@@ -8322,11 +8329,6 @@ function ewwwio_debug_message( $message ) {
 		$memory_limit = ewwwio_memory_limit();
 		if ( strlen( $message ) + 4000000 + memory_get_usage( true ) <= $memory_limit ) {
 			global $ewww_debug;
-			global $ewww_version_dumped;
-			if ( empty( $ewww_debug ) && empty( $ewww_version_dumped ) ) {
-				ewwwio_debug_version_info();
-				$ewww_version_dumped = true;
-			}
 			$message     = str_replace( "\n\n\n", '<br>', $message );
 			$message     = str_replace( "\n\n", '<br>', $message );
 			$message     = str_replace( "\n", '<br>', $message );
@@ -8499,16 +8501,16 @@ function ewww_image_optimizer_dynamic_image_debug() {
  */
 function ewww_image_optimizer_image_queue_debug() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	global $ewwwio_media_background;
+	if ( ! class_exists( 'WP_Background_Process' ) ) {
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
+	}
+	if ( ! is_object( $ewwwio_media_background ) ) {
+		$ewwwio_media_background = new EWWWIO_Media_Background_Process();
+	}
 	// Let user clear a queue, or all queues.
 	if ( isset( $_POST['ewww_image_optimizer_clear_queue'] ) && current_user_can( 'manage_options' ) && wp_verify_nonce( $_POST['ewww_nonce'], 'ewww_image_optimizer_clear_queue' ) ) {
 		if ( is_numeric( $_POST['ewww_image_optimizer_clear_queue'] ) ) {
-			global $ewwwio_media_background;
-			if ( ! class_exists( 'WP_Background_Process' ) ) {
-				require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
-			}
-			if ( ! is_object( $ewwwio_media_background ) ) {
-				$ewwwio_media_background = new EWWWIO_Media_Background_Process();
-			}
 			$queues = (int) $_POST['ewww_image_optimizer_clear_queue'];
 			while ( $queues ) {
 				$ewwwio_media_background->cancel_process();
@@ -8551,6 +8553,8 @@ function ewww_image_optimizer_image_queue_debug() {
 	if ( empty( $queues ) ) {
 		esc_html_e( 'Nothing to see here, go upload some images!', 'ewww-image-optimizer' );
 	} else {
+		$queue_count = $ewwwio_media_background->count_queue();
+		echo "<p><strong>$queue_count</strong> items in all queues</p>";
 		$all_ids = array();
 		foreach ( $queues as $queue ) {
 			$ids = array();
@@ -8561,6 +8565,8 @@ function ewww_image_optimizer_image_queue_debug() {
 				$all_ids[] = $item['id'];
 				$ids[]     = $item['id'];
 			}
+			$queue_count = count( $ids );
+			echo "<strong>$queue_count</strong> items in queue<br>";
 			$ids = implode( ',', $ids );
 			?>
 		<form id="ewww-queue-clear-<?php echo $queue['option_id']; ?>" method="post" style="margin-bottom: 1.5em;" action="">

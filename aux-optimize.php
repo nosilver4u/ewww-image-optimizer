@@ -123,6 +123,7 @@ function ewww_image_optimizer_aux_images() {
 </script>
 		<?php
 	}
+	$ewww_debug = '';
 	ewwwio_memory( __FUNCTION__ );
 }
 
@@ -338,6 +339,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 		$folders_completed = array();
 	}
 	if ( in_array( $dir, $folders_completed ) ) {
+		ewwwio_debug_message( "$dir already completed" );
 		return;
 	}
 	global $wpdb;
@@ -345,6 +347,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	$images       = array();
 	$reset_images = array();
 	if ( ! is_dir( $dir ) ) {
+		ewwwio_debug_message( "$dir is not a directory, or unreadable" );
 		return;
 	}
 	ewwwio_debug_message( "scanning folder for images: $dir" );
