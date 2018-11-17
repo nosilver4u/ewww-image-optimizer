@@ -156,14 +156,25 @@ function ewww_image_optimizer_aux_images_table() {
 	echo '<br /><table class="wp-list-table widefat media" cellspacing="0"><thead><tr><th>&nbsp;</th><th>' . esc_html__( 'Filename', 'ewww-image-optimizer' ) . '</th><th>' . esc_html__( 'Image Type', 'ewww-image-optimizer' ) . '</th><th>' . esc_html__( 'Image Optimizer', 'ewww-image-optimizer' ) . '</th></tr></thead>';
 	$alternate = true;
 	foreach ( $already_optimized as $optimized_image ) {
-		$image_name   = str_replace( ABSPATH, '', ewww_image_optimizer_relative_path_replace( $optimized_image['path'] ) );
-		$image_url    = esc_url( trailingslashit( get_site_url() ) . $image_name );
+		$file       = ewww_image_optimizer_relative_path_replace( $optimized_image['path'] );
+		$image_name = str_replace( ABSPATH, '', $file );
+		$image_url  = esc_url( site_url( 'wp-includes/images/media/default.png' ) );
+		ewwwio_debug_message( "name is $image_name after replacing ABSPATH" );
+		if ( $file != $image_name ) {
+			$image_url = esc_url( site_url( $image_name ) );
+		} else {
+			$image_name = str_replace( WP_CONTENT_DIR, '', $file );
+			ewwwio_debug_message( "name is $image_name after replacing WP_CONTENT_DIR" );
+			if ( $file != $image_name ) {
+				$image_url = esc_url( content_url( $image_name ) );
+			}
+		}
 		$savings      = esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) );
 		$updated_time = strtotime( $optimized_image['updated'] );
 		if ( DAY_IN_SECONDS * 30 + $updated_time < time() ) {
 			$optimized_image['backup'] = '';
 		}
-		if ( strpos( $optimized_image['path'], 's3' ) === 0 ) {
+		if ( strpos( $file, 's3' ) === 0 ) {
 			// Retrieve the mimetype of the attachment.
 			$type      = esc_html__( 'Amazon S3 image', 'ewww-image-optimizer' );
 			$file_size = ewww_image_optimizer_size_format( $optimized_image['image_size'] );
@@ -190,9 +201,9 @@ function ewww_image_optimizer_aux_images_table() {
 			</tr>
 			<?php
 			$alternate = ! $alternate;
-		} elseif ( file_exists( $optimized_image['path'] ) ) {
+		} elseif ( is_file( $file ) ) {
 			// Retrieve the mimetype of the attachment.
-			$type = ewww_image_optimizer_mimetype( $optimized_image['path'], 'i' );
+			$type = ewww_image_optimizer_quick_mimetype( $file, 'i' );
 			// Get a human readable filesize.
 			$file_size = ewww_image_optimizer_size_format( $optimized_image['image_size'] );
 			/* translators: %s: human-readable filesize */
@@ -218,6 +229,8 @@ function ewww_image_optimizer_aux_images_table() {
 			</tr>
 			<?php
 			$alternate = ! $alternate;
+		} else {
+			ewwwio_debug_message( "could not find $file" );
 		} // End if().
 	} // End foreach().
 	echo '</table>';
