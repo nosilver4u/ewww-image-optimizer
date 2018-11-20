@@ -95,7 +95,9 @@ class EWWWIO_Utility_Tests extends WP_UnitTestCase {
 	 * Test relative path functions.
 	 */
 	function test_relative_paths() {
-		define( 'EWWW_IMAGE_OPTIMIZER_RELATIVE', true );
+		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_RELATIVE' ) ) {
+			define( 'EWWW_IMAGE_OPTIMIZER_RELATIVE', true );
+		}
 		$test_image = trailingslashit( ABSPATH ) . 'images/test.png';
 		$relative_test_image_path = ewww_image_optimizer_relative_path_remove( $test_image );
 		$this->assertEquals( 'ABSPATHimages/test.png', $relative_test_image_path );
