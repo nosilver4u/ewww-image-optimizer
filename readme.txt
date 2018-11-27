@@ -174,6 +174,11 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.5.2 =
+* changed: default quality for PNG to JPG did not match WordPress default
+* fixed: legacy absolute paths not matched during bulk scanner when relative matching is enabled
+* fixed: PNG to JPG auto-convert produces larger JPG images in some cases
+
 = 4.5.1 =
 * changed: optimization results are tracked by relative urls instead of absolute ones for better portability, migration tool coming soon
 * changed: ExactDN defaults to crop when explicit dimensions are given to image_downsize(), revert to scaling with EXACTDN_IMAGE_DOWNSIZE_SCALE

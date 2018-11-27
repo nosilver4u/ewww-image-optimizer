@@ -441,7 +441,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$results = $this->optimize_pdf();
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
-		$this->assertLessThan( 128400, filesize( $results[0] ) );
+		$this->assertLessThan( 129000, filesize( $results[0] ) );
 		unlink( $results[0] );
 	}
 

@@ -2098,16 +2098,8 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					// Set the background flag for 'convert'.
 					$background = '-background ' . '"' . "#$background" . '"';
 				}
-				$cquality = '';
-				$gquality = '92';
-				// If the user manually set the JPG quality.
-				$quality = ewww_image_optimizer_jpg_quality();
-				if ( $quality ) {
-					// Set the quality for GD.
-					$gquality = $quality;
-					// Set the quality flag for 'convert'.
-					$cquality = "-quality $quality";
-				}
+				$gquality = ewww_image_optimizer_jpg_quality();
+				$gquality = $gquality ? $gquality : '82';
 				// If this is a resize version.
 				if ( $converted ) {
 					// Just replace the file extension with a .jpg.

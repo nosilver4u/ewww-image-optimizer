@@ -2227,6 +2227,26 @@ function ewww_image_optimizer_gmagick_support() {
 }
 
 /**
+ * Filter the filename past any folders the user chose to ignore.
+ *
+ * @param bool   $bypass True to skip optimization, defaults to false.
+ * @param string $filename The file about to be optimized.
+ * @return bool True if the file matches any folders to ignore.
+ */
+function ewww_image_optimizer_ignore_file( $bypass, $filename ) {
+	$ignore_folders = ewww_image_optimizer_get_option( 'ewww_image_optimizer_exclude_paths' );
+	if ( ! ewww_image_optimizer_iterable( $ignore_folders ) ) {
+		return $bypass;
+	}
+	foreach ( $ignore_folders as $ignore_folder ) {
+		if ( strpos( $filename, $ignore_folder ) !== false ) {
+			return true;
+		}
+	}
+	return $bypass;
+}
+
+/**
  * Sanitize the list of disabled resizes.
  *
  * @param array $disabled_resizes A list of sizes, like 'medium_large', 'thumb', etc.
@@ -2396,7 +2416,7 @@ function ewww_image_optimizer_escapeshellarg( $arg ) {
  */
 function ewww_image_optimizer_jpg_background( $background = null ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( null === $background ) {
+	if ( is_null( $background ) ) {
 		// Retrieve the user-supplied value for jpg background color.
 		$background = ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_background' );
 	}
@@ -2426,7 +2446,7 @@ function ewww_image_optimizer_jpg_background( $background = null ) {
  */
 function ewww_image_optimizer_jpg_quality( $quality = null ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( null === $quality ) {
+	if ( is_null( $quality ) ) {
 		// Retrieve the user-supplied value for jpg quality.
 		$quality = ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_quality' );
 	}
@@ -2444,26 +2464,6 @@ function ewww_image_optimizer_jpg_quality( $quality = null ) {
 		ewwwio_memory( __FUNCTION__ );
 		return null;
 	}
-}
-
-/**
- * Filter the filename past any folders the user chose to ignore.
- *
- * @param bool   $bypass True to skip optimization, defaults to false.
- * @param string $filename The file about to be optimized.
- * @return bool True if the file matches any folders to ignore.
- */
-function ewww_image_optimizer_ignore_file( $bypass, $filename ) {
-	$ignore_folders = ewww_image_optimizer_get_option( 'ewww_image_optimizer_exclude_paths' );
-	if ( ! ewww_image_optimizer_iterable( $ignore_folders ) ) {
-		return $bypass;
-	}
-	foreach ( $ignore_folders as $ignore_folder ) {
-		if ( strpos( $filename, $ignore_folder ) !== false ) {
-			return true;
-		}
-	}
-	return $bypass;
 }
 
 /**
@@ -4556,7 +4556,8 @@ function ewww_image_optimizer_autoconvert( $file ) {
 		return;
 	}
 	$ewww_image = new EWWW_Image( 0, '', $file );
-	return $ewww_image->convert( $file, false );
+	// Pass the filename, false for db search/replace, and true for filesize comparison.
+	return $ewww_image->convert( $file, false, true );
 }
 
 /**
@@ -4853,9 +4854,14 @@ function ewww_image_optimizer_find_already_optimized( $attachment ) {
 	} else {
 		$ewwwdb = $wpdb;
 	}
-	$maybe_return_image = false;
-	$query              = $ewwwdb->prepare( "SELECT * FROM $ewwwdb->ewwwio_images WHERE path = %s", ewww_image_optimizer_relative_path_remove( $attachment ) );
-	$optimized_query    = $ewwwdb->get_results( $query, ARRAY_A );
+	$maybe_return_image  = false;
+	$maybe_relative_path = ewww_image_optimizer_relative_path_remove( $attachment );
+	$query               = $ewwwdb->prepare( "SELECT * FROM $ewwwdb->ewwwio_images WHERE path = %s", $maybe_relative_path );
+	$optimized_query     = $ewwwdb->get_results( $query, ARRAY_A );
+	if ( empty( $optimized_query ) && $attachment !== $maybe_relative_path ) {
+		$query           = $ewwwdb->prepare( "SELECT * FROM $ewwwdb->ewwwio_images WHERE path = %s", $attachment );
+		$optimized_query = $ewwwdb->get_results( $query, ARRAY_A );
+	}
 	if ( ewww_image_optimizer_iterable( $optimized_query ) ) {
 		foreach ( $optimized_query as $image ) {
 			$image['path'] = ewww_image_optimizer_relative_path_replace( $image['path'] );

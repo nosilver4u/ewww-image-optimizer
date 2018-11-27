@@ -478,9 +478,10 @@ class EWWW_Image {
 	 *
 	 * @param string $file The name of the file to convert.
 	 * @param bool   $replace_url Default true. Run function to update database with new url.
+	 * @param bool   $check_size Default false. Whether the converted filesize be compared to the original.
 	 * @return string The name of the new file.
 	 */
-	public function convert( $file, $replace_url = true ) {
+	public function convert( $file, $replace_url = true, $check_size = false ) {
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		if ( empty( $file ) ) {
 			ewwwio_debug_message( 'no file provided to convert' );
@@ -538,8 +539,15 @@ class EWWW_Image {
 				}
 				ewwwio_debug_message( "converted PNG size: $png_size" );
 				// If the PNG exists, and we didn't end up with an empty file.
-				if ( $png_size && is_file( $newfile ) && ewww_image_optimizer_mimetype( $newfile, 'i' ) == 'image/png' ) {
+				if ( ! $check_size && $png_size && is_file( $newfile ) && ewww_image_optimizer_mimetype( $newfile, 'i' ) == 'image/png' ) {
 					ewwwio_debug_message( 'JPG to PNG successful' );
+					// Check to see if the user wants the originals deleted.
+					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) == true ) {
+						// Delete the original JPG.
+						unlink( $file );
+					}
+				} elseif ( $check_size && is_file( $newfile ) && $png_size < ewww_image_optimizer_filesize( $file ) && ewww_image_optimizer_mimetype( $newfile, 'i' ) == 'image/png' ) {
+					ewwwio_debug_message( 'JPG to PNG successful, after comparing size' );
 					// Check to see if the user wants the originals deleted.
 					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) == true ) {
 						// Delete the original JPG.
@@ -571,9 +579,8 @@ class EWWW_Image {
 				}
 				// If the user manually set the JPG quality.
 				$quality = ewww_image_optimizer_jpg_quality();
-				if ( empty( $quality ) ) {
-					$quality = '92';
-				}
+				$quality = $quality ? $quality : '82';
+
 				$magick_background = ewww_image_optimizer_jpg_background();
 				if ( empty( $magick_background ) ) {
 					$magick_background = '000000';
@@ -637,8 +644,15 @@ class EWWW_Image {
 				}
 				ewwwio_debug_message( "converted JPG size: $jpg_size" );
 				// If the new JPG is smaller than the original PNG.
-				if ( $jpg_size && is_file( $newfile ) && ewww_image_optimizer_mimetype( $newfile, 'i' ) == 'image/jpeg' ) {
+				if ( ! $check_size && $jpg_size && is_file( $newfile ) && ewww_image_optimizer_mimetype( $newfile, 'i' ) == 'image/jpeg' ) {
 					ewwwio_debug_message( 'JPG to PNG successful' );
+					// If the user wants originals delted after a conversion.
+					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) == true ) {
+						// Delete the original PNG.
+						unlink( $file );
+					}
+				} elseif ( $check_size && is_file( $newfile ) && $jpg_size < ewww_image_optimizer_filesize( $file ) && ewww_image_optimizer_mimetype( $newfile, 'i' ) == 'image/jpeg' ) {
+					ewwwio_debug_message( 'PNG to JPG successful, after comparing size' );
 					// If the user wants originals delted after a conversion.
 					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) == true ) {
 						// Delete the original PNG.
@@ -686,8 +700,15 @@ class EWWW_Image {
 				}
 				ewwwio_debug_message( "converted PNG size: $png_size" );
 				// If the PNG exists, and we didn't end up with an empty file.
-				if ( $png_size && is_file( $newfile ) && ewww_image_optimizer_mimetype( $newfile, 'i' ) == 'image/png' ) {
+				if ( ! $check_size && $png_size && is_file( $newfile ) && ewww_image_optimizer_mimetype( $newfile, 'i' ) == 'image/png' ) {
 					ewwwio_debug_message( 'GIF to PNG successful' );
+					// Check to see if the user wants the originals deleted.
+					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) == true ) {
+						// Delete the original JPG.
+						unlink( $file );
+					}
+				} elseif ( $check_size && is_file( $newfile ) && $png_size < ewww_image_optimizer_filesize( $file ) && ewww_image_optimizer_mimetype( $newfile, 'i' ) == 'image/png' ) {
+					ewwwio_debug_message( 'GIF to PNG successful, after comparing size' );
 					// Check to see if the user wants the originals deleted.
 					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) == true ) {
 						// Delete the original JPG.
