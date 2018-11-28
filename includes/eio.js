@@ -355,6 +355,7 @@ jQuery(document).ready(function($) {
 		var ewww_total_pages = Math.ceil(ewww_vars.image_count / 50);
 		$('.ewww-aux-table').show();
 		$('#ewww-show-table').hide();
+		$('#ewww-table-info').hide();
 		if (ewww_vars.image_count >= 50) {
 			$('.tablenav').show();
 			$('#next-images').show();

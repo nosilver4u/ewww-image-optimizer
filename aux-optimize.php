@@ -188,7 +188,7 @@ function ewww_image_optimizer_aux_images_table() {
 			}
 			?>
 			id="ewww-image-<?php echo $optimized_image['id']; ?>">
-				<td style='width:80px' class='column-icon'>&nbsp;</td>
+				<td style='max-width:20px' class='column-icon'>&nbsp;</td>
 				<td class='title'><?php echo $image_name; ?></td>
 				<td><?php echo $type; ?></td>
 				<td>
@@ -216,7 +216,7 @@ function ewww_image_optimizer_aux_images_table() {
 			}
 			?>
 			id="ewww-image-<?php echo $optimized_image['id']; ?>">
-				<td style='width:80px' class='column-icon'><img width='50' height='50' src="<?php echo $image_url; ?>" /></td>
+				<td style='max-width:50px;' class='column-icon'><img width='50' src="<?php echo $image_url; ?>" /></td>
 				<td class='title'>...<?php echo $image_name; ?></td>
 				<td><?php echo $type; ?></td>
 				<td>

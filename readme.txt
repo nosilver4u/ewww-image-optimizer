@@ -175,6 +175,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.5.2 =
+* added: automatic migration to move image paths from absolute to relative
 * changed: default quality for PNG to JPG did not match WordPress default
 * fixed: legacy absolute paths not matched during bulk scanner when relative matching is enabled
 * fixed: PNG to JPG auto-convert produces larger JPG images in some cases
