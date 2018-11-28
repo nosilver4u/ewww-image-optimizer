@@ -99,9 +99,9 @@ class EWWWIO_Utility_Tests extends WP_UnitTestCase {
 			define( 'EWWW_IMAGE_OPTIMIZER_RELATIVE', true );
 		}
 		$test_image = trailingslashit( ABSPATH ) . 'images/test.png';
-		$relative_test_image_path = ewww_image_optimizer_relative_path_remove( $test_image );
+		$relative_test_image_path = ewww_image_optimizer_relativize_path( $test_image );
 		$this->assertEquals( 'ABSPATHimages/test.png', $relative_test_image_path );
-		$replaced_test_image = ewww_image_optimizer_relative_path_replace( $relative_test_image_path );
+		$replaced_test_image = ewww_image_optimizer_absolutize_path( $relative_test_image_path );
 		$this->assertEquals( $test_image, $replaced_test_image );
 	}
 }

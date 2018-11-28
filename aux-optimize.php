@@ -156,7 +156,7 @@ function ewww_image_optimizer_aux_images_table() {
 	echo '<br /><table class="wp-list-table widefat media" cellspacing="0"><thead><tr><th>&nbsp;</th><th>' . esc_html__( 'Filename', 'ewww-image-optimizer' ) . '</th><th>' . esc_html__( 'Image Type', 'ewww-image-optimizer' ) . '</th><th>' . esc_html__( 'Image Optimizer', 'ewww-image-optimizer' ) . '</th></tr></thead>';
 	$alternate = true;
 	foreach ( $already_optimized as $optimized_image ) {
-		$file       = ewww_image_optimizer_relative_path_replace( $optimized_image['path'] );
+		$file       = ewww_image_optimizer_absolutize_path( $optimized_image['path'] );
 		$image_name = str_replace( ABSPATH, '', $file );
 		$image_url  = esc_url( site_url( 'wp-includes/images/media/default.png' ) );
 		ewwwio_debug_message( "name is $image_name after replacing ABSPATH" );
@@ -508,7 +508,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 					continue;
 				}
 				ewwwio_debug_message( "queuing $path" );
-				$path = ewww_image_optimizer_relative_path_remove( $path );
+				$path = ewww_image_optimizer_relativize_path( $path );
 				if ( seems_utf8( $path ) ) {
 					$utf8_file_path = $path;
 				} else {
@@ -558,7 +558,7 @@ function ewww_image_optimizer_aux_images_convert() {
 		if ( empty( $record['image_md5'] ) ) {
 			continue;
 		}
-		$record['path'] = ewww_image_optimizer_relative_path_replace( $record['path'] );
+		$record['path'] = ewww_image_optimizer_absolutize_path( $record['path'] );
 		$image_md5      = md5_file( $record['path'] );
 		if ( $image_md5 === $record['image_md5'] ) {
 			$filesize = filesize( $record['path'] );
@@ -680,7 +680,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 								// This is a brand new image.
 								if ( preg_match( '/^image\/(jpeg|png|gif)/', $mimetype ) && empty( $already_optimized ) ) {
 									$slide_paths[] = array(
-										'path'      => ewww_image_optimizer_relative_path_remove( $path ),
+										'path'      => ewww_image_optimizer_relativize_path( $path ),
 										'orig_size' => $image_size,
 									);
 									// This is a changed image.

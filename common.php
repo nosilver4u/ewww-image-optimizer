@@ -218,6 +218,9 @@ if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ) {
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-cli.php' );
 }
+if ( 'done' !== get_option( 'ewww_image_optimizer_relative_migration_status' ) ) {
+	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-relative-migration.php' );
+}
 
 /**
  * Skips optimization when a file is within EWWW IO's own folder.
@@ -1360,6 +1363,7 @@ function ewww_image_optimizer_notice_media_listmode() {
 		}
 	}
 }
+
 /**
  * Alert the user when 5 images have been re-optimized more than 10 times.
  *
@@ -1553,7 +1557,7 @@ function ewww_image_optimizer_path_renamed( $post, $old_filepath, $new_filepath 
 		$ewwwdb->update(
 			$ewwwdb->ewwwio_images,
 			array(
-				'path' => ewww_image_optimizer_relative_path_remove( $new_filepath ),
+				'path' => ewww_image_optimizer_relativize_path( $new_filepath ),
 			),
 			array(
 				'id' => $optimized_query['id'],
@@ -1838,7 +1842,7 @@ function ewww_image_optimizer_auto() {
 					ewwwio_debug_message( "$nonce is fine, compared to $current_nonce" );
 				}
 				if ( ! empty( $attachment['path'] ) ) {
-					$attachment['path'] = ewww_image_optimizer_relative_path_replace( $attachment['path'] );
+					$attachment['path'] = ewww_image_optimizer_absolutize_path( $attachment['path'] );
 				}
 				ewww_image_optimizer_aux_images_loop( $attachment, true );
 				if ( ! empty( $delay ) && ewww_image_optimizer_function_exists( 'sleep' ) ) {
@@ -2021,7 +2025,7 @@ function ewww_image_optimizer_retina( $id, $retina_path ) {
 		$ewwwdb->update(
 			$ewwwdb->ewwwio_images,
 			array(
-				'path'          => ewww_image_optimizer_relative_path_remove( $retina_path ),
+				'path'          => ewww_image_optimizer_relativize_path( $retina_path ),
 				'attachment_id' => $id,
 				'gallery'       => 'media',
 			),
@@ -2632,7 +2636,7 @@ function ewww_image_optimizer_restore_from_meta_data( $meta, $id ) {
 			return $meta;
 		}
 	}
-	$ewww_image = new EWWW_Image( $id, 'media', ewww_image_optimizer_relative_path_replace( $db_image['path'] ) );
+	$ewww_image = new EWWW_Image( $id, 'media', ewww_image_optimizer_absolutize_path( $db_image['path'] ) );
 	return $ewww_image->restore_with_meta( $meta );
 }
 
@@ -2657,7 +2661,7 @@ function ewww_image_optimizer_cloud_restore_from_meta_data( $id, $gallery = 'med
 	$images = $ewwwdb->get_results( "SELECT id,path,backup FROM $ewwwdb->ewwwio_images WHERE attachment_id = $id AND gallery = '$gallery'", ARRAY_A );
 	foreach ( $images as $image ) {
 		if ( ! empty( $image['path'] ) ) {
-			$image['path'] = ewww_image_optimizer_relative_path_replace( $image['path'] );
+			$image['path'] = ewww_image_optimizer_absolutize_path( $image['path'] );
 		}
 		ewww_image_optimizer_cloud_restore_single_image( $image );
 	}
@@ -2717,7 +2721,7 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 		$image = $ewwwdb->get_row( "SELECT id,path,backup FROM $ewwwdb->ewwwio_images WHERE id = $image", ARRAY_A );
 	}
 	if ( ! empty( $image['path'] ) ) {
-		$image['path'] = ewww_image_optimizer_relative_path_replace( $image['path'] );
+		$image['path'] = ewww_image_optimizer_absolutize_path( $image['path'] );
 	}
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
 	$domain  = parse_url( get_site_url(), PHP_URL_HOST );
@@ -2794,7 +2798,7 @@ function ewww_image_optimizer_delete( $id ) {
 		if ( ewww_image_optimizer_iterable( $optimized_images ) ) {
 			foreach ( $optimized_images as $image ) {
 				if ( ! empty( $image['path'] ) ) {
-					$image['path'] = ewww_image_optimizer_relative_path_replace( $image['path'] );
+					$image['path'] = ewww_image_optimizer_absolutize_path( $image['path'] );
 				}
 				if ( strpos( $image['path'], WP_CONTENT_DIR ) === false ) {
 					continue;
@@ -2806,7 +2810,7 @@ function ewww_image_optimizer_delete( $id ) {
 					}
 				}
 				if ( ! empty( $image['converted'] ) ) {
-					$image['converted'] = ewww_image_optimizer_relative_path_replace( $image['converted'] );
+					$image['converted'] = ewww_image_optimizer_absolutize_path( $image['converted'] );
 				}
 				if ( ! empty( $image['converted'] ) && is_file( $image['converted'] ) ) {
 					unlink( $image['converted'] );
@@ -2842,12 +2846,12 @@ function ewww_image_optimizer_delete( $id ) {
 		// If the original file still exists and no posts contain links to the image.
 		if ( is_file( $file_path ) && empty( $rows ) ) {
 			unlink( $file_path );
-			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relative_path_remove( $file_path ) ) );
+			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
 		}
 	}
 	// Remove the regular image from the ewwwio_images tables.
 	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
-	$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relative_path_remove( $file_path ) ) );
+	$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
 	// Resized versions, so we can continue.
 	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 		// One way or another, $file_path is now set, and we can get the base folder name.
@@ -2862,7 +2866,7 @@ function ewww_image_optimizer_delete( $id ) {
 			if ( is_file( $webpfileold ) ) {
 				unlink( $webpfileold );
 			}
-			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relative_path_remove( $base_dir . $data['file'] ) ) );
+			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['file'] ) ) );
 			// If the original resize is set, and still exists.
 			if ( ! empty( $data['orig_file'] ) && is_file( $base_dir . $data['orig_file'] ) ) {
 				unset( $srows );
@@ -2874,7 +2878,7 @@ function ewww_image_optimizer_delete( $id ) {
 				// If there are no posts containing links to the original, delete it.
 				if ( empty( $srows ) ) {
 					unlink( $base_dir . $data['orig_file'] );
-					$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relative_path_remove( $base_dir . $data['orig_file'] ) ) );
+					$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize( $base_dir . $data['orig_file'] ) ) );
 				}
 			}
 		}
@@ -3842,7 +3846,7 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 	$results_msg = ewww_image_optimizer_image_results( $orig_size, $opt_size, $prev_string );
 
 	$updates = array(
-		'path'       => ewww_image_optimizer_relative_path_remove( $attachment ),
+		'path'       => ewww_image_optimizer_relativize_path( $attachment ),
 		'converted'  => $converted,
 		'level'      => 0,
 		'image_size' => $opt_size,
@@ -4025,7 +4029,7 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 		$attachment = $attachment['path'];
 	}
 	if ( $attachment ) {
-		$attachment = ewww_image_optimizer_relative_path_replace( $attachment );
+		$attachment = ewww_image_optimizer_absolutize_path( $attachment );
 	}
 	// Do the optimization for the current image.
 	$results = ewww_image_optimizer( $attachment );
@@ -4070,7 +4074,7 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 			global $ewww_debug;
 			$output['results'] .= '<div style="background-color:#ffff99;">' . $ewww_debug . '</div>';
 		}
-		$next_file = ewww_image_optimizer_relative_path_replace( $wpdb->get_var( "SELECT path FROM $wpdb->ewwwio_images WHERE pending=1 LIMIT 1" ) );
+		$next_file = ewww_image_optimizer_absolutize_path( $wpdb->get_var( "SELECT path FROM $wpdb->ewwwio_images WHERE pending=1 LIMIT 1" ) );
 		if ( ! empty( $next_file ) ) {
 			$loading_image       = plugins_url( '/images/wpspin.gif', __FILE__ );
 			$output['next_file'] = '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . ' <b>' . esc_html( $next_file ) . "</b>&nbsp;<img src='$loading_image' alt='loading'/></p>";
@@ -4374,7 +4378,7 @@ function ewww_image_optimizer_update_table_as3cf( $local_path, $s3_path ) {
 			$ewwwdb->update(
 				$ewwwdb->ewwwio_images,
 				array(
-					'path' => ewww_image_optimizer_relative_path_remove( $local_path ),
+					'path' => ewww_image_optimizer_relativize_path( $local_path ),
 				),
 				array(
 					'id' => $s3_image['id'],
@@ -4772,11 +4776,11 @@ function ewww_image_optimizer_resize_upload( $file ) {
 			$tmp_exists = $ewwwdb->update(
 				$ewwwdb->ewwwio_images,
 				array(
-					'path'      => ewww_image_optimizer_relative_path_remove( $file ),
+					'path'      => ewww_image_optimizer_relativize_path( $file ),
 					'orig_size' => $orig_size,
 				),
 				array(
-					'path' => ewww_image_optimizer_relative_path_remove( $new_file ),
+					'path' => ewww_image_optimizer_relativize_path( $new_file ),
 				)
 			);
 			// If the tmp file didn't get optimized (and it shouldn't), then just insert a dummy record to be updated shortly.
@@ -4784,7 +4788,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
 				$ewwwdb->insert(
 					$ewwwdb->ewwwio_images,
 					array(
-						'path'      => ewww_image_optimizer_relative_path_remove( $file ),
+						'path'      => ewww_image_optimizer_relativize_path( $file ),
 						'orig_size' => $orig_size,
 					)
 				);
@@ -4855,7 +4859,7 @@ function ewww_image_optimizer_find_already_optimized( $attachment ) {
 		$ewwwdb = $wpdb;
 	}
 	$maybe_return_image  = false;
-	$maybe_relative_path = ewww_image_optimizer_relative_path_remove( $attachment );
+	$maybe_relative_path = ewww_image_optimizer_relativize_path( $attachment );
 	$query               = $ewwwdb->prepare( "SELECT * FROM $ewwwdb->ewwwio_images WHERE path = %s", $maybe_relative_path );
 	$optimized_query     = $ewwwdb->get_results( $query, ARRAY_A );
 	if ( empty( $optimized_query ) && $attachment !== $maybe_relative_path ) {
@@ -4864,7 +4868,7 @@ function ewww_image_optimizer_find_already_optimized( $attachment ) {
 	}
 	if ( ewww_image_optimizer_iterable( $optimized_query ) ) {
 		foreach ( $optimized_query as $image ) {
-			$image['path'] = ewww_image_optimizer_relative_path_replace( $image['path'] );
+			$image['path'] = ewww_image_optimizer_absolutize_path( $image['path'] );
 			if ( $image['path'] != $attachment ) {
 				ewwwio_debug_message( "{$image['path']} does not match $attachment, continuing our search" );
 			} elseif ( ! $maybe_return_image ) {
@@ -5197,7 +5201,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 			$ewwwdb->update(
 				$ewwwdb->ewwwio_images,
 				array(
-					'path'          => ewww_image_optimizer_relative_path_remove( $file_path ),
+					'path'          => ewww_image_optimizer_relativize_path( $file_path ),
 					'attachment_id' => $id,
 					'resize'        => 'full',
 					'gallery'       => 'media',
@@ -5356,7 +5360,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 						$ewwwdb->update(
 							$ewwwdb->ewwwio_images,
 							array(
-								'path' => ewww_image_optimizer_relative_path_remove( $ims_path ),
+								'path' => ewww_image_optimizer_relativize_path( $ims_path ),
 							),
 							array(
 								'id' => $already_optimized['id'],
@@ -5877,7 +5881,7 @@ function ewww_image_optimizer_attachment_path( $meta, $id, $file = '', $refresh_
  * @param string $file The filename to mangle.
  * @return string The filename with parent folders replaced by a constant name.
  */
-function ewww_image_optimizer_relative_path_remove( $file ) {
+function ewww_image_optimizer_relativize_path( $file ) {
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_RELATIVE' ) || ! EWWW_IMAGE_OPTIMIZER_RELATIVE ) {
 		return $file;
 	}
@@ -5902,12 +5906,12 @@ function ewww_image_optimizer_relative_path_remove( $file ) {
  *
  * Replaces the literal strings 'ABSPATH', 'WP_CONTENT_DIR', or
  * 'EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER' with the actual value of the constant contained within
- * the file path.string name of the applicable constant.
+ * the file path.
  *
  * @param string $file The filename to parse.
  * @return string The full filename with parent folders reinserted.
  */
-function ewww_image_optimizer_relative_path_replace( $file ) {
+function ewww_image_optimizer_absolutize_path( $file ) {
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_RELATIVE' ) ) {
 		return $file;
 	}
@@ -8375,7 +8379,7 @@ function ewww_image_optimizer_debug_log() {
 	if ( ! empty( $ewww_debug ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 		$memory_limit = ewwwio_memory_limit();
 		clearstatcache();
-		$timestamp = date( 'y-m-d h:i:s.u' ) . "\n";
+		$timestamp = date( 'Y-m-d H:i:s' ) . "\n";
 		if ( ! file_exists( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
 			touch( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' );
 		} else {

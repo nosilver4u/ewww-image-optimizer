@@ -173,12 +173,12 @@ class EWWW_Image {
 			ewwwio_debug_message( print_r( $new_image, true ) );
 		}
 		$this->id            = $new_image['id'];
-		$this->file          = ewww_image_optimizer_relative_path_replace( $new_image['path'] );
+		$this->file          = ewww_image_optimizer_absolutize_path( $new_image['path'] );
 		$this->attachment_id = $new_image['attachment_id'];
 		$this->opt_size      = $new_image['image_size'];
 		$this->orig_size     = $new_image['orig_size'];
 		$this->resize        = $new_image['resize'];
-		$this->converted     = ewww_image_optimizer_relative_path_replace( $new_image['converted'] );
+		$this->converted     = ewww_image_optimizer_absolutize_path( $new_image['converted'] );
 		$this->gallery       = ( empty( $gallery ) ? $new_image['gallery'] : $gallery );
 		$this->backup        = $new_image['backup'];
 		$this->record        = $new_image;
@@ -251,7 +251,7 @@ class EWWW_Image {
 		}
 		/* ewwwio_debug_message( 'about to process db results' ); */
 		foreach ( $sizes_queried as $size_queried ) {
-			$size_queried['path'] = ewww_image_optimizer_relative_path_replace( $size_queried['path'] );
+			$size_queried['path'] = ewww_image_optimizer_absolutize_path( $size_queried['path'] );
 
 			$sizes[ $size_queried['resize'] ] = $size_queried;
 			// Convert here.
@@ -418,8 +418,8 @@ class EWWW_Image {
 			if ( empty( $size_queried['converted'] ) ) {
 				continue;
 			}
-			$size_queried['path']      = ewww_image_optimizer_relative_path_replace( $size_queried['path'] );
-			$size_queried['converted'] = ewww_image_optimizer_relative_path_replace( $size_queried['converted'] );
+			$size_queried['path']      = ewww_image_optimizer_absolutize_path( $size_queried['path'] );
+			$size_queried['converted'] = ewww_image_optimizer_absolutize_path( $size_queried['converted'] );
 
 			$new_name = ( empty( $size_queried['converted'] ) ? '' : $size_queried['converted'] );
 			if ( $new_name && is_file( $size_queried['path'] ) && is_file( $new_name ) ) {
@@ -860,8 +860,8 @@ class EWWW_Image {
 				$ewwwdb->insert(
 					$ewwwdb->ewwwio_images,
 					array(
-						'path'          => ewww_image_optimizer_relative_path_remove( $new_path ),
-						'converted'     => ewww_image_optimizer_relative_path_remove( $path ),
+						'path'          => ewww_image_optimizer_relativize_path( $new_path ),
+						'converted'     => ewww_image_optimizer_relativize_path( $path ),
 						'orig_size'     => filesize( $new_path ),
 						'attachment_id' => $this->attachment_id,
 						'results'       => __( 'No savings', 'ewww-image-optimizer' ),
@@ -875,8 +875,8 @@ class EWWW_Image {
 		$ewwwdb->update(
 			$ewwwdb->ewwwio_images,
 			array(
-				'path'      => ewww_image_optimizer_relative_path_remove( $new_path ),
-				'converted' => ewww_image_optimizer_relative_path_remove( $path ),
+				'path'      => ewww_image_optimizer_relativize_path( $new_path ),
+				'converted' => ewww_image_optimizer_relativize_path( $path ),
 				'results'   => ewww_image_optimizer_image_results( $image_record['orig_size'], filesize( $new_path ) ),
 				'updates'   => 0,
 				'trace'     => '',
@@ -919,7 +919,7 @@ class EWWW_Image {
 		$ewwwdb->update(
 			$ewwwdb->ewwwio_images,
 			array(
-				'path'       => ewww_image_optimizer_relative_path_remove( $new_path ),
+				'path'       => ewww_image_optimizer_relativize_path( $new_path ),
 				'converted'  => '',
 				'image_size' => 0,
 				'results'    => __( 'Original Restored', 'ewww-image-optimizer' ),

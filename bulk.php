@@ -533,7 +533,7 @@ function ewww_image_optimizer_optimized_list() {
 	while ( $already_optimized = $ewwwdb->get_results( "SELECT id,path,image_size,pending,attachment_id,updated FROM $ewwwdb->ewwwio_images LIMIT $offset,$max_query", ARRAY_A ) ) {
 		$ewwwdb->flush();
 		foreach ( $already_optimized as $optimized ) {
-			$optimized_path = ewww_image_optimizer_relative_path_replace( $optimized['path'] );
+			$optimized_path = ewww_image_optimizer_absolutize_path( $optimized['path'] );
 			// Check for duplicate records.
 			if ( ! empty( $optimized_list[ $optimized_path ] ) && ! empty( $optimized_list[ $optimized_path ]['id'] ) ) {
 				$optimized = ewww_image_optimizer_remove_duplicate_records( array( $optimized_list[ $optimized_path ]['id'], $optimized['id'] ) );
@@ -903,7 +903,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 							$ewwwdb->update(
 								$ewwwdb->ewwwio_images,
 								array(
-									'path'    => ewww_image_optimizer_relative_path_remove( $ims_path ),
+									'path'    => ewww_image_optimizer_relativize_path( $ims_path ),
 									'updated' => $optimized_list[ $ims_temp_path ]['updated'],
 								),
 								array(
@@ -1101,7 +1101,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					}
 					ewww_image_optimizer_debug_log();
 					$images[ $file_path ] = array(
-						'path'          => ewww_image_optimizer_relative_path_remove( $utf8_file_path ),
+						'path'          => ewww_image_optimizer_relativize_path( $utf8_file_path ),
 						'gallery'       => 'media',
 						'orig_size'     => $image_size,
 						'attachment_id' => $selected_id,
