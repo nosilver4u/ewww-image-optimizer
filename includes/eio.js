@@ -487,6 +487,7 @@ jQuery(document).ready(function($) {
 		$('#ewww-bulk-stop').show();
 		$('.ewww-bulk-form').hide();
 		$('.ewww-bulk-info').hide();
+		$('#ewww-bulk-forms').hide();
 		$('h2').hide();
 	        $.post(ajaxurl, ewww_init_data, function(response) {
 			var is_json = true;
