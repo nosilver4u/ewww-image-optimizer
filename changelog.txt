@@ -1,3 +1,9 @@
+= 4.5.2 =
+* added: automatic migration to move image paths from absolute to relative
+* changed: default quality for PNG to JPG did not match WordPress default
+* fixed: legacy absolute paths not matched during bulk scanner when relative matching is enabled
+* fixed: PNG to JPG auto-convert produces larger JPG images in some cases
+
 = 4.5.1 =
 * changed: optimization results are tracked by relative urls instead of absolute ones for better portability, migration tool coming soon
 * changed: ExactDN defaults to crop when explicit dimensions are given to image_downsize(), revert to scaling with EXACTDN_IMAGE_DOWNSIZE_SCALE
