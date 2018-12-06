@@ -19,11 +19,12 @@
 // TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
 // TODO: can some of the bulk "fallbacks" be implemented for async processing?
 // TODO: check to see if we can use PHP and WP core is_iterable and is_countable functions.
+// TODO: ExactDN can use data-id attribute in 5.0 instead of trying to grok wp-image-1234 in the class.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '452.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '453.0' );
 
 // Initialize a couple globals.
 $ewww_debug = '';

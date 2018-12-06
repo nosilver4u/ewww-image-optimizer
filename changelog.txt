@@ -1,3 +1,7 @@
+= 4.5.3 =
+* fixed: ExactDN duplicates srcset instead of replacing it
+* security: remote code execution, low exposure
+
 = 4.5.2 =
 * added: automatic migration to move image paths from absolute to relative
 * changed: default quality for PNG to JPG did not match WordPress default

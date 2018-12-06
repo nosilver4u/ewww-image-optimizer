@@ -5,7 +5,7 @@ Tags: image, compress, resize, optimize, optimization, lossless, lossy, seo, web
 Requires at least: 4.9
 Tested up to: 5.0
 Requires PHP: 5.6
-Stable tag: 4.5.2
+Stable tag: 4.5.3
 License: GPLv3
 
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
@@ -173,6 +173,10 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
+
+= 4.5.3 =
+* fixed: ExactDN duplicates srcset instead of replacing it
+* security: remote code execution, low exposure
 
 = 4.5.2 =
 * added: automatic migration to move image paths from absolute to relative

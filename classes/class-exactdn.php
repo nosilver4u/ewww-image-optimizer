@@ -926,7 +926,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 							$new_srcset_attr = $this->get_attribute( $new_tag, $this->srcset_attr );
 							if ( $new_srcset_attr && false === strpos( $new_srcset_attr, ' ' . (int) $width . 'w' ) ) {
 								ewwwio_debug_message( 'src not in srcset, adding' );
-								$this->set_attribute( $new_tag, $this->srcset_attr, $srcset_url . $new_srcset_attr );
+								$this->set_attribute( $new_tag, $this->srcset_attr, $srcset_url . $new_srcset_attr, true );
 							}
 						}
 
@@ -968,7 +968,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 							$new_srcset_attr = $this->get_attribute( $new_tag, $this->srcset_attr );
 							if ( $new_srcset_attr && false === strpos( $new_srcset_attr, ' ' . (int) $width . 'w' ) ) {
 								ewwwio_debug_message( 'src not in srcset, adding' );
-								$this->set_attribute( $new_tag, $this->srcset_attr, $srcset_url . $new_srcset_attr );
+								$this->set_attribute( $new_tag, $this->srcset_attr, $srcset_url . $new_srcset_attr, true );
 								// Replace original tag with modified version.
 								$content = str_replace( $tag, $new_tag, $content );
 							}
