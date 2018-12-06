@@ -207,35 +207,6 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: ExactDN inserts full-size image without arguments
 * removed: PHP 5.5 no longer supported
 
-= 4.4.2 =
-* added: notice for Pantheon users that an API key is required
-* added: ExactDN fully supports protocol-relative urls for non-image resources
-* changed: better lazy load support in ExactDN
-* fixed: optimization failure produces rename() errors
-* fixed: folder scanner ignores files with no extension
-* fixed: Alt WebP blocks on Facebook tracking pixel
-* fixed: ExactDN srcset functions cause duplicate image requests with zoom=1
-* fixed: ExactDN srcset fill adds double arguments to urls
-* fixed: srcset fill generates notices with non-numeric widths
-* fixed: bulk scanner stuck in resume mode with nothing to do
-
-= 4.4.1 =
-* fixed: ExactDN srcset fill replaces images with first image on page
-
-= 4.4.0 =
-* added: preserve animations in GIF images during resize operations
-* added: ExactDN will fill in srcset/sizes attributes for all images based on detected width for better mobile support
-* added: configuration options in the settings page for several "hidden" ExactDN options
-* changed: Alt WebP still depends on jQuery, but jQuery can be loaded in async or defer mode
-* changed: Remove Metadata option has been renamed, if you previously had it configured as an override (JPEGTRAN_COPY), please use the new name: EWWW_IMAGE_OPTIMIZER_METADATA_REMOVE
-* changed: ExactDN uses premium compression by default
-* fixed: regression with ExactDN and max-width style attributes
-* fixed: WP esc_url mangles ExactDN urls
-* fixed: WebP images missing from S3 when using WP Offload S3
-* fixed: PDF uploads with S3 Uploads plugin
-* deprecated: PHP 5.5 support will be removed in the next major release (version 4.5)
-* removed: PHP 5.4 no longer supported
-
 = Earlier versions =
 Please refer to the separate changelog.txt file.
 

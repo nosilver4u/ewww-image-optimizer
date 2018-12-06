@@ -43,7 +43,7 @@ before_script:
     fi
   - |
   - composer global require wp-coding-standards/wpcs
-  - sudo phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs
+  - phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs
 
 script:
   - phpcs --standard=phpcs.ruleset.xml --extensions=php .
