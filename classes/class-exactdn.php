@@ -1042,7 +1042,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 		ewwwio_debug_message( "parsing the_content took $elapsed_time seconds" );
 		$this->elapsed_time += microtime( true ) - $started;
 		ewwwio_debug_message( "parsing the page took $this->elapsed_time seconds so far" );
-		if ( $this->elapsed_time > .5 ) {
+		if ( ! ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' ) && $this->elapsed_time > .5 ) {
 			ewww_image_optimizer_set_option( 'exactdn_prevent_db_queries', true );
 		}
 		return $content;

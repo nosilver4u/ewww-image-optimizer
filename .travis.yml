@@ -24,12 +24,9 @@ env:
 matrix:
   include:
     - php: 5.6
-      env: WP_VERSION=latest WP_MULTISITE=1
+      env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
     - php: 7.2
-      env: WP_VERSION=latest WP_MULTISITE=1
-
-before_install:
-  - sudo apt-get install -y php-codesniffer
+      env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
 
 before_script:
   - bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
@@ -42,9 +39,9 @@ before_script:
       composer global require "phpunit/phpunit=4.8.*"
     fi
   - |
-  - composer global require wp-coding-standards/wpcs
-  - phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs
+  - if [[ "$WPSNIFF" == "1" ]]; then composer global require wp-coding-standards/wpcs; fi
+  - if [[ "$WPSNIFF" == "1" ]]; then phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs; fi
 
 script:
-  - phpcs --standard=phpcs.ruleset.xml --extensions=php .
+  - if [[ "$WPSNIFF" == "1" ]]; then phpcs --standard=phpcs.ruleset.xml --extensions=php .; fi
   - phpunit
