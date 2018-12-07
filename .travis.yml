@@ -43,7 +43,9 @@ before_script:
   - composer global require wp-coding-standards/wpcs dealerdirect/phpcodesniffer-composer-installer
   - export PATH="$HOME/.composer/vendor/wp-coding-standards/wpcs/vendor/bin:$PATH"
     #  - ls $HOME/.composer/vendor/wp-coding-standards/wpcs/vendor/bin
-  - ls $HOME/.composer/vendor/bin
+  - ls -la $HOME
+  - ls -la $HOME/.composer/
+  - ls -la $HOME/.composer/vendor/
 #  - if [[ "$WPSNIFF" == "1" ]]; then phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs; fi
 
 script:
