@@ -174,6 +174,10 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.5.4 =
+* changed: API/ExactDN preserve colore profiles, even when removing image metadata
+* fixed: too many settings updates when trying to prevent slow queries
+
 = 4.5.3 =
 * fixed: ExactDN duplicates srcset instead of replacing it
 * security: remote code execution, low exposure

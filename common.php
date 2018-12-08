@@ -7736,13 +7736,12 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_debug'>" . esc_html__( 'Debugging', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ) . '</th>' .
 		"<td><input type='checkbox' id='ewww_image_optimizer_debug' name='ewww_image_optimizer_debug' value='true' " . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) == true ? "checked='true'" : '' ) . ' /> ' . esc_html__( 'Use this to provide information for support purposes, or if you feel comfortable digging around in the code to fix a problem you are experiencing.', 'ewww-image-optimizer' ) . "</td></tr>\n";
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_metadata_remove'>" . esc_html__( 'Remove Metadata', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ) . "</th>\n" .
-		"<td><input type='checkbox' id='ewww_image_optimizer_metadata_remove' name='ewww_image_optimizer_metadata_remove' value='true' " . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) == true ? "checked='true'" : '' ) . ' /> ' . esc_html__( 'This will remove ALL metadata: EXIF, comments, color profiles, and anything else that is not pixel data.', 'ewww-image-optimizer' ) . "</td></tr>\n";
+		"<td><input type='checkbox' id='ewww_image_optimizer_metadata_remove' name='ewww_image_optimizer_metadata_remove' value='true' " . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) == true ? "checked='true'" : '' ) . ' /> ' . esc_html__( 'This will remove ALL metadata: EXIF, comments, color profiles, and anything else that is not pixel data.', 'ewww-image-optimizer' ) .
+		"<p class ='description'>" . esc_html__( 'Color profiles are preserved when using the API or ExactDN.', 'ewww-image-optimizer' ) . "</p></td></tr>\n";
 	ewwwio_debug_message( 'remove metadata: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) == true ? 'on' : 'off' ) );
-	$output[] = "<tr class='$network_class'><th>&nbsp;</th><td>" .
-		"<p class='$network_class description'>" . esc_html__( 'All methods used by the EWWW Image Optimizer are intended to produce visually identical images.', 'ewww-image-optimizer' ) .
-		/* ' ' . esc_html__( 'Lossless compression is actually identical to the original, while lossy reduces the quality a small amount.', 'ewww-image-optimizer' ) . */ "</p>\n" .
-		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? "<p class='$network_class nocloud'><strong>* <a href='https://ewww.io/plans/' target='_blank'>" . esc_html__( 'Get an API key to achieve up to 80% compression and see the quality for yourself.', 'ewww-image-optimizer' ) . "</a></strong></p>\n" : '' );
-	$output[] = "</td></tr>\n";
+
+	$maybe_api_level = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? '*' : '';
+
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_jpg_level'>" . esc_html__( 'JPG Optimization Level', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ) . "</th>\n" .
 		"<td><span><select id='ewww_image_optimizer_jpg_level' name='ewww_image_optimizer_jpg_level'>\n" .
 		"<option value='0'" . selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ), 0, false ) . '>' . esc_html__( 'No Compression', 'ewww-image-optimizer' ) . "</option>\n";
@@ -7762,14 +7761,14 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	}
 	$output[] = "<option class='$network_class' $disable_level value='20' " . selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ), 20, false ) .
 		selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ), 30, false ) . '>' . esc_html__( 'Pixel Perfect Plus', 'ewww-image-optimizer' ) . " *</option>\n" .
-		"<option value='40'" . selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ), 40, false ) . '>' . esc_html__( 'Premium', 'ewww-image-optimizer' ) . "</option>\n" .
+		"<option value='40'" . selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ), 40, false ) . '>' . esc_html__( 'Premium', 'ewww-image-optimizer' ) . " $maybe_api_level</option>\n" .
 		"<option $disable_level value='50'" . selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ), 50, false ) . '>' . esc_html__( 'Premium Plus', 'ewww-image-optimizer' ) . " *</option>\n" .
 		"</select></td></tr>\n";
 	ewwwio_debug_message( 'png level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) );
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_gif_level'>" . esc_html__( 'GIF Optimization Level', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ) . "</th>\n" .
 		"<td><span><select id='ewww_image_optimizer_gif_level' name='ewww_image_optimizer_gif_level'>\n" .
 		"<option value='0'" . selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ), 0, false ) . '>' . esc_html__( 'No Compression', 'ewww-image-optimizer' ) . "</option>\n" .
-		"<option value='10'" . selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ), 10, false ) . '>' . esc_html__( 'Pixel Perfect', 'ewww-image-optimizer' ) . "</option>\n" .
+		"<option value='10'" . selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ), 10, false ) . '>' . esc_html__( 'Pixel Perfect', 'ewww-image-optimizer' ) . " $maybe_api_level</option>\n" .
 		"</select></td></tr>\n";
 	ewwwio_debug_message( 'gif level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) );
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_pdf_level'>" . esc_html__( 'PDF Optimization Level', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ) . "</th>\n" .
@@ -7779,6 +7778,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		"<option $disable_level value='20'" . selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ), 20, false ) . '>' . esc_html__( 'High Compression', 'ewww-image-optimizer' ) . " *</option>\n" .
 		"</select></td></tr>\n";
 	ewwwio_debug_message( 'pdf level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) );
+	$output[] = "<tr class='$network_class'><th>&nbsp;</th><td>" .
+		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? "<p class='$network_class nocloud'>* <strong><a href='https://ewww.io/plans/' target='_blank'>" . esc_html__( 'Purchase an API key to unlock these optimization levels. Achieve up to 80% compression and see the quality for yourself.', 'ewww-image-optimizer' ) . "</a></strong></p>\n" :
+		'<p>* ' . esc_html__( 'These levels use the compression API.', 'ewww-image-optimizer' ) ) .
+		"<p class='$network_class description'>" . esc_html__( 'All methods used by the EWWW Image Optimizer are intended to produce visually identical images.', 'ewww-image-optimizer' ) . "</p>\n" .
+		"</td></tr>\n";
 	ewwwio_debug_message( 'bulk delay: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' ) );
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_backup_files'>" . esc_html__( 'Backup Originals', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ) . '</th>' .
 		"<td><input type='checkbox' id='ewww_image_optimizer_backup_files' name='ewww_image_optimizer_backup_files' value='true' " .
