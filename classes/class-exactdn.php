@@ -613,6 +613,13 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 		$content = $this->filter_the_content( $content );
 
+		/**
+		 * Allow parsing the full page content after ExactDN is finished with it.
+		 *
+		 * @param string $content The fully-parsed HTML code of the page.
+		 */
+		$content = apply_filters( 'exactdn_the_page', $content );
+
 		$this->filtering_the_page = false;
 		ewwwio_debug_message( "parsing page took $this->elapsed_time seconds" );
 		return $content;
@@ -1031,6 +1038,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 				// Pre-empt rewriting of wp-includes and wp-content if the extension is not allowed by using a temporary placeholder.
 				$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)\.(htm|html|php|ashx|m4v|mov|wvm|qt|webm|ogv|mp4|m4p|mpg|mpeg|mpv)#i', '$1//' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
 				$content = str_replace( 'wp-content/themes/jupiter"', '?wpcontent-bypass?/themes/jupiter"', $content );
+				$content = str_replace( 'wp-content/plugins/anti-captcha/', '?wpcontent-bypass?/plugins/anti-captcha', $content );
 				$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?(nextgen-image|wp-includes|wp-content)/#i', '$1//' . $this->exactdn_domain . '/$2$3/', $content );
 				$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );
 			}
@@ -2104,6 +2112,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 			return $url;
 		}
 		if ( false !== strpos( $url, 'xmlrpc.php' ) ) {
+			return $url;
+		}
+		if ( strpos( $url, 'wp-content/plugins/anti-captcha/' ) ) {
 			return $url;
 		}
 		// Unable to parse.
