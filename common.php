@@ -2200,7 +2200,7 @@ function ewww_image_optimizer_gd_support() {
  */
 function ewww_image_optimizer_imagick_support() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( extension_loaded( 'imagick' ) ) {
+	if ( extension_loaded( 'imagick' ) && class_exists( 'Imagick' ) ) {
 		$imagick = new Imagick();
 		$formats = $imagick->queryFormats();
 		ewwwio_debug_message( implode( ',', $formats ) );
@@ -2219,7 +2219,7 @@ function ewww_image_optimizer_imagick_support() {
  */
 function ewww_image_optimizer_gmagick_support() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( extension_loaded( 'gmagick' ) ) {
+	if ( extension_loaded( 'gmagick' ) && class_exists( 'Gmagick' ) ) {
 		$gmagick = new Gmagick();
 		$formats = $gmagick->queryFormats();
 		ewwwio_debug_message( implode( ',', $formats ) );
