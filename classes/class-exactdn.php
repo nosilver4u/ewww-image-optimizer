@@ -312,6 +312,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 		if ( ! empty( $last_checkin ) && $last_checkin > time() ) {
 			ewwwio_debug_message( 'not time yet: ' . $this->human_time_diff( $this->get_exactdn_option( 'checkin' ) ) );
 			if ( $this->get_exactdn_option( 'suspended' ) ) {
+				ewwwio_debug_message( 'suspended marker, returning false until next checkin' );
 				return false;
 			}
 			return true;
@@ -380,7 +381,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 		} elseif ( ! empty( $result['body'] ) ) {
 			$response      = json_decode( $result['body'], true );
 			$error_message = $response['error'];
-			ewwwio_debug_message( "exactdn activation request failed: $error_message" );
+			ewwwio_debug_message( "exactdn verification request failed: $error_message" );
 			$this->set_exactdn_option( 'suspended', 1 );
 			return false;
 		}
