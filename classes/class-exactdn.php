@@ -1656,7 +1656,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 				}
 				foreach ( $currentwidths as $currentwidth ) {
 					// If a new width would be within 50 pixels of an existing one or larger than the full size image, skip.
-					if ( abs( $currentwidth - $newwidth ) < 50 ) {
+					if ( 1 !== $multiplier && abs( $currentwidth - $newwidth ) < 50 ) {
 						continue 2; // Back to the foreach ( $multipliers as $multiplier ).
 					}
 				} // foreach ( $currentwidths as $currentwidth ){

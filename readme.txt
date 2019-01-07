@@ -175,9 +175,10 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.5.4 =
-* changed: API/ExactDN preserve colore profiles, even when removing image metadata
+* changed: API/ExactDN preserves color profiles, even when removing image metadata
 * fixed: too many settings updates when trying to prevent slow queries
 * fixed: ExactDN rewrites urls to static HTML files
+* fixed: ExactDN skips 1x url in some cases, causing browser upscaling
 
 = 4.5.3 =
 * fixed: ExactDN duplicates srcset instead of replacing it
