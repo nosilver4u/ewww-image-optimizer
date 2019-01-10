@@ -150,6 +150,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 		add_filter( 'exactdn_admin_allow_image_downsize', array( $this, 'allow_admin_image_downsize' ), 10, 2 );
 		// Overrides for "pass through" images.
 		add_filter( 'exactdn_pre_args', array( $this, 'exactdn_remove_args' ), 10, 3 );
+		// Overrides for user exclusions.
+		add_filter( 'exactdn_skip_image', array( $this, 'exactdn_skip_user_exclusions' ), 9, 2 );
+		add_filter( 'exactdn_skip_for_url', array( $this, 'exactdn_skip_user_exclusions' ), 9, 2 );
 
 		// Responsive image srcset substitution.
 		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_array' ), 1001, 5 );
@@ -1179,6 +1182,10 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 		// Get the image URL and proceed with ExactDN replacement if successful.
 		$image_url = wp_get_attachment_url( $attachment_id );
+		/** This filter is already documented in class-exactdn.php */
+		if ( apply_filters( 'exactdn_skip_image', false, $image_url, null ) ) {
+			return $image;
+		}
 		ewwwio_debug_message( $image_url );
 		ewwwio_debug_message( $attachment_id );
 		if ( is_string( $size ) || is_int( $size ) ) {
@@ -2089,6 +2096,25 @@ class ExactDN extends EWWWIO_Page_Parser {
 	}
 
 	/**
+	 * Exclude images and other resources from being processed based on user specified list.
+	 *
+	 * @param boolean $skip Whether ExactDN should skip processing.
+	 * @param string  $url Resource URL.
+	 * @return boolean True to skip the resource, unchanged otherwise.
+	 */
+	function exactdn_skip_user_exclusions( $skip, $url ) {
+		if ( $this->user_exclusions ) {
+			foreach ( $this->user_exclusions as $exclusion ) {
+				if ( false !== strpos( $url, $exclusion ) ) {
+					ewwwio_debug_message( "user excluded $url via $exclusion" );
+					return true;
+				}
+			}
+		}
+		return $skip;
+	}
+
+	/**
 	 * Converts a local script/css url to use ExactDN.
 	 *
 	 * @param string $url URL to the resource being parsed.
@@ -2101,14 +2127,6 @@ class ExactDN extends EWWWIO_Page_Parser {
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		$parsed_url = $this->parse_url( $url );
 
-		if ( $this->user_exclusions ) {
-			foreach ( $this->user_exclusions as $exclusion ) {
-				if ( false !== strpos( $url, $exclusion ) ) {
-					ewwwio_debug_message( "user excluded $url via $exclusion" );
-					return $url;
-				}
-			}
-		}
 		if ( false !== strpos( $url, 'wp-admin/' ) ) {
 			return $url;
 		}
@@ -2118,6 +2136,18 @@ class ExactDN extends EWWWIO_Page_Parser {
 		if ( strpos( $url, 'wp-content/plugins/anti-captcha/' ) ) {
 			return $url;
 		}
+		/**
+		 * Allow specific URLs to avoid going through ExactDN.
+		 *
+		 * @param bool false Should the URL be returned as is, without going through ExactDN. Default to false.
+		 * @param string $url Resource URL.
+		 * @param array|string $args Array of ExactDN arguments.
+		 * @param string|null $scheme URL scheme. Default to null.
+		 */
+		if ( true === apply_filters( 'exactdn_skip_for_url', false, $url, array(), null ) ) {
+			return $url;
+		}
+
 		// Unable to parse.
 		if ( ! $parsed_url || ! is_array( $parsed_url ) || empty( $parsed_url['host'] ) || empty( $parsed_url['path'] ) ) {
 			ewwwio_debug_message( 'src url no good' );
@@ -2191,12 +2221,12 @@ class ExactDN extends EWWWIO_Page_Parser {
 		}
 
 		/**
-		 * Allow specific image URls to avoid going through ExactDN.
+		 * Allow specific URLs to avoid going through ExactDN.
 		 *
-		 * @param bool false Should the image be returned as is, without going through ExactDN. Default to false.
-		 * @param string $image_url Image URL.
+		 * @param bool false Should the URL be returned as is, without going through ExactDN. Default to false.
+		 * @param string $image_url Resource URL.
 		 * @param array|string $args Array of ExactDN arguments.
-		 * @param string|null $scheme Image scheme. Default to null.
+		 * @param string|null $scheme URL scheme. Default to null.
 		 */
 		if ( true === apply_filters( 'exactdn_skip_for_url', false, $image_url, $args, $scheme ) ) {
 			return $image_url;

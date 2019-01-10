@@ -7820,10 +7820,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewwwio_debug_message( 'ExactDN resize existing: ' . ( ewww_image_optimizer_get_option( 'exactdn_resize_existing' ) == true ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'ExactDN attachment queries: ' . ( ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' ) == true ? 'off' : 'on' ) );
 	if ( defined( 'EXACTDN_EXCLUDE' ) && EXACTDN_EXCLUDE ) {
-		if ( is_string( EXACTDN_EXCLUDE ) ) {
-			ewwwio_debug_message( 'ExactDN user exclusions : ' . EXACTDN_EXCLUDE );
-		} elseif ( is_array( EXACTDN_EXCLUDE ) ) {
-			ewwwio_debug_message( 'ExactDN user exclusions : ' . implode( ',', EXACTDN_EXCLUDE ) );
+		$exactdn_user_exclusions = EXACTDN_EXCLUDE;
+		if ( is_array( $exactdn_user_exclusions ) ) {
+			ewwwio_debug_message( 'ExactDN user exclusions : ' . implode( ',', $exactdn_user_exclusions ) );
+		} elseif ( is_string( $exactdn_user_exclusions ) ) {
+			ewwwio_debug_message( 'ExactDN user exclusions : ' . $exactdn_user_exclusions );
 		} else {
 			ewwwio_debug_message( 'ExactDN user exclusions invalid data type' );
 		}
