@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '453.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '453.03' );
 
 // Initialize a couple globals.
 $ewww_debug = '';

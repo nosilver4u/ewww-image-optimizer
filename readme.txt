@@ -181,6 +181,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: ExactDN rewrites urls to static HTML files
 * fixed: ExactDN skips 1x url in some cases, causing browser upscaling
 * fixed: PHP notice when EXACTDN_EXCLUDE is defined
+* fixed: race condition in Alt WebP prevents Webp derivatives from replacing the originals
 
 = 4.5.3 =
 * fixed: ExactDN duplicates srcset instead of replacing it

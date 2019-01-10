@@ -469,11 +469,10 @@ function check_webp_feature(feature, callback) {
         };
         var img = new Image();
         img.onload = function () {
-                ewww_webp_supported = (img.width > 0) && (img.height > 0);
+                var ewww_webp_supported = (img.width > 0) && (img.height > 0);
                 callback(ewww_webp_supported);
         };
         img.onerror = function () {
-                ewww_webp_supported = false;
                 callback(false);
         };
         img.src = "data:image/webp;base64," + kTestImages[feature];
@@ -583,14 +582,13 @@ function ewww_load_images(ewww_webp_supported) {
 		});
 	}
 }
-var ewww_webp_supported = false;
 var ewww_jquery_waiting_timer = 0;
 ewww_jquery_waiting = setInterval(function () {
         if (window.jQuery) {
                 check_webp_feature('alpha', ewww_load_images);
                 check_webp_feature('alpha', ewww_ngg_plus_load_galleries);
                 document.arrive('.ewww_webp', function() {
-                        ewww_load_images(ewww_webp_supported);
+                        check_webp_feature('alpha', ewww_load_images);
                 });
                 var ewww_ngg_galleries_timer = 0;
                 var ewww_ngg_galleries = setInterval(function() {
