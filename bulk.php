@@ -406,7 +406,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 		update_option( 'ewww_image_optimizer_scanning_attachments', '', false );
 		update_option( 'ewww_image_optimizer_bulk_attachments', '', false );
 		*/
-		ewww_image_optimizer_delete_unscanned();
+		ewww_image_optimizer_delete_queue_images();
 		ewww_image_optimizer_delete_pending();
 	}
 	// Check to see if we are supposed to convert the auxiliary images table and verify we are authorized to do so.
@@ -423,7 +423,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 		update_option( 'ewww_image_optimizer_bulk_attachments', '', false );
 		*/
 		ewwwio_debug_message( 'not resuming/scanning, so clearing any pending images in both tables' );
-		ewww_image_optimizer_delete_unscanned();
+		ewww_image_optimizer_delete_queue_images();
 		ewww_image_optimizer_delete_pending();
 	}
 	// See if we were given attachment IDs to work with via GET/POST.

@@ -446,7 +446,6 @@ function ewww_image_optimizer_update_scanned_image( $id, $gallery = 'media' ) {
 		array( '%d' ),
 		array( '%s', '%d' )
 	);
-	/* $wpdb->query( $wpdb->prepare( "UPDATE $wpdb->ewwwio_queue SET scanned = 1 WHERE gallery = %s AND attachment_id = %d", $gallery, $id ) ); */
 }
 
 /**
@@ -466,7 +465,6 @@ function ewww_image_optimizer_delete_queued_image( $id, $gallery = 'media' ) {
 		),
 		array( '%s', '%d' )
 	);
-	/* $wpdb->query( $wpdb->prepare( "DELETE from $wpdb->ewwwio_queue WHERE gallery = %s AND attachment_id = %d", $gallery, $id ) ); */
 }
 
 /**
@@ -475,7 +473,7 @@ function ewww_image_optimizer_delete_queued_image( $id, $gallery = 'media' ) {
  * @param string $gallery The type of attachments to clear from the queue. Default media library.
  * @global object $wpdb
  */
-function ewww_image_optimizer_delete_unscanned( $gallery = 'media' ) {
+function ewww_image_optimizer_delete_queue_images( $gallery = 'media' ) {
 	global $wpdb;
 	$wpdb->query( $wpdb->prepare( "DELETE from $wpdb->ewwwio_queue WHERE gallery = %s", $gallery ) );
 }

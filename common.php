@@ -1920,12 +1920,18 @@ function ewww_image_optimizer_network_deactivate( $network_wide ) {
 }
 
 /**
- * Removes rules from .htaccess file added by EWWW for WebP rewriting.
+ * Cleans up when the plugin is removed.
+ *
+ * Removes rules from .htaccess file added for WebP rewriting. Also clears the ewwwio_queue table.
  */
 function ewww_image_optimizer_uninstall() {
 	if ( ewwwio_extract_from_markers( ewww_image_optimizer_htaccess_path(), 'EWWWIO' ) ) {
 		insert_with_markers( ewww_image_optimizer_htaccess_path(), 'EWWWIO', '' );
 	}
+	ewww_image_optimizer_delete_queue_images();
+	ewww_image_optimizer_delete_queue_images( 'flag' );
+	ewww_image_optimizer_delete_queue_images( 'nextgen' );
+	ewww_image_optimizer_delete_queue_images( 'nextcell' );
 }
 
 /**
