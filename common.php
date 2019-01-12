@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '453.03' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '453.042' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -38,6 +38,9 @@ if ( WP_DEBUG && function_exists( 'memory_get_usage' ) ) {
 global $wpdb;
 if ( ! isset( $wpdb->ewwwio_images ) ) {
 	$wpdb->ewwwio_images = $wpdb->prefix . 'ewwwio_images';
+}
+if ( ! isset( $wpdb->ewwwio_queue ) ) {
+	$wpdb->ewwwio_queue = $wpdb->prefix . 'ewwwio_queue';
 }
 
 if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_RELATIVE' ) ) {
@@ -515,6 +518,11 @@ function ewww_image_optimizer_upgrade() {
 		if ( get_option( 'ewww_image_optimizer_version' ) > 0 && get_option( 'ewww_image_optimizer_version' ) < 440 && ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) < 30 ) ) {
 			add_site_option( 'exactdn_lossy', true );
 			update_option( 'exactdn_lossy', true );
+		}
+		if ( get_option( 'ewww_image_optimizer_version' ) < 454 ) {
+			update_option( 'ewww_image_optimizer_bulk_resume', '' );
+			update_option( 'ewww_image_optimizer_aux_resume', '' );
+			ewww_image_optimizer_delete_pending();
 		}
 		ewww_image_optimizer_remove_obsolete_settings();
 		update_option( 'ewww_image_optimizer_version', EWWW_IMAGE_OPTIMIZER_VERSION );
@@ -1113,6 +1121,7 @@ function ewww_image_optimizer_install_table() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
 	$wpdb->ewwwio_images = $wpdb->prefix . 'ewwwio_images';
+	$wpdb->ewwwio_queue  = $wpdb->prefix . 'ewwwio_queue';
 
 	// Get the current wpdb charset and collation.
 	$db_collation = $wpdb->get_charset_collate();
@@ -1216,12 +1225,30 @@ function ewww_image_optimizer_install_table() {
 	// Include the upgrade library to install/upgrade a table.
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 	$updates = dbDelta( $sql );
-	ewwwio_debug_message( 'db upgrade results: ' . implode( '<br>', $updates ) );
+	ewwwio_debug_message( 'images db upgrade results: ' . implode( '<br>', $updates ) );
+
+	/*
+	 * Create a table with XX columns:
+	 * attachment_id: the unique id within the media library, nextgen, or flag
+	 * gallery: 'media', 'nextgen', 'nextcell', or 'flag',
+	 * scanned: 1 if the image is queued for optimization, 0 if it still needs scanning.
+	 */
+	$sql = "CREATE TABLE $wpdb->ewwwio_queue (
+		attachment_id bigint(20) unsigned,
+		gallery varchar(10),
+		scanned tinyint(1) NOT NULL DEFAULT 0,
+		KEY attachment_info (gallery(3),attachment_id)
+	) COLLATE utf8_general_ci;";
+
+	// Include the upgrade library to install/upgrade a table.
+	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+	$updates = dbDelta( $sql );
+	ewwwio_debug_message( 'queue db upgrade results: ' . implode( '<br>', $updates ) );
 
 	// Make sure some of our options are not autoloaded (since they can be huge).
-	$bulk_attachments = get_option( 'ewww_image_optimizer_bulk_attachments', '' );
+	// $bulk_attachments = get_option( 'ewww_image_optimizer_bulk_attachments', '' );.
 	delete_option( 'ewww_image_optimizer_bulk_attachments' );
-	add_option( 'ewww_image_optimizer_bulk_attachments', $bulk_attachments, '', 'no' );
+	// add_option( 'ewww_image_optimizer_bulk_attachments', $bulk_attachments, '', 'no' );.
 	$bulk_attachments = get_option( 'ewww_image_optimizer_flag_attachments', '' );
 	delete_option( 'ewww_image_optimizer_flag_attachments' );
 	add_option( 'ewww_image_optimizer_flag_attachments', $bulk_attachments, '', 'no' );

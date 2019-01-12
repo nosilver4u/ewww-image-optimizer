@@ -73,8 +73,8 @@ function ewww_image_optimizer_aux_images() {
 	$help_instructions = esc_html__( 'Enable the Debugging option and refresh this page to include debugging information with your question.', 'ewww-image-optimizer' ) . ' ' .
 		esc_html__( 'This will allow us to assist you more quickly.', 'ewww-image-optimizer' );
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-		ewww_image_optimizer_options( 'debug-silent' );
 		global $ewww_debug;
+		ewww_image_optimizer_options( 'debug-silent' );
 		$output .= '<p style="clear:both"><b>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</b> <button id="ewww-copy-debug" class="button button-secondary">' . esc_html__( 'Copy', 'ewww-image-optimizer' ) . '</button>';
 		if ( is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
 			$debug_log_url = plugins_url( '/debug.log', __FILE__ );
@@ -330,6 +330,154 @@ function ewww_image_optimizer_delete_pending() {
 			'pending' => 1,
 		)
 	);
+}
+
+/**
+ * Retrieve the number images from the ewwwio_queue table.
+ *
+ * @param string $gallery The type of attachments to count from the queue. Default is media library.
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_count_attachments( $gallery = 'media' ) {
+	global $wpdb;
+	$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->ewwwio_queue WHERE gallery = %s", $gallery ) );
+	return $count;
+}
+
+/**
+ * Retrieve the number of un-scanned images from the ewwwio_queue table.
+ *
+ * @param string $gallery The type of attachments to count from the queue.
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_count_unscanned_attachments( $gallery = 'media' ) {
+	global $wpdb;
+	$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->ewwwio_queue WHERE gallery = %s AND scanned = 0", $gallery ) );
+	return $count;
+}
+
+/**
+ * Retrieve unscanned images from the ewwwio_queue table.
+ *
+ * @param string $gallery The type of attachments for which to search.
+ * @param int    $limit The maximum number of unscanned attachments to retrieve.
+ * @return array A list of unscanned attachments. Will always be an array of integers.
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_get_unscanned_attachments( $gallery, $limit = 1000 ) {
+	global $wpdb;
+	// Retrieve the attachment IDs that were pre-loaded in the database.
+	$selected_ids = $wpdb->get_col( $wpdb->prepare( "SELECT attachment_id FROM $wpdb->ewwwio_queue WHERE gallery = %s AND scanned = 0 LIMIT %d", $gallery, $limit ) );
+	if ( empty( $selected_ids ) ) {
+		ewwwio_debug_message( 'no attachments found for scanning' );
+		return array();
+	}
+	array_walk( $selected_ids, 'intval' );
+	ewwwio_debug_message( 'selected items: ' . count( $selected_ids ) );
+	return $selected_ids;
+}
+
+/**
+ * Retrieve an image ID from the ewwwio_queue table.
+ *
+ * @param string $gallery The type of attachment to find.
+ * @param int    $limit The maximum number of unscanned attachments to retrieve.
+ * @return array The ID list for queued/scanned attachments.
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_get_queued_attachments( $gallery, $limit = 100 ) {
+	global $wpdb;
+	// Retrieve the attachment IDs that were pre-loaded in the database.
+	$selected_ids = $wpdb->get_col( $wpdb->prepare( "SELECT attachment_id FROM $wpdb->ewwwio_queue WHERE gallery = %s AND scanned = 1 LIMIT %d", $gallery, $limit ) );
+	if ( empty( $selected_ids ) ) {
+		ewwwio_debug_message( 'no attachments found in queue' );
+		return array();
+	}
+	array_walk( $selected_ids, 'intval' );
+	ewwwio_debug_message( 'selected items: ' . count( $selected_ids ) );
+	return $selected_ids;
+}
+
+/**
+ * Insert a batch of attachment IDs into the ewwwio_queue table.
+ *
+ * @param array  $ids The list of attachment IDs to insert.
+ * @param string $gallery The type of attachments to insert. Defaults to media library.
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_insert_unscanned( $ids, $gallery = 'media' ) {
+	global $wpdb;
+	$images = array();
+	$id     = array_shift( $ids );
+	while ( $ids ) {
+		$images[] = array(
+			'attachment_id' => (int) $id,
+			'gallery'       => $gallery,
+		);
+		if ( count( $images ) > 999 ) {
+			ewww_image_optimizer_mass_insert( $wpdb->ewwwio_queue, $images, array( '%d', '%s' ) );
+			$images = array();
+		}
+		$id = array_shift( $ids );
+	}
+	if ( $images ) {
+		ewww_image_optimizer_mass_insert( $wpdb->ewwwio_queue, $images, array( '%d', '%s' ) );
+	}
+}
+
+/**
+ * Update an image in the queue after it has been scanned.
+ *
+ * @param int    $id The attachment ID to update.
+ * @param string $gallery The type of attachment to update. Defaults to media library.
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_update_scanned_image( $id, $gallery = 'media' ) {
+	global $wpdb;
+	$wpdb->update(
+		$wpdb->ewwwio_queue,
+		array(
+			'scanned' => 1,
+		),
+		array(
+			'gallery'       => $gallery,
+			'attachment_id' => (int) $id,
+		),
+		array( '%d' ),
+		array( '%s', '%d' )
+	);
+	/* $wpdb->query( $wpdb->prepare( "UPDATE $wpdb->ewwwio_queue SET scanned = 1 WHERE gallery = %s AND attachment_id = %d", $gallery, $id ) ); */
+}
+
+/**
+ * Remove an image from the ewwwio_queue table (usually when we are done with it).
+ *
+ * @param int    $id The attachment ID to remove.
+ * @param string $gallery The type of attachment to remove. Defaults to media library.
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_delete_queued_image( $id, $gallery = 'media' ) {
+	global $wpdb;
+	$wpdb->delete(
+		$wpdb->ewwwio_queue,
+		array(
+			'gallery'       => $gallery,
+			'attachment_id' => (int) $id,
+		),
+		array( '%s', '%d' )
+	);
+	/* $wpdb->query( $wpdb->prepare( "DELETE from $wpdb->ewwwio_queue WHERE gallery = %s AND attachment_id = %d", $gallery, $id ) ); */
+}
+
+/**
+ * Remove images from the ewwwio_queue table.
+ *
+ * @param string $gallery The type of attachments to clear from the queue. Default media library.
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_delete_unscanned( $gallery = 'media' ) {
+	global $wpdb;
+	$wpdb->query( $wpdb->prepare( "DELETE from $wpdb->ewwwio_queue WHERE gallery = %s", $gallery ) );
 }
 
 /**
@@ -790,4 +938,27 @@ function ewww_image_optimizer_aux_images_cleanup( $auto = false ) {
 add_action( 'wp_ajax_bulk_aux_images_table', 'ewww_image_optimizer_aux_images_table' );
 add_action( 'wp_ajax_bulk_aux_images_table_count', 'ewww_image_optimizer_aux_images_table_count' );
 add_action( 'wp_ajax_bulk_aux_images_remove', 'ewww_image_optimizer_aux_images_remove' );
+
+/**
+ * Set a batch of images to pending.
+ *
+ * @global object $wpdb
+ * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
+ *
+ * @param array $reset_images A list of images to reset in the ewwwio_images table.
+ */
+function ewww_image_optimizer_reset_images( $reset_images ) {
+	if ( ! ewww_image_optimizer_iterable( $reset_images ) ) {
+		return;
+	}
+	array_walk( $reset_images, 'intval' );
+	global $wpdb;
+	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+		ewww_image_optimizer_db_init();
+		global $ewwwdb;
+	} else {
+		$ewwwdb = $wpdb;
+	}
+	$ewwwdb->query( "UPDATE $ewwwdb->ewwwio_images SET pending = 1, updated = updated WHERE id IN (" . implode( ',', $reset_images ) . ')' );
+}
 ?>

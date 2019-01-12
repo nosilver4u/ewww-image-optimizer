@@ -177,6 +177,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 = 4.5.4 =
 * changed: EXACTDN_EXCLUDE applies to all resources, including images, CSS, JS, fonts, etc.
 * changed: API/ExactDN preserves color profiles, even when removing image metadata
+* changed: new queue table for bulk optimizer to avoid exceeding max packet size for MySQL
 * fixed: too many settings updates when trying to prevent slow queries
 * fixed: ExactDN rewrites urls to static HTML files
 * fixed: ExactDN skips 1x url in some cases, causing browser upscaling
