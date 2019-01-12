@@ -14,7 +14,7 @@
 // TODO: need to make the scheduler so it can resume without having to re-run the queue population, and then we can probably also flush the queue when scheduled opt starts, but later it would be nice to implement the bulk_loop as the aux_loop so that it could handle media properly.
 // TODO: Add a custom async function for parallel mode to store image as pending and use the row ID instead of relative path.
 // TODO: write some tests for update_table and check_table, find_already_opt, and remove_dups.
-// TODO: write some conversion tests.
+// TODO: write some conversion tests, would be good to have test for autoconvert (transparent and not), plus a full media upload conversion testing all sizes.
 // TODO: check this patch, to see if the use of 'full' causes any issues: https://core.trac.wordpress.org/ticket/37840 .
 // TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
 // TODO: can some of the bulk "fallbacks" be implemented for async processing?
@@ -4496,6 +4496,11 @@ function ewwwio_crop_dimensions( $current_width, $current_height, $max_width = 0
  */
 function ewww_image_optimizer_better_resize( $file, $max_w, $max_h, $crop = false ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	ewwwio_debug_message( "resizing to $max_w and $max_h" );
+	if ( $crop ) {
+		ewwwio_debug_message( 'cropping too' );
+		$crop = true;
+	}
 	$type = ewww_image_optimizer_mimetype( $file, 'i' );
 	if ( false === strpos( $type, 'image' ) ) {
 		ewwwio_debug_message( 'not an image, no resizing possible' );

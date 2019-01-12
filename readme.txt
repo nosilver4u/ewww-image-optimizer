@@ -174,7 +174,8 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
-= 4.5.4 =
+= 4.6.0 =
+* added: preserve animations in GIF images during resize operations for sites using Imagick extension
 * changed: EXACTDN_EXCLUDE applies to all resources, including images, CSS, JS, fonts, etc.
 * changed: API/ExactDN preserves color profiles, even when removing image metadata
 * changed: new queue table for bulk optimizer to avoid exceeding max packet size for MySQL

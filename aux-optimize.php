@@ -335,6 +335,8 @@ function ewww_image_optimizer_delete_pending() {
 /**
  * Retrieve the number images from the ewwwio_queue table.
  *
+ * @since 4.6.0
+ *
  * @param string $gallery The type of attachments to count from the queue. Default is media library.
  * @global object $wpdb
  */
@@ -347,6 +349,8 @@ function ewww_image_optimizer_count_attachments( $gallery = 'media' ) {
 /**
  * Retrieve the number of un-scanned images from the ewwwio_queue table.
  *
+ * @since 4.6.0
+ *
  * @param string $gallery The type of attachments to count from the queue.
  * @global object $wpdb
  */
@@ -358,6 +362,8 @@ function ewww_image_optimizer_count_unscanned_attachments( $gallery = 'media' ) 
 
 /**
  * Retrieve unscanned images from the ewwwio_queue table.
+ *
+ * @since 4.6.0
  *
  * @param string $gallery The type of attachments for which to search.
  * @param int    $limit The maximum number of unscanned attachments to retrieve.
@@ -380,6 +386,8 @@ function ewww_image_optimizer_get_unscanned_attachments( $gallery, $limit = 1000
 /**
  * Retrieve an image ID from the ewwwio_queue table.
  *
+ * @since 4.6.0
+ *
  * @param string $gallery The type of attachment to find.
  * @param int    $limit The maximum number of unscanned attachments to retrieve.
  * @return array The ID list for queued/scanned attachments.
@@ -400,6 +408,8 @@ function ewww_image_optimizer_get_queued_attachments( $gallery, $limit = 100 ) {
 
 /**
  * Insert a batch of attachment IDs into the ewwwio_queue table.
+ *
+ * @since 4.6.0
  *
  * @param array  $ids The list of attachment IDs to insert.
  * @param string $gallery The type of attachments to insert. Defaults to media library.
@@ -428,6 +438,8 @@ function ewww_image_optimizer_insert_unscanned( $ids, $gallery = 'media' ) {
 /**
  * Update an image in the queue after it has been scanned.
  *
+ * @since 4.6.0
+ *
  * @param int    $id The attachment ID to update.
  * @param string $gallery The type of attachment to update. Defaults to media library.
  * @global object $wpdb
@@ -451,6 +463,8 @@ function ewww_image_optimizer_update_scanned_image( $id, $gallery = 'media' ) {
 /**
  * Remove an image from the ewwwio_queue table (usually when we are done with it).
  *
+ * @since 4.6.0
+ *
  * @param int    $id The attachment ID to remove.
  * @param string $gallery The type of attachment to remove. Defaults to media library.
  * @global object $wpdb
@@ -469,6 +483,8 @@ function ewww_image_optimizer_delete_queued_image( $id, $gallery = 'media' ) {
 
 /**
  * Remove images from the ewwwio_queue table.
+ *
+ * @since 4.6.0
  *
  * @param string $gallery The type of attachments to clear from the queue. Default media library.
  * @global object $wpdb

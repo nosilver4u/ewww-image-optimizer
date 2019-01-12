@@ -309,11 +309,11 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 		 * @param bool     $crop Optional. Scale by default, crop if true.
 		 * @return bool|WP_Error
 		 */
-		public function _resize( $max_w, $max_h, $crop = false ) {
+		protected function _resize( $max_w, $max_h, $crop = false ) {
+			ewwwio_debug_message( '<b>wp_image_editor_gd::' . __FUNCTION__ . '()</b>' );
 			if ( ( ! $max_w || $max_w >= $this->size['width'] ) && ( ! $max_h || $max_h >= $this->size['height'] ) ) {
 				return new WP_Error( 'image_resize_error', __( 'Image resize failed.' ) );
 			}
-			ewwwio_debug_message( '<b>wp_image_editor_gd::' . __FUNCTION__ . '()</b>' );
 			if ( defined( 'EWWWIO_EDITOR_AGR' ) && ! EWWWIO_EDITOR_AGR ) {
 				ewwwio_debug_message( 'AGR disabled' );
 				return parent::_resize( $max_w, $max_h, $crop );
@@ -386,6 +386,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 		 * @return true|WP_Error
 		 */
 		public function resize( $max_w, $max_h, $crop = false ) {
+			ewwwio_debug_message( '<b>wp_image_editor_gd::' . __FUNCTION__ . '()</b>' );
 			if ( ( $this->size['width'] == $max_w ) && ( $this->size['height'] == $max_h ) ) {
 				return true;
 			}
@@ -431,6 +432,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 		 * @return array An array of resized images' metadata by size.
 		 */
 		public function multi_resize( $sizes ) {
+			ewwwio_debug_message( '<b>wp_image_editor_gd::' . __FUNCTION__ . '()</b>' );
 			$metadata  = array();
 			$orig_size = $this->size;
 			foreach ( $sizes as $size => $size_data ) {
@@ -595,6 +597,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 		 * @return WP_Error|array The full path, base filename, and mimetype.
 		 */
 		protected function _save( $image, $filename = null, $mime_type = null ) {
+			ewwwio_debug_message( '<b>wp_image_editor_gd::' . __FUNCTION__ . '()</b>' );
 			global $ewww_defer;
 			global $ewww_preempt_editor;
 			if ( ! empty( $this->ewww_image ) && empty( $this->modified ) ) {

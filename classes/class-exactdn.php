@@ -2098,6 +2098,8 @@ class ExactDN extends EWWWIO_Page_Parser {
 	/**
 	 * Exclude images and other resources from being processed based on user specified list.
 	 *
+	 * @since 4.6.0
+	 *
 	 * @param boolean $skip Whether ExactDN should skip processing.
 	 * @param string  $url Resource URL.
 	 * @return boolean True to skip the resource, unchanged otherwise.
