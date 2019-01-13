@@ -40,7 +40,18 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 		self::$test_png = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/common-loon.png' );
 		self::$test_gif = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/xhtml11.gif' );
 		ewww_image_optimizer_set_defaults();
+		update_option( 'ewww_image_optimizer_jpg_level', 10 );
+		update_option( 'ewww_image_optimizer_gif_level', 10 );
+		update_option( 'ewww_image_optimizer_webp', true );
+		update_option( 'ewww_image_optimizer_png_level', 40 );
+		update_site_option( 'ewww_image_optimizer_webp', true );
+		update_site_option( 'ewww_image_optimizer_png_level', 40 );
 		ewww_image_optimizer_install_tools();
+		ewww_image_optimizer_install_pngout();
+		update_option( 'ewww_image_optimizer_webp', '' );
+		update_option( 'ewww_image_optimizer_png_level', 10 );
+		update_site_option( 'ewww_image_optimizer_webp', '' );
+		update_site_option( 'ewww_image_optimizer_png_level', 10 );
 	}
 
 	/**
