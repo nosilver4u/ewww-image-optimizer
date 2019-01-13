@@ -48,8 +48,8 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		self::$test_gif = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/gifsiclelogo.gif' );
 		self::$test_pdf = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/tomtempleartist-bio-2008.pdf' );
 		ewww_image_optimizer_set_defaults();
-		update_option( 'ewww_image_optimizer_jpg_level', '10' );
-		update_option( 'ewww_image_optimizer_gif_level', '10' );
+		update_option( 'ewww_image_optimizer_jpg_level', 10 );
+		update_option( 'ewww_image_optimizer_gif_level', 10 );
 		update_option( 'ewww_image_optimizer_webp', true );
 		update_option( 'ewww_image_optimizer_png_level', 40 );
 		update_site_option( 'ewww_image_optimizer_webp', true );
