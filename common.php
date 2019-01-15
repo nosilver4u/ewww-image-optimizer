@@ -579,6 +579,18 @@ function ewww_image_optimizer_retest_background_optimization() {
 function ewww_image_optimizer_admin_init() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	ewwwio_memory( __FUNCTION__ );
+	/**
+	 * Require the file that does the bulk processing.
+	 */
+	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'bulk.php' );
+	/**
+	 * Require the files that contain functions for the images table and bulk processing images outside the library.
+	 */
+	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'aux-optimize.php' );
+	/**
+	 * Require the files that migrate WebP images from extension replacement to extension appending.
+	 */
+	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'mwebp.php' );
 	ewww_image_optimizer_cloud_init();
 	ewww_image_optimizer_upgrade();
 	if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
@@ -727,18 +739,6 @@ function ewww_image_optimizer_admin_init() {
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_for_cdn', 'boolval' );
 	ewww_image_optimizer_exec_init();
 	ewww_image_optimizer_cron_setup( 'ewww_image_optimizer_auto' );
-	/**
-	 * Require the file that does the bulk processing.
-	 */
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'bulk.php' );
-	/**
-	 * Require the files that contain functions for the images table and bulk processing images outside the library.
-	 */
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'aux-optimize.php' );
-	/**
-	 * Require the files that migrate WebP images from extension replacement to extension appending.
-	 */
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'mwebp.php' );
 	// Queue the function that contains custom styling for our progressbars.
 	add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_progressbar_style' );
 	// Alert user if multiple re-optimizations detected.
