@@ -13,7 +13,6 @@
 // TODO: might be able to use the Custom Bulk Actions in 4.7 to support the bulk optimize drop-down menu.
 // TODO: need to make the scheduler so it can resume without having to re-run the queue population, and then we can probably also flush the queue when scheduled opt starts, but later it would be nice to implement the bulk_loop as the aux_loop so that it could handle media properly.
 // TODO: Add a custom async function for parallel mode to store image as pending and use the row ID instead of relative path.
-// TODO: write some tests for update_table and check_table, find_already_opt, and remove_dups.
 // TODO: write some tests for AGR.
 // TODO: check this patch, to see if the use of 'full' causes any issues: https://core.trac.wordpress.org/ticket/37840 .
 // TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
@@ -517,7 +516,6 @@ function ewww_image_optimizer_upgrade() {
 		}
 		if ( get_option( 'ewww_image_optimizer_version' ) > 0 && get_option( 'ewww_image_optimizer_version' ) < 440 && ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) < 30 ) ) {
 			add_site_option( 'exactdn_lossy', true );
-			update_option( 'exactdn_lossy', true );
 		}
 		if ( get_option( 'ewww_image_optimizer_version' ) < 454 ) {
 			update_option( 'ewww_image_optimizer_bulk_resume', '' );
@@ -3781,7 +3779,7 @@ function ewww_image_optimizer_mass_insert( $table, $images, $format ) {
  *
  * @param string $file The filename of the image.
  * @param int    $orig_size The current filesize of the image.
- * @return array The image record from the table, if found.
+ * @return string The image results from the table, if found.
  */
 function ewww_image_optimizer_check_table( $file, $orig_size ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
@@ -3804,7 +3802,7 @@ function ewww_image_optimizer_check_table( $file, $orig_size ) {
 	if ( is_array( $image ) && $image['image_size'] == $orig_size ) {
 		$prev_string = ' - ' . __( 'Previously Optimized', 'ewww-image-optimizer' );
 		if ( preg_match( '/' . __( 'License exceeded', 'ewww-image-optimizer' ) . '/', $image['results'] ) ) {
-			return;
+			return '';
 		}
 		$already_optimized = preg_replace( "/$prev_string/", '', $image['results'] );
 		$already_optimized = $already_optimized . $prev_string;
@@ -3825,6 +3823,7 @@ function ewww_image_optimizer_check_table( $file, $orig_size ) {
 		}
 		return $already_optimized;
 	}
+	return '';
 }
 
 /**
