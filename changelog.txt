@@ -1,3 +1,15 @@
+= 4.6.0 =
+* added: preserve animations in GIF images during resize operations for sites using Imagick extension
+* changed: EXACTDN_EXCLUDE applies to all resources, including images, CSS, JS, fonts, etc.
+* changed: API/ExactDN preserves color profiles, even when removing image metadata
+* changed: new queue table for bulk optimizer to avoid exceeding max packet size for MySQL
+* changed: unit tests run on PHP 7.3 also
+* fixed: too many settings updates when trying to prevent slow queries
+* fixed: ExactDN rewrites urls to static HTML files
+* fixed: ExactDN skips 1x url in some cases, causing browser upscaling
+* fixed: PHP notice when EXACTDN_EXCLUDE is defined
+* fixed: race condition in Alt WebP prevents Webp derivatives from replacing the originals
+
 = 4.5.3 =
 * fixed: ExactDN duplicates srcset instead of replacing it
 * security: remote code execution, low exposure
