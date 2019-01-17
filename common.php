@@ -4954,7 +4954,7 @@ function ewww_image_optimizer_remove_duplicate_records( $duplicates ) {
 	if ( ! is_array( $duplicates[0] ) ) {
 		// Retrieve records for the ID #s passed.
 		$duplicate_ids = implode( ',', array_map( 'intval', $duplicates ) );
-		$duplicates    = $ewwwdb->get_results( "SELECT * FROM $ewwwdb->ewwwio_images WHERE id IN ($duplicate_ids)" ); // WPCS: unprepared SQL ok.
+		$duplicates    = $ewwwdb->get_results( "SELECT * FROM $ewwwdb->ewwwio_images WHERE id IN ($duplicate_ids)" );
 	}
 	if ( ! is_array( $duplicates ) || ! is_array( $duplicates[0] ) ) {
 		return false;
@@ -4997,7 +4997,7 @@ function ewww_image_optimizer_remove_duplicate_records( $duplicates ) {
 		}
 		if ( ! empty( $delete_ids ) && is_array( $delete_ids ) ) {
 			$query_ids = implode( ',', $delete_ids );
-			$ewwwdb->query( "DELETE FROM $ewwwdb->ewwwio_images WHERE id IN ($query_ids)" ); // WPCS: unprepared SQL ok.
+			$ewwwdb->query( "DELETE FROM $ewwwdb->ewwwio_images WHERE id IN ($query_ids)" );
 		}
 		return $keeper;
 	}
@@ -5745,7 +5745,7 @@ function ewww_image_optimizer_update_attachment( $meta, $id ) {
 	$esql = $wpdb->prepare( "SELECT ID, post_content FROM $wpdb->posts WHERE post_content LIKE %s", '%' . $wpdb->esc_like( $old_guid ) . '%' );
 	ewwwio_debug_message( "using query: $esql" );
 	// While there are posts to process.
-	$rows = $wpdb->get_results( $esql, ARRAY_A ); // WPCS: unprepared SQL ok.
+	$rows = $wpdb->get_results( $esql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	if ( ewww_image_optimizer_iterable( $rows ) ) {
 		foreach ( $rows as $row ) {
 			// Replace all occurences of the old guid with the new guid.

@@ -563,7 +563,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			if ( ! empty( $reset_images ) ) {
 				array_walk( $reset_images, 'intval' );
 				$reset_images_sql = '(' . implode( ',', $reset_images ) . ')';
-				$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN $reset_images_sql" ); // WPCS: unprepared SQL ok.
+				$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN $reset_images_sql" ); // phpcs:ignore WordPress.DB.PreparedSQL
 			}
 			if ( ! empty( $images ) ) {
 				ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
@@ -595,7 +595,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			if ( ! empty( $reset_images ) ) {
 				array_walk( $reset_images, 'intval' );
 				$reset_images_sql = '(' . implode( ',', $reset_images ) . ')';
-				$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN $reset_images_sql" ); // WPCS: unprepared SQL ok.
+				$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN $reset_images_sql" ); // phpcs:ignore WordPress.DB.PreparedSQL
 			}
 			if ( ! empty( $images ) ) {
 				ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
@@ -697,7 +697,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	if ( ! empty( $reset_images ) ) {
 		array_walk( $reset_images, 'intval' );
 		$reset_images_sql = '(' . implode( ',', $reset_images ) . ')';
-		$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN $reset_images_sql" ); // WPCS: unprepared SQL ok.
+		$wpdb->query( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id IN $reset_images_sql" ); // phpcs:ignore WordPress.DB.PreparedSQL
 	}
 	delete_transient( 'ewww_image_optimizer_aux_iterator' );
 	$end = microtime( true ) - $start;

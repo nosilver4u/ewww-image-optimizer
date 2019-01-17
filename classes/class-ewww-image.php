@@ -810,7 +810,7 @@ class EWWW_Image {
 		// Retrieve any posts that link the image.
 		$esql = $wpdb->prepare( "SELECT ID, post_content FROM $wpdb->posts WHERE post_content LIKE %s", '%' . $wpdb->esc_like( $old_guid ) . '%' );
 		ewwwio_debug_message( "using query: $esql" );
-		$rows = $wpdb->get_results( $esql, ARRAY_A ); // WPCS: unprepared SQL ok.
+		$rows = $wpdb->get_results( $esql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL
 		if ( ewww_image_optimizer_iterable( $rows ) ) {
 			// While there are posts to process.
 			foreach ( $rows as $row ) {
