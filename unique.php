@@ -513,10 +513,17 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Check if exec is disabled.
 	if ( ewww_image_optimizer_exec_check() ) {
+		$no_compression = false;
+		if ( 0 == ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) && 0 == ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) && 0 == ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) ) {
+			$no_compression = true;
+		}
 		// Need to be a little particular with the quiet parameter.
-		if ( 'quiet' !== $quiet ) {
+		if ( 'quiet' !== $quiet && ! $no_compression ) {
 			// Display a warning if exec() is disabled, can't run local tools without it.
-			echo "<div id='ewww-image-optimizer-warning-exec' class='error'><p>" . esc_html__( 'EWWW Image Optimizer requires exec() or an API key. Your system administrator has disabled the exec() function, ask them to enable it.', 'ewww-image-optimizer' ) . '</p></div>';
+			echo "<div id='ewww-image-optimizer-warning-exec' class='error'><p>" . esc_html__( 'EWWW Image Optimizer requires exec() to perform local compression. Your system administrator has disabled the exec() function, ask them to enable it.', 'ewww-image-optimizer' ) .
+				'<br>' . esc_html__( 'An API key or ExactDN subscription will allow you to offload the compression to our dedicated servers instead.', 'ewww-image-optimizer' ) .
+				( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ? '<br>' . esc_html__( 'Sites that use ExactDN already have built-in image optimization and may disable the compression options on the Basic tab to dismiss this notice.', 'ewww-image-optimizer' ) : '' ) .
+				'</p></div>';
 		}
 		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
 			define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
