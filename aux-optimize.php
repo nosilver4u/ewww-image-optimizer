@@ -419,7 +419,7 @@ function ewww_image_optimizer_insert_unscanned( $ids, $gallery = 'media' ) {
 	global $wpdb;
 	$images = array();
 	$id     = array_shift( $ids );
-	while ( $ids ) {
+	while ( ! empty( $id ) ) {
 		$images[] = array(
 			'attachment_id' => (int) $id,
 			'gallery'       => $gallery,

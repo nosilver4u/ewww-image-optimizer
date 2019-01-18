@@ -174,6 +174,9 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.6.1 =
+* fixed: bulk action from media library skipping last attachment in selection
+
 = 4.6.0 =
 * added: preserve animations in GIF images during resize operations for sites using Imagick extension
 * changed: EXACTDN_EXCLUDE applies to all resources, including images, CSS, JS, fonts, etc.
