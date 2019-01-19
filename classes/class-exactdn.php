@@ -210,10 +210,14 @@ class ExactDN extends EWWWIO_Page_Parser {
 		} else {
 			$upload_dir = wp_upload_dir( null, false );
 		}
-		$this->upload_domain = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? $this->parse_url( EXACTDN_LOCAL_DOMAIN, PHP_URL_HOST ) : $this->parse_url( $upload_dir['baseurl'], PHP_URL_HOST );
+		$upload_url_parts = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? $this->parse_url( EXACTDN_LOCAL_DOMAIN ) : $this->parse_url( $upload_dir['baseurl'] );
+		if ( empty( $upload_url_parts ) ) {
+			return;
+		}
+		$this->upload_domain = $upload_url_parts['host'];
 		ewwwio_debug_message( "allowing images from here: $this->upload_domain" );
-		if ( strpos( $this->upload_domain, 'amazonaws.com' ) ) {
-			$this->remove_path = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? $this->parse_url( EXACTDN_LOCAL_DOMAIN, PHP_URL_PATH ) : $this->parse_url( $upload_dir['baseurl'], PHP_URL_PATH );
+		if ( strpos( $this->upload_domain, 'amazonaws.com' ) && ! empty( $upload_url_parts['path'] ) ) {
+			$this->remove_path = rtrim( $upload_url_parts['path'], '/' );
 			ewwwio_debug_message( "removing this from urls: $this->remove_path" );
 		}
 		$this->allowed_domains[] = $this->upload_domain;
@@ -335,7 +339,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 		} elseif ( ! empty( $result['body'] ) && strpos( $result['body'], 'domain' ) !== false ) {
 			$response = json_decode( $result['body'], true );
 			if ( ! empty( $response['domain'] ) ) {
-				if ( strpos( $site_url, 'amazonaws.com' ) ) {
+				if ( strpos( $site_url, 'amazonaws.com' ) || strpos( $site_url, 'digitaloceanspaces.com' ) ) {
 					$this->set_exactdn_option( 'verify_method', -1, false );
 				}
 				return $this->set_exactdn_domain( $response['domain'] );
@@ -794,7 +798,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 				}
 
 				// Check for relative urls that start with a slash. Unlikely that we'll attempt relative urls beyond that.
-				if ( '/' === substr( $src, 0, 1 ) && '/' !== substr( $src, 1, 1 ) && false === strpos( $this->upload_domain, 'amazonaws.com' ) ) {
+				if ( '/' === substr( $src, 0, 1 ) && '/' !== substr( $src, 1, 1 ) && false === strpos( $this->upload_domain, 'amazonaws.com' ) && false === strpos( $this->upload_domain, 'digitaloceanspaces.com' ) ) {
 					$src = '//' . $this->upload_domain . $src;
 				}
 
@@ -1094,7 +1098,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 				$content = str_replace( 'wp-content/themes/jupiter"', '?wpcontent-bypass?/themes/jupiter"', $content );
 				$content = str_replace( 'wp-content/plugins/anti-captcha/', '?wpcontent-bypass?/plugins/anti-captcha', $content );
 				$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?(nextgen-image|wp-includes|wp-content)/#i', '$1//' . $this->exactdn_domain . '/$2$3/', $content );
-				if ( strpos( $this->upload_domain, 'amazonaws.com' ) ) {
+				if ( strpos( $this->upload_domain, 'amazonaws.com' ) || strpos( $this->upload_domain, 'digitaloceanspaces.com' ) ) {
 					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . $this->remove_path . '/#i', '$1//' . $this->exactdn_domain . '/', $content );
 				}
 				$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );

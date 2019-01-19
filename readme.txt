@@ -175,7 +175,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.6.1 =
-* added: automatic configuration for ExactDN + WP Offload Media (S3)
+* added: automatic configuration for ExactDN + WP Offload Media
 * fixed: bulk action from media library skipping last attachment in selection
 
 = 4.6.0 =
