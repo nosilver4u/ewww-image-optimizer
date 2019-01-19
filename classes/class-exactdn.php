@@ -71,6 +71,14 @@ class ExactDN extends EWWWIO_Page_Parser {
 	public $allowed_domains = array();
 
 	/**
+	 * Path portion to remove at beginning of URL, usually for path-style S3 domains.
+	 *
+	 * @access public
+	 * @var string $remove_path
+	 */
+	private $remove_path = '';
+
+	/**
 	 * The ExactDN domain/zone.
 	 *
 	 * @access private
@@ -183,11 +191,33 @@ class ExactDN extends EWWWIO_Page_Parser {
 		}
 
 		// Find the "local" domain.
-		$upload_dir          = wp_upload_dir( null, false );
+		$s3_active = false;
+		if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
+			global $as3cf;
+			$s3_region = $as3cf->get_setting( 'region' );
+			$s3_bucket = $as3cf->get_setting( 'bucket' );
+			$s3_domain = $as3cf->get_provider()->get_url_domain( $s3_bucket, $s3_region, null, array(), true );
+			ewwwio_debug_message( "found S3 domain of $s3_domain with bucket $s3_bucket and region $s3_region" );
+			if ( ! empty( $s3_domain ) ) {
+				$s3_active = true;
+			}
+		}
+
+		if ( $s3_active ) {
+			$upload_dir = array(
+				'baseurl' => 'https://' . $s3_domain,
+			);
+		} else {
+			$upload_dir = wp_upload_dir( null, false );
+		}
 		$this->upload_domain = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? $this->parse_url( EXACTDN_LOCAL_DOMAIN, PHP_URL_HOST ) : $this->parse_url( $upload_dir['baseurl'], PHP_URL_HOST );
 		ewwwio_debug_message( "allowing images from here: $this->upload_domain" );
+		if ( strpos( $this->upload_domain, 'amazonaws.com' ) ) {
+			$this->remove_path = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? $this->parse_url( EXACTDN_LOCAL_DOMAIN, PHP_URL_PATH ) : $this->parse_url( $upload_dir['baseurl'], PHP_URL_PATH );
+			ewwwio_debug_message( "removing this from urls: $this->remove_path" );
+		}
 		$this->allowed_domains[] = $this->upload_domain;
-		if ( strpos( $this->upload_domain, 'www' ) === false ) {
+		if ( ! $s3_active && strpos( $this->upload_domain, 'www' ) === false ) {
 			$this->allowed_domains[] = 'www.' . $this->upload_domain;
 		} else {
 			$nonwww = ltrim( 'www.', $this->upload_domain );
@@ -265,9 +295,26 @@ class ExactDN extends EWWWIO_Page_Parser {
 	 */
 	function activate_site() {
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-		$site_url = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : get_home_url();
-		$url      = 'http://optimize.exactlywww.com/exactdn/activate.php';
-		$ssl      = wp_http_supports( array( 'ssl' ) );
+		$s3_active = false;
+		if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
+			global $as3cf;
+			$s3_scheme = $as3cf->get_url_scheme();
+			$s3_region = $as3cf->get_setting( 'region' );
+			$s3_bucket = $as3cf->get_setting( 'bucket' );
+			$s3_domain = $as3cf->get_provider()->get_url_domain( $s3_bucket, $s3_region, null, array(), true );
+			ewwwio_debug_message( "found S3 domain of $s3_domain with bucket $s3_bucket and region $s3_region" );
+			if ( ! empty( $s3_domain ) ) {
+				$s3_active = true;
+			}
+		}
+
+		if ( $s3_active ) {
+			$site_url = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : $s3_scheme . '://' . $s3_domain;
+		} else {
+			$site_url = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : get_home_url();
+		}
+		$url = 'http://optimize.exactlywww.com/exactdn/activate.php';
+		$ssl = wp_http_supports( array( 'ssl' ) );
 		if ( $ssl ) {
 			$url = set_url_scheme( $url, 'https' );
 		}
@@ -288,6 +335,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 		} elseif ( ! empty( $result['body'] ) && strpos( $result['body'], 'domain' ) !== false ) {
 			$response = json_decode( $result['body'], true );
 			if ( ! empty( $response['domain'] ) ) {
+				if ( strpos( $site_url, 'amazonaws.com' ) ) {
+					$this->set_exactdn_option( 'verify_method', -1, false );
+				}
 				return $this->set_exactdn_domain( $response['domain'] );
 			}
 		} elseif ( ! empty( $result['body'] ) && strpos( $result['body'], 'error' ) !== false ) {
@@ -744,7 +794,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 				}
 
 				// Check for relative urls that start with a slash. Unlikely that we'll attempt relative urls beyond that.
-				if ( '/' === substr( $src, 0, 1 ) && '/' !== substr( $src, 1, 1 ) ) {
+				if ( '/' === substr( $src, 0, 1 ) && '/' !== substr( $src, 1, 1 ) && false === strpos( $this->upload_domain, 'amazonaws.com' ) ) {
 					$src = '//' . $this->upload_domain . $src;
 				}
 
@@ -1044,6 +1094,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 				$content = str_replace( 'wp-content/themes/jupiter"', '?wpcontent-bypass?/themes/jupiter"', $content );
 				$content = str_replace( 'wp-content/plugins/anti-captcha/', '?wpcontent-bypass?/plugins/anti-captcha', $content );
 				$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?(nextgen-image|wp-includes|wp-content)/#i', '$1//' . $this->exactdn_domain . '/$2$3/', $content );
+				if ( strpos( $this->upload_domain, 'amazonaws.com' ) ) {
+					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . $this->remove_path . '/#i', '$1//' . $this->exactdn_domain . '/', $content );
+				}
 				$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );
 			}
 		}
@@ -2318,6 +2371,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 			return $image_url;
 		}
 
+		if ( $this->remove_path && 0 === strpos( $image_url_parts['path'], $this->remove_path ) ) {
+			$image_url_parts['path'] = substr( $image_url_parts['path'], strlen( $this->remove_path ) );
+		}
 		$domain      = 'http://' . $this->exactdn_domain . '/';
 		$exactdn_url = $domain . ltrim( $image_url_parts['path'], '/' );
 		ewwwio_debug_message( "bare exactdn url: $exactdn_url" );
