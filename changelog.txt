@@ -1,3 +1,8 @@
+= 4.6.1 =
+* added: automatic configuration for ExactDN + WP Offload Media
+* fixed: bulk action from media library skipping last attachment in selection
+* fixed: uninstall function throws fatal error preventing deletion
+
 = 4.6.0 =
 * added: preserve animations in GIF images during resize operations for sites using Imagick extension
 * changed: EXACTDN_EXCLUDE applies to all resources, including images, CSS, JS, fonts, etc.

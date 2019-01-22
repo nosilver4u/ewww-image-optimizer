@@ -3,9 +3,9 @@ Contributors: nosilver4u
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW
 Tags: image, compress, resize, optimize, optimization, lossless, lossy, seo, webp, wp-cli, scale, tinypng, tinyjpg
 Requires at least: 4.9
-Tested up to: 5.0
+Tested up to: 5.1
 Requires PHP: 5.6
-Stable tag: 4.6.0
+Stable tag: 4.6.1
 License: GPLv3
 
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
@@ -177,6 +177,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 = 4.6.1 =
 * added: automatic configuration for ExactDN + WP Offload Media
 * fixed: bulk action from media library skipping last attachment in selection
+* fixed: uninstall function throws fatal error preventing deletion
 
 = 4.6.0 =
 * added: preserve animations in GIF images during resize operations for sites using Imagick extension

@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '460.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '461.0' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -1934,6 +1934,7 @@ function ewww_image_optimizer_uninstall() {
 	if ( ewwwio_extract_from_markers( ewww_image_optimizer_htaccess_path(), 'EWWWIO' ) ) {
 		insert_with_markers( ewww_image_optimizer_htaccess_path(), 'EWWWIO', '' );
 	}
+	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'aux-optimize.php' );
 	ewww_image_optimizer_delete_queue_images();
 	ewww_image_optimizer_delete_queue_images( 'flag' );
 	ewww_image_optimizer_delete_queue_images( 'nextgen' );
