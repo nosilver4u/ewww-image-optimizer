@@ -1,4 +1,4 @@
-# EWWW Image Optimizer 
+# EWWW Image Optimizer
 **Donate link:** https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW  
 **Minimum WordPress:** 4.9
 **Minimum PHP:** 5.6
@@ -13,7 +13,7 @@
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
 
 
-## Description 
+## Description
 
 The EWWW Image Optimizer will increase your page speeds by way of image optimization. Increased page speeds can result in better search engine rankings, and will also improve conversion rates (increased sales and signups). It will also save you storage space and bandwidth. While EWWW I.O. will automatically optimize new images that you upload, it can also optimize all the images that you have already uploaded, and optionally convert your images to the best file format. You can choose pixel perfect compression or high compression options that are visually lossless.
 
@@ -41,14 +41,14 @@ If you need a version of this plugin for API use only, see [EWWW Image Optimizer
 With ExactDN support, images will be automatically resized to fit the page and device size. ExactDN also enables basic retina support and automatic compression.
 
 
-### Support 
+### Support
 
 If you need assistance using the plugin, please visit our [Support Page](https://ewww.io/contact-us/).
 
 
-### Bulk Optimize 
+### Bulk Optimize
 
-Optimize all your images from a single page using the Bulk Scanner. This includes the Media Library, your theme, and a handful of pre-configured folders (see Optimize Everything Else below). Officially supported galleries (GRAND FlaGallery, NextCellent and NextGEN) have their own Bulk Optimize pages. 
+Optimize all your images from a single page using the Bulk Scanner. This includes the Media Library, your theme, and a handful of pre-configured folders (see Optimize Everything Else below). Officially supported galleries (GRAND FlaGallery, NextCellent and NextGEN) have their own Bulk Optimize pages.
 
 
 ### Optimize Everything Else
@@ -66,44 +66,44 @@ All optimized images are stored in the database so that the plugin does not atte
 All images created by the built-in WP_Image_Editor class will be automatically optimized. Current implementations are GD, Imagick, and Gmagick. Images optimized via this class include Animated GIF Resize, BuddyPress Activity Plus (thumbs), Easy Watermark, Hammy, Imsanity, MediaPress, Meta Slider, MyArcadePlugin, OTF Regenerate Thumbnails, Regenerate Thumbnails, Simple Image Sizes, WP Retina 2x, WP RSS Aggregator and probably countless others. If you are not sure if a plugin uses WP_Image_Editor, [just ask](https://ewww.io/contact-us/).
 
 
-### WebP Images 
+### WebP Images
 
 ExactDN enables one-click WebP with Alternative WebP Rewriting. Otherwise, can generate WebP versions of your images, and enables you to serve even smaller images to supported browsers. Several methods are available for serving WebP images, including Apache-compatible rewrite rules and our Alternative WebP Rewriting option compatible with caches and CDNs. Also works with the WebP option in the Cache Enabler plugin from KeyCDN.
 
 
-### WP-CLI 
+### WP-CLI
 
 Allows you to run all Bulk Optimization processes from your command line, instead of the web interface. It is much faster, and allows you to do things like run it in 'screen' or via regular cron (instead of wp-cron, which can be unpredictable on low-traffic sites). Install WP-CLI from wp-cli.org, and run 'wp-cli.phar help ewwwio optimize' for more information or see the [Docs](https://docs.ewww.io/article/25-optimizing-with-wp-cli).
 
 
-### FooGallery 
+### FooGallery
 
 All images uploaded and cached by FooGallery are automatically optimized. Previous uploads can be optimized by running the Media Library Bulk Optimize. Previously cached images can be optimized by entering the wp-content/uploads/cache/ folder under Folders to Optimize and running a Scan & Optimize from the Bulk Optimize page.
 
 
-### NextGEN Gallery 
+### NextGEN Gallery
 
 Features optimization on upload capability, re-optimization, and bulk optimizing. The NextGEN Bulk Optimize function is located near the bottom of the NextGEN menu, and will optimize all images in all galleries. It is also possible to optimize groups of images in a gallery, or multiple galleries at once.
 
 
-### NextCellent Gallery 
+### NextCellent Gallery
 
 Features all the same capability as NextGEN, and is the continuation of legacy (1.9.x) NextGEN support.
 
 
-### GRAND Flash Album Gallery 
+### GRAND Flash Album Gallery
 
 Features optimization on upload capability, re-optimization, and bulk optimizing. The Bulk Optimize function is located near the bottom of the FlAGallery menu, and will optimize all images in all galleries. It is also possible to optimize groups of images in a gallery, or multiple galleries at once.
 
 
-### Image Store 
+### Image Store
 
 Uploads are automatically optimized. Look for Optimize under the Image Store (Galleries) menu to see status of optimization and for re-optimization and bulk-optimization options. Using the Bulk Optimization tool under Media Library automatically includes all Image Store uploads.
 
 
-### CDN Support 
+### CDN Support
 
-Uploads to Amazon S3, Azure Storage, Cloudinary, and DreamSpeed CDN are optimized. All pull mode CDNs like Cloudflare, KeyCDN, MaxCDN, and Sucuri CloudProxy are also supported.
+[WP Offload Media](https://wordpress.org/plugins/amazon-s3-and-cloudfront/) is the officially supported (and recommended) plugin for uploads to Amazon S3 and Digital Ocean Spaces. We also support the Azure Storage and Cloudinary plugins. All pull mode CDNs like Cloudflare, KeyCDN, MaxCDN, and Sucuri CloudProxy work automatically, but will require you to purge the cache after a bulk optimization.
 
 
 ### WPML Compatible
@@ -111,7 +111,7 @@ Uploads to Amazon S3, Azure Storage, Cloudinary, and DreamSpeed CDN are optimize
 Tested regularly to ensure compatibility with multilingual sites. Learn more at https://wpml.org/plugin/ewww-image-optimizer/
 
 
-### Translations 
+### Translations
 
 Huge thanks to all our translators! See the full list here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/contributors
 
@@ -119,7 +119,7 @@ If you would like to help translate this plugin (new or existing translations), 
 To receive updates when new strings are available for translation, you can signup here: https://ewww.io/register/
 
 
-## Installation 
+## Installation
 
 1. Upload the "ewww-image-optimizer" plugin to your '/wp-content/plugins/' directory.
 1. Activate the plugin through the "Plugins" menu in WordPress.
@@ -131,70 +131,70 @@ To receive updates when new strings are available for translation, you can signu
 If these steps do not work, additional documentation is available at https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something. If you need further assistance using the plugin, please visit our [Support Page](https://ewww.io/contact-us/).
 
 
-### Webhosts 
+### Webhosts
 
 To find out if your webhost works with the EWWW Image Optimizer, you can check the [official list](https://docs.ewww.io/article/43-supported-web-hosts).
 
 
-## Frequently Asked Questions 
+## Frequently Asked Questions
 
 
-### Google Pagespeed says my images need compressing or resizing, but I already optimized all my images. What do I do? 
+### Google Pagespeed says my images need compressing or resizing, but I already optimized all my images. What do I do?
 
 Try this for starters: https://docs.ewww.io/article/5-pagespeed-says-my-images-need-more-work
 
 
-### The plugin complains that I'm missing something, what do I do? 
+### The plugin complains that I'm missing something, what do I do?
 
 This article will walk you through installing the required tools (and the alternatives if installation does not work): https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something
 
 
-### Does the plugin replace existing images? 
+### Does the plugin replace existing images?
 
 Yes, but only if the optimized version is smaller. The plugin should NEVER create a larger image.
 
 
-### Can I resize my images with this plugin? 
+### Can I resize my images with this plugin?
 
 Yes, you can, set it up on the Advanced tab.
 
 
-### Can I lower the compression setting for JPGs to save more space? 
+### Can I lower the compression setting for JPGs to save more space?
 
 The lossy optimization using the API will determine the ideal quality setting and give you the best results, but you can also adjust the default quality for conversion and resizing. More information here: https://docs.ewww.io/article/12-jpq-quality-and-wordpress
 
 
-### The bulk optimizer doesn't seem to be working, what can I do? 
+### The bulk optimizer doesn't seem to be working, what can I do?
 
 See https://docs.ewww.io/article/39-bulk-optimizer-failure for full troubleshooting instructions.
 
-### What are the supported operating systems? 
+### What are the supported operating systems?
 
 I've tested it on Windows (with Apache), Linux, Mac OSX, FreeBSD 9, and Solaris (v10). The cloud service will run on any OS.
 
 
-### How are JPGs optimized? 
+### How are JPGs optimized?
 
 Lossless optimization is done with the command *jpegtran -copy all -optimize -progressive -outfile optimized-file original-file*. Optionally, the -copy switch gets the 'none' parameter if you choose to strip metadata from your JPGs on the options page.
 
 
-### How are PNGs optimized? 
+### How are PNGs optimized?
 
 There are three parts (and all are optional). First, using the command *pngquant original-file*, then using the commands *pngout-static -s2 original-file* and *optipng -o2 original-file*. You can adjust the optimization levels for both tools on the settings page. Optipng is an automated derivative of pngcrush, which is another widely used png optimization utility.
 
 
-### How are GIFs optimized? 
+### How are GIFs optimized?
 
 Using the command *gifsicle -b -O3 --careful original file*. This is particularly useful for animated GIFs, and can also streamline your color palette. That said, if your GIF is not animated, you should strongly consider converting it to a PNG. PNG files are almost always smaller, they just don't do animations. The following command would do this for you on a Linux system with imagemagick: *convert somefile.gif somefile.png*
 
 
-### I want to know more about image optimization, and why you chose these options/tools. 
+### I want to know more about image optimization, and why you chose these options/tools.
 
 That's not a question, but since I made it up, I'll answer it. See these resources:  
 https://developers.google.com/speed/docs/insights/OptimizeImages
 http://developer.yahoo.com/performance/rules.html#opt_images  
 
-## Screenshots 
+## Screenshots
 
 ### 1. Plugin settings page.
 ![Plugin settings page.](https://ps.w.org/ewww-image-optimizer/assets/screenshot-1.png?rev=1557839)
@@ -205,6 +205,6 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 ### 3. Bulk optimization page. You can optimize all your images at once and resume a previous bulk optimization. This is very useful for existing blogs that have lots of images.
 ![Bulk optimization page. You can optimize all your images at once and resume a previous bulk optimization. This is very useful for existing blogs that have lots of images.](https://ps.w.org/ewww-image-optimizer/assets/screenshot-3.png?rev=1557839)
 
-## Contact and Credits 
+## Contact and Credits
 
 Written by [Shane Bishop](https://ewww.io). Based upon CW Image Optimizer, which was written by [Jacob Allred](http://www.jacoballred.com/) at [Corban Works, LLC](http://www.corbanworks.com/). CW Image Optimizer was based on WP Smush.it. Jpegtran is the work of the Independent JPEG Group. PEL is the work of Martin Geisler, Lars Olesen, and Erik Oskam. ExactDN and HTML parsing classes based upon the Photon module from Jetpack.
