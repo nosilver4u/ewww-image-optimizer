@@ -834,6 +834,10 @@ class ExactDN extends EWWWIO_Page_Parser {
 					}
 
 					list( $filename_width, $filename_height ) = $this->get_dimensions_from_filename( $src );
+					if ( false === $width && false === $height ) {
+						$width  = $filename_width;
+						$height = $filename_height;
+					}
 					// WP Attachment ID, if uploaded to this site.
 					preg_match( '#class=["|\']?[^"\']*wp-image-([\d]+)[^"\']*["|\']?#i', $images['img_tag'][ $index ], $attachment_id );
 					if ( ! ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' ) && empty( $attachment_id ) ) {
@@ -881,6 +885,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 									if ( ( false !== $width && $width > $src_per_wp[1] ) || ( false !== $height && $height > $src_per_wp[2] ) ) {
 										$width  = false === $width ? false : min( $width, $src_per_wp[1] );
 										$height = false === $height ? false : min( $height, $src_per_wp[2] );
+										ewwwio_debug_message( "constrained to attachment dims, w=$width and h=$height" );
 									}
 
 									// If no width and height are found, max out at source image's natural dimensions.
@@ -889,8 +894,10 @@ class ExactDN extends EWWWIO_Page_Parser {
 										$width     = $src_per_wp[1];
 										$height    = $src_per_wp[2];
 										$transform = 'fit';
+										ewwwio_debug_message( "no dims, using attachment dims, w=$width and h=$height" );
 									} elseif ( isset( $size ) && array_key_exists( $size, $image_sizes ) && isset( $image_sizes[ $size ]['crop'] ) ) {
 										$transform = (bool) $image_sizes[ $size ]['crop'] ? 'resize' : 'fit';
+										ewwwio_debug_message( 'attachment size set to crop' );
 									}
 								}
 							} else {
@@ -2148,6 +2155,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 			return array();
 		}
 		if ( strpos( $image_url, 'lazy-load/images/' ) ) {
+			return array();
+		}
+		if ( strpos( $image_url, 'public/images/spacer.' ) ) {
 			return array();
 		}
 		return $args;

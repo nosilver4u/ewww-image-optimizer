@@ -59,7 +59,7 @@ All images created by the built-in WP_Image_Editor class will be automatically o
 
 = WebP Images =
 
-One-click WebP with ExactDN and Alternative WebP Rewriting. Otherwise, can generate WebP versions of your images, and enables you to serve even smaller images to supported browsers. Several methods are available for serving WebP images, including Apache-compatible rewrite rules and our Alternative WebP Rewriting option compatible with caches and CDNs. Also works with the WebP option in the Cache Enabler plugin from KeyCDN.
+One-click WebP with ExactDN and JS WebP Rewriting. Otherwise, can generate WebP versions of your images, and enables you to serve even smaller images to supported browsers. Several methods are available for serving WebP images, including Apache-compatible rewrite rules and our JS WebP Rewriting option compatible with caches and CDNs. Also works with the WebP option in the Cache Enabler plugin from KeyCDN.
 
 = WP-CLI =
 
@@ -174,6 +174,10 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.6.2 =
+* changed: API key may be defined as EWWW_IMAGE_OPTIMIZER_CLOUD_KEY
+* fixed: if img tag is missing dimensions, ExactDN sometimes loads original rather than existing thumbnail
+
 = 4.6.1 =
 * added: automatic configuration for ExactDN + WP Offload Media
 * fixed: bulk action from media library skipping last attachment in selection
@@ -190,39 +194,6 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: ExactDN skips 1x url in some cases, causing browser upscaling
 * fixed: PHP notice when EXACTDN_EXCLUDE is defined
 * fixed: race condition in Alt WebP prevents Webp derivatives from replacing the originals
-
-= 4.5.3 =
-* fixed: ExactDN duplicates srcset instead of replacing it
-* security: remote code execution, low exposure
-
-= 4.5.2 =
-* added: automatic migration to move image paths from absolute to relative
-* changed: default quality for PNG to JPG did not match WordPress default
-* fixed: legacy absolute paths not matched during bulk scanner when relative matching is enabled
-* fixed: PNG to JPG auto-convert produces larger JPG images in some cases
-
-= 4.5.1 =
-* changed: optimization results are tracked by relative urls instead of absolute ones for better portability, migration tool coming soon
-* changed: ExactDN defaults to crop when explicit dimensions are given to image_downsize(), revert to scaling with EXACTDN_IMAGE_DOWNSIZE_SCALE
-* fixed: WooCommerce thumbnail regeneration triggers excessive admin-ajax requests within EWWW IO
-* fixed: ExactDN filtering REST API media endpoint for Gutenberg editor requests
-* fixed: ExactDN adding unneeded resize parameters to full-size image urls
-* fixed: Alt WebP skipping images with query strings
-* fixed: Alt WebP not working with Jetpack Lazy Load for images missing srcset
-* fixed: Show Optimized Images table does not display images saved to ewwwio_images table with relative path matching
-* fixed: Show Optimized Images table has broken thumbs when WP_CONTENT_DIR is outside of ABSPATH
-
-= 4.5.0 =
-* added: Alt WebP supports BJ Lazy Load, a3 Lazy Load, WP Rocket Lazy Load, Jetpack Lazy Load, and WP Retina Lazy Load
-* added: ExactDN rewrites relative image urls that start with a single slash
-* changed: ExactDN srcset markup for smaller images improved
-* fixed: errors during upload/download with WP Offload Media
-* fixed: Alt WebP refuses to process page when FB tracking pixel is present
-* fixed: SVG files within <use> tags throw errors with ExactDN
-* fixed: thumbnail generation fails with S3 Uploads plugin
-* fixed: unable to modify WebP conversion option when ExactDN is enabled
-* fixed: ExactDN inserts full-size image without arguments
-* removed: PHP 5.5 no longer supported
 
 = Earlier versions =
 Please refer to the separate changelog.txt file.
