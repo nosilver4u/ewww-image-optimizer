@@ -681,6 +681,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	}
 	global $optimized_list;
 	/* $queued_ids            = array(); */
+	$tiny_notice           = '';
 	$image_count           = 0;
 	$attachments_processed = 0;
 	$attachment_query      = '';
@@ -817,8 +818,11 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				ewww_image_optimizer_delete_queued_image( $selected_id );
 				continue;
 			}
-			if ( ! empty( $attachment_meta[ $selected_id ]['tinypng'] ) ) {
+			if ( ! empty( $attachment_meta[ $selected_id ]['tinypng'] ) && empty( $_REQUEST['ewww_force'] ) ) {
 				ewwwio_debug_message( "TinyPNG already compressed $selected_id" );
+				if ( ! $tiny_notice ) {
+					$tiny_notice = esc_html__( 'Images compressed by TinyJPG and TinyPNG have been skipped, refresh and use the Force Re-optimize option to override.', 'ewww-image-optimizer' );
+				}
 				ewww_image_optimizer_delete_queued_image( $selected_id );
 				continue;
 			}
@@ -1262,6 +1266,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					'remaining'      => sprintf( esc_html__( 'Stage 1, %d images left to scan.', 'ewww-image-optimizer' ), $remaining ) . "&nbsp;<img src='$loading_image' />",
 					'notice'         => $notice,
 					'bad_attachment' => $bad_attachment,
+					'tiny_skip'      => $tiny_notice,
 				)
 			)
 		);
@@ -1273,6 +1278,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					'remaining'      => esc_html__( 'Stage 2, please wait.', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' />",
 					'notice'         => $notice,
 					'bad_attachment' => $bad_attachment,
+					'tiny_skip'      => $tiny_notice,
 				)
 			)
 		);

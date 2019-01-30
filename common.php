@@ -7771,6 +7771,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) && ! get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
 		$output[] = '<i class="network-singlesite"><strong>' . esc_html__( 'Configure network-wide settings in the Network Admin.', 'ewww-image-optimizer' ) . "</strong></i>\n";
 	}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
+		ewwwio_debug_message( 'automatic compression disabled' );
+	} else {
+		ewwwio_debug_message( 'automatic compression enabled' );
+	}
 	$output[] = "<div id='ewww-general-settings'>\n";
 	$output[] = "<table class='form-table'>\n";
 	if ( is_multisite() ) {

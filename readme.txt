@@ -177,6 +177,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 = 4.6.2 =
 * changed: API key may be defined as EWWW_IMAGE_OPTIMIZER_CLOUD_KEY
 * fixed: if img tag is missing dimensions, ExactDN sometimes loads original rather than existing thumbnail
+* fixed: TinyPNG/TinyJPG images skipped when Force Re-optimize is checked
 
 = 4.6.1 =
 * added: automatic configuration for ExactDN + WP Offload Media

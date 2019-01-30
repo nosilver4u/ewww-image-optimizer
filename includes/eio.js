@@ -232,6 +232,7 @@ jQuery(document).ready(function($) {
 	var ewww_minutes_remaining = 0;
 	var ewww_seconds_remaining = 0;
 	var ewww_countdown = false;
+	var ewww_tiny_skip = '';
 	// initialize the ajax actions for the appropriate bulk page
 	var ewww_quota_update_data = {
 		action: 'bulk_quota_update',
@@ -317,6 +318,11 @@ jQuery(document).ready(function($) {
 				if ( ewww_response.notice ) {
 					$('#ewww-scanning').append( '<br>' + ewww_response.notice );
 				}
+				if ( ewww_response.tiny_skip ) {
+					$('#ewww-scanning').append( '<br>' + ewww_response.tiny_skip );
+					ewww_tiny_skip = ewww_response.tiny_skip;
+					console.log( 'skipped some tiny images' );
+				}
 				if ( ewww_response.bad_attachment ) {
 		                	$('#ewww-scanning').append( '<br>' + ewww_vars.bad_attachment + ' ' + ewww_response.bad_attachment );
 				}
@@ -328,11 +334,19 @@ jQuery(document).ready(function($) {
 				//	$('#ewww-bulk-loading').hide();
 					$('#ewww-scanning').hide();
 					$('#ewww-nothing').show();
+					if ( ewww_tiny_skip ) {
+						$('#ewww-nothing').append( '<br><i>' + ewww_tiny_skip + '</i>' );
+						console.log( 'done, skipped some tiny images' );
+					}
 					//$('#ewww-aux-start').show();
 					//$('#ewww-aux-again').show();
 					//$('#ewww-aux-first').hide();
 				} else {
 					$('#ewww-scanning').html(ewww_response.message);
+					if ( ewww_tiny_skip ) {
+						$('#ewww-scanning').append( '<br><i>' + ewww_tiny_skip + '</i>' );
+						console.log( 'done, skipped some tiny images' );
+					}
 					$('#ewww-bulk-start').show();
 //					ewwwStartOpt();
 				}
