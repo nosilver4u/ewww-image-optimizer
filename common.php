@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '461.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '462.0' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -8781,10 +8781,14 @@ function ewwwio_dump_var( $var, $var2 = false, $var3 = false ) {
 	}
 	ewwwio_debug_message( 'dumping var' );
 	ewwwio_debug_message( print_r( $var, true ) );
-	ewwwio_debug_message( 'dumping var2' );
-	ewwwio_debug_message( print_r( $var2, true ) );
-	ewwwio_debug_message( 'dumping var3' );
-	ewwwio_debug_message( print_r( $var3, true ) );
+	if ( $var2 ) {
+		ewwwio_debug_message( 'dumping var2' );
+		ewwwio_debug_message( print_r( $var2, true ) );
+	}
+	if ( $var3 ) {
+		ewwwio_debug_message( 'dumping var3' );
+		ewwwio_debug_message( print_r( $var3, true ) );
+	}
 	return $var;
 }
 
