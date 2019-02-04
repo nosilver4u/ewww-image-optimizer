@@ -7938,7 +7938,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					'cookies'   => $_COOKIE,
 					'sslverify' => false,
 				);
-				$async_response  = wp_remote_post( esc_url_raw( $admin_ajax_url ), $async_post_args );
+				// Don't lock up other requests while processing.
+				session_write_close();
+				$async_response = wp_remote_post( esc_url_raw( $admin_ajax_url ), $async_post_args );
 				if ( is_wp_error( $async_response ) ) {
 					$error_message = $async_response->get_error_message();
 					ewwwio_debug_message( "async test failed: $error_message" );

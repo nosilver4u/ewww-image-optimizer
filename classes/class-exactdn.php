@@ -2328,15 +2328,6 @@ class ExactDN extends EWWWIO_Page_Parser {
 		 */
 		$image_url = apply_filters( 'exactdn_pre_image_url', $image_url, $args, $scheme );
 
-		/**
-		 * Filter the ExactDN image parameters before they are applied to an image.
-		 *
-		 * @param array|string $args Array of ExactDN arguments.
-		 * @param string $image_url Image URL.
-		 * @param string|null $scheme Image scheme. Default to null.
-		 */
-		$args = apply_filters( 'exactdn_pre_args', $args, $image_url, $scheme );
-
 		if ( empty( $image_url ) ) {
 			return $image_url;
 		}
@@ -2348,6 +2339,22 @@ class ExactDN extends EWWWIO_Page_Parser {
 			ewwwio_debug_message( 'src url no good' );
 			return $image_url;
 		}
+
+		if ( isset( $image_url_parts['scheme'] ) && 'https' == $image_url_parts['scheme'] ) {
+			if ( is_array( $args ) ) {
+				$args['ssl'] = 1;
+			}
+			$scheme = 'https';
+		}
+
+		/**
+		 * Filter the ExactDN image parameters before they are applied to an image.
+		 *
+		 * @param array|string $args Array of ExactDN arguments.
+		 * @param string $image_url Image URL.
+		 * @param string|null $scheme Image scheme. Default to null.
+		 */
+		$args = apply_filters( 'exactdn_pre_args', $args, $image_url, $scheme );
 
 		if ( is_array( $args ) ) {
 			// Convert values that are arrays into strings.
@@ -2418,11 +2425,6 @@ class ExactDN extends EWWWIO_Page_Parser {
 			}
 		}
 		ewwwio_debug_message( "exactdn url with args: $exactdn_url" );
-
-		if ( isset( $image_url_parts['scheme'] ) && 'https' == $image_url_parts['scheme'] ) {
-			$exactdn_url = add_query_arg( 'ssl', 1, $exactdn_url );
-			$scheme      = 'https';
-		}
 
 		return $this->url_scheme( $exactdn_url, $scheme );
 	}

@@ -84,6 +84,8 @@ if ( ! class_exists( 'WP_Async_Request' ) ) {
 			$url  = add_query_arg( $this->get_query_args(), $this->get_query_url() );
 			$args = $this->get_post_args();
 
+			// Close up any loose sessions before we open another request.
+			session_write_close();
 			return wp_remote_post( esc_url_raw( $url ), $args );
 		}
 
@@ -141,7 +143,7 @@ if ( ! class_exists( 'WP_Async_Request' ) ) {
 		 * Check for correct nonce and pass to handler.
 		 */
 		public function maybe_handle() {
-			// Don't lock up other requests while processing
+			// Don't lock up other requests while processing.
 			session_write_close();
 
 			check_ajax_referer( $this->identifier, 'nonce' );
