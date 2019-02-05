@@ -1046,7 +1046,18 @@ class ExactDN extends EWWWIO_Page_Parser {
 							}
 						}
 					}
+				} elseif ( $lazy && ! empty( $placeholder_src ) && $this->validate_image_url( $placeholder_src ) ) {
+					$new_tag = $tag;
+					// If Lazy Load is in use, pass placeholder image through ExactDN.
+					$placeholder_src = $this->generate_url( $placeholder_src );
+					if ( $placeholder_src != $placeholder_src_orig ) {
+						$new_tag = str_replace( $placeholder_src_orig, str_replace( '&#038;', '&', esc_url( $placeholder_src ) ), $new_tag );
+						// Replace original tag with modified version.
+						$content = str_replace( $tag, $new_tag, $content );
+					}
+					unset( $placeholder_src );
 				} // End if().
+
 				// At this point, we discard the original src in favor of the ExactDN url.
 				if ( ! empty( $exactdn_url ) ) {
 					$src = $exactdn_url;
