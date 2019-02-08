@@ -174,6 +174,12 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.6.3 =
+* fixed: lazy load placeholders have inconsistent URLs with ExactDN
+* fixed: bulk resume indicator gets stuck
+* fixed: bulk scanning queue gets out of sync and skips images
+* fixed: async processing does not handle memory limit specified in G (gigabytes)
+
 = 4.6.2 =
 * changed: API key may be defined as EWWW_IMAGE_OPTIMIZER_CLOUD_KEY
 * fixed: if img tag is missing dimensions, ExactDN sometimes loads original rather than existing thumbnail
