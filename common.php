@@ -4635,6 +4635,15 @@ function ewww_image_optimizer_noresize( $dimensions, $filename ) {
 	if ( strpos( $filename, 'noresize' ) !== false ) {
 		return array( 0, 0 );
 	}
+	$ignore_folders = ewww_image_optimizer_get_option( 'ewww_image_optimizer_exclude_paths' );
+	if ( ! ewww_image_optimizer_iterable( $ignore_folders ) ) {
+		return $dimensions;
+	}
+	foreach ( $ignore_folders as $ignore_folder ) {
+		if ( strpos( $filename, $ignore_folder ) !== false ) {
+			return array( 0, 0 );
+		}
+	}
 	return $dimensions;
 }
 

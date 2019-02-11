@@ -175,6 +175,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.6.3 =
+* changed: folders to ignore setting applies to resizing also
 * fixed: lazy load placeholders have inconsistent URLs with ExactDN
 * fixed: bulk resume indicator gets stuck
 * fixed: bulk scanning queue gets out of sync and skips images
