@@ -5,7 +5,7 @@ Tags: image, compress, resize, optimize, optimization, lossless, lossy, seo, web
 Requires at least: 4.9
 Tested up to: 5.1
 Requires PHP: 5.6
-Stable tag: 4.6.2
+Stable tag: 4.6.3
 License: GPLv3
 
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.

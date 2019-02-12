@@ -1201,24 +1201,11 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		ewwwio_debug_message( 'finished foreach of attachment_ids' );
 		ewww_image_optimizer_debug_log();
 
-		/*
-		REMOVE
-		update_option( 'ewww_image_optimizer_scanning_attachments', $attachment_ids, false );
-		$attachments_queued = get_option( 'ewww_image_optimizer_bulk_attachments' );
-		if ( empty( $attachments_queued ) || ! is_array( $attachments_queued ) ) {
-			ewwwio_debug_message( 'storing queued attachments in bulk_attachments' );
-			ewww_image_optimizer_debug_log();
-			update_option( 'ewww_image_optimizer_bulk_attachments', $queued_ids, false );
-		} else {
-			ewwwio_debug_message( 'storing queued attachments in bulk_attachments, merged with existing' );
-			ewww_image_optimizer_debug_log();
-			update_option( 'ewww_image_optimizer_bulk_attachments', array_merge( $attachments_queued, $queued_ids ), false );
-		}
-		*/
 		ewww_image_optimizer_update_scanned_images( $queued_ids );
 		ewww_image_optimizer_delete_queued_images( $skipped_ids );
 		$queued_ids  = array();
 		$skipped_ids = array();
+
 		ewwwio_debug_message( 'finished a loop in the while, going back for more possibly' );
 		$attachment_ids = ewww_image_optimizer_get_unscanned_attachments( 'media', $max_query );
 		ewww_image_optimizer_debug_log();

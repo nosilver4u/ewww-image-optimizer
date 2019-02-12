@@ -1,3 +1,10 @@
+= 4.6.3 =
+* changed: folders to ignore setting applies to resizing also
+* fixed: lazy load placeholders have inconsistent URLs with ExactDN
+* fixed: bulk resume indicator gets stuck
+* fixed: bulk scanning queue gets out of sync and skips images
+* fixed: async processing does not handle memory limit specified in G (gigabytes)
+
 = 4.6.2 =
 * changed: API key may be defined as EWWW_IMAGE_OPTIMIZER_CLOUD_KEY
 * fixed: if img tag is missing dimensions, ExactDN sometimes loads original rather than existing thumbnail
