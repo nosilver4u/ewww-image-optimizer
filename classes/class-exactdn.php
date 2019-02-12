@@ -1156,6 +1156,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 		if ( ! empty( $_POST['action'] ) && 'Essential_Grid_Front_request_ajax' == $_POST['action'] ) {
 			return true;
 		}
+		if ( ! empty( $_POST['action'] ) && 'mabel-rpn-getnew-purchased-products' == $_POST['action'] ) {
+			return true;
+		}
 		return $allow;
 	}
 
