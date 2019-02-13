@@ -220,6 +220,17 @@ function ewww_image_optimizer_parser_init() {
 			ewww_image_optimizer_set_option( 'autoptimize_cdn_url', '' );
 		}
 	}
+	// If Lazy Load is enabled.
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ) {
+		/**
+		 * Page Parsing class for working with HTML content.
+		 */
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-page-parser.php' );
+		/**
+		 * Alt WebP class for parsing image urls and rewriting them for WebP support.
+		 */
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-lazy-load.php' );
+	}
 	// If Alt WebP Rewriting is enabled.
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ) {
 		/**

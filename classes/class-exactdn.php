@@ -137,7 +137,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 		// Images in post content and galleries.
 		add_filter( 'the_content', array( $this, 'filter_the_content' ), 999999 );
 		// Start an output buffer before any output starts.
-		add_action( 'template_redirect', array( $this, 'buffer_start' ), 1 );
+		add_action( 'template_redirect', array( $this, 'buffer_start' ), 2 );
 
 		// Core image retrieval.
 		if ( ! function_exists( 'aq_resize' ) ) {

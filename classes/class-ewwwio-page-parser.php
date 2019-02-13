@@ -159,12 +159,12 @@ class EWWWIO_Page_Parser {
 	 */
 	function set_attribute( &$element, $name, $value, $replace = false ) {
 		if ( $replace ) {
-			$new_element = preg_replace( '#' . $name . '\s*=\s*(["\'])([^\1]+?)\1#is', "$name=$1$value$1", $element );
+			$new_element = preg_replace( '# ' . $name . '\s*=\s*(["\'])([^\1]+?)\1#is', " $name=$1$value$1", $element );
 			if ( strpos( $new_element, "$name=" ) ) {
 				$element = $new_element;
 				return;
 			}
-			$element = preg_replace( '#' . $name . '\s*=\s*([^\s]+?)#is', '', $element );
+			$element = preg_replace( '# ' . $name . '\s*=\s*([^\s]+?)#is', ' ', $element );
 		}
 		$closing = ' />';
 		if ( false === strpos( $element, '/>' ) ) {
@@ -184,8 +184,8 @@ class EWWWIO_Page_Parser {
 	 * @param string $name The name of the attribute to remove.
 	 */
 	function remove_attribute( &$element, $name ) {
-		$element = preg_replace( '#' . $name . '\s*=\s*(["\'])([^\1]+?)\1#is', '', $element );
-		$element = preg_replace( '#' . $name . '\s*=\s*([^\s]+?)#is', '', $element );
+		$element = preg_replace( '# ' . $name . '\s*=\s*(["\'])([^\1]+?)\1#is', '', $element );
+		$element = preg_replace( '# ' . $name . '\s*=\s*([^\s]+?)#is', '', $element );
 	}
 
 	/**

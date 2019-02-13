@@ -344,7 +344,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 						$buffer = str_replace( $image, $new_image, $buffer );
 					}
 				} elseif ( $this->validate_image_url( $file ) && false === strpos( $image, 'lazyload' ) ) {
-					// If a CDN path match was found, or .webp image existsence is confirmed, and this is not a lazy-load 'dummy' image.
+					// If a CDN path match was found, or .webp image existence is confirmed, and this is not a lazy-load 'dummy' image.
 					ewwwio_debug_message( 'found a webp image or forced path' );
 					$nscript = '<noscript>';
 					$this->set_attribute( $nscript, 'data-img', $file );
