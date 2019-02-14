@@ -387,7 +387,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 						$this->set_attribute( $new_image, 'class', $this->get_attribute( $new_image, 'class' ) . ' ewww_webp_lazy_load', true );
 						$buffer = str_replace( $image, $new_image, $buffer );
 					}
-				} elseif ( ! empty( $file ) && strpos( $image, 'data-src=' ) && strpos( $image, 'data-lazy-type="image' ) ) {
+				} elseif ( ! empty( $file ) && strpos( $image, 'data-src=' ) && ( strpos( $image, 'data-lazy-type="image' ) || strpos( $image, 'lazyload' ) ) ) {
 					// a3 Lazy Load.
 					$new_image = $image;
 					$real_file = $this->get_attribute( $new_image, 'data-src' );
