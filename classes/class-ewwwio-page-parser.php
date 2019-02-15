@@ -150,6 +150,20 @@ class EWWWIO_Page_Parser {
 	}
 
 	/**
+	 * Get a CSS background-image URL.
+	 *
+	 * @param string $attribute An element's style attribute. Do not pass a full HTML element.
+	 * @return string The URL from the background/background-image property.
+	 */
+	function get_background_image_url( $attribute ) {
+		if ( ( false !== strpos( $attribute, 'background:' ) || false !== strpos( $attribute, 'background-image:' ) ) && false !== strpos( $attribute, 'url(' ) ) {
+			if ( preg_match( '#url\(([^)]+)\)#', $attribute, $prop_match ) ) {
+				return $prop_match[1];
+			}
+		}
+		return '';
+	}
+	/**
 	 * Set an attribute on an HTML element.
 	 *
 	 * @param string $element The HTML element to modify. Passed by reference.
@@ -186,6 +200,22 @@ class EWWWIO_Page_Parser {
 	function remove_attribute( &$element, $name ) {
 		$element = preg_replace( '# ' . $name . '\s*=\s*(["\'])([^\1]+?)\1#is', '', $element );
 		$element = preg_replace( '# ' . $name . '\s*=\s*([^\s]+?)#is', '', $element );
+	}
+
+	/**
+	 * Remove the background image URL from a style attribute.
+	 *
+	 * @param string $attribute The element's style attribute to modify.
+	 * @return string The style attribute with any image url removed.
+	 */
+	function remove_background_image( $attribute ) {
+		if ( false !== strpos( $attribute, 'background:' ) && false !== strpos( $attribute, 'url(' ) ) {
+			$attribute = preg_replace( '#\s?url\([^)]+\)#', '', $attribute );
+		}
+		if ( false !== strpos( $attribute, 'background-image:' ) && false !== strpos( $attribute, 'url(' ) ) {
+			$attribute = preg_replace( '#background-image:\s*url\([^)]+\);?#', '', $attribute );
+		}
+		return $attribute;
 	}
 
 	/**

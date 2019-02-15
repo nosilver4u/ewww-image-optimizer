@@ -1123,6 +1123,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 				$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );
 			}
 		}
+		$content = $this->filter_bg_images( $content );
 		ewwwio_debug_message( 'done parsing page' );
 		$this->filtering_the_content = false;
 
@@ -1132,6 +1133,54 @@ class ExactDN extends EWWWIO_Page_Parser {
 		ewwwio_debug_message( "parsing the page took $this->elapsed_time seconds so far" );
 		if ( ! ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' ) && $this->elapsed_time > .5 ) {
 			ewww_image_optimizer_set_option( 'exactdn_prevent_db_queries', true );
+		}
+		return $content;
+	}
+
+	/**
+	 * Parse page content looking for elements with CSS background-image properties.
+	 *
+	 * @param string $content The HTML content of to parse.
+	 * @return string The filtered HTML content.
+	 */
+	function filter_bg_images( $content ) {
+		$content_width = false;
+		if ( ! $this->filtering_the_page ) {
+			$content_width = $this->get_content_width();
+		}
+		// Process background images on 'div' elements.
+		$divs = $this->get_elements_from_html( $content, 'div' );
+		if ( ewww_image_optimizer_iterable( $divs ) ) {
+			foreach ( $divs as $index => $div ) {
+				ewwwio_debug_message( 'parsing a div' );
+				if ( false === strpos( $div, 'background:' ) && false === strpos( $div, 'background-image:' ) ) {
+					continue;
+				}
+				$style = $this->get_attribute( $div, 'style' );
+				if ( empty( $style ) ) {
+					continue;
+				}
+				ewwwio_debug_message( "checking style attr for background-image: $style" );
+				$bg_image_url = $this->get_background_image_url( $style );
+				if ( $this->validate_image_url( $bg_image_url ) ) {
+					/** This filter is already documented in class-exactdn.php */
+					if ( apply_filters( 'exactdn_skip_image', false, $bg_image_url, $div ) ) {
+						continue;
+					}
+					$args = array();
+					if ( $content_width ) {
+						$args['w'] = $content_width;
+					}
+					$exactdn_bg_image_url = $this->generate_url( $bg_image_url, $args );
+					if ( $bg_image_url !== $exactdn_bg_image_url ) {
+						$new_style = str_replace( $bg_image_url, $exactdn_bg_image_url, $style );
+						$div       = str_replace( $style, $new_style, $div );
+					}
+				}
+				if ( $div !== $divs[ $index ] ) {
+					$content = str_replace( $divs[ $index ], $div, $content );
+				}
+			}
 		}
 		return $content;
 	}

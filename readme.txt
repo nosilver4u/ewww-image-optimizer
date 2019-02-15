@@ -176,6 +176,9 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 
 = 4.7.0 =
 * added: lazy load (on ExactDN tab for now)
+* added: JS WebP supports background images via lazy load (div elements only for now)
+* added: ExactDN supports compression of background images (div elements only for now)
+* changed: responsive image 'sizes' attribute can be auto-calculated by lazy load
 
 = 4.6.3 =
 * changed: folders to ignore setting applies to resizing also

@@ -539,7 +539,16 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 					ewwwio_debug_message( "checking webp for WC data-thumb: $thumb" );
 					if ( $this->validate_image_url( $thumb ) ) {
 						$this->set_attribute( $div, 'data-webp-thumb', $this->generate_url( $thumb ) );
-						ewwwio_debug_message( "found webp for WC data-thumb: $thumb" );
+						ewwwio_debug_message( 'found webp for WC data-thumb' );
+						$buffer = str_replace( $divs[ $index ], $div, $buffer );
+					}
+				}
+				$bg_image = $this->get_attribute( $div, 'data-bg' );
+				if ( $div_class && $bg_image && false !== strpos( $div_class, 'lazyload' ) ) {
+					ewwwio_debug_message( "checking webp for LL data-bg: $bg_image" );
+					if ( $this->validate_image_url( $bg_image ) ) {
+						$this->set_attribute( $div, 'data-bg-webp', $this->generate_url( $bg_image ) );
+						ewwwio_debug_message( 'found webp for LL data-bg' );
 						$buffer = str_replace( $divs[ $index ], $div, $buffer );
 					}
 				}

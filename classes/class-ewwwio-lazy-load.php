@@ -75,176 +75,13 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	}
 
 	/**
-	 * Copies attributes from the original img element to the noscript element.
-	 *
-	 * @param string $image The full text of the img element.
-	 * @param string $nscript A noscript element that will be given all the (known) attributes of $image.
-	 * @param string $prefix Optional. Value to prepend to all attribute names. Default 'data-'.
-	 * @return string The modified noscript tag.
-	 */
-	function attr_copy( $image, $nscript, $prefix = 'data-' ) {
-		if ( ! is_string( $image ) || ! is_string( $nscript ) ) {
-			return $nscript;
-		}
-		$attributes = array(
-			'align',
-			'alt',
-			'border',
-			'crossorigin',
-			'height',
-			'hspace',
-			'ismap',
-			'longdesc',
-			'usemap',
-			'vspace',
-			'width',
-			'accesskey',
-			'class',
-			'contenteditable',
-			'contextmenu',
-			'dir',
-			'draggable',
-			'dropzone',
-			'hidden',
-			'id',
-			'lang',
-			'spellcheck',
-			'style',
-			'tabindex',
-			'title',
-			'translate',
-			'sizes',
-			'data-caption',
-			'data-lazy-type',
-			'data-attachment-id',
-			'data-permalink',
-			'data-orig-size',
-			'data-comments-opened',
-			'data-image-meta',
-			'data-image-title',
-			'data-image-description',
-			'data-event-trigger',
-			'data-highlight-color',
-			'data-highlight-opacity',
-			'data-highlight-border-color',
-			'data-highlight-border-width',
-			'data-highlight-border-opacity',
-			'data-no-lazy',
-			'data-lazy',
-			'data-large_image_width',
-			'data-large_image_height',
-		);
-		foreach ( $attributes as $attribute ) {
-			$attr_value = $this->get_attribute( $image, $attribute );
-			if ( $attr_value ) {
-				$this->set_attribute( $nscript, $prefix . $attribute, $attr_value );
-			}
-		}
-		return $nscript;
-	}
-
-	/**
-	 * Replaces images within a srcset attribute with their .webp derivatives.
+	 * Replaces images within a srcset attribute, just a placeholder at the moment.
 	 *
 	 * @param string $srcset A valid srcset attribute from an img element.
 	 * @return bool|string False if no changes were made, or the new srcset if any WebP images replaced the originals.
 	 */
 	function srcset_replace( $srcset ) {
-		$srcset_urls = explode( ' ', $srcset );
-		$found_webp  = false;
-		if ( ewww_image_optimizer_iterable( $srcset_urls ) && count( $srcset_urls ) > 1 ) {
-			ewwwio_debug_message( 'parsing srcset urls' );
-			foreach ( $srcset_urls as $srcurl ) {
-				if ( is_numeric( substr( $srcurl, 0, 1 ) ) ) {
-					continue;
-				}
-				$trailing = ' ';
-				if ( ',' === substr( $srcurl, -1 ) ) {
-					$trailing = ',';
-					$srcurl   = rtrim( $srcurl, ',' );
-				}
-				ewwwio_debug_message( "looking for $srcurl from srcset" );
-				if ( $this->validate_image_tag( $srcurl ) ) {
-					$srcset = str_replace( $srcurl . $trailing, $this->generate_url( $srcurl ) . $trailing, $srcset );
-					ewwwio_debug_message( "replaced $srcurl in srcset" );
-					$found_webp = true;
-				}
-			}
-		} elseif ( $this->validate_image_tag( $srcset ) ) {
-			return $this->generate_url( $srcset );
-		}
-		if ( $found_webp ) {
-			return $srcset;
-		} else {
-			return false;
-		}
-	}
-
-	/**
-	 * Replaces images with the Jetpack data attributes with their .webp derivatives.
-	 *
-	 * @param string $image The full text of the img element.
-	 * @param string $nscript A noscript element that will be assigned the jetpack data attributes.
-	 * @return string The modified noscript tag.
-	 */
-	function jetpack_replace( $image, $nscript ) {
-		$data_orig_file = $this->get_attribute( $image, 'data-orig-file' );
-		if ( $data_orig_file ) {
-			ewwwio_debug_message( "looking for data-orig-file: $data_orig_file" );
-			if ( $this->validate_image_tag( $data_orig_file ) ) {
-				$this->set_attribute( $nscript, 'data-webp-orig-file', $this->generate_url( $data_orig_file ) );
-				ewwwio_debug_message( "replacing $data_orig_file in data-orig-file" );
-			}
-			$this->set_attribute( $nscript, 'data-orig-file', $data_orig_file, true );
-		}
-		$data_medium_file = $this->get_attribute( $image, 'data-medium-file' );
-		if ( $data_medium_file ) {
-			ewwwio_debug_message( "looking for data-medium-file: $data_medium_file" );
-			if ( $this->validate_image_tag( $data_medium_file ) ) {
-				$this->set_attribute( $nscript, 'data-webp-medium-file', $this->generate_url( $data_medium_file ) );
-				ewwwio_debug_message( "replacing $data_medium_file in data-medium-file" );
-			}
-			$this->set_attribute( $nscript, 'data-medium-file', $data_medium_file, true );
-		}
-		$data_large_file = $this->get_attribute( $image, 'data-large-file' );
-		if ( $data_large_file ) {
-			ewwwio_debug_message( "looking for data-large-file: $data_large_file" );
-			if ( $this->validate_image_tag( $data_large_file ) ) {
-				$this->set_attribute( $nscript, 'data-webp-large-file', $this->generate_url( $data_large_file ) );
-				ewwwio_debug_message( "replacing $data_large_file in data-large-file" );
-			}
-			$this->set_attribute( $nscript, 'data-large-file', $data_large_file, true );
-		}
-		return $nscript;
-	}
-
-	/**
-	 * Replaces images with the WooCommerce data attributes with their .webp derivatives.
-	 *
-	 * @param string $image The full text of the img element.
-	 * @param string $nscript A noscript element that will be assigned the WooCommerce data attributes.
-	 * @return string The modified noscript tag.
-	 */
-	function woocommerce_replace( $image, $nscript ) {
-		$data_large_image = $this->get_attribute( $image, 'data-large_image' );
-		if ( $data_large_image ) {
-			ewwwio_debug_message( "looking for data-large_image: $data_large_image" );
-			if ( $this->validate_image_tag( $data_large_image ) ) {
-				$this->set_attribute( $nscript, 'data-webp-large_image', $this->generate_url( $data_large_image ) );
-				ewwwio_debug_message( "replacing $data_large_image in data-large_image" );
-			}
-			$this->set_attribute( $nscript, 'data-large_image', $data_large_image );
-		}
-		$data_src = $this->get_attribute( $image, 'data-src' );
-		if ( $data_src ) {
-			ewwwio_debug_message( "looking for data-src: $data_src" );
-			if ( $this->validate_image_tag( $data_src ) ) {
-				$this->set_attribute( $nscript, 'data-webp-src', $this->generate_url( $data_src ) );
-				ewwwio_debug_message( "replacing $data_src in data-src" );
-			}
-			$this->set_attribute( $nscript, 'data-src', $data_src );
-		}
-		return $nscript;
+		return $srcset;
 	}
 
 	/**
@@ -316,48 +153,49 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 							$this->remove_attribute( $image, 'srcset' );
 						}
 						$this->set_attribute( $image, 'data-srcset', $srcset, true );
+						$srcset_sizes = $this->get_attribute( $image, 'sizes' );
+						// Return false on this filter to disable automatic sizes calculation,
+						// or use the sizes value passed via the filter to conditionally disable it.
+						if ( apply_filters( 'ewww_image_optimizer_lazy_responsive', $srcset_sizes ) ) {
+							$this->set_attribute( $image, 'data-sizes', 'auto', true );
+							$this->remove_attribute( $image, 'sizes' );
+						}
 					} else {
 						$this->set_attribute( $image, 'src', $placeholder_src, true );
 					}
 					$this->set_attribute( $image, 'class', $this->get_attribute( $image, 'class' ) . ' lazyload', true );
 					$buffer = str_replace( $orig_img, $image . $noscript, $buffer );
-					/* ewwwio_debug_message( "going to swap\n$orig_img\nwith\n$image" ); */
-				}
-				// Rev Slider data-lazyload attribute on image elements.
-				if ( false && $this->get_attribute( $image, 'data-lazyload' ) ) {
-					$new_image = $image;
-					$lazyload  = $this->get_attribute( $new_image, 'data-lazyload' );
-					if ( $lazyload ) {
-						if ( $this->validate_image_tag( $lazyload ) ) {
-							$this->set_attribute( $new_image, 'data-webp-lazyload', $this->generate_url( $lazyload ) );
-							ewwwio_debug_message( "replacing with webp for data-lazyload: $lazyload" );
-							$buffer = str_replace( $image, $new_image, $buffer );
-						}
-					}
 				}
 			} // End foreach().
 		} // End if().
-		// Look for images to parse WP Retina Lazy Load.
-		if ( false && class_exists( 'Meow_WR2X_Core' ) && strpos( $buffer, ' lazyload' ) ) {
-			$images = $this->get_elements_from_html( $buffer, 'img' );
-			if ( ewww_image_optimizer_iterable( $images ) ) {
-				foreach ( $images as $index => $image ) {
-					$file = $this->get_attribute( $image, 'src' );
-					if ( ( empty( $file ) || strpos( $image, 'R0lGODlhAQABAIAAAAAAAP' ) ) && strpos( $image, ' data-srcset=' ) && strpos( $this->get_attribute( $image, 'class' ), 'lazyload' ) ) {
-						$new_image = $image;
-						$srcset    = $this->get_attribute( $new_image, 'data-srcset' );
-						ewwwio_debug_message( 'checking webp for Retina Lazy Load data-src' );
-						if ( $srcset ) {
-							$srcset_webp = $this->srcset_replace( $srcset );
-							if ( $srcset_webp ) {
-								$this->set_attribute( $new_image, 'data-srcset-webp', $srcset_webp );
-							}
-						}
-						if ( $new_image !== $image ) {
-							$this->set_attribute( $new_image, 'class', $this->get_attribute( $new_image, 'class' ) . ' ewww_webp_lazy_load', true );
-							$buffer = str_replace( $image, $new_image, $buffer );
-						}
+		// Process background images on 'div' elements.
+		$divs = $this->get_elements_from_html( $buffer, 'div' );
+		if ( ewww_image_optimizer_iterable( $divs ) ) {
+			$lazy_class = 'lazyload';
+			foreach ( $divs as $index => $div ) {
+				ewwwio_debug_message( 'parsing a div' );
+				if ( false === strpos( $div, 'background:' ) && false === strpos( $div, 'background-image:' ) ) {
+					continue;
+				}
+				if ( false !== strpos( $div, $lazy_class ) ) {
+					continue;
+				}
+				$style = $this->get_attribute( $div, 'style' );
+				if ( empty( $style ) ) {
+					continue;
+				}
+				ewwwio_debug_message( "checking style attr for background-image: $style" );
+				$bg_image_url = $this->get_background_image_url( $style );
+				if ( $bg_image_url ) {
+					$this->set_attribute( $div, 'class', $this->get_attribute( $div, 'class' ) . " $lazy_class", true );
+					$this->set_attribute( $div, 'data-bg', $bg_image_url );
+					$new_style = $this->remove_background_image( $style );
+					if ( $style !== $new_style ) {
+						$div = str_replace( $style, $new_style, $div );
 					}
+				}
+				if ( $div !== $divs[ $index ] ) {
+					$buffer = str_replace( $divs[ $index ], $div, $buffer );
 				}
 			}
 		}
@@ -506,20 +344,12 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	}
 
 	/**
-	 * Generate a WebP url.
-	 *
-	 * Adds .webp to the end, or adds a webp parameter for ExactDN urls.
+	 * Generate a url, pretty much a placeholder until we remove all the excess code.
 	 *
 	 * @param string $url The image url.
 	 * @return string The WebP version of the image url.
 	 */
 	function generate_url( $url ) {
-		if ( $this->parsing_exactdn && false !== strpos( $url, $this->exactdn_domain ) ) {
-			return add_query_arg( 'webp', 1, $url );
-		} else {
-			$path_parts = explode( '?', $url );
-			return $path_parts[0] . '.webp' . ( ! empty( $path_parts[1] ) && 'is-pending-load=1' !== $path_parts[1] ? '?' . $path_parts[1] : '' );
-		}
 		return $url;
 	}
 
@@ -537,21 +367,20 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	}
 
 	/**
-	 * Load full webp script when SCRIPT_DEBUG is enabled.
+	 * Load full lazysizes script when SCRIPT_DEBUG is enabled.
 	 */
 	function debug_script() {
-		if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
-			wp_enqueue_script( 'ewww-lazy-load-script', plugins_url( '/includes/lazysizes.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
-		}
+		wp_enqueue_script( 'ewww-lazy-load', plugins_url( '/includes/lazysizes.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+		wp_enqueue_script( 'ewww-lazy-load-uvh', plugins_url( '/includes/ls.unveilhooks.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 	}
 
 	/**
-	 * Load minified webp script when EWWW_IMAGE_OPTIMIZER_WEBP_EXTERNAL_SCRIPT is set.
+	 * Load minified lazysizes script.
 	 */
 	function min_script() {
-		if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
-			wp_enqueue_script( 'ewww-lazy-load-script', plugins_url( '/includes/lazysizes.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
-		}
+		// TODO: combine and minify src scripts.
+		wp_enqueue_script( 'ewww-lazy-load', plugins_url( '/includes/lazysizes.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+		wp_enqueue_script( 'ewww-lazy-load-uvh', plugins_url( '/includes/ls.unveilhooks.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 	}
 }
 
