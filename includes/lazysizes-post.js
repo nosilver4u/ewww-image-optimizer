@@ -1,10 +1,4 @@
 lazysizesWebP('alpha', lazySizes.init);
-function ewwwattr(attr, value) {
-        if (typeof value !== typeof undefined && value !== false) {
-                this.attr(attr, value);
-        }
-        return this;
-}
         function constrainSrc(bg,objectWidth,objectHeight){
 		var regW      = /w=(\d+)/;
 		var regFit    = /fit=(\d+),(\d+)/;
@@ -22,7 +16,9 @@ function ewwwattr(attr, value) {
 			if(resultResize && objectWidth < resultResize[1]){
 				return bg.replace(regResize, 'resize=' + objectWidth + ',' + objectHeight);
 			}
-			return bg + '&w=' + objectWidth;
+                        if(!resultW && !resultFit && !resultResize){
+                                return bg + '&w=' + objectWidth;
+                        }
 		}
 		if (bg.search('\\?') == -1 && bg.search(ewww_lazy_vars.exactdn_domain) > 0){
 			return bg + '?w=' + objectWidth;

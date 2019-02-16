@@ -179,6 +179,12 @@ class ExactDN extends EWWWIO_Page_Parser {
 			add_filter( 'script_loader_src', array( $this, 'parse_enqueue' ), 20 );
 		}
 
+		// Improve the default content_width for Twenty Nineteen.
+		global $content_width;
+		if ( function_exists( 'twentynineteen_setup' ) && 640 == $content_width ) {
+			$content_width = 932;
+		}
+
 		// Configure Autoptimize with our CDN domain.
 		add_filter( 'autoptimize_filter_cssjs_multidomain', array( $this, 'autoptimize_cdn_url' ) );
 		if ( defined( 'AUTOPTIMIZE_PLUGIN_DIR' ) ) {
@@ -600,13 +606,16 @@ class ExactDN extends EWWWIO_Page_Parser {
 	 * @return bool|string The content width, if set. Default false.
 	 */
 	function get_content_width() {
-		$content_width = isset( $GLOBALS['content_width'] ) ? $GLOBALS['content_width'] : 1920;
+		$content_width = isset( $GLOBALS['content_width'] ) && is_numeric( $GLOBALS['content_width'] ) ? $GLOBALS['content_width'] : 1920;
+		if ( function_exists( 'twentynineteen_setup' ) && 640 == $content_width ) {
+			$content_width = 932;
+		}
 		/**
 		 * Filter the Content Width value.
 		 *
 		 * @param string $content_width Content Width value.
 		 */
-		return apply_filters( 'exactdn_content_width', $content_width );
+		return (int) apply_filters( 'exactdn_content_width', $content_width );
 	}
 
 	/**
@@ -906,23 +915,28 @@ class ExactDN extends EWWWIO_Page_Parser {
 							}
 						}
 					}
-
+					$constrain_width = (int) $content_width;
+					if ( ! empty( $images['figure_class'][ $index ] ) && false !== strpos( $images['figure_class'][ $index ], 'alignfull' ) && current_theme_supports( 'align-wide' ) ) {
+						$constrain_width = (int) apply_filters( 'exactdn_full_align_image_width', max( 1920, $content_width ) );
+					} elseif ( ! empty( $images['figure_class'][ $index ] ) && false !== strpos( $images['figure_class'][ $index ], 'alignwide' ) && current_theme_supports( 'align-wide' ) ) {
+						$constrain_width = (int) apply_filters( 'exactdn_wide_align_image_width', max( 1500, $content_width ) );
+					}
 					// If width is available, constrain to $content_width.
-					if ( false !== $width && false === strpos( $width, '%' ) && is_numeric( $content_width ) ) {
-						if ( $width > $content_width && false !== $height && false === strpos( $height, '%' ) ) {
+					if ( false !== $width && false === strpos( $width, '%' ) && is_numeric( $constrain_width ) ) {
+						if ( $width > $constrain_width && false !== $height && false === strpos( $height, '%' ) ) {
 							ewwwio_debug_message( 'constraining to content width' );
-							$height = round( ( $content_width * $height ) / $width );
-							$width  = $content_width;
-						} elseif ( $width > $content_width ) {
+							$height = round( ( $constrain_width * $height ) / $width );
+							$width  = $constrain_width;
+						} elseif ( $width > $constrain_width ) {
 							ewwwio_debug_message( 'constraining to content width' );
-							$width = $content_width;
+							$width = $constrain_width;
 						}
 					}
 
 					// Set a width if none is found and $content_width is available.
 					// If width is set in this manner and height is available, use `fit` instead of `resize` to prevent skewing.
-					if ( false === $width && is_numeric( $content_width ) ) {
-						$width = (int) $content_width;
+					if ( false === $width && is_numeric( $constrain_width ) ) {
+						$width = (int) $constrain_width;
 
 						if ( false !== $height ) {
 							$transform = 'fit';
@@ -999,6 +1013,15 @@ class ExactDN extends EWWWIO_Page_Parser {
 							if ( $new_srcset_attr && false === strpos( $new_srcset_attr, ' ' . (int) $width . 'w' ) ) {
 								ewwwio_debug_message( 'src not in srcset, adding' );
 								$this->set_attribute( $new_tag, $this->srcset_attr, $srcset_url . $new_srcset_attr, true );
+							}
+						}
+
+						// Check if content width pushed the respimg sizes attribute too far down.
+						if ( ! empty( $constrain_width ) && $constrain_width != $content_width ) {
+							$sizes_attr     = $this->get_attribute( $new_tag, 'sizes' );
+							$new_sizes_attr = str_replace( ' ' . $content_width . 'px', ' ' . $constrain_width . 'px', $sizes_attr );
+							if ( $sizes_attr != $new_sizes_attr ) {
+								$new_tag = str_replace( $sizes_attr, $new_sizes_attr, $new_tag );
 							}
 						}
 
@@ -1148,6 +1171,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 		if ( ! $this->filtering_the_page ) {
 			$content_width = $this->get_content_width();
 		}
+		ewwwio_debug_message( "content width is $content_width" );
 		// Process background images on 'div' elements.
 		$divs = $this->get_elements_from_html( $content, 'div' );
 		if ( ewww_image_optimizer_iterable( $divs ) ) {
@@ -1167,8 +1191,13 @@ class ExactDN extends EWWWIO_Page_Parser {
 					if ( apply_filters( 'exactdn_skip_image', false, $bg_image_url, $div ) ) {
 						continue;
 					}
-					$args = array();
-					if ( $content_width ) {
+					$args      = array();
+					$div_class = $this->get_attribute( $div, 'class' );
+					if ( false !== strpos( $div_class, 'alignfull' ) && current_theme_supports( 'align-wide' ) ) {
+						$args['w'] = apply_filters( 'exactdn_full_align_image_width', 1920 );
+					} elseif ( false !== strpos( $div_class, 'alignwide' ) && current_theme_supports( 'align-wide' ) ) {
+						$args['w'] = apply_filters( 'exactdn_wide_align_image_width', 1500 );
+					} elseif ( $content_width ) {
 						$args['w'] = $content_width;
 					}
 					$exactdn_bg_image_url = $this->generate_url( $bg_image_url, $args );
@@ -1339,6 +1368,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 			if ( is_string( $size ) && array_key_exists( $size, $this->image_sizes() ) ) {
 				$image_args = $this->image_sizes();
 				$image_args = $image_args[ $size ];
+				ewwwio_debug_message( "image args for $size: " . implode( ',', $image_args ) );
 
 				$exactdn_args = array();
 
@@ -1366,9 +1396,11 @@ class ExactDN extends EWWWIO_Page_Parser {
 					$image_args['width']  = $image_meta['width'];
 					$image_args['height'] = $image_meta['height'];
 
+					// TODO: need to be careful with this, it may constrain an image to $content_width when it shouldn't be.
 					list( $image_args['width'], $image_args['height'] ) = image_constrain_size_for_editor( $image_args['width'], $image_args['height'], $size, 'display' );
 
 					$has_size_meta = true;
+					ewwwio_debug_message( 'image args constrained: ' . implode( ',', $image_args ) );
 				}
 
 				$transform = $image_args['crop'] ? 'resize' : 'fit';
@@ -1619,7 +1651,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 		 *
 		 * @param array|bool $multipliers Array of multipliers to use or false to bypass.
 		 */
-		$multipliers = apply_filters( 'exactdn_srcset_multipliers', array( .2, .4, .6, .8, 1, 2, 3 ) );
+		$multipliers = apply_filters( 'exactdn_srcset_multipliers', array( .2, .4, .6, .8, 1, 2, 3, 1920 ) );
 		$url         = trailingslashit( $upload_dir['baseurl'] ) . $image_meta['file'];
 
 		if (
@@ -1663,6 +1695,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 			foreach ( $multipliers as $multiplier ) {
 
 				$newwidth = intval( $base * $multiplier );
+				if ( 1920 == $multiplier ) {
+					$newwidth = 1920;
+				}
 				if ( $newwidth < 50 ) {
 					continue;
 				}
@@ -1761,7 +1796,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 		 *
 		 * @param array|bool $multipliers Array of multipliers to use or false to bypass.
 		 */
-		$multipliers = apply_filters( 'exactdn_srcset_multipliers', array( .2, .4, .6, .8, 1, 2, 3 ) );
+		$multipliers = apply_filters( 'exactdn_srcset_multipliers', array( .2, .4, .6, .8, 1, 2, 3, 1920 ) );
 		/**
 		 * Filter the width ExactDN will use to create srcset attribute.
 		 * Return a falsy value to short-circuit and bypass srcset fill.
@@ -1786,6 +1821,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 			foreach ( $multipliers as $multiplier ) {
 				$newwidth = intval( $width * $multiplier );
+				if ( 1920 == $multiplier ) {
+					$newwidth = 1920;
+				}
 				if ( $newwidth < 50 ) {
 					continue;
 				}

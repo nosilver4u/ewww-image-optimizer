@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '463.0206' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '463.0208' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -7394,6 +7394,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewwwio_debug_message( 'home url: ' . get_home_url() );
 	ewwwio_debug_message( 'site url: ' . get_site_url() );
 	ewwwio_debug_message( 'content_url: ' . content_url() );
+	global $content_width;
+	ewwwio_debug_message( "content_width: $content_width" );
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
 		if ( defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) && EWWW_IMAGE_OPTIMIZER_CLOUD ) {
 			ewww_image_optimizer_disable_tools();

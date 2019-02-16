@@ -116,10 +116,11 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			return $buffer;
 		}
 
+		ewwwio_debug_message( 'lazy parser' );
 		$above_the_fold   = apply_filters( 'ewww_image_optimizer_lazy_fold', 0 );
 		$images_processed = 0;
 
-		$images = $this->get_images_from_html( $buffer, false );
+		$images = $this->get_images_from_html( preg_replace( '/<noscript.*?\/noscript>/', '', $buffer ), false );
 		// TODO: need to do something different for nextgen and images that already have data-src.
 		if ( ewww_image_optimizer_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
@@ -400,7 +401,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			'ewww-lazy-load',
 			'ewww_lazy_vars',
 			array(
-				'exactdn_domain' => $this->exactdn_domain,
+				'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
 			)
 		);
 	}
@@ -418,7 +419,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			'ewww-lazy-load',
 			'ewww_lazy_vars',
 			array(
-				'exactdn_domain' => $this->exactdn_domain,
+				'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
 			)
 		);
 	}

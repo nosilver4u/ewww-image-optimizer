@@ -28,7 +28,7 @@ class EWWWIO_Page_Parser {
 		$images = array();
 
 		if ( $hyperlinks ) {
-			$search_pattern = '#(?:<a[^>]+?href\s*=\s*["\'](?P<link_url>[^\s]+?)["\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'].*?>){1}(?:\s*</a>)?#is';
+			$search_pattern = '#(?:<figure[^>]+?class\s*=\s*["\'](?P<figure_class>[\w\s-]+?)["\'][^>]*?>\s*)?(?:<a[^>]+?href\s*=\s*["\'](?P<link_url>[^\s]+?)["\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'].*?>){1}(?:\s*</a>)?#is';
 		} else {
 			$search_pattern = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'].*?>)#is';
 		}

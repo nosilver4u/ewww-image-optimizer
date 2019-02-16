@@ -180,6 +180,9 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: ExactDN supports compression of background images (div elements only for now)
 * changed: responsive image 'sizes' attribute can be auto-calculated by lazy load
 * changed: JS WebP no longer requires jQuery
+* changed: ExactDN srcset multipliers include fullscreen value of 1920px
+* fixed: ExactDN does not handle themes that support wide and full-screen images in block editor
+* fixed: ExactDN constrains images to 640px in Twenty Nineteen theme
 
 = 4.6.3 =
 * changed: folders to ignore setting applies to resizing also
