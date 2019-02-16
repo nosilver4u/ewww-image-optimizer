@@ -1,21 +1,3 @@
-var ewww_webp_supported = false;
-function lazysizesWebP(feature, callback) {
-        var kTestImages = {
-                alpha: "UklGRkoAAABXRUJQVlA4WAoAAAAQAAAAAAAAAAAAQUxQSAwAAAARBxAR/Q9ERP8DAABWUDggGAAAABQBAJ0BKgEAAQAAAP4AAA3AAP7mtQAAAA==",
-                animation: "UklGRlIAAABXRUJQVlA4WAoAAAASAAAAAAAAAAAAQU5JTQYAAAD/////AABBTk1GJgAAAAAAAAAAAAAAAAAAAGQAAABWUDhMDQAAAC8AAAAQBxAREYiI/gcA"
-        };
-        var img = new Image();
-        img.onload = function () {
-                ewww_webp_supported = (img.width > 0) && (img.height > 0);
-                callback();
-        };
-        img.onerror = function () {
-                callback();
-        };
-        img.src = "data:image/webp;base64," + kTestImages[feature];
-}
-window.lazySizesConfig = window.lazySizesConfig || {};
-window.lazySizesConfig.init = false;
 (function(window, factory) {
 	var lazySizes = factory(window, window.document);
 	window.lazySizes = lazySizes;
@@ -723,45 +705,3 @@ window.lazySizesConfig.init = false;
 	return lazysizes;
 }
 ));
-lazysizesWebP('alpha', lazySizes.init);
-function ewwwattr(attr, value) {
-        if (typeof value !== typeof undefined && value !== false) {
-                this.attr(attr, value);
-        }
-        return this;
-}
-document.addEventListener('lazybeforeunveil', function({target}){
-	//console.log('the target');
-	//console.log(target);
-	//console.log('now see what we can do');
-        if(ewww_webp_supported) {
-		console.log('we could load webp');
-		var srcset = target.getAttribute('data-srcset');
-		//console.log(srcset);
-		if (srcset && -1 < srcset.search('webp=1')){
-			//console.log('srcset already contains webp ' + srcset);
-			return;
-		}
-		if (srcset) {
-        		var webpsrcset = target.getAttribute('data-srcset-webp');
-                	if(webpsrcset){
-				//console.log('replacing webp srcset attr ' + srcset + ' with ' + webpsrcset);
-				target.setAttribute('data-srcset', webpsrcset);
-			}
-		}
-		var src = target.getAttribute('data-src');
-		if (src && -1 < src.search('webp=1')){
-			//console.log('src already webp');
-			return;
-		} else {
-			//console.log('src missing webp ' + src);
-		}
-        	var webpsrc = target.getAttribute('data-src-webp');
-                if(!webpsrc){
-			//console.log('no webp attr');
-			return;
-		}
-		//console.log('replacing webp src attr ' + src + ' with ' + webpsrc);
-		target.setAttribute('data-src', webpsrc);
-        }
-});

@@ -92,26 +92,23 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	 */
 	function filter_page_output( $buffer ) {
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-		// If this is an admin page, don't filter it.
-		if ( ( empty( $buffer ) || is_admin() ) ) {
-			return $buffer;
-		}
 		$uri = $_SERVER['REQUEST_URI'];
-		// Based on the uri, if this is a cornerstone editing page, don't filter the response.
-		if ( ! empty( $_GET['cornerstone'] ) || strpos( $uri, 'cornerstone-endpoint' ) !== false ) {
-			return $buffer;
-		}
-		if ( ! empty( $_GET['et_fb'] ) ) {
-			return $buffer;
-		}
-		if ( ! empty( $_GET['tatsu'] ) ) {
-			return $buffer;
-		}
-		if ( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === $_POST['action'] ) {
-			return $buffer;
-		}
-		// If this is XML (not XHTML), don't modify the page.
-		if ( preg_match( '/<\?xml/', $buffer ) ) {
+		// Don't lazy load in these cases...
+		if (
+			empty( $buffer ) ||
+			is_admin() ||
+			! empty( $_GET['cornerstone'] ) ||
+			strpos( $uri, 'cornerstone-endpoint' ) !== false ||
+			! empty( $_GET['et_fb'] ) ||
+			! empty( $_GET['tatsu'] ) ||
+			( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === $_POST['action'] ) ||
+			! apply_filters( 'ewww_image_optimizer_do_lazyload', true ) ||
+			is_feed() ||
+			is_preview() ||
+			( defined( 'REST_REQUEST' ) && REST_REQUEST ) ||
+			wp_script_is( 'twentytwenty-twentytwenty', 'enqueued' ) ||
+			preg_match( '/<\?xml/', $buffer )
+		) {
 			return $buffer;
 		}
 		if ( strpos( $buffer, 'amp-boilerplate' ) ) {
@@ -123,6 +120,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 		$images_processed = 0;
 
 		$images = $this->get_images_from_html( $buffer, false );
+		// TODO: need to do something different for nextgen and images that already have data-src.
 		if ( ewww_image_optimizer_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
 				$images_processed++;
@@ -331,16 +329,40 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	 */
 	function validate_image_tag( $image ) {
 		if ( strpos( $image, 'assets/images/dummy.png' ) || strpos( $image, 'base64,R0lGOD' ) || strpos( $image, 'lazy-load/images/1x1' ) || strpos( $image, 'assets/images/transparent.png' ) || strpos( $image, 'assets/images/lazy' ) ) {
-			ewwwio_debug_message( 'lazy load placeholder' );
+			ewwwio_debug_message( 'lazy load placeholder detected' );
 			return false;
 		}
-		// TODO: properly validate and exclude certain cases (see WP Rocket for some good examples, I'm sure others have some too).
-		return true;
-		if ( $this->parsing_exactdn && false !== strpos( $image, $this->exactdn_domain ) ) {
-			ewwwio_debug_message( 'exactdn image' );
-			return true;
+
+		// TODO: properly validate and exclude certain cases, check Jetpack, Retina, a3 & BJ for more.
+		$exclusions = apply_filters(
+			'ewww_image_optimizer_lazy_exclusions',
+			array(
+				'data-src=',
+				'data-no-lazy=',
+				'data-lazy=',
+				'data-lazy-original=',
+				'data-lazy-src=',
+				'data-lazy-srcset=',
+				'data-lazysrc=',
+				'data-lazyload=',
+				'data-bgposition=',
+				'data-envira-src=',
+				'fullurl=',
+				'lazy-slider-img=',
+				'data-srcset=',
+				'class="ls-l',
+				'class="ls-bg',
+				'ewww_webp_lazy_load',
+				'wpcf7_captcha/',
+				'timthumb.php?',
+			)
+		);
+		foreach ( $exclusions as $exclusion ) {
+			if ( false !== strpos( $image, $exclusion ) ) {
+				return false;
+			}
 		}
-		return false;
+		return true;
 	}
 
 	/**
@@ -370,8 +392,17 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	 * Load full lazysizes script when SCRIPT_DEBUG is enabled.
 	 */
 	function debug_script() {
+		wp_enqueue_script( 'ewww-lazy-load-pre', plugins_url( '/includes/lazysizes-pre.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 		wp_enqueue_script( 'ewww-lazy-load', plugins_url( '/includes/lazysizes.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+		wp_enqueue_script( 'ewww-lazy-load-post', plugins_url( '/includes/lazysizes-post.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 		wp_enqueue_script( 'ewww-lazy-load-uvh', plugins_url( '/includes/ls.unveilhooks.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+		wp_localize_script(
+			'ewww-lazy-load',
+			'ewww_lazy_vars',
+			array(
+				'exactdn_domain' => $this->exactdn_domain,
+			)
+		);
 	}
 
 	/**
@@ -379,8 +410,17 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	 */
 	function min_script() {
 		// TODO: combine and minify src scripts.
+		wp_enqueue_script( 'ewww-lazy-load-pre', plugins_url( '/includes/lazysizes-pre.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 		wp_enqueue_script( 'ewww-lazy-load', plugins_url( '/includes/lazysizes.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+		wp_enqueue_script( 'ewww-lazy-load-post', plugins_url( '/includes/lazysizes-post.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 		wp_enqueue_script( 'ewww-lazy-load-uvh', plugins_url( '/includes/ls.unveilhooks.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+		wp_localize_script(
+			'ewww-lazy-load',
+			'ewww_lazy_vars',
+			array(
+				'exactdn_domain' => $this->exactdn_domain,
+			)
+		);
 	}
 }
 
