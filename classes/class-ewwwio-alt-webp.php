@@ -452,7 +452,11 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 				if ( ewww_image_optimizer_iterable( $sources ) ) {
 					foreach ( $sources as $source ) {
 						ewwwio_debug_message( "parsing a picture source: $source" );
-						$srcset = $this->get_attribute( $source, 'srcset' );
+						$srcset_attr_name = 'srcset';
+						if ( false !== strpos( $source, 'base64,R0lGOD' ) && false !== strpos( $source, 'data-src=' ) ) {
+							$srcset_attr_name = 'data-srcset';
+						}
+						$srcset = $this->get_attribute( $source, $srcset_attr_name );
 						if ( $srcset ) {
 							$srcset_webp = $this->srcset_replace( $srcset );
 							if ( $srcset_webp ) {

@@ -58,10 +58,10 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 
 		// Load the appropriate JS.
 		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
-			// Load the non-minified, non-inline version of the webp rewrite script.
+			// Load the non-minified and separate versions of the lazy load scripts.
 			add_action( 'wp_enqueue_scripts', array( $this, 'debug_script' ) );
 		} else {
-			// Load the minified, non-inline version of the webp rewrite script.
+			// Load the minified, combined version of the lazy load script.
 			add_action( 'wp_enqueue_scripts', array( $this, 'min_script' ) );
 		}
 	}
@@ -121,7 +121,6 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 		$images_processed = 0;
 
 		$images = $this->get_images_from_html( preg_replace( '/<noscript.*?\/noscript>/', '', $buffer ), false );
-		// TODO: need to do something different for nextgen and images that already have data-src.
 		if ( ewww_image_optimizer_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
 				$images_processed++;
@@ -138,7 +137,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 					$srcset = $this->get_attribute( $image, 'srcset' );
 
 					$placeholder_src = $this->placeholder_src;
-					if ( apply_filters( 'ewww_image_optimizer_use_lqip', true ) && $this->parsing_exactdn && strpos( $file, $this->exactdn_domain ) ) {
+					if ( false === strpos( $file, 'nggid' ) && apply_filters( 'ewww_image_optimizer_use_lqip', true ) && $this->parsing_exactdn && strpos( $file, $this->exactdn_domain ) ) {
 						$placeholder_src = add_query_arg( array( 'lazy' => 1 ), $file );
 						ewwwio_debug_message( "current placeholder is $placeholder_src" );
 					}
@@ -199,106 +198,35 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			}
 		}
 		// Images listed as picture/source elements. Mostly for NextGEN, but should work anywhere.
-		/* $pictures = $this->get_picture_tags_from_html( $buffer ); */
+		$pictures = $this->get_picture_tags_from_html( $buffer );
 		if ( ewww_image_optimizer_iterable( $pictures ) ) {
 			foreach ( $pictures as $index => $picture ) {
 				$sources = $this->get_elements_from_html( $picture, 'source' );
 				if ( ewww_image_optimizer_iterable( $sources ) ) {
 					foreach ( $sources as $source ) {
+						if ( false !== strpos( $source, 'data-src' ) ) {
+							continue;
+						}
 						ewwwio_debug_message( "parsing a picture source: $source" );
 						$srcset = $this->get_attribute( $source, 'srcset' );
 						if ( $srcset ) {
-							$srcset_webp = $this->srcset_replace( $srcset );
-							if ( $srcset_webp ) {
-								$source_webp = str_replace( $srcset, $srcset_webp, $source );
-								$this->set_attribute( $source_webp, 'type', 'image/webp' );
-								$picture = str_replace( $source, $source_webp . $source, $picture );
-							}
+							ewwwio_debug_message( 'found srcset in source' );
+							$lazy_source = $source;
+							$this->set_attribute( $lazy_source, 'data-srcset', $srcset );
+							$this->set_attribute( $lazy_source, 'srcset', $this->placeholder_src, true );
+							$picture = str_replace( $source, $lazy_source, $picture );
 						}
 					}
 					if ( $picture != $pictures[ $index ] ) {
-						ewwwio_debug_message( 'found webp for picture element' );
+						ewwwio_debug_message( 'lazified sources for picture element' );
 						$buffer = str_replace( $pictures[ $index ], $picture, $buffer );
-					}
-				}
-			}
-		}
-		// NextGEN slides listed as 'a' elements.
-		/* $links = $this->get_elements_from_html( $buffer, 'a' ); */
-		if ( ewww_image_optimizer_iterable( $links ) ) {
-			foreach ( $links as $index => $link ) {
-				ewwwio_debug_message( "parsing a link $link" );
-				$file  = $this->get_attribute( $link, 'data-src' );
-				$thumb = $this->get_attribute( $link, 'data-thumbnail' );
-				if ( $file && $thumb ) {
-					ewwwio_debug_message( "checking webp for ngg data-src: $file" );
-					if ( $this->validate_image_tag( $file ) ) {
-						$this->set_attribute( $link, 'data-webp', $this->generate_url( $file ) );
-						ewwwio_debug_message( "found webp for ngg data-src: $file" );
-					}
-					ewwwio_debug_message( "checking webp for ngg data-thumbnail: $thumb" );
-					if ( $this->validate_image_tag( $thumb ) ) {
-						$this->set_attribute( $link, 'data-webp-thumbnail', $this->generate_url( $thumb ) );
-						ewwwio_debug_message( "found webp for ngg data-thumbnail: $thumb" );
-					}
-				}
-				if ( $link != $links[ $index ] ) {
-					$buffer = str_replace( $links[ $index ], $link, $buffer );
-				}
-			}
-		}
-		// Revolution Slider 'li' elements.
-		/* $listitems = $this->get_elements_from_html( $buffer, 'li' ); */
-		if ( ewww_image_optimizer_iterable( $listitems ) ) {
-			foreach ( $listitems as $index => $listitem ) {
-				ewwwio_debug_message( 'parsing a listitem' );
-				if ( $this->get_attribute( $listitem, 'data-title' ) === 'Slide' && ( $this->get_attribute( $listitem, 'data-lazyload' ) || $this->get_attribute( $listitem, 'data-thumb' ) ) ) {
-					$thumb = $this->get_attribute( $listitem, 'data-thumb' );
-					ewwwio_debug_message( "checking webp for revslider data-thumb: $thumb" );
-					if ( $this->validate_image_tag( $thumb ) ) {
-						$this->set_attribute( $listitem, 'data-webp-thumb', $this->generate_url( $thumb ) );
-						ewwwio_debug_message( "found webp for revslider data-thumb: $thumb" );
-					}
-					$param_num = 1;
-					while ( $param_num < 11 ) {
-						$parameter = $this->get_attribute( $listitem, 'data-param' . $param_num );
-						if ( $parameter ) {
-							ewwwio_debug_message( "checking webp for revslider data-param$param_num: $parameter" );
-							if ( strpos( $parameter, 'http' ) === 0 ) {
-								ewwwio_debug_message( "looking for $parameter" );
-								if ( $this->validate_image_tag( $parameter ) ) {
-									$this->set_attribute( $listitem, 'data-webp-param' . $param_num, $this->generate_url( $parameter ) );
-									ewwwio_debug_message( "found webp for data-param$param_num: $parameter" );
-								}
-							}
-						}
-						$param_num++;
-					}
-					if ( $listitem != $listitems[ $index ] ) {
-						$buffer = str_replace( $listitems[ $index ], $listitem, $buffer );
-					}
-				}
-			} // End foreach().
-		} // End if().
-		// WooCommerce thumbs listed as 'div' elements.
-		/* $divs = $this->get_elements_from_html( $buffer, 'div' ); */
-		if ( ewww_image_optimizer_iterable( $divs ) ) {
-			foreach ( $divs as $index => $div ) {
-				ewwwio_debug_message( 'parsing a div' );
-				$thumb     = $this->get_attribute( $div, 'data-thumb' );
-				$div_class = $this->get_attribute( $div, 'class' );
-				if ( $div_class && $thumb && strpos( $div_class, 'woocommerce-product-gallery__image' ) !== false ) {
-					ewwwio_debug_message( "checking webp for WC data-thumb: $thumb" );
-					if ( $this->validate_image_tag( $thumb ) ) {
-						$this->set_attribute( $div, 'data-webp-thumb', $this->generate_url( $thumb ) );
-						ewwwio_debug_message( "found webp for WC data-thumb: $thumb" );
-						$buffer = str_replace( $divs[ $index ], $div, $buffer );
 					}
 				}
 			}
 		}
 		// Video elements, looking for poster attributes that are images.
 		/* $videos = $this->get_elements_from_html( $buffer, 'video' ); */
+		$videos = '';
 		if ( ewww_image_optimizer_iterable( $videos ) ) {
 			foreach ( $videos as $index => $video ) {
 				ewwwio_debug_message( 'parsing a video element' );
@@ -306,7 +234,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 				if ( $file ) {
 					ewwwio_debug_message( "checking webp for video poster: $file" );
 					if ( $this->validate_image_tag( $file ) ) {
-						$this->set_attribute( $video, 'data-poster-webp', $this->generate_url( $file ) );
+						$this->set_attribute( $video, 'data-poster-webp', $this->placeholder_src );
 						$this->set_attribute( $video, 'data-poster-image', $file );
 						$this->remove_attribute( $video, 'poster' );
 						ewwwio_debug_message( "found webp for video poster: $file" );
@@ -315,7 +243,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 				}
 			}
 		}
-		ewwwio_debug_message( 'all done parsing page for alt webp' );
+		ewwwio_debug_message( 'all done parsing page for lazy' );
 		if ( true ) { // Set to true for extra logging.
 			ewww_image_optimizer_debug_log();
 		}
@@ -364,16 +292,6 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			}
 		}
 		return true;
-	}
-
-	/**
-	 * Generate a url, pretty much a placeholder until we remove all the excess code.
-	 *
-	 * @param string $url The image url.
-	 * @return string The WebP version of the image url.
-	 */
-	function generate_url( $url ) {
-		return $url;
 	}
 
 	/**
