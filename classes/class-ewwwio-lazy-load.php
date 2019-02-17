@@ -328,11 +328,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	 * Load minified lazysizes script.
 	 */
 	function min_script() {
-		// TODO: combine and minify src scripts.
-		wp_enqueue_script( 'ewww-lazy-load-pre', plugins_url( '/includes/lazysizes-pre.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 		wp_enqueue_script( 'ewww-lazy-load', plugins_url( '/includes/lazysizes.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
-		wp_enqueue_script( 'ewww-lazy-load-post', plugins_url( '/includes/lazysizes-post.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
-		wp_enqueue_script( 'ewww-lazy-load-uvh', plugins_url( '/includes/ls.unveilhooks.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 		wp_localize_script(
 			'ewww-lazy-load',
 			'ewww_lazy_vars',
