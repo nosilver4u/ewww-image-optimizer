@@ -420,6 +420,39 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 				}
 			} // End foreach().
 		} // End if().
+		// Now we will look for any lazy images that don't have a src attribute (this search returns ALL img elements though).
+		$images = $this->get_images_from_html( preg_replace( '/<noscript.*?\/noscript>/', '', $buffer ), false, false );
+		if ( ewww_image_optimizer_iterable( $images[0] ) ) {
+			ewwwio_debug_message( 'parsing images without requiring src' );
+			foreach ( $images[0] as $index => $image ) {
+				if ( $this->get_attribute( $image, 'src' ) ) {
+					ewwwio_debug_message( 'bummer, found a src: ' . $this->get_attribute( $image, 'src' ) );
+					continue;
+				}
+				ewwwio_debug_message( 'found img without src' );
+				if ( strpos( $image, 'data-src=' ) && strpos( $image, 'data-srcset=' ) && strpos( $image, 'lazyload' ) ) {
+					// EWWW IO Lazy Load.
+					$new_image = $image;
+					$real_file = $this->get_attribute( $new_image, 'data-src' );
+					ewwwio_debug_message( "checking webp for Lazy Load data-src: $real_file" );
+					if ( $this->validate_image_url( $real_file ) ) {
+						ewwwio_debug_message( 'found webp for Lazy Load' );
+						$this->set_attribute( $new_image, 'data-src-webp', $this->generate_url( $real_file ) );
+					}
+					$srcset = $this->get_attribute( $new_image, 'data-srcset' );
+					if ( $srcset ) {
+						$srcset_webp = $this->srcset_replace( $srcset );
+						if ( $srcset_webp ) {
+							$this->set_attribute( $new_image, 'data-srcset-webp', $srcset_webp );
+						}
+					}
+					if ( $new_image !== $image ) {
+						$this->set_attribute( $new_image, 'class', $this->get_attribute( $new_image, 'class' ) . ' ewww_webp_lazy_load', true );
+						$buffer = str_replace( $image, $new_image, $buffer );
+					}
+				}
+			} // End foreach().
+		} // End if().
 		// Look for images to parse WP Retina Lazy Load.
 		if ( class_exists( 'Meow_WR2X_Core' ) && strpos( $buffer, ' lazyload' ) ) {
 			$images = $this->get_elements_from_html( $buffer, 'img' );
@@ -453,7 +486,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 					foreach ( $sources as $source ) {
 						ewwwio_debug_message( "parsing a picture source: $source" );
 						$srcset_attr_name = 'srcset';
-						if ( false !== strpos( $source, 'base64,R0lGOD' ) && false !== strpos( $source, 'data-src=' ) ) {
+						if ( false !== strpos( $source, 'base64,R0lGOD' ) && false !== strpos( $source, 'data-srcset=' ) ) {
 							$srcset_attr_name = 'data-srcset';
 						}
 						$srcset = $this->get_attribute( $source, $srcset_attr_name );

@@ -17,20 +17,25 @@ class EWWWIO_Page_Parser {
 	/**
 	 * Match all images and any relevant <a> tags in a block of HTML.
 	 *
+	 * The hyperlinks param implies that the src attribute is required, but not the other way around.
+	 *
 	 * @param string $content Some HTML.
 	 * @param bool   $hyperlinks Default true. Should we include encasing hyperlinks in our search.
+	 * @param bool   $src_required Default true. Should we look only for images with src attributes.
 	 * @return array An array of $images matches, where $images[0] is
 	 *         an array of full matches, and the link_url, img_tag,
 	 *         and img_url keys are arrays of those matches.
 	 */
-	function get_images_from_html( $content, $hyperlinks = true ) {
+	function get_images_from_html( $content, $hyperlinks = true, $src_required = true ) {
 		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		$images = array();
 
 		if ( $hyperlinks ) {
 			$search_pattern = '#(?:<figure[^>]+?class\s*=\s*["\'](?P<figure_class>[\w\s-]+?)["\'][^>]*?>\s*)?(?:<a[^>]+?href\s*=\s*["\'](?P<link_url>[^\s]+?)["\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'].*?>){1}(?:\s*</a>)?#is';
-		} else {
+		} elseif ( $src_required ) {
 			$search_pattern = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'].*?>)#is';
+		} else {
+			$search_pattern = '#(?P<img_tag><img.*?>)#is';
 		}
 		if ( preg_match_all( $search_pattern, $content, $images ) ) {
 			foreach ( $images as $key => $unused ) {
@@ -135,13 +140,13 @@ class EWWWIO_Page_Parser {
 	 * @return string The value of the attribute, or an empty string if not found.
 	 */
 	function get_attribute( $element, $name ) {
-		if ( preg_match( '#' . $name . '\s*=\s*(["\'])([^\1]+?)\1#is', $element, $attr_matches ) ) {
+		if ( preg_match( '#[\s"\']' . $name . '\s*=\s*(["\'])([^\1]+?)\1#is', $element, $attr_matches ) ) {
 			if ( ! empty( $attr_matches[2] ) ) {
 				return $attr_matches[2];
 			}
 		}
 		// If there were not any matches with quotes, look for unquoted attributes, no spaces allowed.
-		if ( preg_match( '#' . $name . '\s*=\s*([^\s]+?)#is', $element, $attr_matches ) ) {
+		if ( preg_match( '#[\s"\']' . $name . '\s*=\s*([^\s]+?)#is', $element, $attr_matches ) ) {
 			if ( ! empty( $attr_matches[1] ) ) {
 				return $attr_matches[1];
 			}
