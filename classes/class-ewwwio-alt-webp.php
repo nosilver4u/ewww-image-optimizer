@@ -426,7 +426,6 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 			ewwwio_debug_message( 'parsing images without requiring src' );
 			foreach ( $images[0] as $index => $image ) {
 				if ( $this->get_attribute( $image, 'src' ) ) {
-					ewwwio_debug_message( 'bummer, found a src: ' . $this->get_attribute( $image, 'src' ) );
 					continue;
 				}
 				ewwwio_debug_message( 'found img without src' );
