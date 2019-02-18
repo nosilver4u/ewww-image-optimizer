@@ -187,8 +187,6 @@ add_action( 'admin_action_ewww_image_optimizer_retest_background_optimization', 
 add_action( 'admin_action_ewww_image_optimizer_delete_debug_log', 'ewww_image_optimizer_delete_debug_log' );
 // Makes sure to flush out any scheduled jobs on deactivation.
 register_deactivation_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimizer_network_deactivate' );
-// Removes the .htaccess rules for webp when uninstalled.
-register_uninstall_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimizer_uninstall' );
 // add_action( 'shutdown', 'ewwwio_memory_output' );.
 // Makes sure we flush the debug info to the log on shutdown.
 add_action( 'shutdown', 'ewww_image_optimizer_debug_log' );
