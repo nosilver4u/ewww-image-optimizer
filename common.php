@@ -1941,22 +1941,6 @@ function ewww_image_optimizer_network_deactivate( $network_wide ) {
 }
 
 /**
- * Cleans up when the plugin is removed.
- *
- * Removes rules from .htaccess file added for WebP rewriting. Also clears the ewwwio_queue table.
- */
-function ewww_image_optimizer_uninstall() {
-	if ( ewwwio_extract_from_markers( ewww_image_optimizer_htaccess_path(), 'EWWWIO' ) ) {
-		insert_with_markers( ewww_image_optimizer_htaccess_path(), 'EWWWIO', '' );
-	}
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'aux-optimize.php' );
-	ewww_image_optimizer_delete_queue_images();
-	ewww_image_optimizer_delete_queue_images( 'flag' );
-	ewww_image_optimizer_delete_queue_images( 'nextgen' );
-	ewww_image_optimizer_delete_queue_images( 'nextcell' );
-}
-
-/**
  * Adds a global settings page to the network admin settings menu.
  */
 function ewww_image_optimizer_network_admin_menu() {
