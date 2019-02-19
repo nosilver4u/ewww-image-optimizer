@@ -8366,6 +8366,12 @@ function ewww_image_optimizer_resize_detection_script() {
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' ) ) {
 		$resize_detection_script = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'includes/resize_detection.js' );
+		echo "<style>\n" .
+			"img.scaled-image {\n" .
+			"\tborder: 3px #3eadc9 dotted;\n" .
+			"\tmargin: -3px;\n" .
+			"}\n" .
+			"</style>\n";
 		echo "<script>$resize_detection_script</script>";
 	}
 }
