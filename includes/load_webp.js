@@ -585,14 +585,14 @@ function ewwwLoadImages(ewww_webp_supported) {
 check_webp_feature('alpha', ewwwWebPInit);
 function ewwwWebPInit(ewww_webp_supported) {
                 ewwwLoadImages(ewww_webp_supported);
-                ewww_ngg_plus_load_galleries(ewww_webp_supported);
+                ewwwNggLoadGalleries(ewww_webp_supported);
                 document.arrive('.ewww_webp', function() {
                         ewwwLoadImages(ewww_webp_supported);
                 });
                 var ewww_ngg_galleries_timer = 0;
                 var ewww_ngg_galleries = setInterval(function() {
                         if ( typeof galleries !== 'undefined' ) {
-                                ewww_ngg_plus_parse_galleries(ewww_webp_supported);
+                                ewwwNggParseGalleries(ewww_webp_supported);
                                 clearInterval(ewww_ngg_galleries);
                         }
                         ewww_ngg_galleries_timer += 25;
@@ -607,27 +607,27 @@ function ewwwAttr(elem, attr, value) {
                 elem.setAttribute(attr, value);
         }
 }
-function ewww_ngg_plus_parse_galleries(ewww_webp_supported) {
+function ewwwNggParseGalleries(ewww_webp_supported) {
         if (ewww_webp_supported) {
                 for(var galleryIndex in galleries) {
                         var gallery = galleries[galleryIndex];
-                        galleries[galleryIndex].images_list = ewww_ngg_plus_parse_image_list(gallery.images_list);
+                        galleries[galleryIndex].images_list = ewwwNggParseImageList(gallery.images_list);
                 }
         }
 }
-function ewww_ngg_plus_load_galleries(ewww_webp_supported) {
+function ewwwNggLoadGalleries(ewww_webp_supported) {
         if (ewww_webp_supported) {
                 document.addEventListener('ngg.galleria.themeadded', function(event, themename){
                         window.ngg_galleria._create_backup = window.ngg_galleria.create;
                         window.ngg_galleria.create = function(gallery_parent, themename) {
                                 var gallery_id = $(gallery_parent).data('id');
-                                galleries['gallery_' + gallery_id].images_list = ewww_ngg_plus_parse_image_list(galleries['gallery_' + gallery_id].images_list);
+                                galleries['gallery_' + gallery_id].images_list = ewwwNggParseImageList(galleries['gallery_' + gallery_id].images_list);
                                 return window.ngg_galleria._create_backup(gallery_parent, themename);
                         };
                 });
         }
 }
-function ewww_ngg_plus_parse_image_list(images_list) {
+function ewwwNggParseImageList(images_list) {
         console.log('parsing gallery images');
         for(var nggIndex in images_list) {
                 var nggImage = images_list[nggIndex];
