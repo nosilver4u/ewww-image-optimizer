@@ -181,6 +181,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * changed: responsive image 'sizes' attribute can be auto-calculated by lazy load
 * changed: JS WebP no longer requires jQuery
 * changed: ExactDN srcset multipliers include fullscreen value of 1920px
+* changed: force resize function to ignore filesize with ewww_image_optimizer_resize_filesize_ignore filter
 * fixed: ExactDN does not handle themes that support wide and full-screen images in block editor
 * fixed: ExactDN constrains images to 640px in Twenty Nineteen theme
 
