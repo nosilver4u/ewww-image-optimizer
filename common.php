@@ -176,7 +176,7 @@ add_action( 'wp_ajax_ewww_manual_cloud_restore_single', 'ewww_image_optimizer_cl
 // AJAX action hook to disable the media library notice.
 add_action( 'wp_ajax_ewww_dismiss_media_notice', 'ewww_image_optimizer_dismiss_media_notice' );
 // Adds script to highlight mis-sized images on the front-end (for logged in admins only).
-add_action( 'wp_enqueue_scripts', 'ewww_image_optimizer_resize_detection_script' );
+add_action( 'wp_head', 'ewww_image_optimizer_resize_detection_script' );
 // Adds a button on the admin bar to allow highlighting mis-sized images on-demand.
 add_action( 'admin_bar_init', 'ewww_image_optimizer_admin_bar_init' );
 // Non-AJAX handler to delete the API key, and reroute back to the settings page.
@@ -8365,9 +8365,9 @@ function ewww_image_optimizer_resize_detection_script() {
 		return;
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' ) ) {
-		wp_enqueue_script( 'ewww-resize-detection', plugins_url( '/includes/resize_detection.js', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+		$resize_detection_script = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'includes/resize_detection.js' );
+		echo "<script>$resize_detection_script</script>";
 	}
-	add_filter( 'autoptimize_filter_js_exclude', 'ewww_image_optimizer_autoptimize_js_exclude', -1, 2 );
 }
 
 /**
