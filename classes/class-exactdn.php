@@ -2325,6 +2325,11 @@ class ExactDN extends EWWWIO_Page_Parser {
 			return $url;
 		}
 
+		// No PHP files shall pass.
+		if ( preg_match( '/\.php$/', $parsed_url['path'] ) ) {
+			return $url;
+		}
+
 		// Make sure this is an allowed image domain/hostname for ExactDN on this site.
 		if ( ! $this->allow_image_domain( $parsed_url['host'] ) ) {
 			ewwwio_debug_message( "invalid host for ExactDN: {$parsed_url['host']}" );
