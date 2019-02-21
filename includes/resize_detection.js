@@ -38,9 +38,10 @@ function checkImageScale(img) {
 function clearScaledImages() {
 	var scaledImages = document.querySelectorAll('img.scaled-image');
 	for (var i = 0, len = scaledImages.length; i < len; i++){
-    		scaledImages[i].classList.remove('scaled-image');
+		scaledImages[i].classList.remove('scaled-image');
 	}
 }
 document.addEventListener('lazyloaded', function(e){
+	e.target.classList.remove('scaled-image');
 	checkImageScale(e.target);
 });

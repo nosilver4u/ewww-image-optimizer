@@ -665,6 +665,8 @@ function ewww_image_optimizer_admin_init() {
 			update_site_option( 'exactdn_all_the_things', $_POST['exactdn_all_the_things'] );
 			$_POST['exactdn_lossy'] = ( empty( $_POST['exactdn_lossy'] ) ? false : true );
 			update_site_option( 'exactdn_lossy', $_POST['exactdn_lossy'] );
+			$_POST['ewww_image_optimizer_lazy_load'] = ( empty( $_POST['ewww_image_optimizer_lazy_load'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_lazy_load', $_POST['ewww_image_optimizer_lazy_load'] );
 			$_POST['ewww_image_optimizer_maxmediawidth'] = empty( $_POST['ewww_image_optimizer_maxmediawidth'] ) ? 0 : $_POST['ewww_image_optimizer_maxmediawidth'];
 			update_site_option( 'ewww_image_optimizer_maxmediawidth', (int) $_POST['ewww_image_optimizer_maxmediawidth'] );
 			$_POST['ewww_image_optimizer_maxmediaheight'] = empty( $_POST['ewww_image_optimizer_maxmediaheight'] ) ? 0 : $_POST['ewww_image_optimizer_maxmediaheight'];
@@ -738,6 +740,7 @@ function ewww_image_optimizer_admin_init() {
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_exactdn', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'exactdn_all_the_things', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'exactdn_lossy', 'boolval' );
+	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_lazy_load', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_resize_detection', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_maxmediawidth', 'intval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_maxmediaheight', 'intval' );
@@ -7891,9 +7894,13 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='exactdn_lossy'>" . esc_html__( 'Premium Compression', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/47-getting-more-from-exactdn', '59de6631042863379ddc953c' ) . '</th>' .
 		"<td><input type='checkbox' id='exactdn_lossy' name='exactdn_lossy' value='true' " .
 		( ewww_image_optimizer_get_option( 'exactdn_lossy' ) ? "checked='true'" : '' ) . '> ' . esc_html__( 'Enable high quality premium compression for all images. Disable to use Pixel Perfect mode instead.', 'ewww-image-optimizer' ) . "</td></tr>\n";
+	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_lazy_load'>" . esc_html__( 'Lazy Load', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/74-lazy-load', '5c6c36ed042863543ccd2d9b' ) .
+		"</th><td><input type='checkbox' id='ewww_image_optimizer_lazy_load' name='ewww_image_optimizer_lazy_load' value='true' " . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) == true ? "checked='true'" : '' ) . ' /> ' .
+		esc_html__( 'Improves actual and perceived loading time as images will be loaded only as they enter (or are about to enter) the viewport. Integration with the ExactDN and WebP features enables the plugin to load the best available image size and image format for each device.', 'ewww-image-optimizer' ) . "</td></tr>\n";
 	ewwwio_debug_message( 'ExactDN lossy: ' . intval( ewww_image_optimizer_get_option( 'exactdn_lossy' ) ) );
 	ewwwio_debug_message( 'ExactDN resize existing: ' . ( ewww_image_optimizer_get_option( 'exactdn_resize_existing' ) == true ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'ExactDN attachment queries: ' . ( ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' ) == true ? 'off' : 'on' ) );
+	ewwwio_debug_message( 'lazy load: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) == true ? 'on' : 'off' ) );
 	if ( defined( 'EXACTDN_EXCLUDE' ) && EXACTDN_EXCLUDE ) {
 		$exactdn_user_exclusions = EXACTDN_EXCLUDE;
 		if ( is_array( $exactdn_user_exclusions ) ) {
