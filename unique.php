@@ -14,6 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Installation routine for PNGOUT.
 add_action( 'admin_action_ewww_image_optimizer_install_pngout', 'ewww_image_optimizer_install_pngout_wrapper' );
+// AJAX action hook to dismiss the exec notice May be extended to other notices in the future.
+add_action( 'wp_ajax_ewww_dismiss_exec_notice', 'ewww_image_optimizer_dismiss_exec_notice' );
 // Removes the binaries when the plugin is deactivated.
 register_deactivation_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimizer_remove_binaries' );
 
@@ -164,7 +166,7 @@ function ewww_image_optimizer_notice_hosting_requires_api() {
 		return;
 	}
 	$settings_url = admin_url( "$options_page?page=" . plugin_basename( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ) );
-	echo "<div id='ewww-image-optimizer-cloud-key-required' class='error'><p><strong>" .
+	echo "<div id='ewww-image-optimizer-cloud-key-required' class='notice notice-error'><p><strong>" .
 		/* translators: %s: Name of a web host, like WordPress.com or Pantheon. */
 		sprintf( esc_html__( 'The EWWW Image Optimizer requires an API key or an ExactDN subscription to optimize images on %s sites.', 'ewww-image-optimizer-cloud' ), $webhost ) .
 		"</strong> <a href='https://ewww.io/plans/'>" . esc_html__( 'Purchase a subscription.', 'ewww-image-optimizer-cloud' ) .
@@ -176,7 +178,7 @@ function ewww_image_optimizer_notice_hosting_requires_api() {
  */
 function ewww_image_optimizer_notice_os() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	echo "<div id='ewww-image-optimizer-warning-os' class='error'><p><strong>" . esc_html__( 'EWWW Image Optimizer is supported on Linux, FreeBSD, Mac OSX, and Windows', 'ewww-image-optimizer' ) . '.</strong> ' .
+	echo "<div id='ewww-image-optimizer-warning-os' class='notice notice-error'><p><strong>" . esc_html__( 'EWWW Image Optimizer is supported on Linux, FreeBSD, Mac OSX, and Windows', 'ewww-image-optimizer' ) . '.</strong> ' .
 		/* translators: %s: An operating system. */
 		sprintf( esc_html__( 'Unfortunately, the EWWW Image Optimizer plugin does not work with %s', 'ewww-image-optimizer' ), htmlentities( PHP_OS ) ) . '.</p></div>';
 }
@@ -293,7 +295,7 @@ function ewww_image_optimizer_check_permissions( $file, $minimum ) {
  * Alert the user when the tool folder could not be created.
  */
 function ewww_image_optimizer_tool_folder_notice() {
-	echo "<div id='ewww-image-optimizer-warning-tool-folder-create' class='error'><p><strong>" . esc_html__( 'EWWW Image Optimizer could not create the tool folder', 'ewww-image-optimizer' ) . ': ' . htmlentities( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) . '.</strong> ' . esc_html__( 'Please adjust permissions or create the folder', 'ewww-image-optimizer' ) . '.</p></div>';
+	echo "<div id='ewww-image-optimizer-warning-tool-folder-create' class='notice notice-error'><p><strong>" . esc_html__( 'EWWW Image Optimizer could not create the tool folder', 'ewww-image-optimizer' ) . ': ' . htmlentities( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) . '.</strong> ' . esc_html__( 'Please adjust permissions or create the folder', 'ewww-image-optimizer' ) . '.</p></div>';
 }
 
 /**
@@ -309,7 +311,7 @@ function ewww_image_optimizer_tool_folder_permissions_notice() {
 	} else {
 		$settings_page = 'options-general.php?page=' . EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL;
 	}
-	echo "<div id='ewww-image-optimizer-warning-tool-folder-permissions' class='error'><p><strong>" .
+	echo "<div id='ewww-image-optimizer-warning-tool-folder-permissions' class='notice notice-error'><p><strong>" .
 		/* translators: %s: Folder location where executables should be installed */
 		sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), htmlentities( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . '.</strong> ' .
 		esc_html__( 'Please adjust permissions or create the folder. If you have installed the tools elsewhere on your system, check the option to Use System Paths.', 'ewww-image-optimizer' ) . ' ' .
@@ -330,7 +332,7 @@ function ewww_image_optimizer_tool_installation_failed_notice() {
 	} else {
 		$settings_page = 'options-general.php?page=' . EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL;
 	}
-	echo "<div id='ewww-image-optimizer-warning-tool-install' class='error'><p><strong>" .
+	echo "<div id='ewww-image-optimizer-warning-tool-install' class='notice notice-error'><p><strong>" .
 		/* translators: %s: Folder location where executables should be installed */
 		sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), htmlentities( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . '.</strong> ' .
 		esc_html__( 'Please adjust permissions or create the folder. If you have installed the tools elsewhere on your system, check the option to Use System Paths.', 'ewww-image-optimizer' ) . ' ' .
@@ -525,6 +527,23 @@ function ewww_image_optimizer_define_noexec() {
 }
 
 /**
+ * Disables local compression when exec notice is dismissed by ExactDN user.
+ */
+function ewww_image_optimizer_dismiss_exec_notice() {
+	ewwwio_ob_clean();
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	// Verify that the user is properly authorized.
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ) ) ) {
+		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
+	}
+	update_option( 'ewww_image_optimizer_jpg_level', 0 );
+	update_option( 'ewww_image_optimizer_png_level', 0 );
+	update_option( 'ewww_image_optimizer_gif_level', 0 );
+	update_option( 'ewww_image_optimizer_pdf_level', 0 );
+	wp_die();
+}
+
+/**
  * Checks for safe mode and exec, then displays an error if needed.
  *
  * @param string $quiet Optional. Use 'quiet' to suppress warning messages.
@@ -539,11 +558,25 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 		}
 		// Need to be a little particular with the quiet parameter.
 		if ( 'quiet' !== $quiet && ! $no_compression ) {
+			$exactdn_dismiss = ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ? true : false;
 			// Display a warning if exec() is disabled, can't run local tools without it.
-			echo "<div id='ewww-image-optimizer-warning-exec' class='error'><p>" . esc_html__( 'EWWW Image Optimizer requires exec() to perform local compression. Your system administrator has disabled the exec() function, ask them to enable it.', 'ewww-image-optimizer' ) .
-				'<br>' . esc_html__( 'An API key or ExactDN subscription will allow you to offload the compression to our dedicated servers instead.', 'ewww-image-optimizer' ) .
-				( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ? '<br>' . esc_html__( 'Sites that use ExactDN already have built-in image optimization and may disable the compression options on the Basic tab to dismiss this notice.', 'ewww-image-optimizer' ) : '' ) .
+			echo "<div id='ewww-image-optimizer-warning-exec' " . ( $exactdn_dismiss ? "class='notice notice-warning is-dismissible'" : "class='notice notice-error'" ) . '><p>' . esc_html__( 'EWWW Image Optimizer requires exec() to perform local compression. Your system administrator has disabled the exec() function, ask them to enable it.', 'ewww-image-optimizer' ) .
+				( ! $exactdn_dismiss ? '<br>' . esc_html__( 'An API key or ExactDN subscription will allow you to offload the compression to our dedicated servers instead.', 'ewww-image-optimizer' )
+				: '<br>' . esc_html__( 'Sites that use ExactDN already have built-in image optimization and may dismiss this notice to disable local compression.', 'ewww-image-optimizer' ) ) .
 				'</p></div>';
+				echo
+					"<script>\n" .
+					"jQuery(document).on('click', '#ewww-image-optimizer-warning-exec .notice-dismiss', function() {\n" .
+						"\tvar ewww_dismiss_exec_data = {\n" .
+							"\t\taction: 'ewww_dismiss_exec_notice',\n" .
+						"\t};\n" .
+						"\tjQuery.post(ajaxurl, ewww_dismiss_exec_data, function(response) {\n" .
+							"\t\tif (response) {\n" .
+								"\t\t\tconsole.log(response);\n" .
+							"\t\t}\n" .
+						"\t});\n" .
+					"});\n" .
+					"</script>\n";
 		}
 		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
 			define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
@@ -645,7 +678,7 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 		} elseif ( ! is_writable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
 			ewww_image_optimizer_tool_folder_permissions_notice();
 		}
-		echo "<div id='ewww-image-optimizer-warning-opt-missing' class='error'><p>" .
+		echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-error'><p>" .
 		/* translators: 1-6: jpegtran, optipng, pngout, pngquant, gifsicle, and cwebp (links) 7: Settings Page (link) 8: Installation Instructions (link) */
 		sprintf( esc_html__( 'EWWW Image Optimizer uses %1$s, %2$s, %3$s, %4$s, %5$s, and %6$s. You are missing: %7$s. Please install via the %8$s or the %9$s.', 'ewww-image-optimizer' ), "<a href='http://jpegclub.org/jpegtran/'>jpegtran</a>", "<a href='http://optipng.sourceforge.net/'>optipng</a>", "<a href='http://advsys.net/ken/utils.htm'>pngout</a>", "<a href='http://pngquant.org/'>pngquant</a>", "<a href='http://www.lcdf.org/gifsicle/'>gifsicle</a>", "<a href='https://developers.google.com/speed/webp/'>cwebp</a>", $msg, "<a href='$settings_page'>" . esc_html__( 'Settings Page', 'ewww-image-optimizer' ) . '</a>', "<a href='https://docs.ewww.io/'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
 		ewwwio_memory( __FUNCTION__ );

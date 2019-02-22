@@ -173,6 +173,8 @@ add_action( 'wp_ajax_ewww_manual_restore', 'ewww_image_optimizer_manual' );
 add_action( 'wp_ajax_ewww_manual_cloud_restore', 'ewww_image_optimizer_manual' );
 // AJAX action hook for manually restoring a single image backup from the API.
 add_action( 'wp_ajax_ewww_manual_cloud_restore_single', 'ewww_image_optimizer_cloud_restore_single_image_handler' );
+// AJAX action hook to dismiss the WooCommerce regen notice.
+add_action( 'wp_ajax_ewww_dismiss_wc_regen', 'ewww_image_optimizer_dismiss_wc_regen' );
 // AJAX action hook to disable the media library notice.
 add_action( 'wp_ajax_ewww_dismiss_media_notice', 'ewww_image_optimizer_dismiss_media_notice' );
 // Adds script to highlight mis-sized images on the front-end (for logged in admins only).
@@ -779,6 +781,10 @@ function ewww_image_optimizer_admin_init() {
 			add_action( 'admin_notices', 'ewww_image_optimizer_thumbnail_regen_notice' );
 		}
 	}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_wc_regen' ) ) {
+		add_action( 'admin_notices', 'ewww_image_optimizer_notice_wc_regen' );
+		add_action( 'admin_footer', 'ewww_image_optimizer_wc_regen_script' );
+	}
 	if ( ! empty( $_GET['ewww_pngout'] ) ) {
 		add_action( 'admin_notices', 'ewww_image_optimizer_pngout_installed' );
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_pngout_installed' );
@@ -843,8 +849,7 @@ function ewww_image_optimizer_ajax_compat_check() {
 	if ( ! empty( $_REQUEST['action'] ) ) {
 		if ( 'regeneratethumbnail' == $_REQUEST['action'] ||
 			'meauh_save_image' == $_REQUEST['action'] ||
-			'hotspot_save' == $_REQUEST['action'] ||
-			false !== strpos( $_REQUEST['action'], 'wc_regenerate_images' )
+			'hotspot_save' == $_REQUEST['action']
 		) {
 			ewwwio_debug_message( 'doing regeneratethumbnail' );
 			ewww_image_optimizer_image_sizes( false );
@@ -857,6 +862,13 @@ function ewww_image_optimizer_ajax_compat_check() {
 			}
 			return;
 		}
+	}
+	if ( ! empty( $_REQUEST['action'] ) && false !== strpos( $_REQUEST['action'], 'wc_regenerate_images' ) ) {
+		// Unhook all automatic processing, and save an option that (does not autoload) tells the user WC regenerated their images and they should run the bulk optimizer.
+		remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
+		remove_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15 );
+		update_option( 'ewww_image_optimizer_wc_regen', true, false );
+		return;
 	}
 	// Check for Image Watermark plugin.
 	if ( ! empty( $_POST['iw-action'] ) ) {
@@ -1400,6 +1412,32 @@ function ewww_image_optimizer_network_settings_saved() {
 function ewww_image_optimizer_thumbnail_regen_notice() {
 	echo "<div id='ewww-image-optimizer-thumb-regen-notice' class='notice notice-info is-dismissible'><p><strong>" . esc_html__( 'New thumbnails will be optimized by the EWWW Image Optimizer as they are generated. You may wish to disable the plugin and run a bulk optimize later to speed up the process.', 'ewww-image-optimizer' ) . '</strong>';
 	echo '&nbsp;<a href="https://docs.ewww.io/article/49-regenerate-thumbnails" target="_blank" data-beacon-article="5a0f84ed2c7d3a272c0dc801">' . esc_html__( 'Learn more.', 'ewww-image-optimizer' ) . '</a></p></div>';
+}
+
+/**
+ * Lets the user know WooCommerce has regenerated thumbnails and that they need to take action.
+ */
+function ewww_image_optimizer_notice_wc_regen() {
+	echo "<div id='ewww-image-optimizer-wc-regen' class='notice notice-info is-dismissible'><p>" . esc_html__( 'EWWW Image Optimizer has detected a WooCommerce thumbnail regeneration. To optimize new thumbnails, you may run the Bulk Optimizer from the Media menu. This notice may be dismissed after the regeneration is complete.', 'ewww-image-optimizer' ) . '</p></div>';
+}
+
+/**
+ * Loads the inline script to dismiss the WC regen notice.
+ */
+function ewww_image_optimizer_wc_regen_script() {
+	echo
+		"<script>\n" .
+		"jQuery(document).on('click', '#ewww-image-optimizer-wc-regen .notice-dismiss', function() {\n" .
+		"\tvar ewww_dismiss_wc_regen_data = {\n" .
+		"\t\taction: 'ewww_dismiss_wc_regen',\n" .
+		"\t};\n" .
+		"\tjQuery.post(ajaxurl, ewww_dismiss_wc_regen_data, function(response) {\n" .
+		"\t\tif (response) {\n" .
+		"\t\t\tconsole.log(response);\n" .
+		"\t\t}\n" .
+		"\t});\n" .
+		"});\n" .
+		"</script>\n";
 }
 
 /**
@@ -6852,6 +6890,20 @@ function ewww_image_optimizer_migrate_meta_to_db( $id, $meta, $bail_early = fals
 	}
 	update_post_meta( $id, '_wp_attachment_metadata', $meta );
 	return $meta;
+}
+
+/**
+ * Dismisses the WC regen notice.
+ */
+function ewww_image_optimizer_dismiss_wc_regen() {
+	ewwwio_ob_clean();
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	// Verify that the user is properly authorized.
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ) ) ) {
+		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
+	}
+	delete_option( 'ewww_image_optimizer_wc_regen' );
+	wp_die();
 }
 
 /**
