@@ -56,12 +56,12 @@ function ewww_image_optimizer_aux_images() {
 		'<div class="tablenav-pages ewww-aux-table">' .
 		'<span class="displaying-num ewww-aux-table"></span>' . "\n" .
 		'<span id="paginator" class="pagination-links ewww-aux-table">' . "\n" .
-		'<a id="first-images" class="first-page" style="display:none">&laquo;</a>' . "\n" .
-		'<a id="prev-images" class="prev-page" style="display:none">&lsaquo;</a>' . "\n";
+		'<a id="first-images" class="tablenav-pages-navspan button first-page" style="display:none">&laquo;</a>' . "\n" .
+		'<a id="prev-images" class="tablenav-pages-navspan button prev-page" style="display:none">&lsaquo;</a>' . "\n";
 	$output .= esc_html__( 'page', 'ewww-image-optimizer' ) . ' <span class="current-page"></span> ' . esc_html__( 'of', 'ewww-image-optimizer' ) . "\n";
 	$output .= '<span class="total-pages"></span>' . "\n" .
-		'<a id="next-images" class="next-page" style="display:none">&rsaquo;</a>' . "\n" .
-		'<a id="last-images" class="last-page" style="display:none">&raquo;</a>' .
+		'<a id="next-images" class="tablenav-pages-navspan button next-page" style="display:none">&rsaquo;</a>' . "\n" .
+		'<a id="last-images" class="tablenav-pages-navspan button last-page" style="display:none">&raquo;</a>' .
 		'</span>' .
 		'</div>' .
 		'</div>' .

@@ -183,10 +183,12 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * changed: ExactDN srcset multipliers include fullscreen value of 1920px
 * changed: force resize function to ignore filesize with ewww_image_optimizer_resize_filesize_ignore filter
 * changed: prevent .php script/style generators from going through ExactDN
-* changed: ExactDN sites can dismiss exec notice to disable compression levels
+* changed: ExactDN sites can dismiss exec notice to disable local compression
 * changed: automatic compression disabled during WooCommerce regen with admin notice
 * fixed: ExactDN does not handle themes that support wide and full-screen images in block editor
 * fixed: ExactDN constrains images to 640px in Twenty Nineteen theme
+* fixed: ExactDN mangles Flatsome lazy load placeholder image URL
+* fixed: table nav button styling broken in WP 5.1
 
 = 4.6.3 =
 * changed: folders to ignore setting applies to resizing also

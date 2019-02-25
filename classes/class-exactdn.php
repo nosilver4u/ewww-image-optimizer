@@ -2246,6 +2246,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 		if ( strpos( $image_url, 'revslider/admin/assets/images/dummy.png' ) ) {
 			return array();
 		}
+		if ( strpos( $image_url, '/lazy.png' ) ) {
+			return array();
+		}
 		if ( strpos( $image_url, 'lazy_placeholder.gif' ) ) {
 			return array();
 		}
