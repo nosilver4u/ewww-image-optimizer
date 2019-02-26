@@ -311,6 +311,11 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 		 */
 		protected function _resize( $max_w, $max_h, $crop = false ) {
 			ewwwio_debug_message( '<b>wp_image_editor_gd::' . __FUNCTION__ . '()</b>' );
+			$dims = image_resize_dimensions( $this->size['width'], $this->size['height'], $max_w, $max_h, $crop );
+			if ( ! $dims ) {
+				return new WP_Error( 'error_getting_dimensions', __( 'Could not calculate resized image dimensions' ), $this->file );
+			}
+			list( $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) = $dims;
 			if ( ( ! $max_w || $max_w >= $this->size['width'] ) && ( ! $max_h || $max_h >= $this->size['height'] ) ) {
 				return new WP_Error( 'image_resize_error', __( 'Image resize failed.' ) );
 			}

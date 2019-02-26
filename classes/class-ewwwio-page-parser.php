@@ -163,7 +163,7 @@ class EWWWIO_Page_Parser {
 	function get_background_image_url( $attribute ) {
 		if ( ( false !== strpos( $attribute, 'background:' ) || false !== strpos( $attribute, 'background-image:' ) ) && false !== strpos( $attribute, 'url(' ) ) {
 			if ( preg_match( '#url\(([^)]+)\)#', $attribute, $prop_match ) ) {
-				return $prop_match[1];
+				return trim( $prop_match[1], "'\"\t\n\r " );
 			}
 		}
 		return '';
