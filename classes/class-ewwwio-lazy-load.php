@@ -262,6 +262,10 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			return false;
 		}
 
+		// Ignore 0-size Pinterest schema images.
+		if ( strpos( $image, 'data-pin-description=' ) && strpos( $image, 'width="0" height="0"' ) ) {
+			return false;
+		}
 		// TODO: properly validate and exclude certain cases, check Jetpack, Retina, a3 & BJ for more.
 		$exclusions = apply_filters(
 			'ewww_image_optimizer_lazy_exclusions',

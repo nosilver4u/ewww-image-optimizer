@@ -189,6 +189,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: ExactDN constrains images to 640px in Twenty Nineteen theme
 * fixed: ExactDN mangles Flatsome lazy load placeholder image URL
 * fixed: table nav button styling broken in WP 5.1
+* fixed: ExactDN applies resizing args during image_downsize() even when full/original image is too small
 
 = 4.6.3 =
 * changed: folders to ignore setting applies to resizing also

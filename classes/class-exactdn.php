@@ -747,6 +747,11 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 				ewwwio_debug_message( 'made it passed the filters' );
 
+				// Log 0-size Pinterest schema images.
+				if ( strpos( $tag, 'data-pin-description=' ) && strpos( $tag, 'width="0" height="0"' ) ) {
+					ewwwio_debug_message( 'data-pin/Pinterest image' );
+				}
+
 				// Pre-empt srcset fill if the surrounding link has a background image or if there is a data-desktop attribute indicating a potential slider.
 				if ( strpos( $tag, 'background-image:' ) || strpos( $tag, 'data-desktop=' ) ) {
 					$srcset_fill = false;
@@ -1379,6 +1384,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 					$image_meta   = wp_get_attachment_metadata( $attachment_id );
 					$intermediate = false;
 				} elseif ( ! $image_meta ) {
+					ewwwio_debug_message( 'still do not have meta, getting it now' );
 					// If we still don't have any image meta at this point, it's probably from a custom thumbnail size
 					// for an image that was uploaded before the custom image was added to the theme. Try to determine the size manually.
 					$image_meta = wp_get_attachment_metadata( $attachment_id );
@@ -1391,12 +1397,11 @@ class ExactDN extends EWWWIO_Page_Parser {
 						}
 					}
 				}
-
 				if ( isset( $image_meta['width'], $image_meta['height'] ) ) {
 					$image_args['width']  = $image_meta['width'];
 					$image_args['height'] = $image_meta['height'];
 
-					// TODO: need to be careful with this, it may constrain an image to $content_width when it shouldn't be.
+					// NOTE: it will constrain an image to $content_width which is expected behavior in core, so far as I can see.
 					list( $image_args['width'], $image_args['height'] ) = image_constrain_size_for_editor( $image_args['width'], $image_args['height'], $size, 'display' );
 
 					$has_size_meta = true;
@@ -1416,6 +1421,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 					if ( ! isset( $image_meta['sizes'] ) ) {
 						$size_meta = $image_meta;
 						// Because we don't have the "real" meta, just the height/width for the specific size.
+						ewwwio_debug_message( 'getting attachment meta now' );
 						$image_meta = wp_get_attachment_metadata( $attachment_id );
 					}
 					if ( 'resize' === $transform && $image_meta && isset( $image_meta['width'], $image_meta['height'] ) ) {
@@ -1429,6 +1435,14 @@ class ExactDN extends EWWWIO_Page_Parser {
 					}
 				}
 
+				if (
+					! empty( $image_meta['sizes'] ) && ! empty( $image_meta['width'] ) && ! empty( $image_meta['height'] ) &&
+					$image_args['width'] == $image_meta['width'] &&
+					$image_args['height'] == $image_meta['height']
+				) {
+					ewwwio_debug_message( 'image args match size of original, just use that' );
+					$size = 'full';
+				}
 				if ( empty( $image_meta['sizes'] ) && ! empty( $size_meta ) ) {
 					$image_meta['sizes'][ $size ] = $size_meta;
 				}
