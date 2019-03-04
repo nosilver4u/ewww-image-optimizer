@@ -659,7 +659,14 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	 */
 	function validate_image_url( $image ) {
 		ewwwio_debug_message( "webp validation for $image" );
-		if ( strpos( $image, 'assets/images/dummy.png' ) || strpos( $image, 'base64,R0lGOD' ) || strpos( $image, 'lazy-load/images/1x1' ) || strpos( $image, 'assets/images/transparent.png' ) || strpos( $image, 'assets/images/lazy' ) ) {
+		if (
+			strpos( $image, 'assets/images/dummy.png' ) ||
+			strpos( $image, 'base64,R0lGOD' ) ||
+			strpos( $image, 'lazy-load/images/1x1' ) ||
+			strpos( $image, 'assets/images/transparent.png' ) ||
+			strpos( $image, 'essential-grid/public/assets/images/' ) ||
+			strpos( $image, 'assets/images/lazy' )
+		) {
 			ewwwio_debug_message( 'lazy load placeholder' );
 			return false;
 		}

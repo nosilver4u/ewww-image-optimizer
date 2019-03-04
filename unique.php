@@ -68,7 +68,7 @@ function ewww_image_optimizer_exec_init() {
 		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
 			define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
 		}
-		ewwwio_debug_message( 'wp.com site, disabling tools' );
+		ewwwio_debug_message( 'wp.com/pantheon site, disabling tools' );
 		ewww_image_optimizer_disable_tools();
 		// Check if this is an unsupported OS (not Linux or Mac OSX or FreeBSD or Windows or SunOS).
 	} elseif ( 'Linux' != PHP_OS && 'Darwin' != PHP_OS && 'FreeBSD' != PHP_OS && 'WINNT' != PHP_OS && 'SunOS' != PHP_OS ) {
