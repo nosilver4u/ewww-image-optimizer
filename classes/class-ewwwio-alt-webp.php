@@ -405,6 +405,19 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 						$this->set_attribute( $new_image, 'class', $this->get_attribute( $new_image, 'class' ) . ' ewww_webp_lazy_load', true );
 						$buffer = str_replace( $image, $new_image, $buffer );
 					}
+				} elseif ( ! empty( $file ) && strpos( $image, 'data-lazysrc=' ) && strpos( $image, '/essential-grid' ) ) {
+					// Essential Grid.
+					$new_image = $image;
+					$real_file = $this->get_attribute( $new_image, 'data-lazysrc' );
+					ewwwio_debug_message( "checking webp for EG Lazy Load data-lazysrc: $real_file" );
+					if ( $this->validate_image_url( $real_file ) ) {
+						ewwwio_debug_message( "found webp for Lazy Load: $real_file" );
+						$this->set_attribute( $new_image, 'data-lazysrc-webp', $this->generate_url( $real_file ) );
+					}
+					if ( $new_image !== $image ) {
+						$this->set_attribute( $new_image, 'class', $this->get_attribute( $new_image, 'class' ) . ' ewww_webp_lazy_load', true );
+						$buffer = str_replace( $image, $new_image, $buffer );
+					}
 				}
 				// Rev Slider data-lazyload attribute on image elements.
 				if ( $this->get_attribute( $image, 'data-lazyload' ) ) {
@@ -660,12 +673,9 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	function validate_image_url( $image ) {
 		ewwwio_debug_message( "webp validation for $image" );
 		if (
-			strpos( $image, 'assets/images/dummy.png' ) ||
 			strpos( $image, 'base64,R0lGOD' ) ||
 			strpos( $image, 'lazy-load/images/1x1' ) ||
-			strpos( $image, 'assets/images/transparent.png' ) ||
-			strpos( $image, 'essential-grid/public/assets/images/' ) ||
-			strpos( $image, 'assets/images/lazy' )
+			strpos( $image, '/assets/images/' )
 		) {
 			ewwwio_debug_message( 'lazy load placeholder' );
 			return false;

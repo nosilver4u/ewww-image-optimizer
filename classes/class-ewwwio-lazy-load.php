@@ -257,7 +257,11 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	 * @return bool True if the tag is allowed, false otherwise.
 	 */
 	function validate_image_tag( $image ) {
-		if ( strpos( $image, 'assets/images/dummy.png' ) || strpos( $image, 'base64,R0lGOD' ) || strpos( $image, 'lazy-load/images/1x1' ) || strpos( $image, 'assets/images/transparent.png' ) || strpos( $image, 'assets/images/lazy' ) ) {
+		if (
+			strpos( $image, 'base64,R0lGOD' ) ||
+			strpos( $image, 'lazy-load/images/1x1' ) ||
+			strpos( $image, '/assets/images/' )
+		) {
 			ewwwio_debug_message( 'lazy load placeholder detected' );
 			return false;
 		}
