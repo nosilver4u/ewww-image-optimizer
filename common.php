@@ -767,6 +767,18 @@ function ewww_image_optimizer_admin_init() {
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_invalid_key' );
 		add_action( 'admin_notices', 'ewww_image_optimizer_notice_invalid_key' );
 	}
+	// Prevent SP AI messiness.
+	remove_action( 'admin_notices', 'autoptimizeMain::notice_plug_imgopt' );
+	if ( class_exists( 'autoptimizeExtra' ) ) {
+		$ao_extra = get_option( 'autoptimize_extra_settings' );
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && ! empty( $ao_extra['autoptimize_extra_checkbox_field_5'] ) ) {
+			ewwwio_debug_message( 'detected ExactDN + SP conflict' );
+			$ao_extra['autoptimize_extra_checkbox_field_5'] = 0;
+			update_option( 'autoptimize_extra_settings', $ao_extra );
+			add_action( 'admin_notices', 'ewww_image_optimizer_notice_exactdn_sp_conflict' );
+		}
+	}
+
 	// Alert user if multiple re-optimizations detected.
 	add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
 	add_action( 'admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
@@ -876,7 +888,6 @@ function ewww_image_optimizer_ajax_compat_check() {
 		ewwwio_debug_message( "doing $action" );
 		global $ewww_preempt_editor;
 		$ewww_preempt_editor = true;
-		/* remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 ); */
 		if ( 'applywatermark' === $action ) {
 			remove_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15 );
 			add_action( 'iw_after_apply_watermark', 'ewww_image_optimizer_single_size_optimize', 10, 2 );
@@ -1392,11 +1403,19 @@ function ewww_image_optimizer_pngout_installed() {
 			"</div>\n";
 	}
 }
+
 /**
  * Display a notice that PHP version 5.5 support is going away.
  */
 function ewww_image_optimizer_php55_warning() {
 	echo '<div id="ewww-image-optimizer-notice-php55" class="notice notice-info"><p><a href="https://docs.ewww.io/article/55-upgrading-php" target="_blank" data-beacon-article="5ab2baa6042863478ea7c2ae">' . esc_html__( 'The next major release of EWWW Image Optimizer will require PHP 5.6 or greater. Newer versions of PHP, like 7.1 and 7.2, are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</a></p></div>';
+}
+
+/**
+ * Inform the user that we disabled SP AIO to prevent conflicts with ExactDN.
+ */
+function ewww_image_optimizer_notice_exactdn_sp_conflict() {
+	echo "<div id='ewww-image-optimizer-exactdn-sp' class='notice notice-warning'><p>" . esc_html__( 'ShortPixel image optimization has been disabled to prevent conflicts with ExactDN (EWWW Image Optimizer).', 'ewww-image-optimizer' ) . '</p></div>';
 }
 
 /**
@@ -1544,7 +1563,6 @@ function ewww_image_optimizer_add_attachment() {
  */
 function ewww_image_optimizer_image_sizes( $sizes ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	/* remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 ); */
 	global $ewww_preempt_editor;
 	$ewww_preempt_editor = true;
 	// This happens right after thumbs and meta are generated.
@@ -1596,7 +1614,6 @@ function ewww_image_optimizer_editor_save_pre( $image ) {
 	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_editor' ) ) {
 		global $ewww_preempt_editor;
 		$ewww_preempt_editor = true;
-		/* remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 ); */
 		add_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_restore_editor_hooks', 1 );
 		add_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
 	}
@@ -1675,7 +1692,6 @@ function ewww_image_optimizer_retina_wrapper( $meta ) {
 	}
 	global $ewww_preempt_editor;
 	$ewww_preempt_editor = true;
-	/* remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 ); */
 	if ( class_exists( 'Meow_WR2X_Core' ) ) {
 		global $wr2x_core;
 		if ( is_object( $wr2x_core ) ) {
@@ -1685,7 +1701,6 @@ function ewww_image_optimizer_retina_wrapper( $meta ) {
 		$meta = wr2x_wp_generate_attachment_metadata( $meta );
 	}
 	$ewww_preempt_editor = false;
-	/* add_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 ); */
 	return $meta;
 }
 
@@ -4852,7 +4867,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
 	// From here...
 	global $ewww_preempt_editor;
 	$ewww_preempt_editor = true;
-	/* remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 ); */
+
 	$editor = wp_get_image_editor( $file );
 	if ( is_wp_error( $editor ) ) {
 		ewwwio_debug_message( 'could not get image editor' );
@@ -5237,7 +5252,6 @@ function ewww_image_optimizer_rebuild_meta( $attachment_id ) {
 	if ( is_file( $file ) ) {
 		global $ewww_preempt_editor;
 		$ewww_preempt_editor = true;
-		/* remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 ); */
 		remove_all_filters( 'wp_generate_attachment_metadata' );
 		ewwwio_debug_message( "generating new meta for $attachment_id" );
 		$meta = wp_generate_attachment_metadata( $attachment_id, $file );
