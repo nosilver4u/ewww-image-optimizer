@@ -4219,6 +4219,63 @@ function ewww_image_optimizer_hidpi_optimize( $orig_path, $return_path = false, 
 }
 
 /**
+ * Cleanup temp file for optimizing S3 Uploads image.
+ *
+ * @param string $file The filename of the temp file.
+ * @return string The name of the file unaltered, or the s3 filename stored in $s3_uploads_image.
+ */
+function ewww_image_optimizer_s3_uploads_image_cleanup( $file ) {
+	global $s3_uploads_image;
+	if ( ! ewww_image_optimizer_stream_wrapped( $file ) && strpos( $file, 's3-uploads' ) === false && ! empty( $s3_uploads_image ) ) {
+		if ( is_file( $file ) ) {
+			unlink( $file );
+		}
+		$file = $s3_uploads_image;
+		unset( $s3_uploads_image );
+	}
+	return $file;
+}
+
+/**
+ * Checks the existence of a cloud storage stream wrapper.
+ *
+ * @return bool True if a supported stream wrapper is found, false otherwise.
+ */
+function ewww_image_optimizer_stream_wrapper_exists() {
+	$wrappers = stream_get_wrappers();
+	if ( ! ewww_image_optimizer_iterable( $wrappers ) ) {
+		return false;
+	}
+	foreach ( $wrappers as $wrapper ) {
+		if ( strpos( $wrapper, 's3' ) === 0 ) {
+			return true;
+		}
+		if ( strpos( $wrapper, 'gs' ) === 0 ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Checks the filename for an S3 or GCS stream wrapper.
+ *
+ * @param string $filename The filename to be searched.
+ * @return bool True if a stream wrapper is found, false otherwise.
+ */
+function ewww_image_optimizer_stream_wrapped( $filename ) {
+	if ( false !== strpos( $filename, '://' ) ) {
+		if ( strpos( $filename, 's3' ) === 0 ) {
+			return true;
+		}
+		if ( strpos( $filename, 'gs' ) === 0 ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
  * Fetches images from S3 or Azure storage so that they can be optimized locally.
  *
  * @global object $as3cf
@@ -4235,7 +4292,7 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 	if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
 		global $as3cf;
 		$full_url = get_attached_file( $id );
-		if ( strpos( $full_url, 's3' ) === 0 ) {
+		if ( ewww_image_optimizer_stream_wrapped( $full_url ) ) {
 			$full_url = $as3cf->get_attachment_url( $id, null, null, $meta );
 		}
 		$filename = get_attached_file( $id, true );
@@ -5264,11 +5321,11 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 	if ( 'ims_image' == get_post_type( $id ) ) {
 		$gallery_type = 6;
 	}
-	if ( ! $new_image && class_exists( 'Amazon_S3_And_CloudFront' ) && strpos( $file_path, 's3' ) === 0 ) {
+	if ( ! $new_image && class_exists( 'Amazon_S3_And_CloudFront' ) && ewww_image_optimizer_stream_wrapped( $file_path ) ) {
 		ewww_image_optimizer_check_table_as3cf( $meta, $id, $file_path );
 	}
 	// If the local file is missing and we have valid metadata, see if we can fetch via CDN.
-	if ( ! is_file( $file_path ) || ( strpos( $file_path, 's3' ) === 0 && ! class_exists( 'S3_Uploads' ) ) ) {
+	if ( ! is_file( $file_path ) || ( ewww_image_optimizer_stream_wrapped( $file_path ) && ! class_exists( 'S3_Uploads' ) ) ) {
 		$file_path = ewww_image_optimizer_remote_fetch( $id, $meta );
 		if ( ! $file_path ) {
 			ewwwio_debug_message( 'could not retrieve path' );
@@ -5921,11 +5978,23 @@ function ewww_image_optimizer_attachment_path( $meta, $id, $file = '', $refresh_
 	$file_path          = ( 0 !== strpos( $file, '/' ) && ! preg_match( '|^.:\\\|', $file ) ? $upload_path . $file : $file );
 	$filtered_file_path = apply_filters( 'get_attached_file', $file_path, $id );
 	ewwwio_debug_message( "WP (filtered) thinks the file is at: $filtered_file_path" );
-	if ( ( strpos( $filtered_file_path, 's3' ) === false || in_array( 's3', stream_get_wrappers() ) ) && is_file( $filtered_file_path ) ) {
+	if (
+		(
+			! ewww_image_optimizer_stream_wrapped( $filtered_file_path ) ||
+			ewww_image_optimizer_stream_wrapper_exists()
+		)
+		&& is_file( $filtered_file_path )
+	) {
 		return array( str_replace( '//_imsgalleries/', '/_imsgalleries/', $filtered_file_path ), $upload_path );
 	}
 	ewwwio_debug_message( "WP (unfiltered) thinks the file is at: $file_path" );
-	if ( ( strpos( $file_path, 's3' ) === false || in_array( 's3', stream_get_wrappers() ) ) && is_file( $file_path ) ) {
+	if (
+		(
+			! ewww_image_optimizer_stream_wrapped( $file_path ) ||
+			ewww_image_optimizer_stream_wrapper_exists()
+		)
+		&& is_file( $file_path )
+	) {
 		return array( str_replace( '//_imsgalleries/', '/_imsgalleries/', $file_path ), $upload_path );
 	}
 	if ( 'ims_image' == get_post_type( $id ) && is_array( $meta ) && ! empty( $meta['file'] ) ) {
@@ -5951,7 +6020,7 @@ function ewww_image_optimizer_attachment_path( $meta, $id, $file = '', $refresh_
 	}
 	if ( is_array( $meta ) && ! empty( $meta['file'] ) ) {
 		$file_path = $meta['file'];
-		if ( strpos( $file_path, 's3' ) === 0 && ! in_array( 's3', stream_get_wrappers() ) ) {
+		if ( ewww_image_optimizer_stream_wrapped( $file_path ) && ! ewww_image_optimizer_stream_wrapper_exists() ) {
 			return array( '', $upload_path );
 		}
 		ewwwio_debug_message( "looking for file at $file_path" );
@@ -6132,7 +6201,7 @@ function ewww_image_optimizer_quick_mimetype( $path ) {
 		case 'pdf':
 			return 'application/pdf';
 		default:
-			if ( empty( $pathextension ) && 0 !== strpos( $path, 's3' ) && is_file( $path ) ) {
+			if ( empty( $pathextension ) && ! ewww_image_optimizer_stream_wrapped( $path ) && is_file( $path ) ) {
 				return ewww_image_optimizer_mimetype( $path, 'i' );
 			}
 			return false;
@@ -6298,11 +6367,11 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			$output  .= '<div>' . esc_html__( 'Azure Storage image', 'ewww-image-optimizer' ) . '</div>';
 			$ewww_cdn = true;
 		}
-		if ( is_array( $meta ) && class_exists( 'Amazon_S3_And_CloudFront' ) && preg_match( '/^(http|s3)\w*:/', get_attached_file( $id ) ) ) {
-			$output  .= '<div>' . esc_html__( 'Amazon S3 image', 'ewww-image-optimizer' ) . '</div>';
+		if ( is_array( $meta ) && class_exists( 'Amazon_S3_And_CloudFront' ) && preg_match( '/^(http|s3|gs)\w*:/', get_attached_file( $id ) ) ) {
+			$output  .= '<div>' . esc_html__( 'Offloaded Media', 'ewww-image-optimizer' ) . '</div>';
 			$ewww_cdn = true;
 		}
-		if ( is_array( $meta ) && class_exists( 'S3_Uploads' ) && preg_match( '/^(http|s3)\w*:/', get_attached_file( $id ) ) ) {
+		if ( is_array( $meta ) && class_exists( 'S3_Uploads' ) && preg_match( '/^(http|s3|gs)\w*:/', get_attached_file( $id ) ) ) {
 			$output  .= '<div>' . esc_html__( 'Amazon S3 image', 'ewww-image-optimizer' ) . '</div>';
 			$ewww_cdn = true;
 		}
@@ -7433,6 +7502,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewwwio_debug_message( 'content_url: ' . content_url() );
 	global $content_width;
 	ewwwio_debug_message( "content_width: $content_width" );
+	ewwwio_debug_message( 'registered stream wrappers: ' . implode( ',', stream_get_wrappers() ) );
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
 		if ( defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) && EWWW_IMAGE_OPTIMIZER_CLOUD ) {
 			ewww_image_optimizer_disable_tools();

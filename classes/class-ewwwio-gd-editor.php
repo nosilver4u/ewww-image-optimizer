@@ -357,7 +357,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				ewwwio_debug_message( 'GIF already altered, leave it alone' );
 				return parent::_resize( $max_w, $max_h, $crop );
 			}
-			if ( ! $this->file || 0 === strpos( $this->file, 's3' ) || 0 === strpos( $this->file, 'http' ) || 0 === strpos( $this->file, 'ftp' ) || ! is_file( $this->file ) ) {
+			if ( ! $this->file || ewww_image_optimizer_stream_wrapped( $this->file ) || 0 === strpos( $this->file, 'http' ) || 0 === strpos( $this->file, 'ftp' ) || ! is_file( $this->file ) ) {
 				ewwwio_debug_message( 'could not load original file, or remote path detected' );
 				return parent::_resize( $max_w, $max_h, $crop );
 			}

@@ -178,6 +178,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: lazy load (on ExactDN tab for now)
 * added: JS WebP supports background images via lazy load (div elements only for now)
 * added: ExactDN supports compression of background images (div elements only for now)
+* added: compat with Google Cloud Storage via WP Offload Media
 * changed: responsive image 'sizes' attribute can be auto-calculated by lazy load
 * changed: JS WebP no longer requires jQuery
 * changed: ExactDN srcset multipliers include fullscreen value of 1920px

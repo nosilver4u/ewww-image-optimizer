@@ -414,6 +414,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 						ewwwio_debug_message( "found webp for Lazy Load: $real_file" );
 						$this->set_attribute( $new_image, 'data-lazysrc-webp', $this->generate_url( $real_file ) );
 					}
+					// TODO: should we be using the class, or will that be moot point?
 					if ( $new_image !== $image ) {
 						$this->set_attribute( $new_image, 'class', $this->get_attribute( $new_image, 'class' ) . ' ewww_webp_lazy_load', true );
 						$buffer = str_replace( $image, $new_image, $buffer );

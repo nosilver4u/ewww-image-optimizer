@@ -531,7 +531,6 @@ function ewwwLoadImages(ewww_webp_supported) {
 				ewwwAttr(lazies[i], 'data-lazy-srcset', lazies[i].getAttribute('data-lazy-srcset-webp'));
 				ewwwAttr(lazies[i], 'data-srcset', lazies[i].getAttribute('data-srcset-webp'));
 				ewwwAttr(lazies[i], 'data-lazy-src', lazies[i].getAttribute('data-lazy-src-webp'));
-				ewwwAttr(lazies[i], 'data-lazysrc', lazies[i].getAttribute('data-lazysrc-webp'));
 				ewwwAttr(lazies[i], 'data-src', lazies[i].getAttribute('data-src-webp'));
                                 ewwwAttr(lazies[i], 'data-orig-file', lazies[i].getAttribute('data-webp-orig-file'));
                                 ewwwAttr(lazies[i], 'data-medium-file', lazies[i].getAttribute('data-webp-medium-file'));
