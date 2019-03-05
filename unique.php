@@ -1545,13 +1545,18 @@ function ewww_image_optimizer_find_nix_binary( $binary, $switch ) {
 /**
  * Resizes an image with gifsicle to preserve animations.
  *
- * @param string   $file The file to resize.
- * @param int|null $max_w Desired image width.
- * @param int|null $max_h Desired image height.
- * @param bool     $crop Optional. Scale by default, crop if true.
+ * @param string $file The file to resize.
+ * @param int    $dst_x X-coordinate of destination image (usually 0).
+ * @param int    $dst_y Y-coordinate of destination image (usually 0).
+ * @param int    $src_x X-coordinate of source image (usually 0 unless cropping).
+ * @param int    $src_y Y-coordinate of source image (usually 0 unless cropping).
+ * @param int    $dst_w Desired image width.
+ * @param int    $dst_h Desired image height.
+ * @param int    $src_w Source width.
+ * @param int    $src_h Source height.
  * @return string|WP_Error The image contents or the error message.
  */
-function ewww_image_optimizer_gifsicle_resize( $file, $max_w, $max_h, $crop = false ) {
+function ewww_image_optimizer_gifsicle_resize( $file, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$tools = ewww_image_optimizer_path_check(
 		false,
@@ -1569,37 +1574,22 @@ function ewww_image_optimizer_gifsicle_resize( $file, $max_w, $max_h, $crop = fa
 		);
 	}
 	ewwwio_debug_message( "file: $file " );
-	ewwwio_debug_message( "width: $max_w" );
-	ewwwio_debug_message( "height: $max_h" );
-	$orig_dimensions = getimagesize( $file );
-	if ( empty( $orig_dimensions ) ) {
-		return new WP_Error( 'image_resize_error', __( 'Invalid image dimensions.', 'ewww-image-optimizer' ) );
-	}
-	$orig_w = $orig_dimensions[0];
-	$orig_h = $orig_dimensions[1];
+	ewwwio_debug_message( "width: $dst_w" );
+	ewwwio_debug_message( "height: $dst_h" );
+
+	list( $orig_w, $orig_h ) = getimagesize( $file );
 
 	$outfile = "$file.tmp";
 	// Run gifsicle.
-	if ( $crop ) {
-		$dims = ewwwio_crop_dimensions( $orig_w, $orig_h, $max_w, $max_h );
-		if ( ! $dims ) {
-			return new WP_Error( 'error_getting_dimensions', __( 'Could not calculate resized image dimensions' ), $file );
-		}
-		ewwwio_debug_message( implode( ',', $dims ) );
-		list( $src_x, $src_y, $dst_w, $dst_h ) = $dims;
-
-		list( $new_w, $new_h ) = wp_constrain_dimensions( $dst_w, $dst_h, $max_w, $max_h );
-
-		$dim_string  = $new_w . 'x' . $new_h;
-		$crop_string = $src_x . ',' . $src_y . '+' . $dst_w . 'x' . $dst_h;
+	if ( $orig_w != $src_w || $orig_h != $src_h ) {
+		$dim_string  = $dst_w . 'x' . $dst_h;
+		$crop_string = $src_x . ',' . $src_y . '+' . $src_w . 'x' . $src_h;
 		ewwwio_debug_message( "resize to $dim_string" );
 		ewwwio_debug_message( "crop to $crop_string" );
 		exec( "{$tools['GIFSICLE']} --crop $crop_string  -o " . ewww_image_optimizer_escapeshellarg( $outfile ) . ' ' . ewww_image_optimizer_escapeshellarg( $file ) );
 		exec( "{$tools['GIFSICLE']} --resize-fit $dim_string  -b " . ewww_image_optimizer_escapeshellarg( $outfile ) );
 	} else {
-		list( $new_w, $new_h ) = wp_constrain_dimensions( $orig_w, $orig_h, $max_w, $max_h );
-
-		$dim_string = $new_w . 'x' . $new_h;
+		$dim_string = $dst_w . 'x' . $dst_h;
 		exec( "{$tools['GIFSICLE']} --resize-fit $dim_string  -o " . ewww_image_optimizer_escapeshellarg( $outfile ) . ' ' . ewww_image_optimizer_escapeshellarg( $file ) );
 	}
 	ewwwio_debug_message( "$file resized to $outfile" );

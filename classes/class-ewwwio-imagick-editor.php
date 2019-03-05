@@ -378,9 +378,7 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 			}
 			list( $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) = $dims;
 
-			$crop = $crop ? $dims : false;
-
-			$resized = $this->_resize( $dst_w, $dst_h, $crop );
+			$resized = $this->_resize( $dims, $crop );
 
 			if ( is_string( $resized ) ) {
 				$this->ewww_image = $resized;
@@ -398,39 +396,44 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 		 *
 		 * @since 4.6.0
 		 *
-		 * @param int|null $max_w Image width.
-		 * @param int|null $max_h Image height.
-		 * @param array    $crop Optional. Scale by default, crop if true. Will contain all
-		 *                       parameters necessary for crop method.
+		 * @param array $dims {
+		 *     All parameters necessary for resizing.
+		 *
+		 *     @type int $dst_x X-coordinate of destination image (usually 0).
+		 *     @type int $dst_y Y-coordinate of destination image (usually 0).
+		 *     @type int $src_x X-coordinate of source image (usually 0 unless cropping).
+		 *     @type int $src_y Y-coordinate of source image (usually 0 unless cropping).
+		 *     @type int $dst_w Desired image width.
+		 *     @type int $dst_h Desired image height.
+		 *     @type int $src_w Source width.
+		 *     @type int $src_h Source height.
+		 * }
+		 * @param bool  $crop Should we crop or should we scale.
 		 * @return bool|WP_Error
 		 */
-		protected function _resize( $max_w, $max_h, $crop = false ) {
+		protected function _resize( $dims, $crop ) {
 			ewwwio_debug_message( '<b>wp_image_editor_gd::' . __FUNCTION__ . '()</b>' );
-			if ( ( ! $max_w || $max_w >= $this->size['width'] ) && ( ! $max_h || $max_h >= $this->size['height'] ) ) {
-				return new WP_Error( 'image_resize_error', __( 'Image resize failed.' ) );
-			}
+			list( $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) = $dims;
 			if ( defined( 'EWWWIO_EDITOR_AGR' ) && ! EWWWIO_EDITOR_AGR ) {
 				ewwwio_debug_message( 'AGR disabled' );
 				if ( $crop ) {
-					list( $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) = $crop;
 					return $this->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h );
 				}
-				return $this->thumbnail_image( $max_w, $max_h );
+				return $this->thumbnail_image( $dst_w, $dst_h );
 			}
 			if ( defined( 'EWWWIO_EDITOR_BETTER_RESIZE' ) && ! EWWW_IO_EDITOR_BETTER_RESIZE ) {
 				ewwwio_debug_message( 'API resize disabled' );
 				if ( $crop ) {
-					list( $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) = $crop;
 					return $this->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h );
 				}
-				return $this->thumbnail_image( $max_w, $max_h );
+				return $this->thumbnail_image( $dst_w, $dst_h );
 			}
 			$return_parent = false; // An indicator for whether we should short-circuit and use the parent thumbnail_image method.
 			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) ) {
 				ewww_image_optimizer_cloud_init();
 			}
 			$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
-			if ( 'image/gif' === $this->mime_type && function_exists( 'ewww_image_optimizer_path_check' ) ) {
+			if ( 'image/gif' === $this->mime_type && function_exists( 'ewww_image_optimizer_path_check' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 				ewww_image_optimizer_path_check( false, false, true, false, false, false );
 			}
 			if ( 'image/gif' === $this->mime_type && ( ! defined( 'EWWW_IMAGE_OPTIMIZER_GIFSICLE' ) || ! EWWW_IMAGE_OPTIMIZER_GIFSICLE ) ) {
@@ -462,12 +465,11 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 			}
 			if ( $return_parent ) {
 				if ( $crop ) {
-					list( $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) = $crop;
 					return $this->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h );
 				}
-				return $this->thumbnail_image( $max_w, $max_h );
+				return $this->thumbnail_image( $dst_w, $dst_h );
 			}
-			$resize_result = ewww_image_optimizer_better_resize( $this->file, $max_w, $max_h, $crop );
+			$resize_result = ewww_image_optimizer_better_resize( $this->file, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h );
 			if ( is_wp_error( $resize_result ) ) {
 				return $resize_result;
 			}

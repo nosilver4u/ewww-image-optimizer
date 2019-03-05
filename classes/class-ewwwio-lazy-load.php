@@ -289,6 +289,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 				'data-srcset=',
 				'class="ls-l',
 				'class="ls-bg',
+				'class="rev-slidebg',
 				'ewww_webp_lazy_load',
 				'wpcf7_captcha/',
 				'timthumb.php?',

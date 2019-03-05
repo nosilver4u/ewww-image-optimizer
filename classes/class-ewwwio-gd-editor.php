@@ -316,9 +316,8 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				return new WP_Error( 'error_getting_dimensions', __( 'Could not calculate resized image dimensions' ), $this->file );
 			}
 			list( $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) = $dims;
-			if ( ( ! $max_w || $max_w >= $this->size['width'] ) && ( ! $max_h || $max_h >= $this->size['height'] ) ) {
-				return new WP_Error( 'image_resize_error', __( 'Image resize failed.' ) );
-			}
+			ewwwio_debug_message( "dst_x $dst_x, dst_y $dst_y, src_x $src_x, src_y $src_y, dst_w $dst_w, dst_h $dst_h, src_w $src_w, src_h $src_h" );
+
 			if ( defined( 'EWWWIO_EDITOR_AGR' ) && ! EWWWIO_EDITOR_AGR ) {
 				ewwwio_debug_message( 'AGR disabled' );
 				return parent::_resize( $max_w, $max_h, $crop );
@@ -331,7 +330,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				ewww_image_optimizer_cloud_init();
 			}
 			$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
-			if ( 'image/gif' === $this->mime_type && function_exists( 'ewww_image_optimizer_path_check' ) ) {
+			if ( 'image/gif' === $this->mime_type && function_exists( 'ewww_image_optimizer_path_check' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 				ewww_image_optimizer_path_check( false, false, true, false, false, false );
 			}
 			if ( 'image/gif' === $this->mime_type && ( ! defined( 'EWWW_IMAGE_OPTIMIZER_GIFSICLE' ) || ! EWWW_IMAGE_OPTIMIZER_GIFSICLE ) ) {
@@ -361,7 +360,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				ewwwio_debug_message( 'could not load original file, or remote path detected' );
 				return parent::_resize( $max_w, $max_h, $crop );
 			}
-			$resize_result = ewww_image_optimizer_better_resize( $this->file, $max_w, $max_h, $crop );
+			$resize_result = ewww_image_optimizer_better_resize( $this->file, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h );
 			if ( is_wp_error( $resize_result ) ) {
 				return $resize_result;
 			}

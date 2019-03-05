@@ -3612,14 +3612,19 @@ function ewww_image_optimizer_cloud_autorotate( $file, $type ) {
  *
  * @since 4.4.0
  *
- * @param string   $file The file to resize.
- * @param string   $type File type of the file.
- * @param int|null $max_w Desired image width.
- * @param int|null $max_h Desired image height.
- * @param bool     $crop Optional. Scale by default, crop if true.
+ * @param string $file The file to resize.
+ * @param string $type File type of the file.
+ * @param int    $dst_x X-coordinate of destination image (usually 0).
+ * @param int    $dst_y Y-coordinate of destination image (usually 0).
+ * @param int    $src_x X-coordinate of source image (usually 0 unless cropping).
+ * @param int    $src_y Y-coordinate of source image (usually 0 unless cropping).
+ * @param int    $dst_w Desired image width.
+ * @param int    $dst_h Desired image height.
+ * @param int    $src_w Source width.
+ * @param int    $src_h Source height.
  * @return string|WP_Error The image contents or the error message.
  */
-function ewww_image_optimizer_cloud_resize( $file, $type, $max_w, $max_h, $crop = false ) {
+function ewww_image_optimizer_cloud_resize( $file, $type, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( ! ewwwio_check_memory_available( filesize( $file ) * 2.2 ) ) { // 2.2 = upload buffer + download buffer (2) multiplied by a factor of 1.1 for extra wiggle room.
 		$memory_required = filesize( $file ) * 2.2;
@@ -3647,8 +3652,8 @@ function ewww_image_optimizer_cloud_resize( $file, $type, $max_w, $max_h, $crop 
 		return new WP_Error( 'invalid_key', __( 'License Exceeded', 'ewww-image-optimizer' ) );
 	}
 	ewwwio_debug_message( "file: $file " );
-	ewwwio_debug_message( "width: $max_w" );
-	ewwwio_debug_message( "height: $max_h" );
+	ewwwio_debug_message( "width: $dst_w" );
+	ewwwio_debug_message( "height: $dst_h" );
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
 	if ( empty( $api_key ) ) {
 		return new WP_Error( 'invalid_key', __( 'Could not verify API key', 'ewww-image-optimizer' ) );
@@ -3670,9 +3675,14 @@ function ewww_image_optimizer_cloud_resize( $file, $type, $max_w, $max_h, $crop 
 	$post_fields = array(
 		'filename' => $file,
 		'api_key'  => $api_key,
-		'width'    => (int) $max_w,
-		'height'   => (int) $max_h,
-		'crop'     => (int) $crop,
+		'dst_x'    => (int) $dst_x,
+		'dst_y'    => (int) $dst_y,
+		'src_x'    => (int) $src_x,
+		'src_y'    => (int) $src_y,
+		'dst_w'    => (int) $dst_w,
+		'dst_h'    => (int) $dst_h,
+		'src_w'    => (int) $src_w,
+		'src_h'    => (int) $src_h,
 	);
 
 	$payload = '';
@@ -4600,16 +4610,21 @@ function ewwwio_crop_dimensions( $current_width, $current_height, $max_width = 0
  *
  * @since 4.4.0
  *
- * @param string   $file The file to resize.
- * @param int|null $max_w Desired image width.
- * @param int|null $max_h Desired image height.
- * @param bool     $crop Optional. Scale by default, crop if true.
+ * @param string $file The file to resize.
+ * @param int    $dst_x X-coordinate of destination image (usually 0).
+ * @param int    $dst_y Y-coordinate of destination image (usually 0).
+ * @param int    $src_x X-coordinate of source image (usually 0 unless cropping).
+ * @param int    $src_y Y-coordinate of source image (usually 0 unless cropping).
+ * @param int    $dst_w Desired image width.
+ * @param int    $dst_h Desired image height.
+ * @param int    $src_w Source width.
+ * @param int    $src_h Source height.
  * @return string|WP_Error The image contents or the error message.
  */
-function ewww_image_optimizer_better_resize( $file, $max_w, $max_h, $crop = false ) {
+function ewww_image_optimizer_better_resize( $file, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	ewwwio_debug_message( "resizing to $max_w and $max_h" );
-	if ( $crop ) {
+	ewwwio_debug_message( "resizing to $dst_w and $dst_h" );
+	if ( $dst_x || $dst_y ) {
 		ewwwio_debug_message( 'cropping too' );
 		$crop = true;
 	}
@@ -4619,9 +4634,9 @@ function ewww_image_optimizer_better_resize( $file, $max_w, $max_h, $crop = fals
 		return new WP_Error( 'invalid_image', __( 'File is not an image.' ), $file );
 	}
 	if ( 'image/gif' == $type && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && function_exists( 'ewww_image_optimizer_gifsicle_resize' ) ) {
-		return ewww_image_optimizer_gifsicle_resize( $file, $max_w, $max_h, $crop );
+		return ewww_image_optimizer_gifsicle_resize( $file, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h );
 	}
-	return ewww_image_optimizer_cloud_resize( $file, $type, $max_w, $max_h, $crop );
+	return ewww_image_optimizer_cloud_resize( $file, $type, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h );
 }
 
 /**
