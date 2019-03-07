@@ -42,7 +42,8 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			return 'you are doing it wrong';
 		}
 		// Start an output buffer before any output starts.
-		add_action( 'template_redirect', array( $this, 'buffer_start' ), 1 );
+		/* add_action( 'template_redirect', array( $this, 'buffer_start' ), 1 ); */
+		add_filter( 'ewww_image_optimizer_filter_page_output', array( $this, 'filter_page_output' ), 15 );
 
 		if ( class_exists( 'ExactDN' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 			global $exactdn;
@@ -288,6 +289,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	 * @return bool True if the tag is allowed, false otherwise.
 	 */
 	function validate_image_tag( $image ) {
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if (
 			strpos( $image, 'base64,R0lGOD' ) ||
 			strpos( $image, 'lazy-load/images/1x1' ) ||
@@ -351,6 +353,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	 * Load full lazysizes script when SCRIPT_DEBUG is enabled.
 	 */
 	function debug_script() {
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		wp_enqueue_script( 'ewww-lazy-load-pre', plugins_url( '/includes/lazysizes-pre.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 		wp_enqueue_script( 'ewww-lazy-load', plugins_url( '/includes/lazysizes.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 		wp_enqueue_script( 'ewww-lazy-load-post', plugins_url( '/includes/lazysizes-post.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
@@ -368,6 +371,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	 * Load minified lazysizes script.
 	 */
 	function min_script() {
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		wp_enqueue_script( 'ewww-lazy-load', plugins_url( '/includes/lazysizes.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 		wp_localize_script(
 			'ewww-lazy-load',

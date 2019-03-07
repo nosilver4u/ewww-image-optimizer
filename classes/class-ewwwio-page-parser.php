@@ -27,7 +27,7 @@ class EWWWIO_Page_Parser {
 	 *         and img_url keys are arrays of those matches.
 	 */
 	function get_images_from_html( $content, $hyperlinks = true, $src_required = true ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$images = array();
 
 		if ( $hyperlinks ) {
@@ -58,7 +58,7 @@ class EWWWIO_Page_Parser {
 	 *         and img_url keys are arrays of those matches.
 	 */
 	function get_noscript_images_from_html( $content ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$images = array();
 
 		if ( preg_match_all( '#(?P<noscript_tag><noscript[^>]*?>\s*)(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'].*?>){1}(?:\s*</noscript>)?#is', $content, $images ) ) {
@@ -80,7 +80,7 @@ class EWWWIO_Page_Parser {
 	 * @return array An array of $pictures matches, containing full elements with ending tags.
 	 */
 	function get_picture_tags_from_html( $content ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$pictures = array();
 		if ( preg_match_all( '#(?:<picture[^>]*?>\s*)(?:<source[^>]*?>)+(?:.*?</picture>)?#is', $content, $pictures ) ) {
 			return $pictures[0];
@@ -96,7 +96,7 @@ class EWWWIO_Page_Parser {
 	 * @return array An array of $elements.
 	 */
 	function get_elements_from_html( $content, $tag_name ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( ! ctype_alpha( $tag_name ) ) {
 			return array();
 		}
@@ -113,7 +113,7 @@ class EWWWIO_Page_Parser {
 	 * @return array An array consisting of width and height.
 	 */
 	function get_dimensions_from_filename( $src ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$width_height_string = array();
 		ewwwio_debug_message( "looking for dimensions in $src" );
 		if ( preg_match( '#-(\d+)x(\d+)(@2x)?\.(?:' . implode( '|', $this->extensions ) . '){1}(?:\?.+)?$#i', $src, $width_height_string ) ) {

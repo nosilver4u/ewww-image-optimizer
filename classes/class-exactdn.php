@@ -137,7 +137,8 @@ class ExactDN extends EWWWIO_Page_Parser {
 		// Images in post content and galleries.
 		add_filter( 'the_content', array( $this, 'filter_the_content' ), 999999 );
 		// Start an output buffer before any output starts.
-		add_action( 'template_redirect', array( $this, 'buffer_start' ), 2 );
+		/* add_action( 'template_redirect', array( $this, 'buffer_start' ), 2 ); */
+		add_filter( 'ewww_image_optimizer_filter_page_output', array( $this, 'filter_page_output' ), 5 );
 
 		// Core image retrieval.
 		if ( ! function_exists( 'aq_resize' ) ) {
@@ -666,7 +667,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 	 * Starts an output buffer and registers the callback function to do ExactDN url replacement.
 	 */
 	function buffer_start() {
-		ob_start( array( $this, 'filter_the_page' ) );
+		ob_start( array( $this, 'filter_page_output' ) );
 	}
 
 	/**
@@ -675,7 +676,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 	 * @param string $content The page/post content.
 	 * @return string The content with ExactDN image urls.
 	 */
-	function filter_the_page( $content ) {
+	function filter_page_output( $content ) {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->filtering_the_page = true;
 
@@ -1185,6 +1186,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 	 * @return string The filtered HTML content.
 	 */
 	function filter_bg_images( $content ) {
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$content_width = false;
 		if ( ! $this->filtering_the_page ) {
 			$content_width = $this->get_content_width();

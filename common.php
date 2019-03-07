@@ -204,8 +204,10 @@ if ( 'done' !== get_option( 'ewww_image_optimizer_relative_migration_status' ) )
  * Setup page parsing classes after theme functions.php is loaded and plugins have run init routines.
  */
 function ewww_image_optimizer_parser_init() {
+	$buffer_start = false;
 	// If ExactDN is enabled.
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && empty( $_GET['exactdn_disable'] ) ) {
+		$buffer_start = true;
 		/**
 		 * Page Parsing class for working with HTML content.
 		 */
@@ -222,6 +224,7 @@ function ewww_image_optimizer_parser_init() {
 	}
 	// If Lazy Load is enabled.
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ) {
+		$buffer_start = true;
 		/**
 		 * Page Parsing class for working with HTML content.
 		 */
@@ -233,6 +236,7 @@ function ewww_image_optimizer_parser_init() {
 	}
 	// If Alt WebP Rewriting is enabled.
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ) {
+		$buffer_start = true;
 		/**
 		 * Page Parsing class for working with HTML content.
 		 */
@@ -242,6 +246,28 @@ function ewww_image_optimizer_parser_init() {
 		 */
 		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-alt-webp.php' );
 	}
+	if ( $buffer_start ) {
+		// Start an output buffer before any output starts.
+		add_action( 'template_redirect', 'ewww_image_optimizer_buffer_start', 0 );
+	}
+}
+
+/**
+ * Starts an output buffer and registers the callback function to do WebP replacement.
+ */
+function ewww_image_optimizer_buffer_start() {
+	ob_start( 'ewww_image_optimizer_filter_page_output' );
+}
+
+/**
+ * Run the page through any registered EWWW IO filters.
+ *
+ * @param string $buffer The full HTML page generated since the output buffer was started.
+ * @return string The altered buffer containing the full page with WebP images inserted.
+ */
+function ewww_image_optimizer_filter_page_output( $buffer ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	return apply_filters( 'ewww_image_optimizer_filter_page_output', $buffer );
 }
 
 /**

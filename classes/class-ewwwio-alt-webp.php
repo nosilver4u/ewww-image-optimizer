@@ -51,7 +51,8 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 			return false;
 		}
 		// Start an output buffer before any output starts.
-		add_action( 'template_redirect', array( $this, 'buffer_start' ), 0 );
+		/* add_action( 'template_redirect', array( $this, 'buffer_start' ), 0 ); */
+		add_filter( 'ewww_image_optimizer_filter_page_output', array( $this, 'filter_page_output' ), 20 );
 		// Filter for NextGEN image urls within JS.
 		add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ), 11 );
 
