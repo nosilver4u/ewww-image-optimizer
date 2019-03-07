@@ -433,6 +433,7 @@ function ewww_image_optimizer_get_queued_attachments( $gallery, $limit = 100 ) {
  * @global object $wpdb
  */
 function ewww_image_optimizer_insert_unscanned( $ids, $gallery = 'media' ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
 	$images = array();
 	$id     = array_shift( $ids );
@@ -462,27 +463,15 @@ function ewww_image_optimizer_insert_unscanned( $ids, $gallery = 'media' ) {
  * @global object $wpdb
  */
 function ewww_image_optimizer_update_scanned_images( $ids, $gallery = 'media' ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( ! ewww_image_optimizer_iterable( $ids ) ) {
 		return;
 	}
 	global $wpdb;
 
-	/*
-	$wpdb->update(
-		$wpdb->ewwwio_queue,
-		array(
-			'scanned' => 1,
-		),
-		array(
-			'gallery'       => $gallery,
-			'attachment_id' => (int) $id,
-		),
-		array( '%d' ),
-		array( '%s', '%d' )
-	);
-	*/
 	array_walk( $ids, 'intval' );
 	$ids_sql = '(' . implode( ',', $ids ) . ')';
+
 	$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->ewwwio_queue SET scanned = 1 WHERE gallery = %s AND attachment_id IN $ids_sql", $gallery ) ); // phpcs:ignore WordPress.DB.PreparedSQL
 }
 
@@ -496,23 +485,15 @@ function ewww_image_optimizer_update_scanned_images( $ids, $gallery = 'media' ) 
  * @global object $wpdb
  */
 function ewww_image_optimizer_delete_queued_images( $ids, $gallery = 'media' ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( ! ewww_image_optimizer_iterable( $ids ) ) {
 		return;
 	}
 	global $wpdb;
 
-	/*
-	$wpdb->delete(
-		$wpdb->ewwwio_queue,
-		array(
-			'gallery'       => $gallery,
-			'attachment_id' => (int) $id,
-		),
-		array( '%s', '%d' )
-	);
-	*/
 	array_walk( $ids, 'intval' );
 	$ids_sql = '(' . implode( ',', $ids ) . ')';
+
 	$wpdb->query( $wpdb->prepare( "DELETE from $wpdb->ewwwio_queue WHERE gallery = %s AND attachment_id IN $ids_sql", $gallery ) ); // phpcs:ignore WordPress.DB.PreparedSQL
 }
 
