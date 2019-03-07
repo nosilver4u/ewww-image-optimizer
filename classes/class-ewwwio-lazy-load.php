@@ -91,9 +91,9 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	 * @return string The altered buffer containing the full page with Lazy Load attributes.
 	 */
 	function filter_page_output( $buffer ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-		$uri = $_SERVER['REQUEST_URI'];
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		// Don't lazy load in these cases...
+		$uri = $_SERVER['REQUEST_URI'];
 		if (
 			empty( $buffer ) ||
 			is_admin() ||
@@ -109,14 +109,45 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			wp_script_is( 'twentytwenty-twentytwenty', 'enqueued' ) ||
 			preg_match( '/<\?xml/', $buffer )
 		) {
-			return $buffer;
-		}
-		if ( strpos( $buffer, 'amp-boilerplate' ) ) {
-			ewwwio_debug_message( 'AMP page processing' );
+			if ( empty( $buffer ) ) {
+				ewwwio_debug_message( 'empty buffer' );
+			}
+			if ( is_admin() ) {
+				ewwwio_debug_message( 'is_admin' );
+			}
+			if ( ! empty( $_GET['cornerstone'] ) || strpos( $uri, 'cornerstone-endpoint' ) !== false ) {
+				ewwwio_debug_message( 'cornerstone editor' );
+			}
+			if ( ! empty( $_GET['et_fb'] ) ) {
+				ewwwio_debug_message( 'et_fb' );
+			}
+			if ( ! empty( $_GET['tatsu'] ) || ( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === $_POST['action'] ) ) {
+				ewwwio_debug_message( 'tatsu' );
+			}
+			if ( ! apply_filters( 'ewww_image_optimizer_do_lazyload', true ) ) {
+				ewwwio_debug_message( 'do_lazyload short-circuit' );
+			}
+			if ( is_feed() ) {
+				ewwwio_debug_message( 'is_feed' );
+			}
+			if ( is_preview() ) {
+				ewwwio_debug_message( 'is_preview' );
+			}
+			if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+				ewwwio_debug_message( 'rest request' );
+			}
+			if ( wp_script_is( 'twentytwenty-twentytwenty', 'enqueued' ) ) {
+				ewwwio_debug_message( 'twentytwenty enqueued' );
+			}
+			if ( preg_match( '/<\?xml/', $buffer ) ) {
+				ewwwio_debug_message( 'not html, xml tag found' );
+			}
+			if ( strpos( $buffer, 'amp-boilerplate' ) ) {
+				ewwwio_debug_message( 'AMP page processing' );
+			}
 			return $buffer;
 		}
 
-		ewwwio_debug_message( 'lazy parser' );
 		$above_the_fold   = apply_filters( 'ewww_image_optimizer_lazy_fold', 0 );
 		$images_processed = 0;
 

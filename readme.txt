@@ -179,6 +179,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: JS WebP supports background images via lazy load (div elements only for now)
 * added: ExactDN supports compression of background images (div elements only for now)
 * added: compat with Google Cloud Storage via WP Offload Media
+* added: automatic PNG to JPG conversion for ExactDN
 * changed: responsive image 'sizes' attribute can be auto-calculated by lazy load
 * changed: JS WebP no longer requires jQuery
 * changed: ExactDN srcset multipliers include fullscreen value of 1920px
@@ -186,6 +187,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * changed: prevent .php script/style generators from going through ExactDN
 * changed: ExactDN sites can dismiss exec notice to disable local compression
 * changed: automatic compression disabled during WooCommerce regen with admin notice
+* changed: use wp_resource_hints filter to include ExactDN dns-prefetch earlier in the page header
 * fixed: ExactDN does not handle themes that support wide and full-screen images in block editor
 * fixed: ExactDN constrains images to 640px in Twenty Nineteen theme
 * fixed: ExactDN mangles Flatsome lazy load placeholder image URL

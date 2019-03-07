@@ -767,7 +767,7 @@ function ewww_image_optimizer_admin_init() {
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_invalid_key' );
 		add_action( 'admin_notices', 'ewww_image_optimizer_notice_invalid_key' );
 	}
-	// Prevent SP AI messiness.
+	// Prevent ShortPixel AIO messiness.
 	remove_action( 'admin_notices', 'autoptimizeMain::notice_plug_imgopt' );
 	if ( class_exists( 'autoptimizeExtra' ) ) {
 		$ao_extra = get_option( 'autoptimize_extra_settings' );

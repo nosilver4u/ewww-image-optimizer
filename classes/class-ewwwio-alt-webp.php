@@ -282,35 +282,55 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	 * @return string The altered buffer containing the full page with WebP images inserted.
 	 */
 	function filter_page_output( $buffer ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-		// If this is an admin page, don't filter it.
-		if ( ( empty( $buffer ) || is_admin() ) ) {
-			return $buffer;
-		}
-		// If Cache Enabler's WebP option is enabled, don't filter it.
-		if ( ewww_image_optimizer_ce_webp_enabled() ) {
-			return $buffer;
-		}
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		// If any of this is true, don't filter the page.
 		$uri = $_SERVER['REQUEST_URI'];
-		// Based on the uri, if this is a cornerstone editing page, don't filter the response.
-		if ( ! empty( $_GET['cornerstone'] ) || strpos( $uri, 'cornerstone-endpoint' ) !== false ) {
-			return $buffer;
-		}
-		if ( ! empty( $_GET['et_fb'] ) ) {
-			return $buffer;
-		}
-		if ( ! empty( $_GET['tatsu'] ) ) {
-			return $buffer;
-		}
-		if ( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === $_POST['action'] ) {
-			return $buffer;
-		}
-		// If this is XML (not XHTML), don't modify the page.
-		if ( preg_match( '/<\?xml/', $buffer ) ) {
-			return $buffer;
-		}
-		if ( strpos( $buffer, 'amp-boilerplate' ) ) {
-			ewwwio_debug_message( 'AMP page processing' );
+		if (
+			empty( $buffer ) ||
+			is_admin() ||
+			! empty( $_GET['cornerstone'] ) ||
+			strpos( $uri, 'cornerstone-endpoint' ) !== false ||
+			! empty( $_GET['et_fb'] ) ||
+			! empty( $_GET['tatsu'] ) ||
+			( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === $_POST['action'] ) ||
+			is_feed() ||
+			is_preview() ||
+			( defined( 'REST_REQUEST' ) && REST_REQUEST ) ||
+			preg_match( '/<\?xml/', $buffer )
+		) {
+			if ( empty( $buffer ) ) {
+				ewwwio_debug_message( 'empty buffer' );
+			}
+			if ( is_admin() ) {
+				ewwwio_debug_message( 'is_admin' );
+			}
+			if ( ! empty( $_GET['cornerstone'] ) || strpos( $uri, 'cornerstone-endpoint' ) !== false ) {
+				ewwwio_debug_message( 'cornerstone editor' );
+			}
+			if ( ! empty( $_GET['et_fb'] ) ) {
+				ewwwio_debug_message( 'et_fb' );
+			}
+			if ( ! empty( $_GET['tatsu'] ) || ( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === $_POST['action'] ) ) {
+				ewwwio_debug_message( 'tatsu' );
+			}
+			if ( is_feed() ) {
+				ewwwio_debug_message( 'is_feed' );
+			}
+			if ( is_preview() ) {
+				ewwwio_debug_message( 'is_preview' );
+			}
+			if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+				ewwwio_debug_message( 'rest request' );
+			}
+			if ( preg_match( '/<\?xml/', $buffer ) ) {
+				ewwwio_debug_message( 'not html, xml tag found' );
+			}
+			if ( strpos( $buffer, 'amp-boilerplate' ) ) {
+				ewwwio_debug_message( 'AMP page processing' );
+			}
+			if ( ewww_image_optimizer_ce_webp_enabled() ) {
+				ewwwio_debug_message( 'Cache Enabler WebP enabled' );
+			}
 			return $buffer;
 		}
 
@@ -634,7 +654,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	 * @return array The array of images with WebP versions added.
 	 */
 	function ngg_pro_lightbox_images_queue( $images ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( ewww_image_optimizer_iterable( $images ) ) {
 			foreach ( $images as $index => $image ) {
 				if ( ! empty( $image['image'] ) && $this->validate_image_url( $image['image'] ) ) {
