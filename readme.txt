@@ -197,6 +197,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: table nav button styling broken in WP 5.1
 * fixed: ExactDN applies resizing args during image_downsize() even when full/original image is too small
 * fixed: animated GIF resizing breaks the use of image_resize_dimensions filter in WP_Image_Editor_GD
+* fixed: NextGen bulk optimizer unable to decode meta_data
 
 = 4.6.3 =
 * changed: folders to ignore setting applies to resizing also

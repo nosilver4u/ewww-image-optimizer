@@ -432,7 +432,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 					$print_meta   = print_r( $image->meta_data, true );
 					$print_meta   = preg_replace( array( '/ /', '/\n+/' ), array( '&nbsp;', '<br />' ), esc_html( $print_meta ) );
 					$debug_button = esc_html__( 'Show Metadata', 'ewww-image-optimizer' );
-					$output      .= "<button type='button' class='ewww-show-debug-meta button button-secondary' data-id='{$image->pid}' style='background-color:#a9c524;'>$debug_button</button><div id='ewww-debug-meta-{$image->pid}' style='background-color:#ffff99;font-size: 10px;padding: 10px;margin:3px -10px 10px;line-height: 1.1em;display: none;'>$print_meta</div>";
+					$output      .= "<button type='button' class='ewww-show-debug-meta button button-secondary' data-id='{$image->pid}' style='background-color:#a9c524;'>$debug_button</button><div id='ewww-debug-meta-{$image->pid}' style='font-size: 10px;padding: 10px;margin:3px -10px 10px;line-height: 1.1em;display: none;'>$print_meta</div>";
 				}
 				$msg = '';
 				// Get the absolute path.
@@ -675,7 +675,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			echo '</div></div>';
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 				global $ewww_debug;
-				echo '<p><strong>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</strong></p><div style="background-color:#ffff99;">' . $ewww_debug . '</div>';
+				echo '<p><strong>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</strong></p><div style="border:1px solid #e5e5e5;background:#fff;overflow:auto;height:300px;width:800px;">' . $ewww_debug . '</div>';
 			}
 			return;
 		}
