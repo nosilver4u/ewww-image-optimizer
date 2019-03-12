@@ -49,7 +49,7 @@ class EWWWIO_Relative_Migration {
 	 * Retrieves a batch of records based on the current offset.
 	 */
 	private function get_records() {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		global $wpdb;
 		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
 			ewww_image_optimizer_db_init();
@@ -71,7 +71,7 @@ class EWWWIO_Relative_Migration {
 	 * Called via wp_cron to initiate the migration effort.
 	 */
 	public function migrate() {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->started = time();
 		$this->offset  = (int) get_option( 'ewww_image_optimizer_relative_migration_offset' );
 		$records       = $this->get_records();
@@ -124,7 +124,7 @@ class EWWWIO_Relative_Migration {
 	 * @param array $record Includes a relative path, the ID, and the updated timestamp.
 	 */
 	private function update_relative_record( $record ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		global $wpdb;
 		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
 			ewww_image_optimizer_db_init();
@@ -148,7 +148,7 @@ class EWWWIO_Relative_Migration {
 	 * Schedule the migration.
 	 */
 	private function maybe_schedule() {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		// Create 5 minute wp_cron schedule.
 		add_filter( 'cron_schedules', array( $this, 'add_migration_schedule' ) );
 		add_action( 'ewww_image_optimizer_relative_migration', array( $this, 'migrate' ) );
@@ -162,7 +162,7 @@ class EWWWIO_Relative_Migration {
 	 * Clean up the scheduled event.
 	 */
 	private function unschedule() {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$timestamp = wp_next_scheduled( 'ewww_image_optimizer_relative_migration' );
 		if ( $timestamp ) {
 			wp_unschedule_event( $timestamp, 'ewww_image_optimizer_relative_migration' );
@@ -176,7 +176,7 @@ class EWWWIO_Relative_Migration {
 	 * @param array $schedules An array of custom cron schedules.
 	 */
 	public function add_migration_schedule( $schedules ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$schedules['ewwwio_relative_migration_interval'] = array(
 			'interval' => MINUTE_IN_SECONDS * 5,
 			'display'  => 'Every 5 Minutes',

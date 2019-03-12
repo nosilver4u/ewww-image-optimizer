@@ -78,7 +78,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 * @return array The image sizing parameters, sanitized.
 		 */
 		function ewww_ngg_quality_param( $params, $size ) {
-			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			$settings = C_NextGen_Settings::get_instance();
 			if ( is_array( $params ) ) {
 				ewwwio_debug_message( 'params is an array' );
@@ -129,7 +129,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 * @param object       $storage A nextgen storage object for finding metadata.
 		 */
 		function queue_new_image( $image, $storage = null ) {
-			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			if ( empty( $storage ) ) {
 				// Creating the 'registry' object for working with nextgen.
 				$registry = C_Component_Registry::get_instance();
@@ -167,7 +167,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 * @return object The image object with any modifications necessary.
 		 */
 		function ewww_added_new_image( $image, $storage = null ) {
-			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			if ( empty( $storage ) ) {
 				// Creating the 'registry' object for working with nextgen.
 				$registry = C_Component_Registry::get_instance();
@@ -703,7 +703,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 * @param string $hook Identifier for the page being loaded.
 		 */
 		function ewww_ngg_bulk_script( $hook ) {
-			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			ewwwio_debug_message( $hook );
 			/* if ( strpos( $hook, 'ewww-ngg-bulk' ) === false && strpos( $hook, 'nggallery-manage-gallery' ) === false ) { */
 			if ( strpos( $hook, 'ewww-ngg-bulk' ) === false ) {
@@ -980,7 +980,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 * Handles the bulk actions POST.
 		 */
 		function ewww_ngg_bulk_action_handler() {
-			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			// If the requested page is blank, or not a bulk_optimize, do nothing.
 			if ( empty( $_REQUEST['page'] ) || empty( $_REQUEST['bulkaction'] ) || 'bulk_optimize' != $_REQUEST['bulkaction'] ) {
 				return;
@@ -1010,7 +1010,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 					admin_url( 'admin.php' )
 				)
 			);
-			ewwwio_memory( __FUNCTION__ );
+			ewwwio_memory( __METHOD__ );
 			exit();
 		}
 	}
@@ -1033,7 +1033,7 @@ if ( ! empty( $_REQUEST['page'] ) && 'ngg_other_options' !== $_REQUEST['page'] &
 		 * @param bool       $skip_defaults I have no idea, ask the NextGEN devs...
 		 */
 		function generate_image_size( $image, $size, $params = null, $skip_defaults = false ) {
-			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) ) {
 				ewww_image_optimizer_cloud_init();
 			}
@@ -1046,7 +1046,7 @@ if ( ! empty( $_REQUEST['page'] ) && 'ngg_other_options' !== $_REQUEST['page'] &
 				ewwwio_debug_message( "optimized size: $image_size" );
 			}
 			ewww_image_optimizer_debug_log();
-			ewwwio_memory( __FUNCTION__ );
+			ewwwio_memory( __METHOD__ );
 			return $success;
 		}
 	}

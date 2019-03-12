@@ -132,7 +132,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 * @param string $filename The name of the file generated.
 		 */
 		function ewww_ngg_image_save( $filename ) {
-			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			global $ewww_defer;
 			global $ewww_image;
 			if ( file_exists( $filename ) ) {
@@ -146,7 +146,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				ewww_image_optimizer( $filename );
 			}
 			ewww_image_optimizer_debug_log();
-			ewwwio_memory( __FUNCTION__ );
+			ewwwio_memory( __METHOD__ );
 		}
 
 		/**
@@ -490,7 +490,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 * @param string $hook The hook identifier for the current page.
 		 */
 		function ewww_ngg_bulk_script( $hook ) {
-			ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			$i18ngg = strtolower( __( 'Galleries', 'nggallery' ) );
 			ewwwio_debug_message( "i18n string for galleries: $i18ngg" );
 			// Make sure we are on a legitimate page and that we have the proper POST variables if necessary.

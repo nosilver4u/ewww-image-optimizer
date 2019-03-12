@@ -190,7 +190,7 @@ class EWWW_Image {
 	 * @param array $meta The attachment metadata.
 	 */
 	public function update_converted_attachment( $meta ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->url = wp_get_attachment_url( $this->attachment_id );
 		if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
 			ewwwio_debug_message( print_r( $this, true ) );
@@ -232,7 +232,7 @@ class EWWW_Image {
 	 * @return array $meta The updated attachment metadata.
 	 */
 	public function convert_sizes( $meta ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 
 		global $wpdb;
 		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
@@ -401,7 +401,7 @@ class EWWW_Image {
 	 * @return array $meta The updated attachment metadata.
 	 */
 	private function restore_sizes( $meta ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 
 		global $wpdb;
 		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
@@ -460,7 +460,7 @@ class EWWW_Image {
 	 * @param string $file The name of the non-retina file.
 	 */
 	private function convert_retina( $file ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$retina_path = ewww_image_optimizer_hidpi_optimize( $file, true );
 		if ( ! $retina_path ) {
 			return;
@@ -482,7 +482,7 @@ class EWWW_Image {
 	 * @return string The name of the new file.
 	 */
 	public function convert( $file, $replace_url = true, $check_size = false ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( empty( $file ) ) {
 			ewwwio_debug_message( 'no file provided to convert' );
 			return false;
@@ -771,7 +771,7 @@ class EWWW_Image {
 			$suffix = '-' . $filenum;
 		}
 		// All done, let's reconstruct the filename.
-		ewwwio_memory( __FUNCTION__ );
+		ewwwio_memory( __METHOD__ );
 		$this->increment = $filenum;
 		return $filename . $suffix . $dimensions . $hidpi_suffix . $fileext;
 	}
@@ -785,7 +785,7 @@ class EWWW_Image {
 	 * @param string $old_path Optional. The url to the old version of the image.
 	 */
 	public function replace_url( $new_path = '', $old_path = '' ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 
 		$new = ( empty( $new_path ) ? $this->file : $new_path );
 		$old = ( empty( $old_path ) ? $this->converted : $old_path );
@@ -941,7 +941,7 @@ class EWWW_Image {
 	 * @return int The number of seconds expected to compress the current image.
 	 */
 	public function time_estimate() {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$time       = 0;
 		$type       = ewww_image_optimizer_quick_mimetype( $this->file );
 		$image_size = ( empty( $this->opt_size ) ? $this->orig_size : $this->opt_size );

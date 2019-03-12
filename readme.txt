@@ -188,10 +188,12 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * changed: ExactDN sites can dismiss exec notice to disable local compression
 * changed: automatic compression disabled during WooCommerce regen with admin notice
 * changed: use wp_resource_hints filter to include ExactDN dns-prefetch earlier in the page header
+* changed: gather debugging information on settings page even when debugging is not enabled yet
 * fixed: Bulk Optimize scanner does not update queue in some cases
 * fixed: ExactDN does not handle themes that support wide and full-screen images in block editor
 * fixed: ExactDN constrains images to 640px in Twenty Nineteen theme
 * fixed: ExactDN mangles Flatsome lazy load placeholder image URL
+* fixed: empty attributes not recognized properly by HTML parser, resulting in broken markup
 * fixed: table nav button styling broken in WP 5.1
 * fixed: ExactDN applies resizing args during image_downsize() even when full/original image is too small
 * fixed: animated GIF resizing breaks the use of image_resize_dimensions filter in WP_Image_Editor_GD

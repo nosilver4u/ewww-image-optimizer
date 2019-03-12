@@ -32,7 +32,7 @@ class EWWWIO_HS_Beacon {
 	 * @return bool The unaltered setting.
 	 */
 	public function check_for_settings_optin( $input ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( isset( $_POST['ewww_image_optimizer_enable_help'] ) && $_POST['ewww_image_optimizer_enable_help'] ) {
 			ewww_image_optimizer_set_option( 'ewww_image_optimizer_tracking_notice', 1 );
 		}
@@ -43,7 +43,7 @@ class EWWWIO_HS_Beacon {
 	 * Check for a new opt-in via the admin notice
 	 */
 	public function check_for_optin() {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_enable_help', 1 );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_enable_help_notice', 1 );
 		wp_redirect( remove_query_arg( 'action', wp_get_referer() ) );
@@ -54,7 +54,7 @@ class EWWWIO_HS_Beacon {
 	 * Check for a new opt-out via the admin notice
 	 */
 	public function check_for_optout() {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		delete_option( 'ewww_image_optimizer_enable_help' );
 		delete_network_option( null, 'ewww_image_optimizer_enable_help' );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_enable_help_notice', 1 );
@@ -70,7 +70,7 @@ class EWWWIO_HS_Beacon {
 	 * @return void
 	 */
 	public function admin_notice( $network_class = '' ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$hide_notice = ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help_notice' );
 		if ( 'network-multisite' == $network_class && get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
 			return;

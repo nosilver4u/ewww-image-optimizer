@@ -57,7 +57,7 @@ class EWWWIO_Tracking {
 	 * @return void
 	 */
 	private function setup_data() {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$data = array();
 
 		// Retrieve current theme info.
@@ -186,7 +186,7 @@ class EWWWIO_Tracking {
 		if ( ! $this->tracking_allowed() && ! $override ) {
 			return false;
 		}
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 
 		// Send a maximum of once per week.
 		$last_send = $this->get_last_send();
@@ -227,7 +227,7 @@ class EWWWIO_Tracking {
 	 * @return bool The unaltered setting.
 	 */
 	public function check_for_settings_optin( $input ) {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		// Send an intial check in on settings save.
 		if ( isset( $_POST['ewww_image_optimizer_allow_tracking'] ) && $_POST['ewww_image_optimizer_allow_tracking'] ) {
 			$this->send_checkin( true );
@@ -240,7 +240,7 @@ class EWWWIO_Tracking {
 	 * Check for a new opt-in via the admin notice
 	 */
 	public function check_for_optin() {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_allow_tracking', 1 );
 		$this->send_checkin( true );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_tracking_notice', 1 );
@@ -252,7 +252,7 @@ class EWWWIO_Tracking {
 	 * Check for a new opt-out via the admin notice
 	 */
 	public function check_for_optout() {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		delete_option( 'ewww_image_optimizer_allow_tracking' );
 		delete_network_option( null, 'ewww_image_optimizer_allow_tracking' );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_tracking_notice', 1 );
@@ -267,7 +267,7 @@ class EWWWIO_Tracking {
 	 * @return false|string
 	 */
 	private function get_last_send() {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		return ewww_image_optimizer_get_option( 'ewww_image_optimizer_tracking_last_send' );
 	}
 
@@ -275,7 +275,7 @@ class EWWWIO_Tracking {
 	 * Schedule a weekly checkin.
 	 */
 	public function schedule_send() {
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( is_multisite() ) {
 			if ( ! function_exists( 'is_plugin_active_for_network' ) ) {
 				// Need to include the plugin library for the is_plugin_active function.
@@ -335,7 +335,7 @@ class EWWWIO_Tracking {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
-		ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 
 		if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
 			// Need to include the plugin library for the is_plugin_active function.
