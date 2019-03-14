@@ -180,6 +180,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: ExactDN supports compression of background images (div elements only for now)
 * added: compat with Google Cloud Storage via WP Offload Media
 * added: automatic PNG to JPG conversion for ExactDN
+* added: ExactDN parsing for legacy WooCommerce API (current API works as-is)
 * changed: responsive image 'sizes' attribute can be auto-calculated by lazy load
 * changed: JS WebP no longer requires jQuery
 * changed: ExactDN srcset multipliers include fullscreen value of 1920px

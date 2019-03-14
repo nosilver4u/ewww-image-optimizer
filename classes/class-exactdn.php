@@ -171,6 +171,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 		add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ) );
 		add_filter( 'ngg_get_image_url', array( $this, 'ngg_get_image_url' ) );
 
+		// Filter for legacy WooCommerce API endpoints.
+		add_filter( 'woocommerce_api_product_response', array( $this, 'woocommerce_api_product_response' ) );
+
 		// DNS prefetching.
 		add_filter( 'wp_resource_hints', array( $this, 'dns_prefetch' ), 10, 2 );
 
@@ -2254,6 +2257,21 @@ class ExactDN extends EWWWIO_Page_Parser {
 			return $this->generate_url( $image );
 		}
 		return $image;
+	}
+
+	/**
+	 * Handle images in legacy WooCommerce API endpoints.
+	 *
+	 * @param array $product_data The product information that will be returned via the API.
+	 * @return array The product information with ExactDNified image urls.
+	 */
+	function woocommerce_api_product_response( $product_data ) {
+		if ( is_array( $product_data ) && ! empty( $product_data['featured_src'] ) ) {
+			if ( $this->validate_image_url( $product_data['featured_src'] ) ) {
+				$product_data['featured_src'] = $this->generate_url( $product_data['featured_src'] );
+			}
+		}
+		return $product_data;
 	}
 
 	/**

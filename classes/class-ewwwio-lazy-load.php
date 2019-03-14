@@ -210,6 +210,9 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 				if ( false !== strpos( $div, $lazy_class ) ) {
 					continue;
 				}
+				if ( ! $this->validate_bgimage_tag( $div ) ) {
+					continue;
+				}
 				$style = $this->get_attribute( $div, 'style' );
 				if ( empty( $style ) ) {
 					continue;
@@ -299,34 +302,61 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			return false;
 		}
 
+		// Skip inline data URIs.
+		if ( strpos( $image, "src='data:image" ) || strpos( $image, 'src="data:image' ) ) {
+			return false;
+		}
 		// Ignore 0-size Pinterest schema images.
 		if ( strpos( $image, 'data-pin-description=' ) && strpos( $image, 'width="0" height="0"' ) ) {
 			return false;
 		}
-		// TODO: properly validate and exclude certain cases, check Jetpack, Retina, a3 & BJ for more.
 		$exclusions = apply_filters(
 			'ewww_image_optimizer_lazy_exclusions',
 			array(
-				'data-src=',
-				'data-no-lazy=',
+				'class="ls-bg',
+				'class="ls-l',
+				'class="rev-slidebg',
+				'data-bgposition=',
+				'data-envira-src=',
 				'data-lazy=',
 				'data-lazy-original=',
 				'data-lazy-src=',
 				'data-lazy-srcset=',
-				'data-lazysrc=',
 				'data-lazyload=',
-				'data-bgposition=',
-				'data-envira-src=',
-				'fullurl=',
-				'lazy-slider-img=',
+				'data-lazysrc=',
+				'data-no-lazy=',
+				'data-src=',
 				'data-srcset=',
-				'class="ls-l',
-				'class="ls-bg',
-				'class="rev-slidebg',
 				'ewww_webp_lazy_load',
-				'wpcf7_captcha/',
+				'fullurl=',
+				'gazette-featured-content-thumbnail',
+				'lazy-slider-img=',
+				'skip-lazy',
 				'timthumb.php?',
-			)
+				'wpcf7_captcha/',
+			),
+			$image
+		);
+		foreach ( $exclusions as $exclusion ) {
+			if ( false !== strpos( $image, $exclusion ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Checks if a tag with a background image is allowed to be lazy loaded.
+	 *
+	 * @param string $tag The tag.
+	 * @return bool True if the tag is allowed, false otherwise.
+	 */
+	function validate_bgimage_tag( $tag ) {
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		$exclusions = apply_filters(
+			'ewww_image_optimizer_lazy_bg_image_exclusions',
+			array(),
+			$tag
 		);
 		foreach ( $exclusions as $exclusion ) {
 			if ( false !== strpos( $image, $exclusion ) ) {
