@@ -352,6 +352,10 @@ class ExactDN extends EWWWIO_Page_Parser {
 				if ( strpos( $site_url, 'amazonaws.com' ) || strpos( $site_url, 'digitaloceanspaces.com' ) ) {
 					$this->set_exactdn_option( 'verify_method', -1, false );
 				}
+				if ( get_option( 'exactdn_never_been_active' ) ) {
+					ewww_image_optimizer_set_option( 'ewww_image_optimizer_lazy_load', true );
+					delete_option( 'exactdn_never_been_active' );
+				}
 				return $this->set_exactdn_domain( $response['domain'] );
 			}
 		} elseif ( ! empty( $result['body'] ) && strpos( $result['body'], 'error' ) !== false ) {

@@ -29,7 +29,7 @@ document.addEventListener('lazybeforeunveil', function(e){
         var target = e.target;
 	//console.log('the target');
 	//console.log(target);
-	console.log('loading an image');
+	//console.log('loading an image');
         if(ewww_webp_supported) {
 		//console.log('we could load webp');
 		var srcset = target.getAttribute('data-srcset');
