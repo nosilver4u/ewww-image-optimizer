@@ -148,7 +148,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 		}
 		// Disable image_downsize filter during themify_get_image().
 		add_action( 'themify_before_post_image', array( $this, 'disable_image_downsize' ) );
-		if ( ewww_image_optimizer_get_option( 'exactdn_image_downsize_scale' ) ) {
+		if ( defined( 'EXACTDN_IMAGE_DOWNSIZE_SCALE' ) && EXACTDN_IMAGE_DOWNSIZE_SCALE ) {
 			add_action( 'exactdn_image_downsize_array', array( $this, 'image_downsize_scale' ) );
 		}
 
