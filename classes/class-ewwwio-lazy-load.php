@@ -41,8 +41,8 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			ewwwio_debug_message( 'you are doing it wrong' );
 			return 'you are doing it wrong';
 		}
-		// Start an output buffer before any output starts.
-		/* add_action( 'template_redirect', array( $this, 'buffer_start' ), 1 ); */
+
+		add_action( 'wp_head', array( $this, 'no_js_css' ) );
 		add_filter( 'ewww_image_optimizer_filter_page_output', array( $this, 'filter_page_output' ), 15 );
 
 		if ( class_exists( 'ExactDN' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
@@ -198,40 +198,10 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 				}
 			} // End foreach().
 		} // End if().
-		// Process background images on 'div' elements.
-		$divs = $this->get_elements_from_html( $buffer, 'div' );
-		if ( ewww_image_optimizer_iterable( $divs ) ) {
-			$lazy_class = 'lazyload';
-			foreach ( $divs as $index => $div ) {
-				ewwwio_debug_message( 'parsing a div' );
-				if ( false === strpos( $div, 'background:' ) && false === strpos( $div, 'background-image:' ) ) {
-					continue;
-				}
-				if ( false !== strpos( $div, $lazy_class ) ) {
-					continue;
-				}
-				if ( ! $this->validate_bgimage_tag( $div ) ) {
-					continue;
-				}
-				$style = $this->get_attribute( $div, 'style' );
-				if ( empty( $style ) ) {
-					continue;
-				}
-				ewwwio_debug_message( "checking style attr for background-image: $style" );
-				$bg_image_url = $this->get_background_image_url( $style );
-				if ( $bg_image_url ) {
-					$this->set_attribute( $div, 'class', $this->get_attribute( $div, 'class' ) . " $lazy_class", true );
-					$this->set_attribute( $div, 'data-bg', $bg_image_url );
-					$new_style = $this->remove_background_image( $style );
-					if ( $style !== $new_style ) {
-						$div = str_replace( $style, $new_style, $div );
-					}
-				}
-				if ( $div !== $divs[ $index ] ) {
-					$buffer = str_replace( $divs[ $index ], $div, $buffer );
-				}
-			}
-		}
+		// Process background images on div elements.
+		$buffer = $this->parse_background_images( $buffer, 'div' );
+		// Process background images on li elements.
+		$buffer = $this->parse_background_images( $buffer, 'li' );
 		// Images listed as picture/source elements. Mostly for NextGEN, but should work anywhere.
 		$pictures = $this->get_picture_tags_from_html( $buffer );
 		if ( ewww_image_optimizer_iterable( $pictures ) ) {
@@ -281,6 +251,46 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 		ewwwio_debug_message( 'all done parsing page for lazy' );
 		if ( true ) { // Set to true for extra logging.
 			ewww_image_optimizer_debug_log();
+		}
+		return $buffer;
+	}
+
+	/**
+	 * Parse elements of a given type for inline CSS background images.
+	 *
+	 * @param string $buffer The HTML content to parse.
+	 * @param string $tag_type The type of HTML tag to look for.
+	 * @return string The modified content with LL markup.
+	 */
+	function parse_background_images( $buffer, $tag_type ) {
+		$elements = $this->get_elements_from_html( $buffer, $tag_type );
+		if ( ewww_image_optimizer_iterable( $elements ) ) {
+			foreach ( $elements as $index => $element ) {
+				ewwwio_debug_message( "parsing a $tag_type" );
+				if ( false === strpos( $element, 'background:' ) && false === strpos( $element, 'background-image:' ) ) {
+					continue;
+				}
+				if ( ! $this->validate_bgimage_tag( $element ) ) {
+					continue;
+				}
+				$style = $this->get_attribute( $element, 'style' );
+				if ( empty( $style ) ) {
+					continue;
+				}
+				ewwwio_debug_message( "checking style attr for background-image: $style" );
+				$bg_image_url = $this->get_background_image_url( $style );
+				if ( $bg_image_url ) {
+					$new_style = $this->remove_background_image( $style );
+					if ( $style !== $new_style ) {
+						$this->set_attribute( $element, 'class', $this->get_attribute( $element, 'class' ) . ' lazyload', true );
+						$this->set_attribute( $element, 'data-bg', $bg_image_url );
+						$element = str_replace( $style, $new_style, $element );
+					}
+				}
+				if ( $element !== $elements[ $index ] ) {
+					$buffer = str_replace( $elements[ $index ], $element, $buffer );
+				}
+			}
 		}
 		return $buffer;
 	}
@@ -355,7 +365,9 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$exclusions = apply_filters(
 			'ewww_image_optimizer_lazy_bg_image_exclusions',
-			array(),
+			array(
+				'lazyload',
+			),
 			$tag
 		);
 		foreach ( $exclusions as $exclusion ) {
@@ -377,6 +389,13 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			return false;
 		}
 		return $use_lqip;
+	}
+
+	/**
+	 * Adds a small CSS block to hide lazyload elements for no-JS browsers.
+	 */
+	function no_js_css() {
+		echo '<noscript><style>.lazyload[data-src]{display:none !important;}</style></noscript>';
 	}
 
 	/**

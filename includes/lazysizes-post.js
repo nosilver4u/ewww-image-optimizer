@@ -1,12 +1,13 @@
 lazysizesWebP('alpha', lazySizes.init);
 function constrainSrc(bg,objectWidth,objectHeight){
 	var regW      = /w=(\d+)/;
+	var regH      = /h=(\d+)/;
 	var regFit    = /fit=(\d+),(\d+)/;
 	var regResize = /resize=(\d+),(\d+)/;
 	if (bg.search('\\?') > 0 && bg.search(ewww_lazy_vars.exactdn_domain) > 0){
 		var resultW = regW.exec(bg);
-		if(resultW && objectWidth < resultW[1]){
-			return bg.replace(regW, 'w=' + objectWidth);
+		if(resultW && objectWidth <= resultW[1]){
+			return bg.replace(regW, 'resize=' + objectWidth + ',' + objectHeight);
 		}
 		var resultFit = regFit.exec(bg);
 		if(resultFit && objectWidth < resultFit[1]){
@@ -17,11 +18,11 @@ function constrainSrc(bg,objectWidth,objectHeight){
 			return bg.replace(regResize, 'resize=' + objectWidth + ',' + objectHeight);
 		}
                 if(!resultW && !resultFit && !resultResize){
-                        return bg + '&w=' + objectWidth;
-                }
+			return bg + '&resize=' + objectWidth + ',' + objectHeight;
+		}
 	}
 	if (bg.search('\\?') == -1 && bg.search(ewww_lazy_vars.exactdn_domain) > 0){
-		return bg + '?w=' + objectWidth;
+		return bg + '?resize=' + objectWidth + ',' + objectHeight;
 	}
 	return bg;
 }
