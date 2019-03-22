@@ -1148,6 +1148,10 @@ class ExactDN extends EWWWIO_Page_Parser {
 				}
 			} // End foreach().
 		} // End if();
+		$content = $this->filter_bg_images( $content );
+		if ( $this->filtering_the_page ) {
+			$content = $this->filter_prz_thumb( $content );
+		}
 		if ( $this->filtering_the_page && ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ) {
 			ewwwio_debug_message( 'rewriting all other wp_content urls' );
 			if ( $this->exactdn_domain && $this->upload_domain ) {
@@ -1172,7 +1176,6 @@ class ExactDN extends EWWWIO_Page_Parser {
 				$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );
 			}
 		}
-		$content = $this->filter_bg_images( $content );
 		ewwwio_debug_message( 'done parsing page' );
 		$this->filtering_the_content = false;
 
@@ -1189,7 +1192,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 	/**
 	 * Parse page content looking for elements with CSS background-image properties.
 	 *
-	 * @param string $content The HTML content of to parse.
+	 * @param string $content The HTML content to parse.
 	 * @return string The filtered HTML content.
 	 */
 	function filter_bg_images( $content ) {
@@ -1236,6 +1239,27 @@ class ExactDN extends EWWWIO_Page_Parser {
 				if ( $div !== $divs[ $index ] ) {
 					$content = str_replace( $divs[ $index ], $div, $content );
 				}
+			}
+		}
+		return $content;
+	}
+
+	/**
+	 * Parse page content looking for thumburl from personalization.com.
+	 *
+	 * @param string $content The HTML content to parse.
+	 * @return string The filtered HTML content.
+	 */
+	function filter_prz_thumb( $content ) {
+		if ( ! class_exists( 'WooCommerce' ) || false === strpos( $content, 'productDetailsForPrz' ) ) {
+			return $content;
+		}
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		$prz_match = preg_match( '#productDetailsForPrz=[^<]+?thumbnailUrl:\'([^\']+?)\'[^<]+?</script>#', $content, $prz_detail_matches );
+		if ( $prz_match && ! empty( $prz_detail_matches[1] ) && $this->validate_image_url( $prz_detail_matches[1] ) ) {
+			$prz_thumb = $this->generate_url( $prz_detail_matches[1], apply_filters( 'exactdn_personalizationdotcom_thumb_args', '', $prz_detail_matches[1] ) );
+			if ( $prz_thumb != $prz_detail_matches ) {
+				$content = str_replace( "thumbnailUrl:'{$prz_detail_matches[1]}'", "thumbnailUrl:'$prz_thumb'", $content );
 			}
 		}
 		return $content;

@@ -174,6 +174,12 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.7.1 =
+* added: CSS background image support for <li> elements
+* added: ExactDN parses thumbnail url for personalization.com + WooCommerce integration
+* fixed: Lazy Load for CSS background images misfires when display height is greater than width
+* fixed: visitors without JS see Lazy Load placeholder + fallback image
+
 = 4.7.0 =
 * added: lazy load (on ExactDN tab for now)
 * added: JS WebP supports background images via lazy load (div elements only for now)
