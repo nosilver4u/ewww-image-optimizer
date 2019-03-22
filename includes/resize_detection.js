@@ -24,9 +24,10 @@ function checkImageScale(img) {
         	if ((img.naturalWidth != 1) && (img.naturalHeight != 1)) {
                 	// For each image with a natural width which isn't
                 	// a 1x1 image, check its size.
-                	var wrongWidth = (img.clientWidth * 1.5 < img.naturalWidth);
-                	var wrongHeight = (img.clientHeight * 1.5 < img.naturalHeight);
-                	if (wrongWidth || wrongHeight) {
+			var dPR = (window.devicePixelRatio || 1);
+			var wrongWidth = (img.clientWidth * 1.5 * dPR < img.naturalWidth);
+			var wrongHeight = (img.clientHeight * 1.5 * dPR < img.naturalHeight);
+			if (wrongWidth || wrongHeight) {
 				img.classList.add('scaled-image');
                 		img.title = "Forced to wrong size: " +
                         	img.clientWidth + "x" + img.clientHeight + ", natural is " +

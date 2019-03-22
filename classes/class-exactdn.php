@@ -867,14 +867,20 @@ class ExactDN extends EWWWIO_Page_Parser {
 						$height = $filename_height;
 					}
 					// WP Attachment ID, if uploaded to this site.
-					preg_match( '#class=["|\']?[^"\']*wp-image-([\d]+)[^"\']*["|\']?#i', $images['img_tag'][ $index ], $attachment_id );
+					$attachment_id = $this->get_attribute( $images['img_tag'][ $index ], 'data-id' );
+					if ( empty( $attachment_id ) ) {
+						ewwwio_debug_message( 'data-id not found, looking for wp-image-x in class' );
+						preg_match( '#class=["|\']?[^"\']*wp-image-([\d]+)[^"\']*["|\']?#i', $images['img_tag'][ $index ], $attachment_id );
+					}
 					if ( ! ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' ) && empty( $attachment_id ) ) {
 						ewwwio_debug_message( 'looking for attachment id' );
-						$attachment_id = array( attachment_url_to_postid( $src ) );
+						$attachment_id = attachment_url_to_postid( $src );
 					}
 					if ( ! ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' ) && ! empty( $attachment_id ) ) {
-						ewwwio_debug_message( 'using attachment id to get source image' );
-						$attachment_id = intval( array_pop( $attachment_id ) );
+						if ( is_array( $attachment_id ) ) {
+							$attachment_id = intval( array_pop( $attachment_id ) );
+						}
+						ewwwio_debug_message( "using attachment id ($attachment_id) to get source image" );
 
 						if ( $attachment_id ) {
 							ewwwio_debug_message( "detected attachment $attachment_id" );
@@ -1129,6 +1135,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 						list( $filename_width, $discard_height ) = $this->get_dimensions_from_filename( $src );
 						if ( empty( $width ) || ! is_numeric( $width ) ) {
 							$width = $filename_width;
+						}
+						if ( empty( $width ) || ! is_numeric( $width ) ) {
+							$width = $this->get_attribute( $images['img_tag'][ $index ], 'data-actual-width' );
 						}
 						if ( false !== strpos( $src, 'crop=' ) || false !== strpos( $src, '&h=' ) || false !== strpos( $src, '?h=' ) ) {
 							$width = false;

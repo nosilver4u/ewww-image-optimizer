@@ -82,7 +82,10 @@ For background images, use data-bg attribute:
 							bg = bgWebP;
 						}
 					}
-					bg = constrainSrc(bg,e.target.offsetWidth,e.target.offsetHeight);
+					var dPR = (window.devicePixelRatio || 1);
+					var targetWidth = Math.round(e.target.offsetWidth * dPR);
+					var targetHeight = Math.round(e.target.offsetHeight * dPR);
+					bg = constrainSrc(bg,targetWidth,targetHeight);
 					e.detail.firesLoad = true;
 					load = function(){
 						e.target.style.backgroundImage = 'url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')';
