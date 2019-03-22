@@ -43,5 +43,6 @@ function clearScaledImages() {
 }
 document.addEventListener('lazyloaded', function(e){
 	e.target.classList.remove('scaled-image');
+        e.target.title = '';
 	checkImageScale(e.target);
 });

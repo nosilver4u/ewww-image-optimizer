@@ -176,6 +176,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 
 = 4.7.1 =
 * added: CSS background image support for <li> elements
+* added: ExactDN + Lazy Load will auto-calculate dimensions for img elements without srcset/responsive markup
 * added: ExactDN parses thumbnail url for personalization.com + WooCommerce integration
 * fixed: Lazy Load for CSS background images misfires when display height is greater than width
 * fixed: visitors without JS see Lazy Load placeholder + fallback image
