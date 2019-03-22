@@ -6445,6 +6445,14 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 		}
 		$output  .= "<div id='ewww-media-status-$id'>";
 		$ewww_cdn = false;
+		if ( is_array( $meta ) && ! empty( $meta['file'] ) && false !== strpos( $meta['file'], 'https://images-na.ssl-images-amazon.com' ) ) {
+			$output .= esc_html__( 'Amazon-hosted image', 'ewww-image-optimizer' ) . '</div>';
+			if ( $return_output ) {
+				return $output;
+			}
+			echo $output;
+			return;
+		}
 		if ( is_array( $meta ) && ! empty( $meta['cloudinary'] ) ) {
 			$output .= esc_html__( 'Cloudinary image', 'ewww-image-optimizer' ) . '</div>';
 			if ( $return_output ) {
