@@ -1503,7 +1503,7 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 			$output['new_nonce'] = '';
 		}
 	}
-	$batch_image_limit = ( empty( $_REQUEST['ewww_batch_limit'] ) && ! class_exists( 'Amazon_S3_And_CloudFront' ) && ! class_exists( 'S3_Uploads' ) ) ? 999 : 1 );
+	$batch_image_limit = ( empty( $_REQUEST['ewww_batch_limit'] ) && ! class_exists( 'Amazon_S3_And_CloudFront' ) && ! class_exists( 'S3_Uploads' ) ? 999 : 1 );
 	// Get the 'bulk attachments' with a list of IDs remaining.
 	$attachments = ewww_image_optimizer_get_queued_attachments( 'media', $batch_image_limit );
 	if ( ! empty( $attachments ) && is_array( $attachments ) ) {
