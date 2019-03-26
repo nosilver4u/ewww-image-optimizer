@@ -8023,6 +8023,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			echo '</table></div><!-- end container general settings -->';
 			echo "<p class='submit'><input type='submit' class='button-primary' value='" . esc_attr__( 'Save Changes', 'ewww-image-optimizer' ) . "' /></p>\n";
 			echo '</form></div><!-- end container left --></div><!-- end container wrap -->';
+			ewww_image_optimizer_temp_debug_clear();
 			return;
 		}
 	}
@@ -8435,6 +8436,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewww_image_optimizer_function_exists( 'sleep', true );
 	ewwwio_check_memory_available();
 	if ( 'debug-silent' === $network ) {
+		ewww_image_optimizer_temp_debug_clear();
 		return;
 	}
 	$output = apply_filters( 'ewww_image_optimizer_settings', $output );
@@ -8498,11 +8500,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<?php
 	}
 	ewwwio_memory( __FUNCTION__ );
-	if ( $ewwwio_temp_debug ) {
-		ewww_image_optimizer_set_option( 'ewww_image_optimizer_debug', false );
-		$ewwwio_temp_debug = false;
-	}
-	$ewww_debug = '';
+	ewww_image_optimizer_temp_debug_clear();
 }
 
 /**
