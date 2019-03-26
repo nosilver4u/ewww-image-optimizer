@@ -184,7 +184,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			}
 			ewwwio_debug_message( "image id: $image_id" );
 			// Get an array of sizes available for the $image.
-			$sizes = $storage->get_image_sizes();
+			$sizes = $storage->get_image_sizes( $image );
 			$sizes = $this->maybe_get_more_sizes( $sizes, $image->meta_data );
 			// Run the optimizer on the image for each $size.
 			if ( ewww_image_optimizer_iterable( $sizes ) ) {
@@ -481,7 +481,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				}
 				// If we have metadata, populate db from meta.
 				if ( ! empty( $image->meta_data['ewww_image_optimizer'] ) ) {
-					$sizes = $storage->get_image_sizes();
+					$sizes = $storage->get_image_sizes( $image );
 					$sizes = $this->maybe_get_more_sizes( $sizes, $image->meta_data );
 					if ( ewww_image_optimizer_iterable( $sizes ) ) {
 						foreach ( $sizes as $size ) {
@@ -903,7 +903,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			// Output the results of the optimization.
 			$output['results'] = sprintf( '<p>' . esc_html__( 'Optimized image:', 'ewww-image-optimizer' ) . ' <strong>%s</strong><br>', esc_html( basename( $storage->object->get_image_abspath( $image, 'full' ) ) ) );
 			// Get an array of sizes available for the $image.
-			$sizes = $storage->get_image_sizes();
+			$sizes = $storage->get_image_sizes( $image );
 			$sizes = $this->maybe_get_more_sizes( $sizes, $image->meta_data );
 			if ( ewww_image_optimizer_iterable( $sizes ) ) {
 				foreach ( $sizes as $size ) {

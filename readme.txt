@@ -174,6 +174,9 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.7.2 =
+* fixed: fatal error from NextGEN get_image_sizes() method
+
 = 4.7.1 =
 * added: CSS background image support for <li> elements
 * added: ExactDN + Lazy Load will auto-calculate dimensions for img elements without srcset/responsive markup

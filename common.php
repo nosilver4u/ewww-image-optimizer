@@ -495,7 +495,6 @@ function ewww_image_optimizer_gallery_support() {
 	if ( is_admin() && ! wp_doing_ajax() ) {
 		if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 			$ewwwio_temp_debug = true;
-			ewww_image_optimizer_set_option( 'ewww_image_optimizer_debug', true );
 		}
 	}
 
@@ -983,9 +982,6 @@ function ewww_image_optimizer_current_screen( $screen ) {
 	global $ewwwio_temp_debug;
 	global $ewww_debug;
 	if ( false === strpos( $screen->id, 'settings_page_ewww-image-optimizer' ) ) {
-		if ( $ewwwio_temp_debug ) {
-			ewww_image_optimizer_set_option( 'ewww_image_optimizer_debug', false );
-		}
 		$ewwwio_temp_debug = false;
 		$ewww_debug        = '';
 	}
@@ -8354,9 +8350,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_debug'>" . esc_html__( 'Debugging', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ) . '</th>' .
 		"<td><input type='checkbox' id='ewww_image_optimizer_debug' name='ewww_image_optimizer_debug' value='true' " . ( ! $ewwwio_temp_debug && ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) == true ? "checked='true'" : '' ) . ' /> ' . esc_html__( 'Use this to provide information for support purposes, or if you feel comfortable digging around in the code to fix a problem you are experiencing.', 'ewww-image-optimizer' ) . "</td></tr>\n";
 	$output[] = "</table>\n";
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-		$output[] = 'DEBUG_PLACEHOLDER';
-	}
+
+	$output[] = 'DEBUG_PLACEHOLDER';
+
 	$output[] = "</div>\n";
 
 	$output[] = "<div id='ewww-contribute-settings'>\n";
@@ -8447,9 +8443,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 
 	$help_instructions = esc_html__( 'Enable the Debugging option and refresh this page to include debugging information with your question.', 'ewww-image-optimizer' ) . ' ' .
 		esc_html__( 'This will allow us to assist you more quickly.', 'ewww-image-optimizer' );
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-		global $ewww_debug;
 
+	global $ewww_debug;
+	if ( ! empty( $ewww_debug ) ) {
 		$debug_output = '<p style="clear:both"><b>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</b> <button id="ewww-copy-debug" class="button button-secondary" type="button">' . esc_html__( 'Copy', 'ewww-image-optimizer' ) . '</button>';
 		if ( is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
 			$debug_output .= "&emsp;<a href='admin.php?action=ewww_image_optimizer_view_debug_log'>" . esc_html( 'View Debug Log', 'ewww-image-optimizer' ) . "</a> - <a href='admin.php?action=ewww_image_optimizer_delete_debug_log'>" . esc_html( 'Remove Debug Log', 'ewww-image-optimizer' ) . '</a>';
@@ -8461,7 +8457,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			esc_html__( 'This will allow us to assist you more quickly.', 'ewww-image-optimizer' );
 
 		$output = str_replace( 'DEBUG_PLACEHOLDER', $debug_output, $output );
+	} else {
+		$output = str_replace( 'DEBUG_PLACEHOLDER', '', $output );
 	}
+
 	echo $output;
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
 		$current_user = wp_get_current_user();
@@ -8479,7 +8478,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$hs_identify  = array(
 			'email' => utf8_encode( $help_email ),
 		);
-		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
+		if ( ! empty( $ewww_debug ) ) {
 			$ewww_debug_array = explode( '<br>', $ewww_debug );
 			$ewww_debug_i     = 0;
 			foreach ( $ewww_debug_array as $ewww_debug_line ) {
@@ -8693,7 +8692,8 @@ function ewwwio_debug_message( $message ) {
 		WP_CLI::debug( $message );
 		return;
 	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
+	global $ewwwio_temp_debug;
+	if ( $ewwwio_temp_debug || ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 		$memory_limit = ewwwio_memory_limit();
 		if ( strlen( $message ) + 4000000 + memory_get_usage( true ) <= $memory_limit ) {
 			global $ewww_debug;
@@ -8981,7 +8981,6 @@ function ewww_image_optimizer_temp_debug_clear() {
 	global $ewwwio_temp_debug;
 	global $ewww_debug;
 	if ( $ewwwio_temp_debug ) {
-		ewww_image_optimizer_set_option( 'ewww_image_optimizer_debug', false );
 		$ewww_debug = '';
 	}
 	$ewwwio_temp_debug = false;
