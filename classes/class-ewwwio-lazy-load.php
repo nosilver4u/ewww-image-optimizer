@@ -153,7 +153,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 		$images_processed = 0;
 
 		$images = $this->get_images_from_html( preg_replace( '/<noscript.*?\/noscript>/', '', $buffer ), false );
-		if ( ewww_image_optimizer_iterable( $images[0] ) ) {
+		if ( ! empty( $images[0] ) && ewww_image_optimizer_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
 				$images_processed++;
 				if ( $images_processed <= $above_the_fold ) {
@@ -371,7 +371,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			$tag
 		);
 		foreach ( $exclusions as $exclusion ) {
-			if ( false !== strpos( $image, $exclusion ) ) {
+			if ( false !== strpos( $tag, $exclusion ) ) {
 				return false;
 			}
 		}

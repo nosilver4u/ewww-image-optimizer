@@ -193,6 +193,8 @@ add_action( 'admin_action_ewww_image_optimizer_delete_debug_log', 'ewww_image_op
 // Makes sure to flush out any scheduled jobs on deactivation.
 register_deactivation_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimizer_network_deactivate' );
 // add_action( 'shutdown', 'ewwwio_memory_output' );.
+// Make sure temp debugging does not get stuck enabled.
+add_action( 'shutdown', 'ewww_image_optimizer_temp_debug_clear' );
 // Makes sure we flush the debug info to the log on shutdown.
 add_action( 'shutdown', 'ewww_image_optimizer_debug_log' );
 
@@ -8972,6 +8974,19 @@ function ewww_image_optimizer_image_queue_debug() {
 			<button type="submit" class="button-secondary action"><?php esc_html_e( 'Clear all queues', 'ewww-image-optimizer' ); ?></button>
 		</form>
 <?php	}
+}
+
+/**
+ * Make sure to clear temp debug option on shutdown.
+ */
+function ewww_image_optimizer_temp_debug_clear() {
+	global $ewwwio_temp_debug;
+	global $ewww_debug;
+	if ( $ewwwio_temp_debug ) {
+		ewww_image_optimizer_set_option( 'ewww_image_optimizer_debug', false );
+		$ewww_debug = '';
+	}
+	$ewwwio_temp_debug = false;
 }
 
 /**
