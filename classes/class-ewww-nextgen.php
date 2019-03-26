@@ -114,7 +114,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		function maybe_get_more_sizes( $sizes, $meta ) {
 			if ( 2 == count( $sizes ) && ewww_image_optimizer_iterable( $meta ) ) {
 				foreach ( $meta as $meta_key => $meta_val ) {
-					if ( 0 === strpos( $meta_key, 'ngg0dyn-' ) && is_array( $meta_val ) && ! empty( $meta_val['filename'] ) ) {
+					if ( is_array( $meta_val ) && isset( $meta_val['width'] ) ) {
 						$sizes[] = $meta_key;
 					}
 				}
