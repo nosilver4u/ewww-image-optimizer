@@ -614,7 +614,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 	 * @return bool|string The content width, if set. Default false.
 	 */
 	function get_content_width() {
-		$content_width = isset( $GLOBALS['content_width'] ) && is_numeric( $GLOBALS['content_width'] ) ? $GLOBALS['content_width'] : 1920;
+		$content_width = isset( $GLOBALS['content_width'] ) && is_numeric( $GLOBALS['content_width'] ) && $GLOBALS['content_width'] > 100 ? $GLOBALS['content_width'] : 1920;
 		if ( function_exists( 'twentynineteen_setup' ) && 640 == $content_width ) {
 			$content_width = 932;
 		}
