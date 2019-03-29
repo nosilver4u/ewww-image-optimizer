@@ -176,6 +176,8 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 
 = 4.7.2 =
 * fixed: fatal error from NextGEN get_image_sizes() method
+* fixed: debugging mode gets stuck
+* fixed: ExactDN has unexpected results when content_width global equals zero
 
 = 4.7.1 =
 * added: CSS background image support for <li> elements

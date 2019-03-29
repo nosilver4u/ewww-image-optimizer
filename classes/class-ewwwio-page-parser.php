@@ -30,14 +30,27 @@ class EWWWIO_Page_Parser {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$images = array();
 
+		$fallback_pattern = '';
 		if ( $hyperlinks ) {
-			$search_pattern = '#(?:<figure[^>]+?class\s*=\s*["\'](?P<figure_class>[\w\s-]+?)["\'][^>]*?>\s*)?(?:<a[^>]+?href\s*=\s*["\'](?P<link_url>[^\s]+?)["\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'].*?>){1}(?:\s*</a>)?#is';
+			$search_pattern   = '#(?:<figure[^>]+?class\s*=\s*["\'](?P<figure_class>[\w\s-]+?)["\'][^>]*?>\s*)?(?:<a[^>]+?href\s*=\s*["\'](?P<link_url>[^\s]+?)["\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'].*?>){1}(?:\s*</a>)?#is';
+			$fallback_pattern = '#(?:<figure[^>]+?class\s*=\s*["\'](?P<figure_class>[\w\s-]+?)["\'][^>]*?>\s*)?(?:<a[^>]+?href\s*=\s*["\'](?P<link_url>[^\s]+?)["\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\']?(?P<img_url>[^\s]+?)["\']?.*?>){1}(?:\s*</a>)?#is';
 		} elseif ( $src_required ) {
-			$search_pattern = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'].*?>)#is';
+			$search_pattern   = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'].*?>)#is';
+			$fallback_pattern = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\']?(?P<img_url>[^\s]+?)["\']?.*?>)#is';
 		} else {
 			$search_pattern = '#(?P<img_tag><img.*?>)#is';
 		}
 		if ( preg_match_all( $search_pattern, $content, $images ) ) {
+			foreach ( $images as $key => $unused ) {
+				// Simplify the output as much as possible.
+				if ( is_numeric( $key ) && $key > 0 ) {
+					unset( $images[ $key ] );
+				}
+			}
+			return $images;
+		}
+		ewwwio_debug_message( 'trying fallback pattern' );
+		if ( preg_match_all( $fallback_pattern, $content, $images ) ) {
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible.
 				if ( is_numeric( $key ) && $key > 0 ) {
