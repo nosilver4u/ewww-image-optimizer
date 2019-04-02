@@ -1,3 +1,10 @@
+= 4.7.2 =
+* changed: JS WebP no longer necessary with ExactDN
+* fixed: fatal error from NextGEN get_image_sizes() method
+* fixed: debugging mode gets stuck
+* fixed: ExactDN has unexpected results when content_width global equals zero
+* fixed: img elements with unquoted src attributes ignored by ExactDN, Lazy Load, and JS WebP
+
 = 4.7.1 =
 * added: CSS background image support for <li> elements
 * added: ExactDN + Lazy Load will auto-calculate dimensions for img elements without srcset/responsive markup

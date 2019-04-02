@@ -5,7 +5,7 @@ Tags: image, compress, resize, optimize, optimization, lossless, lossy, seo, web
 Requires at least: 4.9
 Tested up to: 5.1
 Requires PHP: 5.6
-Stable tag: 4.7.1
+Stable tag: 4.7.2
 License: GPLv3
 
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
@@ -59,7 +59,7 @@ All images created by the built-in WP_Image_Editor class will be automatically o
 
 = WebP Images =
 
-One-click WebP with ExactDN and JS WebP Rewriting. Otherwise, can generate WebP versions of your images, and enables you to serve even smaller images to supported browsers. Several methods are available for serving WebP images, including Apache-compatible rewrite rules and our JS WebP Rewriting option compatible with caches and CDNs. Also works with the WebP option in the Cache Enabler plugin from KeyCDN.
+Automatic WebP conversion with ExactDN, no additional configuration. Otherwise, can generate WebP versions of your images, and enables you to serve even smaller images to supported browsers. Several methods are available for serving WebP images, including Apache-compatible rewrite rules and our JS WebP Rewriting option compatible with caches and CDNs. Also works with the WebP option in the Cache Enabler plugin from KeyCDN.
 
 = WP-CLI =
 
@@ -175,9 +175,11 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.7.2 =
+* changed: JS WebP no longer necessary with ExactDN
 * fixed: fatal error from NextGEN get_image_sizes() method
 * fixed: debugging mode gets stuck
 * fixed: ExactDN has unexpected results when content_width global equals zero
+* fixed: img elements with unquoted src attributes ignored by ExactDN, Lazy Load, and JS WebP
 
 = 4.7.1 =
 * added: CSS background image support for <li> elements
