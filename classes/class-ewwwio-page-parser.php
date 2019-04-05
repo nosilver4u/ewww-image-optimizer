@@ -15,6 +15,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 class EWWWIO_Page_Parser {
 
 	/**
+	 * Allowed image extensions.
+	 *
+	 * @access private
+	 * @var array $extensions
+	 */
+	protected $extensions = array(
+		'gif',
+		'jpg',
+		'jpeg',
+		'jpe',
+		'png',
+	);
+
+	/**
 	 * Match all images and any relevant <a> tags in a block of HTML.
 	 *
 	 * The hyperlinks param implies that the src attribute is required, but not the other way around.
@@ -143,6 +157,24 @@ class EWWWIO_Page_Parser {
 			}
 		}
 		return array( false, false );
+	}
+
+	/**
+	 * Get the width from an image element.
+	 *
+	 * @param string $img The full image element.
+	 * @return string The width found or an empty string.
+	 */
+	public function get_img_width( $img ) {
+		$width = $this->get_attribute( $img, 'width' );
+		// Then check for an inline max-width directive.
+		$style = $this->get_attribute( $img, 'style' );
+		if ( $style && preg_match( '#max-width:\s?(\d+)px#', $style, $max_width_string ) ) {
+			if ( $max_width_string[1] && ( ! $width || $max_width_string[1] < $width ) ) {
+				$width = $max_width_string[1];
+			}
+		}
+		return $width;
 	}
 
 	/**

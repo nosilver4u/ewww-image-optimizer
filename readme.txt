@@ -174,6 +174,10 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.7.3 =
+* added: disable WebP script block on certain pages by defining EWWW_IMAGE_OPTIMIZER_NO_JS as true
+* changed: use SVG for placeholder if width and height are known when LQIP is disabled or ExactDN is not available
+
 = 4.7.2 =
 * changed: JS WebP no longer necessary with ExactDN
 * fixed: fatal error from NextGEN get_image_sizes() method

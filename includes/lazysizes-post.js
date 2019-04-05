@@ -33,7 +33,7 @@ document.addEventListener('lazybeforeunveil', function(e){
 	var wrongSize = false;
 	var srcset = target.getAttribute('data-srcset');
         if ( ! srcset && target.naturalWidth) {
-		console.log('we have something');
+		//console.log('we have something');
         	if ((target.naturalWidth > 1) && (target.naturalHeight > 1)) {
                 	// For each image with a natural width which isn't
                 	// a 1x1 image, check its size.
@@ -41,15 +41,15 @@ document.addEventListener('lazybeforeunveil', function(e){
                 	var wrongWidth = (target.clientWidth * 1.25 < target.naturalWidth);
                 	var wrongHeight = (target.clientHeight * 1.25 < target.naturalHeight);
                 	if (wrongWidth || wrongHeight) {
-				console.log(Math.round(target.clientWidth * dPR) + "x" + Math.round(target.clientHeight * dPR) + ", natural is " +
-					target.naturalWidth + "x" + target.naturalHeight + "!");
+				//console.log(Math.round(target.clientWidth * dPR) + "x" + Math.round(target.clientHeight * dPR) + ", natural is " +
+				//	target.naturalWidth + "x" + target.naturalHeight + "!");
 				var targetWidth = Math.round(target.offsetWidth * dPR);
 				var targetHeight = Math.round(target.offsetHeight * dPR);
 
 				var src = target.getAttribute('data-src');
         			var webpsrc = target.getAttribute('data-src-webp');
         			if(ewww_webp_supported && webpsrc && -1 == src.search('webp=1')){
-					console.log('using data-src-webp');
+					//console.log('using data-src-webp');
 					src = webpsrc;
 				}
 				var newSrc = constrainSrc(src,targetWidth,targetHeight);

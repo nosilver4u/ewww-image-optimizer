@@ -16,21 +16,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class ExactDN extends EWWWIO_Page_Parser {
 
 	/**
-	 * Allowed image extensions.
-	 *
-	 * @access private
-	 * @var array $extensions
-	 */
-	protected $extensions = array(
-		'gif',
-		'jpg',
-		'jpeg',
-		'jpe',
-		'png',
-	);
-
-
-	/**
 	 * A list of user-defined exclusions, populated by validate_user_exclusions().
 	 *
 	 * @access protected
@@ -627,24 +612,6 @@ class ExactDN extends EWWWIO_Page_Parser {
 	}
 
 	/**
-	 * Get the width from an image element.
-	 *
-	 * @param string $img The full image element.
-	 * @return string The width found or an empty string.
-	 */
-	public function get_img_width( $img ) {
-		$width = $this->get_attribute( $img, 'width' );
-		// Then check for an inline max-width directive.
-		$style = $this->get_attribute( $img, 'style' );
-		if ( $style && preg_match( '#max-width:\s?(\d+)px#', $style, $max_width_string ) ) {
-			if ( $max_width_string[1] && ( ! $width || $max_width_string[1] < $width ) ) {
-				$width = $max_width_string[1];
-			}
-		}
-		return $width;
-	}
-
-	/**
 	 * Get width within an ExactDN url.
 	 *
 	 * @param string $url The ExactDN url to parse.
@@ -1233,11 +1200,14 @@ class ExactDN extends EWWWIO_Page_Parser {
 					$args      = array();
 					$div_class = $this->get_attribute( $div, 'class' );
 					if ( false !== strpos( $div_class, 'alignfull' ) && current_theme_supports( 'align-wide' ) ) {
-						$args['w'] = apply_filters( 'exactdn_full_align_image_width', 1920 );
+						$args['w'] = apply_filters( 'exactdn_full_align_bgimage_width', 1920, $bg_image_url );
 					} elseif ( false !== strpos( $div_class, 'alignwide' ) && current_theme_supports( 'align-wide' ) ) {
-						$args['w'] = apply_filters( 'exactdn_wide_align_image_width', 1500 );
+						$args['w'] = apply_filters( 'exactdn_wide_align_bgimage_width', 1500, $bg_image_url );
 					} elseif ( $content_width ) {
-						$args['w'] = $content_width;
+						$args['w'] = apply_filters( 'exactdn_content_bgimage_width', $content_width, $bg_image_url );
+					}
+					if ( isset( $args['w'] ) && empty( $args['w'] ) ) {
+						unset( $args['w'] );
 					}
 					$exactdn_bg_image_url = $this->generate_url( $bg_image_url, $args );
 					if ( $bg_image_url !== $exactdn_bg_image_url ) {

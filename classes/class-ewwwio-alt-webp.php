@@ -771,6 +771,9 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	 * Load minified inline version of webp script (from jscompress.com).
 	 */
 	function inline_script() {
+		if ( defined( 'EWWW_IMAGE_OPTIMIZER_NO_JS' ) && EWWW_IMAGE_OPTIMIZER_NO_JS ) {
+			return;
+		}
 		ewwwio_debug_message( 'loading webp script without wp_add_inline_script' );
 		echo "<script>$this->inline_script</script>";
 	}

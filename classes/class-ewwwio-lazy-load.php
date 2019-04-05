@@ -172,6 +172,37 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 					if ( false === strpos( $file, 'nggid' ) && apply_filters( 'ewww_image_optimizer_use_lqip', true ) && $this->parsing_exactdn && strpos( $file, $this->exactdn_domain ) ) {
 						$placeholder_src = add_query_arg( array( 'lazy' => 1 ), $file );
 						ewwwio_debug_message( "current placeholder is $placeholder_src" );
+					} else {
+						// Get image dimensions for inline SVG placeholder.
+						list( $width, $height ) = $this->get_dimensions_from_filename( $file );
+
+						$width_attr  = $this->get_attribute( $image, 'width' );
+						$height_attr = $this->get_attribute( $image, 'height' );
+
+						if ( false === $width || false === $height ) {
+							ewwwio_debug_message( "dimensions not found in $file, using attrs" );
+							$width  = $width_attr;
+							$height = $height_attr;
+						}
+
+						// Can't use a relative width or height, so unset the dimensions in favor of not breaking things.
+						if ( false !== strpos( $width, '%' ) || false !== strpos( $height, '%' ) ) {
+							$width  = false;
+							$height = false;
+						}
+
+						// Falsify them if empty.
+						$width  = $width ? (int) $width : false;
+						$height = $height ? (int) $height : false;
+						if ( $width && $height ) {
+							$placeholder_src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 $width $height'%3E%3C/svg%3E";
+							if ( empty( $width_attr ) ) {
+								$this->set_attribute( $image, 'width', $width );
+							}
+							if ( empty( $height_attr ) ) {
+								$this->set_attribute( $image, 'height', $height );
+							}
+						}
 					}
 
 					if ( $srcset ) {
