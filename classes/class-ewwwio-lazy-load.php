@@ -56,6 +56,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 
 		// Filter early, so that others at the default priority take precendence.
 		add_filter( 'ewww_image_optimizer_use_lqip', array( $this, 'maybe_lqip' ), 9 );
+		add_filter( 'ewww_image_optimizer_use_siip', array( $this, 'maybe_siip' ), 9 );
 
 		// Load the appropriate JS.
 		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
@@ -172,7 +173,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 					if ( false === strpos( $file, 'nggid' ) && apply_filters( 'ewww_image_optimizer_use_lqip', true ) && $this->parsing_exactdn && strpos( $file, $this->exactdn_domain ) ) {
 						$placeholder_src = add_query_arg( array( 'lazy' => 1 ), $file );
 						ewwwio_debug_message( "current placeholder is $placeholder_src" );
-					} else {
+					} elseif ( apply_filters( 'ewww_image_optimizer_use_siip', true ) ) {
 						// Get image dimensions for inline SVG placeholder.
 						list( $width, $height ) = $this->get_dimensions_from_filename( $file );
 
@@ -206,6 +207,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 					}
 
 					if ( $srcset ) {
+						$placeholder_src = apply_filters( 'ewww_image_optimizer_lazy_placeholder', $placeholder_src, $image );
 						if ( strpos( $placeholder_src, '64,R0lGOD' ) ) {
 							$this->set_attribute( $image, 'srcset', $placeholder_src, true );
 							$this->remove_attribute( $image, 'src' );
@@ -420,6 +422,19 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			return false;
 		}
 		return $use_lqip;
+	}
+
+	/**
+	 * Check if SIIP should be used, but allow filters to alter the option.
+	 *
+	 * @param bool $use_siip Whether LL should use SVG inline image placeholders.
+	 * @return bool True to use SIIP, false to skip them.
+	 */
+	function maybe_siip( $use_siip ) {
+		if ( defined( 'EWWW_IMAGE_OPTIMIZER_USE_SIIP' ) && ! EWWW_IMAGE_OPTIMIZER_USE_SIIP ) {
+			return false;
+		}
+		return $use_siip;
 	}
 
 	/**
