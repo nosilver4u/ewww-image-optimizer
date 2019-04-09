@@ -399,7 +399,9 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 		$exclusions = apply_filters(
 			'ewww_image_optimizer_lazy_bg_image_exclusions',
 			array(
+				'data-no-lazy=',
 				'lazyload',
+				'skip-lazy',
 			),
 			$tag
 		);

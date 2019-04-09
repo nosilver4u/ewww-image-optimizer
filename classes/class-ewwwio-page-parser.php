@@ -46,13 +46,13 @@ class EWWWIO_Page_Parser {
 
 		$fallback_pattern = '';
 		if ( $hyperlinks ) {
-			$search_pattern   = '#(?:<figure[^>]+?class\s*=\s*["\'](?P<figure_class>[\w\s-]+?)["\'][^>]*?>\s*)?(?:<a[^>]+?href\s*=\s*["\'](?P<link_url>[^\s]+?)["\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'].*?>){1}(?:\s*</a>)?#is';
-			$fallback_pattern = '#(?:<figure[^>]+?class\s*=\s*["\'](?P<figure_class>[\w\s-]+?)["\'][^>]*?>\s*)?(?:<a[^>]+?href\s*=\s*["\'](?P<link_url>[^\s]+?)["\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\']?(?P<img_url>[^\s]+?)["\']?.*?>){1}(?:\s*</a>)?#is';
+			$search_pattern   = '#(?:<figure[^>]*?\s+?class\s*=\s*["\'](?P<figure_class>[\w\s-]+?)["\'][^>]*?>\s*)?(?:<a[^>]*?\s+?href\s*=\s*["\'](?P<link_url>[^\s]+?)["\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'][^>]*?>){1}(?:\s*</a>)?#is';
+			$unquoted_pattern = '#(?:<figure[^>]*?\s+?class\s*=\s*(?P<figure_class>[\w-]+)[^>]*?>\s*)?(?:<a[^>]*?\s+?href\s*=\s*(?P<link_url>[^"\'][^\s>]+)[^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*(?P<img_url>[^"\'][^\s>]+)[^>]*?>){1}(?:\s*</a>)?#is';
 		} elseif ( $src_required ) {
-			$search_pattern   = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'].*?>)#is';
-			$fallback_pattern = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\']?(?P<img_url>[^\s]+?)["\']?.*?>)#is';
+			$search_pattern   = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'][^>]*?>)#is';
+			$unquoted_pattern = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*(?P<img_url>[^"\'][^\s>]+)[^>]*?>)#is';
 		} else {
-			$search_pattern = '#(?P<img_tag><img.*?>)#is';
+			$search_pattern = '#(?P<img_tag><img\s[^>]*?>)#is';
 		}
 		if ( preg_match_all( $search_pattern, $content, $images ) ) {
 			foreach ( $images as $key => $unused ) {
@@ -61,19 +61,24 @@ class EWWWIO_Page_Parser {
 					unset( $images[ $key ] );
 				}
 			}
-			return $images;
 		}
-		ewwwio_debug_message( 'trying fallback pattern' );
-		if ( preg_match_all( $fallback_pattern, $content, $images ) ) {
-			foreach ( $images as $key => $unused ) {
+		ewwwio_debug_message( 'trying unquoted pattern' );
+		if ( preg_match_all( $unquoted_pattern, $content, $unquoted_images ) ) {
+			foreach ( $unquoted_images as $key => $unused ) {
 				// Simplify the output as much as possible.
 				if ( is_numeric( $key ) && $key > 0 ) {
-					unset( $images[ $key ] );
+					unset( $unquoted_images[ $key ] );
 				}
 			}
-			return $images;
 		}
-		return array();
+		if ( ! empty( $images ) && ! empty( $unquoted_images ) ) {
+			$images = array_merge_recursive( $images, $unquoted_images );
+			if ( ! empty( $images[0] ) && ! empty( $images[1] ) ) {
+				$images[0] = array_merge( $images[0], $images[1] );
+				unset( $images[1] );
+			}
+		}
+		return $images;
 	}
 
 	/**
@@ -88,7 +93,7 @@ class EWWWIO_Page_Parser {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$images = array();
 
-		if ( preg_match_all( '#(?P<noscript_tag><noscript[^>]*?>\s*)(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'].*?>){1}(?:\s*</noscript>)?#is', $content, $images ) ) {
+		if ( preg_match_all( '#(?P<noscript_tag><noscript[^>]*?>\s*)(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'][^>]*?>){1}(?:\s*</noscript>)?#is', $content, $images ) ) {
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible, mostly for confirming test results.
 				if ( is_numeric( $key ) && $key > 0 ) {
@@ -127,7 +132,7 @@ class EWWWIO_Page_Parser {
 		if ( ! ctype_alpha( $tag_name ) ) {
 			return array();
 		}
-		if ( preg_match_all( '#<' . $tag_name . '[^>]+?>#is', $content, $elements ) ) {
+		if ( preg_match_all( '#<' . $tag_name . '\s[^>]+?>#is', $content, $elements ) ) {
 			return $elements[0];
 		}
 		return array();
@@ -186,13 +191,13 @@ class EWWWIO_Page_Parser {
 	 */
 	function get_attribute( $element, $name ) {
 		// Don't forget, back references cannot be used in character classes.
-		if ( preg_match( '#[\s"\']' . $name . '\s*=\s*(["\'])([^"\']+?)\1#is', $element, $attr_matches ) ) {
+		if ( preg_match( '#[\s]' . $name . '\s*=\s*(["\'])([^"\']+?)\1#is', $element, $attr_matches ) ) {
 			if ( ! empty( $attr_matches[2] ) ) {
 				return $attr_matches[2];
 			}
 		}
 		// If there were not any matches with quotes, look for unquoted attributes, no spaces or quotes allowed.
-		if ( preg_match( '#[\s"\']' . $name . '\s*=\s*([^\s"\']+?)#is', $element, $attr_matches ) ) {
+		if ( preg_match( '#[\s]' . $name . '\s*=\s*([^"\'][^\s>]+)#is', $element, $attr_matches ) ) {
 			if ( ! empty( $attr_matches[1] ) ) {
 				return $attr_matches[1];
 			}
@@ -235,7 +240,7 @@ class EWWWIO_Page_Parser {
 				$element = $new_element;
 				return;
 			}
-			$element = preg_replace( '#\s' . $name . '\s*=\s*[^\s"\']+?#is', ' ', $element );
+			$element = preg_replace( '#\s' . $name . '\s*=\s*[^"\'][^\s>]+#is', ' ', $element );
 		}
 		$closing = ' />';
 		if ( false === strpos( $element, '/>' ) ) {
@@ -256,8 +261,8 @@ class EWWWIO_Page_Parser {
 	 */
 	function remove_attribute( &$element, $name ) {
 		// Don't forget, back references cannot be used in character classes.
-		$element = preg_replace( '# ' . $name . '\s*=\s*(["\'])[^"\']+?\1#is', ' ', $element );
-		$element = preg_replace( '# ' . $name . '\s*=\s*[^\s"\']+?#is', ' ', $element );
+		$element = preg_replace( '#\s' . $name . '\s*=\s*(["\'])[^"\']+?\1#is', ' ', $element );
+		$element = preg_replace( '#\s' . $name . '\s*=\s*[^"\'][^\s>]+#is', ' ', $element );
 	}
 
 	/**
