@@ -37,7 +37,7 @@ if ( class_exists( 'WP_Image_Editor_Gmagick' ) ) {
 			if ( ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) || ! EWWWIO_EDITOR_OVERWRITE ) && is_file( $filename ) ) {
 				ewwwio_debug_message( "detected existing file: $filename" );
 				$current_size = getimagesize( $filename );
-				if ( $current_size && $this->size['width'] == $current_size[0] && $this->size['height'] == $current_size[1] ) {
+				if ( $current_size && (int) $this->size['width'] === (int) $current_size[0] && (int) $this->size['height'] === (int) $current_size[1] ) {
 					ewwwio_debug_message( "existing file has same dimensions, not saving $filename" );
 					return array(
 						'path'      => $filename,

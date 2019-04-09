@@ -81,7 +81,7 @@ function ewww_image_optimizer_webp_scan() {
 function ewww_image_optimizer_webp_script( $hook ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Make sure we are being called from the migration page.
-	if ( 'admin_page_ewww-image-optimizer-webp-migrate' != $hook ) {
+	if ( 'admin_page_ewww-image-optimizer-webp-migrate' !== $hook ) {
 		return;
 	}
 	$images = ewww_image_optimizer_webp_scan();

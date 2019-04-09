@@ -533,7 +533,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 							}
 						}
 					}
-					if ( $picture != $pictures[ $index ] ) {
+					if ( $picture !== $pictures[ $index ] ) {
 						ewwwio_debug_message( 'found webp for picture element' );
 						$buffer = str_replace( $pictures[ $index ], $picture, $buffer );
 					}
@@ -559,7 +559,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 						ewwwio_debug_message( "found webp for ngg data-thumbnail: $thumb" );
 					}
 				}
-				if ( $link != $links[ $index ] ) {
+				if ( $link !== $links[ $index ] ) {
 					$buffer = str_replace( $links[ $index ], $link, $buffer );
 				}
 			}
@@ -591,7 +591,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 						}
 						$param_num++;
 					}
-					if ( $listitem != $listitems[ $index ] ) {
+					if ( $listitem !== $listitems[ $index ] ) {
 						$buffer = str_replace( $listitems[ $index ], $listitem, $buffer );
 					}
 				}

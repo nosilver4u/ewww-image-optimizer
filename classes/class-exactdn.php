@@ -170,7 +170,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 		// Improve the default content_width for Twenty Nineteen.
 		global $content_width;
-		if ( function_exists( 'twentynineteen_setup' ) && 640 == $content_width ) {
+		if ( function_exists( 'twentynineteen_setup' ) && 640 === (int) $content_width ) {
 			$content_width = 932;
 		}
 
@@ -600,7 +600,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 	 */
 	function get_content_width() {
 		$content_width = isset( $GLOBALS['content_width'] ) && is_numeric( $GLOBALS['content_width'] ) && $GLOBALS['content_width'] > 100 ? $GLOBALS['content_width'] : 1920;
-		if ( function_exists( 'twentynineteen_setup' ) && 640 == $content_width ) {
+		if ( function_exists( 'twentynineteen_setup' ) && 640 === (int) $content_width ) {
 			$content_width = 932;
 		}
 		/**
@@ -819,7 +819,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 						$size = array_pop( $size );
 
 						ewwwio_debug_message( "detected $size" );
-						if ( false === $width && false === $height && 'full' != $size && array_key_exists( $size, $image_sizes ) ) {
+						if ( false === $width && false === $height && 'full' !== $size && array_key_exists( $size, $image_sizes ) ) {
 							$width     = (int) $image_sizes[ $size ]['width'];
 							$height    = (int) $image_sizes[ $size ]['height'];
 							$transform = $image_sizes[ $size ]['crop'] ? 'resize' : 'fit';
@@ -854,7 +854,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 							$attachment = get_post( $attachment_id );
 
 							// Basic check on returned post object.
-							if ( is_object( $attachment ) && ! is_wp_error( $attachment ) && 'attachment' == $attachment->post_type ) {
+							if ( is_object( $attachment ) && ! is_wp_error( $attachment ) && 'attachment' === $attachment->post_type ) {
 								$src_per_wp = wp_get_attachment_image_src( $attachment_id, 'full' );
 
 								if ( $src_per_wp && is_array( $src_per_wp ) ) {
@@ -876,7 +876,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 								if ( $src_per_wp && $this->validate_image_url( $src_per_wp[0] ) ) {
 									ewwwio_debug_message( "detected $width filenamew $filename_width" );
-									if ( $resize_existing || ( $width && $filename_width != $width ) ) {
+									if ( $resize_existing || ( $width && (int) $filename_width !== (int) $width ) ) {
 										ewwwio_debug_message( 'resizing existing or width does not match' );
 										$src = $src_per_wp[0];
 									}
@@ -951,7 +951,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 						$args['h'] = $height;
 					}
 
-					if ( ! $resize_existing && ( ! $width || $filename_width == $width ) ) {
+					if ( ! $resize_existing && ( ! $width || (int) $filename_width === (int) $width ) ) {
 						ewwwio_debug_message( 'preventing resize' );
 						$args = array();
 					} elseif ( ! $fullsize_url ) {
@@ -989,7 +989,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 					// Modify image tag if ExactDN function provides a URL
 					// Ensure changes are only applied to the current image by copying and modifying the matched tag, then replacing the entire tag with our modified version.
-					if ( $src != $exactdn_url ) {
+					if ( $src !== $exactdn_url ) {
 						$new_tag = $tag;
 
 						// If present, replace the link href with an ExactDN URL for the full-size image.
@@ -1009,10 +1009,10 @@ class ExactDN extends EWWWIO_Page_Parser {
 						}
 
 						// Check if content width pushed the respimg sizes attribute too far down.
-						if ( ! empty( $constrain_width ) && $constrain_width != $content_width ) {
+						if ( ! empty( $constrain_width ) && (int) $constrain_width !== (int) $content_width ) {
 							$sizes_attr     = $this->get_attribute( $new_tag, 'sizes' );
 							$new_sizes_attr = str_replace( ' ' . $content_width . 'px', ' ' . $constrain_width . 'px', $sizes_attr );
-							if ( $sizes_attr != $new_sizes_attr ) {
+							if ( $sizes_attr !== $new_sizes_attr ) {
 								$new_tag = str_replace( $sizes_attr, $new_sizes_attr, $new_tag );
 							}
 						}
@@ -1027,7 +1027,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 						if ( isset( $placeholder_src ) && $this->validate_image_url( $placeholder_src ) ) {
 							$placeholder_src = $this->generate_url( $placeholder_src );
 
-							if ( $placeholder_src != $placeholder_src_orig ) {
+							if ( $placeholder_src !== $placeholder_src_orig ) {
 								$new_tag = str_replace( $placeholder_src_orig, str_replace( '&#038;', '&', esc_url( $placeholder_src ) ), $new_tag );
 							}
 
@@ -1072,7 +1072,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 					$new_tag = $tag;
 					// If Lazy Load is in use, pass placeholder image through ExactDN.
 					$placeholder_src = $this->generate_url( $placeholder_src );
-					if ( $placeholder_src != $placeholder_src_orig ) {
+					if ( $placeholder_src !== $placeholder_src_orig ) {
 						$new_tag = str_replace( $placeholder_src_orig, str_replace( '&#038;', '&', esc_url( $placeholder_src ) ), $new_tag );
 						// Replace original tag with modified version.
 						$content = str_replace( $tag, $new_tag, $content );
@@ -1237,7 +1237,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 		$prz_match = preg_match( '#productDetailsForPrz=[^<]+?thumbnailUrl:\'([^\']+?)\'[^<]+?</script>#', $content, $prz_detail_matches );
 		if ( $prz_match && ! empty( $prz_detail_matches[1] ) && $this->validate_image_url( $prz_detail_matches[1] ) ) {
 			$prz_thumb = $this->generate_url( $prz_detail_matches[1], apply_filters( 'exactdn_personalizationdotcom_thumb_args', '', $prz_detail_matches[1] ) );
-			if ( $prz_thumb != $prz_detail_matches ) {
+			if ( $prz_thumb !== $prz_detail_matches ) {
 				$content = str_replace( "thumbnailUrl:'{$prz_detail_matches[1]}'", "thumbnailUrl:'$prz_thumb'", $content );
 			}
 		}
@@ -1255,16 +1255,16 @@ class ExactDN extends EWWWIO_Page_Parser {
 		if ( ! wp_doing_ajax() ) {
 			return $allow;
 		}
-		if ( ! empty( $_POST['action'] ) && 'eddvbugm_viewport_downloads' == $_POST['action'] ) {
+		if ( ! empty( $_POST['action'] ) && 'eddvbugm_viewport_downloads' === $_POST['action'] ) {
 			return true;
 		}
-		if ( ! empty( $_POST['action'] ) && 'vc_get_vc_grid_data' == $_POST['action'] ) {
+		if ( ! empty( $_POST['action'] ) && 'vc_get_vc_grid_data' === $_POST['action'] ) {
 			return true;
 		}
-		if ( ! empty( $_POST['action'] ) && 'Essential_Grid_Front_request_ajax' == $_POST['action'] ) {
+		if ( ! empty( $_POST['action'] ) && 'Essential_Grid_Front_request_ajax' === $_POST['action'] ) {
 			return true;
 		}
-		if ( ! empty( $_POST['action'] ) && 'mabel-rpn-getnew-purchased-products' == $_POST['action'] ) {
+		if ( ! empty( $_POST['action'] ) && 'mabel-rpn-getnew-purchased-products' === $_POST['action'] ) {
 			return true;
 		}
 		return $allow;
@@ -1436,10 +1436,10 @@ class ExactDN extends EWWWIO_Page_Parser {
 				$transform = $image_args['crop'] ? 'resize' : 'fit';
 
 				// Check specified image dimensions and account for possible zero values; ExactDN fails to resize if a dimension is zero.
-				if ( 0 == $image_args['width'] || 0 == $image_args['height'] ) {
-					if ( 0 == $image_args['width'] && 0 < $image_args['height'] ) {
+				if ( ! $image_args['width'] || ! $image_args['height'] ) {
+					if ( ! $image_args['width'] && 0 < $image_args['height'] ) {
 						$exactdn_args['h'] = $image_args['height'];
-					} elseif ( 0 == $image_args['height'] && 0 < $image_args['width'] ) {
+					} elseif ( ! $image_args['height'] && 0 < $image_args['width'] ) {
 						$exactdn_args['w'] = $image_args['width'];
 					}
 				} else {
@@ -1462,8 +1462,8 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 				if (
 					! empty( $image_meta['sizes'] ) && ! empty( $image_meta['width'] ) && ! empty( $image_meta['height'] ) &&
-					$image_args['width'] == $image_meta['width'] &&
-					$image_args['height'] == $image_meta['height']
+					(int) $image_args['width'] === (int) $image_meta['width'] &&
+					(int) $image_args['height'] === (int) $image_meta['height']
 				) {
 					ewwwio_debug_message( 'image args match size of original, just use that' );
 					$size = 'full';
@@ -1639,15 +1639,15 @@ class ExactDN extends EWWWIO_Page_Parser {
 			$url = $source['url'];
 
 			list( $width, $height ) = $this->get_dimensions_from_filename( $url );
-			if ( ! $resize_existing && 'w' === $source['descriptor'] && $source['value'] == $width ) {
+			if ( ! $resize_existing && 'w' === $source['descriptor'] && (int) $source['value'] === (int) $width ) {
 				ewwwio_debug_message( "preventing further processing for $url" );
 				$sources[ $i ]['url'] = $this->generate_url( $source['url'] );
 				continue;
 			}
 
 			if ( $image_meta && ! empty( $image_meta['width'] ) ) {
-				if ( ( $height && $image_meta['height'] == $height && $width && $image_meta['width'] == $width ) ||
-					( ! $height && ! $width && $image_meta['width'] == $source['value'] )
+				if ( ( $height && (int) $image_meta['height'] === (int) $height && $width && (int) $image_meta['width'] === (int) $width ) ||
+					( ! $height && ! $width && (int) $image_meta['width'] === (int) $source['value'] )
 				) {
 					ewwwio_debug_message( "preventing further processing for (detected) full-size $url" );
 					$sources[ $i ]['url'] = $this->generate_url( $source['url'] );
@@ -1667,7 +1667,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 			$args = array();
 			if ( 'w' === $source['descriptor'] ) {
-				if ( $height && ( $source['value'] == $width ) ) {
+				if ( $height && ( (int) $source['value'] === (int) $width ) ) {
 					$args['resize'] = $width . ',' . $height;
 				} else {
 					$args['w'] = $source['value'];
@@ -1734,7 +1734,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 			foreach ( $multipliers as $multiplier ) {
 
 				$newwidth = intval( $base * $multiplier );
-				if ( 1920 == $multiplier ) {
+				if ( 1920 === (int) $multiplier ) {
 					$newwidth = 1920;
 				}
 				if ( $newwidth < 50 ) {
@@ -1749,7 +1749,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 				if ( 1 === $multiplier && abs( $newwidth - $fullwidth ) < 5 ) {
 					$args = array();
-				} elseif ( 'soft' == $crop ) {
+				} elseif ( 'soft' === $crop ) {
 					$args = array(
 						'w' => $newwidth,
 					);
@@ -1860,7 +1860,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 			foreach ( $multipliers as $multiplier ) {
 				$newwidth = intval( $width * $multiplier );
-				if ( 1920 == $multiplier ) {
+				if ( 1920 === (int) $multiplier ) {
 					$newwidth = 1920;
 				}
 				if ( $newwidth < 50 ) {
@@ -2060,7 +2060,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 		// Bail if scheme isn't http or port is set that isn't port 80.
 		if (
-			( 'http' != $url_info['scheme'] || ! in_array( $url_info['port'], array( 80, null ) ) ) &&
+			( 'http' !== $url_info['scheme'] || ( 80 !== (int) $url_info['port'] && ! is_null( $url_info['port'] ) ) ) &&
 			/**
 			 * Tells ExactDN to ignore images that are served via HTTPS.
 			 *
@@ -2097,7 +2097,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 		}
 
 		// Ensure image extension is acceptable, unless it's a dynamic NextGEN image.
-		if ( ! in_array( strtolower( pathinfo( $url_info['path'], PATHINFO_EXTENSION ) ), $this->extensions ) && false === strpos( $url_info['path'], 'nextgen-image/' ) ) {
+		if ( ! in_array( strtolower( pathinfo( $url_info['path'], PATHINFO_EXTENSION ) ), $this->extensions, true ) && false === strpos( $url_info['path'], 'nextgen-image/' ) ) {
 			ewwwio_debug_message( 'invalid extension' );
 			return false;
 		}
@@ -2156,7 +2156,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 	 */
 	protected function image_sizes() {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-		if ( null == self::$image_sizes ) {
+		if ( is_null( self::$image_sizes ) ) {
 			global $_wp_additional_image_sizes;
 
 			// Populate an array matching the data structure of $_wp_additional_image_sizes so we have a consistent structure for image sizes.
@@ -2408,7 +2408,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 		global $wp_version;
 		// If a resource doesn't have a version string, we add one to help with cache-busting.
-		if ( ( empty( $parsed_url['query'] ) || 'ver=' . $wp_version == $parsed_url['query'] ) && false !== strpos( $url, 'wp-content/' ) ) {
+		if ( ( empty( $parsed_url['query'] ) || 'ver=' . $wp_version === $parsed_url['query'] ) && false !== strpos( $url, 'wp-content/' ) ) {
 			$modified = ewww_image_optimizer_function_exists( 'filemtime' ) ? filemtime( get_template_directory() ) : '';
 			if ( empty( $modified ) ) {
 				$modified = (int) EWWW_IMAGE_OPTIMIZER_VERSION;
@@ -2476,7 +2476,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 		if ( false === strpos( $image_url, 'lossy=' ) && ewww_image_optimizer_get_option( 'exactdn_lossy' ) ) {
 			$more_args['lossy'] = is_numeric( ewww_image_optimizer_get_option( 'exactdn_lossy' ) ) ? (int) ewww_image_optimizer_get_option( 'exactdn_lossy' ) : 80;
 		}
-		if ( false === strpos( $image_url, 'quality=' ) && ! is_null( $jpg_quality ) && 82 != $jpg_quality ) {
+		if ( false === strpos( $image_url, 'quality=' ) && ! is_null( $jpg_quality ) && 82 !== (int) $jpg_quality ) {
 			$more_args['quality'] = $jpg_quality;
 		}
 		// Merge given args with the automatic (option-based) args, and also makes sure args is an array if it was previously a string.
@@ -2503,7 +2503,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 			return $image_url;
 		}
 
-		if ( isset( $image_url_parts['scheme'] ) && 'https' == $image_url_parts['scheme'] ) {
+		if ( isset( $image_url_parts['scheme'] ) && 'https' === $image_url_parts['scheme'] ) {
 			if ( is_array( $args ) ) {
 				$args['ssl'] = 1;
 			}
@@ -2551,7 +2551,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 		// However some source images are served via PHP so check the no-query-string extension.
 		// For future proofing, this is a blacklist of common issues rather than a whitelist.
 		$extension = pathinfo( $image_url_parts['path'], PATHINFO_EXTENSION );
-		if ( ( empty( $extension ) && false === strpos( $image_url_parts['path'], 'nextgen-image/' ) ) || in_array( $extension, array( 'php', 'ashx' ) ) ) {
+		if ( ( empty( $extension ) && false === strpos( $image_url_parts['path'], 'nextgen-image/' ) ) || in_array( $extension, array( 'php', 'ashx' ), true ) ) {
 			ewwwio_debug_message( 'bad extension' );
 			return $image_url;
 		}
@@ -2601,7 +2601,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 	 */
 	function url_scheme( $url, $scheme ) {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-		if ( ! in_array( $scheme, array( 'http', 'https' ) ) ) {
+		if ( ! in_array( $scheme, array( 'http', 'https' ), true ) ) {
 			ewwwio_debug_message( 'not a valid scheme' );
 			if ( preg_match( '#^(https?:)?//#', $url ) ) {
 				ewwwio_debug_message( 'url has a valid scheme already' );
@@ -2674,7 +2674,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 	 */
 	function autoptimize_cdn_url( $domains ) {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-		if ( is_array( $domains ) && ! in_array( $this->exactdn_domain, $domains ) ) {
+		if ( is_array( $domains ) && ! in_array( $this->exactdn_domain, $domains, true ) ) {
 			ewwwio_debug_message( 'adding to AO list: ' . $this->exactdn_domain );
 			$domains[] = $this->exactdn_domain;
 		}

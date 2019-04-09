@@ -39,7 +39,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 			if ( ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) || ! EWWWIO_EDITOR_OVERWRITE ) && is_file( $filename ) ) {
 				ewwwio_debug_message( "detected existing file: $filename" );
 				$current_size = getimagesize( $filename );
-				if ( $current_size && $this->size['width'] == $current_size[0] && $this->size['height'] == $current_size[1] ) {
+				if ( $current_size && (int) $this->size['width'] === (int) $current_size[0] && (int) $this->size['height'] === (int) $current_size[1] ) {
 					ewwwio_debug_message( "existing file has same dimensions, not saving $filename" );
 					return array(
 						'path'      => $filename,
@@ -163,7 +163,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 			if ( ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) || ! EWWWIO_EDITOR_OVERWRITE ) && is_file( $filename ) ) {
 				ewwwio_debug_message( "detected existing file: $filename" );
 				$current_size = getimagesize( $filename );
-				if ( $current_size && $this->size['width'] == $current_size[0] && $this->size['height'] == $current_size[1] ) {
+				if ( $current_size && (int) $this->size['width'] === (int) $current_size[0] && (int) $this->size['height'] === (int) $current_size[1] ) {
 					ewwwio_debug_message( "existing file has same dimensions, not saving $filename" );
 					return array(
 						'path'      => $filename,
@@ -240,7 +240,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 			if ( ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) || ! EWWWIO_EDITOR_OVERWRITE ) && is_file( $filename ) ) {
 				ewwwio_debug_message( "detected existing file: $filename" );
 				$current_size = getimagesize( $filename );
-				if ( $current_size && $this->size['width'] == $current_size[0] && $this->size['height'] == $current_size[1] ) {
+				if ( $current_size && (int) $this->size['width'] === (int) $current_size[0] && (int) $this->size['height'] === (int) $current_size[1] ) {
 					ewwwio_debug_message( "existing file has same dimensions, not saving $filename" );
 					return array(
 						'path'      => $filename,
@@ -391,7 +391,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 		 */
 		public function resize( $max_w, $max_h, $crop = false ) {
 			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-			if ( ( $this->size['width'] == $max_w ) && ( $this->size['height'] == $max_h ) ) {
+			if ( (int) $this->size['width'] === (int) $max_w && (int) $this->size['height'] === (int) $max_h ) {
 				return true;
 			}
 
@@ -454,7 +454,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				}
 
 				$image     = $this->_resize( $size_data['width'], $size_data['height'], $size_data['crop'] );
-				$duplicate = ( ( $orig_size['width'] == $size_data['width'] ) && ( $orig_size['height'] == $size_data['height'] ) );
+				$duplicate = ( (int) $orig_size['width'] === (int) $size_data['width'] && (int) $orig_size['height'] === (int) $size_data['height'] );
 
 				if ( ! is_wp_error( $image ) && ! $duplicate ) {
 					if ( is_resource( $image ) ) {
@@ -556,7 +556,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 			if ( ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) || ! EWWWIO_EDITOR_OVERWRITE ) && is_file( $filename ) && empty( $ewww_preempt_editor ) ) {
 				ewwwio_debug_message( "detected existing file: $filename" );
 				$current_size = getimagesize( $filename );
-				if ( $current_size && $this->size['width'] == $current_size[0] && $this->size['height'] == $current_size[1] ) {
+				if ( $current_size && (int) $this->size['width'] === (int) $current_size[0] && (int) $this->size['height'] === (int) $current_size[1] ) {
 					ewwwio_debug_message( "existing file has same dimensions, not saving $filename" );
 					return array(
 						'path'      => $filename,
@@ -617,7 +617,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 			if ( ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) || ! EWWWIO_EDITOR_OVERWRITE ) && is_file( $filename ) ) {
 				ewwwio_debug_message( "detected existing file: $filename" );
 				$current_size = getimagesize( $filename );
-				if ( $current_size && $this->size['width'] == $current_size[0] && $this->size['height'] == $current_size[1] ) {
+				if ( $current_size && (int) $this->size['width'] === (int) $current_size[0] && (int) $this->size['height'] === (int) $current_size[1] ) {
 					ewwwio_debug_message( "existing file has same dimensions, not saving $filename" );
 					return array(
 						'path'      => $filename,

@@ -82,7 +82,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			$settings = C_NextGen_Settings::get_instance();
 			if ( is_array( $params ) ) {
 				ewwwio_debug_message( 'params is an array' );
-				if ( ! empty( $params['quality'] ) && 100 == $params['quality'] ) {
+				if ( ! empty( $params['quality'] ) && 100 === (int) $params['quality'] ) {
 					$wp_quality = (int) apply_filters( 'jpeg_quality', 82, 'image_resize' );
 					// If the size is full and the WP default has not been altered, go for higher quality. Otherwise, obey the current WP setting.
 					$params['quality'] = 'full' === $size && 82 === $wp_quality ? 90 : $wp_quality;
@@ -112,7 +112,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 * @return array The full list of known image sizes for this image.
 		 */
 		function maybe_get_more_sizes( $sizes, $meta ) {
-			if ( 2 == count( $sizes ) && ewww_image_optimizer_iterable( $meta ) ) {
+			if ( 2 === count( $sizes ) && ewww_image_optimizer_iterable( $meta ) ) {
 				foreach ( $meta as $meta_key => $meta_val ) {
 					if ( is_array( $meta_val ) && isset( $meta_val['width'] ) ) {
 						$sizes[] = $meta_key;
@@ -280,7 +280,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			$image   = $storage->object->_image_mapper->find( $id );
 			$image   = $this->ewww_added_new_image( $image, $storage );
 			$success = $this->ewww_manage_image_custom_column( '', $image );
-			if ( get_transient( 'ewww_image_optimizer_cloud_status' ) == 'exceeded' || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
+			if ( get_transient( 'ewww_image_optimizer_cloud_status' ) === 'exceeded' || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
 				ewwwio_ob_clean();
 				wp_die( ewwwio_json_encode( array( 'error' => esc_html__( 'License exceeded', 'ewww-image-optimizer' ) ) ) );
 			}
@@ -344,7 +344,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 */
 		function ewww_ngg_manual_actions_script( $hook ) {
 			$screen = get_current_screen();
-			if ( is_null( $screen ) || 'nggallery-manage-images' != $screen->id ) {
+			if ( is_null( $screen ) || 'nggallery-manage-images' !== $screen->id ) {
 				return;
 			}
 			if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
@@ -416,7 +416,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 */
 		function ewww_manage_image_custom_column( $column_name, $id ) {
 			// Once we've found our custom column (newer versions will be blank).
-			if ( 'ewww_image_optimizer' == $column_name || '' == $column_name ) {
+			if ( 'ewww_image_optimizer' === $column_name || ! $column_name ) {
 				// Creating the 'registry' object for working with nextgen.
 				$registry = C_Component_Registry::get_instance();
 				// Creating a database storage object from the 'registry' object.
@@ -534,7 +534,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 				return '';
 			}
-			if ( is_string( $id ) && 'optimize' == $id && is_object( $image ) && ! empty( $image->pid ) ) {
+			if ( && 'optimize' === $id && is_object( $image ) && ! empty( $image->pid ) ) {
 				$id = $image->pid;
 				global $wpdb;
 				$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT image_size,orig_size,resize,converted,level,backup,updated FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'nextgen' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
@@ -709,7 +709,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			if ( strpos( $hook, 'ewww-ngg-bulk' ) === false ) {
 				return;
 			}
-			if ( ! empty( $_REQUEST['bulkaction'] ) && 'bulk_optimize' != $_REQUEST['bulkaction'] ) {
+			if ( ! empty( $_REQUEST['bulkaction'] ) && 'bulk_optimize' !== $_REQUEST['bulkaction'] ) {
 				return;
 			}
 			if ( ! empty( $_REQUEST['doaction'] ) && ! is_array( $_REQUEST['doaction'] ) ) {
@@ -725,7 +725,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			// If we've been given a bulk action to perform.
 			if ( ! empty( $_REQUEST['doaction'] ) ) {
 				// If we are optimizing a specific group of images.
-				if ( 'images' == $_REQUEST['bulk_type'] && 'bulk_optimize' == $_REQUEST['bulkaction'] ) {
+				if ( 'images' === $_REQUEST['bulk_type'] && 'bulk_optimize' === $_REQUEST['bulkaction'] ) {
 					ewwwio_debug_message( 'detected bulk action from manage images' );
 					check_admin_referer( 'ngg_updategallery' );
 					// Reset the resume status, not allowed here.
@@ -735,7 +735,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 					ewwwio_debug_message( 'requested images: ' . implode( ',', $images ) );
 				}
 				// If we are optimizing a specific group of galleries.
-				if ( 'galleries' == $_REQUEST['bulk_type'] && 'bulk_optimize' == $_REQUEST['bulkaction'] ) {
+				if ( 'galleries' === $_REQUEST['bulk_type'] && 'bulk_optimize' === $_REQUEST['bulkaction'] ) {
 					ewwwio_debug_message( 'detected bulk action from manage galleries' );
 					check_admin_referer( 'ngg_bulkgallery' );
 					global $nggdb;
@@ -982,7 +982,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		function ewww_ngg_bulk_action_handler() {
 			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			// If the requested page is blank, or not a bulk_optimize, do nothing.
-			if ( empty( $_REQUEST['page'] ) || empty( $_REQUEST['bulkaction'] ) || 'bulk_optimize' != $_REQUEST['bulkaction'] ) {
+			if ( empty( $_REQUEST['page'] ) || empty( $_REQUEST['bulkaction'] ) || 'bulk_optimize' !== $_REQUEST['bulkaction'] ) {
 				return;
 			}
 			// If there is no media to optimize, do nothing.
@@ -990,7 +990,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				return;
 			}
 			// If the requested page does not matche, do nothing.
-			if ( 'manage-galleries' !== $_REQUEST['page'] && 'manage-images' != $_REQUEST['page'] ) {
+			if ( 'manage-galleries' !== $_REQUEST['page'] && 'manage-images' !== $_REQUEST['page'] ) {
 				return;
 			}
 

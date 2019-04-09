@@ -72,13 +72,13 @@ class EWWWIO_Media_Background_Process extends EWWWIO_Background_Process {
 		);
 
 		$meta = wp_get_attachment_metadata( $id, true );
-		if ( in_array( $type, $image_types ) && empty( $meta ) && $item['attempts'] < $max_attempts ) {
+		if ( in_array( $type, $image_types, true ) && empty( $meta ) && $item['attempts'] < $max_attempts ) {
 			$item['attempts']++;
 			sleep( 4 );
 			ewwwio_debug_message( "metadata is missing, requeueing {$item['attempts']}" );
 			ewww_image_optimizer_debug_log();
 			return $item;
-		} elseif ( in_array( $type, $image_types ) && empty( $meta ) ) {
+		} elseif ( in_array( $type, $image_types, true ) && empty( $meta ) ) {
 			ewwwio_debug_message( 'metadata is missing for image, out of attempts' );
 			ewww_image_optimizer_debug_log();
 			delete_transient( 'ewwwio-background-in-progress-' . $id );
@@ -438,7 +438,7 @@ class EWWWIO_Async_Request extends WP_Async_Request {
 			$id = (int) $_POST['ewwwio_id'];
 		}
 		global $ewww_image;
-		if ( ! empty( $_POST['ewwwio_path'] ) && 'full' == $size ) {
+		if ( ! empty( $_POST['ewwwio_path'] ) && 'full' === $size ) {
 			$file_path = $this->find_file( $_POST['ewwwio_path'] );
 			if ( ! empty( $file_path ) ) {
 				ewwwio_debug_message( "processing async optimization request for {$_POST['ewwwio_path']}" );
@@ -580,7 +580,7 @@ class EWWWIO_Test_Async_Handler extends WP_Async_Request {
 			ewww_image_optimizer_debug_log();
 			return;
 		}
-		if ( '949c34123cf2a4e4ce2f985135830df4a1b2adc24905f53d2fd3f5df5b162932' != $item ) {
+		if ( '949c34123cf2a4e4ce2f985135830df4a1b2adc24905f53d2fd3f5df5b162932' !== $item ) {
 			ewwwio_debug_message( 'wrong item received, not enabling background opt' );
 			ewww_image_optimizer_debug_log();
 			return;

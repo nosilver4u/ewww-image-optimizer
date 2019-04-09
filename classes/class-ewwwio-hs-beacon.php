@@ -72,10 +72,10 @@ class EWWWIO_HS_Beacon {
 	public function admin_notice( $network_class = '' ) {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$hide_notice = ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help_notice' );
-		if ( 'network-multisite' == $network_class && get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
+		if ( 'network-multisite' === $network_class && get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
 			return;
 		}
-		if ( 'network-singlesite' == $network_class && ! get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
+		if ( 'network-singlesite' === $network_class && ! get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
 			return;
 		}
 

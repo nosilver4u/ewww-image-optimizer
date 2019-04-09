@@ -65,7 +65,7 @@ class EWWWIO_Tracking {
 		$theme           = $theme_data->Name . ' ' . $theme_data->Version;
 		$data['email']   = get_bloginfo( 'admin_email' ); // Not tracked, used to issue free credits.
 		$data['site_id'] = md5( home_url() );
-		if ( strlen( ewww_image_optimizer_get_option( 'ewww_image_optimizer_tracking_site_id' ) ) == 32 && ctype_alnum( ewww_image_optimizer_get_option( 'ewww_image_optimizer_tracking_site_id' ) ) ) {
+		if ( strlen( ewww_image_optimizer_get_option( 'ewww_image_optimizer_tracking_site_id' ) ) === 32 && ctype_alnum( ewww_image_optimizer_get_option( 'ewww_image_optimizer_tracking_site_id' ) ) ) {
 			ewwwio_debug_message( 'using pre-existing site_id' );
 			$data['site_id'] = ewww_image_optimizer_get_option( 'ewww_image_optimizer_tracking_site_id' );
 		} else {
@@ -88,7 +88,7 @@ class EWWWIO_Tracking {
 		$active_plugins = get_option( 'active_plugins', array() );
 
 		foreach ( $plugins as $key => $plugin ) {
-			if ( in_array( $plugin, $active_plugins ) ) {
+			if ( in_array( $plugin, $active_plugins, true ) ) {
 				// Remove active plugins from list so we can show active and inactive separately.
 				unset( $plugins[ $key ] );
 			}
@@ -286,10 +286,10 @@ class EWWWIO_Tracking {
 			}
 		}
 		// We send once a week (while tracking is allowed) to check in, which can be used to determine active sites.
-		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_allow_tracking' ) == true && ! wp_next_scheduled( 'ewww_image_optimizer_site_report' ) ) {
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_allow_tracking' ) && ! wp_next_scheduled( 'ewww_image_optimizer_site_report' ) ) {
 			ewwwio_debug_message( 'scheduling checkin' );
 			wp_schedule_event( time(), apply_filters( 'ewww_image_optimizer_schedule', 'daily', 'ewww_image_optimizer_site_report' ), 'ewww_image_optimizer_site_report' );
-		} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_allow_tracking' ) == true ) {
+		} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_allow_tracking' ) ) {
 			ewwwio_debug_message( 'checkin already scheduled: ' . wp_next_scheduled( 'ewww_image_optimizer_site_report' ) );
 		} elseif ( wp_next_scheduled( 'ewww_image_optimizer_site_report' ) ) {
 			ewwwio_debug_message( 'un-scheduling checkin' );

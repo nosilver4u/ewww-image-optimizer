@@ -224,18 +224,18 @@ class EWWWIO_Page_Parser {
 	 * @param bool   $replace Default false. True to replace, false to append.
 	 */
 	function set_attribute( &$element, $name, $value, $replace = false ) {
-		if ( 'class' === $name && false !== strpos( $element, " $name " ) && false === strpos( $element, " $name =" ) ) {
-			$element = str_replace( " $name ", ' ', $element );
+		if ( 'class' === $name ) {
+			$element = preg_replace( "#\s$name\s+[^=]#", ' ', $element );
 		}
 		$value = trim( $value );
 		if ( $replace ) {
 			// Don't forget, back references cannot be used in character classes.
-			$new_element = preg_replace( '# ' . $name . '\s*=\s*(["\'])[^"\']*?\1#is', " $name=$1$value$1", $element );
+			$new_element = preg_replace( '#\s' . $name . '\s*=\s*(["\'])[^"\']*?\1#is', " $name=$1$value$1", $element );
 			if ( strpos( $new_element, "$name=" ) ) {
 				$element = $new_element;
 				return;
 			}
-			$element = preg_replace( '# ' . $name . '\s*=\s*[^\s"\']+?#is', ' ', $element );
+			$element = preg_replace( '#\s' . $name . '\s*=\s*[^\s"\']+?#is', ' ', $element );
 		}
 		$closing = ' />';
 		if ( false === strpos( $element, '/>' ) ) {

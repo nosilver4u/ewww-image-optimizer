@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 
 	/**
-	 * Base64 encoded placeholder image.
+	 * Base64-encoded placeholder image.
 	 *
 	 * @access protected
 	 * @var string $placeholder_src
@@ -255,7 +255,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 							$picture = str_replace( $source, $lazy_source, $picture );
 						}
 					}
-					if ( $picture != $pictures[ $index ] ) {
+					if ( $picture !== $pictures[ $index ] ) {
 						ewwwio_debug_message( 'lazified sources for picture element' );
 						$buffer = str_replace( $pictures[ $index ], $picture, $buffer );
 					}
