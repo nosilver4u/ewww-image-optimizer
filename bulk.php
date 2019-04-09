@@ -241,7 +241,7 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 			global $ewwwngg;
 			$offset      = 0;
 			$attachments = $wpdb->get_col( "SELECT meta_data FROM $wpdb->nggpictures $attachment_query LIMIT $offset, $max_query" ); // phpcs:ignore WordPress.DB.PreparedSQL
-			while ( $attachments ) { // phpcs:ignore WordPress.DB.PreparedSQL
+			while ( $attachments ) {
 				foreach ( $attachments as $attachment ) {
 					if ( class_exists( 'Ngg_Serializable' ) ) {
 						$serializer = new Ngg_Serializable();
@@ -297,7 +297,7 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 			}
 			$offset      = 0;
 			$attachments = $wpdb->get_col( "SELECT meta_data FROM $wpdb->flagpictures $attachment_query LIMIT $offset, $max_query" ); // phpcs:ignore WordPress.DB.PreparedSQL
-			while ( $attachments ) { // phpcs:ignore WordPress.DB.PreparedSQL
+			while ( $attachments ) {
 				foreach ( $attachments as $attachment ) {
 					$meta = unserialize( $attachment );
 					if ( ! is_array( $meta ) ) {
@@ -1247,46 +1247,6 @@ function ewww_image_optimizer_bulk_initialize() {
 	session_write_close();
 	$output = array();
 
-	/*
-	$attachments = get_option( 'ewww_image_optimizer_bulk_attachments' );
-	if ( ! is_array( $attachments ) && ! empty( $attachments ) ) {
-		$attachments = unserialize( $attachments );
-	}
-	if ( ! is_array( $attachments ) ) {
-		// See if we care about the attachment list missing: resizing or converting to be done.
-		if ( ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' ) ||
-			ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' ) ||
-			ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherwidth' ) ||
-			ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherheight' ) ||
-			ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) ||
-			ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' ) ||
-			ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_to_png' ) ) &&
-			ewww_image_optimizer_aux_images_table_count_pending_media()
-		) {
-			if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
-				ewwwio_ob_clean();
-				die(
-					ewwwio_json_encode(
-						array(
-							'error' => esc_html__( 'Error retrieving list of images', 'ewww-image-optimizer' ),
-							'data'  => print_r( $attachments, true ),
-						)
-					)
-				);
-			} else {
-				ewwwio_ob_clean();
-				die(
-					ewwwio_json_encode(
-						array(
-							'error' => esc_html__( 'Error retrieving list of images', 'ewww-image-optimizer' ),
-							'data'  => 'print_r disabled',
-						)
-					)
-				);
-			}
-		}
-	}
-	*/
 	// Update the 'bulk resume' option to show that an operation is in progress.
 	update_option( 'ewww_image_optimizer_bulk_resume', 'true' );
 	// $attachment = (int) array_shift( $attachments );
@@ -1421,7 +1381,7 @@ function ewww_image_optimizer_bulk_counter_measures( $image ) {
 						ewwwio_debug_message( 'resize_existing' );
 						// If resizing is enabled, try to disable it.
 						define( 'EWWW_IMAGE_OPTIMIZER_RESIZE_EXISTING', false );
-						if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPG_LEVEL' ) && 40 === ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
+						if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPG_LEVEL' ) && 40 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
 							define( 'EWWW_IMAGE_OPTIMIZER_JPG_LEVEL', 30 );
 						}
 						if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPG_TO_PNG' ) ) {

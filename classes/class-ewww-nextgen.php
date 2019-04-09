@@ -524,17 +524,17 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 *
 		 * @global object $wpdb
 		 *
-		 * @param int    $id The ID number of the nextgen image.
-		 * @param object $image A nextgen image object.
-		 * @param bool   $optimized Optional. True if the image has already been optimized. Default false.
-		 * @param bool   $restorable Optional. True if the image can be restored via the API. Default false.
+		 * @param int|string $id The ID number of the nextgen image, or the string 'optimize'.
+		 * @param object     $image A nextgen image object.
+		 * @param bool       $optimized Optional. True if the image has already been optimized. Default false.
+		 * @param bool       $restorable Optional. True if the image can be restored via the API. Default false.
 		 * @return string The link HTML to display.
 		 */
 		function ewww_render_optimize_action_link( $id, $image = null, $optimized = false, $restorable = false ) {
 			if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 				return '';
 			}
-			if ( && 'optimize' === $id && is_object( $image ) && ! empty( $image->pid ) ) {
+			if ( 'optimize' === $id && is_object( $image ) && ! empty( $image->pid ) ) {
 				$id = $image->pid;
 				global $wpdb;
 				$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT image_size,orig_size,resize,converted,level,backup,updated FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'nextgen' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );

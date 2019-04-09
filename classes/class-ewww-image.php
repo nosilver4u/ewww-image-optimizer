@@ -959,37 +959,37 @@ class EWWW_Image {
 					$time += 20;
 				} elseif ( $image_size > 5000000 ) { // greater than 5MB.
 					$time += 10;
-					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) === '40' ) {
+					if ( 40 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
 						$time += 25;
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) === '30' ) {
+					} elseif ( 30 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
 						$time += 7;
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) === '20' ) {
+					} elseif ( 20 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
 						$time += 2;
 					}
 				} elseif ( $image_size > 1000000 ) { // greater than 1MB.
 					$time += 5;
-					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) === '40' ) {
+					if ( 40 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
 						if ( $image_size > 2000000 ) { // greater than 2MB.
 							$time += 15;
 						} else {
 							$time += 11;
 						}
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) === '30' ) {
+					} elseif ( 30 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
 						$time += 6;
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) === '20' ) {
+					} elseif ( 20 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
 						$time += 2;
 					}
 				} else {
 					$time++;
-					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) === '40' ) {
+					if ( 40 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
 						if ( $image_size > 200000 ) { // greater than 200k.
 							$time += 11;
 						} else {
 							$time += 5;
 						}
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) === '30' ) {
+					} elseif ( 30 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
 						$time += 3;
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) === '20' ) {
+					} elseif ( 20 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
 						$time += 3;
 					}
 				} // End if().
@@ -1002,53 +1002,53 @@ class EWWW_Image {
 					$time += 35;
 				} elseif ( $image_size > 1000000 ) { // greater than 1MB.
 					$time += 15;
-					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) === '50' ) {
+					if ( 50 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 						$time += 8;
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) === '40' ) {
+					} elseif ( 40 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 						/* $time++; */
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) === '30' ) {
+					} elseif ( 30 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 						$time += 10;
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) === '20' ) {
+					} elseif ( 20 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 						$time++;
 					}
 				} elseif ( $image_size > 500000 ) { // greater than 500kb.
 					$time += 7;
-					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) === '50' ) {
+					if ( 50 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 						$time += 5;
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) === '40' ) {
+					} elseif ( 40 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 						/* $time++; */
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) === '30' ) {
+					} elseif ( 30 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 						$time += 8;
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) === '20' ) {
+					} elseif ( 20 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 						$time++;
 					}
 				} elseif ( $image_size > 100000 ) { // greater than 100kb.
 					$time += 4;
-					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) === '50' ) {
+					if ( 50 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 						$time += 5;
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) === '40' ) {
+					} elseif ( 40 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 						/* $time++; */
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) === '30' ) {
+					} elseif ( 30 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 						$time += 9;
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) === '20' ) {
+					} elseif ( 20 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 						$time++;
 					}
 				} else {
 					$time++;
-					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) === '50' ) {
+					if ( 50 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 						$time += 2;
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) === '40' ) {
+					} elseif ( 40 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 						$time ++;
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) === '30' ) {
+					} elseif ( 30 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 						$time += 3;
-					} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) === '20' ) {
+					} elseif ( 20 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 						$time++;
 					}
 				} // End if().
 				break;
 			case 'image/gif':
 				$time++;
-				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) === '10' && ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+				if ( 10 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 					$time++;
 				}
 				if ( $image_size > 1000000 ) { // greater than 1MB.
@@ -1061,22 +1061,22 @@ class EWWW_Image {
 				}
 				if ( $image_size > 25000000 ) { // greater than 25MB.
 					$time += 20;
-					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) === '20' ) {
+					if ( 20 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) ) {
 						$time += 16;
 					}
 				} elseif ( $image_size > 10000000 ) { // greater than 10MB.
 					$time += 10;
-					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) === '20' ) {
+					if ( 20 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) ) {
 						$time += 20;
 					}
 				} elseif ( $image_size > 4000000 ) { // greater than 4MB.
 					$time += 3;
-					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) === '20' ) {
+					if ( 20 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) ) {
 						$time += 12;
 					}
 				} elseif ( $image_size > 1000000 ) { // greater than 1MB.
 					$time++;
-					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) === '20' ) {
+					if ( 20 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) ) {
 						$time += 10;
 					}
 				}
