@@ -44,15 +44,14 @@ class EWWWIO_Page_Parser {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$images = array();
 
-		$fallback_pattern = '';
+		$unquoted_pattern = '';
+		$search_pattern   = '#(?P<img_tag><img\s[^>]*?>)#is';
 		if ( $hyperlinks ) {
 			$search_pattern   = '#(?:<figure[^>]*?\s+?class\s*=\s*["\'](?P<figure_class>[\w\s-]+?)["\'][^>]*?>\s*)?(?:<a[^>]*?\s+?href\s*=\s*["\'](?P<link_url>[^\s]+?)["\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'][^>]*?>){1}(?:\s*</a>)?#is';
 			$unquoted_pattern = '#(?:<figure[^>]*?\s+?class\s*=\s*(?P<figure_class>[\w-]+)[^>]*?>\s*)?(?:<a[^>]*?\s+?href\s*=\s*(?P<link_url>[^"\'][^\s>]+)[^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*(?P<img_url>[^"\'][^\s>]+)[^>]*?>){1}(?:\s*</a>)?#is';
 		} elseif ( $src_required ) {
 			$search_pattern   = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'][^>]*?>)#is';
 			$unquoted_pattern = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*(?P<img_url>[^"\'][^\s>]+)[^>]*?>)#is';
-		} else {
-			$search_pattern = '#(?P<img_tag><img\s[^>]*?>)#is';
 		}
 		if ( preg_match_all( $search_pattern, $content, $images ) ) {
 			foreach ( $images as $key => $unused ) {
@@ -63,7 +62,7 @@ class EWWWIO_Page_Parser {
 			}
 		}
 		ewwwio_debug_message( 'trying unquoted pattern' );
-		if ( preg_match_all( $unquoted_pattern, $content, $unquoted_images ) ) {
+		if ( $unquoted_pattern && preg_match_all( $unquoted_pattern, $content, $unquoted_images ) ) {
 			foreach ( $unquoted_images as $key => $unused ) {
 				// Simplify the output as much as possible.
 				if ( is_numeric( $key ) && $key > 0 ) {

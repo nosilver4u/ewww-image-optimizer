@@ -178,6 +178,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: disable WebP script block on certain pages by defining EWWW_IMAGE_OPTIMIZER_NO_JS as true
 * changed: use SVG inline image placeholder if width and height are known when LQIP is disabled or ExactDN is not available
 * fixed: page parsers (ExactDN, Lazy, JS WebP) do not properly handle attributes that start on a new line
+* fixed: page parsers do not recognize img elements with unquoted attributes
 
 = 4.7.2 =
 * changed: JS WebP no longer necessary with ExactDN
