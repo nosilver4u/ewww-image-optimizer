@@ -353,6 +353,13 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 		if ( strpos( $image, 'data-pin-description=' ) && strpos( $image, 'width="0" height="0"' ) ) {
 			return false;
 		}
+
+		// Ignore native lazy loading images.
+		$loading_attr = $this->get_attribute( $image, 'loading' );
+		if ( $loading_attr && in_array( trim( $loading_attr ), array( 'auto', 'eager', 'lazy' ), true ) ) {
+			return false;
+		}
+
 		$exclusions = apply_filters(
 			'ewww_image_optimizer_lazy_exclusions',
 			array(

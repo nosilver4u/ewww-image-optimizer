@@ -998,11 +998,11 @@ class ExactDN extends EWWWIO_Page_Parser {
 						}
 
 						// Insert new image src into the srcset as well, if we have a width.
-						if ( false !== $width && false === strpos( $width, '%' ) ) {
+						if ( false !== $width && false === strpos( $width, '%' ) && $width ) {
 							ewwwio_debug_message( 'checking to see if srcset width already exists' );
 							$srcset_url      = $exactdn_url . ' ' . (int) $width . 'w, ';
 							$new_srcset_attr = $this->get_attribute( $new_tag, $this->srcset_attr );
-							if ( $new_srcset_attr && false === strpos( $new_srcset_attr, ' ' . (int) $width . 'w' ) ) {
+							if ( $new_srcset_attr && false === strpos( $new_srcset_attr, ' ' . (int) $width . 'w' ) && ! preg_match( '/\s(1|2|3)x/', $new_srcset_attr ) ) {
 								ewwwio_debug_message( 'src not in srcset, adding' );
 								$this->set_attribute( $new_tag, $this->srcset_attr, $srcset_url . $new_srcset_attr, true );
 							}
