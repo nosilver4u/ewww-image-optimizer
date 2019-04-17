@@ -179,6 +179,8 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * changed: use SVG inline image placeholder if width and height are known when LQIP is disabled or ExactDN is not available
 * fixed: page parsers (ExactDN, Lazy, JS WebP) do not properly handle attributes that start on a new line
 * fixed: page parsers do not recognize img elements with unquoted attributes
+* fixed: uninstaller cannot clear queue table due to undefined table name
+* fixed: implode throws notice when image sizes array is multi-dimensional
 
 = 4.7.2 =
 * changed: JS WebP no longer necessary with ExactDN

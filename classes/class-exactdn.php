@@ -1398,7 +1398,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 			if ( is_string( $size ) && array_key_exists( $size, $this->image_sizes() ) ) {
 				$image_args = $this->image_sizes();
 				$image_args = $image_args[ $size ];
-				ewwwio_debug_message( "image args for $size: " . implode( ',', $image_args ) );
+				ewwwio_debug_message( "image args for $size: " . ewwwio_implode( ',', $image_args ) );
 
 				$exactdn_args = array();
 
@@ -1430,7 +1430,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 					list( $image_args['width'], $image_args['height'] ) = image_constrain_size_for_editor( $image_args['width'], $image_args['height'], $size, 'display' );
 
 					$has_size_meta = true;
-					ewwwio_debug_message( 'image args constrained: ' . implode( ',', $image_args ) );
+					ewwwio_debug_message( 'image args constrained: ' . ewwwio_implode( ',', $image_args ) );
 				}
 
 				$transform = $image_args['crop'] ? 'resize' : 'fit';
@@ -1980,7 +1980,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 		$s_y        = floor( ( $meta['height'] - $crop_h ) * $focus_point[1] );
 		ewwwio_debug_message( "doing the math with size_ratio of $size_ratio" );
 
-		$args = array( 'crop' => $s_x . 'px,' . $s_y . 'px,' . $crop_w . 'px,' . $crop_h . 'px' ) + $args;
+		$args['crop'] = $s_x . ',' . $s_y . ',' . $crop_w . ',' . $crop_h;
 		ewwwio_debug_message( $args['crop'] );
 		return $args;
 	}

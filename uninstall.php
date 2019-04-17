@@ -33,6 +33,7 @@ if ( current_user_can( 'delete_plugins' ) ) {
 		insert_with_markers( ewww_image_optimizer_htaccess_path(), 'EWWWIO', '' );
 	}
 	global $wpdb;
+	$wpdb->ewwwio_queue = $wpdb->prefix . 'ewwwio_queue';
 	$wpdb->query( $wpdb->prepare( "DELETE from $wpdb->ewwwio_queue WHERE gallery = %s", 'media' ) );
 	$wpdb->query( $wpdb->prepare( "DELETE from $wpdb->ewwwio_queue WHERE gallery = %s", 'flag' ) );
 	$wpdb->query( $wpdb->prepare( "DELETE from $wpdb->ewwwio_queue WHERE gallery = %s", 'nextgen' ) );

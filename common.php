@@ -9041,6 +9041,36 @@ function ewwwio_check_memory_available( $padding = 1050000 ) {
 }
 
 /**
+ * Implode a multi-dimensional array without throwing errors. Arguments can be reverse order, same as implode().
+ *
+ * @param string $delimiter The character to put between the array items (the glue).
+ * @param array  $data The array to output with the glue.
+ * @return string The array values, separated by the delimiter.
+ */
+function ewwwio_implode( $delimiter, $data = '' ) {
+	if ( is_array( $delimiter ) ) {
+		$temp_data = $delimiter;
+		$delimiter = $data;
+		$data      = $temp_data;
+	}
+	if ( is_array( $delimiter ) ) {
+		return '';
+	}
+	$output = '';
+	foreach ( $data as $value ) {
+		if ( is_string( $value ) || is_numeric( $value ) ) {
+			$output .= $value . $delimiter;
+		} elseif ( is_bool( $value ) ) {
+			$output .= ( $value ? 'true' : 'false' ) . $delimiter;
+		} elseif ( is_array( $value ) ) {
+			$output .= 'Array,';
+		}
+	}
+	return rtrim( $output, ',' );
+}
+
+
+/**
  * Logs memory usage stats. Disabled normally.
  *
  * @global string $ewww_memory An buffer of memory stat messages.
