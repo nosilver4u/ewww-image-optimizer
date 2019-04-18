@@ -185,7 +185,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 				return;
 			}
 			// If there is no requested bulk action, do nothing.
-			if ( 'flagallery_page_flag-manage-gallery' === $hook && ( empty( $_REQUEST['bulkaction'] ) || 0 === strpos( $_REQUEST['bulkaction'] 'bulk_optimize' ) ) ) {
+			if ( 'flagallery_page_flag-manage-gallery' === $hook && ( empty( $_REQUEST['bulkaction'] ) || 0 === strpos( $_REQUEST['bulkaction'], 'bulk_optimize' ) ) ) {
 				return;
 			}
 			// If there is no media to optimize, do nothing.
