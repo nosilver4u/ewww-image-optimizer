@@ -153,7 +153,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 		$above_the_fold   = apply_filters( 'ewww_image_optimizer_lazy_fold', 0 );
 		$images_processed = 0;
 
-		$images = $this->get_images_from_html( preg_replace( '/<noscript.*?\/noscript>/', '', $buffer ), false );
+		$images = $this->get_images_from_html( preg_replace( '/<noscript.*?\/noscript>/s', '', $buffer ), false );
 		if ( ! empty( $images[0] ) && ewww_image_optimizer_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
 				$images_processed++;
@@ -345,8 +345,9 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			return false;
 		}
 
+		$image_src = $this->get_attribute( $image, 'src' );
 		// Skip inline data URIs.
-		if ( strpos( $image, "src='data:image" ) || strpos( $image, 'src="data:image' ) ) {
+		if ( false !== strpos( $image_src, 'data:image' ) || 0 === strpos( $image_src, "'" ) || false !== strpos( $image_src, '(' ) ) {
 			return false;
 		}
 		// Ignore 0-size Pinterest schema images.

@@ -337,7 +337,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 
 		/* TODO: detect non-utf8 encoding and convert the buffer (if necessary). */
 
-		$images = $this->get_images_from_html( preg_replace( '/<noscript.*?\/noscript>/', '', $buffer ), false );
+		$images = $this->get_images_from_html( preg_replace( '/<noscript.*?\/noscript>/s', '', $buffer ), false );
 		if ( ewww_image_optimizer_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
 				$file = $images['img_url'][ $index ];
@@ -456,7 +456,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 			} // End foreach().
 		} // End if().
 		// Now we will look for any lazy images that don't have a src attribute (this search returns ALL img elements though).
-		$images = $this->get_images_from_html( preg_replace( '/<noscript.*?\/noscript>/', '', $buffer ), false, false );
+		$images = $this->get_images_from_html( preg_replace( '/<noscript.*?\/noscript>/s', '', $buffer ), false, false );
 		if ( ewww_image_optimizer_iterable( $images[0] ) ) {
 			ewwwio_debug_message( 'parsing images without requiring src' );
 			foreach ( $images[0] as $index => $image ) {

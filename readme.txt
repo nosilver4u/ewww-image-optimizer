@@ -174,6 +174,10 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.7.4 =
+* fixed: noscript elements with newlines being parsed incorrectly by Lazy Load and JS WebP
+* fixed: Lazy Load parsing incomplete img elements in script blocks
+
 = 4.7.3 =
 * added: disable WebP script block on certain pages by defining EWWW_IMAGE_OPTIMIZER_NO_JS as true
 * changed: use SVG inline image placeholder if width and height are known when LQIP is disabled or ExactDN is not available
