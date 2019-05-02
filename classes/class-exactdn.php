@@ -176,7 +176,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 		// Configure Autoptimize with our CDN domain.
 		add_filter( 'autoptimize_filter_cssjs_multidomain', array( $this, 'autoptimize_cdn_url' ) );
-		if ( defined( 'AUTOPTIMIZE_PLUGIN_DIR' ) ) {
+		if ( defined( 'AUTOPTIMIZE_PLUGIN_DIR' ) && ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ) {
 			$ao_cdn_url = ewww_image_optimizer_get_option( 'autoptimize_cdn_url' );
 			if ( empty( $ao_cdn_url ) ) {
 				ewww_image_optimizer_set_option( 'autoptimize_cdn_url', '//' . $this->exactdn_domain );

@@ -210,6 +210,12 @@ function ewww_image_optimizer_parser_init() {
 	$buffer_start = false;
 	// If ExactDN is enabled.
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && empty( $_GET['exactdn_disable'] ) ) {
+		if ( ! ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ) {
+			// Un-configure Autoptimize CDN domain.
+			if ( defined( 'AUTOPTIMIZE_PLUGIN_DIR' ) && strpos( ewww_image_optimizer_get_option( 'autoptimize_cdn_url' ), 'exactdn' ) ) {
+				ewww_image_optimizer_set_option( 'autoptimize_cdn_url', '' );
+			}
+		}
 		$buffer_start = true;
 		/**
 		 * Page Parsing class for working with HTML content.

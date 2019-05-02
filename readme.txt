@@ -175,8 +175,9 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.7.4 =
+* fixed: ExactDN modifies Autoptimize CDN setting even when Include All Resources is disabled
 * fixed: noscript elements with newlines being parsed incorrectly by Lazy Load and JS WebP
-* fixed: Lazy Load parsing incomplete img elements in script blocks
+* fixed: Lazy Load parsing breaking img elements in script blocks
 
 = 4.7.3 =
 * added: disable WebP script block on certain pages by defining EWWW_IMAGE_OPTIMIZER_NO_JS as true
