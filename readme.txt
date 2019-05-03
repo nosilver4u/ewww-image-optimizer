@@ -179,6 +179,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: noscript elements with newlines being parsed incorrectly by Lazy Load and JS WebP
 * fixed: Lazy Load parsing breaking img elements in script blocks
 * fixed: Lazy Load bails when SVGs are wrapped in XML tags
+* fixed: ExactDN mixes x and w srcset descriptors
 
 = 4.7.3 =
 * added: disable WebP script block on certain pages by defining EWWW_IMAGE_OPTIMIZER_NO_JS as true

@@ -1074,7 +1074,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 							ewwwio_debug_message( 'checking to see if srcset width already exists' );
 							$srcset_url      = $exactdn_url . ' ' . (int) $width . 'w, ';
 							$new_srcset_attr = $this->get_attribute( $new_tag, $this->srcset_attr );
-							if ( $new_srcset_attr && false === strpos( $new_srcset_attr, ' ' . (int) $width . 'w' ) ) {
+							if ( $new_srcset_attr && false === strpos( $new_srcset_attr, ' ' . (int) $width . 'w' ) && ! preg_match( '/\s(1|2|3)x/', $new_srcset_attr ) ) {
 								ewwwio_debug_message( 'src not in srcset, adding' );
 								$this->set_attribute( $new_tag, $this->srcset_attr, $srcset_url . $new_srcset_attr, true );
 								// Replace original tag with modified version.
@@ -1639,8 +1639,12 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 		$upload_dir      = wp_get_upload_dir();
 		$resize_existing = defined( 'EXACTDN_RESIZE_EXISTING' ) && EXACTDN_RESIZE_EXISTING;
+		$w_descriptor    = true;
 
 		foreach ( $sources as $i => $source ) {
+			if ( 'x' === $source['descriptor'] ) {
+				$w_descriptor = false;
+			}
 			if ( ! $this->validate_image_url( $source['url'] ) ) {
 				continue;
 			}
@@ -1706,6 +1710,10 @@ class ExactDN extends EWWWIO_Page_Parser {
 		 */
 		$multipliers = apply_filters( 'exactdn_srcset_multipliers', array( .2, .4, .6, .8, 1, 2, 3, 1920 ) );
 		$url         = trailingslashit( $upload_dir['baseurl'] ) . $image_meta['file'];
+		if ( ! $w_descriptor ) {
+			ewwwio_debug_message( 'using x descriptors instead of w' );
+			$multipliers = array_filter( $multipliers, 'is_int' );
+		}
 
 		if (
 			/** Short-circuit via exactdn_srcset_multipliers filter. */
@@ -1718,7 +1726,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 			&& isset( $image_meta['width'] ) && isset( $image_meta['height'] ) && isset( $image_meta['file'] )
 			/** Verify we have the requested width/height. */
 			&& isset( $size_array[0] ) && isset( $size_array[1] )
-			) {
+		) {
 
 			$fullwidth  = $image_meta['width'];
 			$fullheight = $image_meta['height'];
@@ -1750,6 +1758,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 				$newwidth = intval( $base * $multiplier );
 				if ( 1920 === (int) $multiplier ) {
 					$newwidth = 1920;
+					if ( ! $w_descriptor ) {
+						continue;
+					}
 				}
 				if ( $newwidth < 50 ) {
 					continue;
@@ -1778,8 +1789,8 @@ class ExactDN extends EWWWIO_Page_Parser {
 
 				$newsources[ $newwidth ] = array(
 					'url'        => $this->generate_url( $url, $args ),
-					'descriptor' => 'w',
-					'value'      => $newwidth,
+					'descriptor' => ( $w_descriptor ? 'w' : 'x' ),
+					'value'      => ( $w_descriptor ? $newwidth : $multiplier ),
 				);
 
 				$currentwidths[] = $newwidth;
