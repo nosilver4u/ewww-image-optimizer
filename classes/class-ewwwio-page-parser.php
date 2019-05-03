@@ -42,41 +42,56 @@ class EWWWIO_Page_Parser {
 	 */
 	function get_images_from_html( $content, $hyperlinks = true, $src_required = true ) {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-		$images = array();
+		$images          = array();
+		$unquoted_images = array();
 
 		$unquoted_pattern = '';
 		$search_pattern   = '#(?P<img_tag><img\s[^>]*?>)#is';
 		if ( $hyperlinks ) {
+			ewwwio_debug_message( 'using figure+hyperlink(a) patterns with src required' );
 			$search_pattern   = '#(?:<figure[^>]*?\s+?class\s*=\s*["\'](?P<figure_class>[\w\s-]+?)["\'][^>]*?>\s*)?(?:<a[^>]*?\s+?href\s*=\s*["\'](?P<link_url>[^\s]+?)["\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*("|\')(?P<img_url>(?!\4).+?)\4[^>]*?>){1}(?:\s*</a>)?#is';
 			$unquoted_pattern = '#(?:<figure[^>]*?\s+?class\s*=\s*(?P<figure_class>[\w-]+)[^>]*?>\s*)?(?:<a[^>]*?\s+?href\s*=\s*(?P<link_url>[^"\'][^\s>]+)[^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*(?P<img_url>[^"\'][^\s>]+)[^>]*?>){1}(?:\s*</a>)?#is';
 		} elseif ( $src_required ) {
+			ewwwio_debug_message( 'using plain img pattern, src still required' );
 			$search_pattern   = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*("|\')(?P<img_url>(?!\2).+?)\2[^>]*?>)#is';
 			$unquoted_pattern = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*(?P<img_url>[^"\'][^\s>]+)[^>]*?>)#is';
 		}
 		if ( preg_match_all( $search_pattern, $content, $images ) ) {
+			ewwwio_debug_message( 'found ' . count( $images[0] ) . ' image elements with quoted pattern' );
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible.
 				if ( is_numeric( $key ) && $key > 0 ) {
 					unset( $images[ $key ] );
 				}
 			}
+			/* ewwwio_debug_message( print_r( $images, true ) ); */
 		}
-		ewwwio_debug_message( 'trying unquoted pattern' );
+		$images = array_filter( $images );
 		if ( $unquoted_pattern && preg_match_all( $unquoted_pattern, $content, $unquoted_images ) ) {
+			ewwwio_debug_message( 'found ' . count( $unquoted_images[0] ) . ' image elements with unquoted pattern' );
 			foreach ( $unquoted_images as $key => $unused ) {
 				// Simplify the output as much as possible.
 				if ( is_numeric( $key ) && $key > 0 ) {
 					unset( $unquoted_images[ $key ] );
 				}
 			}
+			/* ewwwio_debug_message( print_r( $unquoted_images, true ) ); */
 		}
+		$unquoted_images = array_filter( $unquoted_images );
 		if ( ! empty( $images ) && ! empty( $unquoted_images ) ) {
+			ewwwio_debug_message( 'both patterns found results, merging' );
+			/* ewwwio_debug_message( print_r( $images, true ) ); */
 			$images = array_merge_recursive( $images, $unquoted_images );
+			/* ewwwio_debug_message( print_r( $images, true ) ); */
 			if ( ! empty( $images[0] ) && ! empty( $images[1] ) ) {
 				$images[0] = array_merge( $images[0], $images[1] );
 				unset( $images[1] );
 			}
+		} elseif ( empty( $images ) && ! empty( $unquoted_images ) ) {
+			ewwwio_debug_message( 'unquoted results only, subbing in' );
+			$images = $unquoted_images;
 		}
+		/* ewwwio_debug_message( print_r( $images, true ) ); */
 		return $images;
 	}
 
