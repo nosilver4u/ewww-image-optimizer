@@ -141,7 +141,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			if ( wp_script_is( 'twentytwenty-twentytwenty', 'enqueued' ) ) {
 				ewwwio_debug_message( 'twentytwenty enqueued' );
 			}
-			if ( preg_match( '/<\?xml/', $buffer ) ) {
+			if ( preg_match( '/^<\?xml/', $buffer ) ) {
 				ewwwio_debug_message( 'not html, xml tag found' );
 			}
 			if ( strpos( $buffer, 'amp-boilerplate' ) ) {
