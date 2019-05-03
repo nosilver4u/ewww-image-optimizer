@@ -178,7 +178,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: ExactDN modifies Autoptimize CDN setting even when Include All Resources is disabled
 * fixed: noscript elements with newlines being parsed incorrectly by Lazy Load and JS WebP
 * fixed: Lazy Load parsing breaking img elements in script blocks
-* fixed: Lazy Load bails when SVGs are wrapped in XML tags
+* fixed: Lazy Load and JS WebP bail when SVGs are wrapped in XML tags
 * fixed: ExactDN mixes x and w srcset descriptors
 
 = 4.7.3 =

@@ -297,7 +297,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 			is_feed() ||
 			is_preview() ||
 			( defined( 'REST_REQUEST' ) && REST_REQUEST ) ||
-			preg_match( '/<\?xml/', $buffer )
+			preg_match( '/^<\?xml/', $buffer )
 		) {
 			if ( empty( $buffer ) ) {
 				ewwwio_debug_message( 'empty buffer' );
@@ -323,7 +323,7 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 			if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
 				ewwwio_debug_message( 'rest request' );
 			}
-			if ( preg_match( '/<\?xml/', $buffer ) ) {
+			if ( preg_match( '/^<\?xml/', $buffer ) ) {
 				ewwwio_debug_message( 'not html, xml tag found' );
 			}
 			if ( strpos( $buffer, 'amp-boilerplate' ) ) {
