@@ -1,3 +1,11 @@
+= 4.7.4 =
+* fixed: ExactDN modifies Autoptimize CDN setting even when Include All Resources is disabled
+* fixed: noscript elements with newlines being parsed incorrectly by Lazy Load and JS WebP
+* fixed: Lazy Load parsing breaking img elements in script blocks
+* fixed: Lazy Load and JS WebP bail when SVGs are wrapped in XML tags
+* fixed: ExactDN mixes x and w srcset descriptors
+* fixed: page parsers (ExactDN, Lazy, JS WebP) still fail to process some img elements that have unquoted src attributes
+
 = 4.7.3 =
 * added: disable WebP script block on certain pages by defining EWWW_IMAGE_OPTIMIZER_NO_JS as true
 * changed: use SVG inline image placeholder if width and height are known when LQIP is disabled or ExactDN is not available
