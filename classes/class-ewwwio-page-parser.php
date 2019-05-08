@@ -205,13 +205,13 @@ class EWWWIO_Page_Parser {
 	 */
 	function get_attribute( $element, $name ) {
 		// Don't forget, back references cannot be used in character classes.
-		if ( preg_match( '#[\s]' . $name . '\s*=\s*(["\'])([^"\']+?)\1#is', $element, $attr_matches ) ) {
+		if ( preg_match( '#\s' . $name . '\s*=\s*("|\')((?!\1).+?)\1#is', $element, $attr_matches ) ) {
 			if ( ! empty( $attr_matches[2] ) ) {
 				return $attr_matches[2];
 			}
 		}
 		// If there were not any matches with quotes, look for unquoted attributes, no spaces or quotes allowed.
-		if ( preg_match( '#[\s]' . $name . '\s*=\s*([^"\'][^\s>]+)#is', $element, $attr_matches ) ) {
+		if ( preg_match( '#\s' . $name . '\s*=\s*([^"\'][^\s>]+)#is', $element, $attr_matches ) ) {
 			if ( ! empty( $attr_matches[1] ) ) {
 				return $attr_matches[1];
 			}
@@ -249,7 +249,7 @@ class EWWWIO_Page_Parser {
 		$value = trim( $value );
 		if ( $replace ) {
 			// Don't forget, back references cannot be used in character classes.
-			$new_element = preg_replace( '#\s' . $name . '\s*=\s*(["\'])[^"\']*?\1#is', " $name=$1$value$1", $element );
+			$new_element = preg_replace( '#\s' . $name . '\s*=\s*("|\')(?!\1).*?\1#is', " $name=$1$value$1", $element );
 			if ( strpos( $new_element, "$name=" ) ) {
 				$element = $new_element;
 				return;
@@ -275,7 +275,7 @@ class EWWWIO_Page_Parser {
 	 */
 	function remove_attribute( &$element, $name ) {
 		// Don't forget, back references cannot be used in character classes.
-		$element = preg_replace( '#\s' . $name . '\s*=\s*(["\'])[^"\']+?\1#is', ' ', $element );
+		$element = preg_replace( '#\s' . $name . '\s*=\s*("|\')(?!\1).+?\1#is', ' ', $element );
 		$element = preg_replace( '#\s' . $name . '\s*=\s*[^"\'][^\s>]+#is', ' ', $element );
 	}
 

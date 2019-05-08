@@ -303,9 +303,11 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 				if ( false === strpos( $element, 'background:' ) && false === strpos( $element, 'background-image:' ) ) {
 					continue;
 				}
+				ewwwio_debug_message( 'element contains background/background-image:' );
 				if ( ! $this->validate_bgimage_tag( $element ) ) {
 					continue;
 				}
+				ewwwio_debug_message( 'element is valid' );
 				$style = $this->get_attribute( $element, 'style' );
 				if ( empty( $style ) ) {
 					continue;
@@ -313,14 +315,17 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 				ewwwio_debug_message( "checking style attr for background-image: $style" );
 				$bg_image_url = $this->get_background_image_url( $style );
 				if ( $bg_image_url ) {
+					ewwwio_debug_message( 'bg-image url found' );
 					$new_style = $this->remove_background_image( $style );
 					if ( $style !== $new_style ) {
+						ewwwio_debug_message( 'style modified, continuing' );
 						$this->set_attribute( $element, 'class', $this->get_attribute( $element, 'class' ) . ' lazyload', true );
 						$this->set_attribute( $element, 'data-bg', $bg_image_url );
 						$element = str_replace( $style, $new_style, $element );
 					}
 				}
 				if ( $element !== $elements[ $index ] ) {
+					ewwwio_debug_message( "$tag_type modified, replacing in html source" );
 					$buffer = str_replace( $elements[ $index ], $element, $buffer );
 				}
 			}

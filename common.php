@@ -851,8 +851,10 @@ function ewww_image_optimizer_admin_init() {
 		add_action( 'admin_notices', 'ewww_image_optimizer_pngout_installed' );
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_pngout_installed' );
 	}
-	ewww_image_optimizer_privacy_policy_content();
-	ewww_image_optimizer_ajax_compat_check();
+	if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
+		ewww_image_optimizer_privacy_policy_content();
+		ewww_image_optimizer_ajax_compat_check();
+	}
 	// Increase the version when the next bump is coming.
 	if ( defined( 'PHP_VERSION_ID' ) && PHP_VERSION_ID < 50600 ) {
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_php55_warning' );
@@ -1151,6 +1153,7 @@ function ewww_image_optimizer_save_admin_colors() {
 		if (
 			is_array( $_wp_admin_css_colors ) &&
 			! empty( $user_info->admin_color ) &&
+			isset( $_wp_admin_css_colors[ $user_info->admin_color ] ) &&
 			is_object( $_wp_admin_css_colors[ $user_info->admin_color ] ) &&
 			is_array( $_wp_admin_css_colors[ $user_info->admin_color ]->colors ) &&
 			! empty( $_wp_admin_css_colors[ $user_info->admin_color ]->colors[2] ) &&
@@ -1177,6 +1180,7 @@ function ewww_image_optimizer_admin_background() {
 		if (
 			is_array( $_wp_admin_css_colors ) &&
 			! empty( $user_info->admin_color ) &&
+			isset( $_wp_admin_css_colors[ $user_info->admin_color ] ) &&
 			is_object( $_wp_admin_css_colors[ $user_info->admin_color ] ) &&
 			is_array( $_wp_admin_css_colors[ $user_info->admin_color ]->colors ) &&
 			! empty( $_wp_admin_css_colors[ $user_info->admin_color ]->colors[2] ) &&

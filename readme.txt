@@ -174,6 +174,11 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.7.5 =
+* fixed: notices when a user-selected admin theme is unavailable
+* fixed: privacy policy function triggers notices in WP-CLI
+* fixed: background-image attributes with single-quotes now supported by ExactDN, Lazy Load, and JS WebP
+
 = 4.7.4 =
 * fixed: ExactDN modifies Autoptimize CDN setting even when Include All Resources is disabled
 * fixed: noscript elements with newlines being parsed incorrectly by Lazy Load and JS WebP
