@@ -112,7 +112,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			wp_script_is( 'twentytwenty-twentytwenty', 'enqueued' ) ||
 			preg_match( '/^<\?xml/', $buffer )
 		) {
-			if (! empty( $_GET['ct_builder'] )) {
+			if ( ! empty( $_GET['ct_builder'] ) ) {
 				ewwwio_debug_message( 'oxygen builder' );
 			}
 			if ( empty( $buffer ) ) {
