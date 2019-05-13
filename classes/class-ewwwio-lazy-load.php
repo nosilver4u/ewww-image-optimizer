@@ -58,6 +58,9 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 		add_filter( 'ewww_image_optimizer_use_lqip', array( $this, 'maybe_lqip' ), 9 );
 		add_filter( 'ewww_image_optimizer_use_siip', array( $this, 'maybe_siip' ), 9 );
 
+		// Overrides for admin-ajax images.
+		add_filter( 'ewww_image_optimizer_admin_allow_lazyload', array( $this, 'allow_admin_image_downsize' ) );
+
 		// Load the appropriate JS.
 		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
 			// Load the non-minified and separate versions of the lazy load scripts.
@@ -94,14 +97,25 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	 */
 	function filter_page_output( $buffer ) {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		// Don't foul up the admin side of things, unless a plugin needs to.
+		if ( is_admin() &&
+			/**
+			 * Provide plugins a way of running Lazy Load for images in the WordPress Dashboard (wp-admin).
+			 *
+			 * @param bool false Allow Lazy Load to run on the Dashboard. Default to false.
+			 */
+			false === apply_filters( 'ewww_image_optimizer_admin_allow_lazyload', false )
+		) {
+			ewwwio_debug_message( 'is_admin' );
+			return $buffer;
+		}
 		// Don't lazy load in these cases...
 		$uri = $_SERVER['REQUEST_URI'];
 		if (
-			! empty( $_GET['ct_builder'] ) ||
 			empty( $buffer ) ||
-			is_admin() ||
 			! empty( $_GET['cornerstone'] ) ||
 			strpos( $uri, 'cornerstone-endpoint' ) !== false ||
+			! empty( $_GET['ct_builder'] ) ||
 			! empty( $_GET['et_fb'] ) ||
 			! empty( $_GET['tatsu'] ) ||
 			( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === $_POST['action'] ) ||
@@ -112,17 +126,14 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			wp_script_is( 'twentytwenty-twentytwenty', 'enqueued' ) ||
 			preg_match( '/^<\?xml/', $buffer )
 		) {
-			if ( ! empty( $_GET['ct_builder'] ) ) {
-				ewwwio_debug_message( 'oxygen builder' );
-			}
 			if ( empty( $buffer ) ) {
 				ewwwio_debug_message( 'empty buffer' );
 			}
-			if ( is_admin() ) {
-				ewwwio_debug_message( 'is_admin' );
-			}
 			if ( ! empty( $_GET['cornerstone'] ) || strpos( $uri, 'cornerstone-endpoint' ) !== false ) {
 				ewwwio_debug_message( 'cornerstone editor' );
+			}
+			if ( ! empty( $_GET['ct_builder'] ) ) {
+				ewwwio_debug_message( 'oxygen builder' );
 			}
 			if ( ! empty( $_GET['et_fb'] ) ) {
 				ewwwio_debug_message( 'et_fb' );
@@ -391,6 +402,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 				'fullurl=',
 				'gazette-featured-content-thumbnail',
 				'lazy-slider-img=',
+				'mgl-lazy',
 				'skip-lazy',
 				'timthumb.php?',
 				'wpcf7_captcha/',
@@ -428,6 +440,31 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Allow lazy loading of images for some admin-ajax requests.
+	 *
+	 * @param bool $allow Will normally be false, unless already modified by another function.
+	 * @return bool True if it's an allowable admin-ajax request, false for all other admin requests.
+	 */
+	function allow_admin_image_downsize( $allow ) {
+		if ( ! wp_doing_ajax() ) {
+			return $allow;
+		}
+		if ( ! empty( $_POST['action'] ) && 'eddvbugm_viewport_downloads' === $_POST['action'] ) {
+			return true;
+		}
+		if ( ! empty( $_POST['action'] ) && 'vc_get_vc_grid_data' === $_POST['action'] ) {
+			return true;
+		}
+		if ( ! empty( $_POST['action'] ) && 'Essential_Grid_Front_request_ajax' === $_POST['action'] ) {
+			return true;
+		}
+		if ( ! empty( $_POST['action'] ) && 'mabel-rpn-getnew-purchased-products' === $_POST['action'] ) {
+			return true;
+		}
+		return $allow;
 	}
 
 	/**

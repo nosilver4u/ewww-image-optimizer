@@ -3311,7 +3311,7 @@ function ewww_image_optimizer_cloud_quota( $raw = false ) {
 				)
 			);
 		} elseif ( $quota['licensed'] > 0 && $quota['consumed'] < 0 ) {
-			$real_quota = $quota['licensed'] - $quota['consumed'];
+			$real_quota = (int) $quota['licensed'] - (int) $quota['consumed'];
 			return esc_html(
 				sprintf(
 					/* translators: 1: Number of images */
