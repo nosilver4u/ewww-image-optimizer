@@ -59,7 +59,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 		add_filter( 'ewww_image_optimizer_use_siip', array( $this, 'maybe_siip' ), 9 );
 
 		// Overrides for admin-ajax images.
-		add_filter( 'ewww_image_optimizer_admin_allow_lazyload', array( $this, 'allow_admin_image_downsize' ) );
+		add_filter( 'ewww_image_optimizer_admin_allow_lazyload', array( $this, 'allow_admin_lazyload' ) );
 
 		// Load the appropriate JS.
 		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
@@ -116,6 +116,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			! empty( $_GET['cornerstone'] ) ||
 			strpos( $uri, 'cornerstone-endpoint' ) !== false ||
 			! empty( $_GET['ct_builder'] ) ||
+			! empty( $_GET['elementor-preview'] ) ||
 			! empty( $_GET['et_fb'] ) ||
 			! empty( $_GET['tatsu'] ) ||
 			( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === $_POST['action'] ) ||
@@ -134,6 +135,9 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			}
 			if ( ! empty( $_GET['ct_builder'] ) ) {
 				ewwwio_debug_message( 'oxygen builder' );
+			}
+			if ( ! empty( $_GET['elementor-preview'] ) ) {
+				ewwwio_debug_message( 'elementor preview' );
 			}
 			if ( ! empty( $_GET['et_fb'] ) ) {
 				ewwwio_debug_message( 'et_fb' );
@@ -448,21 +452,16 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	 * @param bool $allow Will normally be false, unless already modified by another function.
 	 * @return bool True if it's an allowable admin-ajax request, false for all other admin requests.
 	 */
-	function allow_admin_image_downsize( $allow ) {
+	function allow_admin_lazyload( $allow ) {
 		if ( ! wp_doing_ajax() ) {
 			return $allow;
 		}
-		if ( ! empty( $_POST['action'] ) && 'eddvbugm_viewport_downloads' === $_POST['action'] ) {
-			return true;
-		}
 		if ( ! empty( $_POST['action'] ) && 'vc_get_vc_grid_data' === $_POST['action'] ) {
+			ewwwio_debug_message( 'allowing lazy on vc grid' );
 			return true;
 		}
 		if ( ! empty( $_POST['action'] ) && 'Essential_Grid_Front_request_ajax' === $_POST['action'] ) {
-			return true;
-		}
-		if ( ! empty( $_POST['action'] ) && 'mabel-rpn-getnew-purchased-products' === $_POST['action'] ) {
-			return true;
+			/* return true; */
 		}
 		return $allow;
 	}

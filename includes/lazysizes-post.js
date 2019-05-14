@@ -29,11 +29,11 @@ document.addEventListener('lazybeforeunveil', function(e){
         var target = e.target;
 	//console.log('the target');
 	//console.log(target);
-	//console.log('loading an image');
+	console.log('loading an image');
 	var wrongSize = false;
 	var srcset = target.getAttribute('data-srcset');
         if ( ! srcset && target.naturalWidth) {
-		//console.log('we have something');
+		console.log('we have something');
         	if ((target.naturalWidth > 1) && (target.naturalHeight > 1)) {
                 	// For each image with a natural width which isn't
                 	// a 1x1 image, check its size.
@@ -41,8 +41,8 @@ document.addEventListener('lazybeforeunveil', function(e){
                 	var wrongWidth = (target.clientWidth * 1.25 < target.naturalWidth);
                 	var wrongHeight = (target.clientHeight * 1.25 < target.naturalHeight);
                 	if (wrongWidth || wrongHeight) {
-				//console.log(Math.round(target.clientWidth * dPR) + "x" + Math.round(target.clientHeight * dPR) + ", natural is " +
-				//	target.naturalWidth + "x" + target.naturalHeight + "!");
+				console.log(Math.round(target.clientWidth * dPR) + "x" + Math.round(target.clientHeight * dPR) + ", natural is " +
+					target.naturalWidth + "x" + target.naturalHeight + "!");
 				var targetWidth = Math.round(target.offsetWidth * dPR);
 				var targetHeight = Math.round(target.offsetHeight * dPR);
 
