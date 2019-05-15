@@ -7,15 +7,15 @@ function constrainSrc(url,objectWidth,objectHeight){
 	if (url.search('\\?') > 0 && url.search(ewww_lazy_vars.exactdn_domain) > 0){
 		var resultResize = regResize.exec(decUrl);
 		if(resultResize && objectWidth < resultResize[1]){
-			return url.replace(regResize, 'resize=' + objectWidth + ',' + objectHeight);
+			return decUrl.replace(regResize, 'resize=' + objectWidth + ',' + objectHeight);
 		}
-		var resultW = regW.exec(decUrl);
+		var resultW = regW.exec(url);
 		if(resultW && objectWidth <= resultW[1]){
 			return url.replace(regW, 'resize=' + objectWidth + ',' + objectHeight);
 		}
 		var resultFit = regFit.exec(decUrl);
 		if(resultFit && objectWidth < resultFit[1]){
-			return url.replace(regFit, 'resize=' + objectWidth + ',' + objectHeight);
+			return decUrl.replace(regFit, 'resize=' + objectWidth + ',' + objectHeight);
 		}
                 if(!resultW && !resultFit && !resultResize){
 			return url + '&resize=' + objectWidth + ',' + objectHeight;
