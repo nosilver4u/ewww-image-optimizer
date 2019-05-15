@@ -3,16 +3,17 @@ function constrainSrc(url,objectWidth,objectHeight){
 	var regW      = /w=(\d+)/;
 	var regFit    = /fit=(\d+),(\d+)/;
 	var regResize = /resize=(\d+),(\d+)/;
+	var decUrl = decodeURIComponent(url);
 	if (url.search('\\?') > 0 && url.search(ewww_lazy_vars.exactdn_domain) > 0){
-		var resultResize = regResize.exec(url);
+		var resultResize = regResize.exec(decUrl);
 		if(resultResize && objectWidth < resultResize[1]){
 			return url.replace(regResize, 'resize=' + objectWidth + ',' + objectHeight);
 		}
-		var resultW = regW.exec(url);
+		var resultW = regW.exec(decUrl);
 		if(resultW && objectWidth <= resultW[1]){
 			return url.replace(regW, 'resize=' + objectWidth + ',' + objectHeight);
 		}
-		var resultFit = regFit.exec(url);
+		var resultFit = regFit.exec(decUrl);
 		if(resultFit && objectWidth < resultFit[1]){
 			return url.replace(regFit, 'resize=' + objectWidth + ',' + objectHeight);
 		}
@@ -42,6 +43,7 @@ document.addEventListener('lazybeforeunveil', function(e){
                 	var wrongHeight = (target.clientHeight * 1.25 < target.naturalHeight);
 			console.log(Math.round(target.clientWidth * dPR) + "x" + Math.round(target.clientHeight * dPR) + ", natural is " +
 				target.naturalWidth + "x" + target.naturalHeight + "!");
+			console.log( target.getAttribute('data-src') );
                 	if (wrongWidth || wrongHeight) {
 				var targetWidth = Math.round(target.offsetWidth * dPR);
 				var targetHeight = Math.round(target.offsetHeight * dPR);
