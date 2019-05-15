@@ -40,9 +40,9 @@ document.addEventListener('lazybeforeunveil', function(e){
 			var dPR = (window.devicePixelRatio || 1);
                 	var wrongWidth = (target.clientWidth * 1.25 < target.naturalWidth);
                 	var wrongHeight = (target.clientHeight * 1.25 < target.naturalHeight);
+			console.log(Math.round(target.clientWidth * dPR) + "x" + Math.round(target.clientHeight * dPR) + ", natural is " +
+				target.naturalWidth + "x" + target.naturalHeight + "!");
                 	if (wrongWidth || wrongHeight) {
-				console.log(Math.round(target.clientWidth * dPR) + "x" + Math.round(target.clientHeight * dPR) + ", natural is " +
-					target.naturalWidth + "x" + target.naturalHeight + "!");
 				var targetWidth = Math.round(target.offsetWidth * dPR);
 				var targetHeight = Math.round(target.offsetHeight * dPR);
 
