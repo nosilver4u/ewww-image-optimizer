@@ -433,6 +433,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			'ewww_image_optimizer_lazy_bg_image_exclusions',
 			array(
 				'data-no-lazy=',
+				'header-gallery-wrapper ',
 				'lazyload',
 				'skip-lazy',
 			),
