@@ -753,6 +753,9 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	 * Load full webp script when SCRIPT_DEBUG is enabled.
 	 */
 	function debug_script() {
+		if ( ewww_image_optimizer_is_amp() ) {
+			return;
+		}
 		if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
 			wp_enqueue_script( 'ewww-webp-load-script', plugins_url( '/includes/load_webp.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 		}
@@ -762,20 +765,26 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	 * Load minified webp script when EWWW_IMAGE_OPTIMIZER_WEBP_EXTERNAL_SCRIPT is set.
 	 */
 	function min_external_script() {
+		if ( ewww_image_optimizer_is_amp() ) {
+			return;
+		}
 		if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
 			wp_enqueue_script( 'ewww-webp-load-script', plugins_url( '/includes/load_webp.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 		}
 	}
 
 	/**
-	 * Load minified inline version of webp script (from jscompress.com).
+	 * Load minified (jscompress.com) inline version of webp script.
 	 */
 	function inline_script() {
 		if ( defined( 'EWWW_IMAGE_OPTIMIZER_NO_JS' ) && EWWW_IMAGE_OPTIMIZER_NO_JS ) {
 			return;
 		}
+		if ( ewww_image_optimizer_is_amp() ) {
+			return;
+		}
 		ewwwio_debug_message( 'loading webp script without wp_add_inline_script' );
-		echo "<script>$this->inline_script</script>";
+		echo '<script type="text/javascript">' . $this->inline_script . '</script>';
 	}
 }
 

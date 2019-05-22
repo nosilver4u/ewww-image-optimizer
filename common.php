@@ -8662,6 +8662,9 @@ function ewww_image_optimizer_resize_detection_script() {
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', 'edit_others_posts' ) ) || 'wp-login.php' === basename( $_SERVER['SCRIPT_NAME'] ) ) {
 		return;
 	}
+	if ( ewww_image_optimizer_is_amp() ) {
+		return;
+	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' ) ) {
 		$resize_detection_script = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'includes/resize_detection.js' );
 		echo "<style>\n" .
@@ -8670,7 +8673,7 @@ function ewww_image_optimizer_resize_detection_script() {
 			"\tmargin: -3px;\n" .
 			"}\n" .
 			"</style>\n";
-		echo "<script>$resize_detection_script</script>";
+		echo '<script type="text/javascript">' . $resize_detection_script . '</script>';
 	}
 }
 
@@ -8688,6 +8691,18 @@ function ewww_image_optimizer_autoptimize_js_exclude( $jsexcludes = '', $content
 		return $jsexcludes;
 	}
 	return $jsexcludes . ', includes/resize_detection.js';
+}
+
+/**
+ * Checks to see if the current page being output is an AMP page.
+ *
+ * @return bool True for an AMP endpoint, false otherwise.
+ */
+function ewww_image_optimizer_is_amp() {
+	if ( function_exists( 'is_amp_endpoint' ) && is_amp_endpoint() ) {
+		return true;
+	}
+	return false;
 }
 
 /**

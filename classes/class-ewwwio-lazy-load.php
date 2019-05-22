@@ -505,6 +505,9 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	 */
 	function debug_script() {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( ewww_image_optimizer_is_amp() ) {
+			return;
+		}
 		wp_enqueue_script( 'ewww-lazy-load-pre', plugins_url( '/includes/lazysizes-pre.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 		wp_enqueue_script( 'ewww-lazy-load', plugins_url( '/includes/lazysizes.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 		wp_enqueue_script( 'ewww-lazy-load-post', plugins_url( '/includes/lazysizes-post.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
@@ -523,6 +526,9 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	 */
 	function min_script() {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( ewww_image_optimizer_is_amp() ) {
+			return;
+		}
 		wp_enqueue_script( 'ewww-lazy-load', plugins_url( '/includes/lazysizes.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 		wp_localize_script(
 			'ewww-lazy-load',
