@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '474.06' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '474.07' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -2438,8 +2438,19 @@ function ewww_image_optimizer_aux_paths_sanitize( $input ) {
 	if ( empty( $input ) ) {
 		return '';
 	}
-	$path_array = array();
-	$paths      = explode( "\n", $input );
+	$path_array  = array();
+	$paths       = explode( "\n", $input );
+	$abspath     = false;
+	$permissions = apply_filters( 'ewww_image_optimizer_superadmin_permissions', '' );
+	if ( is_multisite() && current_user_can( $permissions ) ) {
+		$abspath = true;
+	} elseif ( ! is_multisite() ) {
+		$abspath = true;
+	}
+	$blog_one = false;
+	if ( 1 === get_current_blog_id() ) {
+		$blog_one = true;
+	}
 	if ( ewww_image_optimizer_iterable( $paths ) ) {
 		$i = 0;
 		foreach ( $paths as $path ) {
@@ -2450,12 +2461,24 @@ function ewww_image_optimizer_aux_paths_sanitize( $input ) {
 			$upload_dir = apply_filters( 'ewww_image_optimizer_folder_restriction', wp_upload_dir( null, false ) );
 			// Retrieve the path of the upload folder from the array.
 			$upload_path = trailingslashit( $upload_dir['basedir'] );
-			if ( is_dir( $path ) && ( strpos( $path, ABSPATH ) === 0 || strpos( $path, $upload_path ) === 0 ) ) {
+			if ( ! $abspath && $blog_one && false !== strpos( $path, $upload_path . 'sites' ) ) {
+				add_settings_error(
+					'ewww_image_optimizer_aux_paths',
+					"ewwwio-aux-paths-$i",
+					sprintf(
+						/* translators: %s: A file system path */
+						esc_html__( 'Could not save Folder to Optimize: %s. Access denied.', 'ewww-image-optimizer' ),
+						esc_html( $path )
+					)
+				);
+				continue;
+			}
+			if ( is_dir( $path ) && ( ( $abspath && strpos( $path, ABSPATH ) === 0 ) || strpos( $path, $upload_path ) === 0 ) ) {
 				$path_array[] = $path;
 				continue;
 			}
 			// If they put in a relative path.
-			if ( is_dir( ABSPATH . ltrim( $path, '/' ) ) ) {
+			if ( $abspath && is_dir( ABSPATH . ltrim( $path, '/' ) ) ) {
 				$path_array[] = ABSPATH . ltrim( $path, '/' );
 				continue;
 			}
@@ -2466,7 +2489,7 @@ function ewww_image_optimizer_aux_paths_sanitize( $input ) {
 			}
 			// What if they put in a url?
 			$pathabsurl = ABSPATH . ltrim( str_replace( get_site_url(), '', $path ), '/' );
-			if ( is_dir( $pathabsurl ) ) {
+			if ( $abspath && is_dir( $pathabsurl ) ) {
 				$path_array[] = $pathabsurl;
 				continue;
 			}
@@ -7567,6 +7590,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewwwio_debug_message( 'home url: ' . get_home_url() );
 	ewwwio_debug_message( 'site url: ' . get_site_url() );
 	ewwwio_debug_message( 'content_url: ' . content_url() );
+	$upload_info = wp_upload_dir( null, false );
+	ewwwio_debug_message( 'upload_dir: ' . $upload_info['basedir'] );
 	ewwwio_debug_message( "content_width: $content_width" );
 	ewwwio_debug_message( 'registered stream wrappers: ' . implode( ',', stream_get_wrappers() ) );
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {

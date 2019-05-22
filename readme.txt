@@ -175,9 +175,12 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.7.5 =
+* changed: ExactDN + Lazy Load uses scaling rather than cropping by default
 * fixed: notices when a user-selected admin theme is unavailable
 * fixed: privacy policy function triggers notices in WP-CLI
 * fixed: background-image attributes with single-quotes now supported by ExactDN, Lazy Load, and JS WebP
+* fixed: background-image attributes getting extra arguments with lazy load
+* fixed: On multi-site installs, site admins could add folders to optimize outside of the uploads folder
 
 = 4.7.4 =
 * fixed: ExactDN modifies Autoptimize CDN setting even when Include All Resources is disabled

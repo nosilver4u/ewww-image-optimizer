@@ -11,18 +11,18 @@ function constrainSrc(url,objectWidth,objectHeight){
 		}
 		var resultW = regW.exec(url);
 		if(resultW && objectWidth <= resultW[1]){
-			return url.replace(regW, 'resize=' + objectWidth + ',' + objectHeight);
+			return url.replace(regW, 'fit=' + objectWidth + ',' + objectHeight);
 		}
 		var resultFit = regFit.exec(decUrl);
 		if(resultFit && objectWidth < resultFit[1]){
-			return decUrl.replace(regFit, 'resize=' + objectWidth + ',' + objectHeight);
+			return decUrl.replace(regFit, 'fit=' + objectWidth + ',' + objectHeight);
 		}
                 if(!resultW && !resultFit && !resultResize){
-			return url + '&resize=' + objectWidth + ',' + objectHeight;
+			return url + '&fit=' + objectWidth + ',' + objectHeight;
 		}
 	}
 	if (url.search('\\?') == -1 && url.search(ewww_lazy_vars.exactdn_domain) > 0){
-		return url + '?resize=' + objectWidth + ',' + objectHeight;
+		return url + '?fit=' + objectWidth + ',' + objectHeight;
 	}
 	return url;
 }
