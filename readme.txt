@@ -176,6 +176,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 
 = 4.7.5 =
 * changed: ExactDN + Lazy Load uses scaling rather than cropping by default
+* changed: prevent NextGEN backup images from being optimized
 * fixed: notices when a user-selected admin theme is unavailable
 * fixed: privacy policy function triggers notices in WP-CLI
 * fixed: background-image attributes with single-quotes now supported by ExactDN, Lazy Load, and JS WebP

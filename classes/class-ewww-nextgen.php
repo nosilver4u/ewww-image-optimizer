@@ -114,7 +114,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		function maybe_get_more_sizes( $sizes, $meta ) {
 			if ( 2 === count( $sizes ) && ewww_image_optimizer_iterable( $meta ) ) {
 				foreach ( $meta as $meta_key => $meta_val ) {
-					if ( is_array( $meta_val ) && isset( $meta_val['width'] ) ) {
+					if ( 'backup' !== $meta_key && is_array( $meta_val ) && isset( $meta_val['width'] ) ) {
 						$sizes[] = $meta_key;
 					}
 				}
@@ -193,6 +193,9 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 						$full_size = true;
 					} else {
 						$full_size = false;
+					}
+					if ( 'backup' === $size ) {
+						continue;
 					}
 					// Get the absolute path.
 					$file_path = $storage->get_image_abspath( $image, $size );
@@ -487,6 +490,8 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 						foreach ( $sizes as $size ) {
 							if ( 'full' === $size ) {
 								$full_size = true;
+							} elseif ( 'backup' === $size ) {
+								continue;
 							} else {
 								$file_path = $storage->get_image_abspath( $image, $size );
 								$full_size = false;
@@ -907,7 +912,9 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			$sizes = $this->maybe_get_more_sizes( $sizes, $image->meta_data );
 			if ( ewww_image_optimizer_iterable( $sizes ) ) {
 				foreach ( $sizes as $size ) {
-					if ( 'full' === $size ) {
+					if ( 'backup' === $size ) {
+						continue;
+					} elseif ( 'full' === $size ) {
 						/* Translators: %s: The compression results/savings */
 						$output['results'] .= sprintf( esc_html__( 'Full size - %s', 'ewww-image-optimizer' ) . '<br>', esc_html( $image->meta_data['ewww_image_optimizer'] ) );
 					} elseif ( 'thumbnail' === $size ) {
