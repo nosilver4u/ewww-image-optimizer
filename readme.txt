@@ -181,6 +181,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: background-image attributes with single-quotes now supported by ExactDN, Lazy Load, and JS WebP
 * fixed: background-image attributes getting extra arguments with lazy load
 * fixed: On multi-site installs, site admins could add folders to optimize outside of the uploads folder
+* fixed: LQIP with SVG files results in duplicate requests
 
 = 4.7.4 =
 * fixed: ExactDN modifies Autoptimize CDN setting even when Include All Resources is disabled

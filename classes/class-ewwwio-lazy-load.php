@@ -189,7 +189,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 					$srcset = $this->get_attribute( $image, 'srcset' );
 
 					$placeholder_src = $this->placeholder_src;
-					if ( false === strpos( $file, 'nggid' ) && apply_filters( 'ewww_image_optimizer_use_lqip', true ) && $this->parsing_exactdn && strpos( $file, $this->exactdn_domain ) ) {
+					if ( false === strpos( $file, 'nggid' ) && ! preg_match( '#\.svg(\?|$)#', $file ) && apply_filters( 'ewww_image_optimizer_use_lqip', true ) && $this->parsing_exactdn && strpos( $file, $this->exactdn_domain ) ) {
 						$placeholder_src = add_query_arg( array( 'lazy' => 1 ), $file );
 						ewwwio_debug_message( "current placeholder is $placeholder_src" );
 					} elseif ( apply_filters( 'ewww_image_optimizer_use_siip', true ) ) {
