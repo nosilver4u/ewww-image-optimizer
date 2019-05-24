@@ -175,6 +175,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.7.5 =
+* added: compatibility with WP Stateless for GSC
 * changed: ExactDN + Lazy Load uses scaling rather than cropping by default
 * changed: prevent NextGEN backup images from being optimized
 * fixed: notices when a user-selected admin theme is unavailable
@@ -183,6 +184,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: background-image attributes getting extra arguments with lazy load
 * fixed: On multi-site installs, site admins could add folders to optimize outside of the uploads folder
 * fixed: LQIP with SVG files results in duplicate requests
+* fixed: image optimization results in media library report file missing when using WP Stateless
 
 = 4.7.4 =
 * fixed: ExactDN modifies Autoptimize CDN setting even when Include All Resources is disabled

@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '474.07' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '474.30' );
 
 // Initialize a couple globals.
 $ewww_debug = '';
@@ -4406,6 +4406,64 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 	if ( ! function_exists( 'download_url' ) ) {
 		require_once( ABSPATH . '/wp-admin/includes/file.php' );
 	}
+	if ( class_exists( 'wpCloud\StatelessMedia\EWWW' ) && ! empty( $meta['gs_link'] ) ) {
+		$full_url = $meta['gs_link'];
+		$filename = get_attached_file( $id, true );
+		ewwwio_debug_message( "GSC (stateless) fullsize url: $full_url" );
+		ewwwio_debug_message( "unfiltered fullsize path: $filename" );
+		$temp_file = download_url( $full_url );
+		if ( ! is_wp_error( $temp_file ) ) {
+			if ( ! is_dir( dirname( $filename ) ) ) {
+				wp_mkdir_p( dirname( $filename ) );
+			}
+			rename( $temp_file, $filename );
+		}
+		// Resized versions, so we'll grab those too.
+		if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
+			$disabled_sizes = get_option( 'ewww_image_optimizer_disable_resizes_opt' );
+			ewwwio_debug_message( 'retrieving resizes' );
+			// Meta sizes don't contain a path, so we calculate one.
+			$base_dir  = trailingslashit( dirname( $filename ) );
+			$processed = array();
+			foreach ( $meta['sizes'] as $size => $data ) {
+				ewwwio_debug_message( "processing size: $size" );
+				if ( preg_match( '/webp/', $size ) ) {
+					continue;
+				}
+				if ( ! empty( $disabled_sizes[ $size ] ) ) {
+					continue;
+				}
+				if ( empty( $data['file'] ) ) {
+					continue;
+				}
+				$dup_size = false;
+				// Check through all the sizes we've processed so far.
+				foreach ( $processed as $proc => $scan ) {
+					// If a previous resize had identical dimensions.
+					if ( $scan['height'] === $data['height'] && $scan['width'] === $data['width'] ) {
+						// Found a duplicate resize.
+						$dup_size = true;
+					}
+				}
+				// If this is a unique size.
+				if ( ! $dup_size ) {
+					$resize_path = $base_dir . $data['file'];
+					$resize_url  = $data['gs_link'];
+					ewwwio_debug_message( "fetching $resize_url to $resize_path" );
+					$temp_file = download_url( $resize_url );
+					if ( ! is_wp_error( $temp_file ) ) {
+						if ( ! is_dir( dirname( $resize_path ) ) ) {
+							wp_mkdir_p( dirname( $resize_path ) );
+						}
+						rename( $temp_file, $resize_path );
+					}
+				}
+				// Store info on the sizes we've processed, so we can check the list for duplicate sizes.
+				$processed[ $size ]['width']  = $data['width'];
+				$processed[ $size ]['height'] = $data['height'];
+			}
+		} // End if().
+	} // End if().
 	if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
 		global $as3cf;
 		$full_url = get_attached_file( $id );
@@ -5397,13 +5455,27 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		ewwwio_debug_message( 'this image already has metadata, so it is not new' );
 		$new_image = false;
 	}
+
 	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
+
+	/**
+	 * Allow altering the metadata or performing other actions before the plugin processes an attachement.
+	 *
+	 * @param array  $meta The attachment metadata.
+	 * @param string $file_path The file path to the image.
+	 * @param bool   $new_image True if this is a newly uploaded image, false otherwise.
+	 */
+	$meta = apply_filters( 'ewww_image_optimizer_resize_from_meta_data', $meta, $file_path, $new_image );
+
 	// If the attachment has been uploaded via the image store plugin.
 	if ( 'ims_image' === get_post_type( $id ) ) {
 		$gallery_type = 6;
 	}
 	if ( ! $new_image && class_exists( 'Amazon_S3_And_CloudFront' ) && ewww_image_optimizer_stream_wrapped( $file_path ) ) {
 		ewww_image_optimizer_check_table_as3cf( $meta, $id, $file_path );
+	}
+	if ( ! is_file( $file_path ) && class_exists( 'wpCloud\StatelessMedia\EWWW' ) && ! empty( $meta['gs_link'] ) ) {
+		$file_path = ewww_image_optimizer_remote_fetch( $id, $meta );
 	}
 	// If the local file is missing and we have valid metadata, see if we can fetch via CDN.
 	if ( ! is_file( $file_path ) || ( ewww_image_optimizer_stream_wrapped( $file_path ) && ! class_exists( 'S3_Uploads' ) ) ) {
@@ -6460,6 +6532,10 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 		}
 		if ( is_array( $meta ) && class_exists( 'S3_Uploads' ) && preg_match( '/^(http|s3|gs)\w*:/', get_attached_file( $id ) ) ) {
 			$output  .= '<div>' . esc_html__( 'Amazon S3 image', 'ewww-image-optimizer' ) . '</div>';
+			$ewww_cdn = true;
+		}
+		if ( is_array( $meta ) & class_exists( 'wpCloud\StatelessMedia\EWWW' ) && ! empty( $meta['gs_link'] ) ) {
+			$output  .= '<div>' . esc_html__( 'WP Stateless image', 'ewww-image-optimizer' ) . '</div>';
 			$ewww_cdn = true;
 		}
 		list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
@@ -8700,6 +8776,9 @@ function ewww_image_optimizer_autoptimize_js_exclude( $jsexcludes = '', $content
  */
 function ewww_image_optimizer_is_amp() {
 	if ( function_exists( 'is_amp_endpoint' ) && is_amp_endpoint() ) {
+		return true;
+	}
+	if ( function_exists( 'ampforwp_is_amp_endpoint' ) && ampforwp_is_amp_endpoint() ) {
 		return true;
 	}
 	return false;

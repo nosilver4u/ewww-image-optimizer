@@ -71,7 +71,12 @@ class EWWWIO_Media_Background_Process extends EWWWIO_Background_Process {
 			'image/gif',
 		);
 
-		$meta = wp_get_attachment_metadata( $id, true );
+		if ( in_array( $type, $image_types, true ) && $item['new'] && class_exists( 'wpCloud\StatelessMedia\EWWW' ) ) {
+			$meta = wp_get_attachment_metadata( $id );
+		} else {
+			// This is unfiltered for performance, because we don't often need filtered meta.
+			$meta = wp_get_attachment_metadata( $id, true );
+		}
 		if ( in_array( $type, $image_types, true ) && empty( $meta ) && $item['attempts'] < $max_attempts ) {
 			$item['attempts']++;
 			sleep( 4 );
@@ -91,7 +96,7 @@ class EWWWIO_Media_Background_Process extends EWWWIO_Background_Process {
 			ewww_image_optimizer_debug_log();
 			return $item;
 		}
-		wp_update_attachment_metadata( $id, $meta );
+		$meta = apply_filters( 'wp_update_attachment_metadata', $meta, $id );
 		ewww_image_optimizer_debug_log();
 		delete_transient( 'ewwwio-background-in-progress-' . $id );
 		return false;

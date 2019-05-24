@@ -805,10 +805,9 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			}
 
 			if ( 'application/pdf' !== $mime // NOT a pdf...
-				&& ( // AND...
-					empty( $meta ) // metadata is empty...
-					|| ( is_string( $meta ) && 'processing' === $meta ) // OR the string 'processing'...
-					|| ( is_array( $meta ) && ! empty( $meta[0] ) && 'processing' === $meta[0] ) // OR array( 'processing' ).
+				&& (
+					( is_string( $meta ) && 'processing' === $meta ) || // AND meta equals the string 'processing'...
+					( is_array( $meta ) && ! empty( $meta[0] ) && 'processing' === $meta[0] ) // OR array( 'processing' ).
 				)
 			) {
 				// Attempt to rebuild the metadata.
@@ -839,7 +838,14 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				ewww_image_optimizer_check_table_as3cf( $meta, $selected_id, $file_path );
 			}
 			ewww_image_optimizer_debug_log();
-			if ( ( ewww_image_optimizer_stream_wrapped( $file_path ) || ! is_file( $file_path ) ) && ( class_exists( 'WindowsAzureStorageUtil' ) || class_exists( 'Amazon_S3_And_CloudFront' ) ) ) {
+			if (
+				( ewww_image_optimizer_stream_wrapped( $file_path ) || ! is_file( $file_path ) ) &&
+				(
+					class_exists( 'WindowsAzureStorageUtil' ) ||
+					class_exists( 'Amazon_S3_And_CloudFront' ) ||
+					class_exists( 'wpCloud\StatelessMedia\EWWW' )
+				)
+			) {
 				// Construct a $file_path and proceed IF a supported CDN plugin is installed.
 				ewwwio_debug_message( 'Azure or S3 detected and no local file found' );
 				$file_path = get_attached_file( $selected_id );
