@@ -1592,7 +1592,8 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 
 		// When we finish all the sizes, we want to fire off any filters for plugins that might need to take action when an image is updated.
 		if ( $attachment && (int) $attachment !== (int) $next_image->attachment_id ) {
-			$meta = apply_filters( 'wp_update_attachment_metadata', wp_get_attachment_metadata( $image->attachment_id ), $image->attachment_id );
+			wp_update_attachment_metadata( $image->attachment_id, wp_get_attachment_metadata( $image->attachment_id ) );
+			/* $meta = apply_filters( 'wp_update_attachment_metadata', wp_get_attachment_metadata( $image->attachment_id ), $image->attachment_id ); */
 		}
 		// When an image (attachment) is done, pull the next attachment ID off the stack.
 		if ( ( 'full' === $next_image->resize || empty( $next_image->resize ) ) && ! empty( $attachment ) && (int) $attachment !== (int) $next_image->attachment_id ) {

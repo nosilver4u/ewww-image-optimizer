@@ -6539,6 +6539,15 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			$ewww_cdn = true;
 		}
 		list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
+		if ( is_array( $meta ) & function_exists( 'ilab_get_image_sizes' ) && ! empty( $meta['s3'] ) && empty( $file_path ) ) {
+			$output  .= '<div>' . esc_html__( 'Media Cloud image', 'ewww-image-optimizer' ) . '</div>';
+			$ewww_cdn = true;
+			if ( $return_output ) {
+				return $output;
+			}
+			echo $output;
+			return;
+		}
 		// If the file does not exist.
 		if ( empty( $file_path ) && ! $ewww_cdn ) {
 			$output .= esc_html__( 'Could not retrieve file path.', 'ewww-image-optimizer' ) . '</div>';

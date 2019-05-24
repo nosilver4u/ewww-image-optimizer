@@ -96,7 +96,11 @@ class EWWWIO_Media_Background_Process extends EWWWIO_Background_Process {
 			ewww_image_optimizer_debug_log();
 			return $item;
 		}
-		$meta = apply_filters( 'wp_update_attachment_metadata', $meta, $id );
+		if ( class_exists( 'wpCloud\StatelessMedia\EWWW' ) ) {
+			$meta = apply_filters( 'wp_update_attachment_metadata', wp_get_attachment_metadata( $image->attachment_id ), $image->attachment_id );
+		} else {
+			wp_update_attachment_metadata( $id, $meta );
+		}
 		ewww_image_optimizer_debug_log();
 		delete_transient( 'ewwwio-background-in-progress-' . $id );
 		return false;
