@@ -137,7 +137,7 @@ class EWWW_Image {
 				if ( $id && empty( $new_image['attachment_id'] ) ) {
 					$new_image['attachment_id'] = (int) $id;
 				}
-				if ( $gallery && empty( $new_image['gallery'] ) ) {
+				if ( $gallery && empty( $new_image['gallery'] ) && ! empty( $new_image['attachment_id'] ) ) {
 					$new_image['gallery'] = $gallery;
 				}
 			}
@@ -179,7 +179,7 @@ class EWWW_Image {
 		$this->orig_size     = (int) $new_image['orig_size'];
 		$this->resize        = $new_image['resize'];
 		$this->converted     = ewww_image_optimizer_absolutize_path( $new_image['converted'] );
-		$this->gallery       = ( empty( $gallery ) ? $new_image['gallery'] : $gallery );
+		$this->gallery       = ( empty( $gallery ) || empty( $new_image['attachment_id'] ) ? $new_image['gallery'] : $gallery );
 		$this->backup        = $new_image['backup'];
 		$this->level         = (int) $new_image['level'];
 		$this->record        = $new_image;

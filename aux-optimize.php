@@ -416,7 +416,7 @@ function ewww_image_optimizer_get_queued_attachments( $gallery, $limit = 100 ) {
 	$selected_ids = $wpdb->get_col( $wpdb->prepare( "SELECT attachment_id FROM $wpdb->ewwwio_queue WHERE gallery = %s AND scanned = 1 LIMIT %d", $gallery, $limit ) );
 	if ( empty( $selected_ids ) ) {
 		ewwwio_debug_message( 'no attachments found in queue' );
-		return array();
+		return array( 0 );
 	}
 	array_walk( $selected_ids, 'intval' );
 	ewwwio_debug_message( 'selected items: ' . count( $selected_ids ) );
