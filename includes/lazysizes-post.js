@@ -1,5 +1,5 @@
 lazysizesWebP('alpha', lazySizes.init);
-function constrainSrc(url,objectWidth,objectHeight){
+function constrainSrc(url,objectWidth,objectHeight,objectType){
 	var regW      = /w=(\d+)/;
 	var regFit    = /fit=(\d+),(\d+)/;
 	var regResize = /resize=(\d+),(\d+)/;
@@ -11,18 +11,36 @@ function constrainSrc(url,objectWidth,objectHeight){
 		}
 		var resultW = regW.exec(url);
 		if(resultW && objectWidth <= resultW[1]){
-			return url.replace(regW, 'fit=' + objectWidth + ',' + objectHeight);
+			if('bg-cover'===objectType){
+				return url.replace(regW, 'resize=' + objectWidth + ',' + objectHeight );
+			}
+			return url.replace(regW, 'w=' + objectWidth);
 		}
 		var resultFit = regFit.exec(decUrl);
 		if(resultFit && objectWidth < resultFit[1]){
+			if('bg-cover'===objectType){
+				return url.replace(regW, 'resize=' + objectWidth + ',' + objectHeight );
+			}
 			return decUrl.replace(regFit, 'fit=' + objectWidth + ',' + objectHeight);
 		}
                 if(!resultW && !resultFit && !resultResize){
-			return url + '&fit=' + objectWidth + ',' + objectHeight;
+			if('img'===objectType){
+				return url + '&fit=' + objectWidth + ',' + objectHeight;
+			}
+			if('bg-cover'===objectType){
+				return url + '?resize=' + objectWidth + ',' + objectHeight;
+			}
+			return url + '&w=' + objectWidth;
 		}
 	}
 	if (url.search('\\?') == -1 && url.search(ewww_lazy_vars.exactdn_domain) > 0){
-		return url + '?fit=' + objectWidth + ',' + objectHeight;
+		if('img'===objectType){
+			return url + '?fit=' + objectWidth + ',' + objectHeight;
+		}
+		if('bg-cover'===objectType){
+			return url + '?resize=' + objectWidth + ',' + objectHeight;
+		}
+		return url + '?w=' + objectWidth;
 	}
 	return url;
 }
@@ -54,7 +72,7 @@ document.addEventListener('lazybeforeunveil', function(e){
 					//console.log('using data-src-webp');
 					src = webpsrc;
 				}
-				var newSrc = constrainSrc(src,targetWidth,targetHeight);
+				var newSrc = constrainSrc(src,targetWidth,targetHeight,'img');
 				if (newSrc && src != newSrc){
 					target.setAttribute('data-src', newSrc);
 				}
