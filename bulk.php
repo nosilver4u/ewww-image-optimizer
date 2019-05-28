@@ -803,25 +803,6 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				ewwwio_debug_message( "missing mime for $selected_id" );
 			}
 
-			if ( 'application/pdf' !== $mime // NOT a pdf...
-				&& (
-					( is_string( $meta ) && 'processing' === $meta ) || // AND meta equals the string 'processing'...
-					( is_array( $meta ) && ! empty( $meta[0] ) && 'processing' === $meta[0] ) // OR array( 'processing' ).
-				)
-			) {
-				// Attempt to rebuild the metadata.
-				ewwwio_debug_message( "attempting to rebuild attachment meta for $selected_id" );
-				set_transient( 'ewww_image_optimizer_rebuilding_attachment', $selected_id, 5 * MINUTE_IN_SECONDS );
-				ewww_image_optimizer_debug_log();
-				$new_meta = ewww_image_optimizer_rebuild_meta( $selected_id );
-				delete_transient( 'ewww_image_optimizer_rebuilding_attachment' );
-				if ( is_array( $new_meta ) ) {
-					$meta = $new_meta;
-				} else {
-					$meta = array();
-				}
-			}
-
 			if ( ! in_array( $mime, $enabled_types, true ) ) {
 				$skipped_ids[] = $selected_id;
 				continue;

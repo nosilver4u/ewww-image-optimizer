@@ -5581,28 +5581,8 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 	if ( ! is_array( $meta ) && empty( $meta ) ) {
 		$meta = array();
 	} elseif ( ! is_array( $meta ) ) {
-		if ( is_string( $meta ) && is_numeric( $id ) && 'processing' === $meta ) {
-			ewwwio_debug_message( "attempting to rebuild attachment meta for $id" );
-			$new_meta = ewww_image_optimizer_rebuild_meta( $id );
-			if ( ! is_array( $new_meta ) ) {
-				ewwwio_debug_message( 'attempt to rebuild attachment meta failed' );
-				return $meta;
-			} else {
-				$meta = $new_meta;
-			}
-		} else {
-			ewwwio_debug_message( 'attachment meta is not a usable array' );
-			return $meta;
-		}
-	} elseif ( is_array( $meta ) && ! empty( $meta[0] ) && 'processing' === $meta[0] ) {
-		ewwwio_debug_message( "attempting to rebuild attachment meta for $id" );
-		$new_meta = ewww_image_optimizer_rebuild_meta( $id );
-		if ( ! is_array( $new_meta ) ) {
-			ewwwio_debug_message( 'attempt to rebuild attachment meta failed' );
-			return $meta;
-		} else {
-			$meta = $new_meta;
-		}
+		ewwwio_debug_message( 'attachment meta is not a usable array' );
+		return $meta;
 	}
 	global $wpdb;
 	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {

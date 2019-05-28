@@ -86,7 +86,6 @@ For background images, use data-bg attribute:
 					var targetWidth = Math.round(e.target.offsetWidth * dPR);
 					var targetHeight = Math.round(e.target.offsetHeight * dPR);
 					if(window.lazySizes.hC(e.target,'wp-block-cover')){
-						console.log('cover block found');
 						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
 					} else {
 						bg = constrainSrc(bg,targetWidth,targetHeight,'bg');
