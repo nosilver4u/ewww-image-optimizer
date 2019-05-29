@@ -31,7 +31,12 @@ function ewww_image_optimizer_cloud_init() {
 		define( 'EWWW_IMAGE_OPTIMIZER_CLOUD', false );
 		return;
 	}
-	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) > 10 && ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) > 10 ) {
+	if (
+		! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) &&
+		ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
+		ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) > 10 &&
+		ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) > 10
+	) {
 		define( 'EWWW_IMAGE_OPTIMIZER_CLOUD', true );
 	} elseif ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) ) {
 		define( 'EWWW_IMAGE_OPTIMIZER_CLOUD', false );
@@ -553,7 +558,11 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 	// Check if exec is disabled.
 	if ( ewww_image_optimizer_exec_check() ) {
 		$no_compression = false;
-		if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) ) {
+		if (
+			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) &&
+			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) &&
+			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' )
+		) {
 			$no_compression = true;
 		}
 		// Need to be a little particular with the quiet parameter.

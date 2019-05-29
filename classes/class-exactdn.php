@@ -1098,7 +1098,7 @@ class ExactDN extends EWWWIO_Page_Parser {
 				if ( ! empty( $exactdn_url ) ) {
 					$src = $exactdn_url;
 				}
-				if ( $srcset_fill && ! ewww_image_optimizer_get_option( 'exactdn_prevent_srcset_fill' ) && false !== strpos( $src, $this->exactdn_domain ) ) {
+				if ( $srcset_fill && ( ! defined( 'EXACTDN_PREVENT_SRCSET_FILL' ) || ! EXACTDN_PREVENT_SRCSET_FILL ) && false !== strpos( $src, $this->exactdn_domain ) ) {
 					if ( ! $this->get_attribute( $images['img_tag'][ $index ], $this->srcset_attr ) && ! $this->get_attribute( $images['img_tag'][ $index ], 'sizes' ) ) {
 						ewwwio_debug_message( "srcset filling with $src" );
 						$zoom = false;
