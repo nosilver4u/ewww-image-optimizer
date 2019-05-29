@@ -255,7 +255,7 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 	 */
 	function test_convert_png_attachment() {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_png_level', 0 );
-		ewww_image_optimizer_set_option( 'ewww_image_optimizer_disable_autoconvert', true );
+		define( 'EWWW_IMAGE_OPTIMIZER_DISABLE_AUTOCONVERT', true );
 
 		$upload_png = self::$test_png . '.png';
 		copy( self::$test_png, $upload_png );
