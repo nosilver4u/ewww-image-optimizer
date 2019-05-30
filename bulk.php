@@ -383,6 +383,9 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 	// Check the 'bulk resume' option.
 	$resume   = get_option( 'ewww_image_optimizer_bulk_resume' );
 	$scanning = get_option( 'ewww_image_optimizer_aux_resume' );
+	if ( 'scanning' !== $scanning && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) ) {
+		$scanning = false;
+	}
 	if ( ! $resume && ! $scanning ) {
 		ewwwio_debug_message( 'not resuming/scanning, so clearing any pending images in both tables' );
 		ewww_image_optimizer_delete_queue_images();

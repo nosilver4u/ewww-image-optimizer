@@ -32,6 +32,22 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	protected $parsing_exactdn = false;
 
 	/**
+	 * The folder to store any PIIPs.
+	 *
+	 * @access protected
+	 * @var string $piip_folder
+	 */
+	protected $piip_folder = WP_CONTENT_DIR . '/ewww/lazy/';
+
+	/**
+	 * Whether to allow PIIPs.
+	 *
+	 * @access public
+	 * @var bool $allow_piip
+	 */
+	public $allow_piip = true;
+
+	/**
 	 * Register (once) actions and filters for Lazy Load.
 	 */
 	function __construct() {
@@ -54,6 +70,12 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			}
 		}
 
+		if ( ! is_dir( $this->piip_folder ) ) {
+			$this->allow_piip = wp_mkdir_p( $this->piip_folder ) && ewww_image_optimizer_gd_support();
+		} else {
+			$this->allow_piip = is_writable( $this->piip_folder ) && ewww_image_optimizer_gd_support();
+		}
+
 		// Filter early, so that others at the default priority take precendence.
 		add_filter( 'ewww_image_optimizer_use_lqip', array( $this, 'maybe_lqip' ), 9 );
 		add_filter( 'ewww_image_optimizer_use_siip', array( $this, 'maybe_siip' ), 9 );
@@ -70,7 +92,6 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			add_action( 'wp_enqueue_scripts', array( $this, 'min_script' ) );
 		}
 	}
-
 
 	/**
 	 * Starts an output buffer and registers the callback function to do WebP replacement.
@@ -190,20 +211,38 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 
 					$placeholder_src = $this->placeholder_src;
 					if ( false === strpos( $file, 'nggid' ) && ! preg_match( '#\.svg(\?|$)#', $file ) && apply_filters( 'ewww_image_optimizer_use_lqip', true ) && $this->parsing_exactdn && strpos( $file, $this->exactdn_domain ) ) {
+						ewwwio_debug_message( 'using lqip' );
 						$placeholder_src = add_query_arg( array( 'lazy' => 1 ), $file );
-						ewwwio_debug_message( "current placeholder is $placeholder_src" );
-					} elseif ( apply_filters( 'ewww_image_optimizer_use_siip', true ) ) {
-						// Get image dimensions for inline SVG placeholder.
+					} elseif ( $this->allow_piip && $srcset && apply_filters( 'ewww_image_optimizer_use_piip', true ) ) {
+						ewwwio_debug_message( 'trying piip' );
+						// Get image dimensions for PNG placeholder.
 						list( $width, $height ) = $this->get_dimensions_from_filename( $file );
 
 						$width_attr  = $this->get_attribute( $image, 'width' );
 						$height_attr = $this->get_attribute( $image, 'height' );
 
+						// Can't use a relative width or height, so unset the dimensions in favor of not breaking things.
+						if ( false !== strpos( $width_attr, '%' ) || false !== strpos( $height_attr, '%' ) ) {
+							$width_attr  = false;
+							$height_attr = false;
+						}
+
 						if ( false === $width || false === $height ) {
-							ewwwio_debug_message( "dimensions not found in $file, using attrs" );
 							$width  = $width_attr;
 							$height = $height_attr;
 						}
+
+						// Falsify them if empty.
+						$width  = $width ? (int) $width : false;
+						$height = $height ? (int) $height : false;
+						if ( $width && $height ) {
+							ewwwio_debug_message( "creating piip of $width x $height" );
+							$placeholder_src = $this->create_piip( $width, $height );
+						}
+					} elseif ( apply_filters( 'ewww_image_optimizer_use_siip', true ) ) {
+						ewwwio_debug_message( 'trying siip' );
+						$width  = $this->get_attribute( $image, 'width' );
+						$height = $this->get_attribute( $image, 'height' );
 
 						// Can't use a relative width or height, so unset the dimensions in favor of not breaking things.
 						if ( false !== strpos( $width, '%' ) || false !== strpos( $height, '%' ) ) {
@@ -216,14 +255,9 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 						$height = $height ? (int) $height : false;
 						if ( $width && $height ) {
 							$placeholder_src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 $width $height'%3E%3C/svg%3E";
-							if ( empty( $width_attr ) ) {
-								$this->set_attribute( $image, 'width', $width );
-							}
-							if ( empty( $height_attr ) ) {
-								$this->set_attribute( $image, 'height', $height );
-							}
 						}
 					}
+					ewwwio_debug_message( "current placeholder is $placeholder_src" );
 
 					if ( $srcset ) {
 						$placeholder_src = apply_filters( 'ewww_image_optimizer_lazy_placeholder', $placeholder_src, $image );
@@ -447,6 +481,35 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 		return true;
 	}
 
+	/**
+	 * Build a PNG inline image placeholder.
+	 *
+	 * @param int $width The width of the placeholder image.
+	 * @param int $height The height of the placeholder image.
+	 * @return string The PNG placeholder link.
+	 */
+	function create_piip( $width = 1, $height = 1 ) {
+		$width  = (int) $width;
+		$height = (int) $height;
+		if ( 1 === $width && 1 === $height ) {
+			return $this->placeholder_src;
+		}
+
+		$piip_path = $this->piip_folder . 'placeholder-' . $width . 'x' . $height . '.png';
+		if ( ! is_file( $piip_path ) ) {
+			$img   = imagecreatetruecolor( $width, $height );
+			$color = imagecolorallocatealpha( $img, 0, 0, 0, 127 );
+			imagefill( $img, 0, 0, $color );
+			imagesavealpha( $img, true );
+			imagecolortransparent( $img, imagecolorat( $img, 0, 0 ) );
+			imagetruecolortopalette( $img, false, 1 );
+			imagepng( $img, $piip_path, 9 );
+		}
+		if ( is_file( $piip_path ) ) {
+			return content_url( 'ewww/lazy/placeholder-' . $width . 'x' . $height . '.png' );
+		}
+		return $this->placeholder_src;
+	}
 	/**
 	 * Allow lazy loading of images for some admin-ajax requests.
 	 *

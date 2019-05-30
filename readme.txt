@@ -178,6 +178,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: ability to resize images outside media library via scheduled or bulk optimization
 * added: compatibility with WP Stateless for GSC
 * added: use ewww_image_optimizer_autoconvert_threshold filter to modify conversion threshold (default of 300kb)
+* changed: Lazy Load without ExactDN uses blank PNG placeholders for better srcset auto-sizing
 * changed: API backups taken prior to resizing/scaling rather than just before compression
 * changed: ExactDN + Lazy Load uses scaling rather than cropping by default
 * changed: prevent NextGEN backup images from being optimized

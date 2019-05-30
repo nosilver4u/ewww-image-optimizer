@@ -354,7 +354,7 @@ function ewww_image_optimizer_install_tools() {
 	$toolfail = false;
 	if ( ! is_dir( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) && is_writable( dirname( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) ) {
 		ewwwio_debug_message( 'folder does not exist, creating...' );
-		if ( ! mkdir( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
+		if ( ! wp_mkdir_p( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
 			ewwwio_debug_message( 'could not create folder' );
 			return;
 		}

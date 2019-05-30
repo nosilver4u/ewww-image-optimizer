@@ -804,6 +804,9 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 		if ( defined( 'WPS_CORE_PLUGINS' ) ) {
 			ewww_image_optimizer_image_scan( WP_CONTENT_DIR . '/wps-pro-content', $started );
 		}
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ) {
+			ewww_image_optimizer_image_scan( WP_CONTENT_DIR . '/ewww/lazy/', $started );
+		}
 		if ( is_plugin_active( 'ml-slider/ml-slider.php' ) || is_plugin_active_for_network( 'ml-slider/ml-slider.php' ) ) {
 			global $wpdb;
 			$slide_paths = array();
