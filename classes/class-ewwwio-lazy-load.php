@@ -78,6 +78,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 
 		// Filter early, so that others at the default priority take precendence.
 		add_filter( 'ewww_image_optimizer_use_lqip', array( $this, 'maybe_lqip' ), 9 );
+		add_filter( 'ewww_image_optimizer_use_piip', array( $this, 'maybe_piip' ), 9 );
 		add_filter( 'ewww_image_optimizer_use_siip', array( $this, 'maybe_siip' ), 9 );
 
 		// Overrides for admin-ajax images.
@@ -541,6 +542,19 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			return false;
 		}
 		return $use_lqip;
+	}
+
+	/**
+	 * Check if PIIP should be used, but allow filters to alter the option.
+	 *
+	 * @param bool $use_piip Whether LL should use PNG inline image placeholders.
+	 * @return bool True to use PIIP, false to skip them.
+	 */
+	function maybe_piip( $use_piip ) {
+		if ( defined( 'EWWW_IMAGE_OPTIMIZER_USE_PIIP' ) && ! EWWW_IMAGE_OPTIMIZER_USE_PIIP ) {
+			return false;
+		}
+		return $use_piip;
 	}
 
 	/**
