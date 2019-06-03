@@ -190,6 +190,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * fixed: On multi-site installs, site admins could add folders to optimize outside of the uploads folder
 * fixed: LQIP with SVG files results in duplicate requests
 * fixed: image optimization results in media library report file missing when using WP Stateless
+* fixed: plugin checking for 'nice' on Windows servers
 
 = 4.7.4 =
 * fixed: ExactDN modifies Autoptimize CDN setting even when Include All Resources is disabled

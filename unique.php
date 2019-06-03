@@ -1206,10 +1206,14 @@ function ewww_image_optimizer_escapeshellcmd( $path ) {
 function ewww_image_optimizer_tool_found( $path, $tool ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	ewwwio_debug_message( "testing case: $tool at $path" );
+	$fork = '2>&1';
+	if ( ( defined( 'EWWW_IMAGE_OPTIMIZER_FORK' ) && ! EWWW_IMAGE_OPTIMIZER_FORK ) || 'WINNT' === PHP_OS ) {
+		$fork = '';
+	}
 	// '*b' cases are 'blind' testing in case we can't get at the version string, but the binaries are actually working, we run a test compression, and compare the results with what they should be.
 	switch ( $tool ) {
 		case 'j': // jpegtran.
-			exec( $path . ' -v ' . EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'sample.jpg 2>&1', $jpegtran_version );
+			exec( $path . ' -v ' . EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . "sample.jpg $fork", $jpegtran_version );
 			if ( ewww_image_optimizer_iterable( $jpegtran_version ) ) {
 				ewwwio_debug_message( "$path: {$jpegtran_version[0]}" );
 			} else {
@@ -1238,7 +1242,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			break;
 		case 'o': // optipng.
-			exec( $path . ' -v 2>&1', $optipng_version );
+			exec( $path . " -v $fork", $optipng_version );
 			if ( ewww_image_optimizer_iterable( $optipng_version ) ) {
 				ewwwio_debug_message( "$path: {$optipng_version[0]}" );
 			} else {
@@ -1265,7 +1269,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			break;
 		case 'g': // gifsicle.
-			exec( $path . ' --version 2>&1', $gifsicle_version );
+			exec( $path . " --version $fork", $gifsicle_version );
 			if ( ewww_image_optimizer_iterable( $gifsicle_version ) ) {
 				ewwwio_debug_message( "$path: {$gifsicle_version[0]}" );
 			} else {
@@ -1292,7 +1296,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			break;
 		case 'p': // pngout.
-			exec( "$path 2>&1", $pngout_version );
+			exec( "$path $fork", $pngout_version );
 			if ( ewww_image_optimizer_iterable( $pngout_version ) ) {
 				ewwwio_debug_message( "$path: {$pngout_version[0]}" );
 			} else {
@@ -1319,7 +1323,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			break;
 		case 'q': // pngquant.
-			exec( $path . ' -V 2>&1', $pngquant_version );
+			exec( $path . " -V $fork", $pngquant_version );
 			if ( ewww_image_optimizer_iterable( $pngquant_version ) ) {
 				ewwwio_debug_message( "$path: {$pngquant_version[0]}" );
 			} else {
@@ -1345,37 +1349,11 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 				return esc_html__( 'unknown', 'ewww-image-optimizer' );
 			}
 			break;
-		case 'i': // ImageMagick.
-			exec( "$path -version 2>&1", $convert_version );
-			if ( ewww_image_optimizer_iterable( $convert_version ) ) {
-				ewwwio_debug_message( "$path: {$convert_version[0]}" );
-			} else {
-				ewwwio_debug_message( "$path: invalid output" );
-				break;
-			}
-			if ( ! empty( $convert_version ) && strpos( $convert_version[0], 'ImageMagick' ) ) {
-				ewwwio_debug_message( 'imagemagick found' );
-				return $convert_version[0];
-			}
-			break;
-		case 'f': // file.
-			exec( "$path -v 2>&1", $file_version );
-			if ( ewww_image_optimizer_iterable( $file_version ) ) {
-				ewwwio_debug_message( "$path: {$file_version[1]}" );
-			} else {
-				ewwwio_debug_message( "$path: invalid output" );
-				break;
-			}
-			if ( ! empty( $file_version[1] ) && preg_match( '/magic/', $file_version[1] ) ) {
-				ewwwio_debug_message( 'file binary found' );
-				return $file_version[0];
-			} elseif ( ! empty( $file_version[1] ) && preg_match( '/usage: file/', $file_version[1] ) ) {
-				ewwwio_debug_message( 'file binary found' );
-				return $file_version[0];
-			}
-			break;
 		case 'n': // nice.
-			exec( "$path 2>&1", $nice_output );
+			if ( PHP_OS === 'WINNT' ) {
+				return false;
+			}
+			exec( "$path $fork", $nice_output );
 			if ( ewww_image_optimizer_iterable( $nice_output ) && isset( $nice_output[0] ) ) {
 				ewwwio_debug_message( "$path: {$nice_output[0]}" );
 			} else {
@@ -1390,24 +1368,8 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 				return true;
 			}
 			break;
-		case 't': // tar.
-			exec( "$path --version 2>&1", $tar_version );
-			if ( ewww_image_optimizer_iterable( $tar_version ) ) {
-				ewwwio_debug_message( "$path: {$tar_version[0]}" );
-			} else {
-				ewwwio_debug_message( "$path: invalid output" );
-				break;
-			}
-			if ( ! empty( $tar_version[0] ) && preg_match( '/bsdtar/', $tar_version[0] ) ) {
-				ewwwio_debug_message( 'tar found' );
-				return $tar_version[0];
-			} elseif ( ! empty( $tar_version[0] ) && preg_match( '/GNU tar/i', $tar_version[0] ) ) {
-				ewwwio_debug_message( 'tar found' );
-				return $tar_version[0];
-			}
-			break;
 		case 'w': // cwebp.
-			exec( "$path -version 2>&1", $webp_version );
+			exec( "$path -version $fork", $webp_version );
 			if ( ewww_image_optimizer_iterable( $webp_version ) ) {
 				ewwwio_debug_message( "$path: {$webp_version[0]}" );
 			} else {
@@ -1640,11 +1602,10 @@ function ewww_image_optimizer_jpegtran_autorotate( $file, $type, $orientation ) 
 	if ( ! $orientation || 1 === (int) $orientation ) {
 		return false;
 	}
+	$nice = '';
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) || ! EWWW_IMAGE_OPTIMIZER_CLOUD ) {
 		ewww_image_optimizer_define_noexec();
-		if ( EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
-			$nice = '';
-		} else {
+		if ( ! EWWW_IMAGE_OPTIMIZER_NOEXEC && PHP_OS !== 'WINNT' ) {
 			// Check to see if 'nice' exists.
 			$nice = ewww_image_optimizer_find_nix_binary( 'nice', 'n' );
 		}
@@ -1808,11 +1769,10 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	if ( ! is_object( $ewww_image ) || ! $ewww_image instanceof EWWW_Image || $ewww_image->file !== $file ) {
 		$ewww_image = new EWWW_Image( 0, '', $file );
 	}
+	$nice = '';
 	if ( ! EWWW_IMAGE_OPTIMIZER_CLOUD ) {
 		ewww_image_optimizer_define_noexec();
-		if ( EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
-			$nice = '';
-		} else {
+		if ( ! EWWW_IMAGE_OPTIMIZER_NOEXEC && PHP_OS !== 'WINNT' ) {
 			// Check to see if 'nice' exists.
 			$nice = ewww_image_optimizer_find_nix_binary( 'nice', 'n' );
 		}
@@ -2657,8 +2617,14 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 	if ( empty( $tool ) ) {
 		ewww_image_optimizer_cloud_optimizer( $file, $type, false, $webpfile, 'image/webp' );
 	} else {
-		// Check to see if 'nice' exists.
-		$nice = ewww_image_optimizer_find_nix_binary( 'nice', 'n' );
+		$nice = '';
+		if ( ! EWWW_IMAGE_OPTIMIZER_CLOUD ) {
+			ewww_image_optimizer_define_noexec();
+			if ( ! EWWW_IMAGE_OPTIMIZER_NOEXEC && PHP_OS !== 'WINNT' ) {
+				// Check to see if 'nice' exists.
+				$nice = ewww_image_optimizer_find_nix_binary( 'nice', 'n' );
+			}
+		}
 		// Check to see if we are supposed to strip metadata.
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
 			// Don't copy metadata.
