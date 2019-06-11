@@ -211,10 +211,10 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 					$srcset = $this->get_attribute( $image, 'srcset' );
 
 					$placeholder_src = $this->placeholder_src;
-					if ( false === strpos( $file, 'nggid' ) && ! preg_match( '#\.svg(\?|$)#', $file ) && apply_filters( 'ewww_image_optimizer_use_lqip', true ) && $this->parsing_exactdn && strpos( $file, $this->exactdn_domain ) ) {
+					if ( false === strpos( $file, 'nggid' ) && ! preg_match( '#\.svg(\?|$)#', $file ) && apply_filters( 'ewww_image_optimizer_use_lqip', true, $file ) && $this->parsing_exactdn && strpos( $file, $this->exactdn_domain ) ) {
 						ewwwio_debug_message( 'using lqip' );
 						$placeholder_src = add_query_arg( array( 'lazy' => 1 ), $file );
-					} elseif ( $this->allow_piip && $srcset && apply_filters( 'ewww_image_optimizer_use_piip', true ) ) {
+					} elseif ( $this->allow_piip && $srcset && apply_filters( 'ewww_image_optimizer_use_piip', true, $file ) ) {
 						ewwwio_debug_message( 'trying piip' );
 						// Get image dimensions for PNG placeholder.
 						list( $width, $height ) = $this->get_dimensions_from_filename( $file );
@@ -240,7 +240,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 							ewwwio_debug_message( "creating piip of $width x $height" );
 							$placeholder_src = $this->create_piip( $width, $height );
 						}
-					} elseif ( apply_filters( 'ewww_image_optimizer_use_siip', true ) ) {
+					} elseif ( apply_filters( 'ewww_image_optimizer_use_siip', true, $file ) ) {
 						ewwwio_debug_message( 'trying siip' );
 						$width  = $this->get_attribute( $image, 'width' );
 						$height = $this->get_attribute( $image, 'height' );

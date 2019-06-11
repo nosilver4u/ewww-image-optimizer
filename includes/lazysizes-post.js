@@ -30,6 +30,9 @@ function constrainSrc(url,objectWidth,objectHeight,objectType){
 			if('bg-cover'===objectType){
 				return url + '?resize=' + objectWidth + ',' + objectHeight;
 			}
+			if(objectHeight>objectWidth){
+				return url + '&h=' + objectHeight;
+			}
 			return url + '&w=' + objectWidth;
 		}
 	}
@@ -39,6 +42,9 @@ function constrainSrc(url,objectWidth,objectHeight,objectType){
 		}
 		if('bg-cover'===objectType){
 			return url + '?resize=' + objectWidth + ',' + objectHeight;
+		}
+		if(objectHeight>objectWidth){
+			return url + '?h=' + objectHeight;
 		}
 		return url + '?w=' + objectWidth;
 	}
