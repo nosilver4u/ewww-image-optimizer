@@ -1207,25 +1207,11 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	ewwwio_debug_message( "testing case: $tool at $path" );
 
-	$started = microtime( true );
-
-	$fork = '2>&1';
-	if ( ( defined( 'EWWW_IMAGE_OPTIMIZER_FORK' ) && ! EWWW_IMAGE_OPTIMIZER_FORK ) || 'WINNT' === PHP_OS ) {
-		$fork = '';
-	}
 	// '*b' cases are 'blind' testing in case we can't get at the version string, but the binaries are actually working, we run a test compression, and compare the results with what they should be.
 	switch ( $tool ) {
 		case 'j': // jpegtran.
-			if ( 'WINNT' === PHP_OS ) {
-				$upload_dir = wp_upload_dir();
-				$testjpg    = trailingslashit( $upload_dir['basedir'] ) . 'testopti.jpg';
-				exec( $path . ' -v -outfile ' . ewww_image_optimizer_escapeshellarg( $testjpg ) . ' ' . EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'sample.jpg', $jpegtran_version );
-				if ( is_file( $testjpg ) ) {
-					unlink( $testjpg );
-				}
-			} else {
-				exec( $path . ' -v ' . EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . "sample.jpg $fork", $jpegtran_version );
-			}
+			// In case you forget, it is not any slower to run jpegtran this way (with a sample file to operate on) than the other tools.
+			exec( $path . ' -v ' . EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'sample.jpg 2>&1', $jpegtran_version );
 			if ( ewww_image_optimizer_iterable( $jpegtran_version ) ) {
 				ewwwio_debug_message( "$path: {$jpegtran_version[0]}" );
 			} else {
@@ -1235,8 +1221,6 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			foreach ( $jpegtran_version as $jout ) {
 				if ( preg_match( '/Independent JPEG Group/', $jout ) ) {
 					ewwwio_debug_message( 'optimizer found' );
-					$elapsed = microtime( true ) - $started;
-					ewwwio_debug_message( "$tool check took $elapsed seconds" );
 					return $jout;
 				}
 			}
@@ -1256,7 +1240,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			break;
 		case 'o': // optipng.
-			exec( $path . " -v $fork", $optipng_version );
+			exec( $path . ' -v 2>&1', $optipng_version );
 			if ( ewww_image_optimizer_iterable( $optipng_version ) ) {
 				ewwwio_debug_message( "$path: {$optipng_version[0]}" );
 			} else {
@@ -1265,8 +1249,6 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			if ( ! empty( $optipng_version ) && strpos( $optipng_version[0], 'OptiPNG' ) === 0 ) {
 				ewwwio_debug_message( 'optimizer found' );
-				$elapsed = microtime( true ) - $started;
-				ewwwio_debug_message( "$tool check took $elapsed seconds" );
 				return $optipng_version[0];
 			}
 			break;
@@ -1285,7 +1267,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			break;
 		case 'g': // gifsicle.
-			exec( $path . " --version $fork", $gifsicle_version );
+			exec( $path . ' --version 2>&1', $gifsicle_version );
 			if ( ewww_image_optimizer_iterable( $gifsicle_version ) ) {
 				ewwwio_debug_message( "$path: {$gifsicle_version[0]}" );
 			} else {
@@ -1294,8 +1276,6 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			if ( ! empty( $gifsicle_version ) && strpos( $gifsicle_version[0], 'LCDF Gifsicle' ) === 0 ) {
 				ewwwio_debug_message( 'optimizer found' );
-				$elapsed = microtime( true ) - $started;
-				ewwwio_debug_message( "$tool check took $elapsed seconds" );
 				return $gifsicle_version[0];
 			}
 			break;
@@ -1314,7 +1294,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			break;
 		case 'p': // pngout.
-			exec( "$path $fork", $pngout_version );
+			exec( "$path 2>&1", $pngout_version );
 			if ( ewww_image_optimizer_iterable( $pngout_version ) ) {
 				ewwwio_debug_message( "$path: {$pngout_version[0]}" );
 			} else {
@@ -1323,8 +1303,6 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			if ( ! empty( $pngout_version ) && strpos( $pngout_version[0], 'PNGOUT' ) === 0 ) {
 				ewwwio_debug_message( 'optimizer found' );
-				$elapsed = microtime( true ) - $started;
-				ewwwio_debug_message( "$tool check took $elapsed seconds" );
 				return $pngout_version[0];
 			}
 			break;
@@ -1343,7 +1321,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			break;
 		case 'q': // pngquant.
-			exec( $path . " -V $fork", $pngquant_version );
+			exec( $path . ' -V 2>&1', $pngquant_version );
 			if ( ewww_image_optimizer_iterable( $pngquant_version ) ) {
 				ewwwio_debug_message( "$path: {$pngquant_version[0]}" );
 			} else {
@@ -1352,8 +1330,6 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			if ( ! empty( $pngquant_version ) && substr( $pngquant_version[0], 0, 3 ) >= 2.0 ) {
 				ewwwio_debug_message( 'optimizer found' );
-				$elapsed = microtime( true ) - $started;
-				ewwwio_debug_message( "$tool check took $elapsed seconds" );
 				return $pngquant_version[0];
 			}
 			break;
@@ -1375,7 +1351,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			if ( PHP_OS === 'WINNT' ) {
 				return false;
 			}
-			exec( "$path $fork", $nice_output );
+			exec( "$path 2>&1", $nice_output );
 			if ( ewww_image_optimizer_iterable( $nice_output ) && isset( $nice_output[0] ) ) {
 				ewwwio_debug_message( "$path: {$nice_output[0]}" );
 			} else {
@@ -1391,7 +1367,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			break;
 		case 'w': // cwebp.
-			exec( "$path -version $fork", $webp_version );
+			exec( "$path -version 2>&1", $webp_version );
 			if ( ewww_image_optimizer_iterable( $webp_version ) ) {
 				ewwwio_debug_message( "$path: {$webp_version[0]}" );
 			} else {
@@ -1400,8 +1376,6 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 			}
 			if ( ! empty( $webp_version ) && preg_match( '/0.\d.\d/', $webp_version[0] ) ) {
 				ewwwio_debug_message( 'optimizer found' );
-				$elapsed = microtime( true ) - $started;
-				ewwwio_debug_message( "$tool check took $elapsed seconds" );
 				return $webp_version[0];
 			}
 			break;
