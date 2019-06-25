@@ -175,7 +175,9 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.8.1 =
+* added: Lazy Load background image support added for span elements
 * changed: constrain by height for background images that are taller than they are wide
+* fix: Lazy Load breaks when an image has an empty class attribute
 * fix: regression that caused jpegtran and pngout tests to fail on Windows
 
 = 4.8.0 =

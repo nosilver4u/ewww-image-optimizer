@@ -289,6 +289,8 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 		$buffer = $this->parse_background_images( $buffer, 'div' );
 		// Process background images on li elements.
 		$buffer = $this->parse_background_images( $buffer, 'li' );
+		// Process background images on li elements.
+		$buffer = $this->parse_background_images( $buffer, 'span' );
 		// Images listed as picture/source elements. Mostly for NextGEN, but should work anywhere.
 		$pictures = $this->get_picture_tags_from_html( $buffer );
 		if ( ewww_image_optimizer_iterable( $pictures ) ) {

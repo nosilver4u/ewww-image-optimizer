@@ -246,7 +246,8 @@ class EWWWIO_Page_Parser {
 		if ( 'class' === $name ) {
 			$element = preg_replace( "#\s$name\s+[^=]#", ' ', $element );
 		}
-		$value = trim( $value );
+		$element = preg_replace( "#\s$name=\"\"#", ' ', $element );
+		$value   = trim( $value );
 		if ( $replace ) {
 			// Don't forget, back references cannot be used in character classes.
 			$new_element = preg_replace( '#\s' . $name . '\s*=\s*("|\')(?!\1).*?\1#is', " $name=$1$value$1", $element );
