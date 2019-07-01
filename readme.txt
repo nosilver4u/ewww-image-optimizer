@@ -177,8 +177,10 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 = 4.8.1 =
 * added: Lazy Load background image support added for span elements
 * changed: constrain by height for background images that are taller than they are wide
+* changed: debug.log moved to more suitable location
 * fix: Lazy Load breaks when an image has an empty class attribute
 * fix: regression that caused jpegtran and pngout tests to fail on Windows
+* fix: writing to debug.log causes errors
 
 = 4.8.0 =
 * added: ability to resize images outside media library via scheduled or bulk optimization

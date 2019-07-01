@@ -2141,8 +2141,6 @@ function ewww_image_optimizer_admin_menu() {
 		add_media_page( esc_html__( 'Dynamic Image Debugging', 'ewww-image-optimizer' ), esc_html__( 'Dynamic Image Debugging', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-dynamic-debug', 'ewww_image_optimizer_dynamic_image_debug' );
 		// Add Image Queue Debugging to allow clearing and checking queues.
 		add_media_page( esc_html__( 'Image Queue Debugging', 'ewww-image-optimizer' ), esc_html__( 'Image Queue Debugging', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-queue-debug', 'ewww_image_optimizer_image_queue_debug' );
-		// Add debug log page for viewing the log on hosts where you can't directly access it.
-		/* add_media_page( esc_html__( 'EWWW IO Debug Log', 'ewww-image-optimizer' ), esc_html__( 'EWWW IO Debug Log', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-debug-log-display', 'ewww_image_optimizer_debug_log_display' ); */
 	}
 	if ( is_plugin_active( 'image-store/ImStore.php' ) || is_plugin_active_for_network( 'image-store/ImStore.php' ) ) {
 		// Adds an optimize page for Image Store galleries and images.
@@ -8205,7 +8203,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			"<li class='ewww-tab ewww-resize-nav'><span class='ewww-tab-hidden'>" . esc_html__( 'Resize', 'ewww-image-optimizer' ) . "</span></li>\n" .
 			"<li class='ewww-tab ewww-conversion-nav'><span class='ewww-tab-hidden'>" . esc_html__( 'Convert', 'ewww-image-optimizer' ) . "</span></li>\n" .
 			"<li class='ewww-tab ewww-webp-nav'><span class='ewww-tab-hidden'>" . esc_html__( 'WebP', 'ewww-image-optimizer' ) . "</span></li>\n" .
-			"<li class='ewww-tab ewww-tools-nav'><span class='ewww-tab-hidden'>" . esc_html__( 'Tools', 'ewww-image-optimizer' ) . "</span></li>\n" .
+			// "<li class='ewww-tab ewww-tools-nav'><span class='ewww-tab-hidden'>" . esc_html__( 'Tools', 'ewww-image-optimizer' ) . "</span></li>\n" .
 			"<li class='ewww-tab ewww-overrides-nav'><span class='ewww-tab-hidden'><a href='https://docs.ewww.io/article/40-override-options' target='_blank'><span class='ewww-tab-hidden'>" . esc_html__( 'Overrides', 'ewww-image-optimizer' ) . "</a></span></li>\n" .
 			"<li class='ewww-tab ewww-support-nav'><span class='ewww-tab-hidden'>" . esc_html__( 'Support', 'ewww-image-optimizer' ) . "</span></li>\n" .
 			"<li class='ewww-tab ewww-contribute-nav'><span class='ewww-tab-hidden'>" . esc_html__( 'Contribute', 'ewww-image-optimizer' ) . "</span></li>\n" .
@@ -8738,7 +8736,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	global $ewww_debug;
 	if ( ! empty( $ewww_debug ) ) {
 		$debug_output = '<p style="clear:both"><b>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</b> <button id="ewww-copy-debug" class="button button-secondary" type="button">' . esc_html__( 'Copy', 'ewww-image-optimizer' ) . '</button>';
-		if ( is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
+		if ( is_file( WP_CONTENT_DIR . '/ewww/debug.log' ) ) {
 			$debug_output .= "&emsp;<a href='admin.php?action=ewww_image_optimizer_view_debug_log'>" . esc_html( 'View Debug Log', 'ewww-image-optimizer' ) . "</a> - <a href='admin.php?action=ewww_image_optimizer_delete_debug_log'>" . esc_html( 'Remove Debug Log', 'ewww-image-optimizer' ) . '</a>';
 		}
 		$debug_output .= '</p>';
@@ -9018,19 +9016,6 @@ function ewwwio_debug_message( $message ) {
 }
 
 /**
- * Loads the logfile and displays it in the WP admin.
- */
-function ewww_image_optimizer_debug_log_display() {
-	if ( file_exists( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
-		$ewww_debug_log = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' );
-		$ewww_debug_log = str_replace( "\n", '<br>', $ewww_debug_log );
-		echo $ewww_debug_log;
-	} else {
-		esc_html_e( 'The Debug Log is empty.', 'ewww-image-optimizer' );
-	}
-}
-
-/**
  * Saves the in-memory debug log to a logfile in the plugin folder.
  *
  * @global string $ewww_debug The in-memory debug log.
@@ -9038,21 +9023,22 @@ function ewww_image_optimizer_debug_log_display() {
 function ewww_image_optimizer_debug_log() {
 	global $ewww_debug;
 	global $ewwwio_temp_debug;
-	if ( ! empty( $ewww_debug ) && empty( $ewwwio_temp_debug ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
+	$debug_log = WP_CONTENT_DIR . '/ewww/debug.log';
+	if ( ! empty( $ewww_debug ) && empty( $ewwwio_temp_debug ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && is_writable( WP_CONTENT_DIR . '/ewww/' ) ) {
 		$memory_limit = ewwwio_memory_limit();
 		clearstatcache();
 		$timestamp = date( 'Y-m-d H:i:s' ) . "\n";
-		if ( ! file_exists( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
-			touch( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' );
+		if ( ! file_exists( $debug_log ) ) {
+			touch( $debug_log );
 		} else {
-			if ( filesize( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) + 4000000 + memory_get_usage( true ) > $memory_limit ) {
-				unlink( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' );
-				touch( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' );
+			if ( filesize( $debug_log ) + 4000000 + memory_get_usage( true ) > $memory_limit ) {
+				unlink( $debug_log );
+				touch( $debug_log );
 			}
 		}
-		if ( filesize( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) + strlen( $ewww_debug ) + 4000000 + memory_get_usage( true ) <= $memory_limit ) {
+		if ( filesize( $debug_log ) + strlen( $ewww_debug ) + 4000000 + memory_get_usage( true ) <= $memory_limit && is_writable( $debug_log ) ) {
 			$ewww_debug = str_replace( '<br>', "\n", $ewww_debug );
-			file_put_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log', $timestamp . $ewww_debug, FILE_APPEND );
+			file_put_contents( $debug_log, $timestamp . $ewww_debug, FILE_APPEND );
 		}
 	}
 	$ewww_debug = '';
@@ -9067,10 +9053,10 @@ function ewww_image_optimizer_view_debug_log() {
 	if ( false === current_user_can( $permissions ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
-	if ( is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
+	if ( is_file( WP_CONTENT_DIR . '/ewww/debug.log' ) ) {
 		ewwwio_ob_clean();
 		header( 'Content-Type: text/plain;charset=UTF-8' );
-		readfile( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' );
+		readfile( WP_CONTENT_DIR . '/ewww/debug.log' );
 		exit;
 	}
 	wp_die( esc_html__( 'The Debug Log is empty.', 'ewww-image-optimizer' ) );
@@ -9084,8 +9070,8 @@ function ewww_image_optimizer_delete_debug_log() {
 	if ( false === current_user_can( $permissions ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
-	if ( is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
-		unlink( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' );
+	if ( is_file( WP_CONTENT_DIR . '/ewww/debug.log' ) ) {
+		unlink( WP_CONTENT_DIR . '/ewww/debug.log' );
 	}
 	$sendback = wp_get_referer();
 	wp_redirect( esc_url_raw( $sendback ) );
