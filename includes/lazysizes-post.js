@@ -1,5 +1,8 @@
 lazysizesWebP('alpha', lazySizes.init);
 function constrainSrc(url,objectWidth,objectHeight,objectType){
+	if (url===null){
+		return url;
+	}
 	var regW      = /w=(\d+)/;
 	var regFit    = /fit=(\d+),(\d+)/;
 	var regResize = /resize=(\d+),(\d+)/;
