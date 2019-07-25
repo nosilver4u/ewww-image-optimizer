@@ -80,7 +80,7 @@ jQuery(document).ready(function($) {
 			$.post(ajaxurl, ewww_webp_rewrite_data, function(response) {
 				$('#ewww-webp-rewrite-status').html('<b>' + response + '</b>');
 				ewww_webp_image = document.getElementById("webp-image").src;
-				document.getElementById("webp-image").src = ewww_webp_image + '#' + new Date().getTime();
+				document.getElementById("webp-image").src = ewww_webp_image + '?m=' + new Date().getTime();
 			});
 			return false;
 		});
@@ -93,7 +93,7 @@ jQuery(document).ready(function($) {
 			$.post(ajaxurl, ewww_webp_rewrite_data, function(response) {
 				$('#ewww-webp-rewrite-status').html('<b>' + response + '</b>');
 				ewww_webp_image = document.getElementById("webp-image").src;
-				document.getElementById("webp-image").src = ewww_webp_image + '#' + new Date().getTime();
+				document.getElementById("webp-image").src = ewww_webp_image + '?m' + new Date().getTime();
 			});
 			return false;
 		});

@@ -1138,7 +1138,10 @@ class ExactDN extends EWWWIO_Page_Parser {
 				}
 			} // End foreach().
 		} // End if();
-		$content = $this->filter_bg_images( $content );
+		$content = $this->filter_bg_images( $content, 'div' );
+		$content = $this->filter_bg_images( $content, 'li' );
+		$content = $this->filter_bg_images( $content, 'span' );
+		$content = $this->filter_bg_images( $content, 'section' );
 		if ( $this->filtering_the_page ) {
 			$content = $this->filter_prz_thumb( $content );
 		}
@@ -1183,24 +1186,25 @@ class ExactDN extends EWWWIO_Page_Parser {
 	 * Parse page content looking for elements with CSS background-image properties.
 	 *
 	 * @param string $content The HTML content to parse.
+	 * @param string $tag_type The type of HTML tag to look for.
 	 * @return string The filtered HTML content.
 	 */
-	function filter_bg_images( $content ) {
+	function filter_bg_images( $content, $tag_type ) {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$content_width = false;
 		if ( ! $this->filtering_the_page ) {
 			$content_width = $this->get_content_width();
 		}
 		ewwwio_debug_message( "content width is $content_width" );
-		// Process background images on 'div' elements.
-		$divs = $this->get_elements_from_html( $content, 'div' );
-		if ( ewww_image_optimizer_iterable( $divs ) ) {
-			foreach ( $divs as $index => $div ) {
-				ewwwio_debug_message( 'parsing a div' );
-				if ( false === strpos( $div, 'background:' ) && false === strpos( $div, 'background-image:' ) ) {
+		// Process background images on elements.
+		$elements = $this->get_elements_from_html( $content, $tag_type );
+		if ( ewww_image_optimizer_iterable( $elements ) ) {
+			foreach ( $elements as $index => $element ) {
+				ewwwio_debug_message( "parsing a $tag_type" );
+				if ( false === strpos( $element, 'background:' ) && false === strpos( $element, 'background-image:' ) ) {
 					continue;
 				}
-				$style = $this->get_attribute( $div, 'style' );
+				$style = $this->get_attribute( $element, 'style' );
 				if ( empty( $style ) ) {
 					continue;
 				}
@@ -1208,16 +1212,16 @@ class ExactDN extends EWWWIO_Page_Parser {
 				$bg_image_url = $this->get_background_image_url( $style );
 				if ( $this->validate_image_url( $bg_image_url ) ) {
 					/** This filter is already documented in class-exactdn.php */
-					if ( apply_filters( 'exactdn_skip_image', false, $bg_image_url, $div ) ) {
+					if ( apply_filters( 'exactdn_skip_image', false, $bg_image_url, $element ) ) {
 						continue;
 					}
-					$args      = array();
-					$div_class = $this->get_attribute( $div, 'class' );
-					if ( false !== strpos( $div_class, 'alignfull' ) && current_theme_supports( 'align-wide' ) ) {
+					$args          = array();
+					$element_class = $this->get_attribute( $element, 'class' );
+					if ( false !== strpos( $element_class, 'alignfull' ) && current_theme_supports( 'align-wide' ) ) {
 						$args['w'] = apply_filters( 'exactdn_full_align_bgimage_width', 1920, $bg_image_url );
-					} elseif ( false !== strpos( $div_class, 'alignwide' ) && current_theme_supports( 'align-wide' ) ) {
+					} elseif ( false !== strpos( $element_class, 'alignwide' ) && current_theme_supports( 'align-wide' ) ) {
 						$args['w'] = apply_filters( 'exactdn_wide_align_bgimage_width', 1500, $bg_image_url );
-					} elseif ( $content_width ) {
+					} elseif ( 'div' === $tag_type && $content_width ) {
 						$args['w'] = apply_filters( 'exactdn_content_bgimage_width', $content_width, $bg_image_url );
 					}
 					if ( isset( $args['w'] ) && empty( $args['w'] ) ) {
@@ -1226,11 +1230,11 @@ class ExactDN extends EWWWIO_Page_Parser {
 					$exactdn_bg_image_url = $this->generate_url( $bg_image_url, $args );
 					if ( $bg_image_url !== $exactdn_bg_image_url ) {
 						$new_style = str_replace( $bg_image_url, $exactdn_bg_image_url, $style );
-						$div       = str_replace( $style, $new_style, $div );
+						$element   = str_replace( $style, $new_style, $element );
 					}
 				}
-				if ( $div !== $divs[ $index ] ) {
-					$content = str_replace( $divs[ $index ], $div, $content );
+				if ( $element !== $elements[ $index ] ) {
+					$content = str_replace( $elements[ $index ], $element, $content );
 				}
 			}
 		}

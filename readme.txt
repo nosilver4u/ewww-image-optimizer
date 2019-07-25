@@ -174,13 +174,20 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.8.2 =
+* added: Lazy Load background image support for section elements
+* added: ExactDN background image support for li,span, and section elements
+* added: lazysizes print plugin, enable via EWWW_IMAGE_OPTIMIZER_LAZY_PRINT constant
+* fixed: WebP test image not refreshing after inserting .htaccess rules
+* fixed: errors when manually adding lazysizes script
+
 = 4.8.1 =
 * added: Lazy Load background image support added for span elements
 * changed: constrain by height for background images that are taller than they are wide
 * changed: debug.log moved to more suitable location
-* fix: Lazy Load breaks when an image has an empty class attribute
-* fix: regression that caused jpegtran and pngout tests to fail on Windows
-* fix: writing to debug.log causes errors
+* fixed: Lazy Load breaks when an image has an empty class attribute
+* fixed: regression that caused jpegtran and pngout tests to fail on Windows
+* fixed: writing to debug.log causes errors
 
 = 4.8.0 =
 * added: ability to resize images outside media library via scheduled or bulk optimization
