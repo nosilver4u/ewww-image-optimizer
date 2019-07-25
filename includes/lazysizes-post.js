@@ -7,6 +7,9 @@ function constrainSrc(url,objectWidth,objectHeight,objectType){
 	var regFit    = /fit=(\d+),(\d+)/;
 	var regResize = /resize=(\d+),(\d+)/;
 	var decUrl = decodeURIComponent(url);
+	if (typeof ewww_lazy_vars === 'undefined'){
+		var ewww_lazy_vars = {"exactdn_domain":".exactdn.com"};
+	}
 	if (url.search('\\?') > 0 && url.search(ewww_lazy_vars.exactdn_domain) > 0){
 		var resultResize = regResize.exec(decUrl);
 		if(resultResize && objectWidth < resultResize[1]){
