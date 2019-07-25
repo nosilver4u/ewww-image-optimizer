@@ -289,8 +289,10 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 		$buffer = $this->parse_background_images( $buffer, 'div' );
 		// Process background images on li elements.
 		$buffer = $this->parse_background_images( $buffer, 'li' );
-		// Process background images on li elements.
+		// Process background images on span elements.
 		$buffer = $this->parse_background_images( $buffer, 'span' );
+		// Process background images on section elements.
+		$buffer = $this->parse_background_images( $buffer, 'section' );
 		// Images listed as picture/source elements. Mostly for NextGEN, but should work anywhere.
 		$pictures = $this->get_picture_tags_from_html( $buffer );
 		if ( ewww_image_optimizer_iterable( $pictures ) ) {
@@ -411,6 +413,9 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 		if ( false !== strpos( $image_src, 'data:image' ) ) {
 			return false;
 		}
+		if ( false !== strpos( $image, 'data:image' ) && false !== strpos( $image, 'lazyload' ) ) {
+			return false;
+		}
 		// Ignore 0-size Pinterest schema images.
 		if ( strpos( $image, 'data-pin-description=' ) && strpos( $image, 'width="0" height="0"' ) ) {
 			return false;
@@ -473,6 +478,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 				'header-gallery-wrapper ',
 				'lazyload',
 				'skip-lazy',
+				'avia-bg-style-fixed',
 			),
 			$tag
 		);
