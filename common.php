@@ -122,10 +122,10 @@ add_filter( 'as3cf_attachment_file_paths', 'ewww_image_optimizer_as3cf_attachmen
 add_filter( 'as3cf_object_meta', 'ewww_image_optimizer_as3cf_object_meta' );
 // Loads the plugin translations.
 add_action( 'plugins_loaded', 'ewww_image_optimizer_preinit' );
+// Runs any checks that need to run everywhere and early, but after anything hooked at the default priority.
+add_action( 'init', 'ewww_image_optimizer_init', 11 );
 // Load our front-end parsers for ExactDN and/or Alt WebP.
 add_action( 'init', 'ewww_image_optimizer_parser_init', 99 );
-// Checks for nextgen/nextcellent/flagallery existence, and loads the appropriate classes.
-add_action( 'init', 'ewww_image_optimizer_gallery_support' );
 // Initializes the plugin for admin interactions, like saving network settings and scheduling cron jobs.
 add_action( 'admin_init', 'ewww_image_optimizer_admin_init' );
 // Check the current screen ID to see if temp debugging should still be enabled.
@@ -176,6 +176,8 @@ add_action( 'wp_ajax_ewww_manual_cloud_restore', 'ewww_image_optimizer_manual' )
 add_action( 'wp_ajax_ewww_manual_cloud_restore_single', 'ewww_image_optimizer_cloud_restore_single_image_handler' );
 // AJAX action hook to dismiss the WooCommerce regen notice.
 add_action( 'wp_ajax_ewww_dismiss_wc_regen', 'ewww_image_optimizer_dismiss_wc_regen' );
+// AJAX action hook to dismiss the WP/LR Sync regen notice.
+add_action( 'wp_ajax_ewww_dismiss_lr_sync', 'ewww_image_optimizer_dismiss_lr_sync' );
 // AJAX action hook to disable the media library notice.
 add_action( 'wp_ajax_ewww_dismiss_media_notice', 'ewww_image_optimizer_dismiss_media_notice' );
 // Adds script to highlight mis-sized images on the front-end (for logged in admins only).
@@ -486,11 +488,9 @@ function ewww_image_optimizer_preinit() {
 }
 
 /**
- * Checks to see if NextGEN, Nextcellent, or GRAND FlaGallery are enabled.
- *
- * If a supported gallery is found, loads the class(es) to support integration with that gallery.
+ * Runs early, but not too early, for checks that need to happen on init after the default priority.
  */
-function ewww_image_optimizer_gallery_support() {
+function ewww_image_optimizer_init() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 
 	// Check to see if this is the settings page and enable debugging temporarily if it is.
@@ -535,6 +535,13 @@ function ewww_image_optimizer_gallery_support() {
 				require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-flag.php' );
 			}
 		}
+	}
+	if ( defined( 'DOING_WPLR_REQUEST' ) && DOING_WPLR_REQUEST ) {
+		// Unhook all automatic processing, and save an option that (does not autoload) tells the user LR Sync regenerated their images and they should run the bulk optimizer.
+		remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
+		remove_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15 );
+		update_option( 'ewww_image_optimizer_lr_sync', true, false );
+		return;
 	}
 }
 
@@ -846,10 +853,6 @@ function ewww_image_optimizer_admin_init() {
 			add_action( 'admin_notices', 'ewww_image_optimizer_thumbnail_regen_notice' );
 		}
 	}
-	if ( class_exists( 'WooCommerce' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_wc_regen' ) ) {
-		add_action( 'admin_notices', 'ewww_image_optimizer_notice_wc_regen' );
-		add_action( 'admin_footer', 'ewww_image_optimizer_wc_regen_script' );
-	}
 	if ( ! empty( $_GET['ewww_pngout'] ) ) {
 		add_action( 'admin_notices', 'ewww_image_optimizer_pngout_installed' );
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_pngout_installed' );
@@ -857,6 +860,14 @@ function ewww_image_optimizer_admin_init() {
 	if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 		ewww_image_optimizer_privacy_policy_content();
 		ewww_image_optimizer_ajax_compat_check();
+	}
+	if ( class_exists( 'WooCommerce' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_wc_regen' ) ) {
+		add_action( 'admin_notices', 'ewww_image_optimizer_notice_wc_regen' );
+		add_action( 'admin_footer', 'ewww_image_optimizer_wc_regen_script' );
+	}
+	if ( class_exists( 'Meow_WPLR_Sync_Core' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_lr_sync' ) ) {
+		add_action( 'admin_notices', 'ewww_image_optimizer_notice_lr_sync' );
+		add_action( 'admin_footer', 'ewww_image_optimizer_lr_sync_script' );
 	}
 	// Increase the version when the next bump is coming.
 	if ( defined( 'PHP_VERSION_ID' ) && PHP_VERSION_ID < 50600 ) {
@@ -1530,6 +1541,31 @@ function ewww_image_optimizer_wc_regen_script() {
 		"</script>\n";
 }
 
+/**
+ * Lets the user know LR Sync has regenerated thumbnails and that they need to take action.
+ */
+function ewww_image_optimizer_notice_lr_sync() {
+	echo "<div id='ewww-image-optimizer-lr-sync' class='notice notice-info is-dismissible'><p>" . esc_html__( 'EWWW Image Optimizer has detected a WP/LR Sync process. To optimize new thumbnails, you may run the Bulk Optimizer from the Media menu. This notice may be dismissed after the Sync process is complete.', 'ewww-image-optimizer' ) . '</p></div>';
+}
+
+/**
+ * Loads the inline script to dismiss the LR sync notice.
+ */
+function ewww_image_optimizer_lr_sync_script() {
+	echo
+		"<script>\n" .
+		"jQuery(document).on('click', '#ewww-image-optimizer-lr-sync .notice-dismiss', function() {\n" .
+		"\tvar ewww_dismiss_lr_sync_data = {\n" .
+		"\t\taction: 'ewww_dismiss_lr_sync',\n" .
+		"\t};\n" .
+		"\tjQuery.post(ajaxurl, ewww_dismiss_lr_sync_data, function(response) {\n" .
+		"\t\tif (response) {\n" .
+		"\t\t\tconsole.log(response);\n" .
+		"\t\t}\n" .
+		"\t});\n" .
+		"});\n" .
+		"</script>\n";
+}
 /**
  * Let the user know they can view more options and stats in the Media Library's list mode.
  */
@@ -7290,6 +7326,20 @@ function ewww_image_optimizer_dismiss_wc_regen() {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
 	delete_option( 'ewww_image_optimizer_wc_regen' );
+	wp_die();
+}
+
+/**
+ * Dismisses the LR sync notice.
+ */
+function ewww_image_optimizer_dismiss_lr_sync() {
+	ewwwio_ob_clean();
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	// Verify that the user is properly authorized.
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ) ) ) {
+		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
+	}
+	delete_option( 'ewww_image_optimizer_lr_sync' );
 	wp_die();
 }
 

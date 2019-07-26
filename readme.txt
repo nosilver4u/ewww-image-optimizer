@@ -22,7 +22,7 @@ EWWW I.O. will optimize images uploaded and created by any plugin, and features 
 1. **Smooth Handling** with pixel-perfect optimization using industry-leading tools and progressive rendering.
 1. **High Torque** as we bring you the best compression/quality ratio available with our lossy options for JPG, PNG, and PDF files.
 1. **Adaptive Steering** with intelligent conversion options to get the right image format for the job (JPG, PNG, or GIF).
-1. **Free Parking** The core plugin is free and always will be. Additionally, if you choose the API, you never pay for an image we can’t compress, you are never billed for a month you do not use the API, and pre-paid credits never expire. Plus, get WebP image generation at no extra cost: any JPG or PNG can be converted to Google’s next-generation image format.
+1. **Free Parking** The core plugin is free and always will be. However, our paid services offer up to 80% compression, and a [host of other features](https://ewww.io/plans/)!
 1. **Comprehensive Coverage:** no image gets left behind, optimize everything on your site, beyond just the WordPress Media Library.
 1. **Safety First:** all communications are secured with top SSL encryption.
 1. **Roadside Assistance:** top-notch support is in our DNA. While API customers get top priority, we answer [every single support question with care](https://ewww.io/contact-us/).
@@ -178,6 +178,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: Lazy Load background image support for section elements
 * added: ExactDN background image support for li,span, and section elements
 * added: lazysizes print plugin, enable via EWWW_IMAGE_OPTIMIZER_LAZY_PRINT constant
+* changed: automatic compression disabled during WP/LR Sync with admin notice
 * fixed: WebP test image not refreshing after inserting .htaccess rules
 * fixed: errors when manually adding lazysizes script
 
