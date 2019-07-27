@@ -1,6 +1,6 @@
 # EWWW Image Optimizer
 **Donate link:** https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW  
-**Minimum WordPress:** 4.9
+**Minimum WordPress:** 5.0
 **Minimum PHP:** 5.6
 
 [![Build Status](https://travis-ci.com/nosilver4u/ewww-image-optimizer.svg?branch=master)](https://travis-ci.com/nosilver4u/ewww-image-optimizer)

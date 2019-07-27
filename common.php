@@ -122,8 +122,8 @@ add_filter( 'as3cf_attachment_file_paths', 'ewww_image_optimizer_as3cf_attachmen
 add_filter( 'as3cf_object_meta', 'ewww_image_optimizer_as3cf_object_meta' );
 // Loads the plugin translations.
 add_action( 'plugins_loaded', 'ewww_image_optimizer_preinit' );
-// Runs any checks that need to run everywhere and early, but after anything hooked at the default priority.
-add_action( 'init', 'ewww_image_optimizer_init', 11 );
+// Runs any checks that need to run everywhere and early.
+add_action( 'init', 'ewww_image_optimizer_init', 9 );
 // Load our front-end parsers for ExactDN and/or Alt WebP.
 add_action( 'init', 'ewww_image_optimizer_parser_init', 99 );
 // Initializes the plugin for admin interactions, like saving network settings and scheduling cron jobs.
@@ -488,7 +488,7 @@ function ewww_image_optimizer_preinit() {
 }
 
 /**
- * Runs early, but not too early, for checks that need to happen on init after the default priority.
+ * Runs early for checks that need to happen on init before anything else.
  */
 function ewww_image_optimizer_init() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
