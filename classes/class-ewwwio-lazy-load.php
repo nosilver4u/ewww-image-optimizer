@@ -500,10 +500,15 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 	function create_piip( $width = 1, $height = 1 ) {
 		$width  = (int) $width;
 		$height = (int) $height;
-		if ( 1 === $width && 1 === $height ) {
+		if ( ( 1 === $width && 1 === $height ) || ! $width || ! $height ) {
 			return $this->placeholder_src;
 		}
 
+		if ( $width > 1920 ) {
+			$ratio  = $height / $width;
+			$width  = 1920;
+			$height = round( 1920 * $ratio );
+		}
 		$piip_path = $this->piip_folder . 'placeholder-' . $width . 'x' . $height . '.png';
 		if ( ! is_file( $piip_path ) ) {
 			$img   = imagecreatetruecolor( $width, $height );

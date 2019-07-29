@@ -179,6 +179,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * added: ExactDN background image support for li,span, and section elements
 * added: lazysizes print plugin, enable via EWWW_IMAGE_OPTIMIZER_LAZY_PRINT constant
 * changed: automatic compression disabled during WP/LR Sync with admin notice
+* changed: Lazy Load PNG placeholders capped at 1920px wide to prevent errors
 * fixed: WebP test image not refreshing after inserting .htaccess rules
 * fixed: errors when manually adding lazysizes script
 
