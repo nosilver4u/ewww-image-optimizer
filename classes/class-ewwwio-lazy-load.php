@@ -194,7 +194,11 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 		$above_the_fold   = apply_filters( 'ewww_image_optimizer_lazy_fold', 0 );
 		$images_processed = 0;
 
-		$images = $this->get_images_from_html( preg_replace( '/<(noscript|script).*?\/\1>/s', '', $buffer ), false );
+		// Clean the buffer of incompatible sections.
+		$search_buffer = preg_replace( '/<div id="footer_photostream".*?\/div>/s', '', $buffer );
+		$search_buffer = preg_replace( '/<(noscript|script).*?\/\1>/s', '', $search_buffer );
+
+		$images = $this->get_images_from_html( $search_buffer, false );
 		if ( ! empty( $images[0] ) && ewww_image_optimizer_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
 				$images_processed++;
@@ -205,6 +209,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 				ewwwio_debug_message( "parsing an image: $file" );
 				if ( $this->validate_image_tag( $image ) ) {
 					ewwwio_debug_message( 'found a valid image tag' );
+					ewwwio_debug_message( "original image tag: $image" );
 					$orig_img = $image;
 					$noscript = '<noscript>' . $orig_img . '</noscript>';
 					$this->set_attribute( $image, 'data-src', $file, true );
