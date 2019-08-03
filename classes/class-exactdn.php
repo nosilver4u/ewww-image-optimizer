@@ -2330,6 +2330,9 @@ class ExactDN extends EWWWIO_Page_Parser {
 	 * @return array Empty if it matches our search, otherwise just $args untouched.
 	 */
 	function exactdn_remove_args( $args, $image_url, $scheme ) {
+		if ( strpos( $image_url, 'ewww/lazy/placeholder' ) ) {
+			return array();
+		}
 		if ( strpos( $image_url, 'revslider/admin/assets/images/dummy.png' ) ) {
 			return array();
 		}

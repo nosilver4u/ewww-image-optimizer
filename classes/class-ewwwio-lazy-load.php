@@ -70,7 +70,9 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			}
 		}
 
-		if ( ! is_dir( $this->piip_folder ) ) {
+		if ( $this->parsing_exactdn ) {
+			$this->allow_piip = true;
+		} elseif ( ! is_dir( $this->piip_folder ) ) {
 			$this->allow_piip = wp_mkdir_p( $this->piip_folder ) && ewww_image_optimizer_gd_support();
 		} else {
 			$this->allow_piip = is_writable( $this->piip_folder ) && ewww_image_optimizer_gd_support();
@@ -191,6 +193,7 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			return $buffer;
 		}
 
+		global $exactdn;
 		$above_the_fold   = apply_filters( 'ewww_image_optimizer_lazy_fold', 0 );
 		$images_processed = 0;
 
@@ -218,7 +221,12 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 					$placeholder_src = $this->placeholder_src;
 					if ( false === strpos( $file, 'nggid' ) && ! preg_match( '#\.svg(\?|$)#', $file ) && apply_filters( 'ewww_image_optimizer_use_lqip', true, $file ) && $this->parsing_exactdn && strpos( $file, $this->exactdn_domain ) ) {
 						ewwwio_debug_message( 'using lqip' );
-						$placeholder_src = add_query_arg( array( 'lazy' => 1 ), $file );
+						list( $width, $height ) = $this->get_dimensions_from_filename( $file );
+						if ( $width && $height && $width < 201 && $height < 201 ) {
+							$placeholder_src = $exactdn->generate_url( content_url( 'ewww/lazy/placeholder-' . $width . 'x' . $height . '.png' ) );
+						} else {
+							$placeholder_src = add_query_arg( array( 'lazy' => 1 ), $file );
+						}
 					} elseif ( $this->allow_piip && $srcset && apply_filters( 'ewww_image_optimizer_use_piip', true, $file ) ) {
 						ewwwio_debug_message( 'trying piip' );
 						// Get image dimensions for PNG placeholder.
@@ -515,7 +523,10 @@ class EWWWIO_Lazy_Load extends EWWWIO_Page_Parser {
 			$height = round( 1920 * $ratio );
 		}
 		$piip_path = $this->piip_folder . 'placeholder-' . $width . 'x' . $height . '.png';
-		if ( ! is_file( $piip_path ) ) {
+		if ( $this->parsing_exactdn ) {
+			global $exactdn;
+			return $exactdn->generate_url( content_url( 'ewww/lazy/placeholder-' . $width . 'x' . $height . '.png' ) );
+		} elseif ( ! is_file( $piip_path ) ) {
 			$img   = imagecreatetruecolor( $width, $height );
 			$color = imagecolorallocatealpha( $img, 0, 0, 0, 127 );
 			imagefill( $img, 0, 0, $color );
