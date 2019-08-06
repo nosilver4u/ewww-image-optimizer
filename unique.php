@@ -2829,16 +2829,6 @@ function ewww_image_optimizer_install_pngout() {
 }
 
 /**
- * Downloads a file to the EWWW IO folder.
- *
- * @param string $url The remote url to fetch.
- * @return string|WP_Error The location of the downloaded file, or a WP_Error object on failure.
- */
-function ewwwio_download_url( $url ) {
-	return $location;
-}
-
-/**
  * Removes any binaries that have been installed in the wp-content/ewww/ folder.
  */
 function ewww_image_optimizer_remove_binaries() {

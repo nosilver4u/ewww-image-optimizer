@@ -3,7 +3,7 @@
  * Implements WebP rewriting using page parsing and JS functionality.
  *
  * @link https://ewww.io
- * @package EWWW_Image_Optimizer
+ * @package EIO
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Enables EWWW IO to filter the page content and replace img elements with WebP markup.
  */
-class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
+class EIO_Alt_Webp extends EIO_Page_Parser {
 
 	/**
 	 * The Alt WebP inline script contents. Current length 11704.
@@ -788,5 +788,5 @@ class EWWWIO_Alt_Webp extends EWWWIO_Page_Parser {
 	}
 }
 
-global $ewwwio_alt_webp;
-$ewwwio_alt_webp = new EWWWIO_Alt_Webp();
+global $eio_alt_webp;
+$eio_alt_webp = new EIO_Alt_Webp();

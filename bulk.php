@@ -1609,10 +1609,10 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 	// Store the updated list of attachment IDs back in the 'bulk_attachments' option.
 	// update_option( 'ewww_image_optimizer_bulk_attachments', $attachments, false );.
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-		global $ewww_debug;
+		global $eio_debug;
 		$debug_button       = esc_html__( 'Show Debug Output', 'ewww-image-optimizer' );
 		$debug_id           = uniqid();
-		$output['results'] .= "<button type='button' class='ewww-show-debug-meta button button-secondary' data-id='$debug_id'>$debug_button</button><div class='ewww-debug-meta-$debug_id' style='background-color:#f1f1f1;display:none;'>$ewww_debug</div>";
+		$output['results'] .= "<button type='button' class='ewww-show-debug-meta button button-secondary' data-id='$debug_id'>$debug_button</button><div class='ewww-debug-meta-$debug_id' style='background-color:#f1f1f1;display:none;'>$eio_debug</div>";
 	}
 	if ( ! empty( $next_image->file ) ) {
 		$next_file = esc_html( $next_image->file );

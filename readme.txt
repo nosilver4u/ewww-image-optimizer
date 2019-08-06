@@ -181,6 +181,7 @@ http://developer.yahoo.com/performance/rules.html#opt_images
 * changed: automatic compression disabled during WP/LR Sync with admin notice
 * changed: Lazy Load PNG placeholders capped at 1920px wide to prevent errors
 * changed: use ExactDN, when active, for Lazy Load PNG placeholders
+* changed: EWWW_MEMORY_LIMIT renamed to EIO_MEMORY_LIMIT for setting plugin memory limit
 * fixed: WebP test image not refreshing after inserting .htaccess rules
 * fixed: errors when manually adding lazysizes script
 

@@ -108,9 +108,13 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 50600 ) {
 	 */
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'unique.php' );
 	/**
-	 * All the 'common' functions for both EWWW I.O. functions.
+	 * All the 'common' functions for both EWWW I.O. plugins.
 	 */
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'common.php' );
+	/**
+	 * All the base functions for our plugins.
+	 */
+	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-base.php' );
 	/**
 	 * The various class extensions for parallel and background optimization.
 	 */
@@ -126,7 +130,7 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 50600 ) {
 	/**
 	 * EWWWIO_HS_Beacon class for embedding the HelpScout Beacon.
 	 */
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-hs-beacon.php' );
+	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-hs-beacon.php' );
 } // End if().
 
 if ( ! function_exists( 'ewww_image_optimizer_unsupported_php' ) ) {
