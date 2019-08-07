@@ -16,14 +16,15 @@ if ( ! class_exists( 'EIO_HS_Beacon' ) ) {
 	 *
 	 * @since  3.5.1
 	 */
-	class EIO_HS_Beacon {
+	class EIO_HS_Beacon extends EIO_Base {
 
 		/**
 		 * Get things going
 		 */
 		public function __construct() {
-			add_action( 'admin_action_ewww_opt_into_hs_beacon', array( $this, 'check_for_optin' ) );
-			add_action( 'admin_action_ewww_opt_out_of_hs_beacon', array( $this, 'check_for_optout' ) );
+			parent::__construct();
+			add_action( 'admin_action_eio_opt_into_hs_beacon', array( $this, 'check_for_optin' ) );
+			add_action( 'admin_action_eio_opt_out_of_hs_beacon', array( $this, 'check_for_optout' ) );
 		}
 
 		/**
@@ -33,9 +34,9 @@ if ( ! class_exists( 'EIO_HS_Beacon' ) ) {
 		 * @return bool The unaltered setting.
 		 */
 		public function check_for_settings_optin( $input ) {
-			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-			if ( isset( $_POST['ewww_image_optimizer_enable_help'] ) && $_POST['ewww_image_optimizer_enable_help'] ) {
-				ewww_image_optimizer_set_option( 'ewww_image_optimizer_tracking_notice', 1 );
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			if ( isset( $_POST[ $this->prefix . 'enable_help' ] ) && $_POST[ $this->prefix . 'enable_help' ] ) {
+				$this->set_option( $this->prefix . 'enable_help_notice', 1 );
 			}
 			return $input;
 		}
@@ -44,9 +45,9 @@ if ( ! class_exists( 'EIO_HS_Beacon' ) ) {
 		 * Check for a new opt-in via the admin notice
 		 */
 		public function check_for_optin() {
-			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-			ewww_image_optimizer_set_option( 'ewww_image_optimizer_enable_help', 1 );
-			ewww_image_optimizer_set_option( 'ewww_image_optimizer_enable_help_notice', 1 );
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			$this->set_option( $this->prefix . 'enable_help', 1 );
+			$this->set_option( $this->prefix . 'enable_help_notice', 1 );
 			wp_redirect( remove_query_arg( 'action', wp_get_referer() ) );
 			exit;
 		}
@@ -55,10 +56,10 @@ if ( ! class_exists( 'EIO_HS_Beacon' ) ) {
 		 * Check for a new opt-out via the admin notice
 		 */
 		public function check_for_optout() {
-			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-			delete_option( 'ewww_image_optimizer_enable_help' );
-			delete_network_option( null, 'ewww_image_optimizer_enable_help' );
-			ewww_image_optimizer_set_option( 'ewww_image_optimizer_enable_help_notice', 1 );
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			delete_option( $this->prefix . 'enable_help' );
+			delete_network_option( null, $this->prefix . 'enable_help' );
+			$this->set_option( $this->prefix . 'enable_help_notice', 1 );
 			wp_redirect( remove_query_arg( 'action', wp_get_referer() ) );
 			exit;
 		}
@@ -71,19 +72,19 @@ if ( ! class_exists( 'EIO_HS_Beacon' ) ) {
 		 * @return void
 		 */
 		public function admin_notice( $network_class = '' ) {
-			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-			$hide_notice = ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help_notice' );
-			if ( 'network-multisite' === $network_class && get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			$hide_notice = $this->get_option( $this->prefix . 'enable_help_notice' );
+			if ( 'network-multisite' === $network_class && get_site_option( $this->prefix . 'allow_multisite_override' ) ) {
 				return;
 			}
-			if ( 'network-singlesite' === $network_class && ! get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
+			if ( 'network-singlesite' === $network_class && ! get_site_option( $this->prefix . 'allow_multisite_override' ) ) {
 				return;
 			}
 
 			if ( $hide_notice ) {
 				return;
 			}
-			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
+			if ( $this->get_option( $this->prefix . 'enable_help' ) ) {
 				return;
 			}
 
@@ -95,16 +96,18 @@ if ( ! class_exists( 'EIO_HS_Beacon' ) ) {
 				// Need to include the plugin library for the is_plugin_active function.
 				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 			}
-			if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) && ! current_user_can( 'manage_network_options' ) ) {
+			if (
+				is_multisite() &&
+				is_plugin_active_for_network( constant( strtoupper( $this->prefix ) . 'PLUGIN_FILE_REL' ) ) &&
+				! current_user_can( 'manage_network_options' )
+			) {
 				return;
 			}
-			$optin_url  = 'admin.php?action=ewww_opt_into_hs_beacon';
-			$optout_url = 'admin.php?action=ewww_opt_out_of_hs_beacon';
-			echo '<div class="updated"><p>';
-			esc_html_e( 'Enable the support beacon, which gives you access to documentation and our support team right from your WordPress dashboard. To assist you more efficiently, we may collect the current url, IP address, browser/device information, and debugging information.', 'ewww-image-optimizer' );
-			echo '&nbsp;<a href="' . esc_url( $optin_url ) . '" class="button-secondary">' . esc_html__( 'Allow', 'ewww-image-optimizer' ) . '</a>';
-			echo '&nbsp;<a href="' . esc_url( $optout_url ) . '" class="button-secondary">' . esc_html__( 'Do not allow', 'ewww-image-optimizer' ) . '</a>';
-			echo '</p></div>';
+			if ( defined( 'EWWW_IMAGE_OPTIMIZER_VERSION' ) ) {
+				ewww_image_optimizer_notice_beacon();
+			} elseif ( defined( 'EASYIO_VERSION' ) ) {
+				easyio_notice_beacon();
+			}
 		}
 	}
 

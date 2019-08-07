@@ -52,6 +52,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 * Register (once) actions and filters for Lazy Load.
 		 */
 		function __construct() {
+			parent::__construct();
 			$this->piip_folder = $this->content_dir . 'lazy/';
 			$this->debug_message( 'firing up lazy load' );
 			global $eio_lazy_load;
@@ -62,11 +63,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 
 			add_action( 'wp_head', array( $this, 'no_js_css' ) );
 
-			// Add filters for both EWWW IO and Easy IO.
-			add_filter( 'ewww_image_optimizer_filter_page_output', array( $this, 'filter_page_output' ), 15 );
-			add_filter( 'easyio_filter_page_output', array( $this, 'filter_page_output' ), 15 );
+			add_filter( $this->prefix . 'filter_page_output', array( $this, 'filter_page_output' ), 15 );
 
-			if ( class_exists( 'ExactDN' ) && $this->get_option( 'ewww_image_optimizer_exactdn' ) ) {
+			if ( class_exists( 'ExactDN' ) && $this->get_option( $this->prefix . 'exactdn' ) ) {
 				global $exactdn;
 				$this->exactdn_domain = $exactdn->get_exactdn_domain();
 				if ( $this->exactdn_domain ) {
@@ -572,6 +571,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( defined( 'EWWW_IMAGE_OPTIMIZER_USE_LQIP' ) && ! EWWW_IMAGE_OPTIMIZER_USE_LQIP ) {
 				return false;
 			}
+			if ( defined( 'EASYIO_USE_LQIP' ) && ! EASYIO_USE_LQIP ) {
+				return false;
+			}
 			return $use_lqip;
 		}
 
@@ -585,6 +587,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( defined( 'EWWW_IMAGE_OPTIMIZER_USE_PIIP' ) && ! EWWW_IMAGE_OPTIMIZER_USE_PIIP ) {
 				return false;
 			}
+			if ( defined( 'EASYIO_USE_PIIP' ) && ! EASYIO_USE_PIIP ) {
+				return false;
+			}
 			return $use_piip;
 		}
 
@@ -596,6 +601,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 */
 		function maybe_siip( $use_siip ) {
 			if ( defined( 'EWWW_IMAGE_OPTIMIZER_USE_SIIP' ) && ! EWWW_IMAGE_OPTIMIZER_USE_SIIP ) {
+				return false;
+			}
+			if ( defined( 'EASYIO_USE_SIIP' ) && ! EASYIO_USE_SIIP ) {
 				return false;
 			}
 			return $use_siip;
@@ -616,16 +624,17 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( $this->is_amp() ) {
 				return;
 			}
-			wp_enqueue_script( 'eio-lazy-load-pre', plugins_url( '/includes/lazysizes-pre.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
-			wp_enqueue_script( 'eio-lazy-load', plugins_url( '/includes/lazysizes.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
-			wp_enqueue_script( 'eio-lazy-load-post', plugins_url( '/includes/lazysizes-post.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
-			wp_enqueue_script( 'eio-lazy-load-uvh', plugins_url( '/includes/ls.unveilhooks.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
-			if ( defined( 'EWWW_IMAGE_OPTIMIZER_LAZY_PRINT' ) && EWWW_IMAGE_OPTIMIZER_LAZY_PRINT ) {
-				wp_enqueue_script( 'ewww-lazy-load-print', plugins_url( '/includes/ls.print.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+			$plugin_file = constant( strtoupper( $this->prefix ) . 'PLUGIN_FILE' );
+			wp_enqueue_script( 'eio-lazy-load-pre', plugins_url( '/includes/lazysizes-pre.js', $plugin_file ), array(), $this->version );
+			wp_enqueue_script( 'eio-lazy-load', plugins_url( '/includes/lazysizes.js', $plugin_file ), array(), $this->version );
+			wp_enqueue_script( 'eio-lazy-load-post', plugins_url( '/includes/lazysizes-post.js', $plugin_file ), array(), $this->version );
+			wp_enqueue_script( 'eio-lazy-load-uvh', plugins_url( '/includes/ls.unveilhooks.js', $plugin_file ), array(), $this->version );
+			if ( defined( strtoupper( $this->prefix ) . 'LAZY_PRINT' ) && constant( strtoupper( $this->prefix ) . 'LAZY_PRINT' ) ) {
+				wp_enqueue_script( 'eio-lazy-load-print', plugins_url( '/includes/ls.print.js', $plugin_file ), array(), $this->version );
 			}
 			wp_localize_script(
-				'ewww-lazy-load',
-				'ewww_lazy_vars',
+				'eio-lazy-load',
+				'eio_lazy_vars',
 				array(
 					'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
 				)
@@ -637,16 +646,17 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 */
 		function min_script() {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-			if ( ewww_image_optimizer_is_amp() ) {
+			if ( $this->is_amp() ) {
 				return;
 			}
-			wp_enqueue_script( 'ewww-lazy-load', plugins_url( '/includes/lazysizes.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
-			if ( defined( 'EWWW_IMAGE_OPTIMIZER_LAZY_PRINT' ) && EWWW_IMAGE_OPTIMIZER_LAZY_PRINT ) {
-				wp_enqueue_script( 'ewww-lazy-load-print', plugins_url( '/includes/ls.print.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+			$plugin_file = constant( strtoupper( $this->prefix ) . 'PLUGIN_FILE' );
+			wp_enqueue_script( 'eio-lazy-load', plugins_url( '/includes/lazysizes.min.js', $plugin_file ), array(), $this->version );
+			if ( defined( strtoupper( $this->prefix ) . 'LAZY_PRINT' ) && constant( strtoupper( $this->prefix ) . 'LAZY_PRINT' ) ) {
+				wp_enqueue_script( 'eio-lazy-load-print', plugins_url( '/includes/ls.print.min.js', $plugin_file ), array(), $this->version );
 			}
 			wp_localize_script(
-				'ewww-lazy-load',
-				'ewww_lazy_vars',
+				'eio-lazy-load',
+				'eio_lazy_vars',
 				array(
 					'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
 				)

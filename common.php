@@ -1463,6 +1463,9 @@ function ewww_image_optimizer_remove_obsolete_settings() {
 	delete_option( 'ewww_image_optimizer_bulk_image_count' );
 	delete_option( 'ewww_image_optimizer_maxwidth' );
 	delete_option( 'ewww_image_optimizer_maxheight' );
+	delete_option( 'ewww_image_optimizer_exactdn_failures' );
+	delete_option( 'ewww_image_optimizer_exactdn_checkin' );
+	delete_option( 'ewww_image_optimizer_exactdn_suspended' );
 }
 
 /**
@@ -1484,6 +1487,29 @@ function ewww_image_optimizer_pngout_installed() {
 			) . "</p>\n" .
 			"</div>\n";
 	}
+}
+
+/**
+ * Display a notice that we could not activate an ExactDN domain.
+ */
+function ewww_image_optimizer_notice_exactdn_activation_error() {
+	global $exactdn_activate_error;
+	if ( empty( $exactdn_activate_error ) ) {
+		$exactdn_activate_error = 'error unknown';
+	}
+	echo '<div id="ewww-image-optimizer-notice-exactdn-error" class="notice notice-error"><p>' .
+		esc_html__( 'Could not activate ExactDN, please try again in a few minutes. If this error continues, please contact support and provide this complete error message.', 'ewww-image-optimizer' ) .
+		'<br><code>' . $exactdn_activate_error . '</code>' .
+		'</p></div>';
+}
+
+/**
+ * Let the user know ExactDN setup was successful.
+ */
+function ewww_image_optimizer_notice_exactdn_activation_success() {
+	echo '<div id="ewww-image-optimizer-notice-exactdn-success" class="notice notice-success"><p>' .
+		esc_html__( 'ExactDN setup and verification is complete.', 'ewww-image-optimizer' ) .
+		'</p></div>';
 }
 
 /**
@@ -1566,6 +1592,7 @@ function ewww_image_optimizer_lr_sync_script() {
 		"});\n" .
 		"</script>\n";
 }
+
 /**
  * Let the user know they can view more options and stats in the Media Library's list mode.
  */
@@ -1574,6 +1601,19 @@ function ewww_image_optimizer_notice_media_listmode() {
 	if ( 'upload' === $current_screen->id && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_media_notice' ) ) {
 		echo "<div id='ewww-image-optimizer-media-listmode' class='notice notice-info is-dismissible'><p>" . esc_html__( 'Change the Media Library to List mode for additional image optimization information and actions.', 'ewww-image-optimizer' ) . ewwwio_help_link( 'https://docs.ewww.io/article/62-power-user-options-in-list-mode', '5b61fdd32c7d3a03f89d41c4' ) . '</p></div>';
 	}
+}
+
+/**
+ * Inform the user of our beacon function so that they can opt-in.
+ */
+function ewww_image_optimizer_notice_beacon() {
+	$optin_url  = 'admin.php?action=eio_opt_into_hs_beacon';
+	$optout_url = 'admin.php?action=eio_opt_out_of_hs_beacon';
+	echo '<div id="ewww-image-optimizer-hs-beacon" class="notice notice-info"><p>' .
+		esc_html__( 'Enable the EWWW I.O. support beacon, which gives you access to documentation and our support team right from your WordPress dashboard. To assist you more efficiently, we collect the current url, IP address, browser/device information, and debugging information.', 'ewww-image-optimizer' ) .
+		'<br><a href="' . esc_url( $optin_url ) . '" class="button-secondary">' . esc_html__( 'Allow', 'ewww-image-optimizer' ) . '</a>' .
+		'&nbsp;<a href="' . esc_url( $optout_url ) . '" class="button-secondary">' . esc_html__( 'Do not allow', 'ewww-image-optimizer' ) . '</a>' .
+		'</p></div>';
 }
 
 /**
@@ -8754,6 +8794,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$output[] = "</form>\n";
 	// Make sure .htaccess rules are terminated when ExactDN is enabled.
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+		ewww_image_optimizer_webp_rewrite_verify();
+	}
+	if ( ewww_image_optimizer_get_option( 'easyio_exactdn' ) ) {
 		ewww_image_optimizer_webp_rewrite_verify();
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_ce_webp_enabled() && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
