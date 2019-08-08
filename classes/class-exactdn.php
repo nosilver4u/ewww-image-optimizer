@@ -100,7 +100,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 * Register (once) actions and filters for ExactDN. If you want to use this class, use the global.
 		 */
 		function __construct() {
-			parent::__construct();
+			parent::__construct( __FILE__ );
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			global $exactdn;
 			if ( is_object( $exactdn ) ) {
@@ -2299,6 +2299,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 */
 		function exactdn_remove_args( $args, $image_url, $scheme ) {
 			if ( strpos( $image_url, 'ewww/lazy/placeholder' ) ) {
+				return array();
+			}
+			if ( strpos( $image_url, 'easyio/lazy/placeholder' ) ) {
 				return array();
 			}
 			if ( strpos( $image_url, 'revslider/admin/assets/images/dummy.png' ) ) {

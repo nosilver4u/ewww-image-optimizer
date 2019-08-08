@@ -22,7 +22,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 * @access protected
 		 * @var string $content_url
 		 */
-		protected $content_url = WP_CONTENT_URL . 'eio/';
+		protected $content_url = WP_CONTENT_URL . 'ewww/';
 
 		/**
 		 * Content directory (path) for the plugin to use.
@@ -30,7 +30,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 * @access protected
 		 * @var string $content_dir
 		 */
-		protected $content_dir = WP_CONTENT_DIR . '/eio\/';
+		protected $content_dir = WP_CONTENT_DIR . '/ewww/';
 
 		/**
 		 * Plugin version for the plugin.
@@ -50,21 +50,23 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 
 		/**
 		 * Set class properties for children.
+		 *
+		 * @param string $child_class_path The location of the child class extending the base class.
 		 */
-		function __construct() {
-			if ( defined( 'EWWW_IMAGE_OPTIMIZER_VERSION' ) ) {
+		function __construct( $child_class_path = '' ) {
+			if ( strpos( $child_class_path, 'ewww' ) ) {
 				$this->content_url = content_url( 'ewww/' );
-				$this->content_dir = WP_CONTENT_DIR . '/ewww\/';
+				$this->content_dir = WP_CONTENT_DIR . '/ewww/';
 				$this->version     = EWWW_IMAGE_OPTIMIZER_VERSION;
-			} elseif ( defined( 'EASYIO_VERSION' ) ) {
+			} elseif ( strpos( $child_class_path, 'easy' ) ) {
 				$this->content_url = content_url( 'easyio/' );
-				$this->content_dir = WP_CONTENT_DIR . '/easyio\/';
+				$this->content_dir = WP_CONTENT_DIR . '/easyio/';
 				$this->version     = EASYIO_VERSION;
 				$this->prefix      = 'easyio_';
 			} else {
-				$this->content_url = content_url( 'eio/' );
-				$this->content_dir = WP_CONTENT_DIR . '/eio\/';
+				$this->content_url = content_url( 'ewww/' );
 			}
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		}
 
 		/**
@@ -74,13 +76,14 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 */
 		function debug_log() {
 			global $eio_debug;
-			global $eio_temp_debug;
+			global $ewwwio_temp_debug;
+			global $easyio_temp_debug;
 			$debug_log = $this->content_dir . 'debug.log';
 			if ( is_writable( WP_CONTENT_DIR ) && ! is_dir( $this->content_dir ) ) {
 				mkdir( $this->content_dir );
 			}
 			$debug_enabled = $this->get_option( $this->prefix . 'debug' );
-			if ( ! empty( $eio_debug ) && empty( $eio_temp_debug ) && $debug_enabled && is_writable( $this->content_dir ) ) {
+			if ( ! empty( $eio_debug ) && empty( $ewwwio_temp_debug ) && empty( $easyio_temp_debug ) && $debug_enabled && is_writable( $this->content_dir ) ) {
 				$memory_limit = $this->memory_limit();
 				clearstatcache();
 				$timestamp = date( 'Y-m-d H:i:s' ) . "\n";
@@ -104,7 +107,8 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 * Adds information to the in-memory debug log.
 		 *
 		 * @global string $eio_debug The in-memory debug log.
-		 * @global bool   $eio_temp_debug Indicator that we are temporarily debugging on the wp-admin.
+		 * @global bool   $easyio_temp_debug Indicator that we are temporarily debugging on the wp-admin.
+		 * @global bool   $ewwwio_temp_debug Indicator that we are temporarily debugging on the wp-admin.
 		 *
 		 * @param string $message Debug information to add to the log.
 		 */
@@ -113,8 +117,9 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 				WP_CLI::debug( $message );
 				return;
 			}
-			global $eio_temp_debug;
-			if ( $eio_temp_debug || $this->get_option( $this->prefix . 'debug' ) ) {
+			global $ewwwio_temp_debug;
+			global $easyio_temp_debug;
+			if ( $easyio_temp_debug || $ewwwio_temp_debug || $this->get_option( $this->prefix . 'debug' ) ) {
 				$memory_limit = $this->memory_limit();
 				if ( strlen( $message ) + 4000000 + memory_get_usage( true ) <= $memory_limit ) {
 					global $eio_debug;

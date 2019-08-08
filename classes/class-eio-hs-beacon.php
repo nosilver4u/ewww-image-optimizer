@@ -22,7 +22,7 @@ if ( ! class_exists( 'EIO_HS_Beacon' ) ) {
 		 * Get things going
 		 */
 		public function __construct() {
-			parent::__construct();
+			parent::__construct( __FILE__ );
 			add_action( 'admin_action_eio_opt_into_hs_beacon', array( $this, 'check_for_optin' ) );
 			add_action( 'admin_action_eio_opt_out_of_hs_beacon', array( $this, 'check_for_optout' ) );
 		}
@@ -103,9 +103,9 @@ if ( ! class_exists( 'EIO_HS_Beacon' ) ) {
 			) {
 				return;
 			}
-			if ( defined( 'EWWW_IMAGE_OPTIMIZER_VERSION' ) ) {
+			if ( strpos( __FILE__, 'ewww' ) ) {
 				ewww_image_optimizer_notice_beacon();
-			} elseif ( defined( 'EASYIO_VERSION' ) ) {
+			} elseif ( strpos( __FILE__, 'easy' ) ) {
 				easyio_notice_beacon();
 			}
 		}

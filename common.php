@@ -494,11 +494,11 @@ function ewww_image_optimizer_init() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 
 	// Check to see if this is the settings page and enable debugging temporarily if it is.
-	global $eio_temp_debug;
-	$eio_temp_debug = false;
+	global $ewwwio_temp_debug;
+	$ewwwio_temp_debug = ! empty( $ewwwio_temp_debug ) ? $ewwwio_temp_debug : false;
 	if ( is_admin() && ! wp_doing_ajax() ) {
 		if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-			$eio_temp_debug = true;
+			$ewwwio_temp_debug = true;
 		}
 	}
 
@@ -999,11 +999,11 @@ function ewww_image_optimizer_privacy_policy_content() {
  * @param object $screen Information about the page/screen currently being loaded.
  */
 function ewww_image_optimizer_current_screen( $screen ) {
-	global $eio_temp_debug;
+	global $ewwwio_temp_debug;
 	global $eio_debug;
-	if ( false === strpos( $screen->id, 'settings_page_ewww-image-optimizer' ) ) {
-		$eio_temp_debug = false;
-		$eio_debug      = '';
+	if ( false === strpos( $screen->id, 'settings_page_ewww-image-optimizer' ) && false === strpos( $screen->id, 'settings_page_easy-image-optimizer' ) ) {
+		$ewwwio_temp_debug = false;
+		$eio_debug         = '';
 	}
 }
 
@@ -2211,8 +2211,8 @@ function ewww_image_optimizer_admin_menu() {
 			'ewww_image_optimizer_network_singlesite_options'                            // Function to call.
 		);
 	}
-	global $eio_temp_debug;
-	if ( ! $eio_temp_debug && ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
+	global $ewwwio_temp_debug;
+	if ( ! $ewwwio_temp_debug && ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 		// Add Dynamic Image Debugging page for image regeneration issues.
 		add_media_page( esc_html__( 'Dynamic Image Debugging', 'ewww-image-optimizer' ), esc_html__( 'Dynamic Image Debugging', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-dynamic-debug', 'ewww_image_optimizer_dynamic_image_debug' );
 		// Add Image Queue Debugging to allow clearing and checking queues.
@@ -7947,7 +7947,7 @@ function ewww_image_optimizer_network_singlesite_options() {
  * @param string $network Indicates which options should be shown in multisite installations.
  */
 function ewww_image_optimizer_options( $network = 'singlesite' ) {
-	global $eio_temp_debug;
+	global $ewwwio_temp_debug;
 	global $content_width;
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	ewwwio_debug_version_info();
@@ -8065,6 +8065,13 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	}
 	if ( class_exists( 'Jetpack_Photon' ) && Jetpack::is_module_active( 'photon' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		$status_notices .= '<p><b>ExactDN:</b> <span style="color: red">' . esc_html__( 'Inactive, please disable the Image Performance option on the Jetpack Dashboard.', 'ewww-image-optimizer' ) . '</span></p>';
+	} elseif ( get_option( 'easyio_exactdn' ) ) {
+		ewww_image_optimizer_webp_rewrite_verify();
+		update_option( 'ewww_image_optimizer_exactdn', false );
+		update_option( 'ewww_image_optimizer_lazy_load', false );
+		update_option( 'ewww_image_optimizer_webp_for_cdn', false );
+		$compress_score += 80;
+		$resize_score   += 50;
 	} elseif ( class_exists( 'ExactDN' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		$status_notices .= '<p><b>ExactDN:</b> ';
 		global $exactdn;
@@ -8765,7 +8772,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_debug'>" . esc_html__( 'Debugging', 'ewww-image-optimizer' ) . '</label>' .
 		ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ) . '</th>' .
 		"<td><input type='checkbox' id='ewww_image_optimizer_debug' name='ewww_image_optimizer_debug' value='true' " .
-		( ! $eio_temp_debug && ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ? "checked='true'" : '' ) . ' /> ' .
+		( ! $ewwwio_temp_debug && ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ? "checked='true'" : '' ) . ' /> ' .
 		esc_html__( 'Use this to provide information for support purposes, or if you feel comfortable digging around in the code to fix a problem you are experiencing.', 'ewww-image-optimizer' ) .
 		"</td></tr>\n";
 	$output[] = "</table>\n";
@@ -8794,9 +8801,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$output[] = "</form>\n";
 	// Make sure .htaccess rules are terminated when ExactDN is enabled.
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
-		ewww_image_optimizer_webp_rewrite_verify();
-	}
-	if ( ewww_image_optimizer_get_option( 'easyio_exactdn' ) ) {
 		ewww_image_optimizer_webp_rewrite_verify();
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_ce_webp_enabled() && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
@@ -9136,8 +9140,8 @@ function ewwwio_debug_message( $message ) {
 		WP_CLI::debug( $message );
 		return;
 	}
-	global $eio_temp_debug;
-	if ( $eio_temp_debug || ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
+	global $ewwwio_temp_debug;
+	if ( $ewwwio_temp_debug || ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 		$memory_limit = ewwwio_memory_limit();
 		if ( strlen( $message ) + 4000000 + memory_get_usage( true ) <= $memory_limit ) {
 			global $eio_debug;
@@ -9159,9 +9163,9 @@ function ewwwio_debug_message( $message ) {
  */
 function ewww_image_optimizer_debug_log() {
 	global $eio_debug;
-	global $eio_temp_debug;
+	global $ewwwio_temp_debug;
 	$debug_log = WP_CONTENT_DIR . '/ewww/debug.log';
-	if ( ! empty( $eio_debug ) && empty( $eio_temp_debug ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && is_writable( WP_CONTENT_DIR . '/ewww/' ) ) {
+	if ( ! empty( $eio_debug ) && empty( $ewwwio_temp_debug ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && is_writable( WP_CONTENT_DIR . '/ewww/' ) ) {
 		$memory_limit = ewwwio_memory_limit();
 		clearstatcache();
 		$timestamp = date( 'Y-m-d H:i:s' ) . "\n";
@@ -9410,12 +9414,12 @@ function ewww_image_optimizer_image_queue_debug() {
  * Make sure to clear temp debug option on shutdown.
  */
 function ewww_image_optimizer_temp_debug_clear() {
-	global $eio_temp_debug;
+	global $ewwwio_temp_debug;
 	global $eio_debug;
-	if ( $eio_temp_debug ) {
+	if ( $ewwwio_temp_debug ) {
 		$eio_debug = '';
 	}
-	$eio_temp_debug = false;
+	$ewwwio_temp_debug = false;
 }
 
 /**

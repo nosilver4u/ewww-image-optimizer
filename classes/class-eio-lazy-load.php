@@ -52,7 +52,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 * Register (once) actions and filters for Lazy Load.
 		 */
 		function __construct() {
-			parent::__construct();
+			parent::__construct( __FILE__ );
 			$this->piip_folder = $this->content_dir . 'lazy/';
 			$this->debug_message( 'firing up lazy load' );
 			global $eio_lazy_load;
