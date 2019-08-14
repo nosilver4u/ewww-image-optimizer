@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '490.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '491.0' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -8867,8 +8867,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	}
 	$output = apply_filters( 'ewww_image_optimizer_settings', $output );
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_ce_webp_enabled() && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
-		global $ewwwio_alt_webp;
-		$ewwwio_alt_webp->inline_script();
+		global $eio_alt_webp;
+		$eio_alt_webp->inline_script();
 	}
 
 	$help_instructions = esc_html__( 'Enable the Debugging option and refresh this page to include debugging information with your question.', 'ewww-image-optimizer' ) . ' ' .

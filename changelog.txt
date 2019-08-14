@@ -1,3 +1,6 @@
+= 4.9.1 =
+* fixed: error on settings screen when JS WebP is enabled
+
 = 4.9.0 =
 * added: Lazy Load background image support for section elements
 * added: ExactDN background image support for li,span, and section elements

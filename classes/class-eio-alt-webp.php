@@ -43,8 +43,8 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 	 * Register (once) actions and filters for Alt WebP.
 	 */
 	function __construct() {
-		global $ewwwio_alt_webp;
-		if ( is_object( $ewwwio_alt_webp ) ) {
+		global $eio_alt_webp;
+		if ( is_object( $eio_alt_webp ) ) {
 			return 'you are doing it wrong';
 		}
 		if ( ewww_image_optimizer_ce_webp_enabled() ) {
