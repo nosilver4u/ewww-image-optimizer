@@ -8719,7 +8719,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$output[] = "<div id='ewww-webp-settings'>\n";
 	$output[] = '<noscript><h2>' . esc_html__( 'WebP', 'ewww-image-optimizer' ) . '</h2></noscript>';
 	$output[] = "<table class='form-table'>\n";
-	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
+	if ( ! ewww_image_optimizer_easy_active() || ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
 		$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_webp'>" . esc_html__( 'JPG/PNG to WebP', 'ewww-image-optimizer' ) . '</label>' .
 			ewwwio_help_link( 'https://docs.ewww.io/article/16-ewww-io-and-webp-images', '5854745ac697912ffd6c1c89' ) .
 			"</th><td><span><input type='checkbox' id='ewww_image_optimizer_webp' name='ewww_image_optimizer_webp' value='true' " .
@@ -8735,7 +8735,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			esc_html__( 'WebP images will be generated and saved for all JPG/PNG images regardless of their size. The JS WebP Rewriting will not check if a file exists, only that the domain matches the home url.', 'ewww-image-optimizer' ) . "</span></td></tr>\n";
 		ewwwio_debug_message( 'forced webp: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ? 'on' : 'off' ) );
 	}
-	if ( ! ewww_image_optimizer_ce_webp_enabled() && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+	if ( ! ewww_image_optimizer_ce_webp_enabled() && ! ewww_image_optimizer_easy_active() ) {
 		$webp_paths = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' ) ? esc_html( implode( "\n", ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' ) ) ) : '';
 		$output[]   = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_webp_paths'>" . esc_html__( 'WebP URLs', 'ewww-image-optimizer' ) . '</label>' .
 			ewwwio_help_link( 'https://docs.ewww.io/article/16-ewww-io-and-webp-images', '5854745ac697912ffd6c1c89' ) . '</th><td>' .
@@ -8753,6 +8753,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		ewwwio_debug_message( 'alt webp rewriting: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ? 'on' : 'off' ) );
 	} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		$output[] = "<tr class='$network_class'><th>&nbsp;</th><td><p class='description'>" . esc_html__( 'WebP images are served automatically by ExactDN.', 'ewww-image-optimizer' ) . '</p></td></tr>';
+	} elseif ( get_option( 'easyio_exactdn' ) ) {
+		$output[] = "<tr class='$network_class'><th>&nbsp;</th><td><p class='description'>" . esc_html__( 'WebP images are served automatically by Easy Image Optimizer.', 'ewww-image-optimizer' ) . '</p></td></tr>';
 	}
 	$output[] = "</table>\n</div>\n";
 
@@ -8800,10 +8802,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$output[] = "<p class='submit'><input type='submit' class='button-primary' value='" . esc_attr__( 'Save Changes', 'ewww-image-optimizer' ) . "' /></p>\n";
 	$output[] = "</form>\n";
 	// Make sure .htaccess rules are terminated when ExactDN is enabled.
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+	if ( ewww_image_optimizer_easy_active() ) {
 		ewww_image_optimizer_webp_rewrite_verify();
 	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_ce_webp_enabled() && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_ce_webp_enabled() && ! ewww_image_optimizer_easy_active() ) {
 		if ( ! apache_mod_loaded( 'mod_rewrite' ) ) {
 			ewwwio_debug_message( 'webp missing mod_rewrite' );
 			/* translators: %s: mod_rewrite or mod_headers */
@@ -8866,7 +8868,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		return;
 	}
 	$output = apply_filters( 'ewww_image_optimizer_settings', $output );
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_ce_webp_enabled() && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_ce_webp_enabled() && ! ewww_image_optimizer_easy_active() ) {
 		global $eio_alt_webp;
 		$eio_alt_webp->inline_script();
 	}
@@ -9010,6 +9012,16 @@ function ewwwio_help_link( $link, $hsid = '' ) {
 		$link_class  = 'ewww-help-beacon-single';
 	}
 	return "<a class='$link_class' href='$link' target='_blank' style='margin: 3px'$beacon_attr><img title='" . esc_attr__( 'Help', 'ewww-image-optimizer' ) . "' src='$help_icon'></a>";
+}
+
+/**
+ * Checks to see if ExactDN or Easy I.O. is active.
+ */
+function ewww_image_optimizer_easy_active() {
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) || get_option( 'easyio_exactdn' ) ) {
+		return true;
+	}
+	return false;
 }
 
 /**

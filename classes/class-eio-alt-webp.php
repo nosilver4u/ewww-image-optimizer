@@ -338,7 +338,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		/* TODO: detect non-utf8 encoding and convert the buffer (if necessary). */
 
 		$images = $this->get_images_from_html( preg_replace( '/<noscript.*?\/noscript>/s', '', $buffer ), false );
-		if ( ewww_image_optimizer_iterable( $images[0] ) ) {
+		if ( ! empty( $images[0] ) && $this->is_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
 				$file = $images['img_url'][ $index ];
 				ewwwio_debug_message( "parsing an image: $file" );
@@ -457,7 +457,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		} // End if().
 		// Now we will look for any lazy images that don't have a src attribute (this search returns ALL img elements though).
 		$images = $this->get_images_from_html( preg_replace( '/<noscript.*?\/noscript>/s', '', $buffer ), false, false );
-		if ( ewww_image_optimizer_iterable( $images[0] ) ) {
+		if ( ! empty( $images[0] ) && $this->is_iterable( $images[0] ) ) {
 			ewwwio_debug_message( 'parsing images without requiring src' );
 			foreach ( $images[0] as $index => $image ) {
 				if ( $this->get_attribute( $image, 'src' ) ) {
