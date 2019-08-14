@@ -1,3 +1,15 @@
+= 4.9.0 =
+* added: Lazy Load background image support for section elements
+* added: ExactDN background image support for li,span, and section elements
+* added: lazysizes print plugin, enable via EWWW_IMAGE_OPTIMIZER_LAZY_PRINT constant
+* added: compatibility with upcoming Easy Image Optimizer
+* changed: automatic compression disabled during WP/LR Sync with admin notice
+* changed: Lazy Load PNG placeholders capped at 1920px wide to prevent errors
+* changed: use ExactDN, when active, for Lazy Load PNG placeholders
+* changed: EWWW_MEMORY_LIMIT renamed to EIO_MEMORY_LIMIT for setting plugin memory limit
+* fixed: WebP test image not refreshing after inserting .htaccess rules
+* fixed: errors when manually adding lazysizes script
+
 = 4.8.1 =
 * added: Lazy Load background image support added for span elements
 * changed: constrain by height for background images that are taller than they are wide
