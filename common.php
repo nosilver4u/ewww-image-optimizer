@@ -1180,6 +1180,7 @@ function ewww_image_optimizer_save_admin_colors() {
 		$ewwwio_admin_color = '#0073aa';
 	}
 }
+
 /**
  * Determines the background color to use based on the selected admin theme.
  */

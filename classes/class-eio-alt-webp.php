@@ -297,7 +297,9 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			is_feed() ||
 			is_preview() ||
 			( defined( 'REST_REQUEST' ) && REST_REQUEST ) ||
-			preg_match( '/^<\?xml/', $buffer )
+			preg_match( '/^<\?xml/', $buffer ) ||
+			strpos( $buffer, 'amp-boilerplate' ) ||
+			ewww_image_optimizer_ce_webp_enabled()
 		) {
 			if ( empty( $buffer ) ) {
 				ewwwio_debug_message( 'empty buffer' );
