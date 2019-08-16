@@ -524,6 +524,8 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				$width  = 1920;
 				$height = round( 1920 * $ratio );
 			}
+			$height = min( $height, 1920 );
+
 			$piip_path = $this->piip_folder . 'placeholder-' . $width . 'x' . $height . '.png';
 			if ( $this->parsing_exactdn ) {
 				global $exactdn;
