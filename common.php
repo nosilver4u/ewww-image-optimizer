@@ -6196,6 +6196,7 @@ function ewww_image_optimizer_lr_sync_update( $meta, $id = null ) {
 	}
 
 	// Get a list of all the image files optimized for this attachment.
+	global $wpdb;
 	$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT id,path,image_size FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
 	if ( ! ewww_image_optimizer_iterable( $optimized_images ) ) {
 		return $meta;

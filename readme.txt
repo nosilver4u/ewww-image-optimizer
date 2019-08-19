@@ -176,6 +176,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 = 4.9.2 =
 * fixed: generating lazy load PNG placeholders with large heights causes 500 errors
 * fixed: error when importing media via WordPress Importer plugin
+* fixed: error with WP/LR Sync
 
 = 4.9.1 =
 * fixed: error on settings screen when JS WebP is enabled
