@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.0
 Tested up to: 5.2
 Requires PHP: 5.6
-Stable tag: 4.9.1
+Stable tag: 4.9.2
 License: GPLv3
 
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
@@ -192,32 +192,6 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * changed: EWWW_MEMORY_LIMIT renamed to EIO_MEMORY_LIMIT for setting plugin memory limit
 * fixed: WebP test image not refreshing after inserting .htaccess rules
 * fixed: errors when manually adding lazysizes script
-
-= 4.8.1 =
-* added: Lazy Load background image support added for span elements
-* changed: constrain by height for background images that are taller than they are wide
-* changed: debug.log moved to more suitable location
-* fixed: Lazy Load breaks when an image has an empty class attribute
-* fixed: regression that caused jpegtran and pngout tests to fail on Windows
-* fixed: writing to debug.log causes errors
-
-= 4.8.0 =
-* added: ability to resize images outside media library via scheduled or bulk optimization
-* added: compatibility with WP Stateless for GSC
-* added: use ewww_image_optimizer_autoconvert_threshold filter to modify conversion threshold (default of 300kb)
-* changed: Lazy Load without ExactDN uses blank PNG placeholders for better srcset auto-sizing
-* changed: API backups taken prior to resizing/scaling rather than just before compression
-* changed: ExactDN + Lazy Load uses scaling rather than cropping by default
-* changed: prevent NextGEN backup images from being optimized
-* fixed: bulk optimizer not resuming when non-media library images remain in queue
-* fixed: notices when a user-selected admin theme is unavailable
-* fixed: privacy policy function triggers notices in WP-CLI
-* fixed: background-image attributes with single-quotes now supported by ExactDN, Lazy Load, and JS WebP
-* fixed: background-image attributes getting extra arguments with lazy load
-* fixed: On multi-site installs, site admins could add folders to optimize outside of the uploads folder
-* fixed: LQIP with SVG files results in duplicate requests
-* fixed: image optimization results in media library report file missing when using WP Stateless
-* fixed: plugin checking for 'nice' on Windows servers
 
 = Earlier versions =
 Please refer to the separate changelog.txt file.
