@@ -517,6 +517,9 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		$pictures = $this->get_picture_tags_from_html( $buffer );
 		if ( ewww_image_optimizer_iterable( $pictures ) ) {
 			foreach ( $pictures as $index => $picture ) {
+				if ( strpos( $picture, 'image/webp' ) ) {
+					continue;
+				}
 				$sources = $this->get_elements_from_html( $picture, 'source' );
 				if ( ewww_image_optimizer_iterable( $sources ) ) {
 					foreach ( $sources as $source ) {

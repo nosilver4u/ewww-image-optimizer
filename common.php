@@ -1980,9 +1980,6 @@ function ewww_image_optimizer_handle_upload( $params ) {
 			ewww_image_optimizer_resize_upload( $file_path );
 		}
 	}
-	if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
-		ewwwio_debug_message( print_r( $params, true ) );
-	}
 	clearstatcache();
 	return $params;
 }
