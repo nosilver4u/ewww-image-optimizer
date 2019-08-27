@@ -175,6 +175,8 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 
 = 4.9.3 =
 * fixed: JS WebP rewriting picture tags that already have WebP markup in Force WebP mode
+* fixed: JS WebP incorrectly parses GIF images in Force WebP mode
+* fixed: JS WebP does not support lazy load + infinite scroll
 
 = 4.9.2 =
 * fixed: generating lazy load PNG placeholders with large heights causes 500 errors

@@ -527,7 +527,9 @@ function ewwwLoadImages(ewww_webp_supported) {
 		}
                 var lazies = document.querySelectorAll('img.ewww_webp_lazy_load');
 		for (var i = 0, len = lazies.length; i < len; i++){
+			console.log('parsing an image: ' + lazies[i].getAttribute('src'));
 			if (ewww_webp_supported) {
+				console.log('webp good');
 				ewwwAttr(lazies[i], 'data-lazy-srcset', lazies[i].getAttribute('data-lazy-srcset-webp'));
 				ewwwAttr(lazies[i], 'data-srcset', lazies[i].getAttribute('data-srcset-webp'));
 				ewwwAttr(lazies[i], 'data-lazy-src', lazies[i].getAttribute('data-lazy-src-webp'));
@@ -587,6 +589,9 @@ function ewwwWebPInit(ewww_webp_supported) {
                 ewwwLoadImages(ewww_webp_supported);
                 ewwwNggLoadGalleries(ewww_webp_supported);
                 document.arrive('.ewww_webp', function() {
+                        ewwwLoadImages(ewww_webp_supported);
+                });
+                document.arrive('.ewww_webp_lazy_load', function() {
                         ewwwLoadImages(ewww_webp_supported);
                 });
                 var ewww_ngg_galleries_timer = 0;
