@@ -85,7 +85,9 @@ For background images, use data-bg attribute:
 					var dPR = (window.devicePixelRatio || 1);
 					var targetWidth = Math.round(e.target.offsetWidth * dPR);
 					var targetHeight = Math.round(e.target.offsetHeight * dPR);
-					if(window.lazySizes.hC(e.target,'wp-block-cover')){
+					if (window.lazySizes.hC(e.target,'wp-block-cover')) {
+						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
+					} else if (window.lazySizes.hC(e.target,'elementor-bg')){
 						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
 					} else {
 						bg = constrainSrc(bg,targetWidth,targetHeight,'bg');
