@@ -386,7 +386,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						continue;
 					}
 					$this->debug_message( "checking style attr for background-image: $style" );
-					$bg_image_url = $this->get_background_image_url( $style );
+					$bg_image_url = trim( $this->get_background_image_url( $style ), "\t\n\r'" );
 					if ( $bg_image_url ) {
 						$this->debug_message( 'bg-image url found' );
 						$new_style = $this->remove_background_image( $style );

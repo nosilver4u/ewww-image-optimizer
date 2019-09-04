@@ -317,6 +317,13 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						$this->set_option( $this->prefix . 'lazy_load', true );
 						delete_option( 'exactdn_never_been_active' );
 					}
+					if ( 'external' === get_option( 'elementor_css_print_method' ) ) {
+						update_option( 'elementor_css_print_method', 'internal' );
+					}
+					if ( function_exists( 'et_get_option' ) && function_exists( 'et_update_option' ) && 'on' === et_get_option( 'et_pb_static_css_file', 'on' ) ) {
+						et_update_option( 'et_pb_static_css_file', 'off' );
+						et_update_option( 'et_pb_css_in_footer', 'off' );
+					}
 					return $this->set_exactdn_domain( $response['domain'] );
 				}
 			} elseif ( ! empty( $result['body'] ) && strpos( $result['body'], 'error' ) !== false ) {

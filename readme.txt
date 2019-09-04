@@ -174,9 +174,12 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.9.3 =
+* fixed: ExactDN incorrectly scales Elementor background images rather than cropping
+* fixed: ExactDN cannot work with Divi/Elementor background images due to use of external CSS files
 * fixed: JS WebP rewriting picture tags that already have WebP markup in Force WebP mode
 * fixed: JS WebP incorrectly parses GIF images in Force WebP mode
 * fixed: JS WebP does not support lazy load + infinite scroll
+* fixed: Lazy Load auto-scaling breaks if background image is enclosed in quotes
 
 = 4.9.2 =
 * fixed: generating lazy load PNG placeholders with large heights causes 500 errors
