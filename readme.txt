@@ -177,9 +177,9 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: ExactDN incorrectly scales Elementor background images rather than cropping
 * fixed: ExactDN cannot work with Divi/Elementor background images due to use of external CSS files
 * fixed: JS WebP rewriting picture tags that already have WebP markup in Force WebP mode
-* fixed: JS WebP incorrectly parses GIF images in Force WebP mode
+* fixed: JS WebP incorrectly parses GIF/SVG images in Force WebP mode
 * fixed: JS WebP does not support lazy load + infinite scroll
-* fixed: Lazy Load auto-scaling breaks if background image is enclosed in quotes
+* fixed: Lazy Load auto-scaling breaks if background image is enclosed in encoded quotes
 
 = 4.9.2 =
 * fixed: generating lazy load PNG placeholders with large heights causes 500 errors

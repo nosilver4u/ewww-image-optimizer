@@ -723,6 +723,9 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		if ( $extension && 'gif' === $extension ) {
 			return false;
 		}
+		if ( $extension && 'svg' === $extension ) {
+			return false;
+		}
 		if ( $extension && 'webp' === $extension ) {
 			return false;
 		}

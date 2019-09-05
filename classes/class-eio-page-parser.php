@@ -230,7 +230,7 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 		function get_background_image_url( $attribute ) {
 			if ( ( false !== strpos( $attribute, 'background:' ) || false !== strpos( $attribute, 'background-image:' ) ) && false !== strpos( $attribute, 'url(' ) ) {
 				if ( preg_match( '#url\(([^)]+)\)#', $attribute, $prop_match ) ) {
-					return trim( $prop_match[1], "'\"\t\n\r " );
+					return trim( html_entity_decode( $prop_match[1], ENT_QUOTES | ENT_HTML401 ), "'\"\t\n\r " );
 				}
 			}
 			return '';
