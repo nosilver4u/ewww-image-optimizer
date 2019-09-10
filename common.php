@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '492.15' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '493.0' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -7964,9 +7964,6 @@ function ewww_image_optimizer_get_image_sizes() {
 	$image_sizes = get_intermediate_image_sizes();
 	if ( is_array( $image_sizes ) ) {
 		ewwwio_debug_message( 'sizes: ' . implode( '<br>', $image_sizes ) );
-	}
-	if ( false ) { // set to true to enable more debugging.
-		ewwwio_debug_message( print_r( $_wp_additional_image_sizes, true ) );
 	}
 	if ( ewww_image_optimizer_iterable( $image_sizes ) ) {
 		foreach ( $image_sizes as $_size ) {

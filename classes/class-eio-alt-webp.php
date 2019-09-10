@@ -655,9 +655,6 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			}
 		}
 		ewwwio_debug_message( 'all done parsing page for alt webp' );
-		if ( true ) { // Set to true for extra logging.
-			ewww_image_optimizer_debug_log();
-		}
 		return $buffer;
 	}
 
