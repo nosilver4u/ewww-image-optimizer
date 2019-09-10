@@ -4,12 +4,55 @@
 	if(typeof module == 'object' && module.exports){
 		module.exports = lazySizes;
 	}
-}(window, function l(window, document) {
+}(typeof window != 'undefined' ?
+      window : {}, function l(window, document) {
 	'use strict';
 	/*jshint eqnull:true */
-	if(!document.getElementsByClassName){return;}
 
-	var lazysizes, lazySizesConfig;
+	var lazysizes, lazySizesCfg;
+
+	(function(){
+		var prop;
+
+		var lazySizesDefaults = {
+			lazyClass: 'lazyload',
+			loadedClass: 'lazyloaded',
+			loadingClass: 'lazyloading',
+			preloadClass: 'lazypreload',
+			errorClass: 'lazyerror',
+			//strictClass: 'lazystrict',
+			autosizesClass: 'lazyautosizes',
+			srcAttr: 'data-src',
+			srcsetAttr: 'data-srcset',
+			sizesAttr: 'data-sizes',
+			//preloadAfterLoad: false,
+			minSize: 40,
+			customMedia: {},
+			init: true,
+			expFactor: 1.5,
+			hFac: 0.8,
+			loadMode: 2,
+			loadHidden: true,
+			ricTimeout: 0,
+			throttleDelay: 125,
+		};
+
+		lazySizesCfg = window.lazySizesConfig || window.lazysizesConfig || {};
+
+		for(prop in lazySizesDefaults){
+			if(!(prop in lazySizesCfg)){
+				lazySizesCfg[prop] = lazySizesDefaults[prop];
+			}
+		}
+	})();
+
+	if (!document || !document.getElementsByClassName) {
+		return {
+			init: function () {},
+			cfg: lazySizesCfg,
+			noSupport: true,
+		};
+	}
 
 	var docElem = document.documentElement;
 
@@ -86,7 +129,7 @@
 
 	var updatePolyfill = function (el, full){
 		var polyfill;
-		if( !supportPicture && ( polyfill = (window.picturefill || lazySizesConfig.pf) ) ){
+		if( !supportPicture && ( polyfill = (window.picturefill || lazySizesCfg.pf) ) ){
 			if(full && full.src && !el[_getAttribute]('srcset')){
 				el.setAttribute('srcset', full.src);
 			}
@@ -103,7 +146,7 @@
 	var getWidth = function(elem, parent, width){
 		width = width || elem.offsetWidth;
 
-		while(width < lazySizesConfig.minSize && parent && !elem._lazysizesWidth){
+		while(width < lazySizesCfg.minSize && parent && !elem._lazysizesWidth){
 			width =  parent.offsetWidth;
 			parent = parent.parentNode;
 		}
@@ -168,8 +211,8 @@
 	var throttle = function(fn){
 		var running;
 		var lastTime = 0;
-		var gDelay = lazySizesConfig.throttleDelay;
-		var rICTimeout = lazySizesConfig.ricTimeout;
+		var gDelay = lazySizesCfg.throttleDelay;
+		var rICTimeout = lazySizesCfg.ricTimeout;
 		var run = function(){
 			running = false;
 			lastTime = Date.now();
@@ -179,8 +222,8 @@
 			function(){
 				requestIdleCallback(run, {timeout: rICTimeout});
 
-				if(rICTimeout !== lazySizesConfig.ricTimeout){
-					rICTimeout = lazySizesConfig.ricTimeout;
+				if(rICTimeout !== lazySizesCfg.ricTimeout){
+					rICTimeout = lazySizesCfg.ricTimeout;
 				}
 			} :
 			rAFIt(function(){
@@ -241,49 +284,6 @@
 			}
 		};
 	};
-
-	(function(){
-		var prop;
-
-		var lazySizesDefaults = {
-			lazyClass: 'lazyload',
-			loadedClass: 'lazyloaded',
-			loadingClass: 'lazyloading',
-			preloadClass: 'lazypreload',
-			errorClass: 'lazyerror',
-			//strictClass: 'lazystrict',
-			autosizesClass: 'lazyautosizes',
-			srcAttr: 'data-src',
-			srcsetAttr: 'data-srcset',
-			sizesAttr: 'data-sizes',
-			//preloadAfterLoad: false,
-			minSize: 40,
-			customMedia: {},
-			init: true,
-			expFactor: 1.5,
-			hFac: 0.8,
-			loadMode: 2,
-			loadHidden: true,
-			ricTimeout: 0,
-			throttleDelay: 125,
-		};
-
-		lazySizesConfig = window.lazySizesConfig || window.lazysizesConfig || {};
-
-		for(prop in lazySizesDefaults){
-			if(!(prop in lazySizesConfig)){
-				lazySizesConfig[prop] = lazySizesDefaults[prop];
-			}
-		}
-
-		window.lazySizesConfig = lazySizesConfig;
-
-		setTimeout(function(){
-			if(lazySizesConfig.init){
-				init();
-			}
-		});
-	})();
 
 	var loader = (function(){
 		var preloadElems, isCompleted, resetPreloadingTimer, loadMode, started;
@@ -347,39 +347,41 @@
 				beforeExpandVal, defaultExpand, preloadExpand, hFac;
 			var lazyloadElems = lazysizes.elements;
 
-			if((loadMode = lazySizesConfig.loadMode) && isLoading < 8 && (eLlen = lazyloadElems.length)){
+			if((loadMode = lazySizesCfg.loadMode) && isLoading < 8 && (eLlen = lazyloadElems.length)){
 
 				i = 0;
 
 				lowRuns++;
 
-				defaultExpand = (!lazySizesConfig.expand || lazySizesConfig.expand < 1) ?
-					docElem.clientHeight > 500 && docElem.clientWidth > 500 ? 500 : 370 :
-					lazySizesConfig.expand;
-
-				lazysizes._defEx = defaultExpand;
-
-				preloadExpand = defaultExpand * lazySizesConfig.expFactor;
-				hFac = lazySizesConfig.hFac;
-				isBodyHidden = null;
-
-				if(currentExpand < preloadExpand && isLoading < 1 && lowRuns > 2 && loadMode > 2 && !document.hidden){
-					currentExpand = preloadExpand;
-					lowRuns = 0;
-				} else if(loadMode > 1 && lowRuns > 1 && isLoading < 6){
-					currentExpand = defaultExpand;
-				} else {
-					currentExpand = shrinkExpand;
-				}
-
 				for(; i < eLlen; i++){
 
 					if(!lazyloadElems[i] || lazyloadElems[i]._lazyRace){continue;}
 
-					if(!supportScroll){unveilElement(lazyloadElems[i]);continue;}
+					if(!supportScroll || (lazysizes.prematureUnveil && lazysizes.prematureUnveil(lazyloadElems[i]))){unveilElement(lazyloadElems[i]);continue;}
 
 					if(!(elemExpandVal = lazyloadElems[i][_getAttribute]('data-expand')) || !(elemExpand = elemExpandVal * 1)){
 						elemExpand = currentExpand;
+					}
+
+					if (!defaultExpand) {
+						defaultExpand = (!lazySizesCfg.expand || lazySizesCfg.expand < 1) ?
+							docElem.clientHeight > 500 && docElem.clientWidth > 500 ? 500 : 370 :
+							lazySizesCfg.expand;
+
+						lazysizes._defEx = defaultExpand;
+
+						preloadExpand = defaultExpand * lazySizesCfg.expFactor;
+						hFac = lazySizesCfg.hFac;
+						isBodyHidden = null;
+
+						if(currentExpand < preloadExpand && isLoading < 1 && lowRuns > 2 && loadMode > 2 && !document.hidden){
+							currentExpand = preloadExpand;
+							lowRuns = 0;
+						} else if(loadMode > 1 && lowRuns > 1 && isLoading < 6){
+							currentExpand = defaultExpand;
+						} else {
+							currentExpand = shrinkExpand;
+						}
 					}
 
 					if(beforeExpandVal !== elemExpand){
@@ -396,15 +398,15 @@
 						(eLright = rect.right) >= elemNegativeExpand * hFac &&
 						(eLleft = rect.left) <= eLvW &&
 						(eLbottom || eLright || eLleft || eLtop) &&
-						(lazySizesConfig.loadHidden || isVisible(lazyloadElems[i])) &&
+						(lazySizesCfg.loadHidden || isVisible(lazyloadElems[i])) &&
 						((isCompleted && isLoading < 3 && !elemExpandVal && (loadMode < 3 || lowRuns < 4)) || isNestedVisible(lazyloadElems[i], elemExpand))){
 						unveilElement(lazyloadElems[i]);
 						loadedSomething = true;
 						if(isLoading > 9){break;}
 					} else if(!loadedSomething && isCompleted && !autoLoadElem &&
 						isLoading < 4 && lowRuns < 4 && loadMode > 2 &&
-						(preloadElems[0] || lazySizesConfig.preloadAfterLoad) &&
-						(preloadElems[0] || (!elemExpandVal && ((eLbottom || eLright || eLleft || eLtop) || lazyloadElems[i][_getAttribute](lazySizesConfig.sizesAttr) != 'auto')))){
+						(preloadElems[0] || lazySizesCfg.preloadAfterLoad) &&
+						(preloadElems[0] || (!elemExpandVal && ((eLbottom || eLright || eLleft || eLtop) || lazyloadElems[i][_getAttribute](lazySizesCfg.sizesAttr) != 'auto')))){
 						autoLoadElem = preloadElems[0] || lazyloadElems[i];
 					}
 				}
@@ -426,8 +428,8 @@
 			}
 
 			resetPreloading(e);
-			addClass(elem, lazySizesConfig.loadedClass);
-			removeClass(elem, lazySizesConfig.loadingClass);
+			addClass(elem, lazySizesCfg.loadedClass);
+			removeClass(elem, lazySizesCfg.loadingClass);
 			addRemoveLoadEvents(elem, rafSwitchLoadingClass);
 			triggerEvent(elem, 'lazyloaded');
 		};
@@ -447,9 +449,9 @@
 		var handleSources = function(source){
 			var customMedia;
 
-			var sourceSrcset = source[_getAttribute](lazySizesConfig.srcsetAttr);
+			var sourceSrcset = source[_getAttribute](lazySizesCfg.srcsetAttr);
 
-			if( (customMedia = lazySizesConfig.customMedia[source[_getAttribute]('data-media') || source[_getAttribute]('media')]) ){
+			if( (customMedia = lazySizesCfg.customMedia[source[_getAttribute]('data-media') || source[_getAttribute]('media')]) ){
 				source.setAttribute('media', customMedia);
 			}
 
@@ -465,14 +467,14 @@
 
 				if(sizes){
 					if(isAuto){
-						addClass(elem, lazySizesConfig.autosizesClass);
+						addClass(elem, lazySizesCfg.autosizesClass);
 					} else {
 						elem.setAttribute('sizes', sizes);
 					}
 				}
 
-				srcset = elem[_getAttribute](lazySizesConfig.srcsetAttr);
-				src = elem[_getAttribute](lazySizesConfig.srcAttr);
+				srcset = elem[_getAttribute](lazySizesCfg.srcsetAttr);
+				src = elem[_getAttribute](lazySizesCfg.srcAttr);
 
 				if(isImg) {
 					parent = elem.parentNode;
@@ -483,7 +485,7 @@
 
 				event = {target: elem};
 
-				addClass(elem, lazySizesConfig.loadingClass);
+				addClass(elem, lazySizesCfg.loadingClass);
 
 				if(firesLoad){
 					clearTimeout(resetPreloadingTimer);
@@ -513,11 +515,16 @@
 			if(elem._lazyRace){
 				delete elem._lazyRace;
 			}
-			removeClass(elem, lazySizesConfig.lazyClass);
+			removeClass(elem, lazySizesCfg.lazyClass);
 
 			rAF(function(){
 				// Part of this can be removed as soon as this fix is older: https://bugs.chromium.org/p/chromium/issues/detail?id=7731 (2015)
-				if( !firesLoad || (elem.complete && elem.naturalWidth > 1)){
+				var isLoaded = elem.complete && elem.naturalWidth > 1;
+
+				if( !firesLoad || isLoaded){
+					if (isLoaded) {
+						addClass(elem, 'ls-is-cached');
+					}
 					switchLoadingClass(event);
 					elem._lazyCache = true;
 					setTimeout(function(){
@@ -526,19 +533,23 @@
 						}
 					}, 9);
 				}
+				if (elem.loading == 'lazy') {
+					isLoading--;
+				}
 			}, true);
 		});
 
 		var unveilElement = function (elem){
+			if (elem._lazyRace) {return;}
 			var detail;
 
 			var isImg = regImg.test(elem.nodeName);
 
 			//allow using sizes="auto", but don't use. it's invalid. Use data-sizes="auto" or a valid value for sizes instead (i.e.: sizes="80vw")
-			var sizes = isImg && (elem[_getAttribute](lazySizesConfig.sizesAttr) || elem[_getAttribute]('sizes'));
+			var sizes = isImg && (elem[_getAttribute](lazySizesCfg.sizesAttr) || elem[_getAttribute]('sizes'));
 			var isAuto = sizes == 'auto';
 
-			if( (isAuto || !isCompleted) && isImg && (elem[_getAttribute]('src') || elem.srcset) && !elem.complete && !hasClass(elem, lazySizesConfig.errorClass) && hasClass(elem, lazySizesConfig.lazyClass)){return;}
+			if( (isAuto || !isCompleted) && isImg && (elem[_getAttribute]('src') || elem.srcset) && !elem.complete && !hasClass(elem, lazySizesCfg.errorClass) && hasClass(elem, lazySizesCfg.lazyClass)){return;}
 
 			detail = triggerEvent(elem, 'lazyunveilread').detail;
 
@@ -552,37 +563,41 @@
 			lazyUnveil(elem, detail, isAuto, sizes, isImg);
 		};
 
+		var afterScroll = debounce(function(){
+			lazySizesCfg.loadMode = 3;
+			throttledCheckElements();
+		});
+
+		var altLoadmodeScrollListner = function(){
+			if(lazySizesCfg.loadMode == 3){
+				lazySizesCfg.loadMode = 2;
+			}
+			afterScroll();
+		};
+
 		var onload = function(){
 			if(isCompleted){return;}
 			if(Date.now() - started < 999){
 				setTimeout(onload, 999);
 				return;
 			}
-			var afterScroll = debounce(function(){
-				lazySizesConfig.loadMode = 3;
-				throttledCheckElements();
-			});
+
 
 			isCompleted = true;
 
-			lazySizesConfig.loadMode = 3;
+			lazySizesCfg.loadMode = 3;
 
 			throttledCheckElements();
 
-			addEventListener('scroll', function(){
-				if(lazySizesConfig.loadMode == 3){
-					lazySizesConfig.loadMode = 2;
-				}
-				afterScroll();
-			}, true);
+			addEventListener('scroll', altLoadmodeScrollListner, true);
 		};
 
 		return {
 			_: function(){
 				started = Date.now();
 
-				lazysizes.elements = document.getElementsByClassName(lazySizesConfig.lazyClass);
-				preloadElems = document.getElementsByClassName(lazySizesConfig.lazyClass + ' ' + lazySizesConfig.preloadClass);
+				lazysizes.elements = document.getElementsByClassName(lazySizesCfg.lazyClass);
+				preloadElems = document.getElementsByClassName(lazySizesCfg.lazyClass + ' ' + lazySizesCfg.preloadClass);
 
 				addEventListener('scroll', throttledCheckElements, true);
 
@@ -599,7 +614,7 @@
 				addEventListener('hashchange', throttledCheckElements, true);
 
 				//, 'fullscreenchange'
-				['focus', 'mouseover', 'click', 'load', 'transitionend', 'animationend', 'webkitAnimationEnd'].forEach(function(name){
+				['focus', 'mouseover', 'click', 'load', 'transitionend', 'animationend'].forEach(function(name){
 					document[_addEventListener](name, throttledCheckElements, true);
 				});
 
@@ -619,7 +634,8 @@
 				}
 			},
 			checkElems: throttledCheckElements,
-			unveil: unveilElement
+			unveil: unveilElement,
+			_aLSL: altLoadmodeScrollListner,
 		};
 	})();
 
@@ -679,7 +695,7 @@
 
 		return {
 			_: function(){
-				autosizesElems = document.getElementsByClassName(lazySizesConfig.autosizesClass);
+				autosizesElems = document.getElementsByClassName(lazySizesCfg.autosizesClass);
 				addEventListener('resize', debouncedUpdateElementsSizes);
 			},
 			checkElems: debouncedUpdateElementsSizes,
@@ -688,15 +704,21 @@
 	})();
 
 	var init = function(){
-		if(!init.i){
+		if(!init.i && document.getElementsByClassName){
 			init.i = true;
 			autoSizer._();
 			loader._();
 		}
 	};
 
+	setTimeout(function(){
+		if(lazySizesCfg.init){
+			init();
+		}
+	});
+
 	lazysizes = {
-		cfg: lazySizesConfig,
+		cfg: lazySizesCfg,
 		autoSizer: autoSizer,
 		loader: loader,
 		init: init,

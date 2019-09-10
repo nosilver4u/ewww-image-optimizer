@@ -298,6 +298,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						} else {
 							$this->set_attribute( $image, 'src', $placeholder_src, true );
 						}
+						$this->set_attribute( $image, 'loading', 'lazy' );
 						$this->set_attribute( $image, 'class', $this->get_attribute( $image, 'class' ) . ' lazyload', true );
 						$buffer = str_replace( $orig_img, $image . $noscript, $buffer );
 					}
