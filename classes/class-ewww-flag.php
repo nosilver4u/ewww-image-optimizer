@@ -171,6 +171,38 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		}
 
 		/**
+		 * Checks the hook suffix to see if this is the individual gallery management page.
+		 *
+		 * @param string $hook The hook suffix of the page.
+		 * @returns boolean True for the gallery page, false anywhere else.
+		 */
+		function is_gallery_page( $hook ) {
+			if ( 'flagallery_page_flag-manage-gallery' === $hook ) {
+				return true;
+			}
+			if ( false !== strpos( $hook, 'page_flag-manage-gallery' ) ) {
+				return true;
+			}
+			return false;
+		}
+
+		/**
+		 * Checks the hook suffix to see if this is the bulk optimize page.
+		 *
+		 * @param string $hook The hook suffix of the page.
+		 * @returns boolean True for the bulk page, false anywhere else.
+		 */
+		function is_bulk_page( $hook ) {
+			if ( 'flagallery_page_flag-bulk-optimize' === $hook ) {
+				return true;
+			}
+			if ( false !== strpos( $hook, 'page_flag-bulk-optimize' ) ) {
+				return true;
+			}
+			return false;
+		}
+
+		/**
 		 * Prepares the bulk operation and includes the necessary javascript files.
 		 *
 		 * @global object $flagdb
@@ -181,15 +213,15 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		function ewww_flag_bulk_script( $hook ) {
 			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			// Make sure we are being hooked from a valid location.
-			if ( 'flagallery_page_flag-bulk-optimize' !== $hook && 'flagallery_page_flag-manage-gallery' !== $hook ) {
+			if ( ! $this->is_bulk_page( $hook ) && ! $this->is_gallery_page( $hook ) ) {
 				return;
 			}
 			// If there is no requested bulk action, do nothing.
-			if ( 'flagallery_page_flag-manage-gallery' === $hook && ( empty( $_REQUEST['bulkaction'] ) || 0 === strpos( $_REQUEST['bulkaction'], 'bulk_optimize' ) ) ) {
+			if ( $this->is_gallery_page( $hook ) && ( empty( $_REQUEST['bulkaction'] ) || 0 === strpos( $_REQUEST['bulkaction'], 'bulk_optimize' ) ) ) {
 				return;
 			}
 			// If there is no media to optimize, do nothing.
-			if ( 'flagallery_page_flag-manage-gallery' === $hook && ( empty( $_REQUEST['doaction'] ) || ! is_array( $_REQUEST['doaction'] ) ) ) {
+			if ( $this->is_gallery_page( $hook ) && ( empty( $_REQUEST['doaction'] ) || ! is_array( $_REQUEST['doaction'] ) ) ) {
 				return;
 			}
 			$ids = null;
@@ -234,7 +266,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			} elseif ( ! empty( $resume ) ) {
 				// If there is an operation to resume, get those IDs from the db.
 				$ids = get_option( 'ewww_image_optimizer_bulk_flag_attachments' );
-			} elseif ( 'flagallery_page_flag-bulk-optimize' === $hook ) {
+			} elseif ( $this->is_bulk_page( $hook ) ) {
 				// Otherwise, if we are on the main bulk optimize page, just get all the IDs available.
 				global $wpdb;
 				$ids = $wpdb->get_col( "SELECT pid FROM $wpdb->flagpictures ORDER BY sortorder ASC" );
@@ -636,7 +668,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		 */
 		function ewww_flag_manual_actions_script( $hook ) {
 			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-			if ( 'flagallery_page_flag-manage-gallery' !== $hook ) {
+			if ( ! $this->is_gallery_page( $hook ) ) {
 				return;
 			}
 			if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {

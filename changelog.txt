@@ -5,6 +5,7 @@
 * fixed: JS WebP incorrectly parses GIF/SVG images in Force WebP mode
 * fixed: JS WebP does not support lazy load + infinite scroll
 * fixed: Lazy Load auto-scaling breaks if background image is enclosed in encoded quotes
+* fixed: GRAND FlaGallery integration broken by hook suffix change
 
 = 4.9.2 =
 * fixed: generating lazy load PNG placeholders with large heights causes 500 errors
