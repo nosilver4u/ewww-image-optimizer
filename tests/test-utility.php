@@ -62,7 +62,7 @@ class EWWWIO_Utility_Tests extends WP_UnitTestCase {
 	 * Tests that shell args get escaped properly (quotes and such).
 	 */
 	function test_shellargesc() {
-		$this->assertEquals( ewww_image_optimizer_escapeshellarg( "file'name" ), "'file'\"'\"'name'" );
+		$this->assertEquals( ewww_image_optimizer_escapeshellarg( "file'name" ), "'file'\\''name'" );
 	}
 
 	/**
