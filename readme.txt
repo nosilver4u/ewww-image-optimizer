@@ -173,6 +173,9 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 4.9.4 =
+* security: rewrote escapeshellarg() wrapper to be more secure
+
 = 4.9.3 =
 * fixed: ExactDN incorrectly scales Elementor background images rather than cropping
 * fixed: ExactDN cannot work with Divi/Elementor background images due to use of external CSS files

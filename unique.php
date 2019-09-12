@@ -1219,6 +1219,33 @@ function ewww_image_optimizer_escapeshellcmd( $path ) {
 }
 
 /**
+ * Replacement for escapeshellarg() that won't kill non-ASCII characters.
+ *
+ * @param string $arg A value to sanitize/escape for commmand-line usage.
+ * @return string The value after being escaped.
+ */
+function ewww_image_optimizer_escapeshellarg( $arg ) {
+	if ( PHP_OS === 'WINNT' ) {
+		$safe_arg = str_replace( '%', ' ', $arg );
+		$safe_arg = str_replace( '!', ' ', $safe_arg );
+		$safe_arg = str_replace( '"', ' ', $safe_arg );
+		return '"' . $safe_arg . '"';
+	} elseif ( ewww_image_optimizer_function_exists( 'setlocale' ) ) {
+		$current_locale = strtolower( setlocale( LC_CTYPE, 0 ) );
+		if ( false === strpos( $current_locale, 'utf8' ) && false === strpos( $current_locale, 'utf-8' ) ) {
+			$changed_local = true;
+			ewwwio_debug_message( "setting locale, found $current_locale" );
+			setlocale( LC_CTYPE, 'en_US.UTF-8' );
+		}
+	}
+	$safe_arg = escapeshellarg( $arg );
+	if ( ! empty( $changed_local ) ) {
+		setlocale( LC_CTYPE, $current_locale );
+	}
+	return $safe_arg;
+}
+
+/**
  * Test the given binary to see if it returns a valid version string.
  *
  * @param string $path The absolute path to a binary file.

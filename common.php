@@ -2721,22 +2721,6 @@ function ewww_image_optimizer_webp_paths_sanitize( $paths ) {
 }
 
 /**
- * Replacement for escapeshellarg() that won't kill non-ASCII characters.
- *
- * @param string $arg A value to sanitize/escape for commmand-line usage.
- * @return string The value after being escaped.
- */
-function ewww_image_optimizer_escapeshellarg( $arg ) {
-	if ( PHP_OS === 'WINNT' ) {
-		$safe_arg = '"' . $arg . '"';
-	} else {
-		$safe_arg = "'" . str_replace( "'", "'\"'\"'", $arg ) . "'";
-	}
-	ewwwio_memory( __FUNCTION__ );
-	return $safe_arg;
-}
-
-/**
  * Retrieves/sanitizes jpg background fill setting or returns null for png2jpg conversions.
  *
  * @param string $background The hexadecimal value entered by the user.
@@ -8027,6 +8011,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	global $ewwwio_temp_debug;
 	global $content_width;
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	ewww_image_optimizer_escapeshellarg( 'test' );
 	ewwwio_debug_version_info();
 	ewwwio_debug_message( 'ABSPATH: ' . ABSPATH );
 	ewwwio_debug_message( 'WP_CONTENT_DIR: ' . WP_CONTENT_DIR );

@@ -184,9 +184,12 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				global $as3cf;
 				$s3_region = $as3cf->get_setting( 'region' );
 				$s3_bucket = $as3cf->get_setting( 'bucket' );
+				if ( is_wp_error( $s3_region ) ) {
+					$s3_region = '';
+				}
 				$s3_domain = $as3cf->get_provider()->get_url_domain( $s3_bucket, $s3_region, null, array(), true );
 				$this->debug_message( "found S3 domain of $s3_domain with bucket $s3_bucket and region $s3_region" );
-				if ( ! empty( $s3_domain ) ) {
+				if ( ! empty( $s3_domain ) && $as3cf->get_setting( 'serve-from-s3' ) ) {
 					$s3_active = true;
 				}
 			}
@@ -273,9 +276,12 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$s3_scheme = $as3cf->get_url_scheme();
 				$s3_region = $as3cf->get_setting( 'region' );
 				$s3_bucket = $as3cf->get_setting( 'bucket' );
+				if ( is_wp_error( $s3_region ) ) {
+					$s3_region = '';
+				}
 				$s3_domain = $as3cf->get_provider()->get_url_domain( $s3_bucket, $s3_region, null, array(), true );
 				$this->debug_message( "found S3 domain of $s3_domain with bucket $s3_bucket and region $s3_region" );
-				if ( ! empty( $s3_domain ) ) {
+				if ( ! empty( $s3_domain ) && $as3cf->get_setting( 'serve-from-s3' ) ) {
 					$s3_active = true;
 				}
 			}
