@@ -174,6 +174,8 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 4.9.4 =
+* added: use native lazy load attributes to supplement lazy loader and make placeholders more efficient
+* fixed: data-width and data-height attributes missing when JS WebP active
 * security: rewrote escapeshellarg() wrapper to be more secure
 
 = 4.9.3 =
