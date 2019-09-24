@@ -538,12 +538,11 @@ function ewww_image_optimizer_init() {
 			}
 		}
 	}
-	if ( defined( 'DOING_WPLR_REQUEST' ) && DOING_WPLR_REQUEST ) {
+	if ( defined( 'DOING_WPLR_REQUEST' ) && DOING_WPLR_REQUEST && ! defined( 'EWWWIO_WPLR_AUTO' ) ) {
 		// Unhook all automatic processing, and save an option that (does not autoload) tells the user LR Sync regenerated their images and they should run the bulk optimizer.
 		remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
 		remove_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15 );
 		add_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_lr_sync_update' );
-		return;
 	}
 }
 

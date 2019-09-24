@@ -175,6 +175,8 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 
 = 4.9.4 =
 * added: use native lazy load attributes to supplement lazy loader and make placeholders more efficient
+* added: GCS sub-folder rewriting with ExactDN for cleaner URLs
+* changed: define EWWWIO_WPLR_AUTO (any value) to enable auto-optimize on images from WP/LR Sync
 * fixed: data-width and data-height attributes missing when JS WebP active
 * security: rewrote escapeshellarg() wrapper to be more secure
 
