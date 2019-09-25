@@ -179,6 +179,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * added: option to optimize original versions of scaled images for WP 5.3
 * changed: define EWWWIO_WPLR_AUTO (any value) to enable auto-optimize on images from WP/LR Sync
 * changed: thumbnails could be converted even if original was not
+* changed: Show Optimized Images table moved to Tools menu
 * fixed: full size image optimization not deferred if scaled by WP 5.3
 * fixed: data-width and data-height attributes missing when JS WebP active
 * security: rewrote escapeshellarg() wrapper to be more secure

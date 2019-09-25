@@ -2250,19 +2250,26 @@ function ewww_image_optimizer_resize_dup_check() {
  * Adds various items to the admin menu.
  */
 function ewww_image_optimizer_admin_menu() {
-	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 	// Adds bulk optimize to the media library menu.
-	$ewww_bulk_page = add_media_page( esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-bulk', 'ewww_image_optimizer_bulk_preview' );
-	// TEST TODO: move this to a unit test or something!
-	/* add_media_page( esc_html__( 'Resize checker', 'ewww-image-optimizer' ), esc_html__( 'Duplicate Resize Check', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-resize-dup-check', 'ewww_image_optimizer_resize_dup_check' ); */
-	$ewww_webp_migrate_page = add_submenu_page( null, esc_html__( 'Migrate WebP Images', 'ewww-image-optimizer' ), esc_html__( 'Migrate WebP Images', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-webp-migrate', 'ewww_image_optimizer_webp_migrate_preview' );
+	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
+	add_media_page( esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-bulk', 'ewww_image_optimizer_bulk_preview' );
+	add_submenu_page( null, esc_html__( 'Migrate WebP Images', 'ewww-image-optimizer' ), esc_html__( 'Migrate WebP Images', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-webp-migrate', 'ewww_image_optimizer_webp_migrate_preview' );
+
+	// Add tools page.
+	add_management_page(
+		'EWWW Image Optimizer',                                                      // Page title.
+		'EWWW Image Optimizer',                                                      // Menu title.
+		apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ), // Capability.
+		'ewww-image-optimizer-tools',                                            // Slug.
+		'ewww_image_optimizer_display_tools'                            // Function to call.
+	);
 	if ( ! function_exists( 'is_plugin_active' ) ) {
 		// Need to include the plugin library for the is_plugin_active function.
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 	}
 	if ( ! is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
 		// Add options page to the settings menu.
-		$ewww_options_page = add_options_page(
+		add_options_page(
 			'EWWW Image Optimizer',                                                      // Page title.
 			'EWWW Image Optimizer',                                                      // Menu title.
 			apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ), // Capability.
@@ -2271,7 +2278,7 @@ function ewww_image_optimizer_admin_menu() {
 		);
 	} else {
 		// Add options page to the single-site settings menu.
-		$ewww_options_page = add_options_page(
+		add_options_page(
 			'EWWW Image Optimizer',                                                      // Page title.
 			'EWWW Image Optimizer',                                                      // Menu title.
 			apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ), // Capability.
@@ -3006,7 +3013,7 @@ function ewww_image_optimizer_cloud_restore_single_image_handler() {
 		ewwwio_ob_clean();
 		wp_die( ewwwio_json_encode( array( 'error' => esc_html__( 'No image ID was provided.', 'ewww-image-optimizer' ) ) ) );
 	}
-	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) ) {
+	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-tools' ) ) {
 		ewwwio_ob_clean();
 		wp_die( ewwwio_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
 	}
