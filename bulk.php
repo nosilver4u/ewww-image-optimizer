@@ -847,13 +847,13 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				$skipped_ids[] = $selected_id;
 				continue;
 			}
-			ewww_image_optimizer_debug_log();
 			$attachment_images['full'] = $file_path;
-			$retina_path               = ewww_image_optimizer_hidpi_optimize( $file_path, true );
+
+			$retina_path = ewww_image_optimizer_hidpi_optimize( $file_path, true );
 			if ( $retina_path ) {
 				$attachment_images['full-retina'] = $retina_path;
 			}
-			ewww_image_optimizer_debug_log();
+
 			// Resized versions available, see what we can find.
 			if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 				// Meta sizes don't contain a full path, so we calculate one.
@@ -937,6 +937,16 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					$processed[ $size ]['height'] = $data['height'];
 				} // End foreach().
 			} // End if().
+
+			// Original image detected.
+			if ( isset( $meta['original_image'] ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_originals' ) ) {
+				ewwwio_debug_message( 'checking for original_image' );
+				// Meta sizes don't contain a path, so we calculate one.
+				$resize_path = trailingslashit( dirname( $file_path ) ) . $meta['original_image'];
+				if ( $remote_file || is_file( $resize_path ) ) {
+					$attachment_images['original_image'] = $resize_path;
+				}
+			}
 
 			ewww_image_optimizer_debug_log();
 			// Queue sizes from a custom theme.

@@ -141,6 +141,7 @@ class EWWWIO_Tracking {
 		$data['background_opt']         = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' );
 		$data['scheduled_opt']          = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' );
 		$data['include_media_folders']  = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_media_paths' );
+		$data['include_originals']      = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_originals' );
 		$data['folders_to_opt']         = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_aux_paths' );
 		$data['folders_to_ignore']      = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_exclude_paths' );
 		$data['resize_media_width']     = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' );
