@@ -241,7 +241,7 @@ function ewww_image_optimizer_aux_images_clear_all() {
 	ewwwio_ob_clean();
 	global $wpdb;
 	if ( $wpdb->query( "TRUNCATE $wpdb->ewwwio_images" ) ) {
-		echo '1';
+		die( esc_html__( 'All records have been removed from the optimization history.', 'ewww-image-optimizer' ) );
 	}
 	ewwwio_memory( __FUNCTION__ );
 	die();
@@ -938,5 +938,6 @@ function ewww_image_optimizer_aux_images_cleanup( $auto = false ) {
 
 add_action( 'wp_ajax_bulk_aux_images_table', 'ewww_image_optimizer_aux_images_table' );
 add_action( 'wp_ajax_bulk_aux_images_table_count', 'ewww_image_optimizer_aux_images_table_count' );
+add_action( 'wp_ajax_bulk_aux_images_table_clear', 'ewww_image_optimizer_aux_images_clear_all' );
 add_action( 'wp_ajax_bulk_aux_images_remove', 'ewww_image_optimizer_aux_images_remove' );
 ?>

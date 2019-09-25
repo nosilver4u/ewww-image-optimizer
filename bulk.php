@@ -21,21 +21,21 @@ function ewww_image_optimizer_display_tools() {
 
 	// Find out if the auxiliary image table has anything in it.
 	$already_optimized = ewww_image_optimizer_aux_images_table_count();
+	if ( ! $already_optimized ) {
+		esc_html_e( 'Nothing has been optimized yet!', 'ewww-image-optimizer' );
+		echo "</div>\n";
+		return;
+	}
 
 	$output  = '';
-	$output .= '<div id="ewww-aux-forms">';
-	if ( empty( $already_optimized ) ) {
-		$display = ' style="display:none"';
-	} else {
-		$display = '';
-	}
+	$output .= "<div id='ewww-aux-forms'>\n";
 	/* translators: %d: number of images */
-	$output .= "<p id='ewww-table-info' class='ewww-bulk-info' $display>" . sprintf( esc_html__( 'The plugin keeps track of already optimized images to prevent re-optimization. There are %d images that have been optimized so far.', 'ewww-image-optimizer' ), $already_optimized ) . '</p>';
-	$output .= "<form id='ewww-show-table' class='ewww-bulk-form' method='post' action='' $display>";
-	$output .= '<button type="submit" class="button-secondary action">' . esc_html__( 'Show Optimized Images', 'ewww-image-optimizer' ) . '</button>';
-	$output .= '</form>';
-	$output .= '<div class="tablenav ewww-aux-table" style="display:none">' .
-		'<div class="tablenav-pages ewww-aux-table">' .
+	$output .= "<p id='ewww-table-info' class='ewww-tool-info'>" . sprintf( esc_html__( 'The plugin keeps track of already optimized images to prevent re-optimization. There are %d images that have been optimized so far.', 'ewww-image-optimizer' ), $already_optimized ) . "</p>\n";
+	$output .= "<form id='ewww-show-table' class='ewww-bulk-form' method='post' action=''>\n";
+	$output .= '<button type="submit" class="button-primary action">' . esc_html__( 'Show Optimized Images', 'ewww-image-optimizer' ) . "</button>\n";
+	$output .= "</form>\n";
+	$output .= "<div class='tablenav ewww-aux-table' style='display:none'>\n" .
+		'<div class="tablenav-pages ewww-aux-table">' . "\n" .
 		'<span class="displaying-num ewww-aux-table"></span>' . "\n" .
 		'<span id="paginator" class="pagination-links ewww-aux-table">' . "\n" .
 		'<a id="first-images" class="tablenav-pages-navspan button first-page" style="display:none">&laquo;</a>' . "\n" .
@@ -44,13 +44,17 @@ function ewww_image_optimizer_display_tools() {
 	$output .= '<span class="total-pages"></span>' . "\n" .
 		'<a id="next-images" class="tablenav-pages-navspan button next-page" style="display:none">&rsaquo;</a>' . "\n" .
 		'<a id="last-images" class="tablenav-pages-navspan button last-page" style="display:none">&raquo;</a>' .
-		'</span>' .
-		'</div>' .
-		'</div>' .
-		'<div id="ewww-bulk-table" class="ewww-aux-table"></div>' .
-		'<span id="ewww-pointer" style="display:none">0</span>' .
-		'</div>';
+		'</span>' . "\n" .
+		'</div>' . "\n" .
+		'</div>' . "\n" .
+		'<div id="ewww-bulk-table" class="ewww-aux-table"></div>' . "\n" .
+		'<span id="ewww-pointer" style="display:none">0</span>' . "\n" .
+		"</div>\n";
 	echo $output;
+	echo "<div>\n<p id='ewww-clear-table-info' class='ewww-tool-info'>" . esc_html__( 'The optimization history prevents the plugin from re-optimizing images, but you may erase the history to reduce database size or to force the plugin to re-optimize all images.', 'ewww-image-optimizer' ) . "</p>\n";
+	echo "<form id='ewww-clear-table' class='ewww-tool-form' method='post' action=''>\n" .
+		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Erase Optimization History', 'ewww-image-optimizer' ) . "' />\n" .
+		"</form>\n</div>\n";
 	echo "</div>\n";
 }
 
@@ -190,7 +194,9 @@ function ewww_image_optimizer_bulk_head_output() {
 		<form class="ewww-bulk-form" style="border: solid 1px #e5e5e5; background: #fff; padding: 10px;">
 			<p><label for="ewww-force" style="font-weight: bold"><?php esc_html_e( 'Force re-optimize', 'ewww-image-optimizer' ); ?></label><?php echo ewwwio_help_link( 'https://docs.ewww.io/article/65-force-re-optimization', '5bb640a7042863158cc711cd' ); ?>
 				&emsp;<input type="checkbox" id="ewww-force" name="ewww-force"<?php echo ( get_transient( 'ewww_image_optimizer_force_reopt' ) ) ? ' checked' : ''; ?>>
-				&nbsp;<?php esc_html_e( 'Previously optimized images will be skipped by default, check this box before scanning to override.', 'ewww-image-optimizer' ); ?></p>
+				&nbsp;<?php esc_html_e( 'Previously optimized images will be skipped by default, check this box before scanning to override.', 'ewww-image-optimizer' ); ?>
+				&nbsp;<a href="tools.php?page=ewww-image-optimizer-tools"><?php esc_html_e( 'View optimization history.', 'ewww-image-optimizer' ); ?></a>
+			</p>
 			<p><label for="ewww-delay" style="font-weight: bold"><?php esc_html_e( 'Choose how long to pause between images (in seconds, 0 = disabled)', 'ewww-image-optimizer' ); ?></label>&emsp;<input type="text" id="ewww-delay" name="ewww-delay" value="<?php echo $delay; ?>"></p>
 			<div id="ewww-delay-slider" style="margin: 0 0 15px 10px; max-width:500px"></div>
 		</form>

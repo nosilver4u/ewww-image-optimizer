@@ -4,9 +4,9 @@ jQuery(document).ready(function($) {
 	$('#ewww-show-table').submit(function() {
 		var ewww_pointer = 0;
 		var ewww_total_pages = Math.ceil(ewww_vars.image_count / 50);
-		$('.ewww-aux-table').show();
-		$('#ewww-show-table').hide();
 		$('#ewww-table-info').hide();
+		$('#ewww-show-table').hide();
+		$('.ewww-aux-table').show();
 		if (ewww_vars.image_count >= 50) {
 			$('.tablenav').show();
 			$('#next-images').show();
@@ -103,6 +103,19 @@ jQuery(document).ready(function($) {
 		$('#ewww-pointer').text(ewww_pointer);
 		$('#next-images').show();
 		$('.last-page').show();
+		return false;
+	});
+	$('#ewww-clear-table').submit(function() {
+	        var ewww_table_data = {
+	                action: 'bulk_aux_images_table_clear',
+			ewww_wpnonce: ewww_vars._wpnonce,
+	        };
+		$.post(ajaxurl, ewww_table_data, function(response) {
+			$('#ewww-table-info').hide();
+			$('#ewww-show-table').hide();
+			$('#ewww-clear-table').hide();
+			$('#ewww-clear-table-info').html(response);
+		});
 		return false;
 	});
 });

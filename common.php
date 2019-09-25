@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '493.2' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '493.3' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -8105,11 +8105,12 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			esc_html__( 'New images uploaded to the Media Library will be optimized automatically. If you have existing images you would like to optimize, you can use the %s tool.', 'ewww-image-optimizer' ),
 			$bulk_link
 		) . ewwwio_help_link( 'https://docs.ewww.io/article/4-getting-started', '5853713bc697912ffd6c0b98' ) . ' ' .
+		( ! class_exists( 'Amazon_S3_And_CloudFront' ) ?
 		sprintf(
 			/* translators: %s: S3 Image Optimizer (link) */
 			esc_html__( 'Images stored in an Amazon S3 bucket can be optimized using our %s.' ),
 			$s3_link
-		) .
+		) : '' ) .
 		"</p>\n";
 
 	$compress_score = 0;

@@ -177,6 +177,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * added: use native lazy load attributes to supplement lazy loader and make placeholders more efficient
 * added: GCS sub-folder rewriting with ExactDN for cleaner URLs
 * added: option to optimize original versions of scaled images for WP 5.3
+* added: ability to erase optimization history from Tools page
 * changed: define EWWWIO_WPLR_AUTO (any value) to enable auto-optimize on images from WP/LR Sync
 * changed: thumbnails could be converted even if original was not
 * changed: Show Optimized Images table moved to Tools menu
