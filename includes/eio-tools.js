@@ -110,12 +110,14 @@ jQuery(document).ready(function($) {
 	                action: 'bulk_aux_images_table_clear',
 			ewww_wpnonce: ewww_vars._wpnonce,
 	        };
-		$.post(ajaxurl, ewww_table_data, function(response) {
-			$('#ewww-table-info').hide();
-			$('#ewww-show-table').hide();
-			$('#ewww-clear-table').hide();
-			$('#ewww-clear-table-info').html(response);
-		});
+		if (confirm(ewww_vars.erase_warning)) {
+			$.post(ajaxurl, ewww_table_data, function(response) {
+				$('#ewww-table-info').hide();
+				$('#ewww-show-table').hide();
+				$('#ewww-clear-table').hide();
+				$('#ewww-clear-table-info').html(response);
+			});
+		}
 		return false;
 	});
 });

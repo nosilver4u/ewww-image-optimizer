@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '493.3' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '500.0' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -8417,6 +8417,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			'</div><!-- end .ewww-guage -->';
 		$status_output .= $savings_guage;
 		$status_output .= '<p style="text-align:center"><strong>' . esc_html__( 'Savings', 'ewww-image-optimizer' ) . '</strong></p>';
+		if ( 'network-multisite' !== $network ) {
+			$status_output .= '<p><a href="tools.php?page=ewww-image-optimizer-tools">' . esc_html__( 'View optimized images.', 'ewww-image-optimizer' ) . '</a></p>';
+		}
 		$status_output .= '</div><!-- end .ewww-status-detail --></li>';
 	}
 	ewwwio_debug_message( ewww_image_optimizer_aux_images_table_count() . ' images have been optimized' );

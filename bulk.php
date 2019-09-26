@@ -51,7 +51,10 @@ function ewww_image_optimizer_display_tools() {
 		'<span id="ewww-pointer" style="display:none">0</span>' . "\n" .
 		"</div>\n";
 	echo $output;
-	echo "<div>\n<p id='ewww-clear-table-info' class='ewww-tool-info'>" . esc_html__( 'The optimization history prevents the plugin from re-optimizing images, but you may erase the history to reduce database size or to force the plugin to re-optimize all images.', 'ewww-image-optimizer' ) . "</p>\n";
+	echo '<hr>';
+	echo "<div>\n<p id='ewww-clear-table-info' class='ewww-tool-info'>" .
+		esc_html__( 'The optimization history prevents the plugin from re-optimizing images, but you may erase the history to reduce database size or to force the plugin to re-optimize all images.', 'ewww-image-optimizer' );
+	echo "</p>\n";
 	echo "<form id='ewww-clear-table' class='ewww-tool-form' method='post' action=''>\n" .
 		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Erase Optimization History', 'ewww-image-optimizer' ) . "' />\n" .
 		"</form>\n</div>\n";
@@ -74,6 +77,10 @@ function ewww_image_optimizer_tool_script( $hook ) {
 	$image_count = ewww_image_optimizer_aux_images_table_count();
 	// Submit a couple variables for our javascript to work with.
 	$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
+	$erase_warning = esc_html__( 'Warning: this cannot be undone and will cause a bulk optimize to re-optimize all images.', 'ewww-image-optimizer' );
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+		$erase_warning = esc_html__( 'Warning: this cannot be undone. Re-optimizing images will use additional API credits.', 'ewww-image-optimizer' );
+	}
 	wp_localize_script(
 		'ewwwtoolscript',
 		'ewww_vars',
@@ -85,6 +92,7 @@ function ewww_image_optimizer_tool_script( $hook ) {
 			'remove_failed'     => esc_html__( 'Could not remove image from table.', 'ewww-image-optimizer' ),
 			'original_restored' => esc_html__( 'Original Restored', 'ewww-image-optimizer' ),
 			'restoring'         => '<p>' . esc_html__( 'Restoring', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
+			'erase_warning'     => $erase_warning,
 		)
 	);
 	// Load the stylesheet for the jquery progressbar.

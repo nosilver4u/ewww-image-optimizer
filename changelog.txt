@@ -1,3 +1,15 @@
+= 5.0.0 =
+* added: use native lazy load attributes to supplement lazy loader and make placeholders more efficient
+* added: GCS sub-folder rewriting with ExactDN for cleaner URLs
+* added: option to optimize original versions of scaled images for WP 5.3
+* added: ability to erase optimization history from Tools page
+* changed: define EWWWIO_WPLR_AUTO (any value) to enable auto-optimize on images from WP/LR Sync
+* changed: thumbnails could be converted even if original was not
+* changed: Show Optimized Images table moved to Tools menu
+* fixed: full-size image optimization not deferred if scaled by WP 5.3
+* fixed: data-width and data-height attributes missing when JS WebP active
+* security: rewrote escapeshellarg() wrapper to be more secure
+
 = 4.9.3 =
 * fixed: ExactDN incorrectly scales Elementor background images rather than cropping
 * fixed: ExactDN cannot work with Divi/Elementor background images due to use of external CSS files

@@ -149,7 +149,7 @@ function ewww_image_optimizer_aux_images_table() {
 				<td><?php echo $type; ?></td>
 				<td>
 					<?php echo "$savings <br>$size_string"; ?><br>
-					<a class="removeimage" onclick="ewwwRemoveImage( <?php echo $optimized_image['id']; ?> )"><?php esc_html_e( 'Remove from table', 'ewww-image-optimizer' ); ?></a>
+					<a class="removeimage" onclick="ewwwRemoveImage( <?php echo $optimized_image['id']; ?> )"><?php esc_html_e( 'Remove from history', 'ewww-image-optimizer' ); ?></a>
 				<?php	if ( $optimized_image['backup'] ) { ?>
 					<br><a class="restoreimage" onclick="ewwwRestoreImage( <?php echo $optimized_image['id']; ?> )"><?php esc_html_e( 'Restore original', 'ewww-image-optimizer' ); ?></a>
 				<?php	} ?>
@@ -177,7 +177,7 @@ function ewww_image_optimizer_aux_images_table() {
 				<td><?php echo $type; ?></td>
 				<td>
 					<?php echo "$savings <br>$size_string"; ?><br>
-					<a class="removeimage" onclick="ewwwRemoveImage( <?php echo $optimized_image['id']; ?> )"><?php esc_html_e( 'Remove from table', 'ewww-image-optimizer' ); ?></a>
+					<a class="removeimage" onclick="ewwwRemoveImage( <?php echo $optimized_image['id']; ?> )"><?php esc_html_e( 'Remove from history', 'ewww-image-optimizer' ); ?></a>
 				<?php	if ( $optimized_image['backup'] ) { ?>
 					<br><a class="restoreimage" onclick="ewwwRestoreImage( <?php echo $optimized_image['id']; ?> )"><?php esc_html_e( 'Restore original', 'ewww-image-optimizer' ); ?></a>
 				<?php	} ?>
