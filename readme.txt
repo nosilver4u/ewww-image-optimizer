@@ -173,6 +173,11 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 5.1.0 =
+* added: WebP-only mode for Bulk Optimizer
+* added: force lossy PNG to WebP conversion with EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP override (set to true)
+* changed: PNG to WebP conversion obeys lossy compression level (premium or premium plus)
+
 = 5.0.0 =
 * added: use native lazy load attributes to supplement lazy loader and make placeholders more efficient
 * added: GCS sub-folder rewriting with ExactDN for cleaner URLs

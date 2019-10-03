@@ -728,6 +728,9 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		if ( $extension && 'webp' === $extension ) {
 			return false;
 		}
+		if ( apply_filters( 'ewww_image_optimizer_skip_webp_rewrite', false, $image ) ) {
+			return false;
+		}
 		if ( $this->parsing_exactdn && false !== strpos( $image, $this->exactdn_domain ) ) {
 			ewwwio_debug_message( 'exactdn image' );
 			return true;

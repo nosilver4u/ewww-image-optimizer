@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '500.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '500.11' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -196,6 +196,8 @@ add_action( 'admin_action_ewww_image_optimizer_retest_background_optimization', 
 add_action( 'admin_action_ewww_image_optimizer_view_debug_log', 'ewww_image_optimizer_view_debug_log' );
 // Non-AJAX handler to delete the debug log, and reroute back to the settings page.
 add_action( 'admin_action_ewww_image_optimizer_delete_debug_log', 'ewww_image_optimizer_delete_debug_log' );
+// Check if WebP option was turned off.
+add_filter( 'pre_update_option_ewww_image_optimizer_webp', 'ewww_image_optimizer_webp_maybe_enabled', 10, 2 );
 // Makes sure to flush out any scheduled jobs on deactivation.
 register_deactivation_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimizer_network_deactivate' );
 // add_action( 'shutdown', 'ewwwio_memory_output' );.
@@ -851,6 +853,9 @@ function ewww_image_optimizer_admin_init() {
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_invalid_key' );
 		add_action( 'admin_notices', 'ewww_image_optimizer_notice_invalid_key' );
 	}
+	if ( get_option( 'ewww_image_optimizer_webp_enabled' ) ) {
+		add_action( 'admin_notices', 'ewww_image_optimizer_notice_webp_bulk' );
+	}
 	// Prevent ShortPixel AIO messiness.
 	remove_action( 'admin_notices', 'autoptimizeMain::notice_plug_imgopt' );
 	if ( class_exists( 'autoptimizeExtra' ) ) {
@@ -1501,18 +1506,46 @@ function ewww_image_optimizer_remove_obsolete_settings() {
 	delete_option( 'ewww_image_optimizer_exactdn_checkin' );
 	delete_option( 'ewww_image_optimizer_exactdn_suspended' );
 }
+/**
+ * Checks to see if the WebP conversion was just enabled.
+ *
+ * @param mixed $new_value The new value, in this case it will be boolean usually.
+ * @param mixed $old_value The old value, also a boolean generally.
+ * @return mixed The new value, unaltered.
+ */
+function ewww_image_optimizer_webp_maybe_enabled( $new_value, $old_value ) {
+	if ( ! empty( $new_value ) && (bool) $new_value !== (bool) $old_value ) {
+		update_option( 'ewww_image_optimizer_webp_enabled', true );
+	}
+	return $new_value;
+}
+
+/**
+ * Display a notice that the user should run the bulk optimizer after WebP activation.
+ */
+function ewww_image_optimizer_notice_webp_bulk() {
+	$already_done = ewww_image_optimizer_aux_images_table_count();
+	if ( $already_done > 50 ) {
+		$message = esc_html__( 'It looks like you already started optimizing your images, you will need to generate WebP images via the Bulk Optimizer.', 'ewww-image-optimizer' );
+		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-info'><p><a href='upload.php?page=ewww-image-optimizer-bulk&ewww_webp_only=1&ewww_force=1'>" . $message . '</a></p></div>';
+	} else {
+		$message = esc_html__( 'You may generate WebP images via the Bulk Optimizer.', 'ewww-image-optimizer' );
+		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-info'><p><a href='upload.php?page=ewww-image-optimizer-bulk'>" . $message . '</a></p></div>';
+	}
+	delete_option( 'ewww_image_optimizer_webp_enabled' );
+}
 
 /**
  * Display a success or failure message after PNGOUT installation.
  */
 function ewww_image_optimizer_pngout_installed() {
 	if ( 'success' === $_REQUEST['ewww_pngout'] ) {
-		echo "<div id='ewww-image-optimizer-pngout-success' class='updated fade'>\n" .
+		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-success fade'>\n" .
 			'<p>' . esc_html__( 'Pngout was successfully installed.', 'ewww-image-optimizer' ) . "</p>\n" .
 			"</div>\n";
 	}
 	if ( 'failed' === $_REQUEST['ewww_pngout'] ) {
-		echo "<div id='ewww-image-optimizer-pngout-failure' class='error'>\n" .
+		echo "<div id='ewww-image-optimizer-pngout-failure' class='notice notice-error'>\n" .
 			'<p>' . sprintf(
 				/* translators: 1: An error message 2: The folder where pngout should be installed */
 				esc_html__( 'Pngout was not installed: %1$s. Make sure this folder is writable: %2$s', 'ewww-image-optimizer' ),
@@ -3592,6 +3625,9 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	} else {
 		$webp = 0;
 	}
+	if ( ! $lossy && $webp && defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) && EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) {
+		$lossy = 1;
+	}
 	if ( 30 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 		$png_compress = 1;
 	} else {
@@ -5183,6 +5219,9 @@ function ewww_image_optimizer_resize_upload( $file ) {
 	// Parts adapted from Imsanity (THANKS Jason!).
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( ! $file ) {
+		return false;
+	}
+	if ( ! empty( $_REQUEST['ewww_webp_only'] ) ) {
 		return false;
 	}
 	if ( function_exists( 'wp_raise_memory_limit' ) ) {
@@ -7785,6 +7824,38 @@ function ewww_image_optimizer_savings() {
 }
 
 /**
+ * Manually verify if WebP rewriting is working.
+ *
+ * Requests the test.png and checks to see if it is actually of type image/webp.
+ *
+ * @return bool True if the test image is WebP, false otherwise.
+ */
+function ewww_image_optimizer_test_webp_mime_verify() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$test_url = plugins_url( '/images/test.png', __FILE__ ) . '?m=' . time();
+	add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
+	$test_result = wp_remote_get( $test_url, array( 'headers' => 'Accept: image/webp' ) );
+	if ( is_wp_error( $test_result ) ) {
+		$error_message = $test_result->get_error_message();
+		ewwwio_debug_message( "webp verification request failed: $error_message" );
+		return false;
+	} elseif ( ! empty( $test_result['body'] ) && strlen( $test_result['body'] ) > 300 ) {
+		if (
+			200 === (int) $test_result['response']['code'] &&
+			'52494646' === bin2hex( substr( $test_result['body'], 0, 4 ) )
+		) {
+			ewwwio_debug_message( 'webp (real-world) verification succeeded' );
+			return true;
+		}
+		ewwwio_debug_message( 'webp mime check failed: ' . bin2hex( substr( $test_result['body'], 0, 3 ) ) );
+	}
+	if ( ! empty( $test_result['response']['code'] ) && 200 !== (int) $test_result['response']['code'] ) {
+		ewwwio_debug_message( 'received response code: ' . $test_result['response']['code'] );
+	}
+	return false;
+}
+
+/**
  * Figure out where the .htaccess file should live.
  *
  * @return string The path to the .htaccess file.
@@ -8915,20 +8986,32 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		ewww_image_optimizer_webp_rewrite_verify();
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_ce_webp_enabled() && ! ewww_image_optimizer_easy_active() ) {
+		if ( defined( 'PHP_SAPI' ) && false === strpos( PHP_SAPI, 'apache' ) && false === strpos( PHP_SAPI, 'litespeed' ) ) {
+			ewwwio_debug_message( 'PHP module: ' . PHP_SAPI );
+			$false_positive_headers = esc_html( 'This may be a false positive. If so, the warning should go away once you implement the rewrite rules.' );
+		}
+		$header_error = '';
 		if ( ! apache_mod_loaded( 'mod_rewrite' ) ) {
 			ewwwio_debug_message( 'webp missing mod_rewrite' );
 			/* translators: %s: mod_rewrite or mod_headers */
-			$output[] = '<p><strong>' . sprintf( esc_html( 'Your site appears to be missing %s, please contact your webhost or system administrator to enable this Apache module.' ), 'mod_rewrite' ) . "</strong></p>\n";
+			$header_error = '<p><strong>' . sprintf( esc_html( 'Your site appears to be missing %s, please contact your webhost or system administrator to enable this Apache module.' ), 'mod_rewrite' ) . "</strong><br>$false_positive_headers</p>\n";
 		}
 		if ( ! apache_mod_loaded( 'mod_headers' ) ) {
 			/* translators: %s: mod_rewrite or mod_headers */
-			$output[] = '<p><strong>' . sprintf( esc_html( 'Your site appears to be missing %s, please contact your webhost or system administrator to enable this Apache module.' ), 'mod_headers' ) . "</strong></p>\n";
+			$header_error = '<p><strong>' . sprintf( esc_html( 'Your site appears to be missing %s, please contact your webhost or system administrator to enable this Apache module.' ), 'mod_headers' ) . "</strong><br>$false_positive_headers</p>\n";
 			ewwwio_debug_message( 'webp missing mod_headers' );
 		}
+
+		$webp_verified = ewww_image_optimizer_test_webp_mime_verify();
+		if ( ! $webp_verified ) {
+			$output[] = $header_error;
+		}
+
 		$output[] = "<form id='ewww-webp-rewrite'>\n";
 		$output[] = '<p>' . esc_html__( 'There are many ways to serve WebP images to visitors with supported browsers. You may choose any you wish, but it is recommended to serve them with an .htaccess file using mod_rewrite and mod_headers. The plugin can insert the rules for you if the file is writable, or you can edit .htaccess yourself.', 'ewww-image-optimizer' ) . "</p>\n";
-		if ( ! ewww_image_optimizer_webp_rewrite_verify() ) {
-			$output[] = "<img id='webp-image' src='" . plugins_url( '/images/test.png', __FILE__ ) . "' style='float: right; padding: 0 0 10px 10px;'>\n" .
+
+		if ( $webp_verified || ! ewww_image_optimizer_webp_rewrite_verify() ) {
+			$output[] = "<img id='webp-image' src='" . plugins_url( '/images/test.png', __FILE__ ) . '?m=' . time() . "' style='float: right; padding: 0 0 10px 10px;'>\n" .
 				"<p id='ewww-webp-rewrite-status'><b>" . esc_html__( 'Rules verified successfully', 'ewww-image-optimizer' ) . "</b></p>\n" .
 				"<button type='button' id='ewww-webp-remove' class='button-secondary action'>" . esc_html__( 'Remove Rewrite Rules', 'ewww-image-optimizer' ) . "</button>\n";
 			ewwwio_debug_message( 'webp .htaccess rewriting enabled' );
@@ -8946,7 +9029,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				"Header append Vary Accept env=REDIRECT_accept\n" .
 				"&lt;/IfModule&gt;\n" .
 				"AddType image/webp .webp</pre>\n" .
-				"<img id='webp-image' src='" . plugins_url( '/images/test.png', __FILE__ ) . "' style='float: right; padding-left: 10px;'>\n" .
+				"<img id='webp-image' src='" . plugins_url( '/images/test.png', __FILE__ ) . '?m=' . time() . "' style='float: right; padding-left: 10px;'>\n" .
 				"<p id='ewww-webp-rewrite-status'>" . esc_html__( 'The image to the right will display a WebP image with WEBP in white text, if your site is serving WebP images and your browser supports WebP.', 'ewww-image-optimizer' ) . "</p>\n" .
 				"<button type='button' id='ewww-webp-insert' class='button-secondary action'>" . esc_html__( 'Insert Rewrite Rules', 'ewww-image-optimizer' ) . "</button>\n";
 			ewwwio_debug_message( 'webp .htaccess rules not detected' );

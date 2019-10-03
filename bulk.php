@@ -201,13 +201,29 @@ function ewww_image_optimizer_bulk_head_output() {
 		</div>
 		<form class="ewww-bulk-form" style="border: solid 1px #e5e5e5; background: #fff; padding: 10px;">
 			<p><label for="ewww-force" style="font-weight: bold"><?php esc_html_e( 'Force re-optimize', 'ewww-image-optimizer' ); ?></label><?php echo ewwwio_help_link( 'https://docs.ewww.io/article/65-force-re-optimization', '5bb640a7042863158cc711cd' ); ?>
-				&emsp;<input type="checkbox" id="ewww-force" name="ewww-force"<?php echo ( get_transient( 'ewww_image_optimizer_force_reopt' ) ) ? ' checked' : ''; ?>>
+				&emsp;<input type="checkbox" id="ewww-force" name="ewww-force"<?php echo ( get_transient( 'ewww_image_optimizer_force_reopt' ) || ! empty( $_REQUEST['ewww_force'] ) ) ? ' checked' : ''; ?>>
 				&nbsp;<?php esc_html_e( 'Previously optimized images will be skipped by default, check this box before scanning to override.', 'ewww-image-optimizer' ); ?>
 				&nbsp;<a href="tools.php?page=ewww-image-optimizer-tools"><?php esc_html_e( 'View optimization history.', 'ewww-image-optimizer' ); ?></a>
 			</p>
+			<?php ewww_image_optimizer_bulk_webp_only(); ?>
 			<p><label for="ewww-delay" style="font-weight: bold"><?php esc_html_e( 'Choose how long to pause between images (in seconds, 0 = disabled)', 'ewww-image-optimizer' ); ?></label>&emsp;<input type="text" id="ewww-delay" name="ewww-delay" value="<?php echo $delay; ?>"></p>
 			<div id="ewww-delay-slider" style="margin: 0 0 15px 10px; max-width:500px"></div>
 		</form>
+	<?php
+}
+
+/**
+ * Output the control for WebP Only on the Bulk page.
+ */
+function ewww_image_optimizer_bulk_webp_only() {
+	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
+		return;
+	}
+	?>
+			<p><label for="ewww-webp-only" style="font-weight: bold"><?php esc_html_e( 'WebP Only', 'ewww-image-optimizer' ); ?></label>
+				&emsp;<input type="checkbox" id="ewww-webp-only" name="ewww-webp-only"<?php echo ( ! empty( $_REQUEST['ewww_webp_only'] ) ) ? ' checked' : ''; ?>>
+				&nbsp;<?php esc_html_e( 'Skip compression and only attempt WebP conversion.', 'ewww-image-optimizer' ); ?>
+			</p>
 	<?php
 }
 
