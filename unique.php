@@ -2452,6 +2452,9 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, $type, $tools['CWEBP'], $orig_size !== $new_size );
 			break;
 		case 'image/gif':
+			if ( ! empty( $_REQUEST['ewww_webp_only'] ) ) {
+				break;
+			}
 			// If gif2png is turned on, and the image is in the WordPress media library.
 			if (
 				1 === (int) $gallery_type &&
@@ -2613,6 +2616,9 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			} // End if().
 			break;
 		case 'application/pdf':
+			if ( ! empty( $_REQUEST['ewww_webp_only'] ) ) {
+				break;
+			}
 			if ( empty( $_REQUEST['ewww_force'] ) ) {
 				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
 				if ( $results_msg ) {
