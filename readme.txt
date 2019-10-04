@@ -177,6 +177,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * added: WebP-only mode for Bulk Optimizer
 * added: force lossy PNG to WebP conversion with EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP override (set to true)
 * changed: PNG to WebP conversion obeys lossy compression level (premium or premium plus)
+* fixed: WebP warning regarding missing modules displayed even if green WebP test image is working
 
 = 5.0.0 =
 * added: use native lazy load attributes to supplement lazy loader and make placeholders more efficient
