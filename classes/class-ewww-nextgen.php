@@ -663,7 +663,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			<p class="ewww-bulk-info"><?php echo $selected_images_text; ?><br />
 			<?php esc_html_e( 'Previously optimized images will be skipped by default.', 'ewww-image-optimizer' ); ?></p>
 				<form id="ewww-bulk-start" class="ewww-bulk-form" method="post" action="">
-						<input type="submit" class="button-secondary action" value="<?php echo $button_text; ?>" />
+						<input type="submit" class="button-primary action" value="<?php echo $button_text; ?>" />
 				</form>
 			<?php
 			// If there is a previous bulk operation to resume, give the user the option to reset the resume flag.
@@ -989,21 +989,25 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		function ewww_ngg_bulk_action_handler() {
 			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			// If the requested page is blank, or not a bulk_optimize, do nothing.
-			if ( empty( $_REQUEST['page'] ) || empty( $_REQUEST['bulkaction'] ) || 'bulk_optimize' !== $_REQUEST['bulkaction'] ) {
+			if ( empty( $_REQUEST['nggpage'] ) || empty( $_REQUEST['bulkaction'] ) || 'bulk_optimize' !== $_REQUEST['bulkaction'] ) {
 				return;
 			}
 			// If there is no media to optimize, do nothing.
 			if ( empty( $_REQUEST['doaction'] ) || ! is_array( $_REQUEST['doaction'] ) ) {
 				return;
 			}
-			// If the requested page does not matche, do nothing.
-			if ( 'manage-galleries' !== $_REQUEST['page'] && 'manage-images' !== $_REQUEST['page'] ) {
+			// If the requested page does not match, do nothing.
+			if ( 'manage-galleries' !== $_REQUEST['nggpage'] && 'manage-images' !== $_REQUEST['nggpage'] ) {
 				return;
 			}
 
 			$type = 'images';
-			if ( 'manage-galleries' === $_REQUEST['page'] ) {
+			if ( 'manage-galleries' === $_REQUEST['nggpage'] ) {
 				$type = 'galleries';
+			}
+			if ( ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'ngg_bulkgallery' ) ) {
+				ewwwio_ob_clean();
+				wp_die( esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) );
 			}
 			wp_redirect(
 				add_query_arg(

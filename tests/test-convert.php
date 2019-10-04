@@ -328,13 +328,13 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 	 * Cleans up the temp images.
 	 */
 	public static function tearDownAfterClass() {
-		if ( is_file( self::$test_jpg ) ) {
+		if ( ewwwio_is_file( self::$test_jpg ) ) {
 			unlink( self::$test_jpg );
 		}
-		if ( is_file( self::$test_png ) ) {
+		if ( ewwwio_is_file( self::$test_png ) ) {
 			unlink( self::$test_png );
 		}
-		if ( is_file( self::$test_gif ) ) {
+		if ( ewwwio_is_file( self::$test_gif ) ) {
 			unlink( self::$test_gif );
 		}
 		ewww_image_optimizer_remove_binaries();

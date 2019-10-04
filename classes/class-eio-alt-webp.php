@@ -753,7 +753,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			return false;
 		}
 		$path_parts = explode( '?', $imagepath );
-		if ( is_file( $path_parts[0] . '.webp' ) || is_file( $imagepath . '.webp' ) ) {
+		if ( ewwwio_is_file( $path_parts[0] . '.webp' ) || ewwwio_is_file( $imagepath . '.webp' ) ) {
 			ewwwio_debug_message( 'local .webp image found' );
 			return true;
 		}

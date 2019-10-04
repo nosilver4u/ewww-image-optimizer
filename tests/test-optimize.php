@@ -140,7 +140,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$this->assertEquals( 1348837, filesize( $results[0] ) );
 		unlink( $results[0] );
 		$this->assertEquals( 319938, filesize( $results[0] . '.webp' ) );
-		if ( is_file( $results[0] . '.webp' ) ) {
+		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
 			unlink( $results[0] . '.webp' );
 		}
 	}
@@ -167,7 +167,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		unlink( $results[0] );
 		// size of webp with meta.
 		$this->assertEquals( 339520, filesize( $results[0] . '.webp' ) );
-		if ( is_file( $results[0] . '.webp' ) ) {
+		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
 			unlink( $results[0] . '.webp' );
 		}
 	}
@@ -192,7 +192,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$this->assertEquals( 1335586, filesize( $results[0] ) );
 		unlink( $results[0] );
 		$this->assertEquals( 284142, filesize( $results[0] . '.webp' ) );
-		if ( is_file( $results[0] . '.webp' ) ) {
+		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
 			unlink( $results[0] . '.webp' );
 		}
 	}
@@ -221,7 +221,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		unlink( $results[0] );
 		// size of webp with meta.
 		$this->assertEquals( 303728, filesize( $results[0] . '.webp' ) );
-		if ( is_file( $results[0] . '.webp' ) ) {
+		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
 			unlink( $results[0] . '.webp' );
 		}
 	}
@@ -280,7 +280,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$this->assertEquals( 188043, filesize( $results[0] ) );
 		unlink( $results[0] );
 		$this->assertEquals( 137366, filesize( $results[0] . '.webp' ) );
-		if ( is_file( $results[0] . '.webp' ) ) {
+		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
 			unlink( $results[0] . '.webp' );
 		}
 	}
@@ -464,16 +464,16 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Cleans up the temp images.
 	 */
 	public static function tearDownAfterClass() {
-		if ( is_file( self::$test_jpg ) ) {
+		if ( ewwwio_is_file( self::$test_jpg ) ) {
 			unlink( self::$test_jpg );
 		}
-		if ( is_file( self::$test_png ) ) {
+		if ( ewwwio_is_file( self::$test_png ) ) {
 			unlink( self::$test_png );
 		}
-		if ( is_file( self::$test_gif ) ) {
+		if ( ewwwio_is_file( self::$test_gif ) ) {
 			unlink( self::$test_gif );
 		}
-		if ( is_file( self::$test_pdf ) ) {
+		if ( ewwwio_is_file( self::$test_pdf ) ) {
 			unlink( self::$test_pdf );
 		}
 		ewww_image_optimizer_remove_binaries();

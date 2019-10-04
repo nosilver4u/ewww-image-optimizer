@@ -27,7 +27,7 @@ class EWWWIO_Utility_Tests extends WP_UnitTestCase {
 		$binaries = scandir( EWWW_IMAGE_OPTIMIZER_BINARY_PATH );
 		foreach ( $binaries as $binary ) {
 			$binary = trailingslashit( EWWW_IMAGE_OPTIMIZER_BINARY_PATH ) . $binary;
-			if ( ! is_file( $binary ) ) {
+			if ( ! ewwwio_is_file( $binary ) ) {
 				continue;
 			}
 			$this->assertTrue( ewww_image_optimizer_md5check( $binary ) );
@@ -44,7 +44,7 @@ class EWWWIO_Utility_Tests extends WP_UnitTestCase {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_debug', true );
 		foreach ( $binaries as $binary ) {
 			$binary = trailingslashit( EWWW_IMAGE_OPTIMIZER_BINARY_PATH ) . $binary;
-			if ( ! is_file( $binary ) ) {
+			if ( ! ewwwio_is_file( $binary ) ) {
 				continue;
 			}
 			$this->assertTrue( (bool) ewww_image_optimizer_mimetype( $binary, 'b' ), $binary . ":\n" . str_replace( '<br>', "\n", $eio_debug ) );

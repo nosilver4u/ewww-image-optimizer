@@ -83,7 +83,7 @@ class EWWWIO_Install_Cloud {
 			wp_die( esc_html__( 'The plugins folder is not writable, you may install the EWWW Image Optimizer Cloud manually.', 'ewww-image-optimizer' ) );
 			return;
 		}
-		if ( ! is_file( $this->plugin_file ) ) {
+		if ( ! ewwwio_is_file( $this->plugin_file ) ) {
 			if ( is_dir( dirname( $this->plugin_file ) ) ) {
 				wp_die( esc_html__( 'A partial installation already exists. Please remove it and try again.', 'ewww-image-optimizer' ) );
 			}
@@ -98,7 +98,7 @@ class EWWWIO_Install_Cloud {
 			}
 		}
 
-		if ( is_file( $this->plugin_file ) ) {
+		if ( ewwwio_is_file( $this->plugin_file ) ) {
 			$core_active = $this->is_plugin_active( $this->core_plugin_file_rel );
 			// If not plugin active.
 			if ( ! $this->is_plugin_active( $this->plugin_file_rel ) ) {

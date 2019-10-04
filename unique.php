@@ -183,9 +183,7 @@ function ewww_image_optimizer_notice_hosting_requires_api() {
  */
 function ewww_image_optimizer_notice_os() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	echo "<div id='ewww-image-optimizer-warning-os' class='notice notice-error'><p><strong>" . esc_html__( 'EWWW Image Optimizer is supported on Linux, FreeBSD, Mac OSX, and Windows', 'ewww-image-optimizer' ) . '.</strong> ' .
-		/* translators: %s: An operating system. */
-		sprintf( esc_html__( 'Unfortunately, the EWWW Image Optimizer plugin does not work with %s', 'ewww-image-optimizer' ), htmlentities( PHP_OS ) ) . '.</p></div>';
+	echo "<div id='ewww-image-optimizer-warning-os' class='notice notice-error'><p><strong>" . esc_html__( 'The free mode of EWWW Image Optimizer is only supported on Linux, FreeBSD, Mac OSX, and Windows.', 'ewww-image-optimizer' ) . '</strong></p></div>';
 }
 
 /**
@@ -284,7 +282,7 @@ function ewww_image_optimizer_check_permissions( $file, $minimum ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$perms = fileperms( $file );
 	ewwwio_debug_message( "permissions for $file: " . substr( sprintf( '%o', $perms ), -4 ) );
-	if ( ! is_file( $file ) ) {
+	if ( ! ewwwio_is_file( $file ) ) {
 		ewwwio_debug_message( 'permissions check failed, file not found' );
 		return false;
 	}
@@ -1134,6 +1132,9 @@ function ewww_image_optimizer_md5check( $path ) {
 function ewww_image_optimizer_mimetype( $path, $case ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	ewwwio_debug_message( "testing mimetype: $path" );
+	if ( false !== strpos( $path, '..' ) ) {
+		return false;
+	}
 	$type = false;
 	// For S3 images/files, don't attempt to read the file, just use the quick (filename) mime check.
 	if ( 'i' === $case && ewww_image_optimizer_stream_wrapped( $path ) ) {
@@ -1749,8 +1750,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) ) {
 		ewww_image_optimizer_cloud_init();
 	}
-	$bypass_optimization = apply_filters( 'ewww_image_optimizer_bypass', false, $file );
-	if ( true === $bypass_optimization ) {
+	if ( apply_filters( 'ewww_image_optimizer_bypass', false, $file ) ) {
 		ewwwio_debug_message( "optimization bypassed: $file" );
 		// Tell the user optimization was skipped.
 		return array( false, __( 'Optimization skipped', 'ewww-image-optimizer' ), $converted, $file );
@@ -1772,14 +1772,20 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	// Initialize the original filename.
 	$original = $file;
 	$result   = '';
-	if ( false === is_file( $file ) ) {
+	if ( false !== strpos( $file, '..' ) ) {
+		$msg = __( 'Path traversal in filename not allowed.', 'ewww-image-optimizer' );
+		ewwwio_debug_message( "file is using .. potential path traversal blocked: $file" );
+		ewww_image_optimizer_s3_uploads_image_cleanup( $file );
+		return array( false, $msg, $converted, $original );
+	}
+	if ( ! ewwwio_is_file( $file ) ) {
 		/* translators: %s: Image filename */
 		$msg = sprintf( __( 'Could not find %s', 'ewww-image-optimizer' ), $file );
 		ewwwio_debug_message( "file doesn't appear to exist: $file" );
 		ewww_image_optimizer_s3_uploads_image_cleanup( $file );
 		return array( false, $msg, $converted, $original );
 	}
-	if ( false === is_writable( $file ) ) {
+	if ( ! is_writable( $file ) ) {
 		/* translators: %s: Image filename */
 		$msg = sprintf( __( '%s is not writable', 'ewww-image-optimizer' ), $file );
 		ewwwio_debug_message( "couldn't write to the file $file" );
@@ -2009,7 +2015,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					$result = "$orig_size vs. $new_size";
 					// If the optimization didn't produce a smaller JPG.
 				} else {
-					if ( is_file( $progfile ) ) {
+					if ( ewwwio_is_file( $progfile ) ) {
 						// Delete the optimized file.
 						unlink( $progfile );
 					}
@@ -2062,10 +2068,10 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					ewwwio_debug_message( 'attempting lossy reduction' );
 					exec( "$nice " . $tools['PNGQUANT'] . ' ' . ewww_image_optimizer_escapeshellarg( $pngfile ) );
 					$quantfile = preg_replace( '/\.\w+$/', '-fs8.png', $pngfile );
-					if ( is_file( $quantfile ) && filesize( $pngfile ) > filesize( $quantfile ) ) {
+					if ( ewwwio_is_file( $quantfile ) && filesize( $pngfile ) > filesize( $quantfile ) ) {
 						ewwwio_debug_message( 'lossy reduction is better: original - ' . filesize( $pngfile ) . ' vs. lossy - ' . filesize( $quantfile ) );
 						rename( $quantfile, $pngfile );
-					} elseif ( is_file( $quantfile ) ) {
+					} elseif ( ewwwio_is_file( $quantfile ) ) {
 						ewwwio_debug_message( 'lossy reduction is worse: original - ' . filesize( $pngfile ) . ' vs. lossy - ' . filesize( $quantfile ) );
 						unlink( $quantfile );
 					} else {
@@ -2121,7 +2127,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					ewwwio_debug_message( 'converted PNG is no good' );
 					// Otherwise delete the PNG.
 					$converted = false;
-					if ( is_file( $pngfile ) ) {
+					if ( ewwwio_is_file( $pngfile ) ) {
 						unlink( $pngfile );
 					}
 				}
@@ -2258,10 +2264,10 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					ewwwio_debug_message( 'attempting lossy reduction' );
 					exec( "$nice " . $tools['PNGQUANT'] . ' ' . ewww_image_optimizer_escapeshellarg( $file ) );
 					$quantfile = preg_replace( '/\.\w+$/', '-fs8.png', $file );
-					if ( is_file( $quantfile ) && filesize( $file ) > filesize( $quantfile ) && ewww_image_optimizer_mimetype( $quantfile, 'i' ) === $type ) {
+					if ( ewwwio_is_file( $quantfile ) && filesize( $file ) > filesize( $quantfile ) && ewww_image_optimizer_mimetype( $quantfile, 'i' ) === $type ) {
 						ewwwio_debug_message( 'lossy reduction is better: original - ' . filesize( $file ) . ' vs. lossy - ' . filesize( $quantfile ) );
 						rename( $quantfile, $file );
-					} elseif ( is_file( $quantfile ) ) {
+					} elseif ( ewwwio_is_file( $quantfile ) ) {
 						ewwwio_debug_message( 'lossy reduction is worse: original - ' . filesize( $file ) . ' vs. lossy - ' . filesize( $quantfile ) );
 						unlink( $quantfile );
 					} else {
@@ -2299,7 +2305,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					$result = "$orig_size vs. $new_size";
 					// If the optimization didn't produce a smaller PNG.
 				} else {
-					if ( is_file( $tempfile ) ) {
+					if ( ewwwio_is_file( $tempfile ) ) {
 						// Delete the optimized file.
 						unlink( $tempfile );
 					}
@@ -2421,7 +2427,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 						$jpg_size = $opt_jpg_size;
 						ewwwio_debug_message( 'optimized JPG was smaller than un-optimized version' );
 						// If the optimization didn't produce a smaller JPG.
-					} elseif ( is_file( $progfile ) ) {
+					} elseif ( ewwwio_is_file( $progfile ) ) {
 						unlink( $progfile );
 					}
 				}
@@ -2443,7 +2449,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					$converted = $filenum;
 				} else {
 					$converted = false;
-					if ( is_file( $jpgfile ) ) {
+					if ( ewwwio_is_file( $jpgfile ) ) {
 						// Otherwise delete the new JPG.
 						unlink( $jpgfile );
 					}
@@ -2544,7 +2550,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					$result = "$orig_size vs. $new_size";
 					// If the optimization didn't produce a smaller GIF.
 				} else {
-					if ( is_file( $tempfile ) ) {
+					if ( ewwwio_is_file( $tempfile ) ) {
 						// Delete the optimized file.
 						unlink( $tempfile );
 					}
@@ -2609,7 +2615,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					$converted = $filenum;
 				} else {
 					$converted = false;
-					if ( is_file( $pngfile ) ) {
+					if ( ewwwio_is_file( $pngfile ) ) {
 						unlink( $pngfile );
 					}
 				}
@@ -2685,15 +2691,17 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
  */
 function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $recreate = false ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	// Change the file extension.
-	$webpfile    = $file . '.webp';
-	$bypass_webp = apply_filters( 'ewww_image_optimizer_bypass_webp', false, $file );
-	if ( true === $bypass_webp ) {
+	$webpfile = $file . '.webp';
+	if ( apply_filters( 'ewww_image_optimizer_bypass_webp', false, $file ) ) {
 		ewwwio_debug_message( "webp generation bypassed: $file" );
 		return '';
 	} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
 		return '';
-	} elseif ( is_file( $webpfile ) && empty( $_REQUEST['ewww_force'] ) && ! $recreate ) {
+	} elseif ( ! ewwwio_is_file( $file ) ) {
+		return esc_html__( 'Could not find file.', 'ewww-image-optimizer' );
+	} elseif ( ! is_writable( $file ) ) {
+		return esc_html__( 'File is not writable.', 'ewww-image-optimizer' );
+	} elseif ( ewwwio_is_file( $webpfile ) && empty( $_REQUEST['ewww_force'] ) && ! $recreate ) {
 		ewwwio_debug_message( 'webp file exists, not forcing or recreating' );
 		return esc_html__( 'WebP image already exists.', 'ewww-image-optimizer' );
 	}
@@ -2735,11 +2743,11 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 	}
 	$webp_size = ewww_image_optimizer_filesize( $webpfile );
 	ewwwio_debug_message( "webp is $webp_size vs. $type is $orig_size" );
-	if ( is_file( $webpfile ) && $orig_size < $webp_size && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
+	if ( ewwwio_is_file( $webpfile ) && $orig_size < $webp_size && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
 		ewwwio_debug_message( 'webp file was too big, deleting' );
 		unlink( $webpfile );
 		return esc_html__( 'WebP image was larger than original.', 'ewww-image-optimizer' );
-	} elseif ( is_file( $webpfile ) ) {
+	} elseif ( ewwwio_is_file( $webpfile ) ) {
 		// Set correct file permissions.
 		$stat  = stat( dirname( $webpfile ) );
 		$perms = $stat['mode'] & 0000666; // Same permissions as parent folder, strip off the executable bits.
@@ -2812,7 +2820,7 @@ function ewww_image_optimizer_install_pngout() {
 						true
 					);
 
-					if ( is_file( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-' . $os_string . '-static/' . $arch_type . '/pngout-static' ) ) {
+					if ( ewwwio_is_file( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-' . $os_string . '-static/' . $arch_type . '/pngout-static' ) ) {
 						if ( ! rename( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-' . $os_string . '-static/' . $arch_type . '/pngout-static', $tool_path . 'pngout-static' ) ) {
 							if ( empty( $pngout_error ) ) {
 								$pngout_error = __( 'could not move pngout', 'ewww-image-optimizer' );
@@ -2852,7 +2860,7 @@ function ewww_image_optimizer_install_pngout() {
 						'pngout-' . $latest . '-darwin/pngout',
 						true
 					);
-					if ( is_file( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-darwin/pngout' ) ) {
+					if ( ewwwio_is_file( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-darwin/pngout' ) ) {
 						if ( ! rename( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-darwin/pngout', $tool_path . 'pngout-static' ) ) {
 							if ( empty( $pngout_error ) ) {
 								$pngout_error = __( 'could not move pngout', 'ewww-image-optimizer' );

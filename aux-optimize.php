@@ -31,7 +31,7 @@ function ewww_image_optimizer_aux_images() {
 		global $eio_debug;
 		ewww_image_optimizer_options( 'debug-silent' );
 		$output .= '<p style="clear:both"><b>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</b> <button id="ewww-copy-debug" class="button button-secondary" type="button">' . esc_html__( 'Copy', 'ewww-image-optimizer' ) . '</button>';
-		if ( is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
+		if ( ewwwio_is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
 			$debug_log_url = plugins_url( '/debug.log', __FILE__ );
 			$output       .= "&emsp;<a href='$debug_log_url'>" . esc_html( 'View Debug Log', 'ewww-image-optimizer' ) . "</a> - <a href='admin.php?action=ewww_image_optimizer_delete_debug_log'>" . esc_html( 'Remove Debug Log', 'ewww-image-optimizer' ) . '</a>';
 		}
@@ -157,7 +157,7 @@ function ewww_image_optimizer_aux_images_table() {
 			</tr>
 			<?php
 			$alternate = ! $alternate;
-		} elseif ( is_file( $file ) ) {
+		} elseif ( ewwwio_is_file( $file ) ) {
 			// Retrieve the mimetype of the attachment.
 			$type = ewww_image_optimizer_quick_mimetype( $file, 'i' );
 			// Get a human readable filesize.
@@ -815,7 +815,10 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 					if ( ewww_image_optimizer_iterable( $backup_sizes ) ) {
 						foreach ( $backup_sizes as $backup_size => $meta ) {
 							if ( preg_match( '/resized-/', $backup_size ) ) {
-								$path       = $meta['path'];
+								$path = $meta['path'];
+								if ( ! ewwwio_is_file( $path ) ) {
+									continue;
+								}
 								$image_size = ewww_image_optimizer_filesize( $path );
 								if ( ! $image_size ) {
 									continue;

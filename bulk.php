@@ -930,7 +930,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			}
 			ewww_image_optimizer_debug_log();
 			if (
-				( ewww_image_optimizer_stream_wrapped( $file_path ) || ! is_file( $file_path ) ) &&
+				( ewww_image_optimizer_stream_wrapped( $file_path ) || ! ewwwio_is_file( $file_path ) ) &&
 				(
 					class_exists( 'WindowsAzureStorageUtil' ) ||
 					class_exists( 'Amazon_S3_And_CloudFront' ) ||
@@ -1019,9 +1019,9 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						}
 					}
 					$resize_path = $base_dir . $data['file'];
-					if ( ( $remote_file || is_file( $resize_path ) ) && 'application/pdf' === $mime && 'full' === $size ) {
+					if ( ( $remote_file || ewwwio_is_file( $resize_path ) ) && 'application/pdf' === $mime && 'full' === $size ) {
 						$attachment_images[ 'pdf-' . $size ] = $resize_path;
-					} elseif ( $remote_file || is_file( $resize_path ) ) {
+					} elseif ( $remote_file || ewwwio_is_file( $resize_path ) ) {
 						$attachment_images[ $size ] = $resize_path;
 					}
 					// Optimize retina image, if it exists.
@@ -1030,7 +1030,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					} else {
 						$retina_path = false;
 					}
-					if ( $retina_path && is_file( $retina_path ) ) {
+					if ( $retina_path && ewwwio_is_file( $retina_path ) ) {
 						ewwwio_debug_message( "found retina via wr2x_get_retina $retina_path" );
 						$attachment_images[ $size . '-retina' ] = $retina_path;
 					} else {
@@ -1051,7 +1051,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				ewwwio_debug_message( 'checking for original_image' );
 				// Meta sizes don't contain a path, so we calculate one.
 				$resize_path = trailingslashit( dirname( $file_path ) ) . $meta['original_image'];
-				if ( $remote_file || is_file( $resize_path ) ) {
+				if ( $remote_file || ewwwio_is_file( $resize_path ) ) {
 					$attachment_images['original_image'] = $resize_path;
 				}
 			}
@@ -1063,7 +1063,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				$imagemeta_resize_path     = '';
 				foreach ( $meta['image_meta']['resized_images'] as $index => $imagemeta_resize ) {
 					$imagemeta_resize_path = $imagemeta_resize_pathinfo['dirname'] . '/' . $imagemeta_resize_pathinfo['filename'] . '-' . $imagemeta_resize . '.' . $imagemeta_resize_pathinfo['extension'];
-					if ( is_file( $imagemeta_resize_path ) ) {
+					if ( ewwwio_is_file( $imagemeta_resize_path ) ) {
 						$attachment_images[ 'resized-images-' . $index ] = $imagemeta_resize_path;
 					}
 				}
@@ -1076,7 +1076,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				$custom_size_path      = '';
 				foreach ( $meta['custom_sizes'] as $dimensions => $custom_size ) {
 					$custom_size_path = $custom_sizes_pathinfo['dirname'] . '/' . $custom_size['file'];
-					if ( is_file( $custom_size_path ) ) {
+					if ( ewwwio_is_file( $custom_size_path ) ) {
 						$attachment_images[ 'custom-size-' . $dimensions ] = $custom_size_path;
 					}
 				}
@@ -1603,7 +1603,7 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		$output['completed']++;
 		$meta = false;
 		// See if the image needs fetching from a CDN.
-		if ( ! is_file( $image->file ) ) {
+		if ( ! ewwwio_is_file( $image->file ) ) {
 			$meta      = wp_get_attachment_metadata( $image->attachment_id );
 			$file_path = ewww_image_optimizer_remote_fetch( $image->attachment_id, $meta );
 			unset( $meta );

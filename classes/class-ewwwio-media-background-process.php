@@ -475,7 +475,7 @@ class EWWWIO_Async_Request extends WP_Async_Request {
 		}
 		ewww_image_optimizer_hidpi_optimize( $file_path );
 		ewwwio_debug_message( 'checking for: ' . $file_path . '.processing' );
-		if ( is_file( $file_path . '.processing' ) ) {
+		if ( ewwwio_is_file( $file_path . '.processing' ) ) {
 			ewwwio_debug_message( 'removing ' . $file_path . '.processing' );
 			unlink( $file_path . '.processing' );
 		}
@@ -491,25 +491,28 @@ class EWWWIO_Async_Request extends WP_Async_Request {
 	 * @return string The full file path, reconstructed using the upload folder for WP_CONTENT_DIR
 	 */
 	public function find_file( $file_path ) {
-		if ( is_file( $file_path ) ) {
+		if ( false !== strpos( $file_path, '..' ) ) {
+			return false;
+		}
+		if ( ewwwio_is_file( $file_path ) ) {
 			return $file_path;
 		}
 		// Retrieve the location of the WordPress upload folder.
 		$upload_dir  = wp_upload_dir();
 		$upload_path = trailingslashit( $upload_dir['basedir'] );
 		$file        = $upload_path . $file_path;
-		if ( is_file( $file ) ) {
+		if ( ewwwio_is_file( $file ) ) {
 			return $file;
 		}
 		$upload_path = trailingslashit( WP_CONTENT_DIR );
 		$file        = $upload_path . $file_path;
-		if ( is_file( $file ) ) {
+		if ( ewwwio_is_file( $file ) ) {
 			return $file;
 		}
 		$upload_path .= 'uploads/';
 
 		$file = $upload_path . $file_path;
-		if ( is_file( $file ) ) {
+		if ( ewwwio_is_file( $file ) ) {
 			return $file;
 		}
 		return '';
