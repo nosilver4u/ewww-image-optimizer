@@ -1693,18 +1693,24 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 
 		// When we finish all the sizes, we want to fire off any filters for plugins that might need to take action when an image is updated.
 		if ( $attachment && (int) $attachment !== (int) $next_image->attachment_id ) {
+			ewwwio_debug_message( 'saving attachment meta' );
 			wp_update_attachment_metadata( $image->attachment_id, wp_get_attachment_metadata( $image->attachment_id ) );
-			/* $meta = apply_filters( 'wp_update_attachment_metadata', wp_get_attachment_metadata( $image->attachment_id ), $image->attachment_id ); */
 		}
 		// When an image (attachment) is done, pull the next attachment ID off the stack.
 		if ( ( 'full' === $next_image->resize || empty( $next_image->resize ) ) && ! empty( $attachment ) && (int) $attachment !== (int) $next_image->attachment_id ) {
+			ewwwio_debug_message( 'grabbing next attachment id' );
 			ewww_image_optimizer_delete_queued_images( array( $attachment ) );
-			$attachment = (int) array_shift( $attachments ); // Pull the first image off the stack.
+			if ( 1 === count( $attachments ) && 1 === (int) $batch_image_limit ) {
+				$attachments = ewww_image_optimizer_get_queued_attachments( 'media', $batch_image_limit );
+			} else {
+				$attachment = (int) array_shift( $attachments ); // Pull the first image off the stack.
+			}
 			if ( ! empty( $attachments ) && is_array( $attachments ) ) {
 				$attachment = (int) $attachments[0]; // Then grab the next one (if any are left).
 			} else {
 				$attachment = 0;
 			}
+			ewwwio_debug_message( "next id is $attachment" );
 			$next_image = new EWWW_Image( $attachment, 'media' );
 		}
 		$image           = $next_image;
