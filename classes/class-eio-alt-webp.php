@@ -63,12 +63,21 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		ewwwio_debug_message( "home url: $this->home_url" );
 		$this->relative_home_url = preg_replace( '/https?:/', '', $this->home_url );
 		ewwwio_debug_message( "relative home url: $this->relative_home_url" );
+		$this->home_domain = $this->parse_url( $this->home_url, PHP_URL_HOST );
+		ewwwio_debug_message( "home domain: $this->home_domain" );
 
 		$this->webp_paths = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' );
 		if ( ! is_array( $this->webp_paths ) ) {
 			$this->webp_paths = array();
 		}
-		ewwwio_debug_message( 'forcing any images matching these patterns to webp: ' . implode( ',', $this->webp_paths ) );
+		foreach ( $this->webp_paths as $webp_path ) {
+			$webp_domain = $this->parse_url( $webp_path, PHP_URL_HOST );
+			if ( $webp_domain ) {
+				$this->webp_domains[] = $webp_domain;
+			}
+		}
+		ewwwio_debug_message( 'checking any images matching these patterns for webp: ' . implode( ',', $this->webp_paths ) );
+		ewwwio_debug_message( 'rewriting any images matching these domains to webp: ' . implode( ',', $this->webp_domains ) );
 		if ( class_exists( 'ExactDN' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 			global $exactdn;
 			$this->exactdn_domain = $exactdn->get_exactdn_domain();
@@ -699,10 +708,62 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 	}
 
 	/**
-	 * Checks if the path is a valid "forced" WebP image.
+	 * Attempts to reverse a CDN URL to a local path to test for file existence.
+	 *
+	 * Used for supporting pull-mode CDNs without forcing everything to WebP.
+	 *
+	 * @param string $url The image URL to mangle.
+	 * @return bool True if a local file exists correlating to the CDN URL, false otherwise.
+	 */
+	function cdn_to_local( $url ) {
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( ! is_array( $this->webp_domains ) || ! count( $this->webp_domains ) ) {
+			return false;
+		}
+		$url_parts = $this->parse_url( $url );
+		foreach ( $this->webp_domains as $webp_domain ) {
+			ewwwio_debug_message( "looking for $webp_domain in $url" );
+			if ( $webp_domain === $this->home_domain ) {
+				continue;
+			}
+			if ( false !== strpos( $url, $webp_domain ) ) {
+				$local_url = str_replace( $webp_domain, $this->home_domain, $url );
+				ewwwio_debug_message( "found $webp_domain, replaced with $this->home_domain to get $local_url" );
+				return $this->url_to_path_exists( $local_url );
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Converts a URL to a file-system path and checks if the resulting path exists.
+	 *
+	 * @param string $image The image URL to mangle.
+	 * @return bool True if a local file exists correlating to the URL, false otherwise.
+	 */
+	function url_to_path_exists( $image ) {
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( 0 === strpos( $image, $this->relative_home_url ) ) {
+			$imagepath = str_replace( $this->relative_home_url, ABSPATH, $image );
+		} elseif ( 0 === strpos( $image, $this->home_url ) ) {
+			$imagepath = str_replace( $this->home_url, ABSPATH, $image );
+		} else {
+			ewwwio_debug_message( 'not a valid local image' );
+			return false;
+		}
+		$path_parts = explode( '?', $imagepath );
+		if ( ewwwio_is_file( $path_parts[0] . '.webp' ) || ewwwio_is_file( $imagepath . '.webp' ) ) {
+			ewwwio_debug_message( 'local .webp image found' );
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Checks if the path is a valid WebP image, on-disk or forced.
 	 *
 	 * @param string $image The image URL.
-	 * @return bool True if the file matches a forced path, false otherwise.
+	 * @return bool True if the file exists or matches a forced path, false otherwise.
 	 */
 	function validate_image_url( $image ) {
 		ewwwio_debug_message( "webp validation for $image" );
@@ -731,10 +792,6 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		if ( apply_filters( 'ewww_image_optimizer_skip_webp_rewrite', false, $image ) ) {
 			return false;
 		}
-		if ( $this->parsing_exactdn && false !== strpos( $image, $this->exactdn_domain ) ) {
-			ewwwio_debug_message( 'exactdn image' );
-			return true;
-		}
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) && $this->webp_paths ) {
 			// Check the image for configured CDN paths.
 			foreach ( $this->webp_paths as $webp_path ) {
@@ -743,21 +800,12 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 					return true;
 				}
 			}
+		} elseif ( $this->webp_paths && $this->webp_domains ) {
+			if ( $this->cdn_to_local( $image ) ) {
+				return true;
+			}
 		}
-		if ( 0 === strpos( $image, $this->relative_home_url ) ) {
-			$imagepath = str_replace( $this->relative_home_url, ABSPATH, $image );
-		} elseif ( 0 === strpos( $image, $this->home_url ) ) {
-			$imagepath = str_replace( $this->home_url, ABSPATH, $image );
-		} else {
-			ewwwio_debug_message( 'not a valid local image' );
-			return false;
-		}
-		$path_parts = explode( '?', $imagepath );
-		if ( ewwwio_is_file( $path_parts[0] . '.webp' ) || ewwwio_is_file( $imagepath . '.webp' ) ) {
-			ewwwio_debug_message( 'local .webp image found' );
-			return true;
-		}
-		return false;
+		return $this->url_to_path_exists( $image );
 	}
 
 	/**

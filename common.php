@@ -7994,6 +7994,8 @@ function ewww_image_optimizer_webp_rewrite_verify() {
 /**
  * Extracts strings from between the BEGIN and END markers in the .htaccess file.
  *
+ * @global int $wp_version
+ *
  * @param string $filename The file within which to search.
  * @param string $marker The bounary marker of the desired content.
  * @return array An array of strings from a file (.htaccess ) from between BEGIN and END markers.
@@ -8128,10 +8130,12 @@ function ewww_image_optimizer_network_singlesite_options() {
  * Displays the EWWW IO options along with status information, and debugging information.
  *
  * @global string $eio_debug In memory debug log.
+ * @global int $wp_version
  *
  * @param string $network Indicates which options should be shown in multisite installations.
  */
 function ewww_image_optimizer_options( $network = 'singlesite' ) {
+	global $wp_version;
 	global $ewwwio_temp_debug;
 	global $content_width;
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
@@ -8311,6 +8315,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	) {
 		$resize_score += 30;
 	} elseif ( defined( 'IMSANITY_VERSION' ) ) {
+		$resize_score += 30;
+	} elseif ( version_compare( $wp_version, '5.3-beta' ) >= 0 && 4000 > (int) apply_filters( 'big_image_size_threshold', 2560, array( 5000, 5000 ), plugins_url( '/images/test.png', __FILE__ ), 0 ) ) {
 		$resize_score += 30;
 	} else {
 		$resize_recommendations[] = esc_html__( 'Configure maximum image dimensions in Resize settings.', 'ewww-image-optimizer' ) . ewwwio_help_link( 'https://docs.ewww.io/article/41-resize-settings', '59849911042863033a1ba5f9' );
@@ -9460,7 +9466,6 @@ function ewwwio_debug_version_info() {
 
 	// Check the WP version.
 	global $wp_version;
-	$my_version = substr( $wp_version, 0, 3 );
 	$eio_debug .= "WP version: $wp_version<br>";
 
 	if ( defined( 'PHP_VERSION_ID' ) ) {

@@ -399,7 +399,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					$exactdn_activate_error = 'zone setup pending';
 				}
 				if ( ! empty( $test_result['response']['code'] ) && 200 !== (int) $test_result['response']['code'] ) {
-					ewwwio_debug_message( 'received response code: ' . $test_result['response']['code'] );
+					$this->debug_message( 'received response code: ' . $test_result['response']['code'] );
 				}
 				add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_error' );
 				return false;

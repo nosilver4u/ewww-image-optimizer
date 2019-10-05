@@ -96,9 +96,8 @@ class EwwwDB extends wpdb {
 		$first                     = reset( $data );
 		$fields                    = '`' . implode( '`, `', array_keys( $first ) ) . '`';
 		$multi_formats             = implode( ',', $multi_formats );
-		$sql                       = "INSERT INTO `$table` ($fields) VALUES $multi_formats";
 		$this->check_current_query = false;
-		return $this->query( $this->prepare( $sql, $values ) );
+		return $this->query( $this->prepare( "INSERT INTO `$table` ($fields) VALUES $multi_formats", $values ) );
 	}
 
 }
