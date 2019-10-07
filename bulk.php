@@ -1576,7 +1576,7 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 			$output['new_nonce'] = '';
 		}
 	}
-	$batch_image_limit = ( empty( $_REQUEST['ewww_batch_limit'] ) && ! class_exists( 'Amazon_S3_And_CloudFront' ) && ! class_exists( 'S3_Uploads' ) ? 999 : 1 );
+	$batch_image_limit = ( empty( $_REQUEST['ewww_batch_limit'] ) && ! class_exists( 'S3_Uploads' ) ? 999 : 1 );
 	// Get the 'bulk attachments' with a list of IDs remaining.
 	$attachments = ewww_image_optimizer_get_queued_attachments( 'media', $batch_image_limit );
 	if ( ! empty( $attachments ) && is_array( $attachments ) ) {
@@ -1691,11 +1691,18 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		// Pull the next image.
 		$next_image = new EWWW_Image( $attachment, 'media' );
 
-		// When we finish all the sizes, we want to fire off any filters for plugins that might need to take action when an image is updated.
+		// When we finish all the sizes, we stop the loop so we can fire off any filters for plugins that might need to take action when an image is updated.
+		// The call to wp_get_attachment_metadata() will be done in a separate AJAX request for better reliability, giving it the full request time to complete.
 		if ( $attachment && (int) $attachment !== (int) $next_image->attachment_id ) {
-			ewwwio_debug_message( 'saving attachment meta' );
-			wp_update_attachment_metadata( $image->attachment_id, wp_get_attachment_metadata( $image->attachment_id ) );
+			if ( defined( 'WP_CLI' ) && WP_CLI ) {
+				ewwwio_debug_message( 'saving attachment meta' );
+				wp_update_attachment_metadata( $image->attachment_id, wp_get_attachment_metadata( $image->attachment_id ) );
+			} else {
+				$batch_image_limit     = 1;
+				$output['update_meta'] = (int) $attachment;
+			}
 		}
+
 		// When an image (attachment) is done, pull the next attachment ID off the stack.
 		if ( ( 'full' === $next_image->resize || empty( $next_image->resize ) ) && ! empty( $attachment ) && (int) $attachment !== (int) $next_image->attachment_id ) {
 			ewwwio_debug_message( 'grabbing next attachment id' );
@@ -1768,6 +1775,23 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 }
 
 /**
+ * Called via AJAX to trigger any actions by other plugins.
+ */
+function ewww_image_optimizer_bulk_update_meta() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	// Verify that an authorized user has started the optimizer.
+	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
+	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) {
+		ewwwio_ob_clean();
+		die( ewwwio_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
+	}
+	$attachment_id = (int) $_REQUEST['attachment_id'];
+	ewwwio_debug_message( "saving attachment meta for $attachment_id" );
+	wp_update_attachment_metadata( $attachment_id, wp_get_attachment_metadata( $attachment_id ) );
+	die( ewwwio_json_encode( array( 'success' => 1 ) ) );
+}
+
+/**
  * Called by javascript to cleanup after ourselves after a bulk operation.
  */
 function ewww_image_optimizer_bulk_cleanup() {
@@ -1795,6 +1819,7 @@ add_action( 'wp_ajax_bulk_scan', 'ewww_image_optimizer_media_scan' );
 add_action( 'wp_ajax_bulk_init', 'ewww_image_optimizer_bulk_initialize' );
 add_action( 'wp_ajax_bulk_filename', 'ewww_image_optimizer_bulk_filename' );
 add_action( 'wp_ajax_bulk_loop', 'ewww_image_optimizer_bulk_loop' );
+add_action( 'wp_ajax_ewww_bulk_update_meta', 'ewww_image_optimizer_bulk_update_meta' );
 add_action( 'wp_ajax_bulk_cleanup', 'ewww_image_optimizer_bulk_cleanup' );
 add_action( 'wp_ajax_bulk_quota_update', 'ewww_image_optimizer_bulk_quota_update' );
 add_filter( 'ewww_image_optimizer_count_optimized_queries', 'ewww_image_optimizer_reduce_query_count' );

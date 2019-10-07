@@ -480,13 +480,13 @@ jQuery(document).ready(function($) {
 			ewww_webp_only = 1;
 		}
 	        var ewww_loop_data = {
-	                action: ewww_loop_action,
+			action: ewww_loop_action,
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_force: ewww_force,
 			ewww_webp_only: ewww_webp_only,
 			ewww_batch_limit: ewww_batch_limit,
 			ewww_error_counter: ewww_error_counter,
-	        };
+		};
 	        var ewww_jqxhr = $.post(ajaxurl, ewww_loop_data, function(response) {
 			var is_json = true;
 			try {
@@ -508,6 +508,14 @@ jQuery(document).ready(function($) {
 			ewww_i += ewww_response.completed;
 			$('#ewww-bulk-progressbar').progressbar( "option", "value", ewww_i );
 			$('#ewww-bulk-counter').html(ewww_vars.optimized + ' ' + ewww_i + '/' + ewww_attachments);
+			if ( ewww_response.update_meta ) {
+	        		var ewww_updatemeta_data = {
+					action: 'ewww_bulk_update_meta',
+					attachment_id: ewww_response.update_meta,
+					ewww_wpnonce: ewww_vars._wpnonce,
+				};
+				$.post(ajaxurl, ewww_updatemeta_data);
+			}
 			if ( ewww_response.error ) {
 				$('#ewww-bulk-loading').append('<p style="color: red"><b>' + ewww_response.error + '</b></p>');
 				clearInterval(ewww_quota_update);
