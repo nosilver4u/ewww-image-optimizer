@@ -182,6 +182,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * changed: bulk optimizer runs wp_update_attachment_metadata() in separate request to avoid timeouts
 * fixed: WebP warning regarding missing modules displayed even if green WebP test image is working
 * fixed: Nextgen bulk actions not working
+* fixed: unable to regenerate existing thumbnails with Image Regenerate & Select Crop plugin
 
 = 5.0.0 =
 * added: use native lazy load attributes to supplement lazy loader and make placeholders more efficient

@@ -1011,6 +1011,18 @@ function ewww_image_optimizer_ajax_compat_check() {
 		ewww_image_optimizer_image_sizes( false );
 		return;
 	}
+	// Check for Image Regenerate and Select Crop (old way).
+	if ( ! empty( $_REQUEST['action'] ) && 0 === strpos( $_REQUEST['action'], 'sirsc' ) ) {
+		ewwwio_debug_message( 'IRSC action/regen' );
+		ewww_image_optimizer_image_sizes( false );
+		return;
+	}
+	// Check for Image Regenerate and Select Crop (better way).
+	if ( defined( 'DOING_SIRSC' ) && DOING_SIRSC ) {
+		ewwwio_debug_message( 'IRSC action/regen' );
+		ewww_image_optimizer_image_sizes( false );
+		return;
+	}
 }
 
 /**
@@ -8950,8 +8962,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_webp'>" . esc_html__( 'JPG/PNG to WebP', 'ewww-image-optimizer' ) . '</label>' .
 			ewwwio_help_link( 'https://docs.ewww.io/article/16-ewww-io-and-webp-images', '5854745ac697912ffd6c1c89' ) .
 			"</th><td><span><input type='checkbox' id='ewww_image_optimizer_webp' name='ewww_image_optimizer_webp' value='true' " .
-			( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? "checked='true'" : '' ) . ' /> <b>' .
-			esc_html__( 'WARNING:', 'ewww-image-optimizer' ) . '</b> ' . esc_html__( 'JPG to WebP conversion is lossy, but quality loss is minimal. PNG to WebP conversion is lossless.', 'ewww-image-optimizer' ) .
+			( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? "checked='true'" : '' ) . ' /> ' .
+			esc_html__( 'JPG to WebP conversion is lossy, but quality loss is minimal. PNG to WebP conversion is lossless unless premium compression is active.', 'ewww-image-optimizer' ) .
 			"</span>\n<p class='description'>" . esc_html__( 'Originals are never deleted, and WebP images should only be served to supported browsers.', 'ewww-image-optimizer' ) .
 			" <a href='#ewww-webp-rewrite'>" . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ? esc_html__( 'You can use the rewrite rules below to serve WebP images with Apache.', 'ewww-image-optimizer' ) : '' ) . "</a></td></tr>\n";
 		ewwwio_debug_message( 'webp conversion: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? 'on' : 'off' ) );
@@ -8968,9 +8980,17 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$webp_paths = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' ) ? esc_html( implode( "\n", ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' ) ) ) : '';
 		$output[]   = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_webp_paths'>" . esc_html__( 'WebP URLs', 'ewww-image-optimizer' ) . '</label>' .
 			ewwwio_help_link( 'https://docs.ewww.io/article/16-ewww-io-and-webp-images', '5854745ac697912ffd6c1c89' ) . '</th><td><span>' .
-			esc_html__( 'Enter additional URL patterns, like a CDN URL, that should be permitted for JS WebP Rewriting. One URL per line, must include the domain name.', 'ewww-image-optimizer' ) . '</span>' .
-			"<p class='description'>" . esc_html__( 'Optionally include a path with the URL/domain if your CDN path is different from your local path.', 'ewww-image-optimizer' ) . '</p>' .
-			"<textarea id='ewww_image_optimizer_webp_paths' name='ewww_image_optimizer_webp_paths' rows='3' cols='60'>$webp_paths</textarea></td></tr>\n";
+			esc_html__( 'Enter additional URL patterns, like a CDN URL, that should be permitted for JS WebP Rewriting. One URL per line, must include the domain name (cdn.example.com).', 'ewww-image-optimizer' ) . '</span>' .
+			'<p>' . esc_html__( 'Optionally include a folder with the URL/domain if your CDN path is different from your local path.', 'ewww-image-optimizer' ) . '</p>' .
+			"<textarea id='ewww_image_optimizer_webp_paths' name='ewww_image_optimizer_webp_paths' rows='3' cols='60'>$webp_paths</textarea>" .
+			"<p class='description'>" . sprintf(
+				/* translators: 1: An image URL on a CDN 2: An image URL 3: An example folder URL */
+				esc_html__( 'For example, with a CDN URL of %1$s and a local URL of %2$s you would enter %3$s below.', 'ewww-image-optimizer' ),
+				'https://cdn.example.com/<strong>files/</strong>2038/01/image.jpg',
+				'https://example.com/<strong>wp-content/uploads/</strong>2038/01/image.jpg',
+				'https://cdn.example.com/<strong>files/</strong>'
+			) . '</p>' .
+			"</td></tr>\n";
 		ewwwio_debug_message( 'webp paths:' );
 		ewwwio_debug_message( $webp_paths );
 	} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
