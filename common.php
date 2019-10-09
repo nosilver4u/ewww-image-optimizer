@@ -8981,11 +8981,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$output[]   = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_webp_paths'>" . esc_html__( 'WebP URLs', 'ewww-image-optimizer' ) . '</label>' .
 			ewwwio_help_link( 'https://docs.ewww.io/article/16-ewww-io-and-webp-images', '5854745ac697912ffd6c1c89' ) . '</th><td><span>' .
 			esc_html__( 'Enter additional URL patterns, like a CDN URL, that should be permitted for JS WebP Rewriting. One URL per line, must include the domain name (cdn.example.com).', 'ewww-image-optimizer' ) . '</span>' .
-			'<p>' . esc_html__( 'Optionally include a folder with the URL/domain if your CDN path is different from your local path.', 'ewww-image-optimizer' ) . '</p>' .
+			'<p>' . esc_html__( 'Optionally include a folder with the URL if your CDN path is different from your local path.', 'ewww-image-optimizer' ) . '</p>' .
 			"<textarea id='ewww_image_optimizer_webp_paths' name='ewww_image_optimizer_webp_paths' rows='3' cols='60'>$webp_paths</textarea>" .
 			"<p class='description'>" . sprintf(
 				/* translators: 1: An image URL on a CDN 2: An image URL 3: An example folder URL */
-				esc_html__( 'For example, with a CDN URL of %1$s and a local URL of %2$s you would enter %3$s below.', 'ewww-image-optimizer' ),
+				esc_html__( 'For example, with a CDN URL of %1$s and a local URL of %2$s you would enter %3$s.', 'ewww-image-optimizer' ),
 				'https://cdn.example.com/<strong>files/</strong>2038/01/image.jpg',
 				'https://example.com/<strong>wp-content/uploads/</strong>2038/01/image.jpg',
 				'https://cdn.example.com/<strong>files/</strong>'

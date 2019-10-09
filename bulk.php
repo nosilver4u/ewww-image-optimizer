@@ -1656,6 +1656,19 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 				array( '%d' )
 			);
 		}
+		// Toggle a pending record if the optimization was webp-only.
+		if ( true === $file && $image->id ) {
+			global $wpdb;
+			$wpdb->update(
+				$wpdb->ewwwio_images,
+				array(
+					'pending' => 0,
+				),
+				array(
+					'id' => $image->id,
+				)
+			);
+		}
 		// If this is a full size image and it was converted.
 		if ( 'full' === $image->resize && ( false !== $image->increment || false !== $converted ) ) {
 			if ( ! $meta || ! is_array( $meta ) ) {
