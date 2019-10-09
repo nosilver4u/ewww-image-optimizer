@@ -7237,7 +7237,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 					$sizes_to_opt
 				) . '</div>';
 			} else {
-				$output .= '<div>' . esc_html__( 'Not processed', 'ewww-image-optimizer' ) . '</div>';
+				$output .= '<div>' . esc_html__( 'Not optimized', 'ewww-image-optimizer' ) . '</div>';
 			}
 			// Tell them the filesize.
 			$output .= '<div>' . sprintf(
@@ -7245,6 +7245,15 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				esc_html__( 'Image Size: %s', 'ewww-image-optimizer' ),
 				$file_size
 			) . '</div>';
+			// Determine filepath for webp.
+			$webpfile  = $file_path . '.webp';
+			$webp_size = ewww_image_optimizer_filesize( $webpfile );
+			if ( $webp_size ) {
+				// Get a human readable filesize.
+				$webp_size = ewww_image_optimizer_size_format( $webp_size );
+				$webpurl   = esc_url( wp_get_attachment_url( $id ) . '.webp' );
+				$output   .= "<div>WebP: <a href='$webpurl'>$webp_size</a></div>";
+			}
 			if ( empty( $msg ) && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 				// Give the user the option to optimize the image right now.
 				$output .= sprintf( "<div><a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d\">%s</a>", $id, esc_html__( 'Optimize now!', 'ewww-image-optimizer' ) );
