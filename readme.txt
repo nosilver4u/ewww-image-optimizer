@@ -183,6 +183,9 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: WebP warning regarding missing modules displayed even if green WebP test image is working
 * fixed: Nextgen bulk actions not working
 * fixed: unable to regenerate existing thumbnails with Image Regenerate & Select Crop plugin
+* updated: WebP (cwebp) binary to version 1.0.3
+* updated: cwebp requires Mac OS X 10.14
+* updated: FreeBSD 10 is EOL, version 11 is the supported/tested version
 
 = 5.0.0 =
 * added: use native lazy load attributes to supplement lazy loader and make placeholders more efficient

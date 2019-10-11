@@ -183,7 +183,7 @@ function ewww_image_optimizer_notice_hosting_requires_api() {
  */
 function ewww_image_optimizer_notice_os() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	echo "<div id='ewww-image-optimizer-warning-os' class='notice notice-error'><p><strong>" . esc_html__( 'The free mode of EWWW Image Optimizer is only supported on Linux, FreeBSD, Mac OSX, and Windows.', 'ewww-image-optimizer' ) . '</strong></p></div>';
+	echo "<div id='ewww-image-optimizer-warning-os' class='notice notice-error'><p><strong>" . esc_html__( 'The free mode of EWWW Image Optimizer is only supported on Linux, FreeBSD, Mac OSX, Solaris, and Windows.', 'ewww-image-optimizer' ) . '</strong></p></div>';
 }
 
 /**
@@ -211,7 +211,7 @@ function ewww_image_optimizer_install_paths() {
 		$optipng_src  = EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'optipng-mac';
 		$jpegtran_src = EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'jpegtran-mac';
 		$pngquant_src = EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngquant-mac';
-		$webp_src     = EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'cwebp-mac12';
+		$webp_src     = EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'cwebp-mac14';
 		$gifsicle_dst = $tool_path . 'gifsicle';
 		$optipng_dst  = $tool_path . 'optipng';
 		$jpegtran_dst = $tool_path . 'jpegtran';
@@ -402,23 +402,6 @@ function ewww_image_optimizer_install_tools() {
 		if ( ! copy( $webp_src, $webp_dst ) ) {
 			$toolfail = true;
 			ewwwio_debug_message( 'could not copy webp' );
-		}
-	}
-	// Install special version of cwebp for Mac OSX 10.8 systems.
-	if ( PHP_OS === 'Darwin' && ! $skip['webp'] ) {
-		$webp8_dst = $webp_dst . '-alt';
-		$webp8_src = str_replace( 'mac9', 'mac8', $webp_src );
-		if ( ! file_exists( $webp8_dst ) || ( ewww_image_optimizer_md5check( $webp8_dst ) && filesize( $webp8_dst ) !== filesize( $webp8_src ) ) ) {
-			ewwwio_debug_message( "copying $webp8_src to $webp8_dst" );
-			if ( ! copy( $webp8_src, $webp8_dst ) ) {
-				// This isn't a fatal error, besides we'll see it in the debug if needed.
-				ewwwio_debug_message( 'could not copy OSX 10.8 cwebp to cwebp-alt' );
-			}
-			if ( ! ewww_image_optimizer_check_permissions( $webp8_dst, 'rwxr-xr-x' ) ) {
-				if ( ! is_writable( $webp8_dst ) || ! chmod( $webp8_dst, 0755 ) ) {
-					ewwwio_debug_message( 'could not set cwebp8-alt permissions' );
-				}
-			}
 		}
 	}
 
@@ -1087,24 +1070,29 @@ function ewww_image_optimizer_md5check( $path ) {
 		'b2bef90b62d80b35d4c5a41f793454e95e5159bf0aec2e4bd8c19fc3de3556bd', // cwebp-linux664 0.4.4, EWWW 2.5.4.
 		'd3c358524efd50f6e078362733870229ca1e1db8885580b6814c2535b4d20612', // cwebp-linux8 0.4.4, EWWW 2.5.4.
 		'271deeec579c252e364495addad03d9c1f3248c2177a01638002b25eee787ded', // cwebp-linux864 0.4.4, EWWW 2.5.4.
-		'379e2b95e20dd33f4667c134099df358e178f6a6bf32f3a5b6b78bbb6950b4b5', // cwebp-mac9 0.4.4, EWWW 2.5.4.
-		'118ea3f0bcdcce6128d64e34159c93c3324cb038c9e5a51efaf530ea52af7070', // cwebp-sol 0.4.4, EWWW 2.5.4.
-		'43941c1d7169e66fb1fd62a1950286b230d3e5bec3bbb14fdb4ac091ca7a0f9f', // cwebp.exe 0.4.4, EWWW 2.5.4.
-		'26d5d88dee2993d1d0e16f5e60318cd8adec485614facd6c7f9c22c71eb7b2e5', // cwebp-fbsd 0.5.0 EWWW 2.6.0.
+		'379e2b95e20dd33f4667c134099df358e178f6a6bf32f3a5b6b78bbb6950b4b5', // cwebp-mac9  0.4.4, EWWW 2.5.4.
+		'118ea3f0bcdcce6128d64e34159c93c3324cb038c9e5a51efaf530ea52af7070', // cwebp-sol   0.4.4, EWWW 2.5.4.
+		'43941c1d7169e66fb1fd62a1950286b230d3e5bec3bbb14fdb4ac091ca7a0f9f', // cwebp.exe   0.4.4, EWWW 2.5.4.
+		'26d5d88dee2993d1d0e16f5e60318cd8adec485614facd6c7f9c22c71eb7b2e5', // cwebp-fbsd  0.5.0, EWWW 2.6.0.
 		'60b1738d6502691227a46658cd7656b4a52702680f169e8e04d72077e967aeed', // cwebp-linux 0.5.0, EWWW 2.6.0.
-		'276a0221a4c978825903572c2b68b3010399375d6b9dc7429286caf625cae95a', // cwebp-mac9 0.5.0, EWWW 2.6.0.
-		'be3e81ec7267e7878ddd4ee01df1553966952f74bbfd30a5523d12d53f019ecb', // cwebp-sol 0.5.0, EWWW 2.6.0.
-		'b41123ec06f21765f50ec1b017839f99ab4f28497d87da722817a6023e4a3b32', // cwebp.exe 0.5.0, EWWW 2.6.0.
-		'f0547a6219c5c05d0af29c5e411e054b9d795567f4ae2e27893815af9383c60f', // cwebp-fbsd 0.5.1, EWWW 2.9.9.
+		'276a0221a4c978825903572c2b68b3010399375d6b9dc7429286caf625cae95a', // cwebp-mac9  0.5.0, EWWW 2.6.0.
+		'be3e81ec7267e7878ddd4ee01df1553966952f74bbfd30a5523d12d53f019ecb', // cwebp-sol   0.5.0, EWWW 2.6.0.
+		'b41123ec06f21765f50ec1b017839f99ab4f28497d87da722817a6023e4a3b32', // cwebp.exe   0.5.0, EWWW 2.6.0.
+		'f0547a6219c5c05d0af29c5e411e054b9d795567f4ae2e27893815af9383c60f', // cwebp-fbsd  0.5.1, EWWW 2.9.9.
 		'9eaf670bb2d567421c7e2918112dc00406c60f008b120f648cf0bdba73ee9b6b', // cwebp-linux 0.5.1, EWWW 2.9.9.
-		'1202ea932b315913d3736460dd3d50bc5b251b7a0a8f0468c63144ba427679c2', // cwebp-mac9 0.5.1, EWWW 2.9.9.
-		'27ba0abce52e74744f6235fcde9b153b5052b9c15cd78e74feffaea9dafcc178', // cwebp-sol 0.5.1, EWWW 2.9.9.
-		'b02864989f0a1a263caa796c5b8caf18c1f774ed0ba08a9350e8820459875f51', // cwebp.exe 0.5.1, EWWW 2.9.9.
-		'e5cbea11c97fadffe221fdf57c093c19af2737e4bbd2cb3cd5e908de64286573', // cwebp-fbsd 0.6.0, EWWW 3.4.0.
+		'1202ea932b315913d3736460dd3d50bc5b251b7a0a8f0468c63144ba427679c2', // cwebp-mac9  0.5.1, EWWW 2.9.9.
+		'27ba0abce52e74744f6235fcde9b153b5052b9c15cd78e74feffaea9dafcc178', // cwebp-sol   0.5.1, EWWW 2.9.9.
+		'b02864989f0a1a263caa796c5b8caf18c1f774ed0ba08a9350e8820459875f51', // cwebp.exe   0.5.1, EWWW 2.9.9.
+		'e5cbea11c97fadffe221fdf57c093c19af2737e4bbd2cb3cd5e908de64286573', // cwebp-fbsd  0.6.0, EWWW 3.4.0.
 		'43ca351e8f5d457b898c587151ebe3d8f6cce8dcfb7de44f6cb70148a31a68bc', // cwebp-linux 0.6.0, EWWW 3.4.0.
 		'a06a3ee436e375c89dbc1b0b2e8bd7729a55139ae072ed3f7bd2e07de0ebb379', // cwebp-mac12 0.6.0, EWWW 3.4.0.
-		'1febaffbb18e52dc2c524cda9eefd00c6db95bc388732868999c0f48deb73b4f', // cwebp-sol 0.6.0, EWWW 3.4.0.
-		'49e9cb98db30bfa27936933e6fd94d407e0386802cb192800d9fd824f6476873', // cwebp.exe 0.6.0, EWWW 3.4.0.
+		'1febaffbb18e52dc2c524cda9eefd00c6db95bc388732868999c0f48deb73b4f', // cwebp-sol   0.6.0, EWWW 3.4.0.
+		'49e9cb98db30bfa27936933e6fd94d407e0386802cb192800d9fd824f6476873', // cwebp.exe   0.6.0, EWWW 3.4.0.
+		'dde516a971fed2960442e3354df9e8043328acecfd1d68dae8712183a0a06f48', // cwebp-fbsd  1.0.3, EWWW 5.1.0.
+		'90a506eea038e89ef53b41bfcae2cf2d67db6a3eae57fa43ca02da407420e0b6', // cwebp-linux 1.0.3, EWWW 5.1.0.
+		'7332ed5f0d4091e2379b1eaa32a764f8c0d51b7926996a1dc8b4ef4e3c441a12', // cwebp-mac14 1.0.3, EWWW 5.1.0.
+		'66568f3b31f8f22deef38aa6ba3d2be19516514e94b7d623cd2ce2a290ccdd69', // cwebp-sol   1.0.3, EWWW 5.1.0.
+		'e1041c5486fb4e57e31155c45d66117f8fc270e5a56a1049408a05f54bd52969', // cwebp.exe   1.0.3, EWWW 5.1.0.
 		// end cwebp.
 	);
 	foreach ( $valid_sums as $checksum ) {
@@ -1425,7 +1413,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 				ewwwio_debug_message( "$path: invalid output" );
 				break;
 			}
-			if ( ! empty( $webp_version ) && preg_match( '/0.\d.\d/', $webp_version[0] ) ) {
+			if ( ! empty( $webp_version ) && preg_match( '/\d.\d.\d/', $webp_version[0] ) ) {
 				ewwwio_debug_message( 'optimizer found' );
 				return $webp_version[0];
 			}
