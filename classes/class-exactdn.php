@@ -603,6 +603,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					}
 				}
 			}
+			$this->user_exclusions[] = 'plugins/anti-captcha/';
 		}
 
 		/**
@@ -1145,32 +1146,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$content = $this->filter_prz_thumb( $content );
 			}
 			if ( $this->filtering_the_page && $this->get_option( 'exactdn_all_the_things' ) ) {
-				$this->debug_message( 'rewriting all other wp_content urls' );
-				if ( $this->exactdn_domain && $this->upload_domain ) {
-					$escaped_upload_domain = str_replace( '.', '\.', ltrim( $this->upload_domain, 'w.' ) );
-					$this->debug_message( $escaped_upload_domain );
-					if ( ! empty( $this->user_exclusions ) ) {
-						$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)?(' . implode( '|', $this->user_exclusions ) . ')#i', '$1//' . $this->upload_domain . '$2/?wpcontent-bypass?/$3$4', $content );
-					}
-					if ( strpos( $content, '<use ' ) ) {
-						// Pre-empt rewriting of files within <use> tags, particularly to prevent security errors for SVGs.
-						$content = preg_replace( '#(<use.+?href=["\'])(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)/wp-content/#is', '$1$2//' . $this->upload_domain . '$3/?wpcontent-bypass?/', $content );
-					}
-					// Pre-empt rewriting of wp-includes and wp-content if the extension is not allowed by using a temporary placeholder.
-					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)\.(htm|html|php|ashx|m4v|mov|wvm|qt|webm|ogv|mp4|m4p|mpg|mpeg|mpv)#i', '$1//' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
-					$content = str_replace( 'wp-content/themes/jupiter"', '?wpcontent-bypass?/themes/jupiter"', $content );
-					$content = str_replace( 'wp-content/plugins/anti-captcha/', '?wpcontent-bypass?/plugins/anti-captcha', $content );
-					if (
-						false !== strpos( $this->upload_domain, 'amazonaws.com' ) ||
-						false !== strpos( $this->upload_domain, 'digitaloceanspaces.com' ) ||
-						false !== strpos( $this->upload_domain, 'storage.googleapis.com' )
-					) {
-						$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . $this->remove_path . '/#i', '$1//' . $this->exactdn_domain . '/', $content );
-					} else {
-						$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?(nextgen-image|wp-includes|wp-content)/#i', '$1//' . $this->exactdn_domain . '/$2$3/', $content );
-					}
-					$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );
-				}
+				$this->debug_message( 'rewriting all other wp-content/wp-includes urls' );
+				$content = $this->filter_all_the_things( $content );
 			}
 			$this->debug_message( 'done parsing page' );
 			$this->filtering_the_content = false;
@@ -1261,6 +1238,44 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				if ( $prz_thumb !== $prz_detail_matches ) {
 					$content = str_replace( "thumbnailUrl:'{$prz_detail_matches[1]}'", "thumbnailUrl:'$prz_thumb'", $content );
 				}
+			}
+			return $content;
+		}
+
+		/**
+		 * Parse page content looking for wp-content/wp-includes URLs to rewrite.
+		 *
+		 * @param string $content The HTML content to parse.
+		 * @return string The filtered HTML content.
+		 */
+		function filter_all_the_things( $content ) {
+			if ( $this->exactdn_domain && $this->upload_domain ) {
+				$upload_domain = $this->upload_domain;
+				if ( 0 === strpos( $this_upload_domain, 'www.' ) ) {
+					$upload_domain = substr( $this->upload_domain, 4 );
+				}
+				$escaped_upload_domain = str_replace( '.', '\.', $upload_domain );
+				$this->debug_message( $escaped_upload_domain );
+				if ( ! empty( $this->user_exclusions ) ) {
+					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)?(' . implode( '|', $this->user_exclusions ) . ')#i', '$1//' . $this->upload_domain . '$2/?wpcontent-bypass?/$3$4', $content );
+				}
+				if ( strpos( $content, '<use ' ) ) {
+					// Pre-empt rewriting of files within <use> tags, particularly to prevent security errors for SVGs.
+					$content = preg_replace( '#(<use.+?href=["\'])(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)/wp-content/#is', '$1$2//' . $this->upload_domain . '$3/?wpcontent-bypass?/', $content );
+				}
+				// Pre-empt rewriting of wp-includes and wp-content if the extension is not allowed by using a temporary placeholder.
+				$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)\.(htm|html|php|ashx|m4v|mov|wvm|qt|webm|ogv|mp4|m4p|mpg|mpeg|mpv)#i', '$1//' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
+				$content = str_replace( 'wp-content/themes/jupiter"', '?wpcontent-bypass?/themes/jupiter"', $content );
+				if (
+					false !== strpos( $this->upload_domain, 'amazonaws.com' ) ||
+					false !== strpos( $this->upload_domain, 'digitaloceanspaces.com' ) ||
+					false !== strpos( $this->upload_domain, 'storage.googleapis.com' )
+				) {
+					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . $this->remove_path . '/#i', '$1//' . $this->exactdn_domain . '/', $content );
+				} else {
+					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?(nextgen-image|wp-includes|wp-content)/#i', '$1//' . $this->exactdn_domain . '/$2$3/', $content );
+				}
+				$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );
 			}
 			return $content;
 		}
@@ -2396,9 +2411,6 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( false !== strpos( $url, 'xmlrpc.php' ) ) {
 				return $url;
 			}
-			if ( strpos( $url, 'wp-content/plugins/anti-captcha/' ) ) {
-				return $url;
-			}
 			/**
 			 * Allow specific URLs to avoid going through ExactDN.
 			 *
@@ -2443,7 +2455,13 @@ if ( ! class_exists( 'ExactDN' ) ) {
 
 			global $wp_version;
 			// If a resource doesn't have a version string, we add one to help with cache-busting.
-			if ( ( empty( $parsed_url['query'] ) || 'ver=' . $wp_version === $parsed_url['query'] ) && false !== strpos( $url, 'wp-content/' ) ) {
+			if (
+				(
+					empty( $parsed_url['query'] ) ||
+					( 'ver=' . $wp_version === $parsed_url['query'] && false !== strpos( $url, 'wp-content/themes/' ) )
+				) &&
+				false !== strpos( $url, 'wp-content/' )
+			) {
 				$modified = $this->function_exists( 'filemtime' ) ? filemtime( get_template_directory() ) : '';
 				if ( empty( $modified ) ) {
 					$modified = $this->version;
@@ -2500,7 +2518,6 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				return $image_url;
 			}
 
-			// TODO: Not differentiated yet, but it will be, so stay tuned!
 			$jpg_quality  = apply_filters( 'jpeg_quality', null, 'image_resize' );
 			$webp_quality = apply_filters( 'jpeg_quality', $jpg_quality, 'image/webp' );
 

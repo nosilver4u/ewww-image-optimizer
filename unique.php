@@ -2713,6 +2713,7 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 			// Copy all the metadata.
 			$copy_opt = 'all';
 		}
+		$quality = (int) apply_filters( 'jpeg_quality', 82, 'image/webp' );
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) > 20 ) {
 			$lossless = "-q $quality";
 		} elseif ( defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) && EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) {
@@ -2722,7 +2723,6 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 		}
 		switch ( $type ) {
 			case 'image/jpeg':
-				$quality = (int) apply_filters( 'jpeg_quality', 82, 'image/webp' );
 				exec( "$nice " . $tool . " -q $quality -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1', $cli_output );
 				break;
 			case 'image/png':

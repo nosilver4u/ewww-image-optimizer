@@ -139,7 +139,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_webp', '' );
 		$this->assertEquals( 1348837, filesize( $results[0] ) );
 		unlink( $results[0] );
-		$this->assertEquals( 327954, filesize( $results[0] . '.webp' ) );
+		$this->assertEquals( 327964, filesize( $results[0] . '.webp' ) );
 		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
 			unlink( $results[0] . '.webp' );
 		}
