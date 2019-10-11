@@ -139,7 +139,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_webp', '' );
 		$this->assertEquals( 1348837, filesize( $results[0] ) );
 		unlink( $results[0] );
-		$this->assertEquals( 319938, filesize( $results[0] . '.webp' ) );
+		$this->assertEquals( 327954, filesize( $results[0] . '.webp' ) );
 		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
 			unlink( $results[0] . '.webp' );
 		}
@@ -166,7 +166,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$this->assertEquals( ewww_image_optimizer_get_orientation( $results[0], 'image/jpeg' ), 1 );
 		unlink( $results[0] );
 		// size of webp with meta.
-		$this->assertEquals( 339520, filesize( $results[0] . '.webp' ) );
+		$this->assertEquals( 347546, filesize( $results[0] . '.webp' ) );
 		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
 			unlink( $results[0] . '.webp' );
 		}
@@ -191,7 +191,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		$this->assertEquals( 1335586, filesize( $results[0] ) );
 		unlink( $results[0] );
-		$this->assertEquals( 284142, filesize( $results[0] . '.webp' ) );
+		$this->assertEquals( 284196, filesize( $results[0] . '.webp' ) );
 		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
 			unlink( $results[0] . '.webp' );
 		}
@@ -220,7 +220,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$this->assertEquals( ewww_image_optimizer_get_orientation( $results[0], 'image/jpeg' ), 1 );
 		unlink( $results[0] );
 		// size of webp with meta.
-		$this->assertEquals( 303728, filesize( $results[0] . '.webp' ) );
+		$this->assertEquals( 303782, filesize( $results[0] . '.webp' ) );
 		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
 			unlink( $results[0] . '.webp' );
 		}
@@ -279,7 +279,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_webp', '' );
 		$this->assertEquals( 188043, filesize( $results[0] ) );
 		unlink( $results[0] );
-		$this->assertEquals( 137366, filesize( $results[0] . '.webp' ) );
+		$this->assertEquals( 137108, filesize( $results[0] . '.webp' ) );
 		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
 			unlink( $results[0] . '.webp' );
 		}
