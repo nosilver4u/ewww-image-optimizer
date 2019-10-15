@@ -334,7 +334,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_optipng_level', 2 );
 		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		$results = $this->optimize_png();
-		$this->assertEquals( 37428, filesize( $results[0] ) );
+		$this->assertEquals( 38639, filesize( $results[0] ) );
 		unlink( $results[0] );
 	}
 
