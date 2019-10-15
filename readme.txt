@@ -184,6 +184,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: Nextgen bulk actions not working
 * fixed: unable to regenerate existing thumbnails with Image Regenerate & Select Crop plugin
 * updated: WebP (cwebp) binary to version 1.0.3
+* updated: Pngquant binary to version 2.12.5
 * updated: cwebp requires Mac OS X 10.14
 * updated: FreeBSD 10 is EOL, version 11 is the supported/tested version
 

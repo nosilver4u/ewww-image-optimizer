@@ -5207,6 +5207,7 @@ function ewww_image_optimizer_autoconvert( $file ) {
  */
 function ewww_image_optimizer_noresize( $dimensions, $filename ) {
 	if ( strpos( $filename, 'noresize' ) !== false ) {
+		add_filter( 'big_image_size_threshold', '__return_false' );
 		return array( 0, 0 );
 	}
 	$ignore_folders = ewww_image_optimizer_get_option( 'ewww_image_optimizer_exclude_paths' );
@@ -6076,7 +6077,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 				$ewww_image         = new EWWW_Image( $id, 'media', $resize_path );
 				$ewww_image->resize = $size;
 				// Run the optimization and store the results.
-				list( $optimized_file, $results, $resize_conv, $original ) = ewww_image_optimizer( $resize_path );
+				ewww_image_optimizer( $resize_path );
 			}
 			// Optimize retina images, if they exist.
 			if ( function_exists( 'wr2x_get_retina' ) ) {
@@ -6119,8 +6120,8 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		} else {
 			$ewww_image         = new EWWW_Image( $id, 'media', $resize_path );
 			$ewww_image->resize = 'original_image';
-			// Run the optimization and store the results.
-			list( $optimized_file, $results, $resize_conv, $original ) = ewww_image_optimizer( $resize_path );
+			// Run the optimization and store the results (gallery type 5 and fullsize=true to obey lossy/metadata exclusions).
+			ewww_image_optimizer( $resize_path, 5, false, false, true );
 		}
 	} // End if().
 
