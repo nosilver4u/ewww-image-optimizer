@@ -822,7 +822,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 
 						// Find the width and height attributes.
 						$width  = $this->get_img_width( $images['img_tag'][ $index ] );
-						$height = $this->get_attribute( $images['img_tag'][ $index ], 'height' );
+						$height = $this->get_img_height( $images['img_tag'][ $index ] );
 						// Falsify them if empty.
 						$width  = $width ? $width : false;
 						$height = $height ? $height : false;
@@ -1251,7 +1251,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		function filter_all_the_things( $content ) {
 			if ( $this->exactdn_domain && $this->upload_domain ) {
 				$upload_domain = $this->upload_domain;
-				if ( 0 === strpos( $this_upload_domain, 'www.' ) ) {
+				if ( 0 === strpos( $this->upload_domain, 'www.' ) ) {
 					$upload_domain = substr( $this->upload_domain, 4 );
 				}
 				$escaped_upload_domain = str_replace( '.', '\.', $upload_domain );

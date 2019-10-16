@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '500.22' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '510.0' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -3673,11 +3673,11 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	if ( 'image/webp' === $newtype ) {
 		$webp        = 1;
 		$jpg_quality = apply_filters( 'jpeg_quality', $jpg_quality, 'image/webp' );
+		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) || ! EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) {
+			$lossy = 0;
+		}
 	} else {
 		$webp = 0;
-	}
-	if ( ! $lossy && $webp && defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) && EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) {
-		$lossy = 1;
 	}
 	if ( 30 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 		$png_compress = 1;

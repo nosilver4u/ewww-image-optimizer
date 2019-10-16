@@ -1,3 +1,17 @@
+= 5.1.0 =
+* added: WebP-only mode for Bulk Optimizer
+* added: JS WebP Rewriting for pull-mode CDNs via WebP URLS without Force WebP
+* added: JS WebP Rewriting zero-conf for WP Offload Media
+* added: force lossy PNG to WebP conversion with EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP override (set to true)
+* changed: bulk optimizer runs wp_update_attachment_metadata() in separate request to avoid timeouts
+* fixed: WebP warning regarding missing modules displayed even if green WebP test image is working
+* fixed: Nextgen bulk actions not working
+* fixed: unable to regenerate existing thumbnails with Image Regenerate & Select Crop plugin
+* updated: WebP (cwebp) binary to version 1.0.3
+* updated: Pngquant binary to version 2.12.5
+* updated: cwebp requires Mac OS X 10.14
+* updated: FreeBSD 10 is EOL, version 11 is the supported/tested version
+
 = 5.0.0 =
 * added: use native lazy load attributes to supplement lazy loader and make placeholders more efficient
 * added: GCS sub-folder rewriting with ExactDN for cleaner URLs

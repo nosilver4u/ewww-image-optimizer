@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.0
 Tested up to: 5.3
 Requires PHP: 5.6
-Stable tag: 5.0.0
+Stable tag: 5.1.0
 License: GPLv3
 
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
@@ -178,7 +178,6 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * added: JS WebP Rewriting for pull-mode CDNs via WebP URLS without Force WebP
 * added: JS WebP Rewriting zero-conf for WP Offload Media
 * added: force lossy PNG to WebP conversion with EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP override (set to true)
-* changed: PNG to WebP conversion obeys lossy compression level (premium or premium plus)
 * changed: bulk optimizer runs wp_update_attachment_metadata() in separate request to avoid timeouts
 * fixed: WebP warning regarding missing modules displayed even if green WebP test image is working
 * fixed: Nextgen bulk actions not working

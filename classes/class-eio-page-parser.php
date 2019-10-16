@@ -194,8 +194,34 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 				if ( $max_width_string[1] && ( ! $width || $max_width_string[1] < $width ) ) {
 					$width = $max_width_string[1];
 				}
+			} elseif ( $style && preg_match( '#width:\s?(\d+)px#', $style, $width_string ) ) {
+				if ( $width_string[1] && ( ! $width || $width_string[1] < $width ) ) {
+					$width = $width_string[1];
+				}
 			}
 			return $width;
+		}
+
+		/**
+		 * Get the height from an image element.
+		 *
+		 * @param string $img The full image element.
+		 * @return string The height found or an empty string.
+		 */
+		public function get_img_height( $img ) {
+			$height = $this->get_attribute( $img, 'height' );
+			// Then check for an inline max-height directive.
+			$style = $this->get_attribute( $img, 'style' );
+			if ( $style && preg_match( '#max-height:\s?(\d+)px#', $style, $max_height_string ) ) {
+				if ( $max_height_string[1] && ( ! $height || $max_height_string[1] < $height ) ) {
+					$height = $max_height_string[1];
+				}
+			} elseif ( $style && preg_match( '#height:\s?(\d+)px#', $style, $height_string ) ) {
+				if ( $height_string[1] && ( ! $height || $height_string[1] < $height ) ) {
+					$height = $height_string[1];
+				}
+			}
+			return $height;
 		}
 
 		/**

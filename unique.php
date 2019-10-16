@@ -2719,9 +2719,7 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 			$copy_opt = 'all';
 		}
 		$quality = (int) apply_filters( 'jpeg_quality', 82, 'image/webp' );
-		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) > 20 ) {
-			$lossless = "-q $quality";
-		} elseif ( defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) && EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) {
+		if ( defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) && EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) {
 			$lossless = "-q $quality";
 		} else {
 			$lossless = '-lossless';
