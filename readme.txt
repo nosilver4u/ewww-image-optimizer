@@ -173,6 +173,9 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 5.1.1 =
+* fixed: no optimization when escapeshellarg() is disabled
+
 = 5.1.0 =
 * added: WebP-only mode for Bulk Optimizer
 * added: JS WebP Rewriting for pull-mode CDNs via WebP URLS without Force WebP
