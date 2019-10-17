@@ -32,12 +32,20 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 	protected $parsing_exactdn = false;
 
 	/**
-	 * Allowed paths for "forced" WebP.
+	 * Allowed paths for JS WebP.
 	 *
 	 * @access protected
 	 * @var array $webp_paths
 	 */
 	protected $webp_paths = array();
+
+	/**
+	 * Allowed domains for JS WebP.
+	 *
+	 * @access protected
+	 * @var array $webp_domains
+	 */
+	protected $webp_domains = array();
 
 	/**
 	 * Register (once) actions and filters for Alt WebP.

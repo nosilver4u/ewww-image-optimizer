@@ -1,3 +1,7 @@
+= 5.1.1 =
+* fixed: no optimization when escapeshellarg() is disabled
+* fixed: warning thrown by implode() when JS WebP is enabled with no WebP URLs
+
 = 5.1.0 =
 * added: WebP-only mode for Bulk Optimizer
 * added: JS WebP Rewriting for pull-mode CDNs via WebP URLS without Force WebP
