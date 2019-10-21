@@ -887,6 +887,7 @@ function ewww_image_optimizer_admin_init() {
 			|| 'force-regenerate-thumbnails' === $_GET['page']
 			|| 'ajax-thumbnail-rebuild' === $_GET['page']
 			|| 'regenerate_thumbnails_advanced' === $_GET['page']
+			|| 'rta_generate_thumbnails' === $_GET['page']
 		) {
 			// Add a notice for thumb regeneration.
 			add_action( 'admin_notices', 'ewww_image_optimizer_thumbnail_regen_notice' );
@@ -964,7 +965,9 @@ function ewww_image_optimizer_ajax_compat_check() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Check for (Force) Regenerate Thumbnails action (includes MLP regenerate).
 	if ( ! empty( $_REQUEST['action'] ) ) {
-		if ( 'regeneratethumbnail' === $_REQUEST['action'] ||
+		if (
+			'regeneratethumbnail' === $_REQUEST['action'] ||
+			'rta_regenerate_thumbnails' === $_REQUEST['action'] ||
 			'meauh_save_image' === $_REQUEST['action'] ||
 			'hotspot_save' === $_REQUEST['action']
 		) {
@@ -1011,14 +1014,13 @@ function ewww_image_optimizer_ajax_compat_check() {
 		ewww_image_optimizer_image_sizes( false );
 		return;
 	}
-	// Check for Image Regenerate and Select Crop (old way).
-	if ( ! empty( $_REQUEST['action'] ) && 0 === strpos( $_REQUEST['action'], 'sirsc' ) ) {
+	// Check for Image Regenerate and Select Crop (better way).
+	if ( defined( 'DOING_SIRSC' ) && DOING_SIRSC ) {
 		ewwwio_debug_message( 'IRSC action/regen' );
 		ewww_image_optimizer_image_sizes( false );
 		return;
-	}
-	// Check for Image Regenerate and Select Crop (better way).
-	if ( defined( 'DOING_SIRSC' ) && DOING_SIRSC ) {
+	} elseif ( ! empty( $_REQUEST['action'] ) && 0 === strpos( $_REQUEST['action'], 'sirsc' ) ) {
+		// Image Regenerate and Select Crop (old check).
 		ewwwio_debug_message( 'IRSC action/regen' );
 		ewww_image_optimizer_image_sizes( false );
 		return;
@@ -3607,7 +3609,7 @@ function ewww_image_optimizer_cloud_quota( $raw = false ) {
  */
 function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $newfile = null, $newtype = null, $fullsize = false, $jpg_fill = '', $jpg_quality = 82 ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( ! ewwwio_is_file( $file ) || ! is_writable( $file ) || false !== strpos( $file, '..' ) ) {
+	if ( ! ewwwio_is_file( $file ) || ! is_writable( $file ) || false !== strpos( $file, '../' ) ) {
 		return array( $file, false, 'invalid file', 0, '' );
 	}
 	if ( ! ewwwio_check_memory_available( filesize( $file ) * 2.2 ) ) { // 2.2 = upload buffer + download buffer (2) multiplied by a factor of 1.1 for extra wiggle room.
@@ -3959,7 +3961,7 @@ function ewww_image_optimizer_cloud_backup( $file ) {
 	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
 		return false;
 	}
-	if ( ! ewwwio_is_file( $file ) || ! is_readable( $file ) || false !== strpos( $file, '..' ) ) {
+	if ( ! ewwwio_is_file( $file ) || ! is_readable( $file ) || false !== strpos( $file, '../' ) ) {
 		return false;
 	}
 	if ( ! ewwwio_check_memory_available( filesize( $file ) * 1.1 ) ) { // 1.1 = upload buffer (filesize) multiplied by a factor of 1.1 for extra wiggle room.
@@ -6807,7 +6809,7 @@ function ewww_image_optimizer_png_alpha( $filename ) {
 	if ( ! ewwwio_is_file( $filename ) ) {
 		return false;
 	}
-	if ( false !== strpos( $filename, '..' ) ) {
+	if ( false !== strpos( $filename, '../' ) ) {
 		return false;
 	}
 	// Determine what color type is stored in the file.
@@ -8973,7 +8975,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			ewwwio_help_link( 'https://docs.ewww.io/article/16-ewww-io-and-webp-images', '5854745ac697912ffd6c1c89' ) .
 			"</th><td><span><input type='checkbox' id='ewww_image_optimizer_webp' name='ewww_image_optimizer_webp' value='true' " .
 			( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? "checked='true'" : '' ) . ' /> ' .
-			esc_html__( 'JPG to WebP conversion is lossy, but quality loss is minimal. PNG to WebP conversion is lossless unless premium compression is active.', 'ewww-image-optimizer' ) .
+			esc_html__( 'JPG to WebP conversion is lossy, but quality loss is minimal. PNG to WebP conversion is lossless.', 'ewww-image-optimizer' ) .
 			"</span>\n<p class='description'>" . esc_html__( 'Originals are never deleted, and WebP images should only be served to supported browsers.', 'ewww-image-optimizer' ) .
 			" <a href='#ewww-webp-rewrite'>" . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ? esc_html__( 'You can use the rewrite rules below to serve WebP images with Apache.', 'ewww-image-optimizer' ) : '' ) . "</a></td></tr>\n";
 		ewwwio_debug_message( 'webp conversion: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? 'on' : 'off' ) );

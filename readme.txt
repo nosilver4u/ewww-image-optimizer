@@ -8,7 +8,7 @@ Requires PHP: 5.6
 Stable tag: 5.1.1
 License: GPLv3
 
-Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
+Speed up your website to better connect with your visitors. Properly compress and size/scale images. Includes lazy load and WebP convert.
 
 == Description ==
 
@@ -173,6 +173,9 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 5.1.2 =
+* fixed: path traversal protection preventing normal files from optimizing
+
 = 5.1.1 =
 * fixed: no optimization when escapeshellarg() is disabled
 * fixed: warning thrown by implode() when JS WebP is enabled with no WebP URLs
@@ -202,35 +205,6 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: full-size image optimization not deferred if scaled by WP 5.3
 * fixed: data-width and data-height attributes missing when JS WebP active
 * security: rewrote escapeshellarg() wrapper to be more secure
-
-= 4.9.3 =
-* fixed: ExactDN incorrectly scales Elementor background images rather than cropping
-* fixed: ExactDN cannot work with Divi/Elementor background images due to use of external CSS files
-* fixed: JS WebP rewriting picture tags that already have WebP markup in Force WebP mode
-* fixed: JS WebP incorrectly parses GIF/SVG images in Force WebP mode
-* fixed: JS WebP does not support lazy load + infinite scroll
-* fixed: Lazy Load auto-scaling breaks if background image is enclosed in encoded quotes
-* fixed: GRAND FlaGallery integration broken by hook suffix change
-
-= 4.9.2 =
-* fixed: generating lazy load PNG placeholders with large heights causes 500 errors
-* fixed: error when importing media via WordPress Importer plugin
-* fixed: error with WP/LR Sync
-
-= 4.9.1 =
-* fixed: error on settings screen when JS WebP is enabled
-
-= 4.9.0 =
-* added: Lazy Load background image support for section elements
-* added: ExactDN background image support for li,span, and section elements
-* added: lazysizes print plugin, enable via EWWW_IMAGE_OPTIMIZER_LAZY_PRINT constant
-* added: compatibility with upcoming Easy Image Optimizer
-* changed: automatic compression disabled during WP/LR Sync with admin notice
-* changed: Lazy Load PNG placeholders capped at 1920px wide to prevent errors
-* changed: use ExactDN, when active, for Lazy Load PNG placeholders
-* changed: EWWW_MEMORY_LIMIT renamed to EIO_MEMORY_LIMIT for setting plugin memory limit
-* fixed: WebP test image not refreshing after inserting .htaccess rules
-* fixed: errors when manually adding lazysizes script
 
 = Earlier versions =
 Please refer to the separate changelog.txt file.

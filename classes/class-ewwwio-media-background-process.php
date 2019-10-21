@@ -491,7 +491,7 @@ class EWWWIO_Async_Request extends WP_Async_Request {
 	 * @return string The full file path, reconstructed using the upload folder for WP_CONTENT_DIR
 	 */
 	public function find_file( $file_path ) {
-		if ( false !== strpos( $file_path, '..' ) ) {
+		if ( false !== strpos( $file_path, '../' ) ) {
 			return false;
 		}
 		if ( ewwwio_is_file( $file_path ) ) {
