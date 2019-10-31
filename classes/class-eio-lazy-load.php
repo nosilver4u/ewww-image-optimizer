@@ -83,7 +83,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			}
 
 			// Filter early, so that others at the default priority take precendence.
-			add_filter( 'eio_use_lqip', array( $this, 'maybe_lqip' ), 9 );
 			add_filter( 'eio_use_piip', array( $this, 'maybe_piip' ), 9 );
 			add_filter( 'eio_use_siip', array( $this, 'maybe_siip' ), 9 );
 
@@ -223,22 +222,25 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						$this->set_attribute( $image, 'data-src', $file, true );
 						$srcset = $this->get_attribute( $image, 'srcset' );
 
+						$width_attr      = $this->get_attribute( $image, 'width' );
+						$height_attr     = $this->get_attribute( $image, 'height' );
 						$placeholder_src = $this->placeholder_src;
 						if ( false === strpos( $file, 'nggid' ) && ! preg_match( '#\.svg(\?|$)#', $file ) && apply_filters( 'eio_use_lqip', true, $file ) && $this->parsing_exactdn && strpos( $file, $this->exactdn_domain ) ) {
 							$this->debug_message( 'using lqip' );
-							list( $width, $height ) = $this->get_dimensions_from_filename( $file );
+							list( $width, $height ) = $this->get_dimensions_from_filename( $file, true );
 							if ( $width && $height && $width < 201 && $height < 201 ) {
 								$placeholder_src = $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $width . 'x' . $height . '.png' );
-							} else {
+							} elseif ( $this->get_option( $this->prefix . 'use_lqip' ) ) {
 								$placeholder_src = add_query_arg( array( 'lazy' => 1 ), $file );
+							} elseif ( $width && $height ) {
+								$placeholder_src = $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $width . 'x' . $height . '.png' );
+							} else {
+								$placeholder_src = add_query_arg( array( 'lazy' => 2 ), $file );
 							}
 						} elseif ( $this->allow_piip && $srcset && apply_filters( 'eio_use_piip', true, $file ) ) {
 							$this->debug_message( 'trying piip' );
 							// Get image dimensions for PNG placeholder.
-							list( $width, $height ) = $this->get_dimensions_from_filename( $file );
-
-							$width_attr  = $this->get_attribute( $image, 'width' );
-							$height_attr = $this->get_attribute( $image, 'height' );
+							list( $width, $height ) = $this->get_dimensions_from_filename( $file, $this->parsing_exactdn );
 
 							// Can't use a relative width or height, so unset the dimensions in favor of not breaking things.
 							if ( false !== strpos( $width_attr, '%' ) || false !== strpos( $height_attr, '%' ) ) {
@@ -260,8 +262,8 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 							}
 						} elseif ( apply_filters( 'eio_use_siip', true, $file ) ) {
 							$this->debug_message( 'trying siip' );
-							$width  = $this->get_attribute( $image, 'width' );
-							$height = $this->get_attribute( $image, 'height' );
+							$width  = $width_attr;
+							$height = $height_attr;
 
 							// Can't use a relative width or height, so unset the dimensions in favor of not breaking things.
 							if ( false !== strpos( $width, '%' ) || false !== strpos( $height, '%' ) ) {
@@ -574,11 +576,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 * @return bool True to use LQIP, false to skip them.
 		 */
 		function maybe_lqip( $use_lqip ) {
-			if ( defined( 'EWWW_IMAGE_OPTIMIZER_USE_LQIP' ) && ! EWWW_IMAGE_OPTIMIZER_USE_LQIP ) {
-				return false;
-			}
-			if ( defined( 'EASYIO_USE_LQIP' ) && ! EASYIO_USE_LQIP ) {
-				return false;
+			// TODO: Remove me!
+			if ( $this->get_option( $this->prefix . 'use_lqip' ) ) {
+				return true;
 			}
 			return $use_lqip;
 		}
@@ -620,6 +620,13 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 */
 		function no_js_css() {
 			echo '<noscript><style>.lazyload[data-src]{display:none !important;}</style></noscript>';
+			if ( ! $this->get_option( $this->prefix . 'use_lqip' ) ) {
+				$lazy_bg_style = (string) apply_filters(
+					'eio_lazy_load_gradient',
+					'<style>.lazyload,.lazyloading{background: rgb(187,187,187);background: linear-gradient(180deg, rgba(187,187,187,1) 0%, rgba(255,255,255,1) 100%);}</style>'
+				);
+				echo $lazy_bg_style;
+			}
 		}
 
 		/**

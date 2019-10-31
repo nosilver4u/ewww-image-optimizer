@@ -158,12 +158,31 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 		 * Try to determine height and width from strings WP appends to resized image filenames.
 		 *
 		 * @param string $src The image URL.
+		 * @param bool   $use_params Check ExactDN image parameters for additional size information. Default to false.
 		 * @return array An array consisting of width and height.
 		 */
-		function get_dimensions_from_filename( $src ) {
+		function get_dimensions_from_filename( $src, $use_params = false ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			$width_height_string = array();
 			$this->debug_message( "looking for dimensions in $src" );
+			$width_param  = false;
+			$height_param = false;
+			if ( $use_params && strpos( $src, '?' ) ) {
+				$url_params = urldecode( $this->parse_url( $src, PHP_URL_QUERY ) );
+				if ( $url_params && false !== strpos( $url_params, 'resize=' ) ) {
+					preg_match( '/resize=(\d+),(\d+)/', $url_params, $resize_matches );
+					if ( is_array( $resize_matches ) && ! empty( $resize_matches[1] ) && ! empty( $resize_matches[2] ) ) {
+						$width_param  = $resize_matches[1];
+						$height_param = $resize_matches[2];
+					}
+				} elseif ( false !== strpos( $url_params, 'fit=' ) ) {
+					preg_match( '/fit=(\d+),(\d+)/', $url_params, $fit_matches );
+					if ( is_array( $fit_matches ) && ! empty( $fit_matches[1] ) && ! empty( $fit_matches[2] ) ) {
+						$width_param  = $fit_matches[1];
+						$height_param = $fit_matches[2];
+					}
+				}
+			}
 			if ( preg_match( '#-(\d+)x(\d+)(@2x)?\.(?:' . implode( '|', $this->extensions ) . '){1}(?:\?.+)?$#i', $src, $width_height_string ) ) {
 				$width  = (int) $width_height_string[1];
 				$height = (int) $width_height_string[2];
@@ -173,11 +192,17 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 					$height = 2 * $height;
 				}
 				if ( $width && $height ) {
+					if ( $width_param && $width_param < $width ) {
+						$width = $width_param;
+					}
+					if ( $height_param && $height_param < $height ) {
+						$height = $height_param;
+					}
 					$this->debug_message( "found w$width h$height" );
 					return array( $width, $height );
 				}
 			}
-			return array( false, false );
+			return array( $width_param, $height_param ); // These may be false, unless URL parameters were found.
 		}
 
 		/**

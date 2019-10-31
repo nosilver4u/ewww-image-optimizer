@@ -2347,7 +2347,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( strpos( $image_url, 'easyio/lazy/placeholder' ) ) {
 				return array();
 			}
-			if ( strpos( $image_url, 'revslider/admin/assets/images/dummy.png' ) ) {
+			if ( strpos( $image_url, '/dummy.png' ) ) {
 				return array();
 			}
 			if ( strpos( $image_url, '/lazy.png' ) ) {

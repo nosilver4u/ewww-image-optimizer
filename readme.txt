@@ -175,7 +175,12 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 
 = 5.1.2 =
 * added: disable native lazy-load attributes with EWWWIO_DISABLE_NATIVE_LAZY
+* added: ability to choose LQIP or blank placeholders for lazy load
+* changed: renaming ExactDN as Easy IO
+* changed: default to blank placeholders with Easy IO
+* fixed: low-quality placeholders sometimes had larger dimensions than necessary
 * fixed: path traversal protection preventing normal files from optimizing
+* fixed: Slider Revolution dummy.png not properly handled by Easy IO
 
 = 5.1.1 =
 * fixed: no optimization when escapeshellarg() is disabled
