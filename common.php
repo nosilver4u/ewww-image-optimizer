@@ -84,6 +84,8 @@ if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
 	add_filter( 'mpp_handle_upload', 'ewww_image_optimizer_handle_mpp_upload' );
 	// Processes a MediaPress image via the metadata after upload.
 	add_filter( 'mpp_generate_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
+	// Processes an attachment after IRSC has done a thumb regen.
+	add_filter( 'sirsc_attachment_images_processed', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
 }
 // Skips resizing for images with 'noresize' in the filename.
 add_filter( 'ewww_image_optimizer_resize_dimensions', 'ewww_image_optimizer_noresize', 10, 2 );
@@ -143,6 +145,8 @@ add_action( 'admin_action_ewww_image_optimizer_manual_cloud_restore', 'ewww_imag
 add_action( 'admin_action_ewww_image_optimizer_manual_convert', 'ewww_image_optimizer_manual' );
 // Cleanup routine when an attachment is deleted.
 add_action( 'delete_attachment', 'ewww_image_optimizer_delete' );
+// Cleanup db records when Image Regenerate & Select Crop deletes a file.
+add_action( 'sirsc_image_file_deleted', 'ewww_image_optimizer_file_deleted', 10, 2 );
 // Adds the EWWW IO pages to the admin menu.
 add_action( 'admin_menu', 'ewww_image_optimizer_admin_menu', 60 );
 // Adds the EWWW IO settings to the network admin menu.
@@ -3217,8 +3221,10 @@ function ewww_image_optimizer_delete( $id ) {
 				if ( strpos( $image['path'], WP_CONTENT_DIR ) === false ) {
 					continue;
 				}
-				if ( ! empty( $image['path'] ) && ewwwio_is_file( $image['path'] ) ) {
-					unlink( $image['path'] );
+				if ( ! empty( $image['path'] ) ) {
+					if ( ewwwio_is_file( $image['path'] ) ) {
+						unlink( $image['path'] );
+					}
 					if ( ewwwio_is_file( $image['path'] . '.webp' ) ) {
 						unlink( $image['path'] . '.webp' );
 					}
@@ -3263,6 +3269,19 @@ function ewww_image_optimizer_delete( $id ) {
 			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
 		}
 	}
+	// If the attachment has an original file set.
+	if ( ! empty( $meta['original_image'] ) ) {
+		unset( $rows );
+		// Get the filepath from the metadata.
+		$file_path = $meta['original_image'];
+		// Get the base filename.
+		$filename = basename( $file_path );
+		// Delete any residual webp versions.
+		$webpfile = $filename . '.webp';
+		if ( ewwwio_is_file( $webpfile ) ) {
+			unlink( $webpfile );
+		}
+	}
 	// Remove the regular image from the ewwwio_images tables.
 	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
 	$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
@@ -3298,7 +3317,56 @@ function ewww_image_optimizer_delete( $id ) {
 		}
 	}
 	ewwwio_memory( __FUNCTION__ );
-	return;
+}
+
+/**
+ * Cleans up when a file has been deleted.
+ *
+ * Removes any .webp images, backups from conversion, and removes related database records.
+ *
+ * @global object $wpdb
+ * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
+ *
+ * @param int    $id The id number for the attachment being deleted.
+ * @param string $file The file being deleted.
+ */
+function ewww_image_optimizer_file_deleted( $id, $file ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	global $wpdb;
+	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+		ewww_image_optimizer_db_init();
+		global $ewwwdb;
+	} else {
+		$ewwwdb = $wpdb;
+	}
+	$id = (int) $id;
+	// Finds non-meta images to remove from disk, and from db, as well as converted originals.
+	$maybe_relative_path = ewww_image_optimizer_relativize_path( $file );
+	$query               = $ewwwdb->prepare( "SELECT * FROM $ewwwdb->ewwwio_images WHERE path = %s", $maybe_relative_path );
+	$optimized_images    = $ewwwdb->get_results( $query, ARRAY_A );
+	if ( ewww_image_optimizer_iterable( $optimized_images ) ) {
+		foreach ( $optimized_images as $image ) {
+			if ( ! empty( $image['path'] ) ) {
+				$image['path'] = ewww_image_optimizer_absolutize_path( $image['path'] );
+			}
+			if ( strpos( $image['path'], WP_CONTENT_DIR ) === false ) {
+				continue;
+			}
+			if ( ! empty( $image['converted'] ) ) {
+				$image['converted'] = ewww_image_optimizer_absolutize_path( $image['converted'] );
+			}
+			if ( ! empty( $image['converted'] ) && ewwwio_is_file( $image['converted'] ) ) {
+				unlink( $image['converted'] );
+				if ( ewwwio_is_file( $image['converted'] . '.webp' ) ) {
+					unlink( $image['converted'] . '.webp' );
+				}
+			}
+			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'id' => $image['id'] ) );
+		}
+	}
+	if ( ewwwio_is_file( $file . '.webp' ) ) {
+		unlink( $file . '.webp' );
+	}
 }
 
 /**
@@ -8703,7 +8771,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$output[] = "<div id='ewww-exactdn-settings'>\n";
 	$output[] = "<table class='form-table'>\n";
 	$output[] = '<noscript><h2>' . esc_html__( 'Easy Mode', 'ewww-image-optimizer' ) . '</h2></noscript>';
-	$output[] = '<p>' . esc_html__( 'Troubleshooting: If you experience any problems with Easy Mode, disable Lazy Load and Include All Resources. Finally, disable Easy IO if problems remain.', 'ewww-image-optimizer' ) . "<br>\n" .
+	$output[] = '<p>' . esc_html__( 'Having problems? Try disabling Lazy Load and Include All Resources. Finally, disable Easy IO if problems remain.', 'ewww-image-optimizer' ) . "<br>\n" .
 		"<a class='ewww-docs-root' href='https://ewww.io/contact-us/'>" . esc_html__( 'Then, let us know so we can find a fix for the problem.', 'ewww-image-optimizer' ) . "</a></p>\n";
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_exactdn'>" . esc_html__( 'Easy IO', 'ewww-image-optimizer' ) .
 		'</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/44-introduction-to-exactdn', '59bc5ad6042863033a1ce370,59de6631042863379ddc953c,59c44349042863033a1d06d3,5ada43a12c7d3a0e93678b8c,5a3d278a2c7d3a1943677b52,5a9868eb04286374f7087795,59de68482c7d3a40f0ed6035,592dd69b2c7d3a074e8aed5b' ) . "</th><td><input type='checkbox' id='ewww_image_optimizer_exactdn' name='ewww_image_optimizer_exactdn' value='true' " .
