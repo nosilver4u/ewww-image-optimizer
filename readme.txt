@@ -183,6 +183,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: database records and .webp images are not removed when Image Regenerate & Select Crop plugin deletes a thumbnail
 * fixed: path traversal protection preventing normal files from optimizing
 * fixed: Slider Revolution dummy.png not properly handled by Easy IO
+* updated: beacon code for integrated help functions
 
 = 5.1.1 =
 * fixed: no optimization when escapeshellarg() is disabled

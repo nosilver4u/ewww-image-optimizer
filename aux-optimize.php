@@ -42,39 +42,20 @@ function ewww_image_optimizer_aux_images() {
 	}
 	echo $output;
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
-		/* $help_instructions = esc_html__( 'Please turn on the Debugging option. Then copy and paste the Debug Information from the bottom of the settings page. This will allow us to assist you more quickly.', 'ewww-image-optimizer' ); */
+		$hs_prefill   = '';
 		$current_user = wp_get_current_user();
 		$help_email   = $current_user->user_email;
-		$hs_config    = array(
-			'color'             => '#3eadc9',
-			'icon'              => 'buoy',
-			'instructions'      => $help_instructions,
-			'poweredBy'         => false,
-			'showContactFields' => true,
-			'showSubject'       => true,
-			'topArticles'       => true,
-			'zIndex'            => 100000,
-		);
-		$hs_identify  = array(
-			'email' => utf8_encode( $help_email ),
-		);
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-			$eio_debug_array = explode( '<br>', $eio_debug );
-			$eio_debug_i     = 0;
-			foreach ( $eio_debug_array as $eio_debug_line ) {
-				$hs_identify[ 'debug_info_' . $eio_debug_i ] = $eio_debug_line;
-				$eio_debug_i++;
+			if ( ! empty( $eio_debug ) ) {
+				$hs_debug   = str_replace( array( "'", '<br>' ), array( '', '\n' ), $eio_debug );
+				$hs_prefill = "Beacon('prefill', { fields: [ {	id: 18778, value: '$hs_debug' } ] });";
 			}
 		}
 		?>
-<script type='text/javascript'>
-	!function(e,o,n){window.HSCW=o,window.HS=n,n.beacon=n.beacon||{};var t=n.beacon;t.userConfig={},t.readyQueue=[],t.config=function(e){this.userConfig=e},t.ready=function(e){this.readyQueue.push(e)},o.config={docs:{enabled:!0,baseUrl:"//ewwwio.helpscoutdocs.com/"},contact:{enabled:!0,formId:"af75cf17-310a-11e7-9841-0ab63ef01522"}};var r=e.getElementsByTagName("script")[0],c=e.createElement("script");c.type="text/javascript",c.async=!0,c.src="https://djtflbt20bdde.cloudfront.net/",r.parentNode.insertBefore(c,r)}(document,window.HSCW||{},window.HS||{});
-	HS.beacon.config(<?php echo json_encode( $hs_config ); ?>);
-	HS.beacon.ready(function() {
-		HS.beacon.identify(
-			<?php echo json_encode( $hs_identify ); ?>
-		);
-	});
+<script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
+<script type="text/javascript">
+	window.Beacon('init', 'aa9c3d3b-d4bc-4e9b-b6cb-f11c9f69da87');
+		<?php echo $hs_prefill; ?>
 </script>
 		<?php
 	}
