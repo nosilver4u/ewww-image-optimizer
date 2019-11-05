@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.0
 Tested up to: 5.3
 Requires PHP: 5.6
-Stable tag: 5.1.1
+Stable tag: 5.1.2
 License: GPLv3
 
 Speed up your website to better connect with your visitors. Properly compress and size/scale images. Includes lazy load and WebP convert.
@@ -183,7 +183,6 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: database records and .webp images are not removed when Image Regenerate & Select Crop plugin deletes a thumbnail
 * fixed: path traversal protection preventing normal files from optimizing
 * fixed: Slider Revolution dummy.png not properly handled by Easy IO
-* updated: beacon code for integrated help functions
 
 = 5.1.1 =
 * fixed: no optimization when escapeshellarg() is disabled

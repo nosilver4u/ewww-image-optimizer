@@ -38,26 +38,34 @@ jQuery(document).ready(function($) {
 		}
 	});
 	function HSregister() {
-		if (typeof(window.Beacon) !== 'undefined' ) {
+		if (typeof(HS) !== 'undefined' ) {
 			$('.ewww-overrides-nav').click(function() {
-				event.preventDefault();
-				Beacon('article', '59710ce4042863033a1b45a6');
+				HS.beacon.ready(function() {
+					event.preventDefault();
+					HS.beacon.show('59710ce4042863033a1b45a6');
+				});
 			});
 			$('.ewww-docs-root').click(function() {
-				event.preventDefault();
-				Beacon('open');
+				HS.beacon.ready(function() {
+					event.preventDefault();
+					HS.beacon.open();
+				});
 			});
 			$('.ewww-help-beacon-multi').click(function() {
 				var hsids = $(this).attr('data-beacon-articles');
 				hsids = hsids.split(',');
-				event.preventDefault();
-				Beacon('suggest', hsids);
-				Beacon('open');
+				HS.beacon.ready(function() {
+					event.preventDefault();
+					HS.beacon.suggest(hsids);
+					HS.beacon.open();
+				});
 			});
 			$('.ewww-help-beacon-single').click(function() {
 				var hsid = $(this).attr('data-beacon-article');
-				event.preventDefault();
-				Beacon('article', hsid);
+				HS.beacon.ready(function() {
+					event.preventDefault();
+					HS.beacon.show(hsid);
+				});
 			});
 		}
 	}

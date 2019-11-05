@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '511.14' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '512.0' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -8686,7 +8686,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			}
 			echo '</table></div><!-- end container general settings -->';
 			echo "<p class='submit'><input type='submit' class='button-primary' value='" . esc_attr__( 'Save Changes', 'ewww-image-optimizer' ) . "' /></p>\n";
-			echo '</form></div><!-- end container left --></div><!-- end container wrap -->';
+			echo '</form></div><!-- end container wrap -->';
 			ewww_image_optimizer_temp_debug_clear();
 			return;
 		}
@@ -9215,17 +9215,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$test_png_image  = plugins_url( '/images/test.png', __FILE__ );
 		$output[]        = "<noscript  data-img='$test_png_image' data-webp='$test_webp_image' data-style='float: right; padding: 0 0 10px 10px;' class='ewww_webp'><img src='$test_png_image' style='float: right; padding: 0 0 10px 10px;'></noscript>\n";
 	}
-	$output[] = "<!--</div>--><!-- end container left -->\n";
-	$output[] = "<!--<div id='ewww-container-right' style='border: 1px solid #e5e5e5; float: right; margin-left: -215px; padding: 0em 1.5em 1em; background-color: #fff; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04); display: inline-block; width: 174px;'>\n" .
-		'<h2>' . esc_html__( 'Support EWWW I.O.', 'ewww-image-optimizer' ) . "</h2>\n" .
-		"<p><a href='https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/'>" . esc_html__( 'Help translate EWWW I.O.', 'ewww-image-optimizer' ) . "</a></p>\n" .
-		"<p><a href='https://wordpress.org/support/view/plugin-reviews/ewww-image-optimizer#postform'>" . esc_html__( 'Write a review.', 'ewww-image-optimizer' ) . "</a></p>\n" .
-		'<p>' . esc_html__( 'Signup for premium image optimization:', 'ewww-image-optimizer' ) . "<br>\n" .
-		"<a target='_blank' href='https://ewww.io/plans/'>" . esc_html__( 'Compress', 'ewww-image-optimizer' ) . "</a><br>\n" .
-		"<a target='_blank' href='https://ewww.io/resize/'>" . esc_html__( 'Resize', 'ewww-image-optimizer' ) . "</a></p>\n" .
-		'<p><b>' . esc_html_x( 'CDN:', 'abbreviation for Content Delivery Network', 'ewww-image-optimizer' ) . "</b><br><a target='_blank' href='https://ewww.io/resize/'>" . esc_html__( 'Add Easy IO to increase website speeds dramatically!', 'ewww-image-optimizer' ) . "</a></p>\n" .
-		"</div>-->\n" .
-		"</div>\n";
+	$output[] = "</div><!-- end container wrap -->\n";
 	ewwwio_debug_message( 'max_execution_time: ' . ini_get( 'max_execution_time' ) );
 	ewww_image_optimizer_stl_check();
 	ewww_image_optimizer_function_exists( 'sleep', true );
@@ -9256,7 +9246,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 
 	echo $output;
 
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
+	if ( false && ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
 		$current_user = wp_get_current_user();
 		$help_email   = $current_user->user_email;
 		if ( ! empty( $eio_debug ) ) {
@@ -9267,12 +9257,47 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 <script type="text/javascript">
 	window.Beacon('init', 'aa9c3d3b-d4bc-4e9b-b6cb-f11c9f69da87');
 	Beacon( 'prefill', {
-		fields: [
-			{
-				id: 18778, // Debug Info field ID.
-				value: '<?php echo $hs_debug; ?>',
-			},
-		],
+		email: '<?php echo utf8_encode( $help_email ); ?>',
+	});
+	Beacon( 'session-data', {
+		'Debug Info': '<?php echo $hs_debug; ?>',
+	});
+</script>
+		<?php
+	}
+	$help_instructions = esc_html__( 'Debugging information will be included with your message automatically.', 'ewww-image-optimizer' );
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
+		$current_user = wp_get_current_user();
+		$help_email   = $current_user->user_email;
+		$hs_config    = array(
+			'color'             => '#3eadc9',
+			'icon'              => 'buoy',
+			'instructions'      => $help_instructions,
+			'poweredBy'         => false,
+			'showContactFields' => true,
+			'showSubject'       => true,
+			'topArticles'       => true,
+			'zIndex'            => 100000,
+		);
+		$hs_identify  = array(
+			'email' => utf8_encode( $help_email ),
+		);
+		if ( ! empty( $eio_debug ) ) {
+			$eio_debug_array = explode( '<br>', $eio_debug );
+			$eio_debug_i     = 0;
+			foreach ( $eio_debug_array as $eio_debug_line ) {
+				$hs_identify[ 'debug_info_' . $eio_debug_i ] = $eio_debug_line;
+				$eio_debug_i++;
+			}
+		}
+		?>
+<script type='text/javascript'>
+	!function(e,o,n){window.HSCW=o,window.HS=n,n.beacon=n.beacon||{};var t=n.beacon;t.userConfig={},t.readyQueue=[],t.config=function(e){this.userConfig=e},t.ready=function(e){this.readyQueue.push(e)},o.config={docs:{enabled:!0,baseUrl:"//ewwwio.helpscoutdocs.com/"},contact:{enabled:!0,formId:"af75cf17-310a-11e7-9841-0ab63ef01522"}};var r=e.getElementsByTagName("script")[0],c=e.createElement("script");c.type="text/javascript",c.async=!0,c.src="https://djtflbt20bdde.cloudfront.net/",r.parentNode.insertBefore(c,r)}(document,window.HSCW||{},window.HS||{});
+	HS.beacon.config(<?php echo json_encode( $hs_config ); ?>);
+	HS.beacon.ready(function() {
+		HS.beacon.identify(
+			<?php echo json_encode( $hs_identify ); ?>
+		);
 	});
 </script>
 		<?php
