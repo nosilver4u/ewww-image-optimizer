@@ -199,7 +199,7 @@ class EWWWIO_Tracking {
 		$this->setup_data();
 		ewwwio_debug_message( 'sending site data' );
 		$request = wp_remote_post(
-			'https://stats.exactlywww.com/stats/report.php',
+			'https://optimize.exactlywww.com/stats/report.php',
 			array(
 				'timeout'    => 5,
 				'body'       => $this->data,

@@ -85,6 +85,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			// Filter early, so that others at the default priority take precendence.
 			add_filter( 'eio_use_piip', array( $this, 'maybe_piip' ), 9 );
 			add_filter( 'eio_use_siip', array( $this, 'maybe_siip' ), 9 );
+			add_filter( 'eio_lazy_load_gradient', array( $this, 'maybe_ll_gradient' ), 11 );
 
 			// Overrides for admin-ajax images.
 			add_filter( 'eio_allow_admin_lazyload', array( $this, 'allow_admin_lazyload' ) );
@@ -300,7 +301,10 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						} else {
 							$this->set_attribute( $image, 'src', $placeholder_src, true );
 						}
-						if ( ! defined( 'EWWWIO_DISABLE_NATIVE_LAZY' ) || ! EWWWIO_DISABLE_NATIVE_LAZY ) {
+						if (
+							( ! defined( 'EWWWIO_DISABLE_NATIVE_LAZY' ) || ! EWWWIO_DISABLE_NATIVE_LAZY ) &&
+							( ! defined( 'EASYIO_DISABLE_NATIVE_LAZY' ) || ! EASYIO_DISABLE_NATIVE_LAZY )
+						) {
 							$this->set_attribute( $image, 'loading', 'lazy' );
 						}
 						$this->set_attribute( $image, 'class', $this->get_attribute( $image, 'class' ) . ' lazyload', true );
@@ -570,20 +574,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		}
 
 		/**
-		 * Check if LQIP should be used, but allow filters to alter the option.
-		 *
-		 * @param bool $use_lqip Whether LL should use low-quality image placeholders.
-		 * @return bool True to use LQIP, false to skip them.
-		 */
-		function maybe_lqip( $use_lqip ) {
-			// TODO: Remove me!
-			if ( $this->get_option( $this->prefix . 'use_lqip' ) ) {
-				return true;
-			}
-			return $use_lqip;
-		}
-
-		/**
 		 * Check if PIIP should be used, but allow filters to alter the option.
 		 *
 		 * @param bool $use_piip Whether LL should use PNG inline image placeholders.
@@ -613,6 +603,19 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				return false;
 			}
 			return $use_siip;
+		}
+
+		/**
+		 * Check if the override for Lazy Load gradient is in effect.
+		 *
+		 * @param string $style An inline CSS element, with a gradient by default.
+		 * @return string An empty string if the override is defined.
+		 */
+		function maybe_ll_gradient( $style ) {
+			if ( defined( 'EIO_NO_LAZY_GRADIENT' ) && EIO_NO_LAZY_GRADIENT ) {
+				return '';
+			}
+			return (string) $style;
 		}
 
 		/**

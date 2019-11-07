@@ -173,6 +173,9 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 5.1.3 =
+* added: Lazy Load gradient can be disabled with EIO_NO_LAZY_GRADIENT set to true
+
 = 5.1.2 =
 * added: disable native lazy-load attributes with EWWWIO_DISABLE_NATIVE_LAZY
 * added: ability to choose LQIP or blank placeholders for lazy load
