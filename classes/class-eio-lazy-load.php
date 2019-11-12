@@ -85,7 +85,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			// Filter early, so that others at the default priority take precendence.
 			add_filter( 'eio_use_piip', array( $this, 'maybe_piip' ), 9 );
 			add_filter( 'eio_use_siip', array( $this, 'maybe_siip' ), 9 );
-			add_filter( 'eio_lazy_load_gradient', array( $this, 'maybe_ll_gradient' ), 11 );
 
 			// Overrides for admin-ajax images.
 			add_filter( 'eio_allow_admin_lazyload', array( $this, 'allow_admin_lazyload' ) );
@@ -606,30 +605,10 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		}
 
 		/**
-		 * Check if the override for Lazy Load gradient is in effect.
-		 *
-		 * @param string $style An inline CSS element, with a gradient by default.
-		 * @return string An empty string if the override is defined.
-		 */
-		function maybe_ll_gradient( $style ) {
-			if ( defined( 'EIO_NO_LAZY_GRADIENT' ) && EIO_NO_LAZY_GRADIENT ) {
-				return '';
-			}
-			return (string) $style;
-		}
-
-		/**
 		 * Adds a small CSS block to hide lazyload elements for no-JS browsers.
 		 */
 		function no_js_css() {
 			echo '<noscript><style>.lazyload[data-src]{display:none !important;}</style></noscript>';
-			if ( ! $this->get_option( $this->prefix . 'use_lqip' ) ) {
-				$lazy_bg_style = (string) apply_filters(
-					'eio_lazy_load_gradient',
-					'<style>.lazyload,.lazyloading{background: rgb(187,187,187);background: linear-gradient(180deg, rgba(187,187,187,1) 0%, rgba(255,255,255,1) 100%);}</style>'
-				);
-				echo $lazy_bg_style;
-			}
 		}
 
 		/**

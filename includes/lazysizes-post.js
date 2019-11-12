@@ -17,14 +17,14 @@ function constrainSrc(url,objectWidth,objectHeight,objectType){
 		}
 		var resultW = regW.exec(url);
 		if(resultW && objectWidth <= resultW[1]){
-			if('bg-cover'===objectType){
+			if('bg-cover'===objectType || 'img-scale'===objectType){
 				return url.replace(regW, 'resize=' + objectWidth + ',' + objectHeight );
 			}
 			return url.replace(regW, 'w=' + objectWidth);
 		}
 		var resultFit = regFit.exec(decUrl);
 		if(resultFit && objectWidth < resultFit[1]){
-			if('bg-cover'===objectType){
+			if('bg-cover'===objectType || 'img-scale'===objectType){
 				return url.replace(regW, 'resize=' + objectWidth + ',' + objectHeight );
 			}
 			return decUrl.replace(regFit, 'fit=' + objectWidth + ',' + objectHeight);
@@ -33,7 +33,7 @@ function constrainSrc(url,objectWidth,objectHeight,objectType){
 			if('img'===objectType){
 				return url + '&fit=' + objectWidth + ',' + objectHeight;
 			}
-			if('bg-cover'===objectType){
+			if('bg-cover'===objectType || 'img-scale'===objectType){
 				return url + '?resize=' + objectWidth + ',' + objectHeight;
 			}
 			if(objectHeight>objectWidth){
@@ -46,7 +46,7 @@ function constrainSrc(url,objectWidth,objectHeight,objectType){
 		if('img'===objectType){
 			return url + '?fit=' + objectWidth + ',' + objectHeight;
 		}
-		if('bg-cover'===objectType){
+		if('bg-cover'===objectType || 'img-scale'===objectType){
 			return url + '?resize=' + objectWidth + ',' + objectHeight;
 		}
 		if(objectHeight>objectWidth){
@@ -84,7 +84,11 @@ document.addEventListener('lazybeforeunveil', function(e){
 					//console.log('using data-src-webp');
 					src = webpsrc;
 				}
-				var newSrc = constrainSrc(src,targetWidth,targetHeight,'img');
+				if (window.lazySizes.hC(target,'et_pb_jt_filterable_grid_item_image')) {
+					var newSrc = constrainSrc(src,targetWidth,targetHeight,'img-scale');
+				} else {
+					var newSrc = constrainSrc(src,targetWidth,targetHeight,'img');
+				}
 				if (newSrc && src != newSrc){
 					target.setAttribute('data-src', newSrc);
 				}

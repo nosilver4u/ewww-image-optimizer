@@ -1203,6 +1203,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 							$args['w'] = apply_filters( 'exactdn_full_align_bgimage_width', 1920, $bg_image_url );
 						} elseif ( false !== strpos( $element_class, 'alignwide' ) && current_theme_supports( 'align-wide' ) ) {
 							$args['w'] = apply_filters( 'exactdn_wide_align_bgimage_width', 1500, $bg_image_url );
+						} elseif ( false !== strpos( $element_class, 'et_parallax_bg' ) ) {
+							$args['w'] = apply_filters( 'exactdn_et_parallax_bgimage_width', 1920, $bg_image_url );
 						} elseif ( 'div' === $tag_type && $content_width ) {
 							$args['w'] = apply_filters( 'exactdn_content_bgimage_width', $content_width, $bg_image_url );
 						}
