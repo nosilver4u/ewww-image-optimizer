@@ -844,8 +844,8 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 			$upload_dir = wp_upload_dir();
 			// Retrieve the path of the upload folder.
 			$upload_path = $upload_dir['basedir'];
-			$this_month  = date( 'm' );
-			$this_year   = date( 'Y' );
+			$this_month  = gmdate( 'm' );
+			$this_year   = gmdate( 'Y' );
 			ewww_image_optimizer_image_scan( "$upload_path/$this_year/$this_month/", $started );
 			if ( class_exists( 'DateTime' ) ) {
 				$date = new DateTime();

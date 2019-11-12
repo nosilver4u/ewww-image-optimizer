@@ -86,7 +86,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			if ( ! empty( $eio_debug ) && empty( $ewwwio_temp_debug ) && empty( $easyio_temp_debug ) && $debug_enabled && is_writable( $this->content_dir ) ) {
 				$memory_limit = $this->memory_limit();
 				clearstatcache();
-				$timestamp = date( 'Y-m-d H:i:s' ) . "\n";
+				$timestamp = gmdate( 'Y-m-d H:i:s' ) . "\n";
 				if ( ! file_exists( $debug_log ) ) {
 					touch( $debug_log );
 				} else {

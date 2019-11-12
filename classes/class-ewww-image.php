@@ -866,7 +866,7 @@ class EWWW_Image {
 						'orig_size'     => filesize( $new_path ),
 						'attachment_id' => $this->attachment_id,
 						'results'       => __( 'No savings', 'ewww-image-optimizer' ),
-						'updated'       => date( 'Y-m-d H:i:s' ),
+						'updated'       => gmdate( 'Y-m-d H:i:s' ),
 						'updates'       => 0,
 					)
 				);

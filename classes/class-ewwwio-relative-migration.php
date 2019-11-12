@@ -75,7 +75,7 @@ class EWWWIO_Relative_Migration {
 		$this->started = time();
 		$this->offset  = (int) get_option( 'ewww_image_optimizer_relative_migration_offset' );
 		$records       = $this->get_records();
-		ewwwio_debug_message( 'starting at ' . date( 'Y-m-d H:i:s', $this->started ) . " with offset $this->offset" );
+		ewwwio_debug_message( 'starting at ' . gmdate( 'Y-m-d H:i:s', $this->started ) . " with offset $this->offset" );
 		while ( ! empty( $records ) ) {
 			foreach ( $records as $record ) {
 				if ( $this->already_migrated( $record['path'] ) ) {
