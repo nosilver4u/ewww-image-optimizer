@@ -869,8 +869,8 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 			$usage = ewww_image_optimizer_cloud_quota( true );
 		}
 		ewwwio_memory( __FUNCTION__ );
-		/* translators: %d: number of images */
-		$ready_msg = sprintf( esc_html( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', $image_count, 'ewww-image-optimizer' ) ), $image_count );
+		/* translators: %s: number of images */
+		$ready_msg = sprintf( esc_html( _n( 'There is %s image ready to optimize.', 'There are %s images ready to optimize.', $image_count, 'ewww-image-optimizer' ) ), '<strong>' . number_format_i18n( $image_count ) . '</strong>' );
 		if ( is_array( $usage ) && ! $usage['metered'] ) {
 			$credits_available = $usage['licensed'] - $usage['consumed'];
 			if ( $credits_available < $image_count ) {
@@ -884,8 +884,10 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 		die(
 			ewwwio_json_encode(
 				array(
-					'ready'   => $image_count,
-					'message' => $ready_msg,
+					'ready'        => $image_count,
+					'message'      => $ready_msg,
+					/* translators: %s: number of images */
+					'start_button' => sprintf( esc_attr__( 'Optimize %s images', 'ewww-image-optimizer' ), number_format_i18n( $image_count ) ),
 				)
 			)
 		);

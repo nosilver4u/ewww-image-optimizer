@@ -1201,6 +1201,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						$element_class = $this->get_attribute( $element, 'class' );
 						if ( false !== strpos( $element_class, 'alignfull' ) && current_theme_supports( 'align-wide' ) ) {
 							$args['w'] = apply_filters( 'exactdn_full_align_bgimage_width', 1920, $bg_image_url );
+						} elseif ( false !== strpos( $element_class, 'wp-block-cover' ) && false !== strpos( $element_class, 'has-parallax' ) ) {
+							$args['w'] = apply_filters( 'exactdn_wp_cover_parallax_bgimage_width', 1920, $bg_image_url );
 						} elseif ( false !== strpos( $element_class, 'alignwide' ) && current_theme_supports( 'align-wide' ) ) {
 							$args['w'] = apply_filters( 'exactdn_wide_align_bgimage_width', 1500, $bg_image_url );
 						} elseif ( false !== strpos( $element_class, 'et_parallax_bg' ) ) {

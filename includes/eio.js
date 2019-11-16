@@ -375,24 +375,20 @@ jQuery(document).ready(function($) {
 				} else if ( ewww_response.ready ) {
 					ewww_attachments = ewww_response.ready;
 					if (ewww_attachments == 0) {
-					//	$('#ewww-bulk-loading').hide();
 						$('#ewww-scanning').hide();
 						$('#ewww-nothing').show();
 						if ( ewww_tiny_skip ) {
 							$('#ewww-nothing').append( '<br><i>' + ewww_tiny_skip + '</i>' );
 							console.log( 'done, skipped some tiny images' );
 						}
-						//$('#ewww-aux-start').show();
-						//$('#ewww-aux-again').show();
-						//$('#ewww-aux-first').hide();
 					} else {
 						$('#ewww-scanning').html(ewww_response.message);
 						if ( ewww_tiny_skip ) {
 							$('#ewww-scanning').append( '<br><i>' + ewww_tiny_skip + '</i>' );
 							console.log( 'done, skipped some tiny images' );
 						}
+						$('#ewww-bulk-first').val(ewww_response.start_button);
 						$('#ewww-bulk-start').show();
-	//					ewwwStartOpt();
 					}
 				}
 		        })
