@@ -172,14 +172,14 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 				if ( $url_params && false !== strpos( $url_params, 'resize=' ) ) {
 					preg_match( '/resize=(\d+),(\d+)/', $url_params, $resize_matches );
 					if ( is_array( $resize_matches ) && ! empty( $resize_matches[1] ) && ! empty( $resize_matches[2] ) ) {
-						$width_param  = $resize_matches[1];
-						$height_param = $resize_matches[2];
+						$width_param  = (int) $resize_matches[1];
+						$height_param = (int) $resize_matches[2];
 					}
 				} elseif ( false !== strpos( $url_params, 'fit=' ) ) {
 					preg_match( '/fit=(\d+),(\d+)/', $url_params, $fit_matches );
 					if ( is_array( $fit_matches ) && ! empty( $fit_matches[1] ) && ! empty( $fit_matches[2] ) ) {
-						$width_param  = $fit_matches[1];
-						$height_param = $fit_matches[2];
+						$width_param  = (int) $fit_matches[1];
+						$height_param = (int) $fit_matches[2];
 					}
 				}
 			}

@@ -175,6 +175,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 
 = 5.1.3 =
 * added: better compatibility with Divi filterable grid images and parallax backgrounds
+* added: cleanup .webp and database records when using Enable Media Replace
 * fixed: Divi builder will not load with Easy IO and Include All Resources active
 * fixed: image cover block with fixed width scaled too much
 * removed: Lazy Load CSS gradient for blank placeholders

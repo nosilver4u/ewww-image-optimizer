@@ -146,6 +146,8 @@ add_action( 'admin_action_ewww_image_optimizer_manual_cloud_restore', 'ewww_imag
 add_action( 'admin_action_ewww_image_optimizer_manual_convert', 'ewww_image_optimizer_manual' );
 // Cleanup routine when an attachment is deleted.
 add_action( 'delete_attachment', 'ewww_image_optimizer_delete' );
+// Cleanup db records when Enable Media Replace replaces a file.
+add_action( 'wp_handle_replace', 'ewww_image_optimizer_media_replace' );
 // Cleanup db records when Image Regenerate & Select Crop deletes a file.
 add_action( 'sirsc_image_file_deleted', 'ewww_image_optimizer_file_deleted', 10, 2 );
 // Adds the EWWW IO pages to the admin menu.
@@ -3239,14 +3241,13 @@ function ewww_image_optimizer_delete( $id ) {
 	$meta = wp_get_attachment_metadata( $id );
 	// If the attachment has an original file set.
 	if ( ! empty( $meta['orig_file'] ) ) {
-		unset( $rows );
 		// Get the filepath from the metadata.
 		$file_path = $meta['orig_file'];
 		// Get the base filename.
 		$filename = basename( $file_path );
 		// Delete any residual webp versions.
-		$webpfile    = $filename . '.webp';
-		$webpfileold = preg_replace( '/\.\w+$/', '.webp', $filename );
+		$webpfile    = $file_path . '.webp';
+		$webpfileold = preg_replace( '/\.\w+$/', '.webp', $file_path );
 		if ( ewwwio_is_file( $webpfile ) ) {
 			unlink( $webpfile );
 		}
@@ -3262,21 +3263,21 @@ function ewww_image_optimizer_delete( $id ) {
 			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
 		}
 	}
+	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
 	// If the attachment has an original file set.
 	if ( ! empty( $meta['original_image'] ) ) {
-		unset( $rows );
-		// Get the filepath from the metadata.
-		$file_path = $meta['original_image'];
-		// Get the base filename.
-		$filename = basename( $file_path );
+		// One way or another, $file_path is now set, and we can get the base folder name.
+		$base_dir = dirname( $file_path ) . '/';
+		// Get the original filename from the metadata.
+		$orig_path = $base_dir . basename( $meta['original_image'] );
 		// Delete any residual webp versions.
-		$webpfile = $filename . '.webp';
+		$webpfile = $orig_path . '.webp';
 		if ( ewwwio_is_file( $webpfile ) ) {
 			unlink( $webpfile );
 		}
+		$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $orig_path ) ) );
 	}
 	// Remove the regular image from the ewwwio_images tables.
-	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
 	$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
 	// Resized versions, so we can continue.
 	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
@@ -3359,6 +3360,108 @@ function ewww_image_optimizer_file_deleted( $id, $file ) {
 	}
 	if ( ewwwio_is_file( $file . '.webp' ) ) {
 		unlink( $file . '.webp' );
+	}
+}
+
+/**
+ * Cleans records from database when an image is being replaced.
+ *
+ * @param array $image An array with the attachment/image ID.
+ */
+function ewww_image_optimizer_media_replace( $image ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	global $wpdb;
+	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+		ewww_image_optimizer_db_init();
+		global $ewwwdb;
+	} else {
+		$ewwwdb = $wpdb;
+	}
+	$id = (int) $image['post_id'];
+	// Finds non-meta images to remove from disk, and from db, as well as converted originals.
+	$optimized_images = $ewwwdb->get_results( "SELECT path,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media'", ARRAY_A );
+	if ( $optimized_images ) {
+		if ( ewww_image_optimizer_iterable( $optimized_images ) ) {
+			foreach ( $optimized_images as $image ) {
+				if ( ! empty( $image['path'] ) ) {
+					$image['path'] = ewww_image_optimizer_absolutize_path( $image['path'] );
+				}
+				if ( strpos( $image['path'], WP_CONTENT_DIR ) === false ) {
+					continue;
+				}
+				if ( ! empty( $image['path'] ) ) {
+					if ( ewwwio_is_file( $image['path'] . '.webp' ) ) {
+						unlink( $image['path'] . '.webp' );
+					}
+				}
+				if ( ! empty( $image['converted'] ) ) {
+					$image['converted'] = ewww_image_optimizer_absolutize_path( $image['converted'] );
+				}
+				if ( ! empty( $image['converted'] ) && ewwwio_is_file( $image['converted'] ) ) {
+					unlink( $image['converted'] );
+					if ( ewwwio_is_file( $image['converted'] . '.webp' ) ) {
+						unlink( $image['converted'] . '.webp' );
+					}
+				}
+			}
+		}
+		$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'attachment_id' => $id ) );
+	}
+	// Retrieve the image metadata.
+	$meta = wp_get_attachment_metadata( $id );
+	// If the attachment has an original file set.
+	if ( ! empty( $meta['orig_file'] ) ) {
+		// Get the filepath from the metadata.
+		$file_path = $meta['orig_file'];
+
+		$webpfile    = $file_path . '.webp';
+		$webpfileold = preg_replace( '/\.\w+$/', '.webp', $file_path );
+		if ( ewwwio_is_file( $webpfile ) ) {
+			unlink( $webpfile );
+		}
+		if ( ewwwio_is_file( $webpfileold ) ) {
+			unlink( $webpfileold );
+		}
+		$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
+	}
+	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
+	// If the attachment has an original file set.
+	if ( ! empty( $meta['original_image'] ) ) {
+		// One way or another, $file_path is now set, and we can get the base folder name.
+		$base_dir = dirname( $file_path ) . '/';
+		// Get the original filename from the metadata.
+		$orig_path = $base_dir . basename( $meta['original_image'] );
+		// Delete any residual webp versions.
+		$webpfile = $orig_path . '.webp';
+		if ( ewwwio_is_file( $webpfile ) ) {
+			unlink( $webpfile );
+		}
+		$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $orig_path ) ) );
+	}
+	// Remove the regular image from the ewwwio_images tables.
+	$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
+	// Resized versions, so we can continue.
+	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
+		// One way or another, $file_path is now set, and we can get the base folder name.
+		$base_dir = dirname( $file_path ) . '/';
+		foreach ( $meta['sizes'] as $size => $data ) {
+			// Delete any residual webp versions.
+			$webpfile    = $base_dir . $data['file'] . '.webp';
+			$webpfileold = preg_replace( '/\.\w+$/', '.webp', $base_dir . $data['file'] );
+			if ( ewwwio_is_file( $webpfile ) ) {
+				unlink( $webpfile );
+			}
+			if ( ewwwio_is_file( $webpfileold ) ) {
+				unlink( $webpfileold );
+			}
+			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['file'] ) ) );
+			// If the original resize is set, and still exists.
+			if ( ! empty( $data['orig_file'] ) ) {
+				// Retrieve the filename from the metadata.
+				$filename = $data['orig_file'];
+				$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize( $base_dir . $data['orig_file'] ) ) );
+			}
+		}
 	}
 }
 

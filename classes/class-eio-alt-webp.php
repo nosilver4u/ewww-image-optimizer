@@ -385,8 +385,6 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			return $buffer;
 		}
 
-		/* TODO: detect non-utf8 encoding and convert the buffer (if necessary). */
-
 		$images = $this->get_images_from_html( preg_replace( '/<noscript.*?\/noscript>/s', '', $buffer ), false );
 		if ( ! empty( $images[0] ) && $this->is_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
