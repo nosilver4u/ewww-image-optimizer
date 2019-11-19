@@ -148,13 +148,13 @@ function ewww_image_optimizer_bulk_preview() {
 			if ( ! empty( $_REQUEST['ids'] ) && ( preg_match( '/^[\d,]+$/', $_REQUEST['ids'] ) || is_numeric( $_REQUEST['ids'] ) ) ) {
 				echo '<p class="ewww-media-info ewww-bulk-info">' .
 					/* translators: %1$s: number of images %2$d: number of registered image sizes */
-					sprintf( esc_html( _n( '%1$s item in the Media Library has been selected with up to %2$d image files per upload.', '%1$s items in the Media Library have been selected with up to %2$d image files per upload.', $fullsize_count, 'ewww-image-optimizer' ) ), number_format_i18n( $fullsize_count ), $resize_count ) .
+					sprintf( esc_html( _n( '%1$s uploaded item in the Media Library has been selected with up to %2$d image files per upload.', '%1$s uploaded items in the Media Library have been selected with up to %2$d image files per upload.', $fullsize_count, 'ewww-image-optimizer' ) ), number_format_i18n( $fullsize_count ), $resize_count ) .
 					' ' . esc_html__( 'The total number of images found will be displayed before optimization begins.', 'ewww-image-optimizer' ) .
 					'</p>';
 			} else {
 				echo '<p class="ewww-media-info ewww-bulk-info">' .
 					/* translators: %1$s: number of images %2$d: number of registered image sizes */
-					sprintf( esc_html( _n( '%1$s item in the Media Library has been selected with up to %2$d image files per upload.', '%1$s items in the Media Library have been selected with up to %2$d image files per upload.', $fullsize_count, 'ewww-image-optimizer' ) ), number_format_i18n( $fullsize_count ), $resize_count ) .
+					sprintf( esc_html( _n( '%1$s uploaded item in the Media Library has been selected with up to %2$d image files per upload.', '%1$s uploaded items in the Media Library have been selected with up to %2$d image files per upload.', $fullsize_count, 'ewww-image-optimizer' ) ), number_format_i18n( $fullsize_count ), $resize_count ) .
 					' ' . esc_html__( 'The total number of images found will be displayed before optimization begins.', 'ewww-image-optimizer' ) .
 					'<br />' .
 					esc_html__( 'The active theme, BuddyPress, WP Symposium, and folders that you have configured will also be scanned for unoptimized images.', 'ewww-image-optimizer' ) .
@@ -277,11 +277,11 @@ function ewww_image_optimizer_bulk_action_output( $button_text, $fullsize_count,
  */
 function ewww_image_optimizer_bulk_reset_form_output() {
 	?>
-		<p class="ewww-media-info ewww-bulk-info" style="margin-top:3em;"><?php esc_html_e( 'Would like to start over and rescan for images?', 'ewww-image-optimizer' ); ?></p>
+		<p class="ewww-media-info ewww-bulk-info" style="margin-top:3em;"><?php esc_html_e( 'Would like to clear the queue and rescan for images?', 'ewww-image-optimizer' ); ?></p>
 		<form class="ewww-bulk-form" method="post" action="">
 			<?php wp_nonce_field( 'ewww-image-optimizer-bulk-reset', 'ewww_wpnonce' ); ?>
 			<input type="hidden" name="ewww_reset" value="1">
-			<button id="ewww-bulk-reset" type="submit" class="button-secondary action"><?php esc_html_e( 'Reset Scanner', 'ewww-image-optimizer' ); ?></button>
+			<button id="ewww-bulk-reset" type="submit" class="button-secondary action"><?php esc_html_e( 'Clear Queue', 'ewww-image-optimizer' ); ?></button>
 		</form>
 	<?php
 }

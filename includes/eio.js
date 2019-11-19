@@ -101,9 +101,15 @@ jQuery(document).ready(function($) {
 			return false;
 		});
 		$('#ewww-webp-settings').hide();
-		$('#ewww-exactdn-settings').hide();
-		$('#ewww-general-settings').show();
-		$('li.ewww-general-nav').addClass('ewww-selected');
+		if (exactdn_enabled) {
+			$('#ewww-exactdn-settings').show();
+			$('#ewww-general-settings').hide();
+			$('li.ewww-exactdn-nav').addClass('ewww-selected');
+		} else {
+			$('#ewww-exactdn-settings').hide();
+			$('#ewww-general-settings').show();
+			$('li.ewww-general-nav').addClass('ewww-selected');
+		}
 		if($('#ewww_image_optimizer_debug').length){
 			$('#ewww-resize-settings').hide();
 			console.log($('#ewww_image_optimizer_debug').length);

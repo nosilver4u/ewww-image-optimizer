@@ -534,6 +534,11 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			}
 			$height = min( $height, 1920 );
 
+			$memory_required = 5 * $height * $width;
+			if ( function_exists( 'ewwwio_check_memory_available' ) && ! ewwwio_check_memory_available( $memory_required + 500000 ) ) {
+				return $this->placeholder_src;
+			}
+
 			$piip_path = $this->piip_folder . 'placeholder-' . $width . 'x' . $height . '.png';
 			if ( $this->parsing_exactdn ) {
 				global $exactdn;
@@ -583,6 +588,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				return false;
 			}
 			if ( defined( 'EASYIO_USE_PIIP' ) && ! EASYIO_USE_PIIP ) {
+				return false;
+			}
+			if ( function_exists( 'ewwwio_check_memory_available' ) && ! ewwwio_check_memory_available( 15000000 ) ) {
 				return false;
 			}
 			return $use_piip;
