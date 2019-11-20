@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.0
 Tested up to: 5.3
 Requires PHP: 5.6
-Stable tag: 5.1.2
+Stable tag: 5.1.3
 License: GPLv3
 
 Speed up your website to better connect with your visitors. Properly compress and size/scale images. Includes lazy load and WebP convert.
@@ -178,6 +178,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * added: cleanup .webp and database records when using Enable Media Replace
 * fixed: Divi builder will not load with Easy IO and Include All Resources active
 * fixed: image cover block with fixed width scaled too much
+* fixed: PNG placeholders could use more memory than available
 * removed: Lazy Load CSS gradient for blank placeholders
 
 = 5.1.2 =

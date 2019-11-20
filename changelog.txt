@@ -1,3 +1,11 @@
+= 5.1.3 =
+* added: better compatibility with Divi filterable grid images and parallax backgrounds
+* added: cleanup .webp and database records when using Enable Media Replace
+* fixed: Divi builder will not load with Easy IO and Include All Resources active
+* fixed: image cover block with fixed width scaled too much
+* fixed: PNG placeholders could use more memory than available
+* removed: Lazy Load CSS gradient for blank placeholders
+
 = 5.1.2 =
 * added: disable native lazy-load attributes with EWWWIO_DISABLE_NATIVE_LAZY
 * added: ability to choose LQIP or blank placeholders for lazy load
