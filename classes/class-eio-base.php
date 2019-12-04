@@ -54,11 +54,11 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 * @param string $child_class_path The location of the child class extending the base class.
 		 */
 		function __construct( $child_class_path = '' ) {
-			if ( strpos( $child_class_path, 'ewww' ) ) {
+			if ( strpos( $child_class_path, 'plugins/ewww' ) ) {
 				$this->content_url = content_url( 'ewww/' );
 				$this->content_dir = WP_CONTENT_DIR . '/ewww/';
 				$this->version     = EWWW_IMAGE_OPTIMIZER_VERSION;
-			} elseif ( strpos( $child_class_path, 'easy' ) ) {
+			} elseif ( strpos( $child_class_path, 'plugins/easy' ) ) {
 				$this->content_url = content_url( 'easyio/' );
 				$this->content_dir = WP_CONTENT_DIR . '/easyio/';
 				$this->version     = EASYIO_VERSION;

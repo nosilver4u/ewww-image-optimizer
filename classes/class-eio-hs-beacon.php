@@ -103,9 +103,9 @@ if ( ! class_exists( 'EIO_HS_Beacon' ) ) {
 			) {
 				return;
 			}
-			if ( strpos( __FILE__, 'ewww' ) ) {
+			if ( strpos( __FILE__, 'plugins/ewww' ) ) {
 				ewww_image_optimizer_notice_beacon();
-			} elseif ( strpos( __FILE__, 'easy' ) ) {
+			} elseif ( strpos( __FILE__, 'plugins/easy' ) ) {
 				easyio_notice_beacon();
 			}
 		}

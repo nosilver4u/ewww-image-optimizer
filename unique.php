@@ -1408,7 +1408,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 				ewwwio_debug_message( "$path: invalid output" );
 				break;
 			}
-			if ( ! empty( $webp_version ) && preg_match( '/\d.\d.\d/', $webp_version[0] ) ) {
+			if ( ! empty( $webp_version ) && preg_match( '/\d\.\d\.\d/', $webp_version[0] ) ) {
 				ewwwio_debug_message( 'optimizer found' );
 				return $webp_version[0];
 			}

@@ -102,8 +102,7 @@ add_filter( 'ewww_image_optimizer_bulk_permissions', 'ewww_image_optimizer_admin
 add_filter( 'ewww_image_optimizer_admin_permissions', 'ewww_image_optimizer_admin_permissions', 8 );
 add_filter( 'ewww_image_optimizer_superadmin_permissions', 'ewww_image_optimizer_superadmin_permissions', 8 );
 // Add a link to the plugins page so the user can go straight to the settings page.
-$ewww_plugin_slug = plugin_basename( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
-add_filter( "plugin_action_links_$ewww_plugin_slug", 'ewww_image_optimizer_settings_link' );
+add_filter( 'plugin_action_links_' . EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL, 'ewww_image_optimizer_settings_link' );
 // Filter the registered sizes so we can remove any that the user disabled.
 add_filter( 'intermediate_image_sizes_advanced', 'ewww_image_optimizer_image_sizes_advanced' );
 // Ditto for PDF files (or anything non-image).
@@ -118,6 +117,8 @@ add_filter( 'myarcade_filter_thumbnail', 'ewww_image_optimizer_myarcade_thumbnai
 add_filter( 'load_image_to_edit_path', 'ewww_image_optimizer_editor_save_pre' );
 // Allows the user to override the default JPG quality used by WordPress.
 add_filter( 'jpeg_quality', 'ewww_image_optimizer_set_jpg_quality' );
+// Prevent WP from over-riding EWWW IO's resize settings.
+add_filter( 'big_image_size_threshold', 'ewww_image_optimizer_adjust_big_image_threshold', 10, 3 );
 // Makes sure the plugin bypasses any files affected by the Folders to Ignore setting.
 add_filter( 'ewww_image_optimizer_bypass', 'ewww_image_optimizer_ignore_file', 10, 2 );
 // Ensure we populate the queue with webp images for WP Offload S3.
@@ -678,6 +679,10 @@ function ewww_image_optimizer_retest_background_optimization() {
 function ewww_image_optimizer_admin_init() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	ewwwio_memory( __FUNCTION__ );
+	/**
+	 * EWWWIO_HS_Beacon class for embedding the HelpScout Beacon.
+	 */
+	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-hs-beacon.php' );
 	/**
 	 * Require the file that does the bulk processing.
 	 */
@@ -2343,7 +2348,7 @@ function ewww_image_optimizer_admin_menu() {
 			'EWWW Image Optimizer',                                                      // Page title.
 			'EWWW Image Optimizer',                                                      // Menu title.
 			apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ), // Capability.
-			EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE,                                            // Slug.
+			EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL,                                            // Slug.
 			'ewww_image_optimizer_options'                                               // Function to call.
 		);
 	} else {
@@ -2352,7 +2357,7 @@ function ewww_image_optimizer_admin_menu() {
 			'EWWW Image Optimizer',                                                      // Page title.
 			'EWWW Image Optimizer',                                                      // Menu title.
 			apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ), // Capability.
-			EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE,                                            // Slug.
+			EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL,                                            // Slug.
 			'ewww_image_optimizer_network_singlesite_options'                            // Function to call.
 		);
 	}
@@ -2538,6 +2543,9 @@ function ewww_image_optimizer_settings_link( $links ) {
 	if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
 		// Need to include the plugin library for the is_plugin_active function.
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	}
+	if ( ! is_array( $links ) ) {
+		$links = array();
 	}
 	// Load the html for the settings link.
 	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
@@ -2868,9 +2876,34 @@ function ewww_image_optimizer_jpg_quality( $quality = null ) {
 function ewww_image_optimizer_set_jpg_quality( $quality ) {
 	$new_quality = ewww_image_optimizer_jpg_quality();
 	if ( ! empty( $new_quality ) ) {
-		return $new_quality;
+		return min( 92, $new_quality );
 	}
-	return $quality;
+	return min( 92, $quality );
+}
+
+/**
+ * Check default WP threshold and adjust to comply with normal EWWW IO behavior.
+ *
+ * @param int    $size The default WP scaling size, or whatever has been filtered by other plugins.
+ * @param array  $imagesize     {
+ *     Indexed array of the image width and height in pixels.
+ *
+ *     @type int $0 The image width.
+ *     @type int $1 The image height.
+ * }
+ * @param string $file Full path to the uploaded image file.
+ * @return int The proper size to use for scaling originals.
+ */
+function ewww_image_optimizer_adjust_big_image_threshold( $size, $imagesize, $file ) {
+	if ( false !== strpos( $file, 'noresize' ) ) {
+		return false;
+	}
+	$max_size = max(
+		ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' ),
+		ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' ),
+		(int) $size
+	);
+	return $max_size;
 }
 
 /**
@@ -8959,6 +8992,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		ewwwio_debug_message( 'pngout level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_pngout_level' ) );
 	}
 	$output[] = "<tr class='$network_class'><th scope='row'><span><label for='ewww_image_optimizer_jpg_quality'>" . esc_html__( 'JPG Quality Level:', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/11-advanced-configuration', '58542afac697912ffd6c18c0,58543c69c697912ffd6c19a7' ) . "</th><td><input type='text' id='ewww_image_optimizer_jpg_quality' name='ewww_image_optimizer_jpg_quality' class='small-text' value='" . ewww_image_optimizer_jpg_quality() . "' /> " . esc_html__( 'Valid values are 1-100.', 'ewww-image-optimizer' ) . "\n<p class='description'>" . esc_html__( 'Use this to override the default WordPress quality level of 82. Applies to image editing, resizing, PNG to JPG conversion, and JPG to WebP conversion. Does not affect the original uploaded image unless maximum dimensions are set and resizing occurs.', 'ewww-image-optimizer' ) . "</p></td></tr>\n";
+	ewwwio_debug_message( 'effective quality: ' . ewww_image_optimizer_set_jpg_quality( 82 ) );
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_parallel_optimization'>" . esc_html__( 'Parallel Optimization', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/11-advanced-configuration', '58542afac697912ffd6c18c0,598cb8be2c7d3a73488be237' ) . "</th><td><input type='checkbox' id='ewww_image_optimizer_parallel_optimization' name='ewww_image_optimizer_parallel_optimization' value='true' " . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_parallel_optimization' ) ? "checked='true'" : '' ) . ' /> ' . esc_html__( 'All resizes generated from a single upload are optimized in parallel for faster optimization. If this is causing performance issues, disable parallel optimization to reduce the load on your server.', 'ewww-image-optimizer' ) . "</td></tr>\n";
 	ewwwio_debug_message( 'parallel optimization: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_parallel_optimization' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'background optimization: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ? 'on' : 'off' ) );
