@@ -177,6 +177,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: cwebp version test results in false-positives
 * fixed: EWWW IO resize limits are ignored when higher than WP default
 * fixed: PNGOUT warning during one-click conversion
+* fixed: WebP images not removed from remote storage when an attachment is deleted (WP Offload Media)
 
 = 5.1.3 =
 * added: better compatibility with Divi filterable grid images and parallax backgrounds
