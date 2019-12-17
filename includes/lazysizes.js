@@ -313,7 +313,7 @@
 				isBodyHidden = getCSS(document.body, 'visibility') == 'hidden';
 			}
 
-			return isBodyHidden || (getCSS(elem.parentNode, 'visibility') != 'hidden' && getCSS(elem, 'visibility') != 'hidden');
+			return isBodyHidden || !(getCSS(elem.parentNode, 'visibility') == 'hidden' && getCSS(elem, 'visibility') == 'hidden');
 		};
 
 		var isNestedVisible = function(elem, elemExpand){

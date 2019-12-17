@@ -1271,7 +1271,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				}
 				// Pre-empt rewriting of wp-includes and wp-content if the extension is not allowed by using a temporary placeholder.
 				$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)\.(htm|html|php|ashx|m4v|mov|wvm|qt|webm|ogv|mp4|m4p|mpg|mpeg|mpv)#i', '$1//' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
+				// Pre-empt partial paths that are used by JS to build other URLs.
 				$content = str_replace( 'wp-content/themes/jupiter"', '?wpcontent-bypass?/themes/jupiter"', $content );
+				$content = str_replace( 'wp-content/plugins/onesignal-free-web-push-notifications/sdk_files/"', '?wpcontent-bypass?/plugins/onesignal-free-web-push-notifications/sdk_files/"', $content );
+				$content = str_replace( 'wp-content/plugins/u-shortcodes/shortcodes/monthview/"', '?wpcontent-bypass?/plugins/u-shortcodes/shortcodes/monthview/"', $content );
 				if (
 					false !== strpos( $this->upload_domain, 'amazonaws.com' ) ||
 					false !== strpos( $this->upload_domain, 'digitaloceanspaces.com' ) ||

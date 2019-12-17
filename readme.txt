@@ -175,6 +175,8 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 
 = 5.1.4 =
 * fixed: cwebp version test results in false-positives
+* fixed: EWWW IO resize limits are ignored when higher than WP default
+* fixed: PNGOUT warning during one-click conversion
 
 = 5.1.3 =
 * added: better compatibility with Divi filterable grid images and parallax backgrounds

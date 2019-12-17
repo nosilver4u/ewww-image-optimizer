@@ -259,10 +259,8 @@ class EWWW_Image {
 			$new_name = $this->convert( $size_queried['path'] );
 			if ( $new_name ) {
 				$this->convert_retina( $size_queried['path'] );
-				$this->convert_db_path( $size_queried['path'], $new_name, $size_queried['id'] );
-				/* ewwwio_debug_message( print_r( $meta['sizes'], true ) ); */
+				$this->convert_db_path( $size_queried['path'], $new_name, $size_queried );
 
-				/* ewwwio_debug_message( print_r( $size_queried, true ) ); */
 				if ( ewww_image_optimizer_iterable( $meta['sizes'] ) && is_array( $meta['sizes'][ $size_queried['resize'] ] ) ) {
 					ewwwio_debug_message( 'updating regular size' );
 					$meta['sizes'][ $size_queried['resize'] ]['file']      = basename( $new_name );
@@ -276,9 +274,7 @@ class EWWW_Image {
 				}
 			}
 			ewwwio_debug_message( "converted {$size_queried['resize']} from db query" );
-			/* ewwwio_debug_message( print_r( $meta, true ) ); */
 		}
-		/* ewwwio_debug_message( print_r( $meta, true ) ); */
 
 		/* ewwwio_debug_message( 'next up for conversion search: meta' ); */
 		if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
@@ -840,9 +836,9 @@ class EWWW_Image {
 	 *
 	 * @param string $path The old path to search for.
 	 * @param string $new_path The new path to update.
-	 * @param int    $id Optional. Database record id for the original image.
+	 * @param array  $record Optional. Database record for the original image.
 	 */
-	private function convert_db_path( $path, $new_path, $id = false ) {
+	private function convert_db_path( $path, $new_path, $record = false ) {
 		if ( empty( $path ) || empty( $new_path ) ) {
 			return;
 		}
@@ -853,10 +849,10 @@ class EWWW_Image {
 		} else {
 			$ewwwdb = $wpdb;
 		}
-		if ( ! $id ) {
+		if ( ! $record ) {
 			$image_record = ewww_image_optimizer_find_already_optimized( $path );
 			if ( ! empty( $image_record ) && is_array( $image_record ) && ! empty( $image_record['id'] ) ) {
-				$id = $image_record['id'];
+				$record = $image_record;
 			} else { // Insert a new record.
 				$ewwwdb->insert(
 					$ewwwdb->ewwwio_images,
@@ -878,12 +874,12 @@ class EWWW_Image {
 			array(
 				'path'      => ewww_image_optimizer_relativize_path( $new_path ),
 				'converted' => ewww_image_optimizer_relativize_path( $path ),
-				'results'   => ewww_image_optimizer_image_results( $image_record['orig_size'], filesize( $new_path ) ),
+				'results'   => ewww_image_optimizer_image_results( $record['orig_size'], filesize( $new_path ) ),
 				'updates'   => 0,
 				'trace'     => '',
 			),
 			array(
-				'id' => $id,
+				'id' => $record['id'],
 			)
 		);
 	}

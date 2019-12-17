@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '513.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '513.02' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -1571,7 +1571,7 @@ function ewww_image_optimizer_notice_webp_bulk() {
 		$message = esc_html__( 'It looks like you already started optimizing your images, you will need to generate WebP images via the Bulk Optimizer.', 'ewww-image-optimizer' );
 		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-info'><p><a href='upload.php?page=ewww-image-optimizer-bulk&ewww_webp_only=1&ewww_force=1'>" . $message . '</a></p></div>';
 	} else {
-		$message = esc_html__( 'You may generate WebP images via the Bulk Optimizer.', 'ewww-image-optimizer' );
+		$message = esc_html__( 'Use the Bulk Optimizer to generate WebP images for existing uploads.', 'ewww-image-optimizer' );
 		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-info'><p><a href='upload.php?page=ewww-image-optimizer-bulk'>" . $message . '</a></p></div>';
 	}
 	delete_option( 'ewww_image_optimizer_webp_enabled' );
@@ -7223,7 +7223,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 		switch ( $type ) {
 			case 'image/jpeg':
 				// If jpegtran is missing and should not be skipped.
-				if ( ! EWWW_IMAGE_OPTIMIZER_JPEGTRAN && ! $skip['jpegtran'] ) {
+				if ( ! $skip['jpegtran'] && defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) && ! EWWW_IMAGE_OPTIMIZER_JPEGTRAN ) {
 					$msg = '<div>' . sprintf(
 						/* translators: %s: name of a tool like jpegtran */
 						esc_html__( '%s is missing', 'ewww-image-optimizer' ),
@@ -7242,7 +7242,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				break;
 			case 'image/png':
 				// If pngout and optipng are missing and should not be skipped.
-				if ( ! EWWW_IMAGE_OPTIMIZER_PNGOUT && ! EWWW_IMAGE_OPTIMIZER_OPTIPNG && ! $skip['optipng'] && ! $skip['pngout'] ) {
+				if ( ! $skip['optipng'] && ! $skip['pngout'] && ! EWWW_IMAGE_OPTIMIZER_PNGOUT && ! EWWW_IMAGE_OPTIMIZER_OPTIPNG ) {
 					$msg = '<div>' . sprintf(
 						/* translators: %s: name of a tool like jpegtran */
 						esc_html__( '%s is missing', 'ewww-image-optimizer' ),
@@ -7255,7 +7255,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				break;
 			case 'image/gif':
 				// If gifsicle is missing and should not be skipped.
-				if ( ! EWWW_IMAGE_OPTIMIZER_GIFSICLE && ! $skip['gifsicle'] ) {
+				if ( ! $skip['gifsicle'] && ! EWWW_IMAGE_OPTIMIZER_GIFSICLE ) {
 					$msg = '<div>' . sprintf(
 						/* translators: %s: name of a tool like jpegtran */
 						esc_html__( '%s is missing', 'ewww-image-optimizer' ),
@@ -9214,6 +9214,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 
 	$output[] = "<div id='ewww-webp-settings'>\n";
 	$output[] = '<noscript><h2>' . esc_html__( 'WebP', 'ewww-image-optimizer' ) . '</h2></noscript>';
+	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && ! ewww_image_optimizer_easy_active() ) {
+		$output[] = '<p>' . esc_html__( 'Once JPG/PNG to WebP is enabled, WebP images will be generated for new uploads, but you will need to use the Bulk Optimizer for existing uploads.', 'ewww-image-optimizer' ) . "<br>\n" .
+		esc_html__( 'See Easy Mode for automatic on-demand WebP conversion instead.', 'ewww-image-optimizer' ) . "</p>\n";
+	}
 	$output[] = "<table class='form-table'>\n";
 	if ( ! ewww_image_optimizer_easy_active() || ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
 		$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_webp'>" . esc_html__( 'JPG/PNG to WebP', 'ewww-image-optimizer' ) . '</label>' .

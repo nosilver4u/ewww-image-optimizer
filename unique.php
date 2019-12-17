@@ -464,8 +464,8 @@ function ewww_image_optimizer_skip_tools() {
 	$skip['jpegtran'] = false;
 	$skip['optipng']  = false;
 	$skip['gifsicle'] = false;
-	$skip['pngout']   = false;
 	// Except these which are off by default.
+	$skip['pngout']   = true;
 	$skip['pngquant'] = true;
 	$skip['webp']     = true;
 	// If the user has disabled a tool, we aren't going to bother checking to see if it is there.
@@ -478,8 +478,8 @@ function ewww_image_optimizer_skip_tools() {
 	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 		$skip['gifsicle'] = true;
 	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_pngout' ) || ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) || ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) > 10 ) ) {
-		$skip['pngout'] = true;
+	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_pngout' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+		$skip['pngout'] = false;
 	}
 	if ( 40 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 		$skip['pngquant'] = false;
