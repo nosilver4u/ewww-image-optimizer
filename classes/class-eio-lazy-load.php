@@ -319,6 +319,8 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			$buffer = $this->parse_background_images( $buffer, 'span' );
 			// Process background images on section elements.
 			$buffer = $this->parse_background_images( $buffer, 'section' );
+			// Process background images on a/link elements.
+			$buffer = $this->parse_background_images( $buffer, 'a' );
 			// Images listed as picture/source elements. Mostly for NextGEN, but should work anywhere.
 			$pictures = $this->get_picture_tags_from_html( $buffer );
 			if ( $this->is_iterable( $pictures ) ) {

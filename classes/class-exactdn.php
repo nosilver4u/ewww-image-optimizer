@@ -1144,6 +1144,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$content = $this->filter_bg_images( $content, 'li' );
 			$content = $this->filter_bg_images( $content, 'span' );
 			$content = $this->filter_bg_images( $content, 'section' );
+			$content = $this->filter_bg_images( $content, 'a' );
 			if ( $this->filtering_the_page ) {
 				$content = $this->filter_prz_thumb( $content );
 			}
