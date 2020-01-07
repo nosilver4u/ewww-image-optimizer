@@ -737,6 +737,10 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			// Get the mimetype.
 			$type  = ewww_image_optimizer_mimetype( $file_path, 'i' );
 			$valid = true;
+			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) ) {
+				ewww_image_optimizer_tool_init();
+				ewww_image_optimizer_notice_utils( 'quiet' );
+			}
 			// If we don't have a valid tool for the image type, output the appropriate message.
 			$skip = ewww_image_optimizer_skip_tools();
 			switch ( $type ) {

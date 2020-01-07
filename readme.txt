@@ -174,6 +174,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 5.1.4 =
+* fixed: warnings on FlaGallery's manage gallery page
 * fixed: cwebp version test results in false-positives
 * fixed: EWWW IO resize limits are ignored when higher than WP default
 * fixed: PNGOUT warning during one-click conversion

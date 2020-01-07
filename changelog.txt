@@ -1,4 +1,5 @@
 = 5.1.4 =
+* fixed: warnings on FlaGallery's manage gallery page
 * fixed: cwebp version test results in false-positives
 * fixed: EWWW IO resize limits are ignored when higher than WP default
 * fixed: PNGOUT warning during one-click conversion
