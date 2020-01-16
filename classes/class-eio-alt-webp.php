@@ -599,7 +599,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 				}
 			}
 		}
-		// NextGEN slides listed as 'a' elements.
+		// NextGEN slides listed as 'a' elements and LL 'a' background images.
 		$links = $this->get_elements_from_html( $buffer, 'a' );
 		if ( ewww_image_optimizer_iterable( $links ) ) {
 			foreach ( $links as $index => $link ) {
@@ -618,12 +618,21 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 						ewwwio_debug_message( "found webp for ngg data-thumbnail: $thumb" );
 					}
 				}
+				$bg_image   = $this->get_attribute( $link, 'data-bg' );
+				$link_class = $this->get_attribute( $link, 'class' );
+				if ( $link_class && $bg_image && false !== strpos( $link_class, 'lazyload' ) ) {
+					ewwwio_debug_message( "checking a/link for LL data-bg: $bg_image" );
+					if ( $this->validate_image_url( $bg_image ) ) {
+						$this->set_attribute( $link, 'data-bg-webp', $this->generate_url( $bg_image ) );
+						ewwwio_debug_message( 'found webp for LL data-bg' );
+					}
+				}
 				if ( $link !== $links[ $index ] ) {
 					$buffer = str_replace( $links[ $index ], $link, $buffer );
 				}
 			}
 		}
-		// Revolution Slider 'li' elements.
+		// Revolution Slider 'li' elements and LL li backgrounds.
 		$listitems = $this->get_elements_from_html( $buffer, 'li' );
 		if ( ewww_image_optimizer_iterable( $listitems ) ) {
 			foreach ( $listitems as $index => $listitem ) {
@@ -654,9 +663,19 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 						$buffer = str_replace( $listitems[ $index ], $listitem, $buffer );
 					}
 				}
+				$bg_image = $this->get_attribute( $listitem, 'data-bg' );
+				$li_class = $this->get_attribute( $listitem, 'class' );
+				if ( $li_class && $bg_image && false !== strpos( $li_class, 'lazyload' ) ) {
+					ewwwio_debug_message( "checking div for LL data-bg: $bg_image" );
+					if ( $this->validate_image_url( $bg_image ) ) {
+						$this->set_attribute( $listitem, 'data-bg-webp', $this->generate_url( $bg_image ) );
+						ewwwio_debug_message( 'found webp for LL data-bg' );
+						$buffer = str_replace( $listitems[ $index ], $listitem, $buffer );
+					}
+				}
 			} // End foreach().
 		} // End if().
-		// WooCommerce thumbs listed as 'div' elements.
+		// WooCommerce thumbs listed as 'div' elements and LL div backgrounds.
 		$divs = $this->get_elements_from_html( $buffer, 'div' );
 		if ( ewww_image_optimizer_iterable( $divs ) ) {
 			foreach ( $divs as $index => $div ) {
@@ -673,11 +692,45 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 				}
 				$bg_image = $this->get_attribute( $div, 'data-bg' );
 				if ( $div_class && $bg_image && false !== strpos( $div_class, 'lazyload' ) ) {
-					ewwwio_debug_message( "checking webp for LL data-bg: $bg_image" );
+					ewwwio_debug_message( "checking div for LL data-bg: $bg_image" );
 					if ( $this->validate_image_url( $bg_image ) ) {
 						$this->set_attribute( $div, 'data-bg-webp', $this->generate_url( $bg_image ) );
 						ewwwio_debug_message( 'found webp for LL data-bg' );
 						$buffer = str_replace( $divs[ $index ], $div, $buffer );
+					}
+				}
+			}
+		}
+		// Look for LL 'section' elements.
+		$sections = $this->get_elements_from_html( $buffer, 'section' );
+		if ( ewww_image_optimizer_iterable( $sections ) ) {
+			foreach ( $sections as $index => $section ) {
+				ewwwio_debug_message( 'parsing a section' );
+				$class    = $this->get_attribute( $section, 'class' );
+				$bg_image = $this->get_attribute( $section, 'data-bg' );
+				if ( $class && $bg_image && false !== strpos( $class, 'lazyload' ) ) {
+					ewwwio_debug_message( "checking section for LL data-bg: $bg_image" );
+					if ( $this->validate_image_url( $bg_image ) ) {
+						$this->set_attribute( $section, 'data-bg-webp', $this->generate_url( $bg_image ) );
+						ewwwio_debug_message( 'found webp for LL data-bg' );
+						$buffer = str_replace( $sections[ $index ], $section, $buffer );
+					}
+				}
+			}
+		}
+		// Look for LL 'span' elements.
+		$spans = $this->get_elements_from_html( $buffer, 'span' );
+		if ( ewww_image_optimizer_iterable( $spans ) ) {
+			foreach ( $spans as $index => $span ) {
+				ewwwio_debug_message( 'parsing a span' );
+				$class    = $this->get_attribute( $span, 'class' );
+				$bg_image = $this->get_attribute( $span, 'data-bg' );
+				if ( $class && $bg_image && false !== strpos( $class, 'lazyload' ) ) {
+					ewwwio_debug_message( "checking span for LL data-bg: $bg_image" );
+					if ( $this->validate_image_url( $bg_image ) ) {
+						$this->set_attribute( $span, 'data-bg-webp', $this->generate_url( $bg_image ) );
+						ewwwio_debug_message( 'found webp for LL data-bg' );
+						$buffer = str_replace( $spans[ $index ], $span, $buffer );
 					}
 				}
 			}
