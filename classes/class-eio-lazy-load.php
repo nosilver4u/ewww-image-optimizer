@@ -17,6 +17,22 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 	class EIO_Lazy_Load extends EIO_Page_Parser {
 
 		/**
+		 * A list of user-defined exclusions, populated by validate_user_exclusions().
+		 *
+		 * @access protected
+		 * @var array $user_exclusions
+		 */
+		protected $user_exclusions = array();
+
+		/**
+		 * A list of user-defined element exclusions, populated by validate_user_exclusions().
+		 *
+		 * @access protected
+		 * @var array $user_element_exclusions
+		 */
+		protected $user_element_exclusions = array();
+
+		/**
 		 * Base64-encoded placeholder image.
 		 *
 		 * @access protected
@@ -97,6 +113,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				// Load the minified, combined version of the lazy load script.
 				add_action( 'wp_enqueue_scripts', array( $this, 'min_script' ) );
 			}
+			$this->validate_user_exclusions();
 		}
 
 		/**
@@ -379,6 +396,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 * @return string The modified content with LL markup.
 		 */
 		function parse_background_images( $buffer, $tag_type ) {
+			if ( in_array( $tag_type, $this->user_element_exclusions, true ) ) {
+				return $buffer;
+			}
 			$elements = $this->get_elements_from_html( $buffer, $tag_type );
 			if ( $this->is_iterable( $elements ) ) {
 				foreach ( $elements as $index => $element ) {
@@ -414,6 +434,36 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				}
 			}
 			return $buffer;
+		}
+
+		/**
+		 * Validate the user-defined exclusions.
+		 */
+		function validate_user_exclusions() {
+			$user_exclusions = $this->get_option( $this->prefix . 'll_exclude' );
+			if ( ! empty( $user_exclusions ) ) {
+				if ( is_string( $user_exclusions ) ) {
+					$user_exclusions = array( $user_exclusions );
+				}
+				if ( is_array( $user_exclusions ) ) {
+					foreach ( $user_exclusions as $exclusion ) {
+						if ( ! is_string( $exclusion ) ) {
+							continue;
+						}
+						if (
+							'a' === $exclusion ||
+							'div' === $exclusion ||
+							'li' === $exclusion ||
+							'section' === $exclusion ||
+							'span' === $exclusion
+						) {
+							$this->user_element_exclusions[] = $exclusion;
+							continue;
+						}
+						$this->user_exclusions[] = $exclusion;
+					}
+				}
+			}
 		}
 
 		/**
@@ -454,29 +504,32 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 
 			$exclusions = apply_filters(
 				'eio_lazy_exclusions',
-				array(
-					'class="ls-bg',
-					'class="ls-l',
-					'class="rev-slidebg',
-					'data-bgposition=',
-					'data-envira-src=',
-					'data-lazy=',
-					'data-lazy-original=',
-					'data-lazy-src=',
-					'data-lazy-srcset=',
-					'data-lazyload=',
-					'data-lazysrc=',
-					'data-no-lazy=',
-					'data-src=',
-					'data-srcset=',
-					'ewww_webp_lazy_load',
-					'fullurl=',
-					'gazette-featured-content-thumbnail',
-					'lazy-slider-img=',
-					'mgl-lazy',
-					'skip-lazy',
-					'timthumb.php?',
-					'wpcf7_captcha/',
+				array_merge(
+					array(
+						'class="ls-bg',
+						'class="ls-l',
+						'class="rev-slidebg',
+						'data-bgposition=',
+						'data-envira-src=',
+						'data-lazy=',
+						'data-lazy-original=',
+						'data-lazy-src=',
+						'data-lazy-srcset=',
+						'data-lazyload=',
+						'data-lazysrc=',
+						'data-no-lazy=',
+						'data-src=',
+						'data-srcset=',
+						'ewww_webp_lazy_load',
+						'fullurl=',
+						'gazette-featured-content-thumbnail',
+						'lazy-slider-img=',
+						'mgl-lazy',
+						'skip-lazy',
+						'timthumb.php?',
+						'wpcf7_captcha/',
+					),
+					$this->user_exclusions
 				),
 				$image
 			);
@@ -498,12 +551,15 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			$exclusions = apply_filters(
 				'eio_lazy_bg_image_exclusions',
-				array(
-					'data-no-lazy=',
-					'header-gallery-wrapper ',
-					'lazyload',
-					'skip-lazy',
-					'avia-bg-style-fixed',
+				array_merge(
+					array(
+						'data-no-lazy=',
+						'header-gallery-wrapper ',
+						'lazyload',
+						'skip-lazy',
+						'avia-bg-style-fixed',
+					),
+					$this->user_exclusions
 				),
 				$tag
 			);

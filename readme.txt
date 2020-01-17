@@ -176,6 +176,9 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 = 5.2.0 =
 * added: Lazy Load, JS WebP, and Easy IO support background images on link elements
 * added: JS WebP supports background images on section, span, and li elements
+* added: exclude images from Easy IO in settings
+* added: exclude images from Lazy Load by string or class name
+* added: prevent auto-scaling with skip-autoscale
 
 = 5.1.4 =
 * fixed: warnings on FlaGallery's manage gallery page
