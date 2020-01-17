@@ -589,15 +589,16 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 * Validate the user-defined exclusions for "all the things" rewriting.
 		 */
 		function validate_user_exclusions() {
-			if ( defined( 'EXACTDN_EXCLUDE' ) && EXACTDN_EXCLUDE ) {
-				$user_exclusions = EXACTDN_EXCLUDE;
-			}
+			$user_exclusions = $this->get_option( 'exactdn_exclude' );
 			if ( ! empty( $user_exclusions ) ) {
 				if ( is_string( $user_exclusions ) ) {
 					$user_exclusions = array( $user_exclusions );
 				}
 				if ( is_array( $user_exclusions ) ) {
 					foreach ( $user_exclusions as $exclusion ) {
+						if ( ! is_string( $exclusion ) ) {
+							continue;
+						}
 						if ( false !== strpos( $exclusion, 'wp-content' ) ) {
 							$exclusion = preg_replace( '#([^"\'?>]+?)?wp-content/#i', '', $exclusion );
 						}
@@ -2568,7 +2569,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 
 			if ( isset( $image_url_parts['scheme'] ) && 'https' === $image_url_parts['scheme'] ) {
-				if ( is_array( $args ) ) {
+				if ( is_array( $args ) && false === strpos( $image_url, 'ssl=' ) ) {
 					$args['ssl'] = 1;
 				}
 				$scheme = 'https';

@@ -293,7 +293,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 							$srcset_sizes = $this->get_attribute( $image, 'sizes' );
 							// Return false on this filter to disable automatic sizes calculation,
 							// or use the sizes value passed via the filter to conditionally disable it.
-							if ( apply_filters( 'eio_lazy_responsive', $srcset_sizes ) ) {
+							if ( false === strpos( $image, 'skip-autoscale' ) && apply_filters( 'eio_lazy_responsive', $srcset_sizes ) ) {
 								$this->set_attribute( $image, 'data-sizes', 'auto', true );
 								$this->remove_attribute( $image, 'sizes' );
 							}

@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '514.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '514.05' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -754,10 +754,14 @@ function ewww_image_optimizer_admin_init() {
 			update_site_option( 'exactdn_all_the_things', $_POST['exactdn_all_the_things'] );
 			$_POST['exactdn_lossy'] = ( empty( $_POST['exactdn_lossy'] ) ? false : true );
 			update_site_option( 'exactdn_lossy', $_POST['exactdn_lossy'] );
+			$_POST['exactdn_exclude'] = empty( $_POST['exactdn_exclude'] ) ? '' : $_POST['exactdn_exclude'];
+			update_site_option( 'exactdn_exclude', ewww_image_optimizer_exclude_paths_sanitize( $_POST['exactdn_exclude'] ) );
 			$_POST['ewww_image_optimizer_lazy_load'] = ( empty( $_POST['ewww_image_optimizer_lazy_load'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_lazy_load', $_POST['ewww_image_optimizer_lazy_load'] );
 			$_POST['ewww_image_optimizer_use_lqip'] = ( empty( $_POST['ewww_image_optimizer_use_lqip'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_use_lqip', $_POST['ewww_image_optimizer_use_lqip'] );
+			$_POST['ewww_image_optimizer_ll_exclude'] = empty( $_POST['ewww_image_optimizer_ll_exclude'] ) ? '' : $_POST['ewww_image_optimizer_ll_exclude'];
+			update_site_option( 'ewww_image_optimizer_ll_exclude', ewww_image_optimizer_exclude_paths_sanitize( $_POST['ewww_image_optimizer_ll_exclude'] ) );
 			$_POST['ewww_image_optimizer_maxmediawidth'] = empty( $_POST['ewww_image_optimizer_maxmediawidth'] ) ? 0 : $_POST['ewww_image_optimizer_maxmediawidth'];
 			update_site_option( 'ewww_image_optimizer_maxmediawidth', (int) $_POST['ewww_image_optimizer_maxmediawidth'] );
 			$_POST['ewww_image_optimizer_maxmediaheight'] = empty( $_POST['ewww_image_optimizer_maxmediaheight'] ) ? 0 : $_POST['ewww_image_optimizer_maxmediaheight'];
@@ -836,8 +840,10 @@ function ewww_image_optimizer_admin_init() {
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_exactdn', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'exactdn_all_the_things', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'exactdn_lossy', 'boolval' );
+	register_setting( 'ewww_image_optimizer_options', 'exactdn_exclude', 'ewww_image_optimizer_exclude_paths_sanitize' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_lazy_load', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_use_lqip', 'boolval' );
+	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_ll_exclude', 'ewww_image_optimizer_exclude_paths_sanitize' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_resize_detection', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_maxmediawidth', 'intval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_maxmediaheight', 'intval' );
@@ -7948,6 +7954,15 @@ function ewww_image_optimizer_get_option( $option_name ) {
 			return trim( $option_value );
 		}
 	}
+	if ( ( 'exactdn_exclude' === $option_name || 'ewww_image_optimizer_ll_exclude' === $option_name ) && defined( $constant_name ) ) {
+		$option_value = constant( $constant_name );
+		if ( is_string( $option_value ) ) {
+			return array( $option_value );
+		}
+		if ( is_array( $option_value ) ) {
+			return $option_value;
+		}
+	}
 	if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
 		// Need to include the plugin library for the is_plugin_active function.
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
@@ -8942,14 +8957,15 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_exactdn'>" . esc_html__( 'Easy IO', 'ewww-image-optimizer' ) .
 		'</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/44-introduction-to-exactdn', '59bc5ad6042863033a1ce370,5c0042892c7d3a31944e88a4' ) . "</th><td><input type='checkbox' id='ewww_image_optimizer_exactdn' name='ewww_image_optimizer_exactdn' value='true' " .
 		( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ? "checked='true'" : '' ) . ' /> ' .
-		esc_html__( 'Enables CDN and automatic image resizing to fit your pages.', 'ewww-image-optimizer' ) .
+		esc_html__( 'Comprehensive and automatic image optimization:', 'ewww-image-optimizer' ) .
 		' <a href="https://ewww.io/resize/" target="_blank">' . esc_html__( 'Purchase a subscription for your site.', 'ewww-image-optimizer' ) . '</a>' .
 		'<p class="description">' .
-		esc_html__( 'WebP Conversion', 'ewww-image-optimizer' ) . ewwwio_help_link( 'https://docs.ewww.io/article/16-ewww-io-and-webp-images', '5854745ac697912ffd6c1c89' ) . '<br>' .
-		esc_html__( 'Retina Support, use with WP Retina 2x for best results', 'ewww-image-optimizer' ) . '<br>' .
 		esc_html__( 'Premium Compression', 'ewww-image-optimizer' ) . '<br>' .
-		esc_html__( 'Adjustable Quality', 'ewww-image-optimizer' ) . '<br>' .
+		esc_html__( 'Properly scale images to fit any device', 'ewww-image-optimizer' ) . '<br>' .
+		esc_html__( 'Automatic WebP Conversion', 'ewww-image-optimizer' ) . '<br>' .
+		esc_html__( 'Smart Image Conversion', 'ewww-image-optimizer' ) . '<br>' .
 		esc_html__( 'JS/CSS Minification and Compression', 'ewww-image-optimizer' ) . '<br>' .
+		esc_html__( 'CDN Included', 'ewww-image-optimizer' ) . '<br>' .
 		'<a href="https://docs.ewww.io/article/44-introduction-to-exactdn" target="_blank" data-beacon-article="59bc5ad6042863033a1ce370">' . esc_html__( 'Learn more about Easy IO', 'ewww-image-optimizer' ) . '</a>' .
 		"</p></td></tr>\n";
 	ewwwio_debug_message( 'ExactDN enabled: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ? 'on' : 'off' ) );
@@ -8968,6 +8984,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		"<label for='exactdn_lossy'><strong>" . esc_html__( 'Premium Compression', 'ewww-image-optimizer' ) . '</strong></label>' . ewwwio_help_link( 'https://docs.ewww.io/article/47-getting-more-from-exactdn', '59de6631042863379ddc953c' ) .
 		"<p class='description'>" . esc_html__( 'Enable high quality premium compression for all images. Disable to use Pixel Perfect mode instead.', 'ewww-image-optimizer' ) . '</p>' .
 		"</td></tr>\n";
+	ewwwio_debug_message( 'ExactDN lossy: ' . intval( ewww_image_optimizer_get_option( 'exactdn_lossy' ) ) );
+	ewwwio_debug_message( 'ExactDN resize existing: ' . ( ewww_image_optimizer_get_option( 'exactdn_resize_existing' ) ? 'on' : 'off' ) );
+	ewwwio_debug_message( 'ExactDN attachment queries: ' . ( ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' ) ? 'off' : 'on' ) );
 	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		$output[] = "<input type='hidden' id='exactdn_all_the_things' name='exactdn_all_the_things' " .
 			( ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ? "value='1'" : "value='0'" ) . ">\n";
@@ -8976,13 +8995,24 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$output[] = "<input type='hidden' id='ewww_image_optimizer_use_lqip' name='ewww_image_optimizer_use_lqip' " .
 			( ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_lqip' ) ? "value='1'" : "value='0'" ) . ">\n";
 	}
+	$eio_exclude_paths = ewww_image_optimizer_get_option( 'exactdn_exclude' ) ? esc_html( implode( "\n", ewww_image_optimizer_get_option( 'exactdn_exclude' ) ) ) : '';
+	$output[]          = "<tr class='$network_class'><td>&nbsp;</td>" .
+		"<td><label for='exactdn_exclude'><strong>" . esc_html__( 'Exclusions', 'ewww-image-optimizer' ) . '</strong></label>' .
+		ewwwio_help_link( 'https://docs.ewww.io/article/68-exactdn-exclude', '5c0042892c7d3a31944e88a4' ) . '<br>' .
+		"<textarea id='exactdn_exclude' name='exactdn_exclude' rows='3' cols='60'>$eio_exclude_paths</textarea>\n" .
+		"<p class='description'>" . esc_html__( 'One exclusion per line, no wildcards (*) needed. Any pattern or path provided will not be routed through Easy IO.', 'ewww-image-optimizer' ) .
+		"</p></td></tr>\n";
+	ewwwio_debug_message( 'Easy IO exclusions:' );
+	ewwwio_debug_message( $eio_exclude_paths );
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_lazy_load'>" . esc_html__( 'Lazy Load', 'ewww-image-optimizer' ) . '</label>' .
 		ewwwio_help_link( 'https://docs.ewww.io/article/74-lazy-load', '5c6c36ed042863543ccd2d9b' ) .
 		"</th><td><input type='checkbox' id='ewww_image_optimizer_lazy_load' name='ewww_image_optimizer_lazy_load' value='true' " .
 		( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? "checked='true'" : '' ) . ' /> ' .
 		esc_html__( 'Improves actual and perceived loading time as images will be loaded only as they enter (or are about to enter) the viewport.', 'ewww-image-optimizer' ) .
-		"<p class='description'>" . esc_html__( 'When used with Easy IO and/or JS WebP Rewriting, the plugin will load the best available image size and format for each device.', 'ewww-image-optimizer' ) . "</p>\n" .
+		"<p class='description'>" . esc_html__( 'When used with Easy IO and/or JS WebP Rewriting, the plugin will load the best available image size and format for each device.', 'ewww-image-optimizer' ) . "</br>\n" .
+		esc_html__( 'To disable auto-scaling for an image, add "skip-autoscale" to the HTML element via a class or attribute.', 'ewww-image-optimizer' ) . "</p>\n" .
 		"</td></tr>\n";
+	ewwwio_debug_message( 'lazy load: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? 'on' : 'off' ) );
 	$output[] = "<tr class='$network_class'><td>&nbsp;</td><td><input type='checkbox' id='ewww_image_optimizer_use_lqip' name='ewww_image_optimizer_use_lqip' value='true' " .
 		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ? ' disabled ' : '' ) .
 		( ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_lqip' ) ? "checked='true'" : '' ) . ' /> ' .
@@ -8990,21 +9020,17 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		ewwwio_help_link( 'https://docs.ewww.io/article/75-lazy-load-placeholders', '5c9a7a302c7d3a1544615e47' ) . "\n" .
 		"<p class='description'>" . esc_html__( 'Use low-quality versions of your images as placeholders via Easy IO. Can improve user experience, but may be slower than blank placeholders.', 'ewww-image-optimizer' ) . '</p>' .
 		"</td></tr>\n";
-	ewwwio_debug_message( 'ExactDN lossy: ' . intval( ewww_image_optimizer_get_option( 'exactdn_lossy' ) ) );
-	ewwwio_debug_message( 'ExactDN resize existing: ' . ( ewww_image_optimizer_get_option( 'exactdn_resize_existing' ) ? 'on' : 'off' ) );
-	ewwwio_debug_message( 'ExactDN attachment queries: ' . ( ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' ) ? 'off' : 'on' ) );
-	ewwwio_debug_message( 'lazy load: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'LQIP: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_lqip' ) ? 'on' : 'off' ) );
-	if ( defined( 'EXACTDN_EXCLUDE' ) && EXACTDN_EXCLUDE ) {
-		$exactdn_user_exclusions = EXACTDN_EXCLUDE;
-		if ( is_array( $exactdn_user_exclusions ) ) {
-			ewwwio_debug_message( 'ExactDN user exclusions : ' . implode( ',', $exactdn_user_exclusions ) );
-		} elseif ( is_string( $exactdn_user_exclusions ) ) {
-			ewwwio_debug_message( 'ExactDN user exclusions : ' . $exactdn_user_exclusions );
-		} else {
-			ewwwio_debug_message( 'ExactDN user exclusions invalid data type' );
-		}
-	}
+	$ll_exclude_paths = ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_exclude' ) ? esc_html( implode( "\n", ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_exclude' ) ) ) : '';
+	$output[]         = "<tr class='$network_class'><td>&nbsp;</td>" .
+		"<td><label for='ewww_image_optimizer_ll_exclude'><strong>" . esc_html__( 'Exclusions', 'ewww-image-optimizer' ) . '</strong></label>' .
+		ewwwio_help_link( 'https://docs.ewww.io/article/68-exactdn-exclude', '5c0042892c7d3a31944e88a4' ) . '<br>' .
+		"<textarea id='ewww_image_optimizer_ll_exclude' name='ewww_image_optimizer_ll_exclude' rows='3' cols='60'>$ll_exclude_paths</textarea>\n" .
+		"<p class='description'>" .
+		esc_html__( 'One exclusion per line, no wildcards (*) needed. Use any string that matches the desired element(s) or exclude entire element types like "div", "span", etc. The class "skip-lazy" and attribute "data-skip-lazy" are excluded by default.', 'ewww-image-optimizer' ) .
+		"</p></td></tr>\n";
+	ewwwio_debug_message( 'LL exclusions:' );
+	ewwwio_debug_message( $ll_exclude_paths );
 	$output[] = "</table>\n</div>\n";
 	$output[] = "<div id='ewww-optimization-settings'>\n";
 	$output[] = '<noscript><h2>' . esc_html__( 'Advanced', 'ewww-image-optimizer' ) . '</h2></noscript>';

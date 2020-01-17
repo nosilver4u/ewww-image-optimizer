@@ -1,4 +1,19 @@
 lazysizesWebP('alpha', lazySizes.init);
+function shouldAutoScale(target){
+	if (target.hasAttributes()) {
+		var attrs = target.attributes
+		var regNoScale = /skip-autoscale/;
+		for (var i = attrs.length - 1; i >= 0; i--) {
+			if (regNoScale.test(attrs[i].name)) {
+				return false;
+			}
+			if (regNoScale.test(attrs[i].value)) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
 function constrainSrc(url,objectWidth,objectHeight,objectType){
 	if (url===null){
 		return url;
@@ -84,7 +99,9 @@ document.addEventListener('lazybeforeunveil', function(e){
 					//console.log('using data-src-webp');
 					src = webpsrc;
 				}
-				if (window.lazySizes.hC(target,'et_pb_jt_filterable_grid_item_image')) {
+				if (!shouldAutoScale(target)||!shouldAutoScale(target.parentNode)){
+					var newSrc = false;
+				} else if ( window.lazySizes.hC(target,'et_pb_jt_filterable_grid_item_image')) {
 					var newSrc = constrainSrc(src,targetWidth,targetHeight,'img-crop');
 				} else {
 					var newSrc = constrainSrc(src,targetWidth,targetHeight,'img');

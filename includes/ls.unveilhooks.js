@@ -85,7 +85,8 @@ For background images, use data-bg attribute:
 					var dPR = (window.devicePixelRatio || 1);
 					var targetWidth  = Math.round(e.target.offsetWidth * dPR);
 					var targetHeight = Math.round(e.target.offsetHeight * dPR);
-					if (window.lazySizes.hC(e.target,'wp-block-cover')) {
+					if (!shouldAutoScale(e.target)||!shouldAutoScale(e.target.parentNode)){
+					} else if (window.lazySizes.hC(e.target,'wp-block-cover')) {
 						if (window.lazySizes.hC(e.target,'has-parallax')) {
 							targetWidth  = Math.round(window.screen.width * dPR);
 							targetHeight = Math.round(window.screen.height * dPR);
@@ -122,23 +123,5 @@ For background images, use data-bg attribute:
 			}
 		}, false);
 
-	}
-
-	function addStyleScript(src, style){
-		if(uniqueUrls[src]){
-			return;
-		}
-		var elem = document.createElement(style ? 'link' : 'script');
-		var insertElem = document.getElementsByTagName('script')[0];
-
-		if(style){
-			elem.rel = 'stylesheet';
-			elem.href = src;
-		} else {
-			elem.src = src;
-		}
-		uniqueUrls[src] = true;
-		uniqueUrls[elem.src || elem.href] = true;
-		insertElem.parentNode.insertBefore(elem, insertElem);
 	}
 }));
