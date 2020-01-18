@@ -5986,7 +5986,6 @@ function ewww_image_optimizer_rebuild_meta( $attachment_id ) {
  *
  * @global object $wpdb
  * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
- * @global bool $ewww_defer True if optimization should be deferred until later.
  * @global bool $ewww_new_image True if this is a newly uploaded image.
  * @global object $ewww_image Contains more information about the image currently being processed.
  * @global object $ewwwio_media_background;
@@ -6021,7 +6020,6 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 	} else {
 		$ewwwdb = $wpdb;
 	}
-	global $ewww_defer;
 	global $ewww_new_image;
 	global $ewww_image;
 	$gallery_type = 1;
@@ -6078,35 +6076,8 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		return $meta;
 	}
 	$fullsize_size = ewww_image_optimizer_filesize( $file_path );
-	// See if this is a new image and Imsanity resized it (which means it could be already optimized).
-	if ( ! empty( $new_image ) && function_exists( 'imsanity_get_max_width_height' ) && strpos( $type, 'image' ) !== false ) {
-		list( $maxw, $maxh ) = imsanity_get_max_width_height( IMSANITY_SOURCE_LIBRARY );
-		list( $oldw, $oldh ) = getimagesize( $file_path );
-		list( $neww, $newh ) = wp_constrain_dimensions( $oldw, $oldh, $maxw, $maxh );
-		$path_parts          = pathinfo( $file_path );
-		$imsanity_path       = trailingslashit( $path_parts['dirname'] ) . $path_parts['filename'] . '-' . $neww . 'x' . $newh . '.' . $path_parts['extension'];
-		ewwwio_debug_message( "imsanity path: $imsanity_path" );
-		$image_size        = ewww_image_optimizer_filesize( $file_path );
-		$already_optimized = ewww_image_optimizer_find_already_optimized( $imsanity_path );
-		if ( is_array( $already_optimized ) ) {
-			ewwwio_debug_message( "updating existing record, path: $file_path, size: " . $image_size );
-			// Store info on the current image for future reference.
-			$ewwwdb->update(
-				$ewwwdb->ewwwio_images,
-				array(
-					'path'          => ewww_image_optimizer_relativize_path( $file_path ),
-					'attachment_id' => $id,
-					'resize'        => 'full',
-					'gallery'       => 'media',
-				),
-				array(
-					'id' => $already_optimized['id'],
-				)
-			);
-		}
-	}
 
-	// Initialize an EWWW_Image object for the full-size image so that the original will be backed up before any potential resizing operations.
+	// Initialize an EWWW_Image object for the full-size image so that the original size will be tracked before any potential resizing operations.
 	$ewww_image         = new EWWW_Image( $id, 'media', $file_path );
 	$ewww_image->resize = 'full';
 
