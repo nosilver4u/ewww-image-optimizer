@@ -1615,7 +1615,11 @@ function ewww_image_optimizer_notice_exactdn_activation_error() {
 		$exactdn_activate_error = 'error unknown';
 	}
 	echo '<div id="ewww-image-optimizer-notice-exactdn-error" class="notice notice-error"><p>' .
-		esc_html__( 'Could not activate Easy IO, please try again in a few minutes. If this error continues, please contact support and provide this complete error message.', 'ewww-image-optimizer' ) .
+		sprintf(
+			/* translators: %s: A link to the documentation */
+			esc_html__( 'Could not activate Easy IO, please try again in a few minutes. If this error continues, please see %s for troubleshooting steps.', 'ewww-image-optimizer' ),
+			'https://docs.ewww.io/article/66-exactdn-not-verified'
+		) .
 		'<br><code>' . $exactdn_activate_error . '</code>' .
 		'</p></div>';
 }
@@ -2777,7 +2781,7 @@ function ewww_image_optimizer_exclude_paths_sanitize( $input ) {
 		foreach ( $paths as $path ) {
 			$i++;
 			ewwwio_debug_message( "validating path exclusion: $path" );
-			$path = sanitize_text_field( $path );
+			$path = trim( sanitize_text_field( $path ), '*' );
 			if ( ! empty( $path ) ) {
 				$path_array[] = $path;
 			}
@@ -2807,7 +2811,7 @@ function ewww_image_optimizer_webp_paths_sanitize( $paths ) {
 		$i = 0;
 		foreach ( $paths_entered as $path ) {
 			$i++;
-			$original_path = esc_html( $path );
+			$original_path = esc_html( trim( $path, '*' ) );
 			$path          = esc_url( $path, null, 'db' );
 			if ( ! empty( $path ) ) {
 				if ( ! substr_count( $path, '.' ) ) {
@@ -9025,7 +9029,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$ll_exclude_paths = ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_exclude' ) ? esc_html( implode( "\n", ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_exclude' ) ) ) : '';
 	$output[]         = "<tr class='$network_class'><td>&nbsp;</td>" .
 		"<td><label for='ewww_image_optimizer_ll_exclude'><strong>" . esc_html__( 'Exclusions', 'ewww-image-optimizer' ) . '</strong></label>' .
-		ewwwio_help_link( 'https://docs.ewww.io/article/68-exactdn-exclude', '5c0042892c7d3a31944e88a4' ) . '<br>' .
+		ewwwio_help_link( 'https://docs.ewww.io/article/74-lazy-load', '5c6c36ed042863543ccd2d9b' ) . '<br>' .
 		"<textarea id='ewww_image_optimizer_ll_exclude' name='ewww_image_optimizer_ll_exclude' rows='3' cols='60'>$ll_exclude_paths</textarea>\n" .
 		"<p class='description'>" .
 		esc_html__( 'One exclusion per line, no wildcards (*) needed. Use any string that matches the desired element(s) or exclude entire element types like "div", "span", etc. The class "skip-lazy" and attribute "data-skip-lazy" are excluded by default.', 'ewww-image-optimizer' ) .
