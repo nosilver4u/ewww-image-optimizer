@@ -195,9 +195,11 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 * same-named constant. Overrides are only available for integer and boolean options.
 		 *
 		 * @param string $option_name The name of the option to retrieve.
+		 * @param mixed  $default The default to use if not found/set, defaults to false, but not currently used.
+		 * @param bool   $single Use single-site setting regardless of multisite activation. Default is off/false.
 		 * @return mixed The value of the option.
 		 */
-		function get_option( $option_name ) {
+		function get_option( $option_name, $default = false, $single = false ) {
 			$constant_name = strtoupper( $option_name );
 			if ( defined( $constant_name ) && ( is_int( constant( $constant_name ) ) || is_bool( constant( $constant_name ) ) ) ) {
 				return constant( $constant_name );
@@ -207,6 +209,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 			}
 			if (
+				! $single &&
 				is_multisite() &&
 				is_plugin_active_for_network( constant( strtoupper( $this->prefix ) . 'PLUGIN_FILE_REL' ) ) &&
 				! get_site_option( $this->prefix . 'allow_multisite_override' )

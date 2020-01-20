@@ -869,7 +869,7 @@ function ewww_image_optimizer_admin_init() {
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_invalid_key' );
 		add_action( 'admin_notices', 'ewww_image_optimizer_notice_invalid_key' );
 	}
-	if ( get_option( 'ewww_image_optimizer_webp_enabled' ) ) {
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_enabled' ) ) {
 		add_action( 'admin_notices', 'ewww_image_optimizer_notice_webp_bulk' );
 	}
 	// Prevent ShortPixel AIO messiness.
@@ -1116,7 +1116,7 @@ function ewww_image_optimizer_single_size_optimize( $id, $size ) {
 	}
 	// Resized version, continue.
 	if ( isset( $meta['sizes'] ) && is_array( $meta['sizes'][ $size ] ) ) {
-		$disabled_sizes = get_option( 'ewww_image_optimizer_disable_resizes_opt' );
+		$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt', false, true );
 		ewwwio_debug_message( "processing size: $size" );
 		$base_dir = trailingslashit( dirname( $file_path ) );
 		$data     = $meta['sizes'][ $size ];
@@ -2003,7 +2003,7 @@ function ewww_image_optimizer_retina_wrapper( $meta ) {
  */
 function ewww_image_optimizer_image_sizes_advanced( $sizes ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	$disabled_sizes = get_option( 'ewww_image_optimizer_disable_resizes' );
+	$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes', false, true );
 	$flipped        = false;
 	if ( ! empty( $disabled_sizes ) ) {
 		if ( ! empty( $sizes[0] ) ) {
@@ -2036,7 +2036,7 @@ function ewww_image_optimizer_image_sizes_advanced( $sizes ) {
  */
 function ewww_image_optimizer_fallback_sizes( $sizes ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	$disabled_sizes = get_option( 'ewww_image_optimizer_disable_resizes' );
+	$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes', false, true );
 	$flipped        = false;
 	if ( ! empty( $disabled_sizes ) ) {
 		if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
@@ -2673,8 +2673,12 @@ function ewww_image_optimizer_aux_paths_sanitize( $input ) {
 	if ( empty( $input ) ) {
 		return '';
 	}
-	$path_array  = array();
-	$paths       = explode( "\n", $input );
+	$path_array = array();
+	if ( is_array( $input ) ) {
+		$paths = $input;
+	} elseif ( is_string( $input ) ) {
+		$paths = explode( "\n", $input );
+	}
 	$abspath     = false;
 	$permissions = apply_filters( 'ewww_image_optimizer_superadmin_permissions', '' );
 	if ( is_multisite() && current_user_can( $permissions ) ) {
@@ -2763,7 +2767,11 @@ function ewww_image_optimizer_exclude_paths_sanitize( $input ) {
 		return '';
 	}
 	$path_array = array();
-	$paths      = explode( "\n", $input );
+	if ( is_array( $input ) ) {
+		$paths = $input;
+	} elseif ( is_string( $input ) ) {
+		$paths = explode( "\n", $input );
+	}
 	if ( ewww_image_optimizer_iterable( $paths ) ) {
 		$i = 0;
 		foreach ( $paths as $path ) {
@@ -2789,8 +2797,12 @@ function ewww_image_optimizer_webp_paths_sanitize( $paths ) {
 	if ( empty( $paths ) ) {
 		return '';
 	}
-	$paths_entered = explode( "\n", $paths );
-	$paths_saved   = array();
+	$paths_saved = array();
+	if ( is_array( $paths ) ) {
+		$paths_entered = $paths;
+	} elseif ( is_string( $paths ) ) {
+		$paths_entered = explode( "\n", $paths );
+	}
 	if ( ewww_image_optimizer_iterable( $paths_entered ) ) {
 		$i = 0;
 		foreach ( $paths_entered as $path ) {
@@ -2806,7 +2818,7 @@ function ewww_image_optimizer_webp_paths_sanitize( $paths ) {
 							/* translators: %s: A url or domain name */
 							esc_html__( 'Could not save WebP URL: %s.', 'ewww-image-optimizer' ),
 							esc_html( $original_path )
-						) . ' ' . esc_html__( 'Please enter a valid url including the domain name.', 'ewww-image-optimizer' )
+						) . ' ' . esc_html__( 'Please enter a valid URL including the domain name.', 'ewww-image-optimizer' )
 					);
 					continue;
 				}
@@ -4979,7 +4991,7 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 		}
 		// Resized versions, so we'll grab those too.
 		if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
-			$disabled_sizes = get_option( 'ewww_image_optimizer_disable_resizes_opt' );
+			$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt', false, true );
 			ewwwio_debug_message( 'retrieving resizes' );
 			// Meta sizes don't contain a path, so we calculate one.
 			$base_dir  = trailingslashit( dirname( $filename ) );
@@ -5041,7 +5053,7 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 		}
 		// Resized versions, so we'll grab those too.
 		if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
-			$disabled_sizes = get_option( 'ewww_image_optimizer_disable_resizes_opt' );
+			$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt', false, true );
 			ewwwio_debug_message( 'retrieving resizes' );
 			// Meta sizes don't contain a path, so we calculate one.
 			$base_dir  = trailingslashit( dirname( $filename ) );
@@ -5099,7 +5111,7 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 		}
 		// Resized versions, so we'll grab those too.
 		if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
-			$disabled_sizes = get_option( 'ewww_image_optimizer_disable_resizes_opt' );
+			$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt', false, true );
 			ewwwio_debug_message( 'retrieving resizes' );
 			// Meta sizes don't contain a path, so we calculate one.
 			$base_dir = trailingslashit( dirname( $filename ) );
@@ -6187,7 +6199,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 
 	// Resized versions, so we can continue.
 	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
-		$disabled_sizes = get_option( 'ewww_image_optimizer_disable_resizes_opt' );
+		$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt', false, true );
 		ewwwio_debug_message( 'processing resizes' );
 		// Meta sizes don't contain a path, so we calculate one.
 		if ( 6 === $gallery_type ) {
@@ -7491,7 +7503,7 @@ function ewww_image_optimizer_count_unoptimized_sizes( $sizes ) {
 		return 0;
 	}
 	$sizes_to_opt   = 0;
-	$disabled_sizes = get_option( 'ewww_image_optimizer_disable_resizes_opt' );
+	$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt', false, true );
 
 	// To keep track of the ones we have already processed.
 	$processed = array();
@@ -7912,9 +7924,11 @@ function ewww_image_optimizer_bulk_action_handler() {
  * same-named constant. Overrides are only available for integer and boolean options.
  *
  * @param string $option_name The name of the option to retrieve.
+ * @param mixed  $default The default to use if not found/set, defaults to false, but not currently used.
+ * @param bool   $single Use single-site setting regardless of multisite activation. Default is off/false.
  * @return mixed The value of the option.
  */
-function ewww_image_optimizer_get_option( $option_name ) {
+function ewww_image_optimizer_get_option( $option_name, $default = false, $single = false ) {
 	$constant_name = strtoupper( $option_name );
 	if ( defined( $constant_name ) && ( is_int( constant( $constant_name ) ) || is_bool( constant( $constant_name ) ) ) ) {
 		return constant( $constant_name );
@@ -7925,20 +7939,36 @@ function ewww_image_optimizer_get_option( $option_name ) {
 			return trim( $option_value );
 		}
 	}
-	if ( ( 'exactdn_exclude' === $option_name || 'ewww_image_optimizer_ll_exclude' === $option_name ) && defined( $constant_name ) ) {
-		$option_value = constant( $constant_name );
-		if ( is_string( $option_value ) ) {
-			return array( $option_value );
-		}
-		if ( is_array( $option_value ) ) {
-			return $option_value;
-		}
+	if (
+		(
+			'ewww_image_optimizer_exclude_paths' === $option_name ||
+			'exactdn_exclude' === $option_name ||
+			'ewww_image_optimizer_ll_exclude' === $option_name
+		)
+		&& defined( $constant_name )
+	) {
+		return ewww_image_optimizer_exclude_paths_sanitize( constant( $constant_name ) );
+	}
+	if ( 'ewww_image_optimizer_aux_paths' === $option_name && defined( $constant_name ) ) {
+		return ewww_image_optimizer_aux_paths_sanitize( constant( $constant_name ) );
+	}
+	if ( 'ewww_image_optimizer_webp_paths' === $option_name && defined( $constant_name ) ) {
+		return ewww_image_optimizer_webp_paths_sanitize( constant( $constant_name ) );
+	}
+	if ( 'ewww_image_optimizer_disable_resizes' === $option_name && defined( $constant_name ) ) {
+		return ewww_image_optimizer_disable_resizes_sanitize( constant( $constant_name ) );
+	}
+	if ( 'ewww_image_optimizer_disable_resizes_opt' === $option_name && defined( $constant_name ) ) {
+		return ewww_image_optimizer_disable_resizes_sanitize( constant( $constant_name ) );
+	}
+	if ( 'ewww_image_optimizer_jpg_background' === $option_name && defined( $constant_name ) ) {
+		return ewww_image_optimizer_jpg_background( constant( $constant_name ) );
 	}
 	if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
 		// Need to include the plugin library for the is_plugin_active function.
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 	}
-	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) && ! get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
+	if ( ! $single && is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) && ! get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
 		$option_value = get_site_option( $option_name );
 	} else {
 		$option_value = get_option( $option_name );
@@ -9069,7 +9099,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		"</td></tr>\n";
 	ewwwio_debug_message( 'scheduled optimization: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) ? 'on' : 'off' ) );
 	$media_include_disable = '';
-	if ( get_option( 'ewww_image_optimizer_disable_resizes_opt' ) ) {
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt', false, true ) ) {
 		$media_include_disable = 'disabled="disabled"';
 		$output[]              = "<tr class='$network_class'><th>&nbsp;</th><td>" .
 			'<p><span style="color: #3eadc9">' . esc_html__( '*Include Media Library Folders has been disabled because it will cause the scanner to ignore the disabled resizes.', 'ewww-image-optimizer' ) . "</span></p></td></tr>\n";
@@ -9078,7 +9108,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		esc_html__( 'Include Media Folders', 'ewww-image-optimizer' ) . '</label>' .
 		ewwwio_help_link( 'https://docs.ewww.io/article/11-advanced-configuration', '58542afac697912ffd6c18c0,5853713bc697912ffd6c0b98' ) .
 		"</th><td><input type='checkbox' id='ewww_image_optimizer_include_media_paths' name='ewww_image_optimizer_include_media_paths' $media_include_disable value='true' " .
-		( ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_media_paths' ) && ! get_option( 'ewww_image_optimizer_disable_resizes_opt' ) ? "checked='true'" : '' ) . ' /> ' .
+		( ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_media_paths' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt', false, true ) ? "checked='true'" : '' ) . ' /> ' .
 		esc_html__( 'Scan all images from the latest two folders of the Media Library during the Bulk Optimizer and Scheduled Optimization.', 'ewww-image-optimizer' ) . "</td></tr>\n";
 	ewwwio_debug_message( 'include media library: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_media_paths' ) ? 'on' : 'off' ) );
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_include_originals'>" .
@@ -9154,8 +9184,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		esc_html__( 'WordPress, your theme, and other plugins generate various image sizes. You may disable optimization for certain sizes, or completely prevent those sizes from being created.', 'ewww-image-optimizer' ) . '<br>' .
 		'<i>' . esc_html__( 'Remember that each image size will affect your API credits.', 'ewww-image-optimizer' ) . "</i></p>\n";
 	$image_sizes        = ewww_image_optimizer_get_image_sizes();
-	$disabled_sizes     = get_option( 'ewww_image_optimizer_disable_resizes' );
-	$disabled_sizes_opt = get_option( 'ewww_image_optimizer_disable_resizes_opt' );
+	$disabled_sizes     = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes', false, true );
+	$disabled_sizes_opt = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt', false, true );
 	$output[]           = '<table><tr class="network-singlesite"><th scope="col">' . esc_html__( 'Disable Optimization', 'ewww-image-optimizer' ) . '</th><th scope="col">' . esc_html__( 'Disable Creation', 'ewww-image-optimizer' ) . "</th></tr>\n";
 	ewwwio_debug_message( 'disabled resizes:' );
 	foreach ( $image_sizes as $size => $dimensions ) {
@@ -9165,7 +9195,14 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		if ( 'thumbnail' === $size ) {
 			$output[] = "<tr class='network-singlesite'><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_opt_$size' name='ewww_image_optimizer_disable_resizes_opt[$size]' value='true' " . ( ! empty( $disabled_sizes_opt[ $size ] ) ? "checked='true'" : '' ) . " /></td><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_$size' name='ewww_image_optimizer_disable_resizes[$size]' value='true' disabled /></td><td><label for='ewww_image_optimizer_disable_resizes_$size'>$size - {$dimensions['width']}x{$dimensions['height']}</label></td></tr>\n";
 		} elseif ( 'pdf-full' === $size ) {
-			$output[] = "<tr class='network-singlesite'><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_opt_$size' name='ewww_image_optimizer_disable_resizes_opt[$size]' value='true' " . ( ! empty( $disabled_sizes_opt[ $size ] ) ? "checked='true'" : '' ) . " /></td><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_$size' name='ewww_image_optimizer_disable_resizes[$size]' value='true' " . ( ! empty( $disabled_sizes[ $size ] ) ? "checked='true'" : '' ) . " /></td><td><label for='ewww_image_optimizer_disable_resizes_$size'>$size - <span class='description'>" . esc_html__( 'Disabling creation of the full-size preview for PDF files will disable all PDF preview sizes', 'ewww-image-optimizer' ) . "</span></label></td></tr>\n";
+			$output[] = "<tr class='network-singlesite'><td>" .
+				"<input type='checkbox' id='ewww_image_optimizer_disable_resizes_opt_$size' name='ewww_image_optimizer_disable_resizes_opt[$size]' value='true' " .
+				( ! empty( $disabled_sizes_opt[ $size ] ) ? "checked='true'" : '' ) .
+				' /></td><td>' .
+				"<input type='checkbox' id='ewww_image_optimizer_disable_resizes_$size' name='ewww_image_optimizer_disable_resizes[$size]' value='true' " .
+				( ! empty( $disabled_sizes[ $size ] ) ? "checked='true'" : '' ) .
+				" /></td><td><label for='ewww_image_optimizer_disable_resizes_$size'>$size - <span class='description'>" .
+				esc_html__( 'Disabling creation of the full-size preview for PDF files will disable all PDF preview sizes', 'ewww-image-optimizer' ) . "</span></label></td></tr>\n";
 		} else {
 			$output[] = "<tr class='network-singlesite'><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_opt_$size' name='ewww_image_optimizer_disable_resizes_opt[$size]' value='true' " . ( ! empty( $disabled_sizes_opt[ $size ] ) ? "checked='true'" : '' ) . " /></td><td><input type='checkbox' id='ewww_image_optimizer_disable_resizes_$size' name='ewww_image_optimizer_disable_resizes[$size]' value='true' " . ( ! empty( $disabled_sizes[ $size ] ) ? "checked='true'" : '' ) . " /></td><td><label for='ewww_image_optimizer_disable_resizes_$size'>$size - {$dimensions['width']}x{$dimensions['height']}</label></td></tr>\n";
 		}
