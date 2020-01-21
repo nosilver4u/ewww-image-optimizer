@@ -181,6 +181,8 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * added: prevent auto-scaling with skip-autoscale
 * added: Folders to Optimize, Folders to Ignore, Lazy Load Exclusions, Easy IO Exclusions, and WebP URLs can be defined as overrides (single value as string, multiple values as an array)
 * added: API key, JPG Background (for conversion only), and Disabled Resizes can be defined as overrides, see https://docs.ewww.io/article/40-override-options
+* fixed: errors due to duplicate ssl= arguments in URLs
+* fixed: JS WebP has incorrect selector for video elements (props @CharlieHawker)
 
 = 5.1.4 =
 * fixed: warnings on FlaGallery's manage gallery page
