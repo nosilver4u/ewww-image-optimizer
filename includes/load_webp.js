@@ -566,7 +566,7 @@ function ewwwLoadImages(ewww_webp_supported) {
 				ewwwAttr(wooImages[i], 'data-thumb', wooImages[i].getAttribute('data-webp-thumb'));
 			}
 		}
-                var videos = document.querySelectorAll('videos');
+                var videos = document.querySelectorAll('video');
 		for (var i = 0, len = videos.length; i < len; i++){
 			if (ewww_webp_supported) {
 				ewwwAttr(videos[i], 'poster', videos[i].getAttribute('data-poster-webp'));
