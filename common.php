@@ -8525,7 +8525,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			}
 			$status_notices .= '<span style="color: #3eadc9; font-weight: bolder">' . esc_html__( 'Verified,', 'ewww-image-optimizer' ) . ' </span>' . ewww_image_optimizer_cloud_quota();
 		} elseif ( false !== strpos( $verify_cloud, 'exceeded' ) ) {
-			$status_notices .= '<span style="color: orange; font-weight: bolder">' . esc_html__( 'Out of credits', 'ewww-image-optimizer' ) . '</span> - <a href="https://ewww.io/plans/" target="_blank">' . esc_html__( 'Purchase more', 'ewww-image-optimizer' ) . '</a>';
+			$status_notices .= '<span style="color: orange; font-weight: bolder">' . esc_html__( 'Out of credits', 'ewww-image-optimizer' ) . '</span> - <a href="https://ewww.io/buy-credits/" target="_blank">' . esc_html__( 'Purchase more', 'ewww-image-optimizer' ) . '</a>';
 		} else {
 			$status_notices .= '<span style="color: red; font-weight: bolder">' . esc_html__( 'Not Verified', 'ewww-image-optimizer' ) . '</span>';
 		}
@@ -8734,7 +8734,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	}
 	$status_notices .= "</p>\n";
 	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
-		$status_notices .= "<p><a href='https://ewww.io/plans' target='_blank' class='button button-primary' style='background:#3eadc9'>" . esc_html__( 'Premium Upgrades', 'ewww-image-optimizer' ) . "</a></p>\n";
+		$status_notices .= "<p><a href='https://ewww.io/plans/' target='_blank' class='button button-primary' style='background:#3eadc9'>" . esc_html__( 'Premium Upgrades', 'ewww-image-optimizer' ) . "</a></p>\n";
 	}
 
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
@@ -8889,7 +8889,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_cloud_notkey'>" . esc_html__( 'Optimization API Key', 'ewww-image-optimizer' ) . "</label></th><td><input type='text' id='ewww_image_optimizer_cloud_notkey' name='ewww_image_optimizer_cloud_notkey' readonly='readonly' value='****************************" . substr( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), 28 ) . "' size='32' /> <a href='admin.php?action=ewww_image_optimizer_remove_cloud_key'>" . esc_html__( 'Remove API key', 'ewww-image-optimizer' ) . "</a></td></tr>\n";
 		$output[] = "<input type='hidden' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='" . ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) . "' />\n";
 	} else {
-		$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_cloud_key'>" . esc_html__( 'Optimization API Key', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2,5ad0c8e7042863075092650b,5a9efec62c7d3a7549516550' ) . "</th><td><input type='text' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='' size='32' /> " . esc_html__( 'API Key will be validated when you save your settings.', 'ewww-image-optimizer' ) . " <a href='https://ewww.io/plans/' target='_blank'>" . esc_html__( 'Purchase an API key.', 'ewww-image-optimizer' ) . "</a></td></tr>\n";
+		$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_cloud_key'>" . esc_html__( 'Optimization API Key', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2,5ad0c8e7042863075092650b,5a9efec62c7d3a7549516550' ) . "</th><td><input type='text' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='' size='32' /> " . esc_html__( 'API Key will be validated when you save your settings.', 'ewww-image-optimizer' ) . " <a href='https://ewww.io/buy-credits/' target='_blank'>" . esc_html__( 'Purchase an API key.', 'ewww-image-optimizer' ) . "</a></td></tr>\n";
 	}
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_metadata_remove'>" . esc_html__( 'Remove Metadata', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ) . "</th>\n" .
 		"<td><input type='checkbox' id='ewww_image_optimizer_metadata_remove' name='ewww_image_optimizer_metadata_remove' value='true' " . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ? "checked='true'" : '' ) . ' /> ' . esc_html__( 'This will remove ALL metadata: EXIF, comments, color profiles, and anything else that is not pixel data.', 'ewww-image-optimizer' ) .
@@ -8935,7 +8935,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		"</select></td></tr>\n";
 	ewwwio_debug_message( 'pdf level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) );
 	$output[] = "<tr class='$network_class'><th>&nbsp;</th><td>" .
-		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? "<p class='$network_class nocloud'>* <strong><a href='https://ewww.io/plans/' target='_blank'>" . esc_html__( 'Purchase an API key to unlock these optimization levels. Achieve up to 80% compression and see the quality for yourself.', 'ewww-image-optimizer' ) . "</a></strong></p>\n" :
+		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? "<p class='$network_class nocloud'>* <strong><a href='https://ewww.io/buy-credits/' target='_blank'>" . esc_html__( 'Purchase an API key to unlock these optimization levels. Achieve up to 80% compression and see the quality for yourself.', 'ewww-image-optimizer' ) . "</a></strong></p>\n" :
 		'<p>* ' . esc_html__( 'These levels use the compression API.', 'ewww-image-optimizer' ) ) .
 		"<p class='$network_class description'>" . esc_html__( 'All methods used by the EWWW Image Optimizer are intended to produce visually identical images.', 'ewww-image-optimizer' ) . "</p>\n" .
 		"</td></tr>\n";
