@@ -593,7 +593,11 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			$height = min( $height, 1920 );
 
 			$memory_required = 5 * $height * $width;
-			if ( function_exists( 'ewwwio_check_memory_available' ) && ! ewwwio_check_memory_available( $memory_required + 500000 ) ) {
+			if (
+				! $this->get_option( 'ewww_image_optimizer_cloud_key' ) &&
+				function_exists( 'ewwwio_check_memory_available' ) &&
+				! ewwwio_check_memory_available( $memory_required + 500000 )
+			) {
 				return $this->placeholder_src;
 			}
 
@@ -602,14 +606,28 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				global $exactdn;
 				return $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $width . 'x' . $height . '.png' );
 			} elseif ( ! is_file( $piip_path ) ) {
-				$img   = imagecreatetruecolor( $width, $height );
-				$color = imagecolorallocatealpha( $img, 0, 0, 0, 127 );
-				imagefill( $img, 0, 0, $color );
-				imagesavealpha( $img, true );
-				imagecolortransparent( $img, imagecolorat( $img, 0, 0 ) );
-				imagetruecolortopalette( $img, false, 1 );
-				imagepng( $img, $piip_path, 9 );
+				if ( $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+					$piip_location = "http://optimize.exactlywww.com/resize/lazy.php?width=$width&height=$height";
+					$piip_response = wp_remote_get( $piip_location );
+					if ( ! is_wp_error( $piip_response ) && is_array( $piip_response ) && ! empty( $piip_response['body'] ) ) {
+						file_put_contents( $piip_path, $piip_response['body'] );
+						clearstatcache();
+					}
+				}
+				if ( ! is_file( $piip_path ) && function_exists( 'ewwwio_check_memory_available' ) && ewwwio_check_memory_available( $memory_required + 500000 ) ) {
+					$img   = imagecreatetruecolor( $width, $height );
+					$color = imagecolorallocatealpha( $img, 0, 0, 0, 127 );
+					imagefill( $img, 0, 0, $color );
+					imagesavealpha( $img, true );
+					imagecolortransparent( $img, imagecolorat( $img, 0, 0 ) );
+					imagetruecolortopalette( $img, false, 1 );
+					imagepng( $img, $piip_path, 9 );
+					if ( function_exists( 'ewww_image_optimizer' ) ) {
+						ewww_image_optimizer( $piip_path );
+					}
+				}
 			}
+			clearstatcache();
 			if ( is_file( $piip_path ) ) {
 				return $this->content_url . 'lazy/placeholder-' . $width . 'x' . $height . '.png';
 			}
