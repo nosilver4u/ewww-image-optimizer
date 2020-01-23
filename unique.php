@@ -1837,27 +1837,6 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	if ( ini_get( 'max_execution_time' ) < 90 && ewww_image_optimizer_stl_check() ) {
 		set_time_limit( 0 );
 	}
-	// If the full-size image was converted.
-	if ( $converted ) { // TODO: remove this block in a future release, it should not fire anymore, as resizes will be converted only directly after the full-size is converted.
-		ewwwio_debug_message( 'full-size image was converted, need to rebuild filename for meta' );
-		$filenum = $converted;
-		// Grab the file extension.
-		preg_match( '/\.\w+$/', $file, $fileext );
-		// Strip the file extension.
-		$filename = str_replace( $fileext[0], '', $file );
-		// Grab the dimensions.
-		preg_match( '/-\d+x\d+(-\d+)*$/', $filename, $fileresize );
-		// Strip the dimensions.
-		$filename = str_replace( $fileresize[0], '', $filename );
-		// Reconstruct the filename with the same increment (stored in $converted) as the full version.
-		$refile = $filename . '-' . $filenum . $fileresize[0] . $fileext[0];
-		// Rename the file.
-		rename( $file, $refile );
-		ewwwio_debug_message( "moved $file to $refile" );
-		// And set $file to the new filename.
-		$file     = $refile;
-		$original = $file;
-	}
 	// Get the original image size.
 	$orig_size = ewww_image_optimizer_filesize( $file );
 	ewwwio_debug_message( "original filesize: $orig_size" );

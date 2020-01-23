@@ -2962,6 +2962,7 @@ function ewwwio_is_file( $file ) {
 	}
 	return is_file( $file );
 }
+
 /**
  * Make sure an array/object can be parsed by a foreach().
  *
@@ -4991,7 +4992,11 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 			if ( ! is_dir( dirname( $filename ) ) ) {
 				wp_mkdir_p( dirname( $filename ) );
 			}
-			rename( $temp_file, $filename );
+			if ( ! ewwwio_is_file( $filename ) ) {
+				rename( $temp_file, $filename );
+			} else {
+				unlink( $temp_file );
+			}
 		}
 		// Resized versions, so we'll grab those too.
 		if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
@@ -5024,6 +5029,9 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 				if ( ! $dup_size ) {
 					$resize_path = $base_dir . $data['file'];
 					$resize_url  = $data['gs_link'];
+					if ( ewwwio_is_file( $resize_path ) ) {
+						continue;
+					}
 					ewwwio_debug_message( "fetching $resize_url to $resize_path" );
 					$temp_file = download_url( $resize_url );
 					if ( ! is_wp_error( $temp_file ) ) {
@@ -5053,7 +5061,11 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 			if ( ! is_dir( dirname( $filename ) ) ) {
 				wp_mkdir_p( dirname( $filename ) );
 			}
-			rename( $temp_file, $filename );
+			if ( ! ewwwio_is_file( $filename ) ) {
+				rename( $temp_file, $filename );
+			} else {
+				unlink( $temp_file );
+			}
 		}
 		// Resized versions, so we'll grab those too.
 		if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
@@ -5086,6 +5098,9 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 				if ( ! $dup_size ) {
 					$resize_path = $base_dir . $data['file'];
 					$resize_url  = $as3cf->get_attachment_url( $id, null, $size, $meta );
+					if ( ewwwio_is_file( $resize_path ) ) {
+						continue;
+					}
 					ewwwio_debug_message( "fetching $resize_url to $resize_path" );
 					$temp_file = download_url( $resize_url );
 					if ( ! is_wp_error( $temp_file ) ) {
@@ -5111,7 +5126,11 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 			if ( ! is_dir( dirname( $filename ) ) ) {
 				wp_mkdir_p( dirname( $filename ) );
 			}
-			rename( $temp_file, $filename );
+			if ( ! ewwwio_is_file( $filename ) ) {
+				rename( $temp_file, $filename );
+			} else {
+				unlink( $temp_file );
+			}
 		}
 		// Resized versions, so we'll grab those too.
 		if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
@@ -5146,6 +5165,9 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 				if ( ! $dup_size ) {
 					$resize_path = $base_dir . $data['file'];
 					$resize_url  = $base_url . $data['file'];
+					if ( ewwwio_is_file( $resize_path ) ) {
+						continue;
+					}
 					ewwwio_debug_message( "fetching $resize_url to $resize_path" );
 					$temp_file = download_url( $resize_url );
 					if ( ! is_wp_error( $temp_file ) ) {
@@ -5673,7 +5695,14 @@ function ewww_image_optimizer_resize_upload( $file ) {
 		}
 		// backup the file to the API, right before we replace the original.
 		ewww_image_optimizer_cloud_backup( $file );
-		rename( $new_file, $file );
+		$new_type = (string) ewww_image_optimizer_mimetype( $new_file, 'i' );
+		if ( $type === $new_type ) {
+			rename( $new_file, $file );
+		} else {
+			ewwwio_debug_message( "resizing did not create a valid image: $new_type" );
+			unlink( $new_file );
+			return false;
+		}
 		// Store info on the current image for future reference.
 		global $wpdb;
 		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
@@ -8734,7 +8763,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	}
 	$status_notices .= "</p>\n";
 	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
-		$status_notices .= "<p><a href='https://ewww.io/plans/' target='_blank' class='button button-primary' style='background:#3eadc9'>" . esc_html__( 'Premium Upgrades', 'ewww-image-optimizer' ) . "</a></p>\n";
+		$status_notices .= "<p><a href='https://ewww.io/plans/' target='_blank' class='button button-primary'>" . esc_html__( 'Premium Upgrades', 'ewww-image-optimizer' ) . "</a></p>\n";
 	}
 
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
