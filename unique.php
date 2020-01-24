@@ -1886,16 +1886,26 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				$convert = false;
 				$pngfile = '';
 			}
+			$compression_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' );
 			// Check for previous optimization, so long as the force flag is not on and this isn't a new image that needs converting.
 			if ( empty( $_REQUEST['ewww_force'] ) && ! ( $new && $convert ) ) {
 				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
 				if ( $results_msg ) {
-					$file = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
-					return array( $file, $results_msg, $converted, $original );
+					if ( empty( $_REQUEST['ewww_force_smart'] ) || $compression_level === (int) $ewww_image->level ) {
+						$file = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
+						return array( $file, $results_msg, $converted, $original );
+					} elseif ( ! empty( $_REQUEST['ewww_force_smart'] ) && $compression_level !== (int) $ewww_image->level ) {
+						ewwwio_debug_message( "smart re-opt found level mismatch for $file, db says " . $ewww_image->level . " vs. current $compression_level" );
+						// If the current compression level is less than what was previously used, and the previous level was premium (or premium plus).
+						if ( $compression_level < $ewww_image->level && $ewww_image->level > 20 ) {
+							ewwwio_debug_message( "smart re-opt triggering restoration for $file" );
+							ewww_image_optimizer_cloud_restore_single_image( $ewww_image->record );
+						}
+					}
 				}
 			}
-			$ewww_image->level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' );
-			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) > 10 && empty( $_REQUEST['ewww_webp_only'] ) ) {
+			$ewww_image->level = $compression_level;
+			if ( $compression_level > 10 && empty( $_REQUEST['ewww_webp_only'] ) ) {
 				list( $file, $converted, $result, $new_size, $backup_hash ) = ewww_image_optimizer_cloud_optimizer( $file, $type, $convert, $pngfile, 'image/png', $skip_lossy );
 				if ( $converted ) {
 					// Check to see if the user wants the originals deleted.
@@ -2146,17 +2156,27 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				$cloud_background = '';
 				$gquality         = null;
 			} // End if().
+			$compression_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' );
 			// Check for previous optimization, so long as the force flag is on and this isn't a new image that needs converting.
 			if ( empty( $_REQUEST['ewww_force'] ) && ! ( $new && $convert ) ) {
 				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
 				if ( $results_msg ) {
-					$file = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
-					return array( $file, $results_msg, $converted, $original );
+					if ( empty( $_REQUEST['ewww_force_smart'] ) || $compression_level === (int) $ewww_image->level ) {
+						$file = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
+						return array( $file, $results_msg, $converted, $original );
+					} elseif ( ! empty( $_REQUEST['ewww_force_smart'] ) && $compression_level !== (int) $ewww_image->level ) {
+						ewwwio_debug_message( "smart re-opt found level mismatch for $file, db says " . $ewww_image->level . " vs. current $compression_level" );
+						// If the current compression level is less than what was previously used, and the previous level was premium (or premium plus).
+						if ( $compression_level < $ewww_image->level && $ewww_image->level > 30 ) {
+							ewwwio_debug_message( "smart re-opt triggering restoration for $file" );
+							ewww_image_optimizer_cloud_restore_single_image( $ewww_image->record );
+						}
+					}
 				}
 			}
-			$ewww_image->level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' );
+			$ewww_image->level = $compression_level;
 			if (
-				ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) >= 20 &&
+				$compression_level >= 20 &&
 				ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
 				empty( $_REQUEST['ewww_webp_only'] )
 			) {
@@ -2446,16 +2466,26 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				$convert = false;
 				$pngfile = '';
 			}
+			$compression_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' );
 			// Check for previous optimization, so long as the force flag is on and this isn't a new image that needs converting.
 			if ( empty( $_REQUEST['ewww_force'] ) && ! ( $new && $convert ) ) {
 				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
 				if ( $results_msg ) {
-					$file = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
-					return array( $file, $results_msg, $converted, $original );
+					if ( empty( $_REQUEST['ewww_force_smart'] ) || $compression_level === (int) $ewww_image->level ) {
+						$file = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
+						return array( $file, $results_msg, $converted, $original );
+					} elseif ( ! empty( $_REQUEST['ewww_force_smart'] ) && $compression_level !== (int) $ewww_image->level ) {
+						ewwwio_debug_message( "smart re-opt found level mismatch for $file, db says " . $ewww_image->level . " vs. current $compression_level" );
+						// If the current compression level is less than what was previously used, and the previous level was premium (or premium plus).
+						if ( $compression_level < $ewww_image->level && $ewww_image->level > 30 ) {
+							ewwwio_debug_message( "smart re-opt triggering restoration for $file" );
+							ewww_image_optimizer_cloud_restore_single_image( $ewww_image->record );
+						}
+					}
 				}
 			}
-			$ewww_image->level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' );
-			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && 10 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) ) {
+			$ewww_image->level = $compression_level;
+			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && 10 === $compression_level ) {
 				list( $file, $converted, $result, $new_size, $backup_hash ) = ewww_image_optimizer_cloud_optimizer( $file, $type, $convert, $pngfile, 'image/png', $skip_lossy );
 				if ( $converted ) {
 					// Check to see if the user wants the originals deleted.
@@ -2588,15 +2618,25 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			if ( ! empty( $_REQUEST['ewww_webp_only'] ) ) {
 				break;
 			}
+			$compression_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' );
 			if ( empty( $_REQUEST['ewww_force'] ) ) {
 				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
 				if ( $results_msg ) {
-					$file = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
-					return array( $file, $results_msg, false, $original );
+					if ( empty( $_REQUEST['ewww_force_smart'] ) || $compression_level === (int) $ewww_image->level ) {
+						$file = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
+						return array( $file, $results_msg, false, $original );
+					} elseif ( ! empty( $_REQUEST['ewww_force_smart'] ) && $compression_level !== (int) $ewww_image->level ) {
+						ewwwio_debug_message( "smart re-opt found level mismatch for $file, db says " . $ewww_image->level . " vs. current $compression_level" );
+						// If the current compression level is less than what was previously used, and the previous level was premium (or premium plus).
+						if ( $compression_level < $ewww_image->level && $ewww_image->level > 30 ) {
+							ewwwio_debug_message( "smart re-opt triggering restoration for $file" );
+							ewww_image_optimizer_cloud_restore_single_image( $ewww_image->record );
+						}
+					}
 				}
 			}
-			$ewww_image->level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' );
-			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) > 0 ) {
+			$ewww_image->level = $compression_level;
+			if ( $compression_level > 0 ) {
 				list( $file, $converted, $result, $new_size, $backup_hash ) = ewww_image_optimizer_cloud_optimizer( $file, $type );
 			}
 			break;

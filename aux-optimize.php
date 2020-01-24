@@ -36,7 +36,7 @@ function ewww_image_optimizer_aux_images() {
 			$output       .= "&emsp;<a href='$debug_log_url'>" . esc_html( 'View Debug Log', 'ewww-image-optimizer' ) . "</a> - <a href='admin.php?action=ewww_image_optimizer_delete_debug_log'>" . esc_html( 'Remove Debug Log', 'ewww-image-optimizer' ) . '</a>';
 		}
 		$output           .= '</p>';
-		$output           .= '<div id="ewww-debug-info" style="border:1px solid #e5e5e5;background:#fff;overflow:auto;height:300px;width:800px;" contenteditable="true">' . $eio_debug . '</div>';
+		$output           .= '<div id="ewww-debug-info" contenteditable="true">' . $eio_debug . '</div>';
 		$help_instructions = esc_html__( 'Debugging information will be included with your message automatically.', 'ewww-image-optimizer' ) . ' ' .
 			esc_html__( 'This will allow us to assist you more quickly.', 'ewww-image-optimizer' );
 	}
@@ -511,6 +511,12 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	} else {
 		delete_transient( 'ewww_image_optimizer_force_reopt' );
 	}
+	// Make the Smart Re-optimize option persistent.
+	if ( ! empty( $_REQUEST['ewww_force_smart'] ) ) {
+		set_transient( 'ewww_image_optimizer_smart_reopt', true, HOUR_IN_SECONDS );
+	} else {
+		delete_transient( 'ewww_image_optimizer_smart_reopt' );
+	}
 	if ( empty( $optimized_list ) || ! is_array( $optimized_list ) ) {
 		ewww_image_optimizer_optimized_list();
 	}
@@ -621,7 +627,11 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 					ewwwio_debug_message( "file skipped due to PNG filesize: $path" );
 					continue;
 				}
-				if ( (int) $already_optimized['image_size'] === $image_size && empty( $_REQUEST['ewww_force'] ) ) {
+				$compression_level = ewww_image_optimizer_get_level( $mime );
+				if ( ! empty( $_REQUEST['ewww_force_smart'] ) && (int) $already_optimized['level'] !== (int) $compression_level ) {
+					$reset_images[] = (int) $already_optimized['id'];
+					ewwwio_debug_message( "smart re-opt found level mismatch for $path, db says " . $already_optimized['level'] . " vs. current $compression_level" );
+				} elseif ( (int) $already_optimized['image_size'] === $image_size && empty( $_REQUEST['ewww_force'] ) ) {
 					ewwwio_debug_message( "match found for $path" );
 					continue;
 				} else {
@@ -729,6 +739,9 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 	session_write_close();
 	if ( ! empty( $_REQUEST['ewww_force'] ) ) {
 		ewwwio_debug_message( 'forcing re-optimize: true' );
+	}
+	if ( ! empty( $_REQUEST['ewww_force_smart'] ) ) {
+		ewwwio_debug_message( 'forcing (smart) re-optimize: true' );
 	}
 	// Retrieve the time when the scan starts.
 	$started = microtime( true );

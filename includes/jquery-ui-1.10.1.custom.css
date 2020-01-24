@@ -419,6 +419,45 @@ button.ewww-handlediv {
 .js .postbox.closed .ewww-handlediv .toggle-indicator:before {
 	content: "\f140";
 }
+#ewww-bulk-controls {
+	border: solid 1px #e5e5e5;
+	background: #fff;
+	padding: 10px;
+	float: right;
+	width: 24%;
+	max-width: 360px;
+	margin-left: 15px;
+}
+#ewww-bulk-forms {
+	float: left;
+	min-width: 50%;
+	max-width: 65%;
+	border: solid 1px #e5e5e5;
+	background: #fff;
+	padding: 0 10px 12px;
+}
+#ewww-delay-slider {
+	margin: 0 0 15px 10px;
+	max-width: 500px;
+}
+#ewww-delay {
+	max-width: 50px;
+	min-width: 30px;
+}
+@media screen and (max-width: 780px) {
+	#ewww-bulk-controls {
+		float: none;
+		margin-left: 0px;
+		max-width: none;
+		width: auto;
+	}
+	#ewww-bulk-forms {
+		margin: 10px 0;
+		float: none;
+		max-width: none;
+		width: auto;
+	}
+}
 /* optimization status section */
 #ewww-status .inside {
 	margin: 0;
@@ -507,4 +546,11 @@ ul.ewww-blocks li:first-child {
 }
 .ui-tooltip ul.ewww-tooltip li {
 	margin-left: 1em;
+}
+#ewww-debug-info {
+	border:1px solid #e5e5e5;
+	background: #fff;
+	overflow: auto;
+	height: 300px;
+	width: 800px;
 }

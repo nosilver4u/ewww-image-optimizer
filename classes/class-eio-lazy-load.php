@@ -606,7 +606,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				global $exactdn;
 				return $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $width . 'x' . $height . '.png' );
 			} elseif ( ! is_file( $piip_path ) ) {
-				if ( $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+				if ( $this->get_option( 'ewww_image_optimizer_cloud_key' ) && ! defined( 'EWWW_IMAGE_OPTIMIZER_DISABLE_API_PIP' ) ) {
 					$piip_location = "http://optimize.exactlywww.com/resize/lazy.php?width=$width&height=$height";
 					$piip_response = wp_remote_get( $piip_location );
 					if ( ! is_wp_error( $piip_response ) && is_array( $piip_response ) && ! empty( $piip_response['body'] ) ) {

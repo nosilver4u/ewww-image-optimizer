@@ -133,7 +133,7 @@ function ewww_image_optimizer_bulk_preview() {
 	}
 	// Create the html for the bulk optimize form and status divs.
 	ewww_image_optimizer_bulk_head_output();
-	echo '<div id="ewww-bulk-forms" style="border: solid 1px #e5e5e5; background: #fff; padding: 0 10px 12px; margin: 10px 0;">';
+	echo '<div id="ewww-bulk-forms">';
 	if ( $fullsize_count < 1 ) {
 		echo '<p>' . esc_html__( 'You do not appear to have uploaded any images yet.', 'ewww-image-optimizer' ) . '</p>';
 	} else {
@@ -210,16 +210,37 @@ function ewww_image_optimizer_bulk_head_output() {
 				</div>
 			</div>
 		</div>
-		<form class="ewww-bulk-form" style="border: solid 1px #e5e5e5; background: #fff; padding: 10px;">
+		<form id="ewww-bulk-controls" class="ewww-bulk-form">
 			<p><label for="ewww-force" style="font-weight: bold"><?php esc_html_e( 'Force re-optimize', 'ewww-image-optimizer' ); ?></label><?php echo ewwwio_help_link( 'https://docs.ewww.io/article/65-force-re-optimization', '5bb640a7042863158cc711cd' ); ?>
 				&emsp;<input type="checkbox" id="ewww-force" name="ewww-force"<?php echo ( get_transient( 'ewww_image_optimizer_force_reopt' ) || ! empty( $_REQUEST['ewww_force'] ) ) ? ' checked' : ''; ?>>
 				&nbsp;<?php esc_html_e( 'Previously optimized images will be skipped by default, check this box before scanning to override.', 'ewww-image-optimizer' ); ?>
 				&nbsp;<a href="tools.php?page=ewww-image-optimizer-tools"><?php esc_html_e( 'View optimization history.', 'ewww-image-optimizer' ); ?></a>
 			</p>
+			<?php ewww_image_optimizer_bulk_variant_option(); ?>
 			<?php ewww_image_optimizer_bulk_webp_only(); ?>
-			<p><label for="ewww-delay" style="font-weight: bold"><?php esc_html_e( 'Choose how long to pause between images (in seconds, 0 = disabled)', 'ewww-image-optimizer' ); ?></label>&emsp;<input type="text" id="ewww-delay" name="ewww-delay" value="<?php echo $delay; ?>"></p>
-			<div id="ewww-delay-slider" style="margin: 0 0 15px 10px; max-width:500px"></div>
+			<p>
+				<label for="ewww-delay" style="font-weight: bold"><?php esc_html_e( 'Pause between images', 'ewww-image-optimizer' ); ?></label>&emsp;<input type="text" id="ewww-delay" name="ewww-delay" value="<?php echo $delay; ?>"> <?php esc_html_e( 'in seconds, 0 = disabled', 'ewww-image-optimmizer' ); ?>
+			</p>
+			<div id="ewww-delay-slider"></div>
 		</form>
+	<?php
+}
+
+/**
+ * Output the control to compress images with varied compression levels.
+ */
+function ewww_image_optimizer_bulk_variant_option() {
+	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
+		return;
+	}
+	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+		return;
+	}
+	?>
+			<p><label for="ewww-force-smart" style="font-weight: bold"><?php esc_html_e( 'Smart Re-optimize', 'ewww-image-optimizer' ); ?></label>
+				&emsp;<input type="checkbox" id="ewww-force-smart" name="ewww-force-smart"<?php echo ( get_transient( 'ewww_image_optimizer_smart_reopt' ) || ! empty( $_REQUEST['ewww_force_smart'] ) ) ? ' checked' : ''; ?>>
+				&nbsp;<?php esc_html_e( 'If compression settings have changed, re-optimize images that were compressed on the old settings. If possible, images compressed in Premium mode will be restored to originals beforehand.', 'ewww-image-optimizer' ); ?>
+			</p>
 	<?php
 }
 
@@ -599,7 +620,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 		)
 	);
 	// Load the stylesheet for the jquery progressbar.
-	wp_enqueue_style( 'jquery-ui-progressbar', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ) );
+	wp_enqueue_style( 'jquery-ui-progressbar', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 	ewwwio_memory( __FUNCTION__ );
 }
 
@@ -640,7 +661,7 @@ function ewww_image_optimizer_optimized_list() {
 		return;
 	}
 	$starting_memory_usage = memory_get_usage( true );
-	$already_optimized     = $ewwwdb->get_results( "SELECT id,path,image_size,pending,attachment_id,updated FROM $ewwwdb->ewwwio_images LIMIT $offset,$max_query", ARRAY_A );
+	$already_optimized     = $ewwwdb->get_results( "SELECT id,path,image_size,pending,attachment_id,level,updated FROM $ewwwdb->ewwwio_images LIMIT $offset,$max_query", ARRAY_A );
 	while ( $already_optimized ) {
 		$ewwwdb->flush();
 		foreach ( $already_optimized as $optimized ) {
@@ -649,11 +670,13 @@ function ewww_image_optimizer_optimized_list() {
 			if ( ! empty( $optimized_list[ $optimized_path ] ) && ! empty( $optimized_list[ $optimized_path ]['id'] ) ) {
 				$optimized = ewww_image_optimizer_remove_duplicate_records( array( $optimized_list[ $optimized_path ]['id'], $optimized['id'] ) );
 			}
-			$optimized_list[ $optimized_path ]['image_size']    = $optimized['image_size'];
-			$optimized_list[ $optimized_path ]['id']            = $optimized['id'];
-			$optimized_list[ $optimized_path ]['pending']       = $optimized['pending'];
-			$optimized_list[ $optimized_path ]['attachment_id'] = $optimized['attachment_id'];
-			$optimized_list[ $optimized_path ]['updated']       = $optimized['updated'];
+			unset( $optimized['path'] );
+			$optimized_list[ $optimized_path ] = $optimized;
+			// $optimized_list[ $optimized_path ]['image_size']    = $optimized['image_size'];
+			// $optimized_list[ $optimized_path ]['id']            = $optimized['id'];
+			// $optimized_list[ $optimized_path ]['pending']       = $optimized['pending'];
+			// $optimized_list[ $optimized_path ]['attachment_id'] = $optimized['attachment_id'];
+			// $optimized_list[ $optimized_path ]['updated']       = $optimized['updated'];
 		}
 		ewwwio_memory( 'removed original records' );
 		$offset += $max_query;
@@ -678,7 +701,7 @@ function ewww_image_optimizer_optimized_list() {
 			set_transient( 'ewww_image_optimizer_low_memory_mode', 'large_list', 600 ); // Use low memory mode so that we don't waste lots of time pulling a huge list of images repeatedly.
 			return;
 		}
-		$already_optimized = $ewwwdb->get_results( "SELECT id,path,image_size,pending,attachment_id,updated FROM $ewwwdb->ewwwio_images LIMIT $offset,$max_query", ARRAY_A );
+		$already_optimized = $ewwwdb->get_results( "SELECT id,path,image_size,pending,attachment_id,level,updated FROM $ewwwdb->ewwwio_images LIMIT $offset,$max_query", ARRAY_A );
 	} // End while().
 }
 
@@ -799,6 +822,13 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		set_transient( 'ewww_image_optimizer_force_reopt', true, HOUR_IN_SECONDS );
 	} else {
 		delete_transient( 'ewww_image_optimizer_force_reopt' );
+	}
+
+	// Make the Smart Re-optimize option persistent.
+	if ( ! empty( $_REQUEST['ewww_force_smart'] ) ) {
+		set_transient( 'ewww_image_optimizer_smart_reopt', true, HOUR_IN_SECONDS );
+	} else {
+		delete_transient( 'ewww_image_optimizer_smart_reopt' );
 	}
 
 	if ( ! empty( $attachment_ids ) && count( $attachment_ids ) > 300 ) {
@@ -1098,7 +1128,6 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			// Check if the files are 'prev opt', pending, or brand new, and then queue the file as needed.
 			foreach ( $attachment_images as $size => $file_path ) {
 				ewwwio_debug_message( "here is a path $file_path" );
-				ewww_image_optimizer_debug_log();
 				if ( ! $remote_file && ! ewww_image_optimizer_stream_wrapped( $file_path ) && ! defined( 'EWWW_IMAGE_OPTIMIZER_RELATIVE' ) ) {
 					$file_path = realpath( $file_path );
 				}
@@ -1112,7 +1141,6 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				}
 				ewwwio_debug_message( "here is the real path $file_path" );
 				ewwwio_debug_message( 'memory used: ' . memory_get_usage( true ) );
-				ewww_image_optimizer_debug_log();
 				$already_optimized = false;
 				if ( ! is_array( $optimized_list ) && is_string( $optimized_list ) ) {
 					$already_optimized = ewww_image_optimizer_find_already_optimized( $file_path );
@@ -1121,7 +1149,6 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				}
 				if ( is_array( $already_optimized ) && ! empty( $already_optimized ) ) {
 					ewwwio_debug_message( 'potential match found' );
-					ewww_image_optimizer_debug_log();
 					if ( ! empty( $already_optimized['pending'] ) ) {
 						$pending = true;
 						ewwwio_debug_message( "pending record for $file_path" );
@@ -1150,12 +1177,21 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						ewww_image_optimizer_debug_log();
 						continue;
 					}
-					if ( (int) $already_optimized['image_size'] === (int) $image_size && empty( $_REQUEST['ewww_force'] ) ) {
+					// TODO: right here, need to alter this for smart re-opt (ewww_force_smart).
+					$compression_level = ewww_image_optimizer_get_level( $mime );
+					if (
+						(int) $already_optimized['image_size'] === (int) $image_size && empty( $_REQUEST['ewww_force'] ) &&
+						( (int) $already_optimized['level'] === (int) $compression_level || empty( $_REQUEST['ewww_force_smart'] ) )
+					) {
 						ewwwio_debug_message( "match found for $file_path" );
 						ewww_image_optimizer_debug_log();
 						continue;
 					} else {
-						ewwwio_debug_message( "mismatch found for $file_path, db says " . $already_optimized['image_size'] . " vs. current $image_size" );
+						if ( (int) $already_optimized['level'] !== (int) $compression_level && ! empty( $_REQUEST['ewww_force_smart'] ) ) {
+							ewwwio_debug_message( "smart re-opt found level mismatch for $file_path, db says " . $already_optimized['level'] . " vs. current $compression_level" );
+						} else {
+							ewwwio_debug_message( "mismatch found for $file_path, db says " . $already_optimized['image_size'] . " vs. current $image_size" );
+						}
 						ewww_image_optimizer_debug_log();
 						$pending = true;
 						if ( empty( $already_optimized['attachment_id'] ) ) {
@@ -1578,6 +1614,12 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		set_transient( 'ewww_image_optimizer_force_reopt', true, HOUR_IN_SECONDS );
 	} else {
 		delete_transient( 'ewww_image_optimizer_force_reopt' );
+	}
+	// Make the Smart Re-optimize option persistent.
+	if ( ! empty( $_REQUEST['ewww_force_smart'] ) ) {
+		set_transient( 'ewww_image_optimizer_smart_reopt', true, HOUR_IN_SECONDS );
+	} else {
+		delete_transient( 'ewww_image_optimizer_smart_reopt' );
 	}
 	// Find out if our nonce is on it's last leg/tick.
 	if ( ! empty( $_REQUEST['ewww_wpnonce'] ) ) {
