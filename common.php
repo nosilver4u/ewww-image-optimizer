@@ -7284,6 +7284,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 					$convert_link = esc_html__( 'JPG to PNG', 'ewww-image-optimizer' );
 					$convert_desc = esc_attr__( 'WARNING: Removes metadata. Requires GD or ImageMagick. PNG is generally much better than JPG for logos and other images with a limited range of colors.', 'ewww-image-optimizer' );
 				}
+				$compression_level = ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' );
 				break;
 			case 'image/png':
 				// If pngout and optipng are missing and should not be skipped.
@@ -7297,6 +7298,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 					$convert_link = esc_html__( 'PNG to JPG', 'ewww-image-optimizer' );
 					$convert_desc = esc_attr__( 'WARNING: This is not a lossless conversion and requires GD or ImageMagick. JPG is much better than PNG for photographic use because it compresses the image and discards data. Transparent images will only be converted if a background color has been set.', 'ewww-image-optimizer' );
 				}
+				$compression_level = ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' );
 				break;
 			case 'image/gif':
 				// If gifsicle is missing and should not be skipped.
@@ -7310,6 +7312,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 					$convert_link = esc_html__( 'GIF to PNG', 'ewww-image-optimizer' );
 					$convert_desc = esc_attr__( 'PNG is generally better than GIF, but does not support animation. Animated images will not be converted.', 'ewww-image-optimizer' );
 				}
+				$compression_level = ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' );
 				break;
 			case 'application/pdf':
 				if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) ) {
@@ -7321,8 +7324,10 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				} else {
 					$convert_desc = '';
 				}
+				$compression_level = ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' );
 				break;
 			default:
+				$compression_level = 0;
 				// Not a supported mimetype.
 				$msg = '<div>' . esc_html__( 'Unsupported file type', 'ewww-image-optimizer' ) . '</div>';
 				ewww_image_optimizer_debug_log();
@@ -7369,7 +7374,9 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 						"<a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_force=1&amp;ewww_attachment_ID=%d\">%s</a>",
 						$id,
 						esc_html__( 'Re-optimize', 'ewww-image-optimizer' )
-					) . '</div>';
+					) .
+					ewww_image_optimizer_variant_level_notice( $optimized_images, $compression_level ) .
+					'</div>';
 				}
 				if ( $backup_available && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 					$output .= '<div>' . sprintf(
@@ -7446,6 +7453,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 					$id,
 					esc_html__( 'Re-optimize', 'ewww-image-optimizer' )
 				);
+				$output .= ewww_image_optimizer_variant_level_notice( $optimized_images, $compression_level );
 				if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_convert_links' ) && 'ims_image' !== get_post_type( $id ) && ! empty( $convert_desc ) ) {
 					$output .= " | <a class='ewww-manual-convert' data-id='$id' data-nonce='$ewww_manual_nonce' title='$convert_desc' href='admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=$id&amp;ewww_convert=1&amp;ewww_force=1'>$convert_link</a>";
 				}
@@ -7524,6 +7532,25 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 	ewww_image_optimizer_debug_log();
 }
 
+/**
+ * Check the stored results to detect deviation from the current settings.
+ *
+ * @param array $optimized_images The list of image records from the database.
+ * @param int   $compression_level The currently active compression level.
+ */
+function ewww_image_optimizer_variant_level_notice( $optimized_images, $compression_level ) {
+	if ( empty( $compression_level ) ) {
+		return '';
+	}
+	foreach ( $optimized_images as $optimized_image ) {
+		if ( 'full' === $optimized_image['resize'] ) {
+			if ( (int) $compression_level > (int) $optimized_image['level'] ) {
+				return ' <span title="' . esc_attr__( 'Compressed at a lower level than current setting.' ) . '" style="color:white;background-color:#f1900e;border-radius:50%;font-size:10px;width:16px;height:16px;line-height:16px;text-align:center;display:inline-block;padding-bottom:0px;"><sup>!</sup></span>';
+			}
+		}
+	}
+	return '';
+}
 /**
  * Determine how many sizes need optimization.
  *
