@@ -20,22 +20,60 @@ jQuery(document).ready(function($) {
 		$('.displaying-num').text(ewww_vars.count_string);
 		$.post(ajaxurl, ewww_table_data, function(response) {
 			$('#ewww-bulk-table').html(response);
+			$('#ewww-search-count').text($('#ewww-search-result').text());
+			$('#ewww-search-count').show();
 		});
 		$('.current-page').text(ewww_pointer + 1);
 		$('.total-pages').text(ewww_total_pages);
 		$('#ewww-pointer').text(ewww_pointer);
 		return false;
 	});
+	$('#ewww-search-form').submit(function() {
+		var ewww_pointer = 0;
+		var ewww_search = $('#ewww-search-input').val();
+	        var ewww_table_data = {
+	                action: ewww_table_action,
+			ewww_wpnonce: ewww_vars._wpnonce,
+			ewww_offset: ewww_pointer,
+			ewww_search: ewww_search,
+	        };
+		$.post(ajaxurl, ewww_table_data, function(response) {
+			$('#ewww-bulk-table').html(response);
+			$('#ewww-search-count').text($('#ewww-search-result').text());
+			$('#ewww-search-count').show();
+			var ewww_search_count = $('#ewww-search-count-raw').text();
+			if (ewww_search_count && ewww_search_count < 50) {
+				$('#next-images').hide();
+				$('.last-page').hide();
+			}
+		});
+		$('#prev-images').hide();
+		$('.first-page').hide();
+		$('.current-page').text(ewww_pointer + 1);
+		$('#ewww-pointer').text(ewww_pointer);
+		$('#next-images').show();
+		$('.last-page').show();
+		return false;
+	});
 	$('#next-images').click(function() {
 		var ewww_pointer = $('#ewww-pointer').text();
+		var ewww_search = $('#ewww-search-input').val();
 		ewww_pointer++;
 	        var ewww_table_data = {
 	                action: ewww_table_action,
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
+			ewww_search: ewww_search,
 	        };
 		$.post(ajaxurl, ewww_table_data, function(response) {
 			$('#ewww-bulk-table').html(response);
+			$('#ewww-search-count').text($('#ewww-search-result').text());
+			$('#ewww-search-count').show();
+			var ewww_search_count = $('#ewww-search-count-raw').text();
+			if (ewww_search_count && ewww_search_count < 50) {
+				$('#next-images').hide();
+				$('.last-page').hide();
+			}
 		});
 		if (ewww_vars.image_count <= ((ewww_pointer + 1) * 50)) {
 			$('#next-images').hide();
@@ -49,14 +87,18 @@ jQuery(document).ready(function($) {
 	});
 	$('#prev-images').click(function() {
 		var ewww_pointer = $('#ewww-pointer').text();
+		var ewww_search = $('#ewww-search-input').val();
 		ewww_pointer--;
 	        var ewww_table_data = {
 	                action: ewww_table_action,
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
+			ewww_search: ewww_search,
 	        };
 		$.post(ajaxurl, ewww_table_data, function(response) {
 			$('#ewww-bulk-table').html(response);
+			$('#ewww-search-count').text($('#ewww-search-result').text());
+			$('#ewww-search-count').show();
 		});
 		if (!ewww_pointer) {
 			$('#prev-images').hide();
@@ -70,14 +112,18 @@ jQuery(document).ready(function($) {
 	});
 	$('.last-page').click(function() {
 		var ewww_pointer = $('.total-pages').text();
+		var ewww_search = $('#ewww-search-input').val();
 		ewww_pointer--;
 	        var ewww_table_data = {
 	                action: ewww_table_action,
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
+			ewww_search: ewww_search,
 	        };
 		$.post(ajaxurl, ewww_table_data, function(response) {
 			$('#ewww-bulk-table').html(response);
+			$('#ewww-search-count').text($('#ewww-search-result').text());
+			$('#ewww-search-count').show();
 		});
 		$('#next-images').hide();
 		$('.last-page').hide();
@@ -89,13 +135,17 @@ jQuery(document).ready(function($) {
 	});
 	$('.first-page').click(function() {
 		var ewww_pointer = 0;
+		var ewww_search = $('#ewww-search-input').val();
 	        var ewww_table_data = {
 	                action: ewww_table_action,
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
+			ewww_search: ewww_search,
 	        };
 		$.post(ajaxurl, ewww_table_data, function(response) {
 			$('#ewww-bulk-table').html(response);
+			$('#ewww-search-count').text($('#ewww-search-result').text());
+			$('#ewww-search-count').show();
 		});
 		$('#prev-images').hide();
 		$('.first-page').hide();

@@ -35,6 +35,12 @@ function ewww_image_optimizer_display_tools() {
 	$output .= '<button type="submit" class="button-primary action">' . esc_html__( 'Show Optimized Images', 'ewww-image-optimizer' ) . "</button>\n";
 	$output .= "</form>\n";
 	$output .= "<div class='tablenav ewww-aux-table' style='display:none'>\n" .
+		'<form id="ewww-search-form" style="float:left;">' . "\n" .
+		'<label for="ewww-search-input" class="screen-reader-text">' . esc_html__( 'Search', 'ewww-image-optimizer' ) . '</label>' . "\n" .
+		'<input type="search" id="ewww-search-input" class="search" name="ewww-search-input" value="">' . "\n" .
+		'<input type="submit" id="ewww-search-submit" class="button" value="' . esc_attr__( 'Search', 'ewww-image-optimizer' ) . '">' . "\n" .
+		'<span id="ewww-search-count" style="display:none;"></span>' . "\n" .
+		'</form>' . "\n" .
 		'<div class="tablenav-pages ewww-aux-table">' . "\n" .
 		'<span class="displaying-num ewww-aux-table"></span>' . "\n" .
 		'<span id="paginator" class="pagination-links ewww-aux-table">' . "\n" .
@@ -88,7 +94,7 @@ function ewww_image_optimizer_tool_script( $hook ) {
 			'_wpnonce'          => wp_create_nonce( 'ewww-image-optimizer-tools' ),
 			'image_count'       => $image_count,
 			/* translators: %d: number of images */
-			'count_string'      => sprintf( esc_html__( '%d images', 'ewww-image-optimizer' ), $image_count ),
+			'count_string'      => sprintf( esc_html__( '%d total images', 'ewww-image-optimizer' ), $image_count ),
 			'remove_failed'     => esc_html__( 'Could not remove image from table.', 'ewww-image-optimizer' ),
 			'original_restored' => esc_html__( 'Original Restored', 'ewww-image-optimizer' ),
 			'restoring'         => '<p>' . esc_html__( 'Restoring', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
@@ -147,13 +153,13 @@ function ewww_image_optimizer_bulk_preview() {
 			$resize_count = ( ! empty( $resize_count ) && $resize_count > 1 ? $resize_count : 6 );
 			if ( ! empty( $_REQUEST['ids'] ) && ( preg_match( '/^[\d,]+$/', $_REQUEST['ids'] ) || is_numeric( $_REQUEST['ids'] ) ) ) {
 				echo '<p class="ewww-media-info ewww-bulk-info">' .
-					/* translators: %1$s: number of images %2$d: number of registered image sizes */
+					/* translators: 1: number of images 2: number of registered image sizes */
 					sprintf( esc_html( _n( '%1$s uploaded item in the Media Library has been selected with up to %2$d image files per upload.', '%1$s uploaded items in the Media Library have been selected with up to %2$d image files per upload.', $fullsize_count, 'ewww-image-optimizer' ) ), number_format_i18n( $fullsize_count ), $resize_count ) .
 					' ' . esc_html__( 'The total number of images found will be displayed before optimization begins.', 'ewww-image-optimizer' ) .
 					'</p>';
 			} else {
 				echo '<p class="ewww-media-info ewww-bulk-info">' .
-					/* translators: %1$s: number of images %2$d: number of registered image sizes */
+					/* translators: 1: number of images 2: number of registered image sizes */
 					sprintf( esc_html( _n( '%1$s uploaded item in the Media Library has been selected with up to %2$d image files per upload.', '%1$s uploaded items in the Media Library have been selected with up to %2$d image files per upload.', $fullsize_count, 'ewww-image-optimizer' ) ), number_format_i18n( $fullsize_count ), $resize_count ) .
 					' ' . esc_html__( 'The total number of images found will be displayed before optimization begins.', 'ewww-image-optimizer' ) .
 					'<br />' .

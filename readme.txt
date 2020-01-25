@@ -185,6 +185,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * added: Smart Re-optimize option available on Bulk Optimizer if you want to re-optimize images that were compressed on a different setting
 * added: auto-restore for Smart Re-optimize when going from lossy to lossless mode
 * added: Restore & Re-optimize from Media Library to change individual images from lossy to lossless
+* added: search function for Optimized Images table (Tools menu)
 * fixed: errors due to duplicate ssl= arguments in URLs
 * fixed: JS WebP has incorrect selector for video elements (props @CharlieHawker)
 
