@@ -9621,6 +9621,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
 		$current_user = wp_get_current_user();
 		$help_email   = $current_user->user_email;
+		$hs_debug     = '';
 		if ( ! empty( $eio_debug ) ) {
 			$hs_debug = str_replace( array( "'", '<br>', '<b>', '</b>' ), array( "\'", '\n', '<', '>' ), $eio_debug );
 		}

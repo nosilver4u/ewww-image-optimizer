@@ -35,12 +35,16 @@ function ewww_image_optimizer_aux_images() {
 		}
 		$output .= '</p>';
 		$output .= '<div id="ewww-debug-info" contenteditable="true">' . $eio_debug . '</div>';
+	} else {
+		ewww_image_optimizer_set_option( 'ewww_image_optimizer_debug', true );
+		ewww_image_optimizer_options( 'debug-silent' );
+		ewww_image_optimizer_set_option( 'ewww_image_optimizer_debug', false );
 	}
 	echo $output;
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
-		$hs_prefill   = '';
 		$current_user = wp_get_current_user();
 		$help_email   = $current_user->user_email;
+		$hs_debug     = '';
 		if ( ! empty( $eio_debug ) ) {
 			$hs_debug = str_replace( array( "'", '<br>', '<b>', '</b>' ), array( "\'", '\n', '<', '>' ), $eio_debug );
 		}
