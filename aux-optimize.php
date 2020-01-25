@@ -25,37 +25,33 @@ function ewww_image_optimizer_aux_images() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$output = '';
 
-	$help_instructions = esc_html__( 'Enable the Debugging option and refresh this page to include debugging information with your question.', 'ewww-image-optimizer' ) . ' ' .
-		esc_html__( 'This will allow us to assist you more quickly.', 'ewww-image-optimizer' );
+	global $eio_debug;
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-		global $eio_debug;
 		ewww_image_optimizer_options( 'debug-silent' );
 		$output .= '<p style="clear:both"><b>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</b> <button id="ewww-copy-debug" class="button button-secondary" type="button">' . esc_html__( 'Copy', 'ewww-image-optimizer' ) . '</button>';
 		if ( ewwwio_is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
 			$debug_log_url = plugins_url( '/debug.log', __FILE__ );
 			$output       .= "&emsp;<a href='$debug_log_url'>" . esc_html( 'View Debug Log', 'ewww-image-optimizer' ) . "</a> - <a href='admin.php?action=ewww_image_optimizer_delete_debug_log'>" . esc_html( 'Remove Debug Log', 'ewww-image-optimizer' ) . '</a>';
 		}
-		$output           .= '</p>';
-		$output           .= '<div id="ewww-debug-info" contenteditable="true">' . $eio_debug . '</div>';
-		$help_instructions = esc_html__( 'Debugging information will be included with your message automatically.', 'ewww-image-optimizer' ) . ' ' .
-			esc_html__( 'This will allow us to assist you more quickly.', 'ewww-image-optimizer' );
+		$output .= '</p>';
+		$output .= '<div id="ewww-debug-info" contenteditable="true">' . $eio_debug . '</div>';
 	}
 	echo $output;
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
 		$hs_prefill   = '';
 		$current_user = wp_get_current_user();
 		$help_email   = $current_user->user_email;
-		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-			if ( ! empty( $eio_debug ) ) {
-				$hs_debug   = str_replace( array( "'", '<br>' ), array( '', '\n' ), $eio_debug );
-				$hs_prefill = "Beacon('prefill', { fields: [ {	id: 18778, value: '$hs_debug' } ] });";
-			}
+		if ( ! empty( $eio_debug ) ) {
+			$hs_debug = str_replace( array( "'", '<br>', '<b>', '</b>' ), array( "\'", '\n', '<', '>' ), $eio_debug );
 		}
 		?>
 <script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
 <script type="text/javascript">
 	window.Beacon('init', 'aa9c3d3b-d4bc-4e9b-b6cb-f11c9f69da87');
-		<?php echo $hs_prefill; ?>
+	Beacon( 'prefill', {
+		email: '<?php echo utf8_encode( $help_email ); ?>',
+		text: '\n\n----------------------------------------\n<?php echo $hs_debug; ?>',
+	});
 </script>
 		<?php
 	}

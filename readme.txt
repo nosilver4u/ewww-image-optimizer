@@ -188,6 +188,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * added: search function for Optimized Images table (Tools menu)
 * fixed: errors due to duplicate ssl= arguments in URLs
 * fixed: JS WebP has incorrect selector for video elements (props @CharlieHawker)
+* updated: embedded help code for better debug prefill
 
 = 5.1.4 =
 * fixed: warnings on FlaGallery's manage gallery page

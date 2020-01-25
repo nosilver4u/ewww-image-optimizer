@@ -9103,6 +9103,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		ewwwio_debug_message( 'cloudinary upload: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_cloudinary' ) ? 'on' : 'off' ) );
 	}
 	$output[] = "</table>\n</div>\n";
+
+	$exactdn_enabled = ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' );
+
 	$output[] = "<div id='ewww-exactdn-settings'>\n";
 	$output[] = '<noscript><h2>' . esc_html__( 'Easy Mode', 'ewww-image-optimizer' ) . '</h2></noscript>';
 	$output[] = '<p>' . esc_html__( 'Having problems? Try disabling Lazy Load and Include All Resources. Finally, disable Easy IO if problems remain.', 'ewww-image-optimizer' ) . "<br>\n" .
@@ -9110,7 +9113,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$output[] = "<table class='form-table'>\n";
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_exactdn'>" . esc_html__( 'Easy IO', 'ewww-image-optimizer' ) .
 		'</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/44-introduction-to-exactdn', '59bc5ad6042863033a1ce370,5c0042892c7d3a31944e88a4' ) . "</th><td><input type='checkbox' id='ewww_image_optimizer_exactdn' name='ewww_image_optimizer_exactdn' value='true' " .
-		( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ? "checked='true'" : '' ) . ' /> ' .
+		( $exactdn_enabled ? "checked='true'" : '' ) . ' /> ' .
 		esc_html__( 'Comprehensive and automatic image optimization:', 'ewww-image-optimizer' ) .
 		' <a href="https://ewww.io/resize/" target="_blank">' . esc_html__( 'Purchase a subscription for your site.', 'ewww-image-optimizer' ) . '</a>' .
 		'<p class="description">' .
@@ -9122,18 +9125,18 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		esc_html__( 'CDN Included', 'ewww-image-optimizer' ) . '<br>' .
 		'<a href="https://docs.ewww.io/article/44-introduction-to-exactdn" target="_blank" data-beacon-article="59bc5ad6042863033a1ce370">' . esc_html__( 'Learn more about Easy IO', 'ewww-image-optimizer' ) . '</a>' .
 		"</p></td></tr>\n";
-	ewwwio_debug_message( 'ExactDN enabled: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ? 'on' : 'off' ) );
+	ewwwio_debug_message( 'ExactDN enabled: ' . ( $exactdn_enabled ? 'on' : 'off' ) );
 	$output[] = "<tr class='$network_class'><td>&nbsp;</td>" .
-		"<td><input type='checkbox' id='exactdn_all_the_things' name='exactdn_all_the_things' value='true' " .
-		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ? ' disabled ' : '' ) .
+		"<td><input type='checkbox' name='exactdn_all_the_things' value='true' " .
+		( ! $exactdn_enabled ? " id='exactdn_all_the_things_disabled' disabled " : " id='exactdn_all_the_things' " ) .
 		( ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ? "checked='true'" : '' ) . '> ' .
 		"<label for='exactdn_all_the_things'><strong>" . esc_html__( 'Include All Resources', 'ewww-image-optimizer' ) . '</strong></label>' . ewwwio_help_link( 'https://docs.ewww.io/article/47-getting-more-from-exactdn', '59de6631042863379ddc953c' ) .
 		"<p class='description'>" . esc_html__( 'Use Easy IO for all resources in wp-includes/ and wp-content/, including JavaScript, CSS, fonts, etc.', 'ewww-image-optimizer' ) . '</p>' .
 		"</td></tr>\n";
 	ewwwio_debug_message( 'ExactDN all the things: ' . ( ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ? 'on' : 'off' ) );
 	$output[] = "<tr class='$network_class'><td>&nbsp;</td>" .
-		"<td><input type='checkbox' id='exactdn_lossy' name='exactdn_lossy' value='true' " .
-		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ? ' disabled ' : '' ) .
+		"<td><input type='checkbox' name='exactdn_lossy' value='true' " .
+		( ! $exactdn_enabled ? " id='exactdn_lossy_disabled' disabled " : " id='exactdn_lossy' " ) .
 		( ewww_image_optimizer_get_option( 'exactdn_lossy' ) ? "checked='true'" : '' ) . '> ' .
 		"<label for='exactdn_lossy'><strong>" . esc_html__( 'Premium Compression', 'ewww-image-optimizer' ) . '</strong></label>' . ewwwio_help_link( 'https://docs.ewww.io/article/47-getting-more-from-exactdn', '59de6631042863379ddc953c' ) .
 		"<p class='description'>" . esc_html__( 'Enable high quality premium compression for all images. Disable to use Pixel Perfect mode instead.', 'ewww-image-optimizer' ) . '</p>' .
@@ -9141,7 +9144,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewwwio_debug_message( 'ExactDN lossy: ' . intval( ewww_image_optimizer_get_option( 'exactdn_lossy' ) ) );
 	ewwwio_debug_message( 'ExactDN resize existing: ' . ( ewww_image_optimizer_get_option( 'exactdn_resize_existing' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'ExactDN attachment queries: ' . ( ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' ) ? 'off' : 'on' ) );
-	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+	if ( ! $exactdn_enabled ) {
 		$output[] = "<input type='hidden' id='exactdn_all_the_things' name='exactdn_all_the_things' " .
 			( ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ? "value='1'" : "value='0'" ) . ">\n";
 		$output[] = "<input type='hidden' id='exactdn_lossy' name='exactdn_lossy' " .
@@ -9167,8 +9170,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		esc_html__( 'To disable auto-scaling for an image, add "skip-autoscale" to the HTML element via a class or attribute.', 'ewww-image-optimizer' ) . "</p>\n" .
 		"</td></tr>\n";
 	ewwwio_debug_message( 'lazy load: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? 'on' : 'off' ) );
-	$output[] = "<tr class='$network_class'><td>&nbsp;</td><td><input type='checkbox' id='ewww_image_optimizer_use_lqip' name='ewww_image_optimizer_use_lqip' value='true' " .
-		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ? ' disabled ' : '' ) .
+	$output[] = "<tr class='$network_class'><td>&nbsp;</td><td><input type='checkbox' name='ewww_image_optimizer_use_lqip' value='true' " .
+		( ! $exactdn_enabled ? " id='ewww_image_optimizer_use_lqip_disabled' disabled " : " id='ewww_image_optimizer_use_lqip' " ) .
 		( ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_lqip' ) ? "checked='true'" : '' ) . ' /> ' .
 		"<label for='ewww_image_optimizer_use_lqip'><strong>LQIP</strong></label>" .
 		ewwwio_help_link( 'https://docs.ewww.io/article/75-lazy-load-placeholders', '5c9a7a302c7d3a1544615e47' ) . "\n" .
@@ -9615,11 +9618,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 
 	echo $output;
 
-	if ( false && ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
 		$current_user = wp_get_current_user();
 		$help_email   = $current_user->user_email;
 		if ( ! empty( $eio_debug ) ) {
-			$hs_debug = str_replace( array( "'", '<br>' ), array( '', '\n' ), $eio_debug );
+			$hs_debug = str_replace( array( "'", '<br>', '<b>', '</b>' ), array( "\'", '\n', '<', '>' ), $eio_debug );
 		}
 		?>
 <script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
@@ -9627,46 +9630,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	window.Beacon('init', 'aa9c3d3b-d4bc-4e9b-b6cb-f11c9f69da87');
 	Beacon( 'prefill', {
 		email: '<?php echo utf8_encode( $help_email ); ?>',
-	});
-	Beacon( 'session-data', {
-		'Debug Info': '<?php echo $hs_debug; ?>',
-	});
-</script>
-		<?php
-	}
-	$help_instructions = esc_html__( 'Debugging information will be included with your message automatically.', 'ewww-image-optimizer' );
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
-		$current_user = wp_get_current_user();
-		$help_email   = $current_user->user_email;
-		$hs_config    = array(
-			'color'             => '#3eadc9',
-			'icon'              => 'buoy',
-			'instructions'      => $help_instructions,
-			'poweredBy'         => false,
-			'showContactFields' => true,
-			'showSubject'       => true,
-			'topArticles'       => true,
-			'zIndex'            => 100000,
-		);
-		$hs_identify  = array(
-			'email' => utf8_encode( $help_email ),
-		);
-		if ( ! empty( $eio_debug ) ) {
-			$eio_debug_array = explode( '<br>', $eio_debug );
-			$eio_debug_i     = 0;
-			foreach ( $eio_debug_array as $eio_debug_line ) {
-				$hs_identify[ 'debug_info_' . $eio_debug_i ] = $eio_debug_line;
-				$eio_debug_i++;
-			}
-		}
-		?>
-<script type='text/javascript'>
-	!function(e,o,n){window.HSCW=o,window.HS=n,n.beacon=n.beacon||{};var t=n.beacon;t.userConfig={},t.readyQueue=[],t.config=function(e){this.userConfig=e},t.ready=function(e){this.readyQueue.push(e)},o.config={docs:{enabled:!0,baseUrl:"//ewwwio.helpscoutdocs.com/"},contact:{enabled:!0,formId:"af75cf17-310a-11e7-9841-0ab63ef01522"}};var r=e.getElementsByTagName("script")[0],c=e.createElement("script");c.type="text/javascript",c.async=!0,c.src="https://djtflbt20bdde.cloudfront.net/",r.parentNode.insertBefore(c,r)}(document,window.HSCW||{},window.HS||{});
-	HS.beacon.config(<?php echo json_encode( $hs_config ); ?>);
-	HS.beacon.ready(function() {
-		HS.beacon.identify(
-			<?php echo json_encode( $hs_identify ); ?>
-		);
+		text: '\n\n----------------------------------------\n<?php echo $hs_debug; ?>',
 	});
 </script>
 		<?php
