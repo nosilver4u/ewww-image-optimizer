@@ -10,9 +10,7 @@
  * @package EWWW_Image_Optimizer
  */
 
-// TODO: might be able to use the Custom Bulk Actions in WP 4.7 to support the bulk optimize drop-down menu.
-// TODO: need to make the scheduler so it can resume without having to re-run the queue population, and then we can probably also flush the queue when scheduled opt starts, but later it would be nice to implement the bulk_loop as the aux_loop so that it could handle media properly.
-// TODO: Add a custom async function for parallel mode to store image as pending and use the row ID instead of relative path.
+// TODO: might be able to use the Custom Bulk Actions in WP 4.7+ to support the bulk optimize drop-down menu.
 // TODO: write some tests for AGR.
 // TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
 // TODO: can some of the bulk "fallbacks" be implemented for async processing?
@@ -22,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '514.09' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '514.10' );
 
 // Initialize a couple globals.
 $eio_debug  = '';

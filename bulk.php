@@ -31,30 +31,31 @@ function ewww_image_optimizer_display_tools() {
 	$output .= "<div id='ewww-aux-forms'>\n";
 	/* translators: %s: number of images */
 	$output .= "<p id='ewww-table-info' class='ewww-tool-info'>" . sprintf( esc_html__( 'The plugin keeps track of already optimized images to prevent re-optimization. There are %s images that have been optimized so far.', 'ewww-image-optimizer' ), number_format_i18n( $already_optimized ) ) . "</p>\n";
-	$output .= "<form id='ewww-show-table' class='ewww-bulk-form' method='post' action=''>\n";
-	$output .= '<button type="submit" class="button-primary action">' . esc_html__( 'Show Optimized Images', 'ewww-image-optimizer' ) . "</button>\n";
-	$output .= "</form>\n";
-	$output .= "<div class='tablenav ewww-aux-table' style='display:none'>\n" .
-		'<form id="ewww-search-form" style="float:left;">' . "\n" .
+	$output .= "<form id='ewww-show-table' class='ewww-bulk-form' method='post' action=''>\n" .
+		'<button type="submit" class="button-primary action">' . esc_html__( 'Show Optimized Images', 'ewww-image-optimizer' ) . "</button>\n" .
+		"</form>\n";
+
+	$navigation = "<div class='tablenav ewww-aux-table' style='display:none'>\n" .
+		'<form class="ewww-search-form" style="float:left;">' . "\n" .
 		'<label for="ewww-search-input" class="screen-reader-text">' . esc_html__( 'Search', 'ewww-image-optimizer' ) . '</label>' . "\n" .
-		'<input type="search" id="ewww-search-input" class="search" name="ewww-search-input" value="">' . "\n" .
-		'<input type="submit" id="ewww-search-submit" class="button" value="' . esc_attr__( 'Search', 'ewww-image-optimizer' ) . '">' . "\n" .
-		'<span id="ewww-search-count" style="display:none;"></span>' . "\n" .
+		'<input type="search" class="ewww-search-input search" name="ewww-search-input" value="">' . "\n" .
+		'<input type="submit" class="ewww-search-submit button" value="' . esc_attr__( 'Search', 'ewww-image-optimizer' ) . '">' . "\n" .
+		'<span class="ewww-search-count"></span>' . "\n" .
 		'</form>' . "\n" .
 		'<div class="tablenav-pages ewww-aux-table">' . "\n" .
 		'<span class="displaying-num ewww-aux-table"></span>' . "\n" .
-		'<span id="paginator" class="pagination-links ewww-aux-table">' . "\n" .
-		'<a id="first-images" class="tablenav-pages-navspan button first-page" style="display:none">&laquo;</a>' . "\n" .
-		'<a id="prev-images" class="tablenav-pages-navspan button prev-page" style="display:none">&lsaquo;</a>' . "\n";
-	$output .= esc_html__( 'page', 'ewww-image-optimizer' ) . ' <span class="current-page"></span> ' . esc_html__( 'of', 'ewww-image-optimizer' ) . "\n";
-	$output .= '<span class="total-pages"></span>' . "\n" .
-		'<a id="next-images" class="tablenav-pages-navspan button next-page" style="display:none">&rsaquo;</a>' . "\n" .
-		'<a id="last-images" class="tablenav-pages-navspan button last-page" style="display:none">&raquo;</a>' .
+		'<span class="pagination-links ewww-aux-table">' . "\n" .
+		'<a class="tablenav-pages-navspan button first-page" style="display:none">&laquo;</a>' . "\n" .
+		'<a class="tablenav-pages-navspan button prev-page" style="display:none">&lsaquo;</a>' . "\n" .
+		/* translators: 1: current page in list of images 2: total pages for list of images */
+		'<span class="current-page">' . sprintf( esc_html__( 'page %1$d of %2$d', 'ewww-image-optimizer' ), 1, 0 ) . "</span>\n" .
+		'<a class="tablenav-pages-navspan button next-page" style="display:none">&rsaquo;</a>' . "\n" .
+		'<a class="tablenav-pages-navspan button last-page" style="display:none">&raquo;</a>' .
 		'</span>' . "\n" .
 		'</div>' . "\n" .
-		'</div>' . "\n" .
-		'<div id="ewww-bulk-table" class="ewww-aux-table"></div>' . "\n" .
-		'<span id="ewww-pointer" style="display:none">0</span>' . "\n" .
+		'</div>' . "\n";
+
+	$output .= $navigation . '<div id="ewww-bulk-table" class="ewww-aux-table"></div>' . "$navigation\n" .
 		"</div>\n";
 	echo $output;
 	echo '<hr>';
@@ -96,6 +97,7 @@ function ewww_image_optimizer_tool_script( $hook ) {
 			/* translators: %d: number of images */
 			'count_string'      => sprintf( esc_html__( '%d total images', 'ewww-image-optimizer' ), $image_count ),
 			'remove_failed'     => esc_html__( 'Could not remove image from table.', 'ewww-image-optimizer' ),
+			'invalid_response'  => esc_html__( 'Received an invalid response from your website, please check for errors in the Developer Tools console of your browser.', 'ewww-image-optimizer' ),
 			'original_restored' => esc_html__( 'Original Restored', 'ewww-image-optimizer' ),
 			'restoring'         => '<p>' . esc_html__( 'Restoring', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
 			'erase_warning'     => $erase_warning,
