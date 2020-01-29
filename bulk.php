@@ -80,6 +80,7 @@ function ewww_image_optimizer_display_tools() {
 		echo "<form id='ewww-clean-table' class='ewww-tool-form' method='post' action=''>\n" .
 			"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Clean Optimization Records', 'ewww-image-optimizer' ) . "' />\n" .
 			"</form>\n</div>\n";
+		echo "<div id='ewww-clean-table-progressbar' style='display:none;'></div>";
 		echo "<div id='ewww-clean-table-progress' style='display:none;'></div>";
 	}
 	echo "</div>\n";
@@ -96,7 +97,7 @@ function ewww_image_optimizer_tool_script( $hook ) {
 	if ( 'tools_page_ewww-image-optimizer-tools' !== $hook ) {
 		return;
 	}
-	wp_enqueue_script( 'ewwwtoolscript', plugins_url( '/includes/eio-tools.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+	wp_enqueue_script( 'ewwwtoolscript', plugins_url( '/includes/eio-tools.js', __FILE__ ), array( 'jquery', 'jquery-ui-progressbar' ), EWWW_IMAGE_OPTIMIZER_VERSION );
 	// Number of images in the ewwwio_table (previously optimized images).
 	$image_count = ewww_image_optimizer_aux_images_table_count();
 	// Submit a couple variables for our javascript to work with.
@@ -118,6 +119,8 @@ function ewww_image_optimizer_tool_script( $hook ) {
 			'original_restored' => esc_html__( 'Original Restored', 'ewww-image-optimizer' ),
 			'restoring'         => '<p>' . esc_html__( 'Restoring', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
 			'finished'          => '<p><b>' . esc_html__( 'Finished', 'ewww-image-optimizer' ) . '</b></p>',
+			/* translators: used for Table Cleanup progress bar, like so: batch 32/346 */
+			'batch'             => esc_html__( 'batch', 'ewww-image-optimizer' ),
 			'erase_warning'     => $erase_warning,
 		)
 	);

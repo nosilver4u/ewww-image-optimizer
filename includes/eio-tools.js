@@ -241,7 +241,9 @@ jQuery(document).ready(function($) {
 		$('.ewww-tool-info').hide();
 		$('.ewww-tool-form').hide();
 		$('.ewww-tool-divider').hide();
-		$('#ewww-clean-table-progress').html('<p>0/' + ewww_total_pages + '</p>');
+		$('#ewww-clean-table-progressbar').progressbar({ max: ewww_total_pages });
+		$('#ewww-clean-table-progress').html('<p>' + ewww_vars.batch + ' 0/' + ewww_total_pages + '</p>');
+		$('#ewww-clean-table-progressbar').show();
 		$('#ewww-clean-table-progress').show();
 		var total_pages = ewww_total_pages;
 		ewwwCleanup(total_pages);
@@ -256,11 +258,26 @@ jQuery(document).ready(function($) {
 			ewww_offset: total_pages,
 		};
 		$.post(ajaxurl, ewww_table_data, function(response) {
+			try {
+				var ewww_response = $.parseJSON(response);
+			} catch (err) {
+				$('#ewww-clean-table-progressbar').hide();
+				$('#ewww-clean-table-progress').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
+				console.log( response );
+				return false;
+			}
+			if ( ewww_response.error ) {
+				$('#ewww-clean-table-progressbar').hide();
+				$('#ewww-clean-table-progress').html('<span style="color: red"><b>' + ewww_response.error + '</b></span>');
+				return false;
+			}
 			if(!total_pages>0) {
-				$('#ewww-clean-table-progress').html('<p>' + ewww_total_pages + '/' + ewww_total_pages + '</p>' + ewww_vars.finished);
+				$('#ewww-clean-table-progress').html(ewww_vars.finished);
+				$('#ewww-clean-table-progressbar').progressbar("option", "value", ewww_total_pages);
 				return;
 			}
-			$('#ewww-clean-table-progress').html('<p>' + (ewww_total_pages-total_pages) + '/' + ewww_total_pages + '</p>');
+			$('#ewww-clean-table-progressbar').progressbar("option", "value", ewww_total_pages-total_pages);
+			$('#ewww-clean-table-progress').html('<p>' + ewww_vars.batch + ' ' + (ewww_total_pages-total_pages) + '/' + ewww_total_pages + '</p>');
 			ewwwCleanup(total_pages);
 		});
 	}
