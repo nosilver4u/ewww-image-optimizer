@@ -31,7 +31,7 @@ function ewww_image_optimizer_display_tools() {
 	$output .= "<div id='ewww-aux-forms'>\n";
 	/* translators: %s: number of images */
 	$output .= "<p id='ewww-table-info' class='ewww-tool-info'>" . sprintf( esc_html__( 'The plugin keeps track of already optimized images to prevent re-optimization. There are %s images that have been optimized so far.', 'ewww-image-optimizer' ), number_format_i18n( $already_optimized ) ) . "</p>\n";
-	$output .= "<form id='ewww-show-table' class='ewww-bulk-form' method='post' action=''>\n" .
+	$output .= "<form id='ewww-show-table' class='ewww-tool-form' method='post' action=''>\n" .
 		'<button type="submit" class="button-primary action">' . esc_html__( 'Show Optimized Images', 'ewww-image-optimizer' ) . "</button>\n" .
 		"</form>\n";
 
@@ -58,13 +58,30 @@ function ewww_image_optimizer_display_tools() {
 	$output .= $navigation . '<div id="ewww-bulk-table" class="ewww-aux-table"></div>' . "$navigation\n" .
 		"</div>\n";
 	echo $output;
-	echo '<hr>';
+	echo '<hr class="ewww-tool-divider">';
 	echo "<div>\n<p id='ewww-clear-table-info' class='ewww-tool-info'>" .
 		esc_html__( 'The optimization history prevents the plugin from re-optimizing images, but you may erase the history to reduce database size or to force the plugin to re-optimize all images.', 'ewww-image-optimizer' );
 	echo "</p>\n";
 	echo "<form id='ewww-clear-table' class='ewww-tool-form' method='post' action=''>\n" .
 		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Erase Optimization History', 'ewww-image-optimizer' ) . "' />\n" .
 		"</form>\n</div>\n";
+	$as3cf_remove = false;
+	if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
+		global $as3cf;
+		if ( $as3cf->get_setting( 'serve-from-s3' ) && $as3cf->get_setting( 'remove-local-file' ) ) {
+			$as3cf_remove = true;
+		}
+	}
+	if ( ! class_exists( 'S3_Uploads' ) && ! function_exists( 'ud_get_stateless_media' ) && ! $as3cf_remove ) {
+		echo '<hr class="ewww-tool-divider">';
+		echo "<div>\n<p id='ewww-clean-table-info' class='ewww-tool-info'>" .
+			esc_html__( 'Older sites may have duplicate records or references to deleted files. Use the cleanup tool to remove such records.', 'ewww-image-optimizer' ) . '<br>' .
+			'<i>' . esc_html__( 'If you offload your media to external storage like Amazon S3, and remove the local files, do not run this tool.', 'ewww-image-optimizer' ) . "</i></p>\n";
+		echo "<form id='ewww-clean-table' class='ewww-tool-form' method='post' action=''>\n" .
+			"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Clean Optimization Records', 'ewww-image-optimizer' ) . "' />\n" .
+			"</form>\n</div>\n";
+		echo "<div id='ewww-clean-table-progress' style='display:none;'></div>";
+	}
 	echo "</div>\n";
 }
 
@@ -100,6 +117,7 @@ function ewww_image_optimizer_tool_script( $hook ) {
 			'invalid_response'  => esc_html__( 'Received an invalid response from your website, please check for errors in the Developer Tools console of your browser.', 'ewww-image-optimizer' ),
 			'original_restored' => esc_html__( 'Original Restored', 'ewww-image-optimizer' ),
 			'restoring'         => '<p>' . esc_html__( 'Restoring', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
+			'finished'          => '<p><b>' . esc_html__( 'Finished', 'ewww-image-optimizer' ) . '</b></p>',
 			'erase_warning'     => $erase_warning,
 		)
 	);

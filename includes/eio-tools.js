@@ -236,7 +236,51 @@ jQuery(document).ready(function($) {
 		}
 		return false;
 	});
+	$('#ewww-clean-table').submit(function() {
+		ewww_total_pages = Math.ceil(ewww_vars.image_count / 500);
+		$('.ewww-tool-info').hide();
+		$('.ewww-tool-form').hide();
+		$('.ewww-tool-divider').hide();
+		$('#ewww-clean-table-progress').html('<p>0/' + ewww_total_pages + '</p>');
+		$('#ewww-clean-table-progress').show();
+		var total_pages = ewww_total_pages;
+		ewwwCleanup(total_pages);
+		return false;
+	});
+	function ewwwCleanup(total_pages){
+		total_pages--;
+		console.log(total_pages + '/' + ewww_total_pages);
+		var ewww_table_data = {
+			action: 'bulk_aux_images_table_clean',
+			ewww_wpnonce: ewww_vars._wpnonce,
+			ewww_offset: total_pages,
+		};
+		$.post(ajaxurl, ewww_table_data, function(response) {
+			if(!total_pages>0) {
+				$('#ewww-clean-table-progress').html('<p>' + ewww_total_pages + '/' + ewww_total_pages + '</p>' + ewww_vars.finished);
+				return;
+			}
+			$('#ewww-clean-table-progress').html('<p>' + (ewww_total_pages-total_pages) + '/' + ewww_total_pages + '</p>');
+			ewwwCleanup(total_pages);
+		});
+	}
 });
+function ewwwCleanup(ewww_total_pages){
+	ewww_total_pages--;
+	var ewww_table_data = {
+		action: 'bulk_aux_images_table_clean',
+		ewww_wpnonce: ewww_vars._wpnonce,
+		ewww_offset: ewww_total_pages,
+	};
+	$.post(ajaxurl, ewww_table_data, function(response) {
+		$('#ewww-table-info').hide();
+		$('#ewww-show-table').hide();
+		$('#ewww-clear-table').hide();
+		$('#ewww-clear-table-info').html(response);
+		ewwwCleanup(ewww_total_pages);
+	});
+
+}
 function ewwwRemoveImage(imageID) {
 	var ewww_image_removal = {
 		action: 'bulk_aux_images_remove',
