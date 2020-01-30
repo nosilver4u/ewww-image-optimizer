@@ -620,7 +620,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				if ( empty( $resume ) ) {
 						$button_text = esc_attr__( 'Start optimizing', 'ewww-image-optimizer' );
 				} else {
-					$button_text = esc_attr__( 'Resume previous bulk operation', 'ewww-image-optimizer' );
+					$button_text = esc_attr__( 'Resume previous optimization', 'ewww-image-optimizer' );
 				}
 				$delay = ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' ) ? ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' ) : 0;
 				/* translators: 1-4: number(s) of images */
@@ -677,11 +677,13 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				</form>
 				<?php
 			}
-			echo '</div></div>';
+			echo '</div>';
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 				global $eio_debug;
+				echo '<div style="clear:both;"></div>';
 				echo '<p><strong>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</strong></p><div style="border:1px solid #e5e5e5;background:#fff;overflow:auto;height:300px;width:800px;">' . $eio_debug . '</div>';
 			}
+			echo '</div>';
 			return;
 		}
 

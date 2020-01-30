@@ -327,7 +327,7 @@ function ewww_image_optimizer_bulk_action_output( $button_text, $fullsize_count,
  */
 function ewww_image_optimizer_bulk_reset_form_output() {
 	?>
-		<p class="ewww-media-info ewww-bulk-info" style="margin-top:3em;"><?php esc_html_e( 'Would like to clear the queue and rescan for images?', 'ewww-image-optimizer' ); ?></p>
+		<p class="ewww-media-info ewww-bulk-info" style="margin-top:3em;"><?php esc_html_e( 'Would you like to clear the queue and rescan for images?', 'ewww-image-optimizer' ); ?></p>
 		<form class="ewww-bulk-form" method="post" action="">
 			<?php wp_nonce_field( 'ewww-image-optimizer-bulk-reset', 'ewww_wpnonce' ); ?>
 			<input type="hidden" name="ewww_reset" value="1">
