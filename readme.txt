@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.0
 Tested up to: 5.3
 Requires PHP: 5.6
-Stable tag: 5.1.4
+Stable tag: 5.2.0
 License: GPLv3
 
 Speed up your website to better connect with your visitors. Properly compress and size/scale images. Includes lazy load and WebP convert.
@@ -186,6 +186,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * added: auto-restore for Smart Re-optimize when going from lossy to lossless mode
 * added: Restore & Re-optimize from Media Library to change individual images from lossy to lossless
 * added: search function for Optimized Images table (Tools menu)
+* added: table cleanup for database table (Tools menu)
 * fixed: errors due to duplicate ssl= arguments in URLs
 * fixed: JS WebP has incorrect selector for video elements (props @CharlieHawker)
 * updated: embedded help code for better debug prefill
@@ -234,18 +235,6 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * updated: Pngquant binary to version 2.12.5
 * updated: cwebp requires Mac OS X 10.14
 * updated: FreeBSD 10 is EOL, version 11 is the supported/tested version
-
-= 5.0.0 =
-* added: use native lazy load attributes to supplement lazy loader and make placeholders more efficient
-* added: GCS sub-folder rewriting with ExactDN for cleaner URLs
-* added: option to optimize original versions of scaled images for WP 5.3
-* added: ability to erase optimization history from Tools page
-* changed: define EWWWIO_WPLR_AUTO (any value) to enable auto-optimize on images from WP/LR Sync
-* changed: thumbnails could be converted even if original was not
-* changed: Show Optimized Images table moved to Tools menu
-* fixed: full-size image optimization not deferred if scaled by WP 5.3
-* fixed: data-width and data-height attributes missing when JS WebP active
-* security: rewrote escapeshellarg() wrapper to be more secure
 
 = Earlier versions =
 Please refer to the separate changelog.txt file.

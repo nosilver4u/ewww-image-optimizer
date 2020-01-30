@@ -317,9 +317,17 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						} else {
 							$this->set_attribute( $image, 'src', $placeholder_src, true );
 						}
+						$disable_native_lazy = false;
+						// Ignore native lazy loading images.
+						$loading_attr = $this->get_attribute( $image, 'loading' );
+						if ( $loading_attr && in_array( trim( $loading_attr ), array( 'auto', 'eager', 'lazy' ), true ) ) {
+							$disable_native_lazy = true;
+						}
+
 						if (
 							( ! defined( 'EWWWIO_DISABLE_NATIVE_LAZY' ) || ! EWWWIO_DISABLE_NATIVE_LAZY ) &&
-							( ! defined( 'EASYIO_DISABLE_NATIVE_LAZY' ) || ! EASYIO_DISABLE_NATIVE_LAZY )
+							( ! defined( 'EASYIO_DISABLE_NATIVE_LAZY' ) || ! EASYIO_DISABLE_NATIVE_LAZY ) &&
+							! $disable_native_lazy
 						) {
 							$this->set_attribute( $image, 'loading', 'lazy' );
 						}
@@ -493,12 +501,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			}
 			// Ignore 0-size Pinterest schema images.
 			if ( strpos( $image, 'data-pin-description=' ) && strpos( $image, 'width="0" height="0"' ) ) {
-				return false;
-			}
-
-			// Ignore native lazy loading images.
-			$loading_attr = $this->get_attribute( $image, 'loading' );
-			if ( $loading_attr && in_array( trim( $loading_attr ), array( 'auto', 'eager', 'lazy' ), true ) ) {
 				return false;
 			}
 

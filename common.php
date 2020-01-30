@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '514.10' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '520.0' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -8656,7 +8656,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		"<h2 class='ewww-hndle'>" . esc_html__( 'Optimization Status', 'ewww-image-optimizer' ) . "</h2>\n<div class='inside'>";
 
 	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
-		$status_notices .= "<h3><a href='https://ewww.io/plans/' target='_blank' style='text-decoration:none;color:#3eadc9;'>" . esc_html__( 'Premium Upgrades with Priority Support:', 'ewww-image-optimizer' ) . "</a></h3>\n";
+		$status_notices .= "<h3><a href='https://ewww.io/plans/' target='_blank' style='font-weight:bold;text-decoration:none;color:#3eadc9;'>" . esc_html__( 'Premium Upgrades:', 'ewww-image-optimizer' ) . "</a></h3>\n" .
+			'<p><i>' . esc_html__( 'Priority Support included with any purchase.', 'ewww-image-optimizer' ) . "</i></p>\n";
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 		$status_notices .= '<p><b>' . esc_html__( 'Cloud optimization API Key', 'ewww-image-optimizer' ) . ':</b> ';
@@ -8686,7 +8687,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$status_notices .= "</p>\n";
 		$disable_level   = '';
 	} else {
-		$status_notices .= '<p><b>Compress API:</b> <a href="https://ewww.io/buy-credits/" target="_blank">' . esc_html__( 'Unlock premium compression, save storage space, and reduce server load.', 'ewww-image-optimizer' ) . '</a></p>';
+		$status_notices .= '<p><span style="font-weight:bold;color:#3eadc9;">Compress API:</span> <a href="https://ewww.io/buy-credits/" target="_blank">' .
+			esc_html__( 'Unlock premium compression, save storage space, and reduce server load.', 'ewww-image-optimizer' ) . '</a></p>';
 		delete_option( 'ewww_image_optimizer_cloud_key_invalid' );
 		if ( ! class_exists( 'ExactDN' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 			$compress_recommendations[] = esc_html__( 'Enable premium compression with an API key or Easy IO.', 'ewww-image-optimizer' );
@@ -8734,7 +8736,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		}
 		$status_notices .= '</p>';
 	} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
-		$status_notices          .= '<p><b>Easy IO:</b> <a href="https://ewww.io/resize/" target="_blank">' . esc_html__( 'Comprehensive image optimization with automatic compression, scaling, WebP conversion, and lazy load.', 'ewww-image-optimizer' ) . '</a></p>';
+		$status_notices          .= '<p><span style="font-weight:bold;color:#3eadc9;">Easy IO:</span> <a href="https://ewww.io/resize/" target="_blank">' . esc_html__( 'Comprehensive image optimization with automatic compression, auto-sizing, WebP conversion, and lazy load.', 'ewww-image-optimizer' ) . '</a></p>';
 		$resize_recommendations[] = esc_html__( 'Enable Easy IO for automatic resizing.', 'ewww-image-optimizer' ) . ewwwio_help_link( 'https://docs.ewww.io/article/44-introduction-to-exactdn', '59bc5ad6042863033a1ce370,5c0042892c7d3a31944e88a4' );
 		delete_option( 'ewww_image_optimizer_exactdn_domain' );
 		delete_option( 'ewww_image_optimizer_exactdn_failures' );
@@ -8880,7 +8882,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	} elseif ( ewww_image_optimizer_detect_wpsf_location_lock() ) {
 		$status_notices .= '<span style="color: orange; font-weight: bolder">' . esc_html__( "Disabled by Shield's Lock to Location feature", 'ewww-image-optimizer' ) . '</span>';
 	} else {
-		$status_notices .= '<span style="color: #3eadc9; font-weight: bolder">' . esc_html__( 'Enabled', 'ewww-image-optimizer' ) . '</span>';
+		$status_notices .= '<span>' . esc_html__( 'Enabled', 'ewww-image-optimizer' ) . '</span>';
 	}
 	$status_notices .= "</p>\n";
 
