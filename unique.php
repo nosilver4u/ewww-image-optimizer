@@ -1890,18 +1890,17 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			// Check for previous optimization, so long as the force flag is not on and this isn't a new image that needs converting.
 			if ( empty( $_REQUEST['ewww_force'] ) && ! ( $new && $convert ) ) {
 				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
-				if ( $results_msg ) {
-					if ( empty( $_REQUEST['ewww_force_smart'] ) || $compression_level === (int) $ewww_image->level ) {
-						$file = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
-						return array( $file, $results_msg, $converted, $original );
-					} elseif ( ! empty( $_REQUEST['ewww_force_smart'] ) && $compression_level !== (int) $ewww_image->level ) {
-						ewwwio_debug_message( "smart re-opt found level mismatch for $file, db says " . $ewww_image->level . " vs. current $compression_level" );
-						// If the current compression level is less than what was previously used, and the previous level was premium (or premium plus).
-						if ( $compression_level < $ewww_image->level && $ewww_image->level > 20 ) {
-							ewwwio_debug_message( "smart re-opt triggering restoration for $file" );
-							ewww_image_optimizer_cloud_restore_single_image( $ewww_image->record );
-						}
+				$smart_reopt = ! empty( $_REQUEST['ewww_force_smart'] ) && ewww_image_optimizer_level_mismatch( $ewww_image->level, $compression_level ) ? true : false;
+				if ( $smart_reopt ) {
+					ewwwio_debug_message( "smart re-opt found level mismatch for $file, db says " . $ewww_image->level . " vs. current $compression_level" );
+					// If the current compression level is less than what was previously used, and the previous level was premium (or premium plus).
+					if ( $compression_level && $compression_level < $ewww_image->level && $ewww_image->level > 20 ) {
+						ewwwio_debug_message( "smart re-opt triggering restoration for $file" );
+						ewww_image_optimizer_cloud_restore_single_image( $ewww_image->record );
 					}
+				} elseif ( $results_msg ) {
+					$file = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
+					return array( $file, $results_msg, $converted, $original );
 				}
 			}
 			$ewww_image->level = $compression_level;
@@ -2160,18 +2159,17 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			// Check for previous optimization, so long as the force flag is on and this isn't a new image that needs converting.
 			if ( empty( $_REQUEST['ewww_force'] ) && ! ( $new && $convert ) ) {
 				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
-				if ( $results_msg ) {
-					if ( empty( $_REQUEST['ewww_force_smart'] ) || $compression_level === (int) $ewww_image->level ) {
-						$file = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
-						return array( $file, $results_msg, $converted, $original );
-					} elseif ( ! empty( $_REQUEST['ewww_force_smart'] ) && $compression_level !== (int) $ewww_image->level ) {
-						ewwwio_debug_message( "smart re-opt found level mismatch for $file, db says " . $ewww_image->level . " vs. current $compression_level" );
-						// If the current compression level is less than what was previously used, and the previous level was premium (or premium plus).
-						if ( $compression_level < $ewww_image->level && $ewww_image->level > 30 ) {
-							ewwwio_debug_message( "smart re-opt triggering restoration for $file" );
-							ewww_image_optimizer_cloud_restore_single_image( $ewww_image->record );
-						}
+				$smart_reopt = ! empty( $_REQUEST['ewww_force_smart'] ) && ewww_image_optimizer_level_mismatch( $ewww_image->level, $compression_level ) ? true : false;
+				if ( $smart_reopt ) {
+					ewwwio_debug_message( "smart re-opt found level mismatch for $file, db says " . $ewww_image->level . " vs. current $compression_level" );
+					// If the current compression level is less than what was previously used, and the previous level was premium (or premium plus).
+					if ( $compression_level && $compression_level < $ewww_image->level && $ewww_image->level > 20 ) {
+						ewwwio_debug_message( "smart re-opt triggering restoration for $file" );
+						ewww_image_optimizer_cloud_restore_single_image( $ewww_image->record );
 					}
+				} elseif ( $results_msg ) {
+					$file = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
+					return array( $file, $results_msg, $converted, $original );
 				}
 			}
 			$ewww_image->level = $compression_level;
@@ -2470,18 +2468,17 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			// Check for previous optimization, so long as the force flag is on and this isn't a new image that needs converting.
 			if ( empty( $_REQUEST['ewww_force'] ) && ! ( $new && $convert ) ) {
 				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
-				if ( $results_msg ) {
-					if ( empty( $_REQUEST['ewww_force_smart'] ) || $compression_level === (int) $ewww_image->level ) {
-						$file = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
-						return array( $file, $results_msg, $converted, $original );
-					} elseif ( ! empty( $_REQUEST['ewww_force_smart'] ) && $compression_level !== (int) $ewww_image->level ) {
-						ewwwio_debug_message( "smart re-opt found level mismatch for $file, db says " . $ewww_image->level . " vs. current $compression_level" );
-						// If the current compression level is less than what was previously used, and the previous level was premium (or premium plus).
-						if ( $compression_level < $ewww_image->level && $ewww_image->level > 30 ) {
-							ewwwio_debug_message( "smart re-opt triggering restoration for $file" );
-							ewww_image_optimizer_cloud_restore_single_image( $ewww_image->record );
-						}
+				$smart_reopt = ! empty( $_REQUEST['ewww_force_smart'] ) && ewww_image_optimizer_level_mismatch( $ewww_image->level, $compression_level ) ? true : false;
+				if ( $smart_reopt ) {
+					ewwwio_debug_message( "smart re-opt found level mismatch for $file, db says " . $ewww_image->level . " vs. current $compression_level" );
+					// If the current compression level is less than what was previously used, and the previous level was premium (or premium plus).
+					if ( $compression_level && $compression_level < $ewww_image->level && $ewww_image->level > 20 ) {
+						ewwwio_debug_message( "smart re-opt triggering restoration for $file" );
+						ewww_image_optimizer_cloud_restore_single_image( $ewww_image->record );
 					}
+				} elseif ( $results_msg ) {
+					$file = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
+					return array( $file, $results_msg, $converted, $original );
 				}
 			}
 			$ewww_image->level = $compression_level;
@@ -2621,18 +2618,17 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			$compression_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' );
 			if ( empty( $_REQUEST['ewww_force'] ) ) {
 				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
-				if ( $results_msg ) {
-					if ( empty( $_REQUEST['ewww_force_smart'] ) || $compression_level === (int) $ewww_image->level ) {
-						$file = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
-						return array( $file, $results_msg, false, $original );
-					} elseif ( ! empty( $_REQUEST['ewww_force_smart'] ) && $compression_level !== (int) $ewww_image->level ) {
-						ewwwio_debug_message( "smart re-opt found level mismatch for $file, db says " . $ewww_image->level . " vs. current $compression_level" );
-						// If the current compression level is less than what was previously used, and the previous level was premium (or premium plus).
-						if ( $compression_level < $ewww_image->level && $ewww_image->level > 30 ) {
-							ewwwio_debug_message( "smart re-opt triggering restoration for $file" );
-							ewww_image_optimizer_cloud_restore_single_image( $ewww_image->record );
-						}
+				$smart_reopt = ! empty( $_REQUEST['ewww_force_smart'] ) && ewww_image_optimizer_level_mismatch( $ewww_image->level, $compression_level ) ? true : false;
+				if ( $smart_reopt ) {
+					ewwwio_debug_message( "smart re-opt found level mismatch for $file, db says " . $ewww_image->level . " vs. current $compression_level" );
+					// If the current compression level is less than what was previously used, and the previous level was premium (or premium plus).
+					if ( $compression_level && $compression_level < $ewww_image->level && $ewww_image->level > 20 ) {
+						ewwwio_debug_message( "smart re-opt triggering restoration for $file" );
+						ewww_image_optimizer_cloud_restore_single_image( $ewww_image->record );
 					}
+				} elseif ( $results_msg ) {
+					$file = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
+					return array( $file, $results_msg, $converted, $original );
 				}
 			}
 			$ewww_image->level = $compression_level;

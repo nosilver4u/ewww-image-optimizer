@@ -1206,17 +1206,14 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						ewww_image_optimizer_debug_log();
 						continue;
 					}
-					// TODO: right here, need to alter this for smart re-opt (ewww_force_smart).
 					$compression_level = ewww_image_optimizer_get_level( $mime );
-					if (
-						(int) $already_optimized['image_size'] === (int) $image_size && empty( $_REQUEST['ewww_force'] ) &&
-						( (int) $already_optimized['level'] === (int) $compression_level || empty( $_REQUEST['ewww_force_smart'] ) )
-					) {
+					$smart_reopt       = ! empty( $_REQUEST['ewww_force_smart'] ) && ewww_image_optimizer_level_mismatch( $already_optimized['level'], $compression_level ) ? true : false;
+					if ( (int) $already_optimized['image_size'] === (int) $image_size && empty( $_REQUEST['ewww_force'] ) && ! $smart_reopt ) {
 						ewwwio_debug_message( "match found for $file_path" );
 						ewww_image_optimizer_debug_log();
 						continue;
 					} else {
-						if ( (int) $already_optimized['level'] !== (int) $compression_level && ! empty( $_REQUEST['ewww_force_smart'] ) ) {
+						if ( $smart_reopt ) {
 							ewwwio_debug_message( "smart re-opt found level mismatch for $file_path, db says " . $already_optimized['level'] . " vs. current $compression_level" );
 						} else {
 							ewwwio_debug_message( "mismatch found for $file_path, db says " . $already_optimized['image_size'] . " vs. current $image_size" );
