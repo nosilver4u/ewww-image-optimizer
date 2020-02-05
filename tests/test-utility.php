@@ -104,4 +104,34 @@ class EWWWIO_Utility_Tests extends WP_UnitTestCase {
 		$replaced_test_image = ewww_image_optimizer_absolutize_path( $relative_test_image_path );
 		$this->assertEquals( $test_image, $replaced_test_image );
 	}
+
+	/**
+	 * Test local copy of Cloudflare IP range list.
+	 */
+	function test_cf_ip_ranges() {
+		$latest_ips = wp_remote_get( 'https://www.cloudflare.com/ips-v4' );
+		$latest_ips = explode( "\n", $latest_ips['body'] );
+		$cf_ips   = array(
+			'173.245.48.0/20',
+			'103.21.244.0/22',
+			'103.22.200.0/22',
+			'103.31.4.0/22',
+			'141.101.64.0/18',
+			'108.162.192.0/18',
+			'190.93.240.0/20',
+			'188.114.96.0/20',
+			'197.234.240.0/22',
+			'198.41.128.0/17',
+			'162.158.0.0/15',
+			'104.16.0.0/12',
+			'172.64.0.0/13',
+			'131.0.72.0/22',
+		);
+		foreach( $latest_ips as $key => $range ) {
+			if ( empty( $range ) ) {
+				continue;
+			}
+			$this->assertEquals( $range, $cf_ips[ $key ] );
+		}
+	}
 }

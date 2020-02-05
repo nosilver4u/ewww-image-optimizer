@@ -8574,14 +8574,12 @@ function ewwwio_ip_in_range( $ip, $range ) {
 	}
 
 	list( $range, $netmask ) = explode( '/', $range, 2 );
-	ewwwio_debug_message( "testing $ip is in $range with $netmask" );
+	ewwwio_debug_message( "testing $ip is in $range with net $netmask" );
 
 	$range_decimal    = ip2long( $range );
 	$ip_decimal       = ip2long( $ip );
 	$wildcard_decimal = pow( 2, ( 32 - $netmask ) ) - 1;
 	$netmask_decimal  = ~ $wildcard_decimal;
-	ewwwio_debug_message( "range (dec) is $range_decimal, and ip (dec) is $ip_decimal" );
-	ewwwio_debug_message( "wildcard (dec) is $wildcard_decimal with resulting netmask (dec) of $netmask_decimal" );
 	return ( ( $ip_decimal & $netmask_decimal ) === ( $range_decimal & $netmask_decimal ) );
 }
 
