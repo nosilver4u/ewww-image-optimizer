@@ -33,6 +33,14 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		protected $content_dir = WP_CONTENT_DIR . '/ewww/';
 
 		/**
+		 * Site (URL) for the plugin to use.
+		 *
+		 * @access public
+		 * @var string $content_url
+		 */
+		public $site_url = '';
+
+		/**
 		 * Plugin version for the plugin.
 		 *
 		 * @access protected
@@ -47,6 +55,14 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 * @var string $prefix
 		 */
 		protected $prefix = 'ewww_image_optimizer_';
+
+		/**
+		 * Is media offload to S3 (or similar)?
+		 *
+		 * @access public
+		 * @var bool $s3_active
+		 */
+		public $s3_active = false;
 
 		/**
 		 * Set class properties for children.
@@ -172,7 +188,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 * @return bool Debug True if GD support detected.
 		 */
 		function gd_support() {
-			$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			if ( function_exists( 'gd_info' ) ) {
 				$gd_support = gd_info();
 				$this->debug_message( 'GD found, supports:' );
@@ -332,5 +348,68 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			return $success;
 		}
 
+		/**
+		 * A wrapper for PHP's parse_url, prepending assumed scheme for network path
+		 * URLs. PHP versions 5.4.6 and earlier do not correctly parse without scheme.
+		 *
+		 * @param string  $url The URL to parse.
+		 * @param integer $component Retrieve specific URL component.
+		 * @return mixed Result of parse_url.
+		 */
+		function parse_url( $url, $component = -1 ) {
+			if ( 0 === strpos( $url, '//' ) ) {
+				$url = ( is_ssl() ? 'https:' : 'http:' ) . $url;
+			}
+			if ( false === strpos( $url, 'http' ) && '/' !== substr( $url, 0, 1 ) ) {
+				$url = ( is_ssl() ? 'https://' : 'http://' ) . $url;
+			}
+			// Because encoded ampersands in the filename break things.
+			$url = str_replace( '&#038;', '&', $url );
+			return parse_url( $url, $component );
+		}
+
+		/**
+		 * Get the shortest version of the content URL.
+		 *
+		 * @return string The URL where the content lives.
+		 */
+		function content_url() {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			if ( $this->site_url ) {
+				return $this->site_url;
+			}
+			if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
+				global $as3cf;
+				$s3_scheme = $as3cf->get_url_scheme();
+				$s3_region = $as3cf->get_setting( 'region' );
+				$s3_bucket = $as3cf->get_setting( 'bucket' );
+				if ( is_wp_error( $s3_region ) ) {
+					$s3_region = '';
+				}
+				$s3_domain = $as3cf->get_provider()->get_url_domain( $s3_bucket, $s3_region, null, array(), true );
+				$this->debug_message( "found S3 domain of $s3_domain with bucket $s3_bucket and region $s3_region" );
+				if ( ! empty( $s3_domain ) && $as3cf->get_setting( 'serve-from-s3' ) ) {
+					$this->s3_active = true;
+				}
+			}
+
+			if ( $this->s3_active ) {
+				$this->site_url = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : $s3_scheme . '://' . $s3_domain;
+			} else {
+				// Normally, we use this one, as it will be shorter for sub-directory installs.
+				$home_url    = get_home_url();
+				$site_url    = get_site_url();
+				$upload_dir  = wp_upload_dir( null, false );
+				$home_domain = $this->parse_url( $home_url, PHP_URL_HOST );
+				$site_domain = $this->parse_url( $site_url, PHP_URL_HOST );
+				// If the home domain does not match the upload url, and the site domain does match...
+				if ( false === strpos( $upload_dir['baseurl'], $home_domain ) && false !== strpos( $upload_dir['baseurl'], $site_domain ) ) {
+					$this->debug_message( "using WP URL (via get_site_url) with $site_domain rather than $home_domain" );
+					$home_url = $site_url;
+				}
+				$this->site_url = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : $home_url;
+			}
+			return $this->site_url;
+		}
 	}
 }

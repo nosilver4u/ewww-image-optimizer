@@ -173,6 +173,11 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 5.2.1 =
+* changed: WebP rewrite rules hidden for Cloudflare-protected sites
+* fixed: Smart Re-optimize not working for PDF files
+* fixed: Easy IO detects wrong domain when using separate domains for site and content
+
 = 5.2.0 =
 * added: Lazy Load, JS WebP, and Easy IO support background images on link elements
 * added: JS WebP supports background images on section, span, and li elements

@@ -178,31 +178,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			// Configure Autoptimize with our CDN domain.
 			add_filter( 'autoptimize_filter_cssjs_multidomain', array( $this, 'autoptimize_cdn_url' ) );
 
-			// Find the "local" domain.
-			$s3_active = false;
-			if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
-				global $as3cf;
-				$s3_region = $as3cf->get_setting( 'region' );
-				$s3_bucket = $as3cf->get_setting( 'bucket' );
-				if ( is_wp_error( $s3_region ) ) {
-					$s3_region = '';
-				}
-				$s3_domain = $as3cf->get_provider()->get_url_domain( $s3_bucket, $s3_region, null, array(), true );
-				$this->debug_message( "found S3 domain of $s3_domain with bucket $s3_bucket and region $s3_region" );
-				if ( ! empty( $s3_domain ) && $as3cf->get_setting( 'serve-from-s3' ) ) {
-					$s3_active = true;
-				}
-			}
-
-			if ( $s3_active ) {
-				$upload_dir = array(
-					'baseurl' => 'https://' . $s3_domain,
-				);
-			} else {
-				$upload_dir = wp_upload_dir( null, false );
-			}
-			$upload_url_parts = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? $this->parse_url( EXACTDN_LOCAL_DOMAIN ) : $this->parse_url( $upload_dir['baseurl'] );
+			$upload_url_parts = $this->parse_url( $this->content_url() );
 			if ( empty( $upload_url_parts ) ) {
+				$this->debug_message( "could not break down URL: $this->site_url" );
 				return;
 			}
 			$this->upload_domain = $upload_url_parts['host'];
@@ -215,7 +193,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$this->debug_message( "removing this from urls: $this->remove_path" );
 			}
 			$this->allowed_domains[] = $this->upload_domain;
-			if ( ! $s3_active && strpos( $this->upload_domain, 'www' ) === false ) {
+			if ( ! $this->s3_active && strpos( $this->upload_domain, 'www' ) === false ) {
 				$this->allowed_domains[] = 'www.' . $this->upload_domain;
 			} else {
 				$nonwww = ltrim( 'www.', $this->upload_domain );
@@ -273,27 +251,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 */
 		function activate_site() {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-			$s3_active = false;
-			if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
-				global $as3cf;
-				$s3_scheme = $as3cf->get_url_scheme();
-				$s3_region = $as3cf->get_setting( 'region' );
-				$s3_bucket = $as3cf->get_setting( 'bucket' );
-				if ( is_wp_error( $s3_region ) ) {
-					$s3_region = '';
-				}
-				$s3_domain = $as3cf->get_provider()->get_url_domain( $s3_bucket, $s3_region, null, array(), true );
-				$this->debug_message( "found S3 domain of $s3_domain with bucket $s3_bucket and region $s3_region" );
-				if ( ! empty( $s3_domain ) && $as3cf->get_setting( 'serve-from-s3' ) ) {
-					$s3_active = true;
-				}
-			}
 
-			if ( $s3_active ) {
-				$site_url = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : $s3_scheme . '://' . $s3_domain;
-			} else {
-				$site_url = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : get_home_url();
-			}
+			$site_url = $this->content_url();
+
 			$url = 'http://optimize.exactlywww.com/exactdn/activate.php';
 			$ssl = wp_http_supports( array( 'ssl' ) );
 			if ( $ssl ) {
@@ -322,7 +282,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					if (
 						false !== strpos( $site_url, 'amazonaws.com' ) ||
 						false !== strpos( $site_url, 'digitaloceanspaces.com' ) ||
-						false !== strpos( $site_url, 'storage.googleapis.com' )
+						false !== strpos( $site_url, 'storage.googleapis.com' ) ||
+						$this->s3_active
 					) {
 						$this->set_exactdn_option( 'verify_method', -1, false );
 					}
@@ -2677,26 +2638,6 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 			$this->debug_message( "valid $scheme - $url" );
 			return preg_replace( '#^([a-z:]+)?//#i', "$scheme://", $url );
-		}
-
-		/**
-		 * A wrapper for PHP's parse_url, prepending assumed scheme for network path
-		 * URLs. PHP versions 5.4.6 and earlier do not correctly parse without scheme.
-		 *
-		 * @param string  $url The URL to parse.
-		 * @param integer $component Retrieve specific URL component.
-		 * @return mixed Result of parse_url.
-		 */
-		function parse_url( $url, $component = -1 ) {
-			if ( 0 === strpos( $url, '//' ) ) {
-				$url = ( is_ssl() ? 'https:' : 'http:' ) . $url;
-			}
-			if ( false === strpos( $url, 'http' ) && '/' !== substr( $url, 0, 1 ) ) {
-				$url = ( is_ssl() ? 'https://' : 'http://' ) . $url;
-			}
-			// Because encoded ampersands in the filename break things.
-			$url = str_replace( '&#038;', '&', $url );
-			return parse_url( $url, $component );
 		}
 
 		/**
