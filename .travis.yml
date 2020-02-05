@@ -39,7 +39,7 @@ before_script:
   - |
     if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then
       composer global require phpunit/phpunit ^5
-    else if [[ ${WP_VERSION:0:3} == "5.0" ]]; then
+    elif [[ ${WP_VERSION:0:3} == "5.0" ]]; then
       composer global require phpunit/phpunit ^6
     else
       composer global require phpunit/phpunit ^7
