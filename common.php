@@ -3781,7 +3781,7 @@ function ewww_image_optimizer_cloud_quota( $raw = false ) {
 					abs( $quota['consumed'] )
 				)
 			);
-		} elseif ( $quota['licensed'] > 0 && $quota['consumed'] < 0 ) {
+		} elseif ( $quota['licensed'] > 0 && $quota['consumed'] <= 0 ) {
 			$real_quota = (int) $quota['licensed'] - (int) $quota['consumed'];
 			return esc_html(
 				sprintf(
@@ -9192,7 +9192,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewwwio_debug_message( 'ExactDN lossy: ' . intval( ewww_image_optimizer_get_option( 'exactdn_lossy' ) ) );
 	ewwwio_debug_message( 'ExactDN resize existing: ' . ( ewww_image_optimizer_get_option( 'exactdn_resize_existing' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'ExactDN attachment queries: ' . ( ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' ) ? 'off' : 'on' ) );
-	if ( ! $exactdn_enabled ) {
+	if ( ! $exactdn_enabled || 1 === $exactdn->get_plan_id() ) {
 		$output[] = "<input type='hidden' id='exactdn_all_the_things' name='exactdn_all_the_things' " .
 			( ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ? "value='1'" : "value='0'" ) . ">\n";
 		$output[] = "<input type='hidden' id='exactdn_lossy' name='exactdn_lossy' " .
@@ -9219,8 +9219,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		"</td></tr>\n";
 	ewwwio_debug_message( 'lazy load: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? 'on' : 'off' ) );
 	$output[] = "<tr class='$network_class'><td>&nbsp;</td><td><input type='checkbox' name='ewww_image_optimizer_use_lqip' value='true' " .
-		( ! $exactdn_enabled ? " id='ewww_image_optimizer_use_lqip_disabled' disabled " : " id='ewww_image_optimizer_use_lqip' " ) .
-		( ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_lqip' ) ? "checked='true'" : '' ) . ' /> ' .
+		( ! $exactdn_enabled || 1 === $exactdn->get_plan_id() ? " id='ewww_image_optimizer_use_lqip_disabled' disabled " : " id='ewww_image_optimizer_use_lqip' " ) .
+		( is_object( $exactdn ) && 1 < $exactdn->get_plan_id() && ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_lqip' ) ? "checked='true'" : '' ) . ' /> ' .
 		"<label for='ewww_image_optimizer_use_lqip'><strong>LQIP</strong></label>" .
 		ewwwio_help_link( 'https://docs.ewww.io/article/75-lazy-load-placeholders', '5c9a7a302c7d3a1544615e47' ) . "\n" .
 		"<p class='description'>" . esc_html__( 'Use low-quality versions of your images as placeholders via Easy IO. Can improve user experience, but may be slower than blank placeholders.', 'ewww-image-optimizer' ) . '</p>' .

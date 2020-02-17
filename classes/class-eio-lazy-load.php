@@ -88,6 +88,10 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 					$this->parsing_exactdn = true;
 					$this->debug_message( 'parsing an exactdn page' );
 				}
+				$this->allow_lqip = false;
+				if ( $exactdn->get_plan_id() > 1 ) {
+					$this->allow_lqip = true;
+				}
 			}
 
 			if ( $this->parsing_exactdn ) {
@@ -242,12 +246,12 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						$width_attr      = $this->get_attribute( $image, 'width' );
 						$height_attr     = $this->get_attribute( $image, 'height' );
 						$placeholder_src = $this->placeholder_src;
-						if ( false === strpos( $file, 'nggid' ) && ! preg_match( '#\.svg(\?|$)#', $file ) && apply_filters( 'eio_use_lqip', true, $file ) && $this->parsing_exactdn && strpos( $file, $this->exactdn_domain ) ) {
+						if ( false === strpos( $file, 'nggid' ) && ! preg_match( '#\.svg(\?|$)#', $file ) && $this->parsing_exactdn && strpos( $file, $this->exactdn_domain ) ) {
 							$this->debug_message( 'using lqip' );
 							list( $width, $height ) = $this->get_dimensions_from_filename( $file, true );
 							if ( $width && $height && $width < 201 && $height < 201 ) {
 								$placeholder_src = $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $width . 'x' . $height . '.png' );
-							} elseif ( $this->get_option( $this->prefix . 'use_lqip' ) ) {
+							} elseif ( $this->allow_lqip && apply_filters( 'eio_use_lqip', $this->get_option( $this->prefix . 'use_lqip' ), $file ) ) {
 								$placeholder_src = add_query_arg( array( 'lazy' => 1 ), $file );
 							} elseif ( $width && $height ) {
 								$placeholder_src = $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $width . 'x' . $height . '.png' );
