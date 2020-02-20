@@ -177,6 +177,8 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * changed: WebP rewrite rules hidden for Cloudflare-protected sites
 * fixed: Smart Re-optimize not working for PDF files
 * fixed: Easy IO detects wrong domain when using separate domains for site and content
+* fixed: custom domain for Easy IO prevents auto-scaling
+* fixed: full-width background images auto-scaled due to scroll bars
 
 = 5.2.0 =
 * added: Lazy Load, JS WebP, and Easy IO support background images on link elements
