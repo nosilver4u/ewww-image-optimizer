@@ -18,6 +18,7 @@ function constrainSrc(url,objectWidth,objectHeight,objectType){
 	if (url===null){
 		return url;
 	}
+	console.log('constrain ' + url + ' to ' + objectWidth + 'x' + objectHeight + ' with type ' + objectType);
 	var regW      = /w=(\d+)/;
 	var regFit    = /fit=(\d+),(\d+)/;
 	var regResize = /resize=(\d+),(\d+)/;
@@ -74,21 +75,21 @@ function constrainSrc(url,objectWidth,objectHeight,objectType){
 document.addEventListener('lazybeforeunveil', function(e){
         var target = e.target;
 	//console.log('the target');
-	//console.log(target);
-	//console.log('loading an image');
+	console.log(target);
+	console.log('loading an image');
 	var wrongSize = false;
 	var srcset = target.getAttribute('data-srcset');
         if ( ! srcset && target.naturalWidth) {
-		//console.log('we have something');
+		console.log('we have something');
         	if ((target.naturalWidth > 1) && (target.naturalHeight > 1)) {
                 	// For each image with a natural width which isn't
                 	// a 1x1 image, check its size.
 			var dPR = (window.devicePixelRatio || 1);
                 	var wrongWidth = (target.clientWidth * 1.25 < target.naturalWidth);
                 	var wrongHeight = (target.clientHeight * 1.25 < target.naturalHeight);
-			/*console.log(Math.round(target.clientWidth * dPR) + "x" + Math.round(target.clientHeight * dPR) + ", natural is " +
+			console.log(Math.round(target.clientWidth * dPR) + "x" + Math.round(target.clientHeight * dPR) + ", natural is " +
 				target.naturalWidth + "x" + target.naturalHeight + "!");
-			console.log( target.getAttribute('data-src') );*/
+			console.log( target.getAttribute('data-src') );
                 	if (wrongWidth || wrongHeight) {
 				var targetWidth = Math.round(target.offsetWidth * dPR);
 				var targetHeight = Math.round(target.offsetHeight * dPR);
@@ -96,7 +97,7 @@ document.addEventListener('lazybeforeunveil', function(e){
 				var src = target.getAttribute('data-src');
         			var webpsrc = target.getAttribute('data-src-webp');
         			if(ewww_webp_supported && webpsrc && -1 == src.search('webp=1')){
-					//console.log('using data-src-webp');
+					console.log('using data-src-webp');
 					src = webpsrc;
 				}
 				if (!shouldAutoScale(target)||!shouldAutoScale(target.parentNode)){
