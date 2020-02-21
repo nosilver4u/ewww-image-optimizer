@@ -77,8 +77,10 @@ For background images, use data-bg attribute:
 				bg = e.target.getAttribute('data-bg');
 				if (bg) {
         				if(ewww_webp_supported) {
+						console.log('checking for data-bg-webp');
 						bgWebP = e.target.getAttribute('data-bg-webp');
 						if (bgWebP) {
+							console.log('replacing data-bg with data-bg-webp');
 							bg = bgWebP;
 						}
 					}
@@ -87,14 +89,18 @@ For background images, use data-bg attribute:
 					var targetHeight = Math.round(e.target.offsetHeight * dPR);
 					if (!shouldAutoScale(e.target)||!shouldAutoScale(e.target.parentNode)){
 					} else if (window.lazySizes.hC(e.target,'wp-block-cover')) {
+						console.log('found wp-block-cover with data-bg');
 						if (window.lazySizes.hC(e.target,'has-parallax')) {
+							console.log('also has-parallax with data-bg');
 							targetWidth  = Math.round(window.screen.width * dPR);
 							targetHeight = Math.round(window.screen.height * dPR);
 						}
 						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
 					} else if (window.lazySizes.hC(e.target,'elementor-bg')){
+						console.log('found elementor-bg with data-bg');
 						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
 					} else {
+						console.log('found other data-bg');
 						bg = constrainSrc(bg,targetWidth,targetHeight,'bg');
 					}
 					e.detail.firesLoad = true;

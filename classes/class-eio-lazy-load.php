@@ -498,13 +498,16 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			// Skip inline data URIs.
 			$image_src = $this->get_attribute( $image, 'src' );
 			if ( false !== strpos( $image_src, 'data:image' ) ) {
+				$this->debug_message( 'data:image pattern detected in src' );
 				return false;
 			}
 			if ( false !== strpos( $image, 'data:image' ) && false !== strpos( $image, 'lazyload' ) ) {
+				$this->debug_message( 'data:image pattern detected with lazyload string' );
 				return false;
 			}
 			// Ignore 0-size Pinterest schema images.
 			if ( strpos( $image, 'data-pin-description=' ) && strpos( $image, 'width="0" height="0"' ) ) {
+				$this->debug_message( 'data-pin-description img skipped' );
 				return false;
 			}
 
@@ -541,6 +544,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			);
 			foreach ( $exclusions as $exclusion ) {
 				if ( false !== strpos( $image, $exclusion ) ) {
+					$this->debug_message( "img matched $exclusion" );
 					return false;
 				}
 			}
