@@ -263,6 +263,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 
 			$site_url = $this->content_url();
+			$home_url = home_url();
 
 			$url = 'http://optimize.exactlywww.com/exactdn/activate.php';
 			$ssl = wp_http_supports( array( 'ssl' ) );
@@ -276,6 +277,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					'timeout' => 10,
 					'body'    => array(
 						'site_url' => $site_url,
+						'home_url' => $home_url,
 					),
 				)
 			);
