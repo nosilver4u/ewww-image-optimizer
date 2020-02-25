@@ -216,9 +216,18 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 * @return mixed The value of the option.
 		 */
 		function get_option( $option_name, $default = false, $single = false ) {
+			if ( 'easyio_' === $this->prefix && function_exists( 'easyio_get_option' ) ) {
+				return easyio_get_option( $option_name );
+			}
+			if ( 'ewww_image_optimizer_' === $this->prefix && function_exists( 'ewww_image_optimizer_get_option' ) ) {
+				return ewww_image_optimizer_get_option( $option_name, $default, $single );
+			}
 			$constant_name = strtoupper( $option_name );
 			if ( defined( $constant_name ) && ( is_int( constant( $constant_name ) ) || is_bool( constant( $constant_name ) ) ) ) {
 				return constant( $constant_name );
+			}
+			if ( false !== strpos( $option_name, 'easyio' ) ) {
+				return get_option( $option_name );
 			}
 			if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
 				// Need to include the plugin library for the is_plugin_active function.
