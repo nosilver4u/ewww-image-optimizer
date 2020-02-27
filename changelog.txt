@@ -1,3 +1,11 @@
+= 5.2.2
+* added: automatic plan upgrade detection
+* changed: better compatibility with other implementations of "native lazy load"
+* updated: lazysizes.js to version 5.2
+* fixed: custom domain for Easy IO prevents auto-scaling
+* fixed: full-width background images auto-scaled due to scroll bars
+* fixed: overrides for array-style exclusions not being applied
+
 = 5.2.1 =
 * changed: WebP rewrite rules hidden for Cloudflare-protected sites
 * fixed: Smart Re-optimize not working for PDF files

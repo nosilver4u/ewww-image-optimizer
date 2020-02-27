@@ -102,6 +102,9 @@ function constrainSrc(url,objectWidth,objectHeight,objectType){
 	console.log('boo, just using same url');
 	return url;
 }
+document.addEventListener('lazybeforesizes', function(e){
+	console.log(e);
+});
 document.addEventListener('lazybeforeunveil', function(e){
         var target = e.target;
 	console.log('loading an image');

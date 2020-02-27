@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.0
 Tested up to: 5.3
 Requires PHP: 5.6
-Stable tag: 5.2.1
+Stable tag: 5.2.2
 License: GPLv3
 
 Speed up your website to better connect with your visitors. Properly compress and size/scale images. Includes lazy load and WebP convert.
@@ -179,6 +179,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * updated: lazysizes.js to version 5.2
 * fixed: custom domain for Easy IO prevents auto-scaling
 * fixed: full-width background images auto-scaled due to scroll bars
+* fixed: overrides for array-style exclusions not being applied
 
 = 5.2.1 =
 * changed: WebP rewrite rules hidden for Cloudflare-protected sites

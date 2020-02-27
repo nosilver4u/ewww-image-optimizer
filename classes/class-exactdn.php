@@ -308,6 +308,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 							$this->plan_id = 3;
 						} else {
 							$this->set_exactdn_option( 'plan_id', 1 );
+							$this->set_option( 'exactdn_all_the_things', true );
 							$this->plan_id = 1;
 						}
 					}
