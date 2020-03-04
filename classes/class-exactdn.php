@@ -161,9 +161,13 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_array' ), 1001, 5 );
 			add_filter( 'wp_calculate_image_sizes', array( $this, 'filter_sizes' ), 1, 2 ); // Early so themes can still filter.
 
-			// Filter for NextGEN image urls within JS.
+			// Filter for NextGEN image URLs within JS.
 			add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ) );
-			add_filter( 'ngg_get_image_url', array( $this, 'ngg_get_image_url' ) );
+			add_filter( 'ngg_get_image_url', array( $this, 'plugin_get_image_url' ) );
+
+			// Filter for Envira image URLs.
+			add_filter( 'envira_gallery_output_item_data', array( $this, 'envira_gallery_output_item_data' ) );
+			add_filter( 'envira_gallery_image_src', array( $this, 'plugin_get_image_url' ) );
 
 			// Filter for legacy WooCommerce API endpoints.
 			add_filter( 'woocommerce_api_product_response', array( $this, 'woocommerce_api_product_response' ) );
@@ -2274,7 +2278,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		/**
 		 * Handle image urls within the NextGEN pro lightbox displays.
 		 *
-		 * @param array $images An array of NextGEN images and associate attributes.
+		 * @param array $images An array of NextGEN images and associated attributes.
 		 * @return array The ExactDNified array of images.
 		 */
 		function ngg_pro_lightbox_images_queue( $images ) {
@@ -2310,12 +2314,33 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		}
 
 		/**
-		 * Handle image urls within NextGEN.
+		 * Handle image urls within the Envira pro displays.
 		 *
-		 * @param string $image A url for a NextGEN image.
+		 * @param array $image An Envira gallery image with associated attributes.
+		 * @return array The ExactDNified array of data.
+		 */
+		function envira_gallery_output_item_data( $image ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			if ( $this->is_iterable( $image ) ) {
+				foreach ( $image as $index => $attr ) {
+					if ( 0 === strpos( $attr, 'http' ) && $this->validate_image_url( $attr ) ) {
+						$image[ $index ] = $this->generate_url( $attr );
+					}
+				}
+				if ( ! empty( $image['opts']['thumb'] ) && $this->validate_image_url( $image['opts']['thumb'] ) ) {
+					$image['opts']['thumb'] = $this->generate_url( $image['opts']['thumb'] );
+				}
+			}
+			return $image;
+		}
+
+		/**
+		 * Handle direct image urls within Plugins.
+		 *
+		 * @param string $image A url for an image.
 		 * @return string The ExactDNified image url.
 		 */
-		function ngg_get_image_url( $image ) {
+		function plugin_get_image_url( $image ) {
 			// Don't foul up the admin side of things, unless a plugin wants to.
 			if ( is_admin() &&
 				/**
@@ -2329,7 +2354,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				 *     @type int          $attachment_id Attachment ID of the image.
 				 * }
 				 */
-				false === apply_filters( 'exactdn_admin_allow_ngg_url', false, $image )
+				false === apply_filters( 'exactdn_admin_allow_plugin_url', false, $image )
 			) {
 				return $image;
 			}
