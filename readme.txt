@@ -173,7 +173,10 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
-= 5.2.2
+= 5.2.3 =
+* fixed: background image lazy-loading could be interrupted by other plugins copying elements
+
+= 5.2.2 =
 * added: automatic plan upgrade detection
 * changed: better compatibility with other implementations of "native lazy load"
 * updated: lazysizes.js to version 5.2
