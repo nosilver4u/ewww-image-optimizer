@@ -47,11 +47,13 @@ For background images, use data-bg attribute:
 		regBgUrlEscape = /\(|\)|\s|'/;
 
 		bgLoad = function (url, cb){
+			console.log('doing bgLoad for ' + url );
 			var img = document.createElement('img');
 			img.onload = function(){
 				img.onload = null;
 				img.onerror = null;
 				img = null;
+				console.log('bgLoad callback imminent');
 				cb();
 			};
 			img.onerror = img.onload;
@@ -59,6 +61,7 @@ For background images, use data-bg attribute:
 			img.src = url;
 
 			if(img && img.complete && img.onload){
+				console.log('bgLoad img.complete and img.onload success');
 				img.onload();
 			}
 		};
@@ -105,11 +108,14 @@ For background images, use data-bg attribute:
 					}
 					e.detail.firesLoad = true;
 					load = function(){
+						console.log('bgLoad callback setting .backgroundImage: ' + 'url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')');
 						e.target.style.backgroundImage = 'url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')';
 						e.detail.firesLoad = false;
+						console.log('firing for bg image');
 						lazySizes.fire(e.target, '_lazyloaded', {}, true, true);
 					};
 
+					console.log('lets bgLoad');
 					bgLoad(bg, load);
 				}
 
