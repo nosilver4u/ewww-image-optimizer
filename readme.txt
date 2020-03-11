@@ -174,7 +174,12 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 5.2.3 =
+* added: Easy IO sets pre-scaled image in data-pin-media for Pinterest
+* added: Envira Pro cache cleared when activating Easy IO
 * fixed: background image lazy-loading could be interrupted by other plugins copying elements
+* fixed: JS WebP provides .webp images to Pinterest
+* fixed: JS WebP strips Pinterest data/meta attributes
+* fixed: Easy IO misses some images with Envira Gallery Pro layouts
 
 = 5.2.2 =
 * added: automatic plan upgrade detection

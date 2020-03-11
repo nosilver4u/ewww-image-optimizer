@@ -205,7 +205,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$this->debug_message( "removing this from urls: $this->remove_path" );
 			}
 			$this->allowed_domains[] = $this->upload_domain;
-			if ( ! $this->s3_active && strpos( $this->upload_domain, 'www' ) === false ) {
+			if ( ! $this->s3_active && false === strpos( $this->upload_domain, 'www' ) ) {
 				$this->allowed_domains[] = 'www.' . $this->upload_domain;
 			} else {
 				$nonwww = ltrim( 'www.', $this->upload_domain );
@@ -221,7 +221,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					$this->allowed_domains[] = $wpml_domain;
 				}
 			}
-			$this->allowed_domains = apply_filters( 'exactdn_allowed_domains', $this->allowed_domains );
+			$this->allowed_domains[] = $this->exactdn_domain;
+			$this->allowed_domains   = apply_filters( 'exactdn_allowed_domains', $this->allowed_domains );
 			$this->debug_message( 'allowed domains: ' . implode( ',', $this->allowed_domains ) );
 			$this->validate_user_exclusions();
 		}
@@ -330,6 +331,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					if ( function_exists( 'et_get_option' ) && function_exists( 'et_update_option' ) && 'on' === et_get_option( 'et_pb_static_css_file', 'on' ) ) {
 						et_update_option( 'et_pb_static_css_file', 'off' );
 						et_update_option( 'et_pb_css_in_footer', 'off' );
+					}
+					if ( function_exists( 'envira_flush_all_cache' ) ) {
+						envira_flush_all_cache();
 					}
 					return $this->set_exactdn_domain( $response['domain'] );
 				}
@@ -823,6 +827,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						$src_orig             = $lazy_load_src;
 						$lazy                 = true;
 					}
+					if ( $lazy ) {
+						$this->debug_message( 'handling lazy image' );
+					}
 
 					// Check for relative urls that start with a slash. Unlikely that we'll attempt relative urls beyond that.
 					if (
@@ -1046,6 +1053,12 @@ if ( ! class_exists( 'ExactDN' ) ) {
 								}
 							}
 
+							// Add a data-pin-media attribute if we don't have one yet.
+							if ( ! defined( 'EIO_NO_PIN_MEDIA' ) && false === strpos( $new_tag, 'data-pin-media' ) ) {
+								$this->debug_message( 'data-pin-media not in img, adding to newly parsed img' );
+								$this->set_attribute( $new_tag, 'data-pin-media', $this->generate_url( $src ) );
+							}
+
 							// Check if content width pushed the respimg sizes attribute too far down.
 							if ( ! empty( $constrain_width ) && (int) $constrain_width !== (int) $content_width ) {
 								$sizes_attr     = $this->get_attribute( $new_tag, 'sizes' );
@@ -1090,27 +1103,56 @@ if ( ! class_exists( 'ExactDN' ) ) {
 							) {
 								$new_tag     = $tag;
 								$exactdn_url = $src;
+
 								$this->debug_message( 'checking to see if srcset width already exists' );
 								$srcset_url      = $exactdn_url . ' ' . (int) $width . 'w, ';
 								$new_srcset_attr = $this->get_attribute( $new_tag, $this->srcset_attr );
 								if ( $new_srcset_attr && false === strpos( $new_srcset_attr, ' ' . (int) $width . 'w' ) && ! preg_match( '/\s(1|2|3)x/', $new_srcset_attr ) ) {
+									// Add a data-pin-media attribute if we don't have one yet.
+									if ( ! defined( 'EIO_NO_PIN_MEDIA' ) && false === strpos( $new_tag, 'data-pin-media' ) ) {
+										$this->debug_message( 'data-pin-media not in img, adding via src to srcset' );
+										$this->set_attribute( $new_tag, 'data-pin-media', $exactdn_url );
+									}
+
 									$this->debug_message( 'src not in srcset, adding' );
 									$this->set_attribute( $new_tag, $this->srcset_attr, $srcset_url . $new_srcset_attr, true );
 									// Replace original tag with modified version.
+									$content = str_replace( $tag, $new_tag, $content );
+								} elseif ( ! defined( 'EIO_NO_PIN_MEDIA' ) && false === strpos( $new_tag, 'data-pin-media' ) ) {
+									// Add a data-pin-media attribute if we don't have one yet.
+									$this->debug_message( 'data-pin-media not in img, adding after src to srcset check' );
+									$this->set_attribute( $new_tag, 'data-pin-media', $exactdn_url );
 									$content = str_replace( $tag, $new_tag, $content );
 								}
 							}
 						}
 					} elseif ( $lazy && ! empty( $placeholder_src ) && $this->validate_image_url( $placeholder_src ) ) {
+						$this->debug_message( "parsing $placeholder_src for $src" );
 						$new_tag = $tag;
 						// If Lazy Load is in use, pass placeholder image through ExactDN.
 						$placeholder_src = $this->generate_url( $placeholder_src );
 						if ( $placeholder_src !== $placeholder_src_orig ) {
 							$new_tag = str_replace( $placeholder_src_orig, str_replace( '&#038;', '&', esc_url( $placeholder_src ) ), $new_tag );
+							// Add a data-pin-media attribute if we don't have one yet.
+							if ( ! defined( 'EIO_NO_PIN_MEDIA' ) && false === strpos( $new_tag, 'data-pin-media' ) ) {
+								$this->debug_message( 'data-pin-media not in img, adding during placeholder rewrite' );
+								$this->set_attribute( $new_tag, 'data-pin-media', $src );
+							}
 							// Replace original tag with modified version.
 							$content = str_replace( $tag, $new_tag, $content );
 						}
 						unset( $placeholder_src );
+					} elseif ( false !== strpos( $src, $this->exactdn_domain ) && $this->validate_image_url( $src, true ) ) {
+						$new_tag = $tag;
+						// Add a data-pin-media attribute if we don't have one yet.
+						if ( ! defined( 'EIO_NO_PIN_MEDIA' ) && false === strpos( $new_tag, 'data-pin-media' ) ) {
+							$this->debug_message( "data-pin-media not in img, adding last fallback for $src" );
+							$this->set_attribute( $new_tag, 'data-pin-media', $this->generate_url( $src ) );
+							// Replace original tag with modified version.
+							$content = str_replace( $tag, $new_tag, $content );
+						}
+					} else {
+						$this->debug_message( "unparsed $src, srcset fill coming up" );
 					} // End if().
 
 					// At this point, we discard the original src in favor of the ExactDN url.
@@ -1142,16 +1184,23 @@ if ( ! class_exists( 'ExactDN' ) ) {
 							if ( false !== strpos( $src, 'crop=' ) || false !== strpos( $src, '&h=' ) || false !== strpos( $src, '?h=' ) ) {
 								$width = false;
 							}
+							$new_tag = $images['img_tag'][ $index ];
 							// Then add a srcset and sizes.
 							if ( $width ) {
 								$srcset = $this->generate_image_srcset( $src, $width, $zoom, $filename_width );
 								if ( $srcset ) {
-									$new_tag = $images['img_tag'][ $index ];
 									$this->set_attribute( $new_tag, $this->srcset_attr, $srcset );
 									$this->set_attribute( $new_tag, 'sizes', sprintf( '(max-width: %1$dpx) 100vw, %1$dpx', $width ) );
-									// Replace original tag with modified version.
-									$content = str_replace( $images['img_tag'][ $index ], $new_tag, $content );
 								}
+							}
+							// Add a data-pin-media attribute if we don't have one yet.
+							if ( ! defined( 'EIO_NO_PIN_MEDIA' ) && false === strpos( $new_tag, 'data-pin-media' ) ) {
+								$this->debug_message( 'data-pin-media not in img, adding during srcset fill' );
+								$this->set_attribute( $new_tag, 'data-pin-media', $src );
+							}
+							if ( $new_tag !== $images['img_tag'][ $index ] ) {
+								// Replace original tag with modified version.
+								$content = str_replace( $images['img_tag'][ $index ], $new_tag, $content );
 							}
 						}
 					}

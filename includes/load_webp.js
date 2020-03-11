@@ -528,6 +528,10 @@ function ewwwLoadImages(ewww_webp_supported) {
 				'data-no-lazy',
 				'data-orig-size',
 				'data-permalink',
+				'data-pin-description',
+				'data-pin-id',
+				'data-pin-media',
+				'data-pin-url',
 				'data-width',
 			];
 			for (var i = 0, len = attrs.length; i < len; i++) {
@@ -539,15 +543,8 @@ function ewwwLoadImages(ewww_webp_supported) {
 			var nggImages = document.querySelectorAll('.batch-image img, .image-wrapper a, .ngg-pro-masonry-item a, .ngg-galleria-offscreen-seo-wrapper a');
 			for (var i = 0, len = nggImages.length; i < len; i++){
                                 ewwwAttr(nggImages[i], 'data-src', nggImages[i].getAttribute('data-webp'));
-				//$(this).ewwwattr('data-src', $(this).attr('data-webp'));
                                 ewwwAttr(nggImages[i], 'data-thumbnail', nggImages[i].getAttribute('data-webp-thumbnail'));
-				//$(this).ewwwattr('data-thumbnail', $(this).attr('data-webp-thumbnail'));
 			}
-                        // TODO: not sure we want to muck with the links, but maybe we have to.
-			/*var nggImages = document.querySelectorAll('.image-wrapper a, .ngg-pro-masonry-item a');
-			for (var i = 0, len = nggImages.length; i < len; i++){
-				ewwwAttr(nggImages[i], 'href', nggImages[i].getAttribute('data-webp'));
-			}*/
 			var revImages = document.querySelectorAll('.rev_slider ul li');
 			for (var i = 0, len = revImages.length; i < len; i++){
 				ewwwAttr(revImages[i], 'data-thumb', revImages[i].getAttribute('data-webp-thumb'));
