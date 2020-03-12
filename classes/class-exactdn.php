@@ -1053,12 +1053,6 @@ if ( ! class_exists( 'ExactDN' ) ) {
 								}
 							}
 
-							// Add a data-pin-media attribute if we don't have one yet.
-							if ( ! defined( 'EIO_NO_PIN_MEDIA' ) && false === strpos( $new_tag, 'data-pin-media' ) ) {
-								$this->debug_message( 'data-pin-media not in img, adding to newly parsed img' );
-								$this->set_attribute( $new_tag, 'data-pin-media', $this->generate_url( $src ) );
-							}
-
 							// Check if content width pushed the respimg sizes attribute too far down.
 							if ( ! empty( $constrain_width ) && (int) $constrain_width !== (int) $content_width ) {
 								$sizes_attr     = $this->get_attribute( $new_tag, 'sizes' );
@@ -1073,6 +1067,12 @@ if ( ! class_exists( 'ExactDN' ) ) {
 							// Supplant the original source value with our ExactDN URL.
 							$this->debug_message( "replacing $src_orig with $exactdn_url" );
 							$new_tag = str_replace( $src_orig, $exactdn_url, $new_tag );
+
+							// Add a data-pin-media attribute if we don't have one yet.
+							if ( ! defined( 'EIO_NO_PIN_MEDIA' ) && false === strpos( $new_tag, 'data-pin-media' ) ) {
+								$this->debug_message( 'data-pin-media not in img, adding to newly parsed img' );
+								$this->set_attribute( $new_tag, 'data-pin-media', $this->generate_url( $src, array( 'lossy' => 0 ) ) );
+							}
 
 							// If Lazy Load is in use, pass placeholder image through ExactDN.
 							if ( isset( $placeholder_src ) && $this->validate_image_url( $placeholder_src ) ) {
@@ -1111,7 +1111,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 									// Add a data-pin-media attribute if we don't have one yet.
 									if ( ! defined( 'EIO_NO_PIN_MEDIA' ) && false === strpos( $new_tag, 'data-pin-media' ) ) {
 										$this->debug_message( 'data-pin-media not in img, adding via src to srcset' );
-										$this->set_attribute( $new_tag, 'data-pin-media', $exactdn_url );
+										$this->set_attribute( $new_tag, 'data-pin-media', $this->generate_url( $exactdn_url, array( 'lossy' => 0 ) ) );
 									}
 
 									$this->debug_message( 'src not in srcset, adding' );
@@ -1121,7 +1121,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 								} elseif ( ! defined( 'EIO_NO_PIN_MEDIA' ) && false === strpos( $new_tag, 'data-pin-media' ) ) {
 									// Add a data-pin-media attribute if we don't have one yet.
 									$this->debug_message( 'data-pin-media not in img, adding after src to srcset check' );
-									$this->set_attribute( $new_tag, 'data-pin-media', $exactdn_url );
+									$this->set_attribute( $new_tag, 'data-pin-media', $this->generate_url( $exactdn_url, array( 'lossy' => 0 ) ) );
 									$content = str_replace( $tag, $new_tag, $content );
 								}
 							}
@@ -1136,7 +1136,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 							// Add a data-pin-media attribute if we don't have one yet.
 							if ( ! defined( 'EIO_NO_PIN_MEDIA' ) && false === strpos( $new_tag, 'data-pin-media' ) ) {
 								$this->debug_message( 'data-pin-media not in img, adding during placeholder rewrite' );
-								$this->set_attribute( $new_tag, 'data-pin-media', $src );
+								$this->set_attribute( $new_tag, 'data-pin-media', $this->generate_url( $src, array( 'lossy' => 0 ) ) );
 							}
 							// Replace original tag with modified version.
 							$content = str_replace( $tag, $new_tag, $content );
@@ -1147,7 +1147,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						// Add a data-pin-media attribute if we don't have one yet.
 						if ( ! defined( 'EIO_NO_PIN_MEDIA' ) && false === strpos( $new_tag, 'data-pin-media' ) ) {
 							$this->debug_message( "data-pin-media not in img, adding last fallback for $src" );
-							$this->set_attribute( $new_tag, 'data-pin-media', $this->generate_url( $src ) );
+							$this->set_attribute( $new_tag, 'data-pin-media', $this->generate_url( $src, array( 'lossy' => 0 ) ) );
 							// Replace original tag with modified version.
 							$content = str_replace( $tag, $new_tag, $content );
 						}
@@ -1196,7 +1196,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 							// Add a data-pin-media attribute if we don't have one yet.
 							if ( ! defined( 'EIO_NO_PIN_MEDIA' ) && false === strpos( $new_tag, 'data-pin-media' ) ) {
 								$this->debug_message( 'data-pin-media not in img, adding during srcset fill' );
-								$this->set_attribute( $new_tag, 'data-pin-media', $src );
+								$this->set_attribute( $new_tag, 'data-pin-media', $this->generate_url( $src, array( 'lossy' => 0 ) ) );
 							}
 							if ( $new_tag !== $images['img_tag'][ $index ] ) {
 								// Replace original tag with modified version.
@@ -2499,6 +2499,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( is_admin() ) {
 				return $url;
 			}
+			if ( did_action( 'cornerstone_boot_app' ) || did_action( 'cs_before_preview_frame' ) ) {
+				return $url;
+			}
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			$parsed_url = $this->parse_url( $url );
 
@@ -2622,7 +2625,12 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( false === strpos( $image_url, 'strip=all' ) && $this->get_option( $this->prefix . 'metadata_remove' ) ) {
 				$more_args['strip'] = 'all';
 			}
-			if ( $this->plan_id > 1 && false === strpos( $image_url, 'lossy=' ) && ! $this->get_option( 'exactdn_lossy' ) ) {
+			if ( false !== strpos( $image_url, 'lossy=1' ) && 0 === $args['lossy'] ) {
+				$image_url = str_replace( 'lossy=1', 'lossy=0', $image_url );
+				unset( $args['lossy'] );
+			} elseif ( false !== strpos( $image_url, 'lossy=0' ) ) {
+				unset( $args['lossy'] );
+			} elseif ( $this->plan_id > 1 && false === strpos( $image_url, 'lossy=' ) && ! $this->get_option( 'exactdn_lossy' ) ) {
 				$more_args['lossy'] = 0;
 			} elseif ( false === strpos( $image_url, 'lossy=' ) && 1 === $this->plan_id ) {
 				$more_args['lossy'] = 1;
