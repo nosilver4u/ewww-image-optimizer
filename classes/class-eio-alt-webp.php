@@ -343,6 +343,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			is_admin() ||
 			! empty( $_GET['cornerstone'] ) ||
 			strpos( $uri, 'cornerstone-endpoint' ) !== false ||
+			did_action( 'cornerstone_boot_app' ) || did_action( 'cs_before_preview_frame' ) ||
 			! empty( $_GET['et_fb'] ) ||
 			! empty( $_GET['tatsu'] ) ||
 			( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === $_POST['action'] ) ||
@@ -361,6 +362,9 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			}
 			if ( ! empty( $_GET['cornerstone'] ) || strpos( $uri, 'cornerstone-endpoint' ) !== false ) {
 				ewwwio_debug_message( 'cornerstone editor' );
+			}
+			if ( did_action( 'cornerstone_boot_app' ) || did_action( 'cs_before_preview_frame' ) ) {
+				ewwwio_debug_message( 'cornerstone app/preview' );
 			}
 			if ( ! empty( $_GET['et_fb'] ) ) {
 				ewwwio_debug_message( 'et_fb' );

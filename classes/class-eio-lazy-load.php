@@ -164,6 +164,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				! empty( $_GET['cornerstone'] ) ||
 				strpos( $uri, 'cornerstone-endpoint' ) !== false ||
 				! empty( $_GET['ct_builder'] ) ||
+				did_action( 'cornerstone_boot_app' ) || did_action( 'cs_before_preview_frame' ) ||
 				! empty( $_GET['elementor-preview'] ) ||
 				! empty( $_GET['et_fb'] ) ||
 				! empty( $_GET['tatsu'] ) ||
@@ -184,6 +185,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				}
 				if ( ! empty( $_GET['ct_builder'] ) ) {
 					$this->debug_message( 'oxygen builder' );
+				}
+				if ( did_action( 'cornerstone_boot_app' ) || did_action( 'cs_before_preview_frame' ) ) {
+					$this->debug_message( 'cornerstone app/preview' );
 				}
 				if ( ! empty( $_GET['elementor-preview'] ) ) {
 					$this->debug_message( 'elementor preview' );
