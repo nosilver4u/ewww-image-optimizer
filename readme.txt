@@ -179,6 +179,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: background image lazy-loading could be interrupted by other plugins copying elements
 * fixed: JS WebP provides .webp images to Pinterest
 * fixed: JS WebP strips Pinterest data/meta attributes
+* fixed: missing www in domain prevents rewrites for Easy IO
 * fixed: Easy IO misses some images with Envira Gallery Pro layouts
 
 = 5.2.2 =

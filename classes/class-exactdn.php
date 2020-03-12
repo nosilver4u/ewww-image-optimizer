@@ -207,9 +207,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$this->allowed_domains[] = $this->upload_domain;
 			if ( ! $this->s3_active && false === strpos( $this->upload_domain, 'www' ) ) {
 				$this->allowed_domains[] = 'www.' . $this->upload_domain;
-			} else {
-				$nonwww = ltrim( 'www.', $this->upload_domain );
-				if ( $nonwww !== $this->upload_domain ) {
+			} elseif ( 0 === strpos( $this->upload_domain, 'www' ) ) {
+				$nonwww = ltrim( ltrim( $this->upload_domain, 'w' ), '.' );
+				if ( $nonwww && $nonwww !== $this->upload_domain ) {
 					$this->allowed_domains[] = $nonwww;
 				}
 			}
