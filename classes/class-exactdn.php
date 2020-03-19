@@ -1228,6 +1228,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( ! $this->get_option( 'exactdn_prevent_db_queries' ) && $this->elapsed_time > .5 ) {
 				$this->set_option( 'exactdn_prevent_db_queries', true );
 			}
+			if ( $this->filtering_the_page && $this->get_option( $this->prefix . 'debug' ) ) {
+				$content .= '<!-- Easy IO processing time: ' . $this->elapsed_time . ' -->';
+			}
 			return $content;
 		}
 

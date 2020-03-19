@@ -319,9 +319,9 @@ function ewww_image_optimizer_tool_folder_permissions_notice() {
 	echo "<div id='ewww-image-optimizer-warning-tool-folder-permissions' class='notice notice-error'><p><strong>" .
 		/* translators: %s: Folder location where executables should be installed */
 		sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), htmlentities( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . '.</strong> ' .
-		esc_html__( 'Please adjust permissions or create the folder. If you have installed the tools elsewhere on your system, use the override which allows you to skip the bundled tools.', 'ewww-image-optimizer' ) . ' ' .
-		/* translators: 1: Settings Page (link) 2: Installation Instructions (link) */
-		sprintf( esc_html__( 'For more details, visit the %1$s or the %2$s.', 'ewww-image-optimizer' ), "<a href='$settings_page'>" . esc_html__( 'Settings Page', 'ewww-image-optimizer' ) . '</a>', "<a href='https://docs.ewww.io/'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
+		esc_html__( 'Please adjust permissions on the folder. If you have installed the tools elsewhere, use the override to skip the bundled tools.', 'ewww-image-optimizer' ) . ' ' .
+		/* translators: s: Installation Instructions (link) */
+		sprintf( esc_html__( 'For more details, see the %s.', 'ewww-image-optimizer' ), "<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
 }
 
 /**
@@ -340,9 +340,8 @@ function ewww_image_optimizer_tool_installation_failed_notice() {
 	echo "<div id='ewww-image-optimizer-warning-tool-install' class='notice notice-error'><p><strong>" .
 		/* translators: %s: Folder location where executables should be installed */
 		sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), htmlentities( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . '.</strong> ' .
-		esc_html__( 'Please adjust permissions or create the folder. If you have installed the tools elsewhere on your system, check the option to Use System Paths.', 'ewww-image-optimizer' ) . ' ' .
-		/* translators: 1: Settings Page (link) 2: Installation Instructions (link) */
-		sprintf( esc_html__( 'For more details, visit the %1$s or the %2$s.', 'ewww-image-optimizer' ), "<a href='$settings_page'>" . esc_html__( 'Settings Page', 'ewww-image-optimizer' ) . '</a>', "<a href='https://docs.ewww.io/'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
+		/* translators: %s: Installation Instructions */
+		sprintf( esc_html__( 'For more details, see the %s.', 'ewww-image-optimizer' ), "<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
 }
 
 /**
@@ -362,6 +361,9 @@ function ewww_image_optimizer_install_tools() {
 		if ( ! is_writable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
 			ewwwio_debug_message( 'wp-content/ewww is not writable, not installing anything' );
 			return;
+		} elseif ( ! is_executable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
+			ewwwio_debug_message( 'wp-content/ewww is not executable, not installing anything' );
+			return;
 		}
 		$ewww_perms = substr( sprintf( '%o', fileperms( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ), -4 );
 		ewwwio_debug_message( "wp-content/ewww permissions: $ewww_perms" );
@@ -369,7 +371,7 @@ function ewww_image_optimizer_install_tools() {
 		ewwwio_debug_message( 'wp-content is not writable, and the ewww folder does not exist' );
 		return;
 	}
-	list ( $jpegtran_src, $optipng_src, $gifsicle_src, $pngquant_src, $webp_src, $jpegtran_dst, $optipng_dst, $gifsicle_dst, $pngquant_dst, $webp_dst ) = ewww_image_optimizer_install_paths();
+	list( $jpegtran_src, $optipng_src, $gifsicle_src, $pngquant_src, $webp_src, $jpegtran_dst, $optipng_dst, $gifsicle_dst, $pngquant_dst, $webp_dst ) = ewww_image_optimizer_install_paths();
 	$skip = ewww_image_optimizer_skip_tools();
 	if ( ! $skip['jpegtran'] && ( ! file_exists( $jpegtran_dst ) || filesize( $jpegtran_dst ) !== filesize( $jpegtran_src ) ) ) {
 		ewwwio_debug_message( 'jpegtran not found or different size, installing' );
@@ -667,7 +669,7 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 		}
 		if ( ! is_dir( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
 			ewww_image_optimizer_tool_folder_notice();
-		} elseif ( ! is_writable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
+		} elseif ( ! is_writable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) || ! is_executable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
 			ewww_image_optimizer_tool_folder_permissions_notice();
 		}
 		if ( 'pngout' === $msg ) {
