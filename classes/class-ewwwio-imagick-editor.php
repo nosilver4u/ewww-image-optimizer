@@ -224,6 +224,7 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 		}
 	}
 } elseif ( false && class_exists( 'S3_Uploads_Image_Editor_Imagick' ) ) {
+	// TODO: remove this section of the condition (or leave it empty as a safeguard).
 	/**
 	 * Extension of the WP_Image_Editor_Imagick class to auto-compress edited S3 images.
 	 *

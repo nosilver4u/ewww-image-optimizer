@@ -1005,14 +1005,22 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				(
 					class_exists( 'WindowsAzureStorageUtil' ) ||
 					class_exists( 'Amazon_S3_And_CloudFront' ) ||
+					class_exists( 'S3_Uploads' ) ||
 					class_exists( 'wpCloud\StatelessMedia\EWWW' )
 				)
 			) {
 				// Construct a $file_path and proceed IF a supported CDN plugin is installed.
 				ewwwio_debug_message( 'Azure or S3 detected and no local file found' );
 				$file_path = get_attached_file( $selected_id );
+				if ( class_exists( 'S3_Uploads' ) && method_exists( 'S3_Uploads', 'filter_upload_dir' ) ) {
+					$s3_uploads = S3_Uploads::get_instance();
+					remove_filter( 'upload_dir', array( $s3_uploads, 'filter_upload_dir' ) );
+				}
 				if ( ewww_image_optimizer_stream_wrapped( $file_path ) ) {
 					$file_path = get_attached_file( $selected_id, true );
+				}
+				if ( class_exists( 'S3_Uploads' ) && method_exists( 'S3_Uploads', 'filter_upload_dir' ) ) {
+					add_filter( 'upload_dir', array( $s3_uploads, 'filter_upload_dir' ) );
 				}
 				ewwwio_debug_message( "remote file possible: $file_path" );
 				if ( ! $file_path ) {
@@ -1789,6 +1797,11 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		if ( $attachment && (int) $attachment !== (int) $next_image->attachment_id ) {
 			if ( defined( 'WP_CLI' ) && WP_CLI ) {
 				ewwwio_debug_message( 'saving attachment meta' );
+				if ( class_exists( 'S3_Uploads' ) ) {
+					ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
+					$meta = wp_get_attachment_metadata( $image->attachment_id );
+					ewww_image_optimizer_remote_push( $meta, $image->attachment_id );
+				}
 				wp_update_attachment_metadata( $image->attachment_id, wp_get_attachment_metadata( $image->attachment_id ) );
 			} else {
 				$batch_image_limit     = 1;
@@ -1880,6 +1893,11 @@ function ewww_image_optimizer_bulk_update_meta() {
 	}
 	$attachment_id = (int) $_REQUEST['attachment_id'];
 	ewwwio_debug_message( "saving attachment meta for $attachment_id" );
+	if ( class_exists( 'S3_Uploads' ) ) {
+		ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
+		$meta = wp_get_attachment_metadata( $attachment_id );
+		ewww_image_optimizer_remote_push( $meta, $attachment_id );
+	}
 	wp_update_attachment_metadata( $attachment_id, wp_get_attachment_metadata( $attachment_id ) );
 	die( ewwwio_json_encode( array( 'success' => 1 ) ) );
 }

@@ -3136,6 +3136,10 @@ function ewww_image_optimizer_cloud_restore_from_meta_data( $id, $gallery = 'med
 			}
 		}
 	}
+	if ( class_exists( 'S3_Uploads' ) ) {
+		ewww_image_optimizer_remote_push( $meta, $id );
+		ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
+	}
 	return $meta;
 }
 
@@ -3221,6 +3225,9 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 		return false;
 	} elseif ( ! empty( $result['body'] ) && strpos( $result['body'], 'missing' ) === false ) {
 		$enabled_types = array( 'image/jpeg', 'image/png', 'image/gif', 'application/pdf' );
+		if ( ! is_dir( dirname( $image['path'] ) ) ) {
+			wp_mkdir_p( dirname( $image['path'] ) );
+		}
 		file_put_contents( $image['path'] . '.tmp', $result['body'] );
 		$new_type = ewww_image_optimizer_mimetype( $image['path'] . '.tmp', 'i' );
 		$old_type = '';
@@ -4528,7 +4535,8 @@ function ewww_image_optimizer_check_table( $file, $orig_size ) {
 	ewwwio_debug_message( "checking for $file with size: $orig_size" );
 	global $s3_uploads_image;
 	global $ewww_image;
-	if ( class_exists( 'S3_Uploads' ) && ! empty( $s3_uploads_image ) && $s3_uploads_image !== $file ) {
+	// TODO: remove this conditional.
+	if ( false && class_exists( 'S3_Uploads' ) && ! empty( $s3_uploads_image ) && $s3_uploads_image !== $file ) {
 		$file = $s3_uploads_image;
 		ewwwio_debug_message( "overriding check with: $file" );
 	}
@@ -4597,7 +4605,8 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 		$converted         = $original;
 	} else {
 		global $s3_uploads_image;
-		if ( class_exists( 'S3_Uploads' ) && ! empty( $s3_uploads_image ) && $s3_uploads_image !== $attachment ) {
+		// TODO: remove this conditional.
+		if ( false && class_exists( 'S3_Uploads' ) && ! empty( $s3_uploads_image ) && $s3_uploads_image !== $attachment ) {
 			$attachment = $s3_uploads_image;
 			ewwwio_debug_message( "overriding update with: $attachment" );
 		}
@@ -4919,6 +4928,8 @@ function ewww_image_optimizer_hidpi_optimize( $orig_path, $return_path = false, 
  * @return string The name of the file unaltered, or the s3 filename stored in $s3_uploads_image.
  */
 function ewww_image_optimizer_s3_uploads_image_cleanup( $file ) {
+	return $file;
+	// TODO: remove this function.
 	global $s3_uploads_image;
 	if ( ! ewww_image_optimizer_stream_wrapped( $file ) && strpos( $file, 's3-uploads' ) === false && ! empty( $s3_uploads_image ) ) {
 		if ( ewwwio_is_file( $file ) ) {
@@ -5057,6 +5068,9 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 		$filename    = $upload_path . $meta['file'];
 		ewwwio_debug_message( "S3 Uploads fullsize path: $s3_path" );
 		ewwwio_debug_message( "unfiltered fullsize path: $filename" );
+		if ( ! is_dir( dirname( $filename ) ) ) {
+			wp_mkdir_p( dirname( $filename ) );
+		}
 		if ( 0 === strpos( $s3_path, 's3' ) && 0 === strpos( $filename, '/' ) && ! ewwwio_is_file( $filename ) ) {
 			copy( $s3_path, $filename );
 		}
@@ -6267,7 +6281,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		$file_path = ewww_image_optimizer_remote_fetch( $id, $meta );
 	}
 	// If the local file is missing and we have valid metadata, see if we can fetch via CDN.
-	if ( ! ewwwio_is_file( $file_path ) || ( ewww_image_optimizer_stream_wrapped( $file_path ) && ! class_exists( 'S3_Uploads' ) ) ) {
+	if ( ! ewwwio_is_file( $file_path ) || ewww_image_optimizer_stream_wrapped( $file_path ) ) {
 		$file_path = ewww_image_optimizer_remote_fetch( $id, $meta );
 		if ( ! $file_path ) {
 			ewwwio_debug_message( 'could not retrieve path' );
