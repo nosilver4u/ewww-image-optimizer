@@ -3,9 +3,9 @@ Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization, lossless, lossy, seo, scale
 Requires at least: 5.0
-Tested up to: 5.3
+Tested up to: 5.4
 Requires PHP: 5.6
-Stable tag: 5.2.2
+Stable tag: 5.2.3
 License: GPLv3
 
 Speed up your website to better connect with your visitors. Properly compress and size/scale images. Includes lazy load and WebP convert.
@@ -214,51 +214,6 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: errors due to duplicate ssl= arguments in URLs
 * fixed: JS WebP has incorrect selector for video elements (props @CharlieHawker)
 * updated: embedded help code for better debug prefill
-
-= 5.1.4 =
-* fixed: warnings on FlaGallery's manage gallery page
-* fixed: cwebp version test results in false-positives
-* fixed: EWWW IO resize limits are ignored when higher than WP default
-* fixed: PNGOUT warning during one-click conversion
-* fixed: WebP images not removed from remote storage when an attachment is deleted (WP Offload Media)
-* fixed: after running regen for single thumbs with Image Regenerate & Select Crop plugin, regenerated images were not automatically optimized
-
-= 5.1.3 =
-* added: better compatibility with Divi filterable grid images and parallax backgrounds
-* added: cleanup .webp and database records when using Enable Media Replace
-* fixed: Divi builder will not load with Easy IO and Include All Resources active
-* fixed: image cover block with fixed width scaled too much
-* fixed: PNG placeholders could use more memory than available
-* removed: Lazy Load CSS gradient for blank placeholders
-
-= 5.1.2 =
-* added: disable native lazy-load attributes with EWWWIO_DISABLE_NATIVE_LAZY
-* added: ability to choose LQIP or blank placeholders for lazy load
-* changed: renaming ExactDN as Easy IO
-* changed: default to blank placeholders with Easy IO
-* changed: regenerated images are automatically re-optimized after running Image Regenerate & Select Crop plugin
-* fixed: low-quality placeholders sometimes had larger dimensions than necessary
-* fixed: database records and .webp images are not removed when Image Regenerate & Select Crop plugin deletes a thumbnail
-* fixed: path traversal protection preventing normal files from optimizing
-* fixed: Slider Revolution dummy.png not properly handled by Easy IO
-
-= 5.1.1 =
-* fixed: no optimization when escapeshellarg() is disabled
-* fixed: warning thrown by implode() when JS WebP is enabled with no WebP URLs
-
-= 5.1.0 =
-* added: WebP-only mode for Bulk Optimizer
-* added: JS WebP Rewriting for pull-mode CDNs via WebP URLS without Force WebP
-* added: JS WebP Rewriting zero-conf for WP Offload Media
-* added: force lossy PNG to WebP conversion with EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP override (set to true)
-* changed: bulk optimizer runs wp_update_attachment_metadata() in separate request to avoid timeouts
-* fixed: WebP warning regarding missing modules displayed even if green WebP test image is working
-* fixed: Nextgen bulk actions not working
-* fixed: unable to regenerate existing thumbnails with Image Regenerate & Select Crop plugin
-* updated: WebP (cwebp) binary to version 1.0.3
-* updated: Pngquant binary to version 2.12.5
-* updated: cwebp requires Mac OS X 10.14
-* updated: FreeBSD 10 is EOL, version 11 is the supported/tested version
 
 = Earlier versions =
 Please refer to the separate changelog.txt file.
