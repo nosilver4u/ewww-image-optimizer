@@ -721,6 +721,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$image_sizes = $this->image_sizes();
 
 				foreach ( $images[0] as $index => $tag ) {
+					// Remove trailing </a> tag, as it can blow things up and isn't needed.
+					$tag = str_replace( '</a>', '', $tag );
 					// Default to resize, though fit may be used in certain cases where a dimension cannot be ascertained.
 					$transform = 'resize';
 

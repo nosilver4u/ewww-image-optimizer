@@ -173,6 +173,9 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 5.2.4 =
+* fixed: data-pin-media attribute added to linked images incorrectly
+
 = 5.2.3 =
 * added: Easy IO sets pre-scaled image in data-pin-media for Pinterest
 * added: Envira Pro cache cleared when activating Easy IO
