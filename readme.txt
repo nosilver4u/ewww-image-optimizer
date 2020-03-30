@@ -175,6 +175,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 
 = 5.2.4 =
 * fixed: data-pin-media attribute added to linked images incorrectly
+* fixed: images are not resized to max dimensions when using S3 Uploads plugin
 
 = 5.2.3 =
 * added: Easy IO sets pre-scaled image in data-pin-media for Pinterest

@@ -17,6 +17,7 @@
 // TODO: check to see if we can use PHP and WP core is_countable functions.
 // TODO: make sure all settings (like lazy load) are in usage reporting.
 // TODO: can we show the last optimized date in the media library, perhaps in the details?
+// TODO: make sure we are using admin_url() rather than just linking to admin.php directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -55,13 +56,6 @@ use lsolesen\pel\PelTag;
 
 // If automatic optimization is NOT disabled.
 if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
-	if ( class_exists( 'S3_Uploads' ) ) {
-		// Resizes and auto-rotates images.
-		add_filter( 'wp_handle_upload_prefilter', 'ewww_image_optimizer_handle_upload', 8 );
-	} else {
-		// Resizes and auto-rotates images.
-		add_filter( 'wp_handle_upload', 'ewww_image_optimizer_handle_upload' );
-	}
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_DISABLE_EDITOR' ) || ! EWWW_IMAGE_OPTIMIZER_DISABLE_EDITOR ) {
 		// Turns off the ewwwio_image_editor during uploads.
 		add_action( 'add_attachment', 'ewww_image_optimizer_add_attachment' );
@@ -76,6 +70,8 @@ if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
 		// Enables direct integration to the editor's save function.
 		add_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
 	}
+	// Resizes and auto-rotates images.
+	add_filter( 'wp_handle_upload', 'ewww_image_optimizer_handle_upload' );
 	// Processes an image via the metadata after upload.
 	add_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
 	// Add hook for PTE confirmation to make sure new resizes are optimized.
@@ -516,6 +512,11 @@ function ewww_image_optimizer_init() {
 		if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 			$ewwwio_temp_debug = true;
 		}
+	}
+
+	if ( class_exists( 'S3_Uploads' ) ) {
+		ewwwio_debug_message( 's3-uploads detected, deferring resize_upload' );
+		add_filter( 'ewww_image_optimizer_defer_resizing', '__return_true' );
 	}
 
 	$active_plugins = get_option( 'active_plugins' );
@@ -1290,6 +1291,7 @@ function ewww_image_optimizer_admin_background() {
 				return '#0073aa';
 		}
 	}
+	return '#0073aa';
 }
 
 /**
@@ -6254,6 +6256,9 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 	if ( ! empty( $ewww_new_image ) ) {
 		ewwwio_debug_message( 'this is a newly uploaded image with no metadata yet' );
 		$new_image = true;
+	} elseif ( $background_new ) {
+		ewwwio_debug_message( 'this is a newly uploaded image from the async queue' );
+		$new_image = true;
 	} else {
 		ewwwio_debug_message( 'this image already has metadata, so it is not new' );
 		$new_image = false;
@@ -6352,9 +6357,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		}
 		return $meta;
 	}
-	if ( $background_new ) {
-		$new_image = true;
-	}
+
 	// Resize here if the user has used the filter to defer resizing, we have a new image OR resize existing is enabled, and imsanity isn't enabled with a max size.
 	if ( apply_filters( 'ewww_image_optimizer_defer_resizing', false ) && ( ! empty( $new_image ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) ) && ! function_exists( 'imsanity_get_max_width_height' ) ) {
 		ewwwio_debug_message( 'resizing defered and ( new image or resize existing enabled ) and Imsanity not detected' );
@@ -9224,7 +9227,12 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		}
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-		$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_cloud_notkey'>" . esc_html__( 'Optimization API Key', 'ewww-image-optimizer' ) . "</label></th><td><input type='text' id='ewww_image_optimizer_cloud_notkey' name='ewww_image_optimizer_cloud_notkey' readonly='readonly' value='****************************" . substr( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), 28 ) . "' size='32' /> <a href='admin.php?action=ewww_image_optimizer_remove_cloud_key'>" . esc_html__( 'Remove API key', 'ewww-image-optimizer' ) . "</a></td></tr>\n";
+		$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_cloud_notkey'>" .
+			esc_html__( 'Optimization API Key', 'ewww-image-optimizer' ) .
+			"</label></th><td><input type='text' id='ewww_image_optimizer_cloud_notkey' name='ewww_image_optimizer_cloud_notkey' readonly='readonly' value='****************************" .
+			substr( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), 28 ) .
+			"' size='32' /> <a href='" . admin_url( 'admin.php?action=ewww_image_optimizer_remove_cloud_key' ) . "'>" .
+			esc_html__( 'Remove API key', 'ewww-image-optimizer' ) . "</a></td></tr>\n";
 		$output[] = "<input type='hidden' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='" . ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) . "' />\n";
 	} else {
 		$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_cloud_key'>" . esc_html__( 'Optimization API Key', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2,5ad0c8e7042863075092650b,5a9efec62c7d3a7549516550' ) . "</th><td><input type='text' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='' size='32' /> " . esc_html__( 'API Key will be validated when you save your settings.', 'ewww-image-optimizer' ) . " <a href='https://ewww.io/buy-credits/' target='_blank'>" . esc_html__( 'Purchase an API key.', 'ewww-image-optimizer' ) . "</a></td></tr>\n";
@@ -9830,7 +9838,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	if ( ! empty( $eio_debug ) ) {
 		$debug_output = '<p style="clear:both"><b>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</b> <button id="ewww-copy-debug" class="button button-secondary" type="button">' . esc_html__( 'Copy', 'ewww-image-optimizer' ) . '</button>';
 		if ( ewwwio_is_file( WP_CONTENT_DIR . '/ewww/debug.log' ) ) {
-			$debug_output .= "&emsp;<a href='admin.php?action=ewww_image_optimizer_view_debug_log'>" . esc_html( 'View Debug Log', 'ewww-image-optimizer' ) . "</a> - <a href='admin.php?action=ewww_image_optimizer_delete_debug_log'>" . esc_html( 'Remove Debug Log', 'ewww-image-optimizer' ) . '</a>';
+			$debug_output .= "&emsp;<a href='" . admin_url( 'admin.php?action=ewww_image_optimizer_view_debug_log' ) . "'>" .
+				esc_html( 'View Debug Log', 'ewww-image-optimizer' ) . "</a> - <a href='" .
+				admin_url( 'admin.php?action=ewww_image_optimizer_delete_debug_log' ) . "'>" .
+				esc_html( 'Remove Debug Log', 'ewww-image-optimizer' ) . '</a>';
 		}
 		$debug_output .= '</p>';
 		$debug_output .= '<div id="ewww-debug-info" contenteditable="true">' . $eio_debug . '</div>';
