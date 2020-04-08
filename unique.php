@@ -1129,7 +1129,7 @@ function ewww_image_optimizer_md5check( $path ) {
 function ewww_image_optimizer_mimetype( $path, $case ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	ewwwio_debug_message( "testing mimetype: $path" );
-	if ( false !== strpos( $path, '../' ) ) {
+	if ( false !== strpos( $path, '../' ) || false !== strpos( $path, '..\\' ) ) {
 		return false;
 	}
 	$type = false;
@@ -1747,22 +1747,12 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	if ( empty( $s3_uploads_image ) ) {
 		$s3_uploads_image = false;
 	}
-	// TODO: remove this conditional.
-	if ( false && ewww_image_optimizer_stream_wrapped( $file ) && class_exists( 'S3_Uploads' ) ) {
-		$s3_uploads_image    = $file;
-		$s3_uploads_instance = S3_Uploads::get_instance();
-		$s3_uploads_instance->setup();
-		if ( ! function_exists( 'wp_tempnam' ) ) {
-			require_once( ABSPATH . 'wp-admin/includes/admin.php' );
-		}
-		$file = $s3_uploads_instance->copy_image_from_s3( $file );
-	}
 	// Initialize the original filename.
 	$original = $file;
 	$result   = '';
-	if ( false !== strpos( $file, '../' ) ) {
+	if ( false !== strpos( $file, '../' ) || false !== strpos( $file, '..\\' ) ) {
 		$msg = __( 'Path traversal in filename not allowed.', 'ewww-image-optimizer' );
-		ewwwio_debug_message( "file is using .. potential path traversal blocked: $file" );
+		ewwwio_debug_message( "file is using ../ potential path traversal blocked: $file" );
 		ewww_image_optimizer_s3_uploads_image_cleanup( $file );
 		return array( false, $msg, $converted, $original );
 	}
@@ -2662,11 +2652,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		chmod( $file, $perms );
 
 		$results_msg = ewww_image_optimizer_update_table( $file, $new_size, $orig_size, $original, $backup_hash );
-		// TODO: remove this conditional.
-		if ( false && $s3_uploads_image && strpos( $file, 's3-uploads' ) === false ) {
-			copy( $file, $s3_uploads_image );
-		}
-		$file = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
+		$file        = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
 		if ( ! empty( $webp_result ) ) {
 			$results_msg .= '<br>' . $webp_result;
 		}

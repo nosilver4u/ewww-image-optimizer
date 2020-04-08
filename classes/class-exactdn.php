@@ -2131,6 +2131,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 */
 		protected function validate_image_url( $url, $exactdn_is_valid = false ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			if ( ! is_string( $url ) ) {
+				$this->debug_message( 'cannot validate uri when variable is not a string' );
+				return false;
+			}
 			if ( false !== strpos( $url, 'data:image/' ) ) {
 				$this->debug_message( "could not parse data uri: $url" );
 				return false;
@@ -2339,7 +2343,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			if ( $this->is_iterable( $image ) ) {
 				foreach ( $image as $index => $attr ) {
-					if ( 0 === strpos( $attr, 'http' ) && $this->validate_image_url( $attr ) ) {
+					if ( is_string( $attr ) && 0 === strpos( $attr, 'http' ) && $this->validate_image_url( $attr ) ) {
 						$image[ $index ] = $this->generate_url( $attr );
 					}
 				}

@@ -18,6 +18,8 @@
 // TODO: make sure all settings (like lazy load) are in usage reporting.
 // TODO: can we show the last optimized date in the media library, perhaps in the details?
 // TODO: make sure we are using admin_url() rather than just linking to admin.php directly.
+// TODO: we can use wp_is_stream() probably.
+// TODO: use wp_get_upload_dir() when we only need basedir or baseurl and don't need dir created.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -2961,6 +2963,9 @@ function ewwwio_is_file( $file ) {
 		return false;
 	}
 	if ( false !== strpos( $file, '../' ) ) {
+		return false;
+	}
+	if ( false !== strpos( $file, '..\\' ) ) {
 		return false;
 	}
 	return is_file( $file );
@@ -6418,6 +6423,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		$force = false;
 	}
 
+	$base_dir = trailingslashit( dirname( $file_path ) );
 	// Resized versions, so we can continue.
 	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 		$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt', false, true );
@@ -6426,7 +6432,6 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		if ( 6 === $gallery_type ) {
 			$base_ims_dir = trailingslashit( dirname( $file_path ) ) . '_resized/';
 		}
-		$base_dir = trailingslashit( dirname( $file_path ) );
 		// Process each resized version.
 		$processed = array();
 		foreach ( $meta['sizes'] as $size => $data ) {
@@ -6480,7 +6485,12 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 				}
 			}
 			// If this is a unique size.
-			$resize_path = $base_dir . $data['file'];
+			$resize_path = str_replace( wp_basename( $file_path ), $data['file'], $file_path );
+			if ( empty( $resize_path ) ) {
+				ewwwio_debug_message( 'strange... $resize_path was empty' );
+				continue;
+			}
+			$resize_path = path_join( $upload_path, $resize_path );
 			if ( 'application/pdf' === $type && 'full' === $size ) {
 				$size = 'pdf-full';
 				ewwwio_debug_message( 'processing full size pdf preview' );
@@ -6658,7 +6668,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 			if ( $timer > $timer_max ) {
 				foreach ( $processing_sizes as $filename ) {
 					if ( ewwwio_is_file( $filename . '.processing' ) ) {
-						unlink( $filename . '.processing' );
+						wp_delete_file_from_directory( $filename . '.processing', $base_dir );
 					}
 				}
 				$meta['processing'] = 1;
@@ -7378,7 +7388,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			$meta = wp_get_attachment_metadata( $id );
 		}
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && ! $return_output && ewww_image_optimizer_function_exists( 'print_r' ) ) {
-			$print_meta   = print_r( $meta, true );
+			$print_meta   = esc_html( print_r( $meta, true ) );
 			$print_meta   = preg_replace( array( '/ /', '/\n+/' ), array( '&nbsp;', '<br />' ), $print_meta );
 			$debug_button = esc_html__( 'Show Metadata', 'ewww-image-optimizer' );
 			$output      .= "<button type='button' class='ewww-show-debug-meta button button-secondary' data-id='$id'>$debug_button</button><div id='ewww-debug-meta-$id' style='font-size: 10px;padding: 10px;margin:3px -10px 10px;line-height: 1.1em;display: none;'>$print_meta</div>";

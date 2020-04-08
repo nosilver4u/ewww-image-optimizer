@@ -130,6 +130,7 @@ function ewww_image_optimizer_aux_images_table() {
 				$image_url = esc_url( content_url( $image_name ) );
 			}
 		}
+		$image_name   = esc_html( $image_name );
 		$savings      = esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) );
 		$updated_time = strtotime( $optimized_image['updated'] );
 		if ( DAY_IN_SECONDS * 30 + $updated_time < time() ) {

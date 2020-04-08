@@ -1015,10 +1015,10 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				add_query_arg(
 					array(
 						'page'       => 'ewww-ngg-bulk',
-						'_wpnonce'   => $_REQUEST['_wpnonce'],
+						'_wpnonce'   => urlencode( $_REQUEST['_wpnonce'] ),
 						'bulk_type'  => $type,
 						'bulkaction' => 'bulk_optimize',
-						'doaction'   => $_REQUEST['doaction'],
+						'doaction'   => urlencode( $_REQUEST['doaction'] ),
 					),
 					admin_url( 'admin.php' )
 				)
