@@ -10099,6 +10099,9 @@ function ewww_image_optimizer_admin_bar_menu() {
  * @param string $message Debug information to add to the log.
  */
 function ewwwio_debug_message( $message ) {
+	if ( ! is_string( $message ) ) {
+		return;
+	}
 	if ( defined( 'WP_CLI' ) && WP_CLI ) {
 		WP_CLI::debug( $message );
 		return;

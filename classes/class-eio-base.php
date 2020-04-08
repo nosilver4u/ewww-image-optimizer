@@ -129,6 +129,9 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 * @param string $message Debug information to add to the log.
 		 */
 		function debug_message( $message ) {
+			if ( ! is_string( $message ) ) {
+				return;
+			}
 			if ( defined( 'WP_CLI' ) && WP_CLI ) {
 				WP_CLI::debug( $message );
 				return;
@@ -387,6 +390,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			if ( $this->site_url ) {
 				return $this->site_url;
 			}
+			$this->site_url = get_home_url();
 			if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
 				global $as3cf;
 				$s3_scheme = $as3cf->get_url_scheme();
@@ -395,10 +399,13 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 				if ( is_wp_error( $s3_region ) ) {
 					$s3_region = '';
 				}
-				$s3_domain = $as3cf->get_provider()->get_url_domain( $s3_bucket, $s3_region, null, array(), true );
-				$this->debug_message( "found S3 domain of $s3_domain with bucket $s3_bucket and region $s3_region" );
+				$s3_domain = '';
+				if ( ! empty( $s3_bucket ) && ! is_wp_error( $s3_bucket ) ) {
+					$s3_domain = $as3cf->get_provider()->get_url_domain( $s3_bucket, $s3_region, null, array(), true );
+				}
 				if ( ! empty( $s3_domain ) && $as3cf->get_setting( 'serve-from-s3' ) ) {
 					$this->s3_active = true;
+					$this->debug_message( "found S3 domain of $s3_domain with bucket $s3_bucket and region $s3_region" );
 				}
 			}
 

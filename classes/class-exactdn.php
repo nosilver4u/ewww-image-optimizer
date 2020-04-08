@@ -737,7 +737,11 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					// Identify image source.
 					$src      = $images['img_url'][ $index ];
 					$src_orig = $images['img_url'][ $index ];
-					$this->debug_message( $src );
+					if ( is_string( $src ) ) {
+						$this->debug_message( $src );
+					} else {
+						$this->debug_message( '$src is not a string?' );
+					}
 
 					/**
 					 * Allow specific images to be skipped by ExactDN.
@@ -1452,8 +1456,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( apply_filters( 'exactdn_skip_image', false, $image_url, null ) ) {
 				return $image;
 			}
-			$this->debug_message( $image_url );
-			$this->debug_message( $attachment_id );
+			$this->debug_message( "image_url: $image_url" );
+			$this->debug_message( "attachment_id: $attachment_id" );
 			if ( is_string( $size ) || is_int( $size ) ) {
 				$this->debug_message( $size );
 			} elseif ( is_array( $size ) ) {
@@ -2596,10 +2600,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( false === strpos( $image_url, 'strip=all' ) && $this->get_option( $this->prefix . 'metadata_remove' ) ) {
 				$more_args['strip'] = 'all';
 			}
-			if ( false !== strpos( $image_url, 'lossy=1' ) && 0 === $args['lossy'] ) {
+			if ( false !== strpos( $image_url, 'lossy=1' ) && isset( $args['lossy'] ) && 0 === $args['lossy'] ) {
 				$image_url = str_replace( 'lossy=1', 'lossy=0', $image_url );
 				unset( $args['lossy'] );
-			} elseif ( false !== strpos( $image_url, 'lossy=0' ) ) {
+			} elseif ( isset( $args['lossy'] ) && false !== strpos( $image_url, 'lossy=0' ) ) {
 				unset( $args['lossy'] );
 			} elseif ( $this->plan_id > 1 && false === strpos( $image_url, 'lossy=' ) && ! $this->get_option( 'exactdn_lossy' ) ) {
 				$more_args['lossy'] = 0;
