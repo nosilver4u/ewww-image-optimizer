@@ -12,7 +12,6 @@
 
 // TODO: might be able to use the Custom Bulk Actions in WP 4.7+ to support the bulk optimize drop-down menu.
 // TODO: write some tests for AGR.
-// TODO: use this: https://codex.wordpress.org/AJAX_in_Plugins#The_post-load_JavaScript_Event .
 // TODO: can some of the bulk "fallbacks" be implemented for async processing?
 // TODO: check to see if we can use PHP and WP core is_countable functions.
 // TODO: make sure all settings (like lazy load) are in usage reporting.
@@ -4509,6 +4508,67 @@ function ewww_image_optimizer_db_init() {
 }
 
 /**
+ * Inserts a single record into the table as pending, or marks it pending if it exists.
+ *
+ * @global object $ewwwdb A new database connection with super powers.
+ *
+ * @param string $path The filename of the image.
+ * @param string $gallery The type (origin) of the image.
+ * @param int    $attachment_id The attachment ID, if there is one.
+ * @param string $size The name of the resize for the image.
+ * @return int The row ID of the record updated/inserted.
+ */
+function ewww_image_optimizer_single_insert( $path, $gallery = '', $attachment_id = '', $size = '' ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	ewww_image_optimizer_db_init();
+	global $ewwwdb;
+
+	$already_optimized = ewww_image_optimizer_find_already_optimized( $path );
+	if ( is_array( $already_optimized ) && ! empty( $already_optimized ) ) {
+		if ( ! empty( $already_optimized['pending'] ) ) {
+			ewwwio_debug_message( "already pending record for $path - {$already_optimized['id']}" );
+			return $already_optimized['id'];
+		}
+		$ewwwdb->update(
+			$ewwwdb->ewwwio_images,
+			array(
+				'pending' => 1,
+			),
+			array(
+				'id' => $already_optimized['id'],
+			)
+		);
+		return $already_optimized['id'];
+	} else {
+		ewwwio_debug_message( "queuing $path" );
+		$orig_size = ewww_image_optimizer_filesize( $path );
+		$path      = ewww_image_optimizer_relativize_path( $path );
+		if ( seems_utf8( $path ) ) {
+			$utf8_file_path = $path;
+		} else {
+			$utf8_file_path = utf8_encode( $path );
+		}
+		$to_insert = array(
+			'path'      => $utf8_file_path,
+			'orig_size' => $orig_size,
+			'pending'   => 1,
+		);
+		if ( $gallery ) {
+			$to_insert['gallery'] = $gallery;
+		}
+		if ( $attachment_id ) {
+			$to_insert['attachment_id'] = $attachment_id;
+		}
+		if ( $size ) {
+			$to_insert['resize'] = $size;
+		}
+		$ewwwdb->insert( $ewwwdb->ewwwio_images, $to_insert );
+		ewwwio_debug_message( "inserted pending record for $path - {$ewwwdb->insert_id}" );
+		return $ewwwdb->insert_id;
+	}
+}
+
+/**
  * Inserts multiple records into the table at once.
  *
  * Each sub-array in $images should have the same number of items as $format.
@@ -4520,6 +4580,7 @@ function ewww_image_optimizer_db_init() {
  * @param array  $format A list of formats for the values in each record of $images.
  */
 function ewww_image_optimizer_mass_insert( $table, $images, $format ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( empty( $table ) || ! ewww_image_optimizer_iterable( $images ) || ! ewww_image_optimizer_iterable( $format ) ) {
 		return false;
 	}
@@ -4540,13 +4601,7 @@ function ewww_image_optimizer_mass_insert( $table, $images, $format ) {
 function ewww_image_optimizer_check_table( $file, $orig_size ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	ewwwio_debug_message( "checking for $file with size: $orig_size" );
-	global $s3_uploads_image;
 	global $ewww_image;
-	// TODO: remove this conditional.
-	if ( false && class_exists( 'S3_Uploads' ) && ! empty( $s3_uploads_image ) && $s3_uploads_image !== $file ) {
-		$file = $s3_uploads_image;
-		ewwwio_debug_message( "overriding check with: $file" );
-	}
 	$image = array();
 	if ( ! is_object( $ewww_image ) || ! $ewww_image instanceof EWWW_Image || $ewww_image->file !== $file ) {
 		$ewww_image = new EWWW_Image( 0, '', $file );
@@ -4611,12 +4666,6 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 		$already_optimized = ewww_image_optimizer_find_already_optimized( $original );
 		$converted         = $original;
 	} else {
-		global $s3_uploads_image;
-		// TODO: remove this conditional.
-		if ( false && class_exists( 'S3_Uploads' ) && ! empty( $s3_uploads_image ) && $s3_uploads_image !== $attachment ) {
-			$attachment = $s3_uploads_image;
-			ewwwio_debug_message( "overriding update with: $attachment" );
-		}
 		$already_optimized = ewww_image_optimizer_find_already_optimized( $attachment );
 		if ( is_array( $already_optimized ) && ! empty( $already_optimized['converted'] ) ) {
 			$converted = $already_optimized['converted'];
@@ -4935,16 +4984,7 @@ function ewww_image_optimizer_hidpi_optimize( $orig_path, $return_path = false, 
  * @return string The name of the file unaltered, or the s3 filename stored in $s3_uploads_image.
  */
 function ewww_image_optimizer_s3_uploads_image_cleanup( $file ) {
-	return $file;
 	// TODO: remove this function.
-	global $s3_uploads_image;
-	if ( ! ewww_image_optimizer_stream_wrapped( $file ) && strpos( $file, 's3-uploads' ) === false && ! empty( $s3_uploads_image ) ) {
-		if ( ewwwio_is_file( $file ) ) {
-			unlink( $file );
-		}
-		$file = $s3_uploads_image;
-		unset( $s3_uploads_image );
-	}
 	return $file;
 }
 
@@ -6511,13 +6551,11 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 			}
 			if ( $retina_path && ewwwio_is_file( $retina_path ) ) {
 				if ( $parallel_opt ) {
-					$async_path = str_replace( $upload_path, '', $retina_path );
 					$ewwwio_async_optimize_media->data(
 						array(
-							'ewwwio_id'   => $id,
-							'ewwwio_path' => $async_path,
-							'ewwwio_size' => '',
-							'ewww_force'  => $force,
+							'ewwwio_id'            => ewww_image_optimizer_single_insert( $retina_path, 'media', $id ),
+							'ewwwio_attachment_id' => $id,
+							'ewww_force'           => $force,
 						)
 					)->dispatch();
 				} else {
@@ -6556,13 +6594,11 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		foreach ( $meta['image_meta']['resized_images'] as $imagemeta_resize ) {
 			$imagemeta_resize_path = $imagemeta_resize_pathinfo['dirname'] . '/' . $imagemeta_resize_pathinfo['filename'] . '-' . $imagemeta_resize . '.' . $imagemeta_resize_pathinfo['extension'];
 			if ( $parallel_opt && ewwwio_is_file( $imagemeta_resize_path ) ) {
-				$async_path = str_replace( $upload_path, '', $imagemeta_resize_path );
 				$ewwwio_async_optimize_media->data(
 					array(
-						'ewwwio_id'   => $id,
-						'ewwwio_path' => $async_path,
-						'ewwwio_size' => '',
-						'ewww_force'  => $force,
+						'ewwwio_id'            => ewww_image_optimizer_single_insert( $imagemeta_resize_path, 'media', $id ),
+						'ewwwio_attachment_id' => $id,
+						'ewww_force'           => $force,
 					)
 				)->dispatch();
 			} else {
@@ -6579,13 +6615,11 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		foreach ( $meta['custom_sizes'] as $custom_size ) {
 			$custom_size_path = $custom_sizes_pathinfo['dirname'] . '/' . $custom_size['file'];
 			if ( $parallel_opt && file_exists( $custom_size_path ) ) {
-				$async_path = str_replace( $upload_path, '', $custom_size_path );
 				$ewwwio_async_optimize_media->data(
 					array(
-						'ewwwio_id'   => $id,
-						'ewwwio_path' => $async_path,
-						'ewwwio_size' => '',
-						'ewww_force'  => $force,
+						'ewwwio_id'            => ewww_image_optimizer_single_insert( $custom_size_path, 'media', $id ),
+						'ewwwio_attachment_id' => $id,
+						'ewww_force'           => $force,
 					)
 				)->dispatch();
 			} else {
@@ -6625,14 +6659,13 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 				$processing_sizes[ $size ] = $filename;
 				unset( $parallel_sizes[ $size ] );
 				touch( $filename . '.processing' );
-				$async_path = str_replace( $upload_path, '', $filename );
-				ewwwio_debug_message( "sending off $async_path in folder $upload_path" );
+				ewwwio_debug_message( "sending off $filename via parallel/async" );
 				$ewwwio_async_optimize_media->data(
 					array(
-						'ewwwio_id'   => $id,
-						'ewwwio_path' => $async_path,
-						'ewwwio_size' => $size,
-						'ewww_force'  => $force,
+						'ewwwio_id'            => ewww_image_optimizer_single_insert( $filename, 'media', $id, $size ),
+						'ewwwio_attachment_id' => $id,
+						'ewwwio_size'          => $size,
+						'ewww_force'           => $force,
 					)
 				)->dispatch();
 				$threads--;

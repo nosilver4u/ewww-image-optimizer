@@ -436,41 +436,40 @@ class EWWWIO_Async_Request extends WP_Async_Request {
 	 */
 	protected function handle() {
 		session_write_close();
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( empty( $_POST['ewwwio_size'] ) ) {
 			$size = '';
 		} else {
 			$size = $_POST['ewwwio_size'];
 		}
-		if ( empty( $_POST['ewwwio_id'] ) ) {
+		if ( empty( $_POST['ewwwio_attachment_id'] ) ) {
 			$id = 0;
 		} else {
-			$id = (int) $_POST['ewwwio_id'];
+			$id = (int) $_POST['ewwwio_attachment_id'];
+		}
+		if ( empty( $_POST['ewwwio_id'] ) ) {
+			return;
 		}
 		global $ewww_image;
-		if ( ! empty( $_POST['ewwwio_path'] ) && 'full' === $size ) {
-			$file_path = $this->find_file( $_POST['ewwwio_path'] );
-			if ( ! empty( $file_path ) ) {
-				ewwwio_debug_message( "processing async optimization request for {$_POST['ewwwio_path']}" );
-				$ewww_image         = new EWWW_Image( $id, 'media', $file_path );
-				$ewww_image->resize = 'full';
+		$file_path = $this->find_file( $_POST['ewwwio_id'] );
+		if ( $file_path && 'full' === $size ) {
+			ewwwio_debug_message( "processing async optimization request for $file_path" );
+			$ewww_image         = new EWWW_Image( $id, 'media', $file_path );
+			$ewww_image->resize = 'full';
 
-				list( $file, $msg, $conv, $original ) = ewww_image_optimizer( $file_path, 1, false, false, true );
-			} else {
-				ewwwio_debug_message( "could not process async optimization request for {$_POST['ewwwio_path']}" );
-			}
-		} elseif ( ! empty( $_POST['ewwwio_path'] ) ) {
-			$file_path = $this->find_file( $_POST['ewwwio_path'] );
-			if ( ! empty( $file_path ) ) {
-				ewwwio_debug_message( "processing async optimization request for {$_POST['ewwwio_path']}" );
-				$ewww_image         = new EWWW_Image( $id, 'media', $file_path );
-				$ewww_image->resize = ( empty( $size ) ? null : $size );
+			list( $file, $msg, $conv, $original ) = ewww_image_optimizer( $file_path, 1, false, false, true );
+		} elseif ( $file_path ) {
+			ewwwio_debug_message( "processing async optimization request for $file_path" );
+			$ewww_image         = new EWWW_Image( $id, 'media', $file_path );
+			$ewww_image->resize = ( empty( $size ) ? null : $size );
 
-				list( $file, $msg, $conv, $original ) = ewww_image_optimizer( $file_path );
-			} else {
-				ewwwio_debug_message( "could not process async optimization request for {$_POST['ewwwio_path']}" );
-			}
+			list( $file, $msg, $conv, $original ) = ewww_image_optimizer( $file_path );
 		} else {
-			ewwwio_debug_message( 'ignored async optimization request' );
+			if ( ! empty( $_POST['ewwwio_id'] ) && ! $file_path ) {
+				ewwwio_debug_message( "could not find file to process async optimization request for {$_POST['ewwwio_id']}" );
+			} else {
+				ewwwio_debug_message( 'ignored async optimization request' );
+			}
 			return;
 		}
 		ewww_image_optimizer_hidpi_optimize( $file_path );
@@ -484,39 +483,35 @@ class EWWWIO_Async_Request extends WP_Async_Request {
 	}
 
 	/**
-	 * Finds the absolute path of a file.
+	 * Finds the path of a file from the ewwwio_images table.
 	 *
-	 * Given a relative path (to avoid tripping security filters), it uses several methods to try and determine the original, absolute path.
-	 *
-	 * @param string $file_path A partial/relative file path.
-	 * @return string The full file path, reconstructed using the upload folder for WP_CONTENT_DIR
+	 * @param int $id The db record to retrieve for the file path.
+	 * @return string The full file path from the db.
 	 */
-	public function find_file( $file_path ) {
-		if ( false !== strpos( $file_path, '../' ) ) {
+	public function find_file( $id ) {
+		if ( ! $id ) {
 			return false;
 		}
-		if ( ewwwio_is_file( $file_path ) ) {
-			return $file_path;
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		global $wpdb;
+		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+			ewww_image_optimizer_db_init();
+			global $ewwwdb;
+		} else {
+			$ewwwdb = $wpdb;
 		}
-		// Retrieve the location of the WordPress upload folder.
-		$upload_dir  = wp_upload_dir();
-		$upload_path = trailingslashit( $upload_dir['basedir'] );
-		$file        = $upload_path . $file_path;
-		if ( ewwwio_is_file( $file ) ) {
-			return $file;
-		}
-		$upload_path = trailingslashit( WP_CONTENT_DIR );
-		$file        = $upload_path . $file_path;
-		if ( ewwwio_is_file( $file ) ) {
-			return $file;
-		}
-		$upload_path .= 'uploads/';
+		$id = (int) $id;
 
-		$file = $upload_path . $file_path;
+		$file = $ewwwdb->get_var( $ewwwdb->prepare( "SELECT path FROM $ewwwdb->ewwwio_images WHERE id = %d", $id ) );
+		if ( is_null( $file ) ) {
+			return false;
+		}
+		$file = ewww_image_optimizer_absolutize_path( $file );
+		ewwwio_debug_message( "found $file to process via async" );
 		if ( ewwwio_is_file( $file ) ) {
 			return $file;
 		}
-		return '';
+		return false;
 	}
 }
 
