@@ -763,9 +763,12 @@ function ewww_image_optimizer_aux_images_convert() {
 			continue;
 		}
 		$record['path'] = ewww_image_optimizer_absolutize_path( $record['path'] );
-		$image_md5      = md5_file( $record['path'] );
+		if ( false !== strpos( $record['path'], 'phar://' ) ) {
+			continue;
+		}
+		$image_md5 = md5_file( $record['path'] );
 		if ( $image_md5 === $record['image_md5'] ) {
-			$filesize = filesize( $record['path'] );
+			$filesize = ewww_image_optimizer_filesize( $record['path'] );
 			$wpdb->update(
 				$wpdb->ewwwio_images,
 				array(

@@ -1129,16 +1129,14 @@ function ewww_image_optimizer_md5check( $path ) {
 function ewww_image_optimizer_mimetype( $path, $case ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	ewwwio_debug_message( "testing mimetype: $path" );
-	if ( false !== strpos( $path, '../' ) || false !== strpos( $path, '..\\' ) ) {
-		return false;
-	}
 	$type = false;
 	// For S3 images/files, don't attempt to read the file, just use the quick (filename) mime check.
 	if ( 'i' === $case && ewww_image_optimizer_stream_wrapped( $path ) ) {
 		return ewww_image_optimizer_quick_mimetype( $path );
 	}
-	if ( 'i' === $case && preg_match( '/^RIFF.+WEBPVP8/', file_get_contents( $path, null, null, 0, 16 ) ) ) {
-		/* return 'image/webp'; */
+	$path = realpath( $path );
+	if ( ! ewwwio_is_file( $path ) ) {
+		return $type;
 	}
 	if ( 'i' === $case ) {
 		$fhandle = fopen( $path, 'rb' );
@@ -1904,7 +1902,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					// Check to see if the user wants the originals deleted.
 					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) ) {
 						// Delete the original JPG.
-						unlink( $original );
+						ewwwio_delete_file( $original );
 					}
 					$converted   = $filenum;
 					$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, 'image/png', null, $orig_size !== $new_size );
@@ -1983,7 +1981,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				} else {
 					if ( ewwwio_is_file( $progfile ) ) {
 						// Delete the optimized file.
-						unlink( $progfile );
+						ewwwio_delete_file( $progfile );
 					}
 					// Store the results.
 					$result   = 'unchanged';
@@ -2039,7 +2037,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 						rename( $quantfile, $pngfile );
 					} elseif ( ewwwio_is_file( $quantfile ) ) {
 						ewwwio_debug_message( 'lossy reduction is worse: original - ' . filesize( $pngfile ) . ' vs. lossy - ' . filesize( $quantfile ) );
-						unlink( $quantfile );
+						ewwwio_delete_file( $quantfile );
 					} else {
 						ewwwio_debug_message( 'pngquant did not produce any output' );
 					}
@@ -2081,7 +2079,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					// Check to see if the user wants the originals deleted.
 					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) ) {
 						// Delete the original JPG.
-						unlink( $file );
+						ewwwio_delete_file( $file );
 					}
 					// Store the location of the PNG file.
 					$file = $pngfile;
@@ -2094,7 +2092,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					// Otherwise delete the PNG.
 					$converted = false;
 					if ( ewwwio_is_file( $pngfile ) ) {
-						unlink( $pngfile );
+						ewwwio_delete_file( $pngfile );
 					}
 				}
 			} // End if().
@@ -2186,7 +2184,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					// Check to see if the user wants the originals deleted.
 					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) ) {
 						// Delete the original JPG.
-						unlink( $original );
+						ewwwio_delete_file( $original );
 					}
 					$converted   = $filenum;
 					$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, 'image/jpeg', null, $orig_size !== $new_size );
@@ -2244,7 +2242,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 						rename( $quantfile, $file );
 					} elseif ( ewwwio_is_file( $quantfile ) ) {
 						ewwwio_debug_message( 'lossy reduction is worse: original - ' . filesize( $file ) . ' vs. lossy - ' . filesize( $quantfile ) );
-						unlink( $quantfile );
+						ewwwio_delete_file( $quantfile );
 					} else {
 						ewwwio_debug_message( 'pngquant did not produce any output' );
 					}
@@ -2282,7 +2280,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				} else {
 					if ( ewwwio_is_file( $tempfile ) ) {
 						// Delete the optimized file.
-						unlink( $tempfile );
+						ewwwio_delete_file( $tempfile );
 					}
 					// Store the results.
 					$result   = 'unchanged';
@@ -2403,7 +2401,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 						ewwwio_debug_message( 'optimized JPG was smaller than un-optimized version' );
 						// If the optimization didn't produce a smaller JPG.
 					} elseif ( ewwwio_is_file( $progfile ) ) {
-						unlink( $progfile );
+						ewwwio_delete_file( $progfile );
 					}
 				}
 				ewwwio_debug_message( "converted JPG size: $jpg_size" );
@@ -2414,7 +2412,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					// If the user wants originals delted after a conversion.
 					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) ) {
 						// Delete the original PNG.
-						unlink( $file );
+						ewwwio_delete_file( $file );
 					}
 					// Update the $file location to the new JPG.
 					$file = $jpgfile;
@@ -2426,7 +2424,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					$converted = false;
 					if ( ewwwio_is_file( $jpgfile ) ) {
 						// Otherwise delete the new JPG.
-						unlink( $jpgfile );
+						ewwwio_delete_file( $jpgfile );
 					}
 				}
 			} // End if().
@@ -2482,7 +2480,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					// Check to see if the user wants the originals deleted.
 					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) ) {
 						// Delete the original GIF.
-						unlink( $original );
+						ewwwio_delete_file( $original );
 					}
 					$converted   = $filenum;
 					$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, 'image/png', null, $orig_size !== $new_size );
@@ -2536,7 +2534,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				} else {
 					if ( ewwwio_is_file( $tempfile ) ) {
 						// Delete the optimized file.
-						unlink( $tempfile );
+						ewwwio_delete_file( $tempfile );
 					}
 					// Store the results.
 					$result   = 'unchanged';
@@ -2587,7 +2585,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					// If the user wants original GIFs deleted after successful conversion.
 					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) ) {
 						// Delete the original GIF.
-						unlink( $file );
+						ewwwio_delete_file( $file );
 					}
 					// Update the $file location with the new PNG.
 					$file = $pngfile;
@@ -2600,7 +2598,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				} else {
 					$converted = false;
 					if ( ewwwio_is_file( $pngfile ) ) {
-						unlink( $pngfile );
+						ewwwio_delete_file( $pngfile );
 					}
 				}
 			} // End if().
@@ -2649,7 +2647,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		ewwwio_debug_message( 'folder mode: ' . $stat['mode'] );
 		$perms = $stat['mode'] & 0000666; // Same permissions as parent folder, strip off the executable bits.
 		ewwwio_debug_message( "attempting chmod with $perms" );
-		chmod( $file, $perms );
+		ewwwio_chmod( $file, $perms );
 
 		$results_msg = ewww_image_optimizer_update_table( $file, $new_size, $orig_size, $original, $backup_hash );
 		$file        = ewww_image_optimizer_s3_uploads_image_cleanup( $file );
@@ -2734,13 +2732,13 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 	ewwwio_debug_message( "webp is $webp_size vs. $type is $orig_size" );
 	if ( ewwwio_is_file( $webpfile ) && $orig_size < $webp_size && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
 		ewwwio_debug_message( 'webp file was too big, deleting' );
-		unlink( $webpfile );
+		ewwwio_delete_file( $webpfile );
 		return esc_html__( 'WebP image was larger than original.', 'ewww-image-optimizer' );
 	} elseif ( ewwwio_is_file( $webpfile ) ) {
 		// Set correct file permissions.
 		$stat  = stat( dirname( $webpfile ) );
 		$perms = $stat['mode'] & 0000666; // Same permissions as parent folder, strip off the executable bits.
-		chmod( $webpfile, $perms );
+		ewwwio_chmod( $webpfile, $perms );
 		if ( $orig_size < $webp_size && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
 			return esc_html__( 'WebP image larger than original, saved anyway with Force WebP option.', 'ewww-image-optimizer' );
 		}

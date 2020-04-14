@@ -477,7 +477,7 @@ class EWWWIO_Async_Request extends WP_Async_Request {
 		if ( ewwwio_is_file( $file_path . '.processing' ) ) {
 			ewwwio_debug_message( 'removing ' . $file_path . '.processing' );
 			$upload_path = wp_get_upload_dir();
-			wp_delete_file_from_directory( $file_path . '.processing', $upload_path['basedir'] );
+			ewwwio_delete_file( $file_path . '.processing' );
 		}
 		ewww_image_optimizer_debug_log();
 	}

@@ -1797,12 +1797,13 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		if ( $attachment && (int) $attachment !== (int) $next_image->attachment_id ) {
 			if ( defined( 'WP_CLI' ) && WP_CLI ) {
 				ewwwio_debug_message( 'saving attachment meta' );
+				$meta = wp_get_attachment_metadata( $image->attachment_id );
 				if ( class_exists( 'S3_Uploads' ) ) {
 					ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
-					$meta = wp_get_attachment_metadata( $image->attachment_id );
 					ewww_image_optimizer_remote_push( $meta, $image->attachment_id );
 				}
-				wp_update_attachment_metadata( $image->attachment_id, wp_get_attachment_metadata( $image->attachment_id ) );
+				wp_update_attachment_metadata( $image->attachment_id, $meta );
+				do_action( 'ewww_image_optimizer_after_optimize_attachment', $image->attachment_id, $meta );
 			} else {
 				$batch_image_limit     = 1;
 				$output['update_meta'] = (int) $attachment;
