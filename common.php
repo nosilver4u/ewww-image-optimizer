@@ -6937,9 +6937,26 @@ function ewww_image_optimizer_detect_wpsf_location_lock() {
 function ewww_image_optimizer_as3cf_attachment_file_paths( $paths, $id ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	foreach ( $paths as $size => $path ) {
+		ewwwio_debug_message( "checking $path for WebP in as3cf queue" );
 		if ( is_string( $path ) && ewwwio_is_file( $path . '.webp' ) ) {
 			$paths[ $size . '-webp' ] = $path . '.webp';
 			ewwwio_debug_message( "added $path.webp to as3cf queue" );
+		} elseif (
+			// WOM(pro) is downloading from bucket to server, WebP is enabled, and the local/server file does not exist.
+			! empty( $_REQUEST['action'] ) &&
+			'download' === $_REQUEST['action'] &&
+			ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) &&
+			is_string( $path ) &&
+			! ewwwio_is_file( $path )
+		) {
+			if ( ! isset( $optimized ) ) {
+				global $wpdb;
+				$optimized = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 LIMIT 1", $id ) );
+			}
+			if ( $optimized ) {
+				$paths[ $size . '-webp' ] = $path . '.webp';
+				ewwwio_debug_message( "added $path.webp to as3cf queue (for potential local copy)" );
+			}
 		}
 	}
 	return $paths;
@@ -9933,6 +9950,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$output[]        = "<noscript  data-img='$test_png_image' data-webp='$test_webp_image' data-style='float: right; padding: 0 0 10px 10px;' class='ewww_webp'><img src='$test_png_image' style='float: right; padding: 0 0 10px 10px;'></noscript>\n";
 	}
 	$output[] = "</div><!-- end container wrap -->\n";
+
 	ewwwio_debug_message( 'max_execution_time: ' . ini_get( 'max_execution_time' ) );
 	ewww_image_optimizer_stl_check();
 	ewww_image_optimizer_function_exists( 'sleep', true );

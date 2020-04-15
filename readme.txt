@@ -174,6 +174,9 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 5.2.6 =
+* added: include .webp images when using WP Offload Media to copy images from bucket to server
+* changed: for security, EWWW IO will only optimize images within the WP root folder, content folder, or uploads folder
+* changed: WebP Only mode will bypass the check for TinyPNG compression
 * fixed: debug_message() throws a warning with non-string values
 * fixed: notices when parsing JSON data from Envira
 * fixed: fatal error when a WP_Error is passed from Envira to Easy IO
