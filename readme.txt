@@ -173,8 +173,9 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
-= 5.2.6 =
+= 5.2.9 =
 * added: include .webp images when using WP Offload Media to copy images from bucket to server
+* changed: images that exceed the max resize dimensions will be queued by the bulk scanner even if previously compressed
 * changed: for security, EWWW IO will only optimize images within the WP root folder, content folder, or uploads folder
 * changed: WebP Only mode will bypass the check for TinyPNG compression
 * fixed: debug_message() throws a warning with non-string values

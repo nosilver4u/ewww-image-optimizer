@@ -781,6 +781,39 @@ function ewww_image_optimizer_fetch_metadata_batch( $attachments_in ) {
 }
 
 /**
+ * Checks an image to see if it ought to  be resized based on current configuration.
+ *
+ * @param string $file The file that needs to be checked.
+ * @param bool   $media Whether the image is from the Media Library.
+ * @return bool True to resize, false if it isn't needed.
+ */
+function ewww_image_optimizer_should_resize( $file, $media = false ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if (
+		! ewwwio_is_file( $file ) ||
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) ||
+		function_exists( 'imsanity_get_max_width_height' )
+	) {
+		return false;
+	}
+	if ( ! $media && ! ewww_image_optimizer_should_resize_other_image( $file ) ) {
+		return false;
+	}
+	$maxwidth  = ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherwidth' );
+	$maxheight = ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherheight' );
+	if ( ! $maxwidth && ! $maxheight ) {
+		$maxwidth  = ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' );
+		$maxheight = ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' );
+	}
+	list( $oldwidth, $oldheight ) = getimagesize( $file );
+	if ( ( $maxwidth && $oldwidth > $maxwidth ) || ( $maxheight && $oldheight > $maxheight ) ) {
+		ewwwio_debug_message( "$file ($oldwidth x $oldheight) larger than $maxwidth x $maxheight" );
+		return true;
+	}
+	return false;
+}
+
+/**
  * Scans the Media Library for images that need optimizing.
  *
  * Searches for images using the attachment metadata and stores them in the ewwwio_images table.
@@ -952,14 +985,6 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				$skipped_ids[] = $selected_id;
 				continue;
 			}
-			if ( ! empty( $attachment_meta[ $selected_id ]['tinypng'] ) && empty( $_REQUEST['ewww_force'] ) && empty( $_REQUEST['ewww_webp_only'] ) ) {
-				ewwwio_debug_message( "TinyPNG already compressed $selected_id" );
-				if ( ! $tiny_notice ) {
-					$tiny_notice = esc_html__( 'Images compressed by TinyJPG and TinyPNG have been skipped, refresh and use the Force Re-optimize option to override.', 'ewww-image-optimizer' );
-				}
-				$skipped_ids[] = $selected_id;
-				continue;
-			}
 			if ( ! empty( $attachment_meta[ $selected_id ]['file'] ) && false !== strpos( $attachment_meta[ $selected_id ]['file'], 'https://images-na.ssl-images-amazon.com' ) ) {
 				ewwwio_debug_message( "Cannot compress externally-hosted Amazon image $selected_id" );
 				$skipped_ids[] = $selected_id;
@@ -1034,6 +1059,22 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				$skipped_ids[] = $selected_id;
 				continue;
 			}
+
+			$should_resize = ewww_image_optimizer_should_resize( $file_path, true );
+			if (
+				! empty( $attachment_meta[ $selected_id ]['tinypng'] ) &&
+				empty( $_REQUEST['ewww_force'] ) &&
+				empty( $_REQUEST['ewww_webp_only'] ) &&
+				! $should_resize
+			) {
+				ewwwio_debug_message( "TinyPNG already compressed $selected_id" );
+				if ( ! $tiny_notice ) {
+					$tiny_notice = esc_html__( 'Images compressed by TinyJPG and TinyPNG have been skipped, refresh and use the Force Re-optimize option to override.', 'ewww-image-optimizer' );
+				}
+				$skipped_ids[] = $selected_id;
+				continue;
+			}
+
 			$attachment_images['full'] = $file_path;
 
 			$retina_path = ewww_image_optimizer_hidpi_optimize( $file_path, true );
@@ -1202,11 +1243,9 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						if ( ! $image_size ) {
 							continue;
 						}
-						ewww_image_optimizer_debug_log();
 					}
 					if ( $image_size < ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_size' ) ) {
 						ewwwio_debug_message( "file skipped due to filesize: $file_path" );
-						ewww_image_optimizer_debug_log();
 						continue;
 					}
 					if ( 'image/png' === $mime && ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) && $image_size > ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) ) {
@@ -1215,7 +1254,13 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						continue;
 					}
 					$compression_level = ewww_image_optimizer_get_level( $mime );
-					$smart_reopt       = ! empty( $_REQUEST['ewww_force_smart'] ) && ewww_image_optimizer_level_mismatch( $already_optimized['level'], $compression_level ) ? true : false;
+					$smart_reopt       = false;
+					if ( ! empty( $_REQUEST['ewww_force_smart'] ) && ewww_image_optimizer_level_mismatch( $already_optimized['level'], $compression_level ) ) {
+						$smart_reopt = true;
+					}
+					if ( 'full' === $size && $should_resize ) {
+						$smart_reopt = true;
+					}
 					if ( (int) $already_optimized['image_size'] === (int) $image_size && empty( $_REQUEST['ewww_force'] ) && ! $smart_reopt ) {
 						ewwwio_debug_message( "match found for $file_path" );
 						ewww_image_optimizer_debug_log();
