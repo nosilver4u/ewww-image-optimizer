@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '525.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '525.197' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -5757,6 +5757,7 @@ function ewww_image_optimizer_should_resize_other_image( $file ) {
 	ewwwio_debug_message( "allowing resize for $file" );
 	return true;
 }
+
 /**
  * Resizes Media Library uploads based on the maximum dimensions specified by the user.
  *
@@ -8122,15 +8123,11 @@ function ewww_image_optimizer_migrate_meta_to_db( $id, $meta, $bail_early = fals
 		$file_path = get_attached_file( $id );
 		if ( ! $file_path ) {
 			ewwwio_debug_message( 'no file found for remote attachment' );
-			// $meta = ewww_image_optimizer_clean_meta( $meta );
-			// TODO: once we've kicked the tires about a million times, and we're convinced this can't happen in error, then let's clean the meta
-			return $meta;
+			return ewww_image_optimizer_clean_meta( $meta );
 		}
 	} elseif ( ! $file_path ) {
 		ewwwio_debug_message( 'no file found for attachment' );
-		// $meta = ewww_image_optimizer_clean_meta( $meta );
-		// TODO: ditto.
-		return $meta;
+		return ewww_image_optimizer_clean_meta( $meta );
 	}
 	$converted        = ( is_array( $meta ) && ! empty( $meta['converted'] ) && ! empty( $meta['orig_file'] ) ? trailingslashit( dirname( $file_path ) ) . basename( $meta['orig_file'] ) : false );
 	$full_size_update = ewww_image_optimizer_update_file_from_meta( $file_path, 'media', $id, 'full', $converted );

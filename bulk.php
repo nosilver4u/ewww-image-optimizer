@@ -83,6 +83,16 @@ function ewww_image_optimizer_display_tools() {
 		echo "<div id='ewww-clean-table-progressbar' style='display:none;'></div>";
 		echo "<div id='ewww-clean-table-progress' style='display:none;'></div>";
 	}
+	global $wpdb;
+	echo '<hr class="ewww-tool-divider">';
+	echo "<div>\n<p id='ewww-clean-meta-info' class='ewww-tool-info'>" .
+		/* translators: 1: postmeta table name 2: ewwwio_images table name */
+		sprintf( esc_html__( 'Sites using EWWW IO for 3+ years may have optimization data that still needs to be migrated between the %1$s and %2$s tables.', 'ewww-image-optimizer' ), $wpdb->postmeta, $wpdb->ewwwio_images ) . "</p>\n";
+	echo "<form id='ewww-clean-meta' class='ewww-tool-form' method='post' action=''>\n" .
+		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Migrate Optimization Records', 'ewww-image-optimizer' ) . "' />\n" .
+		"</form>\n</div>\n";
+	echo "<div id='ewww-clean-meta-progressbar' style='display:none;'></div>";
+	echo "<div id='ewww-clean-meta-progress' style='display:none;'></div>";
 	echo "</div>\n";
 }
 
@@ -106,12 +116,17 @@ function ewww_image_optimizer_tool_script( $hook ) {
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 		$erase_warning = esc_html__( 'Warning: this cannot be undone. Re-optimizing images will use additional API credits.', 'ewww-image-optimizer' );
 	}
+	global $wpdb;
+	$attachment_count = $wpdb->get_var( "SELECT count(ID) FROM $wpdb->posts WHERE (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%') ORDER BY ID DESC" );
 	wp_localize_script(
 		'ewwwtoolscript',
 		'ewww_vars',
 		array(
 			'_wpnonce'          => wp_create_nonce( 'ewww-image-optimizer-tools' ),
 			'image_count'       => $image_count,
+			'attachment_count'  => $attachment_count,
+			/* translators: %d: number of attachments from Media Library */
+			'attachment_string' => sprintf( esc_html__( '%d attachments', 'ewww-image-optimizer' ), $attachment_count ),
 			/* translators: %d: number of images */
 			'count_string'      => sprintf( esc_html__( '%d total images', 'ewww-image-optimizer' ), $image_count ),
 			'remove_failed'     => esc_html__( 'Could not remove image from table.', 'ewww-image-optimizer' ),

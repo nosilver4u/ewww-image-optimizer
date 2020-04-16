@@ -257,6 +257,7 @@ function ewww_image_optimizer_aux_images_clear_all() {
  * @global object $wpdb
  */
 function ewww_image_optimizer_aux_images_clean() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that an authorized user has called function.
 	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-tools' ) || ! current_user_can( $permissions ) ) {
@@ -295,6 +296,53 @@ function ewww_image_optimizer_aux_images_clean() {
 	} // End foreach().
 	die( ewwwio_json_encode( array( 'success' => 1 ) ) );
 }
+
+/**
+ * Cleanup and migrate optimization data from wp_postmeta to the images table.
+ *
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_aux_meta_clean() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	// Verify that an authorized user has called function.
+	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
+	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-tools' ) || ! current_user_can( $permissions ) ) {
+		ewwwio_ob_clean();
+		die( ewwwio_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
+	}
+	global $wpdb;
+	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+		ewww_image_optimizer_db_init();
+		global $ewwwdb;
+	} else {
+		$ewwwdb = $wpdb;
+	}
+	$per_page = 50;
+	$offset   = (int) $_POST['ewww_offset'];
+	ewwwio_debug_message( "getting $per_page attachments, starting at $offset" );
+
+	$attachments = $wpdb->get_col(
+		$wpdb->prepare(
+			"SELECT ID FROM $wpdb->posts WHERE (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE %s OR post_mime_type LIKE %s) ORDER BY ID ASC LIMIT %d,%d",
+			'%image%',
+			'%pdf%',
+			$offset,
+			$per_page
+		)
+	);
+	if ( empty( $attachments ) ) {
+		die( ewwwio_json_encode( array( 'done' => 1 ) ) );
+	}
+	foreach ( $attachments as $attachment_id ) {
+		ewwwio_debug_message( "checking $attachment_id for migration" );
+		$meta = wp_get_attachment_metadata( $attachment_id );
+		if ( is_array( $meta ) ) {
+			ewww_image_optimizer_migrate_meta_to_db( $attachment_id, $meta );
+		}
+	}
+	die( ewwwio_json_encode( array( 'success' => $per_page ) ) );
+}
+
 /**
  * Find the number of optimized images in the ewwwio_images table.
  *
@@ -1013,5 +1061,6 @@ add_action( 'wp_ajax_bulk_aux_images_table', 'ewww_image_optimizer_aux_images_ta
 add_action( 'wp_ajax_bulk_aux_images_table_count', 'ewww_image_optimizer_aux_images_table_count' );
 add_action( 'wp_ajax_bulk_aux_images_table_clear', 'ewww_image_optimizer_aux_images_clear_all' );
 add_action( 'wp_ajax_bulk_aux_images_table_clean', 'ewww_image_optimizer_aux_images_clean' );
+add_action( 'wp_ajax_bulk_aux_images_meta_clean', 'ewww_image_optimizer_aux_meta_clean' );
 add_action( 'wp_ajax_bulk_aux_images_remove', 'ewww_image_optimizer_aux_images_remove' );
 ?>
