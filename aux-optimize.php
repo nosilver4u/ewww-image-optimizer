@@ -92,7 +92,7 @@ function ewww_image_optimizer_aux_images_table() {
 	$total    = (int) $_POST['ewww_total_pages'];
 	$output   = array();
 	if ( ! empty( $search ) ) {
-		$already_optimized = $ewwwdb->get_results( $ewwwdb->prepare( "SELECT path,orig_size,image_size,id,backup,updated FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND path LIKE %s ORDER BY id DESC LIMIT %d,%d", '%' . $ewwwdb->esc_like( $search ) . '%', $offset, $per_page ), ARRAY_A );
+		$already_optimized = $ewwwdb->get_results( $ewwwdb->prepare( "SELECT path,orig_size,image_size,id,backup,updated,attachment_id,gallery FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND path LIKE %s ORDER BY id DESC LIMIT %d,%d", '%' . $ewwwdb->esc_like( $search ) . '%', $offset, $per_page ), ARRAY_A );
 		$search_count      = $ewwwdb->get_var( $ewwwdb->prepare( "SELECT COUNT(*) FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND path LIKE %s", '%' . $ewwwdb->esc_like( $search ) . '%' ) );
 		if ( $search_count < $per_page ) {
 			/* translators: %d: number of image records found */
@@ -103,7 +103,7 @@ function ewww_image_optimizer_aux_images_table() {
 		}
 		$total = ceil( $search_count / $per_page );
 	} else {
-		$already_optimized = $ewwwdb->get_results( $ewwwdb->prepare( "SELECT path,orig_size,image_size,id,backup,updated FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 ORDER BY id DESC LIMIT %d,%d", $offset, $per_page ), ARRAY_A );
+		$already_optimized = $ewwwdb->get_results( $ewwwdb->prepare( "SELECT path,orig_size,image_size,id,backup,updated,attachment_id,gallery FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 ORDER BY id DESC LIMIT %d,%d", $offset, $per_page ), ARRAY_A );
 		/* translators: %d: number of image records found */
 		$output['search_result'] = sprintf( esc_html__( '%d items displayed', 'ewww-image-optimizer' ), count( $already_optimized ) );
 	}
@@ -121,7 +121,12 @@ function ewww_image_optimizer_aux_images_table() {
 		$image_name = str_replace( ABSPATH, '', $file );
 		$image_url  = esc_url( site_url( 'wp-includes/images/media/default.png' ) );
 		ewwwio_debug_message( "name is $image_name after replacing ABSPATH" );
-		if ( $file !== $image_name ) {
+		if ( 'media' === $optimized_image['gallery'] && ! empty( $optimized_image['attachment_id'] ) ) {
+			$thumb_url = wp_get_attachment_image_url( $optimized_image['attachment_id'] );
+		}
+		if ( ! empty( $thumb_url ) ) {
+			$image_url = esc_url( $thumb_url );
+		} elseif ( $file !== $image_name ) {
 			$image_url = esc_url( site_url( $image_name ) );
 		} else {
 			$image_name = str_replace( WP_CONTENT_DIR, '', $file );
@@ -145,7 +150,7 @@ function ewww_image_optimizer_aux_images_table() {
 			$size_string = sprintf( esc_html__( 'Image Size: %s', 'ewww-image-optimizer' ), $file_size );
 
 			$output['table'] .= '<tr ' . ( $alternate ? "class='alternate' " : '' ) . 'id="ewww-image-' . $optimized_image['id'] . '">';
-			$output['table'] .= '<td style="width:50px;" class="column-icon">&nbsp;</td>';
+			$output['table'] .= "<td style='width:50px;' class='column-icon'><img style='width:50px;height:50px;object-fit:contain;' loading='lazy' src='$image_url' /></td>";
 			$output['table'] .= "<td class='title'>$image_name</td>";
 			$output['table'] .= "<td>$type</td>";
 			$output['table'] .= "<td>$savings<br>$size_string<br>" .

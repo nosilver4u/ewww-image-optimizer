@@ -180,6 +180,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * changed: for security, EWWW IO will only optimize images within the WP root folder, content folder, or uploads folder
 * changed: WebP Only mode will bypass the check for TinyPNG compression
 * changed: background/async mode uses better queueing system for speed and reliability
+* changed: background queue information moved to Tools page
 * fixed: debug_message() throws a warning with non-string values
 * fixed: notices when parsing JSON data from Envira
 * fixed: fatal error when a WP_Error is passed from Envira to Easy IO

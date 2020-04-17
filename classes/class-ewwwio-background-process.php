@@ -196,27 +196,6 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		public function count_queue() {
 			global $wpdb;
 			return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->ewwwio_queue WHERE gallery = %s", $this->active_queue ) );
-
-			$key = $wpdb->esc_like( $this->identifier . '_batch_' ) . '%';
-
-			$queues = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT option_value
-					FROM $wpdb->options
-					WHERE option_name LIKE %s AND option_value != ''",
-					$key
-				),
-				ARRAY_A
-			);
-			if ( empty( $queues ) ) {
-				return 0;
-			}
-			$queued = array();
-			foreach ( $queues as $queue ) {
-				$queue  = maybe_unserialize( $queue['option_value'] );
-				$queued = array_merge( $queued, $queue );
-			}
-			return count( $queued );
 		}
 
 		/**
@@ -226,20 +205,6 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		 */
 		protected function is_queue_empty() {
 			return ! $this->count_queue();
-			global $wpdb;
-
-			$key = $wpdb->esc_like( $this->identifier . '_batch_' ) . '%';
-
-			$count = $wpdb->get_var(
-				$wpdb->prepare(
-					"SELECT COUNT(*)
-					FROM $wpdb->options
-					WHERE option_name LIKE %s AND option_value != ''",
-					$key
-				)
-			);
-
-			return ( $count > 0 ) ? false : true;
 		}
 
 		/**
@@ -250,7 +215,7 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		 *
 		 * @return bool
 		 */
-		protected function is_process_running() {
+		public function is_process_running() {
 			if ( get_transient( $this->identifier . '_process_lock' ) ) {
 				// Process already running.
 				return true;

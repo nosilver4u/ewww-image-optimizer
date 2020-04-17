@@ -16,6 +16,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function ewww_image_optimizer_display_tools() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	global $ewwwio_media_background;
+	if ( ! class_exists( 'WP_Background_Process' ) ) {
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
+	}
+	if ( ! is_object( $ewwwio_media_background ) ) {
+		$ewwwio_media_background = new EWWWIO_Media_Background_Process();
+	}
+	if ( ! empty( $_POST['action'] ) && 'ewww_image_optimizer_clear_queue' === $_POST['action'] && current_user_can( 'manage_options' ) && wp_verify_nonce( $_POST['ewww_nonce'], 'ewww_image_optimizer_clear_queue' ) ) {
+		$ewwwio_media_background->cancel_process();
+	}
 	echo "<div class='wrap'>\n";
 	echo "<h1>EWWW Image Optimizer</h1>\n";
 
@@ -34,6 +44,11 @@ function ewww_image_optimizer_display_tools() {
 	$output .= "<form id='ewww-show-table' class='ewww-tool-form' method='post' action=''>\n" .
 		'<button type="submit" class="button-primary action">' . esc_html__( 'Show Optimized Images', 'ewww-image-optimizer' ) . "</button>\n" .
 		"</form>\n";
+
+	$queue_status = esc_html__( 'idle', 'ewww-image-optimizer' );
+	if ( $ewwwio_media_background->is_process_running() ) {
+		$queue_status = esc_html__( 'running', 'ewww-image-optimizer' );
+	}
 
 	$navigation = "<div class='tablenav ewww-aux-table' style='display:none'>\n" .
 		'<form class="ewww-search-form" style="float:left;">' . "\n" .
@@ -58,6 +73,23 @@ function ewww_image_optimizer_display_tools() {
 	$output .= $navigation . '<div id="ewww-bulk-table" class="ewww-aux-table"></div>' . "$navigation\n" .
 		"</div>\n";
 	echo $output;
+
+	echo '<hr class="ewww-tool-divider">';
+	$queue_count = $ewwwio_media_background->count_queue();
+	/* translators: %s: idle/running */
+	echo "<p id='ewww-queue-info' class='ewww-tool-info'>" . sprintf( esc_html__( 'Current queue status: %s', 'ewww-image-optimizer' ), $queue_status ) . "<br>\n";
+	if ( $queue_count ) {
+		/* translators: %d: number of images */
+		echo sprintf( esc_html__( 'There are %d images in the queue currently.', 'ewww-image-optimizer' ), $queue_count ) . "</p>\n";
+		$nonce = wp_create_nonce( 'ewww_image_optimizer_clear_queue' );
+		echo "<form id='ewww-clear-queue' class='ewww-tool-form' method='post' action=''>\n" .
+			"<input type='hidden' id='ewww_nonce' name='ewww_nonce' value='$nonce'>" .
+			"<input type='hidden' name='action' value='ewww_image_optimizer_clear_queue'>" .
+			'<button type="submit" class="button-secondary action">' . esc_html__( 'Clear Queue', 'ewww-image-optimizer' ) . "</button>\n" .
+			"</form>\n";
+	} else {
+		echo esc_html__( 'There are no images in the queue currently.', 'ewww-image-optimizer' ) . "</p>\n";
+	}
 	echo '<hr class="ewww-tool-divider">';
 	echo "<div>\n<p id='ewww-clear-table-info' class='ewww-tool-info'>" .
 		esc_html__( 'The optimization history prevents the plugin from re-optimizing images, but you may erase the history to reduce database size or to force the plugin to re-optimize all images.', 'ewww-image-optimizer' );
