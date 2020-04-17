@@ -477,6 +477,20 @@ function ewww_image_optimizer_get_unscanned_attachments( $gallery, $limit = 1000
 }
 
 /**
+ * Check to see if an image is in the queue.
+ *
+ * @param int    $id The ID of the attachment/image.
+ * @param string $gallery The type of image to look for. Optional.
+ * @return bool True if it's still in the queue.
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_image_is_pending( $id, $gallery = 'media' ) {
+	global $wpdb;
+	$id = (int) $id;
+	return $wpdb->get_var( $wpdb->prepare( "SELECT attachment_id FROM $wpdb->ewwwio_queue WHERE attachment_id = %d AND gallery = %s", $id, $gallery ) );
+}
+
+/**
  * Retrieve an image ID from the ewwwio_queue table.
  *
  * @since 4.6.0
@@ -552,7 +566,7 @@ function ewww_image_optimizer_update_scanned_images( $ids, $gallery = 'media' ) 
 }
 
 /**
- * Remove an image from the ewwwio_queue table (usually when we are done with it).
+ * Remove a batch of images from the ewwwio_queue table (usually when we are done with it).
  *
  * @since 4.6.0
  *
@@ -574,7 +588,7 @@ function ewww_image_optimizer_delete_queued_images( $ids, $gallery = 'media' ) {
 }
 
 /**
- * Remove images from the ewwwio_queue table.
+ * Remove all images from the ewwwio_queue table for the given 'gallery'.
  *
  * @since 4.6.0
  *

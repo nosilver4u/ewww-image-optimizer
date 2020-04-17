@@ -312,9 +312,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			}
 			ewwwio_debug_message( "optimization (flagallery) queued for $image_id" );
 			$ewwwio_flag_background->push_to_queue( array( 'id' => $image_id ) );
-			$ewwwio_flag_background->save()->dispatch();
-			set_transient( 'ewwwio-background-in-progress-flag-' . $image_id, true, 24 * HOUR_IN_SECONDS );
-			ewww_image_optimizer_debug_log();
+			$ewwwio_flag_background->dispatch();
 		}
 
 		/**
@@ -343,8 +341,6 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			$ewww_image->resize = 'thumbnail';
 			// Optimize the thumbnail.
 			$tres = ewww_image_optimizer( $image->image->thumbPath, 3, false, true );
-
-			ewww_image_optimizer_debug_log();
 		}
 
 		/**
@@ -376,7 +372,6 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 				$pid  = $image->pid;
 				$meta = new flagMeta( $pid );
 			}
-			ewww_image_optimizer_debug_log();
 		}
 
 		/**
@@ -792,7 +787,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 						);
 					}
 				}
-			} elseif ( get_transient( 'ewwwio-background-in-progress-flag-' . $id ) ) {
+			} elseif ( ewww_image_optimizer_image_is_pending( $id, 'flag-async' ) ) {
 				$output .= esc_html__( 'In Progress', 'ewww-image-optimizer' );
 				// Otherwise, tell the user that they can optimize the image now.
 			} else {

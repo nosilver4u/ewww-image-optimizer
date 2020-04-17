@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '525.197' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '525.204' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -574,6 +574,8 @@ function ewww_image_optimizer_upgrade() {
 		if ( wp_doing_ajax() ) {
 			return;
 		}
+		global $ewwwio_upgrading;
+		$ewwwio_upgrading = true;
 		ewww_image_optimizer_enable_background_optimization();
 		ewww_image_optimizer_install_table();
 		ewww_image_optimizer_set_defaults();
@@ -606,6 +608,9 @@ function ewww_image_optimizer_upgrade() {
 			update_option( 'ewww_image_optimizer_bulk_resume', '' );
 			update_option( 'ewww_image_optimizer_aux_resume', '' );
 			ewww_image_optimizer_delete_pending();
+		}
+		if ( get_option( 'ewww_image_optimizer_version' ) < 530 ) {
+			// TODO: cleanup old async items, migrate if possible.
 		}
 		if ( get_option( 'ewww_image_optimizer_version' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_review_time' ) ) {
 			$review_time = rand( time(), time() + 51 * DAY_IN_SECONDS );
@@ -872,6 +877,10 @@ function ewww_image_optimizer_admin_init() {
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_enabled' ) ) {
 		add_action( 'admin_notices', 'ewww_image_optimizer_notice_webp_bulk' );
+	}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) && ! ewww_image_optimizer_background_mode_enabled() ) {
+		add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_schedule_noasync' );
+		add_action( 'admin_notices', 'ewww_image_optimizer_notice_schedule_noasync' );
 	}
 	// Prevent ShortPixel AIO messiness.
 	remove_action( 'admin_notices', 'autoptimizeMain::notice_plug_imgopt' );
@@ -1428,13 +1437,14 @@ function ewww_image_optimizer_install_table() {
 	/*
 	 * Create a table with XX columns:
 	 * attachment_id: the unique id within the media library, nextgen, or flag
-	 * gallery: 'media', 'nextgen', 'nextcell', or 'flag',
+	 * gallery: 'media', 'nextgen', 'nextcell', 'flag', plus -async variants.
 	 * scanned: 1 if the image is queued for optimization, 0 if it still needs scanning.
 	 */
 	$sql = "CREATE TABLE $wpdb->ewwwio_queue (
 		attachment_id bigint(20) unsigned,
-		gallery varchar(10),
-		scanned tinyint(1) NOT NULL DEFAULT 0,
+		gallery varchar(20),
+		scanned tinyint(3) NOT NULL DEFAULT 0,
+		new tinyint(1) NOT NULL DEFAULT 0,
 		KEY attachment_info (gallery(3),attachment_id)
 	) COLLATE utf8_general_ci;";
 
@@ -1653,6 +1663,17 @@ function ewww_image_optimizer_notice_exactdn_sp_conflict() {
  */
 function ewww_image_optimizer_network_settings_saved() {
 	echo "<div id='ewww-image-optimizer-settings-saved' class='notice notice-success updated fade'><p><strong>" . esc_html__( 'Settings saved', 'ewww-image-optimizer' ) . '.</strong></p></div>';
+}
+
+/**
+ * Warn the user that scheduled optimization will no longer work without background/async mode.
+ */
+function ewww_image_optimizer_notice_schedule_noasync() {
+	global $ewwwio_upgrading;
+	if ( $ewwwio_upgrading ) {
+		return;
+	}
+	echo "<div id='ewww-image-optimizer-schedule-noasync' class='notice notice-warning'><p>" . esc_html__( 'Scheduled Optimization will not work without background/async ability. See the EWWW Image Optimizer Settings for further instructions.', 'ewww-image-optimizer' ) . '</p></div>';
 }
 
 /**
@@ -2656,6 +2677,25 @@ function ewww_image_optimizer_ignore_file( $bypass, $filename ) {
 	return $bypass;
 }
 
+/**
+ * Add a file to the exclusions list.
+ *
+ * @param string $file_path The path of the file to ignore.
+ */
+function ewww_image_optimizer_add_file_exclusion( $file_path ) {
+	if ( ! is_string( $file_path ) ) {
+		return;
+	}
+	// Add it to the files to ignore.
+	$ignore_folders = ewww_image_optimizer_get_option( 'ewww_image_optimizer_exclude_paths' );
+	if ( ! is_array( $ignore_folders ) ) {
+		$ignore_folders = array();
+	}
+	$file_path        = str_replace( ABSPATH, '', $file_path );
+	$file_path        = str_replace( WP_CONTENT_DIR, '', $file_path );
+	$ignore_folders[] = $file_path;
+	ewww_image_optimizer_set_option( 'ewww_image_optimizer_exclude_paths', $ignore_folders );
+}
 /**
  * Sanitize the list of disabled resizes.
  *
@@ -4618,6 +4658,38 @@ function ewww_image_optimizer_single_insert( $path, $gallery = '', $attachment_i
 	}
 }
 
+
+/**
+ * Finds the path of a file from the ewwwio_images table.
+ *
+ * @param int $id The db record to retrieve for the file path.
+ * @return string The full file path from the db.
+ */
+function ewww_image_optimizer_find_file_by_id( $id ) {
+	if ( ! $id ) {
+		return false;
+	}
+	ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+	global $wpdb;
+	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+		ewww_image_optimizer_db_init();
+		global $ewwwdb;
+	} else {
+		$ewwwdb = $wpdb;
+	}
+	$id   = (int) $id;
+	$file = $ewwwdb->get_var( $ewwwdb->prepare( "SELECT path FROM $ewwwdb->ewwwio_images WHERE id = %d", $id ) );
+	if ( is_null( $file ) ) {
+		return false;
+	}
+	$file = ewww_image_optimizer_absolutize_path( $file );
+	ewwwio_debug_message( "found $file by id" );
+	if ( ewwwio_is_file( $file ) ) {
+		return $file;
+	}
+	return false;
+}
+
 /**
  * Inserts multiple records into the table at once.
  *
@@ -6211,6 +6283,27 @@ function ewww_image_optimizer_remove_duplicate_records( $duplicates ) {
 }
 
 /**
+ * See if background mode is allowed/enabled.
+ *
+ * @return bool True if it is, false if it isn't.
+ */
+function ewww_image_optimizer_background_mode_enabled() {
+	if ( defined( 'EWWW_DISABLE_ASYNC' ) && EWWW_DISABLE_ASYNC ) {
+		ewwwio_debug_message( 'background disabled by admin' );
+		return false;
+	}
+	if ( ! ewww_image_optimizer_function_exists( 'sleep' ) ) {
+		ewwwio_debug_message( 'background disabled by lack of sleep' );
+		return false;
+	}
+	if ( ewww_image_optimizer_detect_wpsf_location_lock() ) {
+		ewwwio_debug_message( 'background disabled by shield location lock' );
+		return false;
+	}
+	return (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' );
+}
+
+/**
  * Checks to see if we should use background optimization for an image.
  *
  * Uses the mimetype and current configuration to determine if background mode should be used.
@@ -6221,16 +6314,7 @@ function ewww_image_optimizer_remove_duplicate_records( $duplicates ) {
  * @return bool True if background mode should be used.
  */
 function ewww_image_optimizer_test_background_opt( $type = '' ) {
-	if ( defined( 'EWWW_DISABLE_ASYNC' ) && EWWW_DISABLE_ASYNC ) {
-		return false;
-	}
-	if ( ! ewww_image_optimizer_function_exists( 'sleep' ) ) {
-		return false;
-	}
-	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ) {
-		return false;
-	}
-	if ( ewww_image_optimizer_detect_wpsf_location_lock() ) {
+	if ( ! ewww_image_optimizer_background_mode_enabled() ) {
 		return false;
 	}
 	if ( 'image/type' === $type && ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) ) {
@@ -6456,19 +6540,14 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		ewwwio_debug_message( "backgrounding optimization for $id" );
 		$ewwwio_media_background->push_to_queue(
 			array(
-				'id'   => $id,
-				'new'  => $new_image,
-				'type' => $type,
+				'id'  => $id,
+				'new' => $new_image,
 			)
 		);
 		if ( 5 > $ewwwio_media_background->count_queue() ) {
-			$ewwwio_media_background->save()->dispatch();
+			$ewwwio_media_background->dispatch();
 			ewwwio_debug_message( 'small queue, dispatching post-haste' );
-		} else {
-			ewwwio_debug_message( 'detected queued items in progress, saving without dispatch' );
-			$ewwwio_media_background->save();
 		}
-		set_transient( 'ewwwio-background-in-progress-' . $id, true, 24 * HOUR_IN_SECONDS );
 		if ( $log ) {
 			ewww_image_optimizer_debug_log();
 		}
@@ -7668,7 +7747,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 		$basename         = $file_parts['filename'];
 		// If necessary, use get_post_meta( $post_id, '_wp_attachment_backup_sizes', true ); to only use basename for edited attachments, but that requires extra queries, so kiss for now.
 		if ( $ewww_cdn ) {
-			if ( get_transient( 'ewwwio-background-in-progress-' . $id ) ) {
+			if ( ewww_image_optimizer_image_is_pending( $id, 'media-async' ) ) {
 				$output     .= '<div>' . esc_html__( 'In Progress', 'ewww-image-optimizer' ) . '</div>';
 				$in_progress = true;
 			}
@@ -7730,7 +7809,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			return;
 		} // End if().
 		// End of output for CDN images.
-		if ( get_transient( 'ewwwio-background-in-progress-' . $id ) ) {
+		if ( ewww_image_optimizer_image_is_pending( $id, 'media-async' ) ) {
 			$output     .= esc_html__( 'In Progress', 'ewww-image-optimizer' );
 			$in_progress = true;
 		}
@@ -8843,7 +8922,6 @@ function ewww_image_optimizer_get_image_sizes() {
  * @return boolean True if the IP is in this range, false if not.
  */
 function ewwwio_ip_in_range( $ip, $range ) {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( false === strpos( $range, '/' ) ) {
 		$range .= '/32';
 	}
@@ -8856,6 +8934,40 @@ function ewwwio_ip_in_range( $ip, $range ) {
 	$wildcard_decimal = pow( 2, ( 32 - $netmask ) ) - 1;
 	$netmask_decimal  = ~ $wildcard_decimal;
 	return ( ( $ip_decimal & $netmask_decimal ) === ( $range_decimal & $netmask_decimal ) );
+}
+
+/**
+ * Test if the site is hosted by Cloudflare.
+ *
+ * @return bool True if it is, false if it ain't.
+ */
+function ewwwio_is_cf_host() {
+	$cf_ips   = array(
+		'173.245.48.0/20',
+		'103.21.244.0/22',
+		'103.22.200.0/22',
+		'103.31.4.0/22',
+		'141.101.64.0/18',
+		'108.162.192.0/18',
+		'190.93.240.0/20',
+		'188.114.96.0/20',
+		'197.234.240.0/22',
+		'198.41.128.0/17',
+		'162.158.0.0/15',
+		'104.16.0.0/12',
+		'172.64.0.0/13',
+		'131.0.72.0/22',
+	);
+	$eio_base = new EIO_Base();
+	$home_ip  = gethostbyname( $eio_base->parse_url( get_site_url(), PHP_URL_HOST ) );
+	foreach ( $cf_ips as $cf_range ) {
+		if ( ewwwio_ip_in_range( $home_ip, $cf_range ) ) {
+			ewwwio_debug_message( "found Cloudflare host: $home_ip" );
+			return true;
+		}
+	}
+	ewwwio_debug_message( "not a Cloudflare host: $home_ip" );
+	return false;
 }
 
 /**
@@ -8890,6 +9002,7 @@ function ewww_image_optimizer_network_singlesite_options() {
 function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	global $wp_version;
 	global $ewwwio_temp_debug;
+	global $ewwwio_upgrading;
 	global $content_width;
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	ewwwio_debug_version_info();
@@ -9190,14 +9303,26 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	if ( PHP_OS !== 'WINNT' && ! ewww_image_optimizer_full_cloud() && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
 		ewww_image_optimizer_find_nix_binary( 'nice', 'n' );
 	}
+	if ( wp_using_ext_object_cache() ) {
+		ewwwio_debug_message( 'using external object cache, really?' );
+	} else {
+		ewwwio_debug_message( 'not external cache' );
+	}
 	$status_notices .= "<p>\n"; // This line encloses everything up to the end of the async stuff.
 	$status_notices .= '<strong>' . esc_html( 'Background optimization (faster uploads):', 'ewww-image-optimizer' ) . '</strong><br>';
 	if ( defined( 'EWWW_DISABLE_ASYNC' ) && EWWW_DISABLE_ASYNC ) {
 		$status_notices .= '<span>' . esc_html__( 'Disabled by administrator', 'ewww-image-optimizer' ) . '</span>';
 	} elseif ( ! ewww_image_optimizer_function_exists( 'sleep' ) ) {
 		$status_notices .= '<span style="color: orange; font-weight: bolder">' . esc_html__( 'Disabled, sleep function missing', 'ewww-image-optimizer' ) . '</span>';
+	} elseif ( $ewwwio_upgrading ) {
+		$status_notices .= '<span>' . esc_html__( 'Update detected, re-testing', 'ewww-image-optimizer' ) . '</span>';
 	} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ) {
-		$status_notices .= '<span style="color: orange; font-weight: bolder">' . esc_html__( 'Disabled automatically, async requests blocked', 'ewww-image-optimizer' ) . " - <a href='admin.php?action=ewww_image_optimizer_retest_background_optimization'>" . esc_html__( 'Re-test', 'ewww-image-optimizer' ) . '</a><span>';
+		$status_notices .= '<span style="color: orange; font-weight: bolder">' .
+			esc_html__( 'Disabled automatically, async requests blocked', 'ewww-image-optimizer' ) .
+			" - <a href='admin.php?action=ewww_image_optimizer_retest_background_optimization'>" .
+			esc_html__( 'Re-test', 'ewww-image-optimizer' ) .
+			'</a></span> ' .
+			ewwwio_help_link( 'https://docs.ewww.io/article/42-background-and-parallel-optimization-disabled', '598cb8be2c7d3a73488be237' );
 	} elseif ( ewww_image_optimizer_detect_wpsf_location_lock() ) {
 		$status_notices .= '<span style="color: orange; font-weight: bolder">' . esc_html__( "Disabled by Shield's Lock to Location feature", 'ewww-image-optimizer' ) . '</span>';
 	} else {
@@ -9530,7 +9655,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_parallel_optimization'>" . esc_html__( 'Parallel Optimization', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/11-advanced-configuration', '58542afac697912ffd6c18c0,598cb8be2c7d3a73488be237' ) . "</th><td><input type='checkbox' id='ewww_image_optimizer_parallel_optimization' name='ewww_image_optimizer_parallel_optimization' value='true' " . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_parallel_optimization' ) ? "checked='true'" : '' ) . ' /> ' . esc_html__( 'All resizes generated from a single upload are optimized in parallel for faster optimization. If this is causing performance issues, disable parallel optimization to reduce the load on your server.', 'ewww-image-optimizer' ) . "</td></tr>\n";
 	ewwwio_debug_message( 'parallel optimization: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_parallel_optimization' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'background optimization: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ? 'on' : 'off' ) );
-	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ) {
+	if ( ! $ewwwio_upgrading && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ) {
 		$admin_ajax_url = admin_url( 'admin-ajax.php' );
 		if ( strpos( $admin_ajax_url, 'admin-ajax.php' ) ) {
 			ewwwio_debug_message( "admin ajax url: $admin_ajax_url" );
@@ -9857,32 +9982,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$output[] = "<p class='submit'><input type='submit' class='button-primary' value='" . esc_attr__( 'Save Changes', 'ewww-image-optimizer' ) . "' /></p>\n";
 	$output[] = "</form>\n";
 	// Make sure .htaccess rules are terminated when ExactDN is enabled or if Cloudflare is detected.
-	$cf_host  = false;
-	$cf_ips   = array(
-		'173.245.48.0/20',
-		'103.21.244.0/22',
-		'103.22.200.0/22',
-		'103.31.4.0/22',
-		'141.101.64.0/18',
-		'108.162.192.0/18',
-		'190.93.240.0/20',
-		'188.114.96.0/20',
-		'197.234.240.0/22',
-		'198.41.128.0/17',
-		'162.158.0.0/15',
-		'104.16.0.0/12',
-		'172.64.0.0/13',
-		'131.0.72.0/22',
-	);
-	$eio_base = new EIO_Base();
-	$home_ip  = gethostbyname( $eio_base->parse_url( get_site_url(), PHP_URL_HOST ) );
-	foreach ( $cf_ips as $cf_range ) {
-		if ( ewwwio_ip_in_range( $home_ip, $cf_range ) ) {
-			$cf_host = true;
-			ewwwio_debug_message( "found Cloudflare host: $home_ip" );
-			break;
-		}
-	}
+	$cf_host = ewwwio_is_cf_host();
 	if ( ewww_image_optimizer_easy_active() || $cf_host ) {
 		ewww_image_optimizer_webp_rewrite_verify();
 	}

@@ -66,11 +66,9 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			}
 			foreach ( $images as $id ) {
 				$ewwwio_ngg_background->push_to_queue( array( 'id' => $id ) );
-				set_transient( 'ewwwio-background-in-progress-ngg-' . $id, true, 24 * HOUR_IN_SECONDS );
 				ewwwio_debug_message( "optimization (nextcellent) queued for $id" );
 			}
-			$ewwwio_ngg_background->save()->dispatch();
-			ewww_image_optimizer_debug_log();
+			$ewwwio_ngg_background->dispatch();
 		}
 
 		/**
@@ -145,7 +143,6 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				$ewww_image->resize = 'thumbnail';
 				ewww_image_optimizer( $filename );
 			}
-			ewww_image_optimizer_debug_log();
 			ewwwio_memory( __METHOD__ );
 		}
 
@@ -181,7 +178,6 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			}
 			$this->ewww_ngg_optimize( $id );
 			$success = $this->ewww_manage_image_custom_column( 'ewww_image_optimizer', $id, true );
-			ewww_image_optimizer_debug_log();
 			if ( ! wp_doing_ajax() ) {
 				// Get the referring page, and send the user back there.
 				$sendback = wp_get_referer();
@@ -368,7 +364,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 							);
 						}
 					}
-				} elseif ( get_transient( 'ewwwio-background-in-progress-ngg-' . $id ) ) {
+				} elseif ( ewww_image_optimizer_image_is_pending( $id, 'nextc-async' ) ) {
 					$output .= esc_html__( 'In Progress', 'ewww-image-optimizer' );
 					// Otherwise, give the image size, and a link to optimize right now.
 				} else {

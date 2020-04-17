@@ -36,6 +36,22 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		protected $start_time = 0;
 
 		/**
+		 * Batch size limit.
+		 *
+		 * @var int
+		 * @access protected
+		 */
+		protected $limit = 50;
+
+		/**
+		 * Attempts limit.
+		 *
+		 * @var int
+		 * @access protected
+		 */
+		protected $max_attempts = 15;
+
+		/**
 		 * Cron_hook_identifier
 		 *
 		 * @var mixed
@@ -53,19 +69,12 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 
 		/**
 		 * Either an 'a' or a 'b', depending on which one is currently running.
+		 * A unique identifier for each background class extension.
 		 *
 		 * @var string
 		 * @access protected
 		 */
 		protected $active_queue;
-
-		/**
-		 * Either an 'a' or a 'b', depending on which one is NOT currently running.
-		 *
-		 * @var string
-		 * @access protected
-		 */
-		protected $second_queue;
 
 		/**
 		 * Initiate new background process
@@ -98,85 +107,59 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		 * Push to queue
 		 *
 		 * @param mixed $data Data.
-		 *
-		 * @return $this
 		 */
 		public function push_to_queue( $data ) {
-			$this->data[] = $data;
+			global $wpdb;
 
-			return $this;
+			$id  = (int) $data['id'];
+			$new = ! empty( $data['new'] ) ? 1 : 0;
+			if ( ! $id ) {
+				return;
+			}
+
+			$exists = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->ewwwio_queue WHERE attachment_id = %d AND gallery = %s", $id, $this->active_queue ) );
+			if ( empty( $exists ) ) {
+				$to_insert = array(
+					'attachment_id' => $id,
+					'gallery'       => $this->active_queue,
+					'new'           => $new,
+				);
+				$wpdb->insert( $wpdb->ewwwio_queue, $to_insert );
+			}
 		}
 
 		/**
-		 * Save queue
+		 * Update queue item
 		 *
-		 * @return $this
+		 * @param int   $id ID of queue item.
+		 * @param array $data Data related to queue item.
 		 */
-		public function save() {
-			$key = $this->generate_key();
-			ewwwio_debug_message( "queue $key will be saved to" );
-			if ( ! empty( $this->data ) ) {
-				$existing_data = get_option( $key );
-				if ( ! empty( $existing_data ) ) {
-					$this->data = array_merge( $existing_data, $this->data );
-				}
-				update_option( $key, $this->data, false );
+		public function update( $id, $data = array() ) {
+			if ( ! empty( $id ) ) {
+				global $wpdb;
+				$wpdb->get_row( $wpdb->prepare( "UPDATE $wpdb->ewwwio_queue SET scanned=scanned+1 WHERE attachment_id = %d AND gallery = %s", $id, $this->active_queue ) );
 			}
-			$this->data = array();
-			return $this;
-		}
-
-		/**
-		 * Update queue
-		 *
-		 * @param string $key Key.
-		 * @param array  $data Data.
-		 *
-		 * @return $this
-		 */
-		public function update( $key, $data ) {
-			if ( ! empty( $data ) ) {
-				$existing_data = get_option( $key );
-				if ( ! empty( $existing_data ) ) {
-					update_option( $key, $data, false );
-				}
-			}
-
-			return $this;
 		}
 
 		/**
 		 * Delete queue
 		 *
 		 * @param string $key Key.
-		 *
-		 * @return $this
 		 */
 		public function delete( $key ) {
-			update_option( $key, '' );
-
-			return $this;
-		}
-
-		/**
-		 * Generate key
-		 *
-		 * Generates a unique key based on microtime. Queue items are
-		 * given a unique key so that they can be merged upon save.
-		 *
-		 * @param int $length Length.
-		 *
-		 * @return string
-		 */
-		protected function generate_key( $length = 64 ) {
-			$unique = 'a';
-			if ( $this->is_queue_active( $unique ) ) {
-				$unique = 'b';
+			if ( ! $key ) {
+				return;
 			}
-			$this->second_queue = $unique;
-			$prepend            = $this->identifier . '_batch_';
-
-			return substr( $prepend . $unique, 0, $length );
+			$key = (int) $key;
+			global $wpdb;
+			$wpdb->delete(
+				$wpdb->ewwwio_queue,
+				array(
+					'attachment_id' => $key,
+					'gallery'       => $this->active_queue,
+				),
+				array( '%d', '%s' )
+			);
 		}
 
 		/**
@@ -212,6 +195,7 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		 */
 		public function count_queue() {
 			global $wpdb;
+			return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->ewwwio_queue WHERE gallery = %s", $this->active_queue ) );
 
 			$key = $wpdb->esc_like( $this->identifier . '_batch_' ) . '%';
 
@@ -241,6 +225,7 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		 * @return bool
 		 */
 		protected function is_queue_empty() {
+			return ! $this->count_queue();
 			global $wpdb;
 
 			$key = $wpdb->esc_like( $this->identifier . '_batch_' ) . '%';
@@ -275,24 +260,6 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		}
 
 		/**
-		 * Is a particular queue active and running.
-		 *
-		 * @param string $queue_id The identifier for a background queue.
-		 * @return bool
-		 */
-		protected function is_queue_active( $queue_id ) {
-			global $wpdb;
-			$process_lock_transient = '_transient_' . $this->identifier . '_process_lock';
-			if ( $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name LIKE %s", $process_lock_transient ) ) === $queue_id ) {
-				ewwwio_debug_message( "queue $queue_id is running" );
-				return true;
-			}
-			ewwwio_debug_message( "queue $queue_id is not running, checked with: " . $this->identifier . '_process_lock' );
-			return false;
-		}
-
-
-		/**
 		 * Lock process
 		 *
 		 * Lock the process so that multiple instances can't run simultaneously.
@@ -304,9 +271,6 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 
 			$lock_duration = ( property_exists( $this, 'queue_lock_time' ) ) ? $this->queue_lock_time : 60; // 1 minute
 			$lock_duration = apply_filters( $this->identifier . '_queue_lock_time', $lock_duration );
-			if ( empty( $this->active_queue ) ) {
-				$this->active_queue = 'a';
-			}
 		}
 
 		/**
@@ -341,24 +305,16 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		/**
 		 * Get batch
 		 *
-		 * @return stdClass Return the first batch from the queue
+		 * @return array Return the first batch from the queue
 		 */
 		protected function get_batch() {
 			global $wpdb;
+			$batch = $wpdb->get_results( $wpdb->prepare( "SELECT attachment_id AS id, scanned AS attempts, new FROM $wpdb->ewwwio_queue WHERE gallery = %s LIMIT %d", $this->active_queue, $this->limit ), ARRAY_A );
+			if ( empty( $batch ) ) {
+				return array();
+			}
+			ewwwio_debug_message( 'selected items: ' . count( $batch ) );
 
-			$key = $wpdb->esc_like( $this->identifier . '_batch_' ) . '%';
-
-			$query = $wpdb->get_row(
-				$wpdb->prepare(
-					"SELECT * FROM $wpdb->options WHERE option_name LIKE %s AND option_value != '' ORDER BY option_id ASC LIMIT 1",
-					$key
-				)
-			);
-
-			$batch              = new stdClass();
-			$batch->key         = $query->option_name;
-			$batch->data        = maybe_unserialize( $query->option_value );
-			$this->active_queue = substr( $batch->key, -1 );
 			$this->update_lock();
 			return $batch;
 		}
@@ -375,26 +331,25 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 			do {
 				$batch = $this->get_batch();
 
-				foreach ( $batch->data as $key => $value ) {
+				foreach ( $batch as $key => $value ) {
+					if ( $value['attempts'] > $this->max_attempts ) {
+						$this->failure( $value );
+						$this->delete( $value['id'] );
+						continue;
+					}
+					$this->update( $value['id'], $value );
 					$task = $this->task( $value );
 
 					if ( false !== $task ) {
-						$batch->data[ $key ] = $task;
+						$batch[ $key ] = $task;
 					} else {
-						unset( $batch->data[ $key ] );
+						$this->delete( $value['id'] );
 					}
 
 					if ( $this->time_exceeded() || $this->memory_exceeded() ) {
 						// Batch limits reached.
 						break;
 					}
-				}
-
-				// Update or delete current batch.
-				if ( ! empty( $batch->data ) ) {
-					$this->update( $batch->key, $batch->data );
-				} else {
-					$this->delete( $batch->key );
 				}
 			} while ( ! $this->time_exceeded() && ! $this->memory_exceeded() && ! $this->is_queue_empty() );
 
@@ -556,14 +511,9 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		 * Stop processing queue items, clear cronjob and delete batch.
 		 */
 		public function cancel_process() {
-			if ( ! $this->is_queue_empty() ) {
-				$batch = $this->get_batch();
-
-				$this->delete( $batch->key );
-
-				wp_clear_scheduled_hook( $this->cron_hook_identifier );
-			}
-
+			global $wpdb;
+			$wpdb->query( $wpdb->prepare( "DELETE from $wpdb->ewwwio_queue WHERE gallery = %s", $this->active_queue ) );
+			wp_clear_scheduled_hook( $this->cron_hook_identifier );
 		}
 
 		/**
@@ -580,5 +530,15 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		 */
 		abstract protected function task( $item );
 
+		/**
+		 * Failure
+		 *
+		 * Override this method to perform any actions required when a
+		 * queue item reaches the maximum retries. Will be removed
+		 * from the queue after this fires.
+		 *
+		 * @param mixed $item Queue item entering failure condition.
+		 */
+		abstract protected function failure( $item );
 	}
 }

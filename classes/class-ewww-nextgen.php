@@ -152,8 +152,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			}
 			ewwwio_debug_message( "backgrounding optimization for $image_id" );
 			$ewwwio_ngg2_background->push_to_queue( array( 'id' => $image_id ) );
-			$ewwwio_ngg2_background->save()->dispatch();
-			set_transient( 'ewwwio-background-in-progress-ngg-' . $image_id, true, 24 * HOUR_IN_SECONDS );
+			$ewwwio_ngg2_background->dispatch();
 			ewww_image_optimizer_debug_log();
 		}
 
@@ -508,12 +507,12 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 					$output .= $detail_output;
 					// Display the optimization link with the appropriate text.
 					$output .= $this->ewww_render_optimize_action_link( $image->pid, null, true, $backup_available );
-				} elseif ( get_transient( 'ewwwio-background-in-progress-ngg-' . $image->pid ) ) {
+				} elseif ( ewww_image_optimizer_image_is_pending( $image->pid, 'nextg-async' ) ) {
 					$output .= esc_html( 'In Progress', 'ewww-image-optimizer' ) . '<br>';
 					// Otherwise, give the image size, and a link to optimize right now.
 				} else {
 					// Display the optimization link with the appropriate text.
-					$output .= $this->ewww_render_optimize_action_link( $image->pid, null, false, $backup_available );
+					$output .= '<br>' . $this->ewww_render_optimize_action_link( $image->pid, null, false, $backup_available );
 				}
 				$output .= '</div>';
 				if ( is_object( $id ) ) {
