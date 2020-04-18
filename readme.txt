@@ -181,6 +181,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * changed: WebP Only mode will bypass the check for TinyPNG compression
 * changed: background/async mode uses better queueing system for speed and reliability
 * changed: background queue information moved to Tools page
+* fixed: noresize in filename has no effect when using Media File Renamer
 * fixed: debug_message() throws a warning with non-string values
 * fixed: notices when uploading animated GIFs using GD
 * fixed: notices when parsing JSON data from Envira

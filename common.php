@@ -71,8 +71,6 @@ if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
 		// Enables direct integration to the editor's save function.
 		add_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
 	}
-	// Resizes and auto-rotates images.
-	add_filter( 'wp_handle_upload', 'ewww_image_optimizer_handle_upload' );
 	// Processes an image via the metadata after upload.
 	add_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
 	// Add hook for PTE confirmation to make sure new resizes are optimized.
@@ -515,6 +513,13 @@ function ewww_image_optimizer_init() {
 		}
 	}
 
+	if ( class_exists( 'Meow_MFRH_Core' ) ) {
+		// Resizes and auto-rotates images.
+		add_filter( 'wp_handle_upload_prefilter', 'ewww_image_optimizer_handle_upload', 9 );
+	} else {
+		// Resizes and auto-rotates images.
+		add_filter( 'wp_handle_upload', 'ewww_image_optimizer_handle_upload' );
+	}
 	if ( class_exists( 'S3_Uploads' ) ) {
 		ewwwio_debug_message( 's3-uploads detected, deferring resize_upload' );
 		add_filter( 'ewww_image_optimizer_defer_resizing', '__return_true' );
