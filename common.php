@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '525.211' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '525.212' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -203,6 +203,8 @@ add_action( 'admin_action_ewww_image_optimizer_delete_debug_log', 'ewww_image_op
 add_filter( 'pre_update_option_ewww_image_optimizer_webp', 'ewww_image_optimizer_webp_maybe_enabled', 10, 2 );
 // Check if JS WebP option has just been enabled and see if Force WebP is needed for WP Offload Media.
 add_filter( 'pre_update_option_ewww_image_optimizer_webp_for_cdn', 'ewww_image_optimizer_webp_cdn_check_force', 10, 2 );
+// Check Scheduled Opt option has just been disabled and clear the queues/stop the process.
+add_filter( 'pre_update_option_ewww_image_optimizer_auto', 'ewww_image_optimizer_scheduled_optimizaton_changed', 10, 2 );
 // Makes sure to flush out any scheduled jobs on deactivation.
 register_deactivation_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimizer_network_deactivate' );
 // add_action( 'shutdown', 'ewwwio_memory_output' );.
@@ -1629,6 +1631,25 @@ function ewww_image_optimizer_webp_cdn_check_force( $new_value, $old_value ) {
 }
 
 /**
+ * Checks to see if Scheduled Optimization was just disabled.
+ *
+ * @param mixed $new_value The new value, in this case it will be boolean usually.
+ * @param mixed $old_value The old value, also a boolean generally.
+ * @return mixed The new value, unaltered.
+ */
+function ewww_image_optimizer_scheduled_optimizaton_changed( $new_value, $old_value ) {
+	if ( empty( $new_value ) && (bool) $new_value !== (bool) $old_value ) {
+		global $ewwwio_image_background;
+		if ( ! class_exists( 'WP_Background_Process' ) ) {
+			require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
+		}
+		$ewwwio_image_background->cancel_process();
+		update_option( 'ewwwio_stop_scheduled_scan', true, false );
+	}
+	return $new_value;
+}
+
+/**
  * Display a notice that the user should run the bulk optimizer after WebP activation.
  */
 function ewww_image_optimizer_notice_webp_bulk() {
@@ -2282,17 +2303,31 @@ function ewww_image_optimizer_auto() {
 		ewww_image_optimizer_debug_log();
 		return;
 	}
+	if ( ! class_exists( 'WP_Background_Process' ) ) {
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
+	}
 	global $ewww_defer;
 	$ewww_defer = false;
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'bulk.php' );
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'aux-optimize.php' );
+	global $ewwwio_image_background;
+	if ( $ewwwio_image_background->is_process_running() || $ewwwio_image_background->count_queue() ) {
+		return;
+	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) ) {
 		ewwwio_debug_message( 'running scheduled optimization' );
+		global $ewwwio_scan_async;
+		$ewwwio_scan_async->data(
+			array(
+				'ewww_scan' => 'scheduled',
+			)
+		)->dispatch();
+		return;
 		ewww_image_optimizer_aux_images_script( 'ewww-image-optimizer-auto' );
 		// Generate our own unique nonce value, because wp_create_nonce() will return the same value for 12-24 hours.
 		$nonce = wp_hash( time() . '|' . 'ewww-image-optimizer-auto' );
 		update_option( 'ewww_image_optimizer_aux_resume', $nonce );
-		$delay = ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' );
+		$delay = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' );
 		$count = ewww_image_optimizer_aux_images_table_count_pending();
 		if ( ! empty( $count ) ) {
 			global $wpdb;
@@ -5101,6 +5136,7 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 	if ( $cli ) {
 		return $results[1];
 	}
+	ewww_image_optimizer_debug_log();
 	ewwwio_memory( __FUNCTION__ );
 }
 
@@ -7342,15 +7378,12 @@ function ewww_image_optimizer_relativize_path( $file ) {
 		return $file;
 	}
 	if ( defined( 'EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER' ) && EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER && strpos( $file, EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER ) === 0 ) {
-		ewwwio_debug_message( "removing custom relative folder from $file" );
 		return str_replace( EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER, 'EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER', $file );
 	}
 	if ( strpos( $file, ABSPATH ) === 0 ) {
-		ewwwio_debug_message( "removing ABSPATH from $file" );
 		return str_replace( ABSPATH, 'ABSPATH', $file );
 	}
 	if ( defined( 'WP_CONTENT_DIR' ) && WP_CONTENT_DIR && strpos( $file, WP_CONTENT_DIR ) === 0 ) {
-		ewwwio_debug_message( "removing WP_CONTENT_DIR from $file" );
 		return str_replace( WP_CONTENT_DIR, 'WP_CONTENT_DIR', $file );
 	}
 	return $file;
@@ -7371,15 +7404,12 @@ function ewww_image_optimizer_absolutize_path( $file ) {
 		return $file;
 	}
 	if ( defined( 'EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER' ) && EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER && strpos( $file, 'EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER' ) === 0 ) {
-		ewwwio_debug_message( "replacing custom relative folder in $file" );
 		return str_replace( 'EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER', EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER, $file );
 	}
 	if ( strpos( $file, 'ABSPATH' ) === 0 ) {
-		ewwwio_debug_message( "replacing ABSPATH in $file" );
 		return str_replace( 'ABSPATH', ABSPATH, $file );
 	}
 	if ( defined( 'WP_CONTENT_DIR' ) && WP_CONTENT_DIR && strpos( $file, 'WP_CONTENT_DIR' ) === 0 ) {
-		ewwwio_debug_message( "replacing WP_CONTENT_DIR in $file" );
 		return str_replace( 'WP_CONTENT_DIR', WP_CONTENT_DIR, $file );
 	}
 	return $file;

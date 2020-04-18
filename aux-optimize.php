@@ -628,6 +628,9 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 		ewwwio_debug_message( "$dir already completed" );
 		return;
 	}
+	if ( ! class_exists( 'WP_Background_Process' ) ) {
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
+	}
 	global $wpdb;
 	global $optimized_list;
 	$images       = array();
@@ -676,7 +679,12 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 		if ( get_transient( 'ewww_image_optimizer_aux_iterator' ) && get_transient( 'ewww_image_optimizer_aux_iterator' ) > $file_counter ) {
 			continue;
 		}
-		if ( $started && ! empty( $_REQUEST['ewww_scan'] ) && 0 === $file_counter % 100 && microtime( true ) - $started > apply_filters( 'ewww_image_optimizer_timeout', 15 ) ) {
+		if (
+			$started &&
+			! empty( $_REQUEST['ewww_scan'] ) && 'scheduled' !== $_REQUEST['ewww_scan'] &&
+			0 === $file_counter % 100 &&
+			microtime( true ) - $started > apply_filters( 'ewww_image_optimizer_timeout', 15 )
+		) {
 			ewww_image_optimizer_reset_images( $reset_images );
 			if ( ! empty( $images ) ) {
 				ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
@@ -684,6 +692,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			set_transient( 'ewww_image_optimizer_aux_iterator', $file_counter - 20, 300 ); // Keep track of where we left off, minus 20 to be safe.
 			$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
 			ewwwio_ob_clean();
+			ewww_image_optimizer_debug_log();
 			die(
 				ewwwio_json_encode(
 					array(
@@ -692,9 +701,34 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 					)
 				)
 			);
+		} elseif (
+			$started &&
+			! empty( $_REQUEST['ewww_scan'] ) && 'scheduled' === $_REQUEST['ewww_scan'] &&
+			0 === $file_counter % 100 &&
+			microtime( true ) - $started > apply_filters( 'ewww_image_optimizer_timeout', 15 )
+		) {
+			ewwwio_debug_message( 'ending current scan iteration, will fire off a new one shortly' );
+			ewww_image_optimizer_reset_images( $reset_images );
+			if ( ! empty( $images ) ) {
+				ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
+			}
+			set_transient( 'ewww_image_optimizer_aux_iterator', $file_counter - 20, 300 ); // Keep track of where we left off, minus 20 to be safe.
+			ewww_image_optimizer_debug_log();
+			global $ewwwio_scan_async;
+			$ewwwio_scan_async->data(
+				array(
+					'ewww_scan' => 'scheduled',
+				)
+			)->dispatch();
+			wp_die();
+		} elseif ( ! empty( $_REQUEST['ewww_scan'] ) && 'scheduled' === $_REQUEST['ewww_scan'] && get_option( 'ewwwio_stop_scheduled_scan' ) ) {
+			ewwwio_debug_message( 'ending current scan iteration because of stop_scan' );
+			delete_option( 'ewwwio_stop_scheduled_scan' );
+			ewww_image_optimizer_debug_log();
+			wp_die();
 		}
-		// TODO: can we tailor this for scheduled opt also?
 		if ( ! empty( $_REQUEST['ewww_scan'] ) && 0 === $file_counter % 100 && ! ewwwio_check_memory_available( 2097000 ) ) {
+			ewwwio_debug_message( 'ending current scan iteration because of memory constraints' );
 			if ( $file_counter < 100 ) {
 				ewwwio_ob_clean();
 				die(
@@ -712,6 +746,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			set_transient( 'ewww_image_optimizer_aux_iterator', $file_counter - 20, 300 ); // Keep track of where we left off, minus 20 to be safe.
 			$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
 			ewwwio_ob_clean();
+			ewww_image_optimizer_debug_log();
 			die(
 				ewwwio_json_encode(
 					array(
@@ -811,6 +846,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	if ( ! empty( $images ) ) {
 		ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
 	}
+	set_transient( 'ewww_image_optimizer_aux_iterator', 0 );
 	ewww_image_optimizer_reset_images( $reset_images );
 	delete_transient( 'ewww_image_optimizer_aux_iterator' );
 	$end = microtime( true ) - $start;
@@ -819,6 +855,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	ewwwio_memory( __FUNCTION__ );
 	$folders_completed[] = $dir;
 	update_option( 'ewww_image_optimizer_aux_folders_completed', $folders_completed, false );
+	ewww_image_optimizer_debug_log();
 }
 
 /**
@@ -875,6 +912,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Make sure we are being called from the proper page.
 	if ( wp_doing_ajax() && empty( $_REQUEST['ewww_scan'] ) ) {
+		ewwwio_debug_message( 'scan called from ajax with no ewww_scan' );
 		return;
 	}
 	session_write_close();
@@ -1016,7 +1054,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 	update_option( 'ewww_image_optimizer_aux_resume', '' );
 	update_option( 'ewww_image_optimizer_bulk_resume', '' );
 	ewww_image_optimizer_debug_log();
-	if ( wp_doing_ajax() ) {
+	if ( wp_doing_ajax() && 'ewww-image-optimizer-auto' !== $hook ) {
 		$verify_cloud = ewww_image_optimizer_cloud_verify( false );
 		$usage        = false;
 		if ( preg_match( '/great/', $verify_cloud ) ) {
@@ -1045,7 +1083,25 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 				)
 			)
 		);
+	} elseif ( 'ewww-image-optimizer-auto' === $hook ) {
+		ewwwio_debug_message( 'retrieving images for scheduled queue' );
+		global $ewwwio_image_background;
+		global $wpdb;
+		$images_queued = $wpdb->get_col( "SELECT id FROM $wpdb->ewwwio_images WHERE pending=1" );
+		if ( ewww_image_optimizer_iterable( $images_queued ) ) {
+			foreach ( $images_queued as $id ) {
+				$ewwwio_image_background->push_to_queue(
+					array(
+						'id'  => $id,
+						'new' => 0,
+					)
+				);
+			}
+		}
+		$ewwwio_image_background->dispatch();
+		update_option( 'ewww_image_optimizer_aux_resume', '', false );
 	}
+	ewww_image_optimizer_debug_log();
 	ewwwio_memory( __FUNCTION__ );
 	return $image_count;
 }
@@ -1063,10 +1119,8 @@ function ewww_image_optimizer_aux_images_cleanup( $auto = false ) {
 		ewwwio_ob_clean();
 		die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
-	$stored_last = get_option( 'ewww_image_optimizer_aux_last' );
-	update_option( 'ewww_image_optimizer_aux_last', array( time(), $stored_last[1] ) );
 	// All done, so we can update the bulk options with empty values.
-	update_option( 'ewww_image_optimizer_aux_resume', '' );
+	update_option( 'ewww_image_optimizer_aux_resume', '', false );
 	if ( ! $auto ) {
 		ewwwio_ob_clean();
 		// And let the user know we are done.

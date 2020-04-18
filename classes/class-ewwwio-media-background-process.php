@@ -132,7 +132,6 @@ class EWWWIO_Media_Background_Process extends EWWWIO_Background_Process {
 		}
 	}
 }
-
 global $ewwwio_media_background;
 $ewwwio_media_background = new EWWWIO_Media_Background_Process();
 
@@ -169,17 +168,23 @@ class EWWWIO_Image_Background_Process extends EWWWIO_Background_Process {
 	 */
 	protected function task( $item ) {
 		session_write_close();
-		$id = $item['id'];
+		$id = (int) $item['id'];
 		ewwwio_debug_message( "background processing $id" );
 		$file_path = ewww_image_optimizer_find_file_by_id( $id );
 		if ( $file_path ) {
-			// TODO: this might need to replicate more of the aux_loop, like resizing and such.
+			$attachment = array(
+				'id'   => $id,
+				'path' => $file_path,
+			);
 			ewwwio_debug_message( "processing background optimization request for $file_path" );
-			ewww_image_optimizer( $file_path );
-			ewww_image_optimizer_hidpi_optimize( $file_path );
+			ewww_image_optimizer_aux_images_loop( $attachment, true );
 		} else {
 			ewwwio_debug_message( "could not find file to process background optimization request for $id" );
 			return false;
+		}
+		$delay = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' );
+		if ( $delay && ewww_image_optimizer_function_exists( 'sleep' ) ) {
+			sleep( $delay );
 		}
 		return false;
 	}
@@ -204,7 +209,6 @@ class EWWWIO_Image_Background_Process extends EWWWIO_Background_Process {
 		$wpdb->query( $wpdb->prepare( "DELETE from $wpdb->ewwwio_images WHERE id=%d pending=1 AND (image_size IS NULL OR image_size = 0)", $item['id'] ) );
 	}
 }
-
 global $ewwwio_image_background;
 $ewwwio_image_background = new EWWWIO_Image_Background_Process();
 
@@ -296,7 +300,6 @@ class EWWWIO_Flag_Background_Process extends EWWWIO_Background_Process {
 		}
 	}
 }
-
 global $ewwwio_flag_background;
 $ewwwio_flag_background = new EWWWIO_Flag_Background_Process();
 
@@ -388,7 +391,6 @@ class EWWWIO_Ngg_Background_Process extends EWWWIO_Background_Process {
 		}
 	}
 }
-
 global $ewwwio_ngg_background;
 $ewwwio_ngg_background = new EWWWIO_Ngg_Background_Process();
 
@@ -483,7 +485,6 @@ class EWWWIO_Ngg2_Background_Process extends EWWWIO_Background_Process {
 		}
 	}
 }
-
 global $ewwwio_ngg2_background;
 $ewwwio_ngg2_background = new EWWWIO_Ngg2_Background_Process();
 
@@ -559,9 +560,35 @@ class EWWWIO_Async_Request extends WP_Async_Request {
 		}
 	}
 }
-
 global $ewwwio_async_optimize_media;
 $ewwwio_async_optimize_media = new EWWWIO_Async_Request();
+
+/**
+ * Handles an async request to scan for unoptimized images. Subsequent calls will resume from the previous request.
+ *
+ * @see WP_Async_Request
+ */
+class EWWWIO_Scan_Async_Handler extends WP_Async_Request {
+
+	/**
+	 * The action name used to trigger this class extension.
+	 *
+	 * @access protected
+	 * @var string $action
+	 */
+	protected $action = 'ewwwio_scan_async';
+
+	/**
+	 * Handles the async scan request.
+	 */
+	protected function handle() {
+		session_write_close();
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		ewww_image_optimizer_aux_images_script( 'ewww-image-optimizer-auto' );
+	}
+}
+global $ewwwio_scan_async;
+$ewwwio_scan_async = new EWWWIO_Scan_Async_Handler();
 
 /**
  * Handles an async request for validating API keys.
@@ -590,7 +617,6 @@ class EWWWIO_Async_Key_Verification extends WP_Async_Request {
 		ewww_image_optimizer_cloud_verify( false );
 	}
 }
-
 global $ewwwio_async_key_verification;
 $ewwwio_async_key_verification = new EWWWIO_Async_Key_Verification();
 
@@ -613,7 +639,7 @@ class EWWWIO_Test_Async_Handler extends WP_Async_Request {
 	 * @access protected
 	 * @var string $action
 	 */
-	protected $action = 'ewwwio_test_optimize';
+	protected $action = 'ewwwio_test_async';
 
 	/**
 	 * Handles the test async request.
@@ -638,6 +664,5 @@ class EWWWIO_Test_Async_Handler extends WP_Async_Request {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_background_optimization', true );
 	}
 }
-
 global $ewwwio_test_async;
 $ewwwio_test_async = new EWWWIO_Test_Async_Handler();

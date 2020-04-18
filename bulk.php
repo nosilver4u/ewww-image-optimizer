@@ -17,14 +17,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 function ewww_image_optimizer_display_tools() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $ewwwio_media_background;
+	global $ewwwio_image_background;
 	if ( ! class_exists( 'WP_Background_Process' ) ) {
 		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
 	}
-	if ( ! is_object( $ewwwio_media_background ) ) {
-		$ewwwio_media_background = new EWWWIO_Media_Background_Process();
-	}
 	if ( ! empty( $_POST['action'] ) && 'ewww_image_optimizer_clear_queue' === $_POST['action'] && current_user_can( 'manage_options' ) && wp_verify_nonce( $_POST['ewww_nonce'], 'ewww_image_optimizer_clear_queue' ) ) {
 		$ewwwio_media_background->cancel_process();
+		$ewwwio_image_background->cancel_process();
+		update_option( 'ewwwio_stop_scheduled_scan', true, false );
 	}
 	echo "<div class='wrap'>\n";
 	echo "<h1>EWWW Image Optimizer</h1>\n";
@@ -47,6 +47,9 @@ function ewww_image_optimizer_display_tools() {
 
 	$queue_status = esc_html__( 'idle', 'ewww-image-optimizer' );
 	if ( $ewwwio_media_background->is_process_running() ) {
+		$queue_status = esc_html__( 'running', 'ewww-image-optimizer' );
+	}
+	if ( $ewwwio_image_background->is_process_running() ) {
 		$queue_status = esc_html__( 'running', 'ewww-image-optimizer' );
 	}
 
@@ -75,7 +78,8 @@ function ewww_image_optimizer_display_tools() {
 	echo $output;
 
 	echo '<hr class="ewww-tool-divider">';
-	$queue_count = $ewwwio_media_background->count_queue();
+	$queue_count  = $ewwwio_media_background->count_queue();
+	$queue_count += $ewwwio_image_background->count_queue();
 	/* translators: %s: idle/running */
 	echo "<p id='ewww-queue-info' class='ewww-tool-info'>" . sprintf( esc_html__( 'Current queue status: %s', 'ewww-image-optimizer' ), $queue_status ) . "<br>\n";
 	if ( $queue_count ) {
