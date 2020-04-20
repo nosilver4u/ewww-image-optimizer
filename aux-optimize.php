@@ -86,14 +86,15 @@ function ewww_image_optimizer_aux_images_table() {
 	} else {
 		$ewwwdb = $wpdb;
 	}
-	$per_page = 50;
-	$offset   = $per_page * (int) $_POST['ewww_offset'];
-	$search   = sanitize_text_field( $_POST['ewww_search'] );
-	$total    = (int) $_POST['ewww_total_pages'];
-	$output   = array();
+	$debug_query = ! empty( $_REQUEST['ewww_debug'] ) ? 1 : 0;
+	$per_page    = 50;
+	$offset      = $per_page * (int) $_POST['ewww_offset'];
+	$search      = sanitize_text_field( $_POST['ewww_search'] );
+	$total       = (int) $_POST['ewww_total_pages'];
+	$output      = array();
 	if ( ! empty( $search ) ) {
-		$already_optimized = $ewwwdb->get_results( $ewwwdb->prepare( "SELECT path,orig_size,image_size,id,backup,updated,attachment_id,gallery FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND path LIKE %s ORDER BY id DESC LIMIT %d,%d", '%' . $ewwwdb->esc_like( $search ) . '%', $offset, $per_page ), ARRAY_A );
-		$search_count      = $ewwwdb->get_var( $ewwwdb->prepare( "SELECT COUNT(*) FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND path LIKE %s", '%' . $ewwwdb->esc_like( $search ) . '%' ) );
+		$already_optimized = $ewwwdb->get_results( $ewwwdb->prepare( "SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,updates,trace,UNIX_TIMESTAMP(updated) AS updated FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d AND path LIKE %s ORDER BY " . ( $debug_query ? 'updates,id' : 'id' ) . ' DESC LIMIT %d,%d', $debug_query, '%' . $ewwwdb->esc_like( $search ) . '%', $offset, $per_page ), ARRAY_A );
+		$search_count      = $ewwwdb->get_var( $ewwwdb->prepare( "SELECT COUNT(*) FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d AND path LIKE %s", $debug_query, '%' . $ewwwdb->esc_like( $search ) . '%' ) );
 		if ( $search_count < $per_page ) {
 			/* translators: %d: number of image records found */
 			$output['search_result'] = sprintf( esc_html__( '%d items found', 'ewww-image-optimizer' ), count( $already_optimized ) );
@@ -103,7 +104,11 @@ function ewww_image_optimizer_aux_images_table() {
 		}
 		$total = ceil( $search_count / $per_page );
 	} else {
-		$already_optimized = $ewwwdb->get_results( $ewwwdb->prepare( "SELECT path,orig_size,image_size,id,backup,updated,attachment_id,gallery FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 ORDER BY id DESC LIMIT %d,%d", $offset, $per_page ), ARRAY_A );
+		$already_optimized = $ewwwdb->get_results( $ewwwdb->prepare( "SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,updates,trace,UNIX_TIMESTAMP(updated) AS updated FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d ORDER BY " . ( $debug_query ? 'updates,id' : 'id' ) . ' DESC LIMIT %d,%d', $debug_query, $offset, $per_page ), ARRAY_A );
+		if ( $debug_query ) {
+			$search_count = $ewwwdb->get_var( $ewwwdb->prepare( "SELECT COUNT(*) FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d", $debug_query ) );
+			$total        = ceil( $search_count / $per_page );
+		}
 		/* translators: %d: number of image records found */
 		$output['search_result'] = sprintf( esc_html__( '%d items displayed', 'ewww-image-optimizer' ), count( $already_optimized ) );
 	}
@@ -114,12 +119,17 @@ function ewww_image_optimizer_aux_images_table() {
 
 	$upload_info     = wp_upload_dir();
 	$upload_path     = $upload_info['basedir'];
-	$output['table'] = '<table class="wp-list-table widefat media" cellspacing="0"><thead><tr><th>&nbsp;</th><th>' . esc_html__( 'Filename', 'ewww-image-optimizer' ) . '</th><th>' . esc_html__( 'Image Type', 'ewww-image-optimizer' ) . '</th><th>' . esc_html__( 'Image Optimizer', 'ewww-image-optimizer' ) . '</th></tr></thead>';
+	$output['table'] = '<table class="wp-list-table widefat media" cellspacing="0"><thead><tr><th>&nbsp;</th><th>' .
+		esc_html__( 'Filename', 'ewww-image-optimizer' ) . '</th><th>' .
+		esc_html__( 'Image Type', 'ewww-image-optimizer' ) . '</th><th>' .
+		esc_html__( 'Last Optimized', 'ewww-image-optimizer' ) . '</th><th>' .
+		esc_html__( 'Image Optimizer', 'ewww-image-optimizer' ) . '</th></tr></thead>';
 	$alternate       = true;
 	foreach ( $already_optimized as $optimized_image ) {
 		$file       = ewww_image_optimizer_absolutize_path( $optimized_image['path'] );
 		$image_name = str_replace( ABSPATH, '', $file );
 		$image_url  = esc_url( site_url( 'wp-includes/images/media/default.png' ) );
+		$trace      = maybe_unserialize( $optimized_image['trace'] );
 		ewwwio_debug_message( "name is $image_name after replacing ABSPATH" );
 		if ( 'media' === $optimized_image['gallery'] && ! empty( $optimized_image['attachment_id'] ) ) {
 			$thumb_url = wp_get_attachment_image_url( $optimized_image['attachment_id'] );
@@ -135,11 +145,15 @@ function ewww_image_optimizer_aux_images_table() {
 				$image_url = esc_url( content_url( $image_name ) );
 			}
 		}
-		$image_name   = esc_html( $image_name );
-		$savings      = esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) );
-		$updated_time = strtotime( $optimized_image['updated'] );
-		if ( DAY_IN_SECONDS * 30 + $updated_time < time() ) {
+		$image_name = esc_html( $image_name );
+		$savings    = esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) );
+		if ( DAY_IN_SECONDS * 30 + $optimized_image['updated'] < time() ) {
 			$optimized_image['backup'] = '';
+		}
+		if ( 946684800 > $optimized_image['updated'] ) {
+			$last_updated = '';
+		} else {
+			$last_updated = human_time_diff( $optimized_image['updated'] );
 		}
 		if ( ewww_image_optimizer_stream_wrapped( $file ) ) {
 			// Retrieve the mimetype of the attachment.
@@ -151,8 +165,28 @@ function ewww_image_optimizer_aux_images_table() {
 
 			$output['table'] .= '<tr ' . ( $alternate ? "class='alternate' " : '' ) . 'id="ewww-image-' . $optimized_image['id'] . '">';
 			$output['table'] .= "<td style='width:50px;' class='column-icon'><img style='width:50px;height:50px;object-fit:contain;' loading='lazy' src='$image_url' /></td>";
-			$output['table'] .= "<td class='title'>$image_name</td>";
+			$output['table'] .= "<td class='title'>$image_name";
+			if ( $debug_query ) {
+				/* translators: %d: number of re-optimizations */
+				$output['table'] .= '<br>' . sprintf( esc_html__( 'Number of attempted optimizations: %d', 'ewww-image-optimizer' ), $optimized_image['updates'] );
+				if ( is_array( $trace ) ) {
+					$output['table'] .= '<br>' . esc_html__( 'PHP trace:', 'ewww-image-optimizer' );
+					$i                = 0;
+					foreach ( $trace as $function ) {
+						if ( ! empty( $function['file'] ) && ! empty( $function['line'] ) ) {
+							$output['table'] .= esc_html( "#$i {$function['function']}() called at {$function['file']}:{$function['line']}" ) . '<br>';
+						} else {
+							$output['table'] .= esc_html( "#$i {$function['function']}() called" ) . '<br>';
+						}
+						$i++;
+					}
+				} else {
+					$output['table'] .= '<br>' . esc_html__( 'No PHP trace available, enable Debugging option to store trace logs.', 'ewww-image-optimizer' );
+				}
+			}
+			$output['table'] .= '</td>';
 			$output['table'] .= "<td>$type</td>";
+			$output['table'] .= "<td>$last_updated</td>";
 			$output['table'] .= "<td>$savings<br>$size_string<br>" .
 				'<a class="removeimage" onclick="ewwwRemoveImage(' . $optimized_image['id'] . ')">' . esc_html__( 'Remove from history', 'ewww-image-optimizer' ) . '</a>' .
 				( $optimized_image['backup'] ? '<br><a class="restoreimage" onclick="ewwwRestoreImage(' . $optimized_image['id'] . ')">' . esc_html__( 'Restore original', 'ewww-image-optimizer' ) . '</a>' : '' ) .
@@ -169,8 +203,28 @@ function ewww_image_optimizer_aux_images_table() {
 
 			$output['table'] .= '<tr ' . ( $alternate ? "class='alternate' " : '' ) . 'id="ewww-image-' . $optimized_image['id'] . '">';
 			$output['table'] .= "<td style='width:50px;' class='column-icon'><img style='width:50px;height:50px;object-fit:contain;' loading='lazy' src='$image_url' /></td>";
-			$output['table'] .= "<td class='title'>...$image_name</td>";
+			$output['table'] .= "<td class='title'>...$image_name";
+			if ( $debug_query ) {
+				/* translators: %d: number of re-optimizations */
+				$output['table'] .= '<br>' . sprintf( esc_html__( 'Number of attempted optimizations: %d', 'ewww-image-optimizer' ), $optimized_image['updates'] );
+				if ( is_array( $trace ) ) {
+					$output['table'] .= '<br>' . esc_html__( 'PHP trace:', 'ewww-image-optimizer' );
+					$i                = 0;
+					foreach ( $trace as $function ) {
+						if ( ! empty( $function['file'] ) && ! empty( $function['line'] ) ) {
+							$output['table'] .= esc_html( "#$i {$function['function']}() called at {$function['file']}:{$function['line']}" ) . '<br>';
+						} else {
+							$output['table'] .= esc_html( "#$i {$function['function']}() called" ) . '<br>';
+						}
+						$i++;
+					}
+				} else {
+					$output['table'] .= '<br>' . esc_html__( 'No PHP trace available, enable Debugging option to store trace logs.', 'ewww-image-optimizer' );
+				}
+			}
+			$output['table'] .= '</td>';
 			$output['table'] .= "<td>$type</td>";
+			$output['table'] .= "<td>$last_updated</td>";
 			$output['table'] .= "<td>$savings<br>$size_string<br>" .
 				'<a class="removeimage" onclick="ewwwRemoveImage(' . $optimized_image['id'] . ')">' . esc_html__( 'Remove from history', 'ewww-image-optimizer' ) . '</a>' .
 				( $optimized_image['backup'] ? '<br><a class="restoreimage" onclick="ewwwRestoreImage(' . $optimized_image['id'] . ')">' . esc_html__( 'Restore original', 'ewww-image-optimizer' ) . '</a>' : '' ) .
@@ -187,8 +241,28 @@ function ewww_image_optimizer_aux_images_table() {
 
 			$output['table'] .= '<tr ' . ( $alternate ? "class='alternate' " : '' ) . 'id="ewww-image-' . $optimized_image['id'] . '">';
 			$output['table'] .= "<td style='width:50px;' class='column-icon'>" . esc_html__( 'file not found', 'ewww-image-optimizer' ) . '</td>';
-			$output['table'] .= "<td class='title'>...$image_name</td>";
+			$output['table'] .= "<td class='title'>...$image_name";
+			if ( $debug_query ) {
+				/* translators: %d: number of re-optimizations */
+				$output['table'] .= '<br>' . sprintf( esc_html__( 'Number of attempted optimizations: %d', 'ewww-image-optimizer' ), $optimized_image['updates'] );
+				if ( is_array( $trace ) ) {
+					$output['table'] .= '<br>' . esc_html__( 'PHP trace:', 'ewww-image-optimizer' );
+					$i                = 0;
+					foreach ( $trace as $function ) {
+						if ( ! empty( $function['file'] ) && ! empty( $function['line'] ) ) {
+							$output['table'] .= esc_html( "#$i {$function['function']}() called at {$function['file']}:{$function['line']}" ) . '<br>';
+						} else {
+							$output['table'] .= esc_html( "#$i {$function['function']}() called" ) . '<br>';
+						}
+						$i++;
+					}
+				} else {
+					$output['table'] .= '<br>' . esc_html__( 'No PHP trace available, enable Debugging option to store trace logs.', 'ewww-image-optimizer' );
+				}
+			}
+			$output['table'] .= '</td>';
 			$output['table'] .= "<td>$type</td>";
+			$output['table'] .= "<td>$last_updated</td>";
 			$output['table'] .= "<td>$savings<br>$size_string<br>" .
 				'<a class="removeimage" onclick="ewwwRemoveImage(' . $optimized_image['id'] . ')">' . esc_html__( 'Remove from history', 'ewww-image-optimizer' ) . '</a>' .
 				'</td>';

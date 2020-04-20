@@ -5,16 +5,20 @@ jQuery(document).ready(function($) {
 	var ewww_pointer = 0;
 	var ewww_search_total = 0;
 	var ewww_clean_meta_total = 0;
+	var ewww_table_debug = 0;
 	$('#ewww-show-table').submit(function() {
 		ewww_pointer = 0;
 		ewww_total_pages = Math.ceil(ewww_vars.image_count / 50);
 		$('.displaying-num').text(ewww_vars.count_string);
 		$('#ewww-table-info').hide();
 		$('#ewww-show-table').hide();
+		$('#ewww-debug-table-info').hide();
+		$('#ewww-show-debug-table').hide();
 	        var ewww_table_data = {
 	                action: ewww_table_action,
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
+			ewww_debug: ewww_table_debug,
 			ewww_total_pages: ewww_total_pages,
 	        };
 		$.post(ajaxurl, ewww_table_data, function(response) {
@@ -41,6 +45,14 @@ jQuery(document).ready(function($) {
 		});
 		return false;
 	});
+	$('#ewww-show-debug-table').submit(function() {
+		ewww_table_debug = 1;
+		ewww_pointer = 0;
+		$('#ewww-show-table').submit();
+		document.body.scrollTop = 0; // For Safari.
+		document.documentElement.scrollTop = 0; // For everyone else.
+		return false;
+	});
 	$('.ewww-search-form').submit(function() {
 		ewww_pointer = 0;
 		var ewww_search = $('.ewww-search-input').val();
@@ -48,6 +60,7 @@ jQuery(document).ready(function($) {
 	                action: ewww_table_action,
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
+			ewww_debug: ewww_table_debug,
 			ewww_total_pages: ewww_total_pages,
 			ewww_search: ewww_search,
 	        };
@@ -85,6 +98,7 @@ jQuery(document).ready(function($) {
 	                action: ewww_table_action,
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
+			ewww_debug: ewww_table_debug,
 			ewww_total_pages: ewww_total_pages,
 			ewww_search: ewww_search,
 	        };
@@ -123,6 +137,7 @@ jQuery(document).ready(function($) {
 	                action: ewww_table_action,
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
+			ewww_debug: ewww_table_debug,
 			ewww_total_pages: ewww_total_pages,
 			ewww_search: ewww_search,
 	        };
@@ -160,6 +175,7 @@ jQuery(document).ready(function($) {
 	                action: ewww_table_action,
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
+			ewww_debug: ewww_table_debug,
 			ewww_total_pages: ewww_total_pages,
 			ewww_search: ewww_search,
 	        };
@@ -192,6 +208,7 @@ jQuery(document).ready(function($) {
 	                action: ewww_table_action,
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
+			ewww_debug: ewww_table_debug,
 			ewww_total_pages: ewww_total_pages,
 			ewww_search: ewww_search,
 	        };

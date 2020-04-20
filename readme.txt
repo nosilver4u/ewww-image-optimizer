@@ -176,16 +176,19 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 = 5.2.9 =
 * added: include .webp images when using WP Offload Media to copy images from bucket to server
 * added: cleanup/migration tool for folks using EWWW IO 3+ years to remove old metadata entries
+* changed: scheduled optimizer uses async/background mode to prevent timeouts
 * changed: images that exceed the max resize dimensions will be queued by the bulk scanner even if previously compressed
 * changed: for security, EWWW IO will only optimize images within the WP root folder, content folder, or uploads folder
 * changed: WebP Only mode will bypass the check for TinyPNG compression
 * changed: background/async mode uses better queueing system for speed and reliability
-* changed: background queue information moved to Tools page
+* changed: image queue information moved to Tools page
+* changed: image re-opt troubleshooting moved to Tools page
 * fixed: noresize in filename has no effect when using Media File Renamer
 * fixed: debug_message() throws a warning with non-string values
 * fixed: notices when uploading animated GIFs using GD
 * fixed: notices when parsing JSON data from Envira
 * fixed: fatal error when a WP_Error is passed from Envira to Easy IO
+* fixed: executables could not be installed on Windows due to behavior of is_executable() on directories
 
 = 5.2.5 =
 * removed: data-pin-media attribute, as Pinterest is handling WebP images properly now

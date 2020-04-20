@@ -129,6 +129,13 @@ function ewww_image_optimizer_display_tools() {
 		"</form>\n</div>\n";
 	echo "<div id='ewww-clean-meta-progressbar' style='display:none;'></div>";
 	echo "<div id='ewww-clean-meta-progress' style='display:none;'></div>";
+
+	echo '<hr class="ewww-tool-divider">';
+	echo "<p id='ewww-debug-table-info' class='ewww-tool-info'>" . esc_html__( 'Some plugins have bugs that cause them to re-create thumbnails and trigger re-optimization when the images are modified. Turn on the Debugging option to record trace logs for further investigation.', 'ewww-image-optimizer' ) . "</p>\n";
+	echo "<form id='ewww-show-debug-table' class='ewww-tool-form' method='post' action=''>\n" .
+		'<button type="submit" class="button-secondary action">' . esc_html__( 'Show Re-optimized Images', 'ewww-image-optimizer' ) . "</button>\n" .
+		"</form>\n";
+
 	echo "</div>\n";
 }
 

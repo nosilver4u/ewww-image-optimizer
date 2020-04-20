@@ -15,7 +15,6 @@
 // TODO: can some of the bulk "fallbacks" be implemented for async processing?
 // TODO: check to see if we can use PHP and WP core is_countable functions.
 // TODO: make sure all settings (like lazy load) are in usage reporting.
-// TODO: can we show the last optimized date in the media library, perhaps in the details?
 // TODO: make sure we are using admin_url() rather than just linking to admin.php directly.
 // TODO: we can use wp_is_stream() probably.
 // TODO: use wp_get_upload_dir() when we only need basedir or baseurl and don't need dir created.
@@ -23,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '525.212' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '525.215' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -1883,14 +1882,14 @@ function ewww_image_optimizer_notice_reoptimization() {
 		}
 		// Do a check for 10+ optimizations on 5+ images.
 		if ( ! empty( $reoptimized ) && $reoptimized > 5 ) {
-			$debugging_page = admin_url( 'upload.php?page=ewww-image-optimizer-dynamic-debug' );
+			$debugging_page = admin_url( 'tools.php?page=ewww-image-optimizer-tools' );
 			$reset_page     = wp_nonce_url( $_SERVER['REQUEST_URI'], 'reset_reoptimization_counters', 'ewww_reset_reopt_nonce' );
 			// Display an alert, and let the user reset the warning if they wish.
 			echo "<div id='ewww-image-optimizer-warning-reoptimizations' class='error'><p>" .
 				sprintf(
-					/* translators: %s: A link to the Dynamic Image Debugging page */
-					esc_html__( 'The EWWW Image Optimizer has detected excessive re-optimization of multiple images. Please turn on the Debugging setting, wait for approximately 12 hours, and then visit the %s page.', 'ewww-image-optimizer' ),
-					"<a href='$debugging_page'>" . esc_html__( 'Dynamic Image Debugging', 'ewww-image-optimizer' ) . '</a>'
+					/* translators: %s: A link to the EWWW IO Tools page */
+					esc_html__( 'The EWWW Image Optimizer has detected excessive re-optimization of multiple images. Please use the %s page to Show Re-Optimized Images.', 'ewww-image-optimizer' ),
+					"<a href='$debugging_page'>" . esc_html__( 'Tools', 'ewww-image-optimizer' ) . '</a>'
 				) .
 				" <a href='$reset_page'>" . esc_html__( 'Reset Counters' ) . '</a></p></div>';
 		}
@@ -2479,11 +2478,6 @@ function ewww_image_optimizer_admin_menu() {
 			EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL,                                            // Slug.
 			'ewww_image_optimizer_network_singlesite_options'                            // Function to call.
 		);
-	}
-	global $ewwwio_temp_debug;
-	if ( ! $ewwwio_temp_debug && ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-		// Add Dynamic Image Debugging page for image regeneration issues.
-		add_media_page( esc_html__( 'Dynamic Image Debugging', 'ewww-image-optimizer' ), esc_html__( 'Dynamic Image Debugging', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-dynamic-debug', 'ewww_image_optimizer_dynamic_image_debug' );
 	}
 	if ( is_plugin_active( 'image-store/ImStore.php' ) || is_plugin_active_for_network( 'image-store/ImStore.php' ) ) {
 		// Adds an optimize page for Image Store galleries and images.

@@ -361,8 +361,11 @@ function ewww_image_optimizer_install_tools() {
 		if ( ! is_writable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
 			ewwwio_debug_message( 'wp-content/ewww is not writable, not installing anything' );
 			return;
-		} elseif ( ! is_executable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
-			ewwwio_debug_message( 'wp-content/ewww is not executable, not installing anything' );
+		} elseif ( ! is_executable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) && PHP_OS !== 'WINNT' ) {
+			ewwwio_debug_message( 'wp-content/ewww is not executable (non-Windows), not installing anything' );
+			return;
+		} elseif ( ! is_readable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
+			ewwwio_debug_message( 'wp-content/ewww is not readable, not installing anything' );
 			return;
 		}
 		$ewww_perms = substr( sprintf( '%o', fileperms( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ), -4 );
@@ -669,7 +672,9 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 		}
 		if ( ! is_dir( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
 			ewww_image_optimizer_tool_folder_notice();
-		} elseif ( ! is_writable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) || ! is_executable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
+		} elseif ( ! is_writable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) || ! is_readable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
+			ewww_image_optimizer_tool_folder_permissions_notice();
+		} elseif ( ! is_executable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) && PHP_OS !== 'WINNT' ) {
 			ewww_image_optimizer_tool_folder_permissions_notice();
 		}
 		if ( 'pngout' === $msg ) {
