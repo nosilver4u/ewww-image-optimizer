@@ -7822,6 +7822,13 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			}
 			if ( ! $in_progress ) {
 				$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT image_size,orig_size,resize,converted,level,backup,updated FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
+				if ( ! $optimized_images ) {
+					// Attempt migration, but only if the original image is in the db, $migrated will be metadata on success, false on failure.
+					$migrated = ewww_image_optimizer_migrate_meta_to_db( $id, $meta, true );
+				}
+				if ( $migrated ) {
+					$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT image_size,orig_size,resize,converted,level,backup,updated FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
+				}
 			}
 			// If optimizer data exists in the db.
 			if ( ! empty( $optimized_images ) ) {
@@ -7876,6 +7883,13 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 		}
 		if ( ! $in_progress ) {
 			$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT image_size,orig_size,resize,converted,level,backup,updated FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
+			if ( ! $optimized_images ) {
+				// Attempt migration, but only if the original image is in the db, $migrated will be metadata on success, false on failure.
+				$migrated = ewww_image_optimizer_migrate_meta_to_db( $id, $meta, true );
+			}
+			if ( $migrated ) {
+				$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT image_size,orig_size,resize,converted,level,backup,updated FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
+			}
 		}
 		// If optimizer data exists.
 		if ( ! empty( $optimized_images ) ) {
@@ -8159,27 +8173,37 @@ function ewww_image_optimizer_custom_column_results( $id, $optimized_images ) {
  */
 function ewww_image_optimizer_clean_meta( $meta ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$changed = false;
 	if ( is_array( $meta ) && ! empty( $meta['ewww_image_optimizer'] ) ) {
 		unset( $meta['ewww_image_optimizer'] );
+		$changed = true;
 	}
 	if ( is_array( $meta ) && ! empty( $meta['converted'] ) ) {
 		unset( $meta['converted'] );
+		$changed = true;
 	}
 	if ( is_array( $meta ) && ! empty( $meta['orig_file'] ) ) {
 		unset( $meta['orig_file'] );
+		$changed = true;
 	}
 	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 		foreach ( $meta['sizes'] as $size => $data ) {
 			if ( is_array( $data ) && ! empty( $data['ewww_image_optimizer'] ) ) {
 				unset( $meta['sizes'][ $size ]['ewww_image_optimizer'] );
+				$changed = true;
 			}
 			if ( is_array( $data ) && ! empty( $data['converted'] ) ) {
 				unset( $meta['sizes'][ $size ]['converted'] );
+				$changed = true;
 			}
 			if ( is_array( $data ) && ! empty( $data['orig_file'] ) ) {
 				unset( $meta['sizes'][ $size ]['orig_file'] );
+				$changed = true;
 			}
 		}
+	}
+	if ( $changed ) {
+		update_post_meta( $id, '_wp_attachment_metadata', $meta );
 	}
 	return $meta;
 }
@@ -8333,7 +8357,6 @@ function ewww_image_optimizer_migrate_meta_to_db( $id, $meta, $bail_early = fals
 	if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
 		ewwwio_debug_message( print_r( $meta, true ) );
 	}
-	update_post_meta( $id, '_wp_attachment_metadata', $meta );
 	return $meta;
 }
 
