@@ -1655,10 +1655,10 @@ function ewww_image_optimizer_notice_webp_bulk() {
 	$already_done = ewww_image_optimizer_aux_images_table_count();
 	if ( $already_done > 50 ) {
 		$message = esc_html__( 'It looks like you already started optimizing your images, you will need to generate WebP images via the Bulk Optimizer.', 'ewww-image-optimizer' );
-		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-info'><p><a href='upload.php?page=ewww-image-optimizer-bulk&ewww_webp_only=1&ewww_force=1'>" . $message . '</a></p></div>';
+		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-info'><p><a href='" . admin_url( 'upload.php?page=ewww-image-optimizer-bulk&ewww_webp_only=1&ewww_force=1' ) . "'>$message</a></p></div>";
 	} else {
 		$message = esc_html__( 'Use the Bulk Optimizer to generate WebP images for existing uploads.', 'ewww-image-optimizer' );
-		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-info'><p><a href='upload.php?page=ewww-image-optimizer-bulk'>" . $message . '</a></p></div>';
+		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-info'><p><a href='" . admin_url( 'upload.php?page=ewww-image-optimizer-bulk' ) . "'>$message</a></p></div>";
 	}
 	delete_option( 'ewww_image_optimizer_webp_enabled' );
 }
@@ -1847,8 +1847,8 @@ function ewww_image_optimizer_notice_review_script() {
  * Inform the user of our beacon function so that they can opt-in.
  */
 function ewww_image_optimizer_notice_beacon() {
-	$optin_url  = 'admin.php?action=eio_opt_into_hs_beacon';
-	$optout_url = 'admin.php?action=eio_opt_out_of_hs_beacon';
+	$optin_url  = admin_url( 'admin.php?action=eio_opt_into_hs_beacon' );
+	$optout_url = admin_url( 'admin.php?action=eio_opt_out_of_hs_beacon' );
 	echo '<div id="ewww-image-optimizer-hs-beacon" class="notice notice-info"><p>' .
 		esc_html__( 'Enable the EWWW I.O. support beacon, which gives you access to documentation and our support team right from your WordPress dashboard. To assist you more efficiently, we collect the current url, IP address, browser/device information, and debugging information.', 'ewww-image-optimizer' ) .
 		'<br><a href="' . esc_url( $optin_url ) . '" class="button-secondary">' . esc_html__( 'Allow', 'ewww-image-optimizer' ) . '</a>' .
@@ -2415,7 +2415,7 @@ function ewww_image_optimizer_network_admin_menu() {
 			'EWWW Image Optimizer',                // Page Title.
 			'EWWW Image Optimizer',                // Menu title.
 			$permissions,                          // Capability.
-			EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE,      // Slug.
+			'ewww-image-optimizer-options',                // Slug.
 			'ewww_image_optimizer_network_options' // Function to call.
 		);
 	}
@@ -2466,7 +2466,7 @@ function ewww_image_optimizer_admin_menu() {
 			'EWWW Image Optimizer',                                                      // Page title.
 			'EWWW Image Optimizer',                                                      // Menu title.
 			apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ), // Capability.
-			EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL,                                            // Slug.
+			'ewww-image-optimizer-options',                                              // Slug.
 			'ewww_image_optimizer_options'                                               // Function to call.
 		);
 	} else {
@@ -2475,7 +2475,7 @@ function ewww_image_optimizer_admin_menu() {
 			'EWWW Image Optimizer',                                                      // Page title.
 			'EWWW Image Optimizer',                                                      // Menu title.
 			apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ), // Capability.
-			EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL,                                            // Slug.
+			'ewww-image-optimizer-options',                                              // Slug.
 			'ewww_image_optimizer_network_singlesite_options'                            // Function to call.
 		);
 	}
@@ -2548,15 +2548,15 @@ function ewww_image_optimizer_ims() {
 		$galleries = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type = 'ims_gallery' ORDER BY ID" );
 		if ( ewww_image_optimizer_iterable( $galleries ) ) {
 			$gallery_string = implode( ',', $galleries );
-			echo '<p>' . esc_html__( 'Choose a gallery or', 'ewww-image-optimizer' ) . " <a href='upload.php?page=ewww-image-optimizer-bulk&ids=$gallery_string'>" . esc_html__( 'optimize all galleries', 'ewww-image-optimizer' ) . '</a></p>';
+			echo '<p>' . esc_html__( 'Choose a gallery or', 'ewww-image-optimizer' ) . ' <a href="' . admin_url( "upload.php?page=ewww-image-optimizer-bulk&ids=$gallery_string" ) . '">' . esc_html__( 'optimize all galleries', 'ewww-image-optimizer' ) . '</a></p>';
 			echo '<table class="wp-list-table widefat media" cellspacing="0"><thead><tr><th>' . esc_html__( 'Gallery ID', 'ewww-image-optimizer' ) . '</th><th>' . esc_html__( 'Gallery Name', 'ewww-image-optimizer' ) . '</th><th>' . esc_html__( 'Images', 'ewww-image-optimizer' ) . '</th><th>' . esc_html__( 'Image Optimizer', 'ewww-image-optimizer' ) . '</th></tr></thead>';
 			foreach ( $galleries as $gid ) {
 				$image_count  = $wpdb->get_var( $wpdb->prepare( "SELECT count(ID) FROM $wpdb->posts WHERE post_type = 'ims_image' AND post_mime_type LIKE %s AND post_parent = %d", '%image%', $gid ) );
 				$gallery_name = get_the_title( $gid );
 				echo "<tr><td>$gid</td>";
-				echo "<td><a href='edit.php?post_type=ims_gallery&page=ewww-ims-optimize&ewww_gid=$gid'>$gallery_name</a></td>";
+				echo "<td><a href='" . admin_url( "edit.php?post_type=ims_gallery&page=ewww-ims-optimize&ewww_gid=$gid" ) . "'>$gallery_name</a></td>";
 				echo "<td>$image_count</td>";
-				echo "<td><a href='upload.php?page=ewww-image-optimizer-bulk&ids=$gid'>" . esc_html__( 'Optimize Gallery', 'ewww-image-optimizer' ) . '</a></td></tr>';
+				echo "<td><a href='" . admin_url( "upload.php?page=ewww-image-optimizer-bulk&ids=$gid" ) . "'>" . esc_html__( 'Optimize Gallery', 'ewww-image-optimizer' ) . '</a></td></tr>';
 			}
 			echo '</table>';
 		} else {
@@ -2566,7 +2566,7 @@ function ewww_image_optimizer_ims() {
 		$gid         = (int) $_REQUEST['ewww_gid'];
 		$attachments = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_type = 'ims_image' AND post_mime_type LIKE %s AND post_parent = %d ORDER BY ID", '%image%', $gid ) );
 		if ( ewww_image_optimizer_iterable( $attachments ) ) {
-			echo "<p><a href='upload.php?page=ewww-image-optimizer-bulk&ids=$gid'>" . esc_html__( 'Optimize Gallery', 'ewww-image-optimizer' ) . '</a></p>';
+			echo "<p><a href='" . admin_url( "upload.php?page=ewww-image-optimizer-bulk&ids=$gid" ) . "'>" . esc_html__( 'Optimize Gallery', 'ewww-image-optimizer' ) . '</a></p>';
 			echo '<table class="wp-list-table widefat media" cellspacing="0"><thead><tr><th>ID</th><th>&nbsp;</th><th>' . esc_html__( 'Title', 'ewww-image-optimizer' ) . '</th><th>' . esc_html__( 'Gallery', 'ewww-image-optimizer' ) . '</th><th>' . esc_html__( 'Image Optimizer', 'ewww-image-optimizer' ) . '</th></tr></thead>';
 			$alternate = true;
 			foreach ( $attachments as $id ) {
@@ -2660,9 +2660,9 @@ function ewww_image_optimizer_settings_link( $links ) {
 	}
 	// Load the html for the settings link.
 	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
-		$settings_link = '<a href="network/settings.php?page=' . plugin_basename( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ) . '">' . esc_html__( 'Settings', 'ewww-image-optimizer' ) . '</a>';
+		$settings_link = '<a href="' . network_admin_url( 'network/settings.php?page=ewww-image-optimizer-options' ) . '">' . esc_html__( 'Settings', 'ewww-image-optimizer' ) . '</a>';
 	} else {
-		$settings_link = '<a href="options-general.php?page=' . plugin_basename( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ) . '">' . esc_html__( 'Settings', 'ewww-image-optimizer' ) . '</a>';
+		$settings_link = '<a href="' . admin_url( 'options-general.php?page=ewww-image-optimizer-options' ) . '">' . esc_html__( 'Settings', 'ewww-image-optimizer' ) . '</a>';
 	}
 	// Load the settings link into the plugin links array.
 	array_unshift( $links, $settings_link );
@@ -8630,7 +8630,7 @@ function ewww_image_optimizer_get_bad_attachments() {
 function ewww_image_optimizer_settings_script( $hook ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Make sure we are being called from the settings page.
-	if ( strpos( $hook, 'settings_page_ewww-image-optimizer' ) !== 0 ) {
+	if ( 'settings_page_ewww-image-optimizer-options' !== $hook ) {
 		return;
 	}
 	wp_enqueue_script( 'jquery-ui-tooltip' );
@@ -8640,7 +8640,6 @@ function ewww_image_optimizer_settings_script( $hook ) {
 	wp_enqueue_script( 'dashboard' );
 	wp_localize_script( 'ewwwbulkscript', 'ewww_vars', array( '_wpnonce' => wp_create_nonce( 'ewww-image-optimizer-settings' ) ) );
 	ewwwio_memory( __FUNCTION__ );
-	return;
 }
 
 /**
@@ -9396,14 +9395,17 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ) {
 		$status_notices .= '<span style="color: orange; font-weight: bolder">' .
 			esc_html__( 'Disabled automatically, async requests blocked', 'ewww-image-optimizer' ) .
-			" - <a href='admin.php?action=ewww_image_optimizer_retest_background_optimization'>" .
+			' - <a href="' . admin_url( 'admin.php?action=ewww_image_optimizer_retest_background_optimization' ) . '">' .
 			esc_html__( 'Re-test', 'ewww-image-optimizer' ) .
 			'</a></span> ' .
 			ewwwio_help_link( 'https://docs.ewww.io/article/42-background-and-parallel-optimization-disabled', '598cb8be2c7d3a73488be237' );
 	} elseif ( ewww_image_optimizer_detect_wpsf_location_lock() ) {
 		$status_notices .= '<span style="color: orange; font-weight: bolder">' . esc_html__( "Disabled by Shield's Lock to Location feature", 'ewww-image-optimizer' ) . '</span>';
 	} else {
-		$status_notices .= '<span>' . esc_html__( 'Enabled', 'ewww-image-optimizer' ) . '</span>';
+		$status_notices .= '<span>' . esc_html__( 'Enabled', 'ewww-image-optimizer' ) .
+			' - <a href="' . admin_url( 'admin.php?action=ewww_image_optimizer_retest_background_optimization' ) . '">' .
+			esc_html__( 'Re-test', 'ewww-image-optimizer' ) .
+			'</a></span>';
 	}
 	$status_notices .= "</p>\n";
 

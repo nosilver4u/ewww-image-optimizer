@@ -87,7 +87,7 @@ function ewww_image_optimizer_exec_init() {
 		add_action( 'load-upload.php', 'ewww_image_optimizer_tool_init', 9 );
 		add_action( 'load-media-new.php', 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-media_page_ewww-image-optimizer-bulk', 'ewww_image_optimizer_tool_init' );
-		add_action( 'load-settings_page_' . str_replace( '.php', '', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ), 'ewww_image_optimizer_tool_init' );
+		add_action( 'load-settings_page_ewww-image-optimizer', 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-plugins.php', 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-ims_gallery_page_ewww-ims-optimize', 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-media_page_ewww-image-optimizer-unoptimized', 'ewww_image_optimizer_tool_init' );
@@ -161,9 +161,9 @@ function ewww_image_optimizer_notice_hosting_requires_api() {
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 	}
 	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
-		$options_page = 'network/settings.php';
+		$settings_url = network_admin_url( 'settings.php?page=ewww-image-optimizer-options' );
 	} else {
-		$options_page = 'options-general.php';
+		$settings_url = admin_url( 'options-general.php?page=ewww-image-optimizer-options' );
 	}
 	if ( defined( 'WPCOMSH_VERSION' ) ) {
 		$webhost = 'WordPress.com';
@@ -172,7 +172,6 @@ function ewww_image_optimizer_notice_hosting_requires_api() {
 	} else {
 		return;
 	}
-	$settings_url = admin_url( "$options_page?page=" . plugin_basename( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ) );
 	echo "<div id='ewww-image-optimizer-cloud-key-required' class='notice notice-error'><p><strong>" .
 		/* translators: %s: Name of a web host, like WordPress.com or Pantheon. */
 		sprintf( esc_html__( 'The EWWW Image Optimizer requires an API key or an Easy IO subscription to optimize images on %s sites.', 'ewww-image-optimizer-cloud' ), $webhost ) .
@@ -312,9 +311,9 @@ function ewww_image_optimizer_tool_folder_permissions_notice() {
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 	}
 	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
-		$settings_page = 'settings.php?page=' . EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL;
+		$settings_page = network_admin_url( 'settings.php?page=ewww-image-optimizer-options' );
 	} else {
-		$settings_page = 'options-general.php?page=' . EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL;
+		$settings_page = admin_url( 'options-general.php?page=ewww-image-optimizer-options' );
 	}
 	echo "<div id='ewww-image-optimizer-warning-tool-folder-permissions' class='notice notice-error'><p><strong>" .
 		/* translators: %s: Folder location where executables should be installed */
@@ -333,9 +332,9 @@ function ewww_image_optimizer_tool_installation_failed_notice() {
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 	}
 	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
-		$settings_page = 'settings.php?page=' . EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL;
+		$settings_page = network_admin_url( 'settings.php?page=ewww-image-optimizer-options' );
 	} else {
-		$settings_page = 'options-general.php?page=' . EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL;
+		$settings_page = admin_url( 'options-general.php?page=ewww-image-optimizer-options' );
 	}
 	echo "<div id='ewww-image-optimizer-warning-tool-install' class='notice notice-error'><p><strong>" .
 		/* translators: %s: Folder location where executables should be installed */
@@ -666,9 +665,9 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 		}
 		if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
-			$settings_page = 'settings.php?page=' . EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL;
+			$settings_page = network_admin_url( 'settings.php?page=ewww-image-optimizer-options' );
 		} else {
-			$settings_page = 'options-general.php?page=' . EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL;
+			$settings_page = admin_url( 'options-general.php?page=ewww-image-optimizer-options' );
 		}
 		if ( ! is_dir( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
 			ewww_image_optimizer_tool_folder_notice();
@@ -678,11 +677,12 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 			ewww_image_optimizer_tool_folder_permissions_notice();
 		}
 		if ( 'pngout' === $msg ) {
+			$pngout_install_url = admin_url( 'admin.php?action=ewww_image_optimizer_install_pngout' );
 			echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-error'><p>" .
 			sprintf(
 				/* translators: 1: automatically (link) 2: manually (link) */
 				esc_html__( 'You are missing pngout. Install %1$s or %2$s.', 'ewww-image-optimizer' ),
-				'<a href="admin.php?action=ewww_image_optimizer_install_pngout">' . esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
+				"<a href='$pngout_install_url'>" . esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
 				'<a href="https://docs.ewww.io/article/13-installing-pngout" data-beacon-article="5854531bc697912ffd6c1afa">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>'
 			) .
 			'</p></div>';

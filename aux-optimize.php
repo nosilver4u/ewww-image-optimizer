@@ -225,8 +225,19 @@ function ewww_image_optimizer_aux_images_table() {
 			$output['table'] .= '</td>';
 			$output['table'] .= "<td>$type</td>";
 			$output['table'] .= "<td>$last_updated</td>";
+			// Determine filepath for webp.
+			$webpfile  = $file . '.webp';
+			$webp_size = ewww_image_optimizer_filesize( $webpfile );
+			$webp_info = '';
+			if ( $webp_size ) {
+				// Get a human readable filesize.
+				$webp_size = ewww_image_optimizer_size_format( $webp_size );
+				$webpurl   = $image_url . '.webp';
+				$webp_info = "<br>WebP: <a href='$webpurl'>$webp_size</a>";
+			}
 			$output['table'] .= "<td>$savings<br>$size_string<br>" .
 				'<a class="removeimage" onclick="ewwwRemoveImage(' . $optimized_image['id'] . ')">' . esc_html__( 'Remove from history', 'ewww-image-optimizer' ) . '</a>' .
+				$webp_info .
 				( $optimized_image['backup'] ? '<br><a class="restoreimage" onclick="ewwwRestoreImage(' . $optimized_image['id'] . ')">' . esc_html__( 'Restore original', 'ewww-image-optimizer' ) . '</a>' : '' ) .
 				'</td>';
 			$output['table'] .= '</tr>';
