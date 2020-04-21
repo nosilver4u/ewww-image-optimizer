@@ -420,7 +420,10 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 		 */
 		public function multi_resize( $sizes ) {
 			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-			return parent::multi_resize( $sizes );
+			global $wp_version;
+			if ( version_compare( $wp_version, '5.3' ) >= 0 ) {
+				return parent::multi_resize( $sizes );
+			}
 			$metadata  = array();
 			$orig_size = $this->size;
 			foreach ( $sizes as $size => $size_data ) {

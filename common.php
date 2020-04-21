@@ -3072,7 +3072,10 @@ function ewwwio_is_file( $file ) {
 	$upload_dir = wp_get_upload_dir();
 	$upload_dir = $upload_dir['basedir'];
 	if ( empty( $upload_dir ) ) {
-		$upload_dir = WP_CONTENT_DIR;
+		$upload_dir = ABSPATH;
+	}
+	if ( ! defined( 'WP_CONTENT_DIR' ) ) {
+		define( 'WP_CONTENT_DIR', ABSPATH );
 	}
 	if (
 		false === strpos( $file, (string) realpath( $upload_dir ) ) &&
