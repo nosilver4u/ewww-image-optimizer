@@ -3070,11 +3070,12 @@ function ewwwio_is_file( $file ) {
 	}
 	$file       = realpath( $file );
 	$upload_dir = wp_get_upload_dir();
+	$upload_dir = $upload_dir['basedir'];
 	if (
-		false === strpos( $file, realpath( $upload_dir['basedir'] ) ) &&
-		false === strpos( $file, realpath( WP_CONTENT_DIR ) ) &&
-		false === strpos( $file, realpath( ABSPATH ) ) &&
-		false === strpos( $file, realpath( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH ) )
+		false === strpos( $file, (string) realpath( $upload_dir ) ) &&
+		false === strpos( $file, (string) realpath( WP_CONTENT_DIR ) ) &&
+		false === strpos( $file, (string) realpath( ABSPATH ) ) &&
+		false === strpos( $file, (string) realpath( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH ) )
 	) {
 		return false;
 	}
