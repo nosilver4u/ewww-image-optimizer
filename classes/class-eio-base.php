@@ -415,7 +415,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 				// Normally, we use this one, as it will be shorter for sub-directory installs.
 				$home_url    = get_home_url();
 				$site_url    = get_site_url();
-				$upload_dir  = wp_upload_dir( null, false );
+				$upload_dir  = wp_get_upload_dir();
 				$home_domain = $this->parse_url( $home_url, PHP_URL_HOST );
 				$site_domain = $this->parse_url( $site_url, PHP_URL_HOST );
 				// If the home domain does not match the upload url, and the site domain does match...

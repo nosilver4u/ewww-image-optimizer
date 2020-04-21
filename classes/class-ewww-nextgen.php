@@ -549,14 +549,14 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			$ewww_manual_nonce = wp_create_nonce( 'ewww-manual-' . $id );
 			if ( $optimized ) {
 				$link = sprintf(
-					'<a class="ewww-manual-optimize" data-id="%1$d" data-nonce="%2$s" href="admin.php?action=ewww_ngg_manual&amp;ewww_manual_nonce=%2$s&amp;ewww_force=1&amp;ewww_attachment_ID=%1$d">%3$s</a>',
+					'<a class="ewww-manual-optimize" data-id="%1$d" data-nonce="%2$s" href="' . admin_url( 'admin.php?action=ewww_ngg_manual' ) . '&amp;ewww_manual_nonce=%2$s&amp;ewww_force=1&amp;ewww_attachment_ID=%1$d">%3$s</a>',
 					$id,
 					$ewww_manual_nonce,
 					esc_html__( 'Re-optimize', 'ewww-image-optimizer' )
 				);
 				if ( $restorable ) {
 					$link .= sprintf(
-						'<br><a class="ewww-manual-cloud-restore" data-id="%1$d" data-nonce="%2$s" href="admin.php?action=ewww_ngg_cloud_restore&amp;ewww_manual_nonce=%2$s&amp;ewww_attachment_ID=%1$d">%3$s</a>',
+						'<br><a class="ewww-manual-cloud-restore" data-id="%1$d" data-nonce="%2$s" href="' . admin_url( 'admin.php?action=ewww_ngg_cloud_restore' ) . '&amp;ewww_manual_nonce=%2$s&amp;ewww_attachment_ID=%1$d">%3$s</a>',
 						$id,
 						$ewww_manual_nonce,
 						esc_html__( 'Restore original', 'ewww-image-optimizer' )
@@ -564,7 +564,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				}
 			} else {
 				$link = sprintf(
-					'<a class="ewww-manual-optimize" data-id="%1$d" data-nonce="%2$s" href="admin.php?action=ewww_ngg_manual&amp;ewww_manual_nonce=%2$s&amp;ewww_attachment_ID=%1$d">%3$s</a>',
+					'<a class="ewww-manual-optimize" data-id="%1$d" data-nonce="%2$s" href="' . admin_url( 'admin.php?action=ewww_ngg_manual' ) . '&amp;ewww_manual_nonce=%2$s&amp;ewww_attachment_ID=%1$d">%3$s</a>',
 					$id,
 					$ewww_manual_nonce,
 					esc_html__( 'Optimize now!', 'ewww-image-optimizer' )

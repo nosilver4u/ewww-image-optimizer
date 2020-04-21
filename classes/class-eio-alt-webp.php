@@ -71,7 +71,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		ewwwio_debug_message( "home url: $this->home_url" );
 		$this->relative_home_url = preg_replace( '/https?:/', '', $this->home_url );
 		ewwwio_debug_message( "relative home url: $this->relative_home_url" );
-		$upload_dir        = wp_upload_dir();
+		$upload_dir        = wp_get_upload_dir();
 		$this->content_url = trailingslashit( ! empty( $upload_dir['baseurl'] ) ? $upload_dir['baseurl'] : content_url( 'uploads' ) );
 		ewwwio_debug_message( "content_url: $this->content_url" );
 		$this->home_domain = $this->parse_url( $this->home_url, PHP_URL_HOST );

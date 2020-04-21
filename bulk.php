@@ -648,14 +648,8 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 		// Unset the 'bulk resume' option since we were given specific IDs to optimize.
 		update_option( 'ewww_image_optimizer_bulk_resume', '' );
 		// Check if there is a previous bulk operation to resume.
-	} elseif ( 'scanning' === $resume ) {
-		ewwwio_debug_message( 'scanning, nothing doing' );
-		// TODO: do nothing...
 	} elseif ( $scanning || $resume ) {
-		ewwwio_debug_message( 'resuming, nothing doing' );
-		/* $attachments = array(); */
-
-		// TODO: do nothing...
+		ewwwio_debug_message( 'scanning/resuming, nothing doing' );
 	} elseif ( empty( $attachments ) ) {
 		ewwwio_debug_message( 'load em all up' );
 		// Since we aren't resuming, and weren't given a list of IDs, we will optimize everything.

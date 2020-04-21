@@ -133,6 +133,7 @@ class EWWWIO_Tracking {
 			}
 		}
 
+		$data['lazyload']               = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' );
 		$data['optipng_level']          = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? 0 : (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_optipng_level' );
 		$data['disable_pngout']         = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_pngout' );
 		$data['pngout_level']           = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? 9 : (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pngout_level' );
@@ -149,6 +150,7 @@ class EWWWIO_Tracking {
 		$data['resize_indirect_width']  = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherwidth' );
 		$data['resize_indirect_height'] = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherheight' );
 		$data['resize_existing']        = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' );
+		$data['resize_other']           = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_other_existing' );
 		$data['total_sizes']            = (int) count( ewww_image_optimizer_get_image_sizes() );
 		$data['disabled_opt_sizes']     = is_array( get_option( 'ewww_image_optimizer_disable_resizes_opt' ) ) ? count( get_option( 'ewww_image_optimizer_disable_resizes_opt' ) ) : 0;
 		$data['disabled_create_sizes']  = is_array( get_option( 'ewww_image_optimizer_disable_resizes' ) ) ? count( get_option( 'ewww_image_optimizer_disable_resizes' ) ) : 0;
@@ -354,8 +356,8 @@ class EWWWIO_Tracking {
 			ewww_image_optimizer_set_option( 'ewww_image_optimizer_tracking_notice', 1 );
 		} else {
 			$admin_email = '<strong>' . esc_html( get_bloginfo( 'admin_email' ) ) . '</strong>';
-			$optin_url   = 'admin.php?action=ewww_opt_into_tracking';
-			$optout_url  = 'admin.php?action=ewww_opt_out_of_tracking';
+			$optin_url   = admin_url( 'admin.php?action=ewww_opt_into_tracking' );
+			$optout_url  = admin_url( 'admin.php?action=ewww_opt_out_of_tracking' );
 			echo '<div class="updated"><p>';
 				/* translators: %s: admin email as configured in settings */
 				printf( esc_html__( 'Allow EWWW Image Optimizer to track plugin usage? Opt-in to tracking and receive 500 free image credits in your admin email: %s. No sensitive data is tracked.', 'ewww-image-optimizer' ), $admin_email );

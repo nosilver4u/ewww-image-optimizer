@@ -30,9 +30,11 @@ function ewww_image_optimizer_aux_images() {
 		ewww_image_optimizer_options( 'debug-silent' );
 		$output .= '<div style="clear:both;"></div>';
 		$output .= '<p><b>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</b> <button id="ewww-copy-debug" class="button button-secondary" type="button">' . esc_html__( 'Copy', 'ewww-image-optimizer' ) . '</button>';
-		if ( ewwwio_is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'debug.log' ) ) {
-			$debug_log_url = plugins_url( '/debug.log', __FILE__ );
-			$output       .= "&emsp;<a href='$debug_log_url'>" . esc_html( 'View Debug Log', 'ewww-image-optimizer' ) . "</a> - <a href='admin.php?action=ewww_image_optimizer_delete_debug_log'>" . esc_html( 'Remove Debug Log', 'ewww-image-optimizer' ) . '</a>';
+		if ( ewwwio_is_file( WP_CONTENT_DIR . '/ewww/debug.log' ) ) {
+			$output .= "&emsp;<a href='" . admin_url( 'admin.php?action=ewww_image_optimizer_view_debug_log' ) . "'>" .
+				esc_html( 'View Debug Log', 'ewww-image-optimizer' ) . "</a> - <a href='" .
+				admin_url( 'admin.php?action=ewww_image_optimizer_delete_debug_log' ) . "'>" .
+				esc_html( 'Remove Debug Log', 'ewww-image-optimizer' ) . '</a>';
 		}
 		$output .= '</p>';
 		$output .= '<div id="ewww-debug-info" contenteditable="true">' . $eio_debug . '</div>';
@@ -117,7 +119,7 @@ function ewww_image_optimizer_aux_images_table() {
 	$output['search_count'] = count( $already_optimized );
 	$output['search_total'] = $total;
 
-	$upload_info     = wp_upload_dir();
+	$upload_info     = wp_get_upload_dir();
 	$upload_path     = $upload_info['basedir'];
 	$output['table'] = '<table class="wp-list-table widefat media" cellspacing="0"><thead><tr><th>&nbsp;</th><th>' .
 		esc_html__( 'Filename', 'ewww-image-optimizer' ) . '</th><th>' .
@@ -366,7 +368,7 @@ function ewww_image_optimizer_aux_images_clean() {
 
 	$already_optimized = $wpdb->get_results( $wpdb->prepare( "SELECT path,orig_size,image_size,id,backup,updated FROM $wpdb->ewwwio_images WHERE pending=0 AND image_size > 0 ORDER BY id DESC LIMIT %d,%d", $offset, $per_page ), ARRAY_A );
 
-	$upload_info = wp_upload_dir();
+	$upload_info = wp_get_upload_dir();
 	$upload_path = $upload_info['basedir'];
 	foreach ( $already_optimized as $optimized_image ) {
 		$file = ewww_image_optimizer_absolutize_path( $optimized_image['path'] );
@@ -1024,12 +1026,12 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 		}
 		if ( is_plugin_active( 'buddypress/bp-loader.php' ) || is_plugin_active_for_network( 'buddypress/bp-loader.php' ) ) {
-			$upload_dir = wp_upload_dir();
+			$upload_dir = wp_get_upload_dir();
 			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/avatars', $started );
 			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/group-avatars', $started );
 		}
 		if ( is_plugin_active( 'buddypress-activity-plus/bpfb.php' ) || is_plugin_active_for_network( 'buddypress-activity-plus/bpfb.php' ) ) {
-			$upload_dir = wp_upload_dir();
+			$upload_dir = wp_get_upload_dir();
 			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/bpfb', $started );
 		}
 		if ( is_plugin_active( 'grand-media/grand-media.php' ) || is_plugin_active_for_network( 'grand-media/grand-media.php' ) ) {
@@ -1118,7 +1120,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 		// Scan images in two most recent media library folders if the option is enabled, and this is a scheduled optimization.
 		if ( 'ewww-image-optimizer-auto' === $hook && ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_media_paths' ) ) {
 			// Retrieve the location of the WordPress upload folder.
-			$upload_dir = wp_upload_dir();
+			$upload_dir = wp_get_upload_dir();
 			// Retrieve the path of the upload folder.
 			$upload_path = $upload_dir['basedir'];
 			$this_month  = gmdate( 'm' );

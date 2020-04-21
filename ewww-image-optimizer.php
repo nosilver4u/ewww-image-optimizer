@@ -157,7 +157,7 @@ if ( ! function_exists( 'ewww_image_optimizer_unsupported_php' ) ) {
  */
 function ewww_image_optimizer_notice_wpengine() {
 	echo "<div id='ewww-image-optimizer-warning-wpengine' class='error'><p>" . esc_html__( 'The regular version of the EWWW Image Optimizer plugin is not permitted on WP Engine sites. However, the cloud version has been approved by WP Engine. Please deactivate EWWW Image Optimizer and install EWWW Image Optimizer Cloud to optimize your images.', 'ewww-image-optimizer' ) .
-		' <a href="admin.php?action=ewwwio_install_cloud_plugin">' . esc_html__( 'Install now.', 'ewww-image-optimizer' ) . '</a></p></div>';
+		' <a href="' . admin_url( 'admin.php?action=ewwwio_install_cloud_plugin' ) . '">' . esc_html__( 'Install now.', 'ewww-image-optimizer' ) . '</a></p></div>';
 }
 
 /**

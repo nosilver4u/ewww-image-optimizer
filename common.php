@@ -10,14 +10,6 @@
  * @package EWWW_Image_Optimizer
  */
 
-// TODO: might be able to use the Custom Bulk Actions in WP 4.7+ to support the bulk optimize drop-down menu.
-// TODO: write some tests for AGR.
-// TODO: can some of the bulk "fallbacks" be implemented for async processing?
-// TODO: check to see if we can use PHP and WP core is_countable functions.
-// TODO: make sure all settings (like lazy load) are in usage reporting.
-// TODO: make sure we are using admin_url() rather than just linking to admin.php directly.
-// TODO: we can use wp_is_stream() probably.
-// TODO: use wp_get_upload_dir() when we only need basedir or baseurl and don't need dir created.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -150,12 +142,10 @@ add_action( 'sirsc_image_file_deleted', 'ewww_image_optimizer_file_deleted', 10,
 add_action( 'admin_menu', 'ewww_image_optimizer_admin_menu', 60 );
 // Adds the EWWW IO settings to the network admin menu.
 add_action( 'network_admin_menu', 'ewww_image_optimizer_network_admin_menu' );
-// Adds the hook to modify the media library bulk actions via admin_print_footer_scripts.
-add_action( 'load-upload.php', 'ewww_image_optimizer_load_admin_js' );
-// Non-AJAX handler to reroute selected IDs to the bulk optimizer.
-add_action( 'admin_action_bulk_optimize', 'ewww_image_optimizer_bulk_action_handler' );
-// Ditto, but handles the actions from the bottom of the media page.
-add_action( 'admin_action_-1', 'ewww_image_optimizer_bulk_action_handler' );
+// Adds Bulk Optimize to the media library bulk actions.
+add_filter( 'bulk_actions-upload', 'ewww_image_optimizer_add_bulk_media_actions' );
+// Handle the bulk actions from the media library.
+add_filter( 'handle_bulk_actions-upload', 'ewww_image_optimizer_bulk_action_handler', 10, 3 );
 // Adds scripts to ajaxify the one-click actions on the media library, and register tooltips for conversion links.
 add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_media_scripts' );
 // Adds scripts for the EWWW IO settings page.
@@ -1105,7 +1095,6 @@ function ewww_image_optimizer_current_screen( $screen ) {
  * @param string $size The slug/name of the image size.
  */
 function ewww_image_optimizer_single_size_optimize( $id, $size ) {
-	// TODO: may be able to bring in a meta or filename param from IW eventually.
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	session_write_close();
 	$meta = wp_get_attachment_metadata( $id );
@@ -2268,7 +2257,7 @@ function ewww_image_optimizer_w3tc_update_files( $files ) {
  * @return array|bool Information about the uploads dir, or false on failure.
  */
 function ewww_image_optimizer_upload_info() {
-	$upload_info = wp_upload_dir( null, false );
+	$upload_info = wp_get_upload_dir();
 
 	if ( empty( $upload_info['error'] ) ) {
 		$parse_url = parse_url( $upload_info['baseurl'] );
@@ -5175,17 +5164,6 @@ function ewww_image_optimizer_hidpi_optimize( $orig_path, $return_path = false, 
 }
 
 /**
- * Cleanup temp file for optimizing S3 Uploads image.
- *
- * @param string $file The filename of the temp file.
- * @return string The name of the file unaltered, or the s3 filename stored in $s3_uploads_image.
- */
-function ewww_image_optimizer_s3_uploads_image_cleanup( $file ) {
-	// TODO: remove this function.
-	return $file;
-}
-
-/**
  * Checks the existence of a cloud storage stream wrapper.
  *
  * @return bool True if a supported stream wrapper is found, false otherwise.
@@ -6065,7 +6043,6 @@ function ewww_image_optimizer_resize_upload( $file ) {
 		// Use this action to perform any operations on the original file before it is overwritten with the new, smaller file.
 		do_action( 'ewww_image_optimizer_image_resized', $file, $new_file );
 		ewwwio_debug_message( "after resizing: $new_size" );
-		// TODO: see if there is a way to just check that meta exists on the new image.
 		// Use PEL to get the exif (if Remove Meta is unchecked) and GD is in use, so we can save it to the new image.
 		if ( 'image/jpeg' === $type && ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_skip_full' ) || ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) && ! ewww_image_optimizer_imagick_support() ) {
 			ewwwio_debug_message( 'manually copying metadata for GD' );
@@ -7652,6 +7629,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 	// Once we get to the EWWW IO custom column.
 	if ( 'ewww-image-optimizer' === $column_name ) {
 		$output = '';
+		$id     = (int) $id;
 		if ( is_null( $meta ) ) {
 			// Retrieve the metadata.
 			$meta = wp_get_attachment_metadata( $id );
@@ -7838,7 +7816,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				if ( current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 					// Display a link to re-optimize manually.
 					$output .= '<div>' . sprintf(
-						"<a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_force=1&amp;ewww_attachment_ID=%d\">%s</a>",
+						"<a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href='" . admin_url( 'admin.php?action=ewww_image_optimizer_manual_optimize' ) . "&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_force=1&amp;ewww_attachment_ID=%d'>%s</a>",
 						$id,
 						( ewww_image_optimizer_restore_possible( $optimized_images, $compression_level ) ? esc_html__( 'Restore & Re-optimize', 'ewww-image-optimizer' ) : esc_html__( 'Re-optimize', 'ewww-image-optimizer' ) )
 					) .
@@ -7847,7 +7825,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				}
 				if ( $backup_available && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 					$output .= '<div>' . sprintf(
-						"<a class='ewww-manual-cloud-restore' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_cloud_restore&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d\">%s</a>",
+						"<a class='ewww-manual-cloud-restore' data-id='$id' data-nonce='$ewww_manual_nonce' href='" . admin_url( 'admin.php?action=ewww_image_optimizer_manual_cloud_restore' ) . "&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d'>%s</a>",
 						$id,
 						esc_html__( 'Restore original', 'ewww-image-optimizer' )
 					) . '</div>';
@@ -7867,7 +7845,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 						$sizes_to_opt
 					) . '</div>';
 				}
-				$output .= '<div>' . sprintf( "<a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d\">%s</a>", $id, esc_html__( 'Optimize now!', 'ewww-image-optimizer' ) ) . '</div>';
+				$output .= '<div>' . sprintf( "<a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href='" . admin_url( 'admin.php?action=ewww_image_optimizer_manual_optimize' ) . "&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d'>%s</a>", $id, esc_html__( 'Optimize now!', 'ewww-image-optimizer' ) ) . '</div>';
 			}
 			$output .= '</div>';
 			if ( $return_output ) {
@@ -7899,7 +7877,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			// Link to webp upgrade script.
 			$oldwebpfile = preg_replace( '/\.\w+$/', '.webp', $file_path );
 			if ( file_exists( $oldwebpfile ) && current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
-				$output .= "<div><a href='options.php?page=ewww-image-optimizer-webp-migrate'>" . esc_html__( 'Run WebP upgrade', 'ewww-image-optimizer' ) . '</a></div>';
+				$output .= "<div><a href='" . admin_url( 'options.php?page=ewww-image-optimizer-webp-migrate' ) . "'>" . esc_html__( 'Run WebP upgrade', 'ewww-image-optimizer' ) . '</a></div>';
 			}
 
 			// Determine filepath for webp.
@@ -7915,13 +7893,13 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			if ( empty( $msg ) && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 				// Output a link to re-optimize manually.
 				$output .= '<div>' . sprintf(
-					"<a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_force=1&amp;ewww_attachment_ID=%d\">%s</a>",
+					"<a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href='" . admin_url( 'admin.php?action=ewww_image_optimizer_manual_optimize' ) . "&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_force=1&amp;ewww_attachment_ID=%d'>%s</a>",
 					$id,
 					( ewww_image_optimizer_restore_possible( $optimized_images, $compression_level ) ? esc_html__( 'Restore & Re-optimize', 'ewww-image-optimizer' ) : esc_html__( 'Re-optimize', 'ewww-image-optimizer' ) )
 				);
 				$output .= ewww_image_optimizer_variant_level_notice( $optimized_images, $compression_level );
 				if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_convert_links' ) && 'ims_image' !== get_post_type( $id ) && ! empty( $convert_desc ) ) {
-					$output .= " | <a class='ewww-manual-convert' data-id='$id' data-nonce='$ewww_manual_nonce' title='$convert_desc' href='admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=$id&amp;ewww_convert=1&amp;ewww_force=1'>$convert_link</a>";
+					$output .= " | <a class='ewww-manual-convert' data-id='$id' data-nonce='$ewww_manual_nonce' title='$convert_desc' href='" . admin_url( "admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=$id" ) . "&amp;ewww_convert=1&amp;ewww_force=1'>$convert_link</a>";
 				}
 				$output .= '</div>';
 			} else {
@@ -7933,13 +7911,13 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			}
 			if ( $restorable && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 				$output .= '<div>' . sprintf(
-					"<a class='ewww-manual-restore' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_restore&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d\">%s</a>",
+					"<a class='ewww-manual-restore' data-id='$id' data-nonce='$ewww_manual_nonce' href='" . admin_url( 'admin.php?action=ewww_image_optimizer_manual_restore' ) . "&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d'>%s</a>",
 					$id,
 					esc_html__( 'Restore original', 'ewww-image-optimizer' )
 				) . '</div>';
 			} elseif ( $backup_available && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 				$output .= '<div>' . sprintf(
-					"<a class='ewww-manual-cloud-restore' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_cloud_restore&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d\">%s</a>",
+					"<a class='ewww-manual-cloud-restore' data-id='$id' data-nonce='$ewww_manual_nonce' href='" . admin_url( 'admin.php?action=ewww_image_optimizer_manual_cloud_restore' ) . "&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d'>%s</a>",
 					$id,
 					esc_html__( 'Restore original', 'ewww-image-optimizer' )
 				) . '</div>';
@@ -7978,9 +7956,9 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 			}
 			if ( empty( $msg ) && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 				// Give the user the option to optimize the image right now.
-				$output .= sprintf( "<div><a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href=\"admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d\">%s</a>", $id, esc_html__( 'Optimize now!', 'ewww-image-optimizer' ) );
+				$output .= sprintf( "<div><a class='ewww-manual-optimize' data-id='$id' data-nonce='$ewww_manual_nonce' href='" . admin_url( 'admin.php?action=ewww_image_optimizer_manual_optimize' ) . "&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=%d'>%s</a>", $id, esc_html__( 'Optimize now!', 'ewww-image-optimizer' ) );
 				if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_convert_links' ) && 'ims_image' !== get_post_type( $id ) && ! empty( $convert_desc ) ) {
-					$output .= " | <a class='ewww-manual-convert' data-id='$id' data-nonce='$ewww_manual_nonce' title='$convert_desc' href='admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=$id&amp;ewww_convert=1&amp;ewww_force=1'>$convert_link</a>";
+					$output .= " | <a class='ewww-manual-convert' data-id='$id' data-nonce='$ewww_manual_nonce' title='$convert_desc' href='" . admin_url( "admin.php?action=ewww_image_optimizer_manual_optimize&amp;ewww_manual_nonce=$ewww_manual_nonce&amp;ewww_attachment_ID=$id&amp;ewww_convert=1&amp;ewww_force=1" ) . "'>$convert_link</a>";
 				}
 				$output .= '</div>';
 			} else {
@@ -8419,49 +8397,38 @@ function ewww_image_optimizer_dismiss_review_notice() {
 }
 
 /**
- * Load JS in media library footer for bulk actions.
+ * Add our bulk optimize action to the bulk actions drop-down menu.
+ *
+ * @param array $bulk_actions A list of actions available already.
+ * @return array The list of actions, with our bulk action included.
  */
-function ewww_image_optimizer_load_admin_js() {
-	add_action( 'admin_print_footer_scripts', 'ewww_image_optimizer_add_bulk_actions_via_javascript' );
-}
-
-/**
- * Adds a bulk optimize action to the drop-down on the media library page.
- */
-function ewww_image_optimizer_add_bulk_actions_via_javascript() {
-	// Borrowed from http://www.viper007bond.com/wordpress-plugins/regenerate-thumbnails/ .
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_bulk_permissions', '' ) ) ) {
-		return;
+function ewww_image_optimizer_add_bulk_media_actions( $bulk_actions ) {
+	if ( is_array( $bulk_actions ) ) {
+		$bulk_actions['bulk_optimze'] = __( 'Bulk Optimize', 'ewww-image-optimizer' );
 	}
-	?>
-	<script type="text/javascript">
-		jQuery(document).ready(function($){
-			$('select[name^="action"] option:last-child').before('<option value="bulk_optimize"><?php esc_html_e( 'Bulk Optimize', 'ewww-image-optimizer' ); ?></option>');
-			$('.ewww-manual-convert').tooltip();
-		});
-	</script>
-	<?php
+	return $bulk_actions;
 }
 
 /**
  * Handles the bulk actions POST.
+ *
+ * @param string $redirect_to The URL from whence we came.
+ * @param string $doaction The action requested.
+ * @param array  $post_ids An array of attachment ID numbers.
+ * @return string The URL to go back to when we are done handling the action.
  */
-function ewww_image_optimizer_bulk_action_handler() {
-	// Borrowed from http://www.viper007bond.com/wordpress-plugins/regenerate-thumbnails/ .
+function ewww_image_optimizer_bulk_action_handler( $redirect_to, $doaction, $post_ids ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	// If the requested action is blank, or not a bulk_optimize, do nothing.
-	if ( ( empty( $_REQUEST['action'] ) || 'bulk_optimize' !== $_REQUEST['action'] ) && ( empty( $_REQUEST['action2'] ) || 'bulk_optimize' !== $_REQUEST['action2'] ) ) {
-		return;
+	if ( empty( $doaction || 'bulk_optimize' !== $doaction ) ) {
+		return $redirect_to;
 	}
 	// If there is no media to optimize, do nothing.
-	if ( empty( $_REQUEST['media'] ) || ! is_array( $_REQUEST['media'] ) ) {
-		return;
+	if ( ! ewww_image_optimizer_iterable( $post_ids ) ) {
+		return $redirect_to;
 	}
-	// Check the referring page.
 	check_admin_referer( 'bulk-media' );
 	// Prep the attachment IDs for optimization.
-	$ids = implode( ',', array_map( 'intval', $_REQUEST['media'] ) );
+	$ids = implode( ',', array_map( 'intval', $post_ids ) );
 	wp_redirect(
 		add_query_arg(
 			array(
@@ -8472,7 +8439,6 @@ function ewww_image_optimizer_bulk_action_handler() {
 		)
 	);
 	ewwwio_memory( __FUNCTION__ );
-	exit();
 }
 
 /**
@@ -8663,7 +8629,6 @@ function ewww_image_optimizer_savings() {
 		ewwwio_debug_message( 'querying savings for multi-site' );
 
 		if ( get_blog_count() > 1000 ) {
-			// TODO: someday do something more clever than this, maybe.
 			return 0;
 		}
 		if ( function_exists( 'get_sites' ) ) {
@@ -9086,7 +9051,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewwwio_debug_message( 'WP_CONTENT_DIR: ' . WP_CONTENT_DIR );
 	ewwwio_debug_message( 'home url (Site URL): ' . get_home_url() );
 	ewwwio_debug_message( 'site url (WordPress URL): ' . get_site_url() );
-	$upload_info = wp_upload_dir( null, false );
+	$upload_info = wp_get_upload_dir();
 	ewwwio_debug_message( 'wp_upload_dir (baseurl): ' . $upload_info['baseurl'] );
 	ewwwio_debug_message( 'wp_upload_dir (basedir): ' . $upload_info['basedir'] );
 	ewwwio_debug_message( "content_width: $content_width" );
@@ -9134,7 +9099,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	if ( 'network-multisite' === $network ) {
 		$bulk_link = esc_html__( 'Media Library', 'ewww-image-optimizer' ) . ' -> ' . esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' );
 	} else {
-		$bulk_link = '<a href="upload.php?page=ewww-image-optimizer-bulk">' . esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ) . '</a>';
+		$bulk_link = '<a href="' . admin_url( 'upload.php?page=ewww-image-optimizer-bulk' ) . '">' . esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ) . '</a>';
 	}
 	$s3_link  = '<a href="https://ewww.io/downloads/s3-image-optimizer/">' . esc_html__( 'S3 Image Optimizer', 'ewww-image-optimizer' ) . '</a>';
 	$output[] = '<p>' .
@@ -9323,7 +9288,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		if ( ! empty( $pngout_version ) ) {
 			$compress_score += 5;
 		} else {
-			$compress_recommendations[] = esc_html__( 'Install pngout', 'ewww-image-optimizer' ) . ': <a href="admin.php?action=ewww_image_optimizer_install_pngout">' . esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a> | <a href="https://docs.ewww.io/article/13-installing-pngout" data-beacon-article="5854531bc697912ffd6c1afa">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>';
+			$compress_recommendations[] = esc_html__( 'Install pngout', 'ewww-image-optimizer' ) . ': <a href="' . admin_url( 'admin.php?action=ewww_image_optimizer_install_pngout' ) . '">' . esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a> | <a href="https://docs.ewww.io/article/13-installing-pngout" data-beacon-article="5854531bc697912ffd6c1afa">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>';
 		}
 	}
 	if ( ! $skip['pngquant'] && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
@@ -9485,7 +9450,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$status_output .= $savings_guage;
 		$status_output .= '<p style="text-align:center"><strong>' . esc_html__( 'Savings', 'ewww-image-optimizer' ) . '</strong></p>';
 		if ( 'network-multisite' !== $network ) {
-			$status_output .= '<p><a href="tools.php?page=ewww-image-optimizer-tools">' . esc_html__( 'View optimized images.', 'ewww-image-optimizer' ) . '</a></p>';
+			$status_output .= '<p><a href="' . admin_url( 'tools.php?page=ewww-image-optimizer-tools' ) . '">' . esc_html__( 'View optimized images.', 'ewww-image-optimizer' ) . '</a></p>';
 		}
 		$status_output .= '</div><!-- end .ewww-status-detail --></li>';
 	}
