@@ -3072,30 +3072,20 @@ function ewwwio_is_file( $file ) {
 	$wp_dir     = realpath( ABSPATH );
 	$upload_dir = wp_get_upload_dir();
 	$upload_dir = realpath( $upload_dir['basedir'] );
-	if ( empty( $upload_dir ) ) {
-		echo "empty upload_dir\n";
-		$upload_dir = $wp_dir;
-	}
-	if ( ! defined( 'WP_CONTENT_DIR' ) ) {
-		echo "undefined WP_CONTENT_DIR\n";
-		define( 'WP_CONTENT_DIR', ABSPATH );
-	}
+
 	$content_dir = realpath( WP_CONTENT_DIR );
-	$plugin_dir  = realpath( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH );
-	if (
-		'cli' === php_sapi_name() &&
-		( empty( $upload_dir ) ||
-		empty( $wp_dir ) ||
-		empty( $content_dir ) ||
-		empty( $plugin_dir ) )
-	) {
-		echo "uploads: $upload_dir, wp: $wp_dir, content: $content_dir, plugin: $plugin_dir\n";
+	if ( empty( $content_dir ) ) {
+		$content_dir = $wp_dir;
 	}
+	if ( empty( $upload_dir ) ) {
+		$upload_dir = $content_dir;
+	}
+	$plugin_dir = realpath( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH );
 	if (
-		false === strpos( $file, (string) realpath( $upload_dir ) ) &&
-		false === strpos( $file, (string) realpath( WP_CONTENT_DIR ) ) &&
-		false === strpos( $file, (string) realpath( ABSPATH ) ) &&
-		false === strpos( $file, (string) realpath( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH ) )
+		false === strpos( $file, $upload_dir ) &&
+		false === strpos( $file, $content_dir ) &&
+		false === strpos( $file, $wp_dir ) &&
+		false === strpos( $file, $plugin_dir )
 	) {
 		return false;
 	}
