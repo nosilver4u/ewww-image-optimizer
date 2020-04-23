@@ -16,6 +16,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 class EIO_Alt_Webp extends EIO_Page_Parser {
 
 	/**
+	 * A list of user-defined exclusions, populated by validate_user_exclusions().
+	 *
+	 * @access protected
+	 * @var array $user_exclusions
+	 */
+	protected $user_exclusions = array();
+
+	/**
 	 * The Alt WebP inline script contents. Current length 11704.
 	 *
 	 * @access private
@@ -134,6 +142,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		} else {
 			add_action( 'wp_head', array( $this, 'inline_script' ) );
 		}
+		$this->validate_user_exclusions();
 	}
 
 
@@ -400,6 +409,9 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 				if ( strpos( $image, 'data-pin-description=' ) && strpos( $image, 'width="0" height="0"' ) ) {
 					continue;
 				}
+				if ( ! $this->validate_tag( $image ) ) {
+					continue;
+				}
 				$file = $images['img_url'][ $index ];
 				ewwwio_debug_message( "parsing an image: $file" );
 				if ( strpos( $image, 'jetpack-lazy-image' ) && $this->validate_image_url( $file ) ) {
@@ -522,8 +534,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 				if ( $this->get_attribute( $image, 'src' ) ) {
 					continue;
 				}
-				// Ignore 0-size Pinterest schema images.
-				if ( strpos( $image, 'data-pin-description=' ) && strpos( $image, 'width="0" height="0"' ) ) {
+				if ( ! $this->validate_tag( $image ) ) {
 					continue;
 				}
 				ewwwio_debug_message( 'found img without src' );
@@ -555,6 +566,9 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			$images = $this->get_elements_from_html( $buffer, 'img' );
 			if ( ewww_image_optimizer_iterable( $images ) ) {
 				foreach ( $images as $index => $image ) {
+					if ( ! $this->validate_tag( $image ) ) {
+						continue;
+					}
 					$file = $this->get_attribute( $image, 'src' );
 					if ( ( empty( $file ) || strpos( $image, 'R0lGODlhAQABAIAAAAAAAP' ) ) && strpos( $image, ' data-srcset=' ) && strpos( $this->get_attribute( $image, 'class' ), 'lazyload' ) ) {
 						$new_image = $image;
@@ -579,6 +593,9 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		if ( ewww_image_optimizer_iterable( $pictures ) ) {
 			foreach ( $pictures as $index => $picture ) {
 				if ( strpos( $picture, 'image/webp' ) ) {
+					continue;
+				}
+				if ( ! $this->validate_tag( $picture ) ) {
 					continue;
 				}
 				$sources = $this->get_elements_from_html( $picture, 'source' );
@@ -611,6 +628,9 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		if ( ewww_image_optimizer_iterable( $links ) ) {
 			foreach ( $links as $index => $link ) {
 				ewwwio_debug_message( "parsing a link $link" );
+				if ( ! $this->validate_tag( $link ) ) {
+					continue;
+				}
 				$file  = $this->get_attribute( $link, 'data-src' );
 				$thumb = $this->get_attribute( $link, 'data-thumbnail' );
 				if ( $file && $thumb ) {
@@ -644,6 +664,9 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		if ( ewww_image_optimizer_iterable( $listitems ) ) {
 			foreach ( $listitems as $index => $listitem ) {
 				ewwwio_debug_message( 'parsing a listitem' );
+				if ( ! $this->validate_tag( $listitem ) ) {
+					continue;
+				}
 				if ( $this->get_attribute( $listitem, 'data-title' ) === 'Slide' && ( $this->get_attribute( $listitem, 'data-lazyload' ) || $this->get_attribute( $listitem, 'data-thumb' ) ) ) {
 					$thumb = $this->get_attribute( $listitem, 'data-thumb' );
 					ewwwio_debug_message( "checking webp for revslider data-thumb: $thumb" );
@@ -687,6 +710,9 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		if ( ewww_image_optimizer_iterable( $divs ) ) {
 			foreach ( $divs as $index => $div ) {
 				ewwwio_debug_message( 'parsing a div' );
+				if ( ! $this->validate_tag( $div ) ) {
+					continue;
+				}
 				$thumb     = $this->get_attribute( $div, 'data-thumb' );
 				$div_class = $this->get_attribute( $div, 'class' );
 				if ( $div_class && $thumb && strpos( $div_class, 'woocommerce-product-gallery__image' ) !== false ) {
@@ -713,6 +739,9 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		if ( ewww_image_optimizer_iterable( $sections ) ) {
 			foreach ( $sections as $index => $section ) {
 				ewwwio_debug_message( 'parsing a section' );
+				if ( ! $this->validate_tag( $section ) ) {
+					continue;
+				}
 				$class    = $this->get_attribute( $section, 'class' );
 				$bg_image = $this->get_attribute( $section, 'data-bg' );
 				if ( $class && $bg_image && false !== strpos( $class, 'lazyload' ) ) {
@@ -730,6 +759,9 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		if ( ewww_image_optimizer_iterable( $spans ) ) {
 			foreach ( $spans as $index => $span ) {
 				ewwwio_debug_message( 'parsing a span' );
+				if ( ! $this->validate_tag( $span ) ) {
+					continue;
+				}
 				$class    = $this->get_attribute( $span, 'class' );
 				$bg_image = $this->get_attribute( $span, 'data-bg' );
 				if ( $class && $bg_image && false !== strpos( $class, 'lazyload' ) ) {
@@ -747,6 +779,9 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		if ( ewww_image_optimizer_iterable( $videos ) ) {
 			foreach ( $videos as $index => $video ) {
 				ewwwio_debug_message( 'parsing a video element' );
+				if ( ! $this->validate_tag( $video ) ) {
+					continue;
+				}
 				$file = $this->get_attribute( $video, 'poster' );
 				if ( $file ) {
 					ewwwio_debug_message( "checking webp for video poster: $file" );
@@ -920,6 +955,81 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Validate the user-defined exclusions.
+	 */
+	function validate_user_exclusions() {
+		$user_exclusions = $this->get_option( $this->prefix . 'webp_rewrite_exclude' );
+		$this->debug_message( $this->prefix . 'webp_rewrite_exclude' );
+		if ( ! empty( $user_exclusions ) ) {
+			if ( is_string( $user_exclusions ) ) {
+				$user_exclusions = array( $user_exclusions );
+			}
+			if ( is_array( $user_exclusions ) ) {
+				foreach ( $user_exclusions as $exclusion ) {
+					if ( ! is_string( $exclusion ) ) {
+						continue;
+					}
+					if (
+						'a' === $exclusion ||
+						'div' === $exclusion ||
+						'li' === $exclusion ||
+						'picture' === $exclusion ||
+						'section' === $exclusion ||
+						'span' === $exclusion ||
+						'video' === $exclusion
+					) {
+						$this->user_element_exclusions[] = $exclusion;
+						continue;
+					}
+					$this->user_exclusions[] = $exclusion;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Checks if the tag is allowed to be rewritten.
+	 *
+	 * @param string $image The HTML tag: img, span, etc.
+	 * @return bool False if it flags a filter or exclusion, true otherwise.
+	 */
+	function validate_tag( $image ) {
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		// Ignore 0-size Pinterest schema images.
+		if ( strpos( $image, 'data-pin-description=' ) && strpos( $image, 'width="0" height="0"' ) ) {
+			$this->debug_message( 'data-pin-description img skipped' );
+			return false;
+		}
+
+		$test_tag = ltrim( substr( $image, 0, 10 ), '<' );
+		foreach ( $this->user_element_exclusions as $element_exclusion ) {
+			if ( 0 === strpos( $test_tag, $element_exclusion ) ) {
+				$this->debug_message( "$element_exclusion tag skipped" );
+				return;
+			}
+		}
+
+		$exclusions = apply_filters(
+			'ewwwio_js_webp_exclusions',
+			array_merge(
+				array(
+					'timthumb.php?',
+					'wpcf7_captcha/',
+				),
+				$this->user_exclusions
+			),
+			$image
+		);
+		foreach ( $exclusions as $exclusion ) {
+			if ( false !== strpos( $image, $exclusion ) ) {
+				$this->debug_message( "tag matched $exclusion" );
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**

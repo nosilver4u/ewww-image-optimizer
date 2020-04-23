@@ -1,5 +1,5 @@
 # EWWW Image Optimizer
-**Donate link:** https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MKMQKCBFFG3WW  
+**Donate link:** https://ewww.io/donate/
 **Minimum WordPress:** 5.0
 **Minimum PHP:** 5.6
 

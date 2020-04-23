@@ -389,8 +389,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_error' );
 					return false;
 				} elseif ( ! empty( $test_result['response']['code'] ) && ( 403 === (int) $test_result['response']['code'] || 404 === (int) $test_result['response']['code'] ) ) {
-					// TODO: see if 404 is feasible, based on the covidhelpers site.
-					// If we get a 403, the site is probably blocking access to the plugins folder and we should use secondary verification.
+					// If we get a 403 or 404, we should use secondary verification.
 					$this->debug_message( 'received response code: ' . $test_result['response']['code'] );
 					$this->set_exactdn_option( 'verify_method', -1, false );
 				} elseif ( ! empty( $test_result['body'] ) && strlen( $test_result['body'] ) > 300 ) {

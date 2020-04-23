@@ -174,6 +174,8 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 5.2.9 =
+* added: option to use <picture> tags for WebP rewriting
+* added: ability to define exclusions for JS WebP and <picture> WebP
 * added: include .webp images when using WP Offload Media to copy images from bucket to server
 * added: cleanup/migration tool for folks using EWWW IO 3+ years to remove old metadata entries
 * changed: scheduled optimizer uses async/background mode to prevent timeouts
@@ -189,6 +191,8 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: notices when parsing JSON data from Envira
 * fixed: fatal error when a WP_Error is passed from Envira to Easy IO
 * fixed: executables could not be installed on Windows due to behavior of is_executable() on directories
+* fixed: <picture> tags do not follow Lazy Load exclusions
+* fixed: <picture> tags broken when exluding images from Lazy Load
 
 = 5.2.5 =
 * removed: data-pin-media attribute, as Pinterest is handling WebP images properly now

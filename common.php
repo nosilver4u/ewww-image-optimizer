@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '525.215' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '525.216' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -258,6 +258,16 @@ function ewww_image_optimizer_parser_init() {
 		 * Alt WebP class for parsing image urls and rewriting them for WebP support.
 		 */
 		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-alt-webp.php' );
+	} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+		$buffer_start = true;
+		/**
+		 * Page Parsing class for working with HTML content.
+		 */
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-page-parser.php' );
+		/**
+		 * Picture WebP class for parsing img elements and rewriting them with WebP URLs.
+		 */
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-picture-webp.php' );
 	}
 	if ( $buffer_start ) {
 		// Start an output buffer before any output starts.
@@ -789,6 +799,10 @@ function ewww_image_optimizer_admin_init() {
 			update_site_option( 'ewww_image_optimizer_include_originals', $_POST['ewww_image_optimizer_include_originals'] );
 			$_POST['ewww_image_optimizer_webp_for_cdn'] = ( empty( $_POST['ewww_image_optimizer_webp_for_cdn'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_webp_for_cdn', $_POST['ewww_image_optimizer_webp_for_cdn'] );
+			$_POST['ewww_image_optimizer_picture_webp'] = ( empty( $_POST['ewww_image_optimizer_picture_webp'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_picture_webp', $_POST['ewww_image_optimizer_picture_webp'] );
+			$_POST['ewww_image_optimizer_webp_rewrite_exclude'] = empty( $_POST['ewww_image_optimizer_webp_rewrite_exclude'] ) ? '' : $_POST['ewww_image_optimizer_webp_rewrite_exclude'];
+			update_site_option( 'ewww_image_optimizer_webp_rewrite_exclude', ewww_image_optimizer_exclude_paths_sanitize( $_POST['ewww_image_optimizer_webp_rewrite_exclude'] ) );
 			$_POST['ewww_image_optimizer_webp_force'] = ( empty( $_POST['ewww_image_optimizer_webp_force'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_webp_force', $_POST['ewww_image_optimizer_webp_force'] );
 			$_POST['ewww_image_optimizer_webp_paths'] = ( empty( $_POST['ewww_image_optimizer_webp_paths'] ) ? '' : $_POST['ewww_image_optimizer_webp_paths'] );
@@ -870,6 +884,8 @@ function ewww_image_optimizer_admin_init() {
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_force', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_paths', 'ewww_image_optimizer_webp_paths_sanitize' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_for_cdn', 'boolval' );
+	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_picture_webp', 'boolval' );
+	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_rewrite_exclude', 'ewww_image_optimizer_exclude_paths_sanitize' );
 	ewww_image_optimizer_exec_init();
 	ewww_image_optimizer_cron_setup( 'ewww_image_optimizer_auto' );
 	// Queue the function that contains custom styling for our progressbars.
@@ -7898,7 +7914,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				// Get a human readable filesize.
 				$webp_size = ewww_image_optimizer_size_format( $webp_size );
 				$webpurl   = esc_url( wp_get_attachment_url( $id ) . '.webp' );
-				$output   .= "<div>WebP: <a href='$webpurl'>$webp_size</a></div>";
+				$output   .= "<div>WebP: <a href=\"$webpurl\">$webp_size</a></div>";
 			}
 
 			if ( empty( $msg ) && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
@@ -7963,7 +7979,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null, $r
 				// Get a human readable filesize.
 				$webp_size = ewww_image_optimizer_size_format( $webp_size );
 				$webpurl   = esc_url( wp_get_attachment_url( $id ) . '.webp' );
-				$output   .= "<div>WebP: <a href='$webpurl'>$webp_size</a></div>";
+				$output   .= "<div>WebP: <a href=\"$webpurl\">$webp_size</a></div>";
 			}
 			if ( empty( $msg ) && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 				// Give the user the option to optimize the image right now.
@@ -8522,7 +8538,8 @@ function ewww_image_optimizer_get_option( $option_name, $default = false, $singl
 		(
 			'ewww_image_optimizer_exclude_paths' === $option_name ||
 			'exactdn_exclude' === $option_name ||
-			'ewww_image_optimizer_ll_exclude' === $option_name
+			'ewww_image_optimizer_ll_exclude' === $option_name ||
+			'ewww_image_optimizer_webp_rewrite_exclude' === $option_name
 		)
 		&& defined( $constant_name )
 	) {
@@ -9186,6 +9203,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		update_option( 'ewww_image_optimizer_exactdn', false );
 		update_option( 'ewww_image_optimizer_lazy_load', false );
 		update_option( 'ewww_image_optimizer_webp_for_cdn', false );
+		update_option( 'ewww_image_optimizer_picture_webp', false );
 		$compress_score += 80;
 		$resize_score   += 50;
 	} elseif ( class_exists( 'ExactDN' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
@@ -9950,7 +9968,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? "checked='true'" : '' ) . ' /> ' .
 			esc_html__( 'JPG to WebP conversion is lossy, but quality loss is minimal. PNG to WebP conversion is lossless.', 'ewww-image-optimizer' ) .
 			"</span>\n<p class='description'>" . esc_html__( 'Originals are never deleted, and WebP images should only be served to supported browsers.', 'ewww-image-optimizer' ) .
-			" <a href='#ewww-webp-rewrite'>" . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ? esc_html__( 'You can use the rewrite rules below to serve WebP images with Apache.', 'ewww-image-optimizer' ) : '' ) . "</a></td></tr>\n";
+			" <a href='#ewww-webp-rewrite'>" . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) ? esc_html__( 'You can use the rewrite rules below to serve WebP images with Apache.', 'ewww-image-optimizer' ) : '' ) . "</a></td></tr>\n";
 		ewwwio_debug_message( 'webp conversion: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? 'on' : 'off' ) );
 	}
 	if ( ! ewww_image_optimizer_ce_webp_enabled() && ! ewww_image_optimizer_easy_active() ) {
@@ -9960,8 +9978,28 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			"</th><td><input type='checkbox' id='ewww_image_optimizer_webp_for_cdn' name='ewww_image_optimizer_webp_for_cdn' value='true' " .
 			( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ? "checked='true'" : '' ) . ' /> ' .
 			esc_html__( 'Use this if the Apache rewrite rules do not work, or if your images are served from a CDN.', 'ewww-image-optimizer' ) . ' ' .
+			"\n<p class='description'>" . esc_html__( 'Supports CSS background images with Lazy Load option on the Easy Mode tab.', 'ewww-image-optimizer' ) . '</p>' .
 			'</td></tr>';
 		ewwwio_debug_message( 'alt webp rewriting: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ? 'on' : 'off' ) );
+		$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_picture_webp'>" .
+			esc_html__( '<picture> WebP Rewriting', 'ewww-image-optimizer' ) .
+			'</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/16-ewww-io-and-webp-images', '5854745ac697912ffd6c1c89,59443d162c7d3a0747cdf9f0' ) .
+			"</th><td><input type='checkbox' id='ewww_image_optimizer_picture_webp' name='ewww_image_optimizer_picture_webp' value='true' " .
+			( ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) ? "checked='true'" : '' ) . ' /> ' .
+			esc_html__( 'A JavaScript-free rewriting method using picture tags.', 'ewww-image-optimizer' ) . ' ' .
+			"\n<p class='description'>" . esc_html__( 'Use this if Apache rewrite rules do not work for your site. Some themes may not display <picture> tags properly, and does not support CSS background images.', 'ewww-image-optimizer' ) . '</p>' .
+			'</td></tr>';
+		ewwwio_debug_message( 'picture webp rewriting: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) ? 'on' : 'off' ) );
+		$webp_exclude_paths = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_rewrite_exclude' ) ? esc_html( implode( "\n", ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_rewrite_exclude' ) ) ) : '';
+		$output[]           = "<tr class='$network_class'><td>&nbsp;</td>" .
+			"<td><label for='ewww_image_optimizer_webp_rewrite_exclude'>" . esc_html__( 'JS WebP and <picture> Web Exclusions', 'ewww-image-optimizer' ) . '</label>' .
+			'<br>' .
+			"<textarea id='ewww_image_optimizer_webp_rewrite_exclude' name='ewww_image_optimizer_webp_rewrite_exclude' rows='3' cols='60'>$webp_exclude_paths</textarea>\n" .
+			"<p class='description'>" .
+			esc_html__( 'One exclusion per line, no wildcards (*) needed. Use any string that matches the desired element(s) or exclude entire element types like "div", "span", etc.', 'ewww-image-optimizer' ) .
+			"</p></td></tr>\n";
+		ewwwio_debug_message( 'WebP Rewrite exclusions:' );
+		ewwwio_debug_message( $webp_exclude_paths );
 		$webp_paths = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' ) ? esc_html( implode( "\n", ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' ) ) ) : '';
 		$output[]   = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_webp_paths'>" . esc_html__( 'WebP URLs', 'ewww-image-optimizer' ) . '</label>' .
 			ewwwio_help_link( 'https://docs.ewww.io/article/16-ewww-io-and-webp-images', '5854745ac697912ffd6c1c89' ) . '</th><td><span>' .
@@ -10045,6 +10083,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		! $cf_host &&
 		ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) &&
 		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) &&
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) &&
 		! ewww_image_optimizer_ce_webp_enabled() && ! ewww_image_optimizer_easy_active()
 	) {
 		if ( defined( 'PHP_SAPI' ) && false === strpos( PHP_SAPI, 'apache' ) && false === strpos( PHP_SAPI, 'litespeed' ) ) {
@@ -10068,15 +10107,16 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			$output[] = $header_error;
 		}
 
-		$output[] = "<form id='ewww-webp-rewrite'>\n";
-		$output[] = '<p>' . esc_html__( 'There are many ways to serve WebP images to visitors with supported browsers. You may choose any you wish, but it is recommended to serve them with an .htaccess file using mod_rewrite and mod_headers. The plugin can insert the rules for you if the file is writable, or you can edit .htaccess yourself.', 'ewww-image-optimizer' ) . "</p>\n";
-
 		if ( $webp_verified || ! ewww_image_optimizer_webp_rewrite_verify() ) {
+			$output[] = "<form id='ewww-webp-rewrite'>\n";
 			$output[] = "<img id='webp-image' src='" . plugins_url( '/images/test.png', __FILE__ ) . '?m=' . time() . "' style='float: right; padding: 0 0 10px 10px;'>\n" .
 				"<p id='ewww-webp-rewrite-status'><b>" . esc_html__( 'Rules verified successfully', 'ewww-image-optimizer' ) . "</b></p>\n" .
 				"<button type='button' id='ewww-webp-remove' class='button-secondary action'>" . esc_html__( 'Remove Rewrite Rules', 'ewww-image-optimizer' ) . "</button>\n";
+			$output[] = "</form>\n";
 			ewwwio_debug_message( 'webp .htaccess rewriting enabled' );
 		} else {
+			$output[] = '<p>' . esc_html__( 'There are many ways to serve WebP images to visitors with supported browsers. You may choose any you wish, but it is recommended to serve them with an .htaccess file using mod_rewrite and mod_headers. The plugin can insert the rules for you if the file is writable, or you can edit .htaccess yourself.', 'ewww-image-optimizer' ) . "</p>\n";
+			$output[] = "<form id='ewww-webp-rewrite'>\n";
 			$output[] = "<pre id='webp-rewrite-rules' style='background: white; font-color: black; border: 1px solid black; clear: both; padding: 10px;'>\n" .
 				"&lt;IfModule mod_rewrite.c&gt;\n" .
 				"RewriteEngine On\n" .
@@ -10099,7 +10139,13 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_ce_webp_enabled() ) {
 		$test_webp_image = plugins_url( '/images/test.png.webp', __FILE__ );
 		$test_png_image  = plugins_url( '/images/test.png', __FILE__ );
-		$output[]        = "<noscript  data-img='$test_png_image' data-webp='$test_webp_image' data-style='float: right; padding: 0 0 10px 10px;' class='ewww_webp'><img src='$test_png_image' style='float: right; padding: 0 0 10px 10px;'></noscript>\n";
+		$output[]        = "<noscript data-img='$test_png_image' data-webp='$test_webp_image' data-style='float: right; padding: 0 0 10px 10px;' class='ewww_webp'><img src='$test_png_image' style='float: right; padding: 0 0 10px 10px;'></noscript>\n";
+	} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) && ! ewww_image_optimizer_ce_webp_enabled() ) {
+		$test_webp_image = plugins_url( '/images/test.png.webp', __FILE__ );
+		$test_png_image  = plugins_url( '/images/test.png', __FILE__ );
+		$output[]        = "<picture><source srcset='$test_webp_image' type='image/webp'><img src='$test_png_image' style='float: right; padding: 0 0 10px 10px;'></picture>\n";
+	} elseif ( $cf_host && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
+		$output[] = '<p>' . esc_html__( 'Your site is using Cloudflare, please use JS WebP or <picture> WebP rewriting.', 'ewww-image-optimizer' ) . "</p>\n";
 	}
 	$output[] = "</div><!-- end container wrap -->\n";
 

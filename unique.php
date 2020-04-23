@@ -138,6 +138,8 @@ function ewww_image_optimizer_set_defaults() {
 	add_option( 'ewww_image_optimizer_optipng_level', 2 );
 	add_option( 'ewww_image_optimizer_pngout_level', 2 );
 	add_option( 'ewww_image_optimizer_webp_for_cdn', false );
+	add_option( 'ewww_image_optimizer_picture_webp', false );
+	add_option( 'ewww_image_optimizer_webp_rewrite_exclude', '' );
 
 	// Set network defaults.
 	add_site_option( 'ewww_image_optimizer_metadata_remove', true );

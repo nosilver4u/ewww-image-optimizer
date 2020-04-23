@@ -142,7 +142,6 @@ function ewww_image_optimizer_aux_images_table() {
 			$image_url = esc_url( site_url( $image_name ) );
 		} else {
 			$image_name = str_replace( WP_CONTENT_DIR, '', $file );
-			ewwwio_debug_message( "name is $image_name after replacing WP_CONTENT_DIR" );
 			if ( $file !== $image_name ) {
 				$image_url = esc_url( content_url( $image_name ) );
 			}
@@ -232,10 +231,14 @@ function ewww_image_optimizer_aux_images_table() {
 			$webp_size = ewww_image_optimizer_filesize( $webpfile );
 			$webp_info = '';
 			if ( $webp_size ) {
+				$image_name = str_replace( WP_CONTENT_DIR, '', $file );
+				if ( $file !== $image_name ) {
+					$image_url = esc_url( content_url( $image_name ) );
+				}
 				// Get a human readable filesize.
 				$webp_size = ewww_image_optimizer_size_format( $webp_size );
 				$webpurl   = $image_url . '.webp';
-				$webp_info = "<br>WebP: <a href='$webpurl'>$webp_size</a>";
+				$webp_info = "<br>WebP: <a href=\"$webpurl\">$webp_size</a>";
 			}
 			$output['table'] .= "<td>$savings<br>$size_string<br>" .
 				'<a class="removeimage" onclick="ewwwRemoveImage(' . $optimized_image['id'] . ')">' . esc_html__( 'Remove from history', 'ewww-image-optimizer' ) . '</a>' .
