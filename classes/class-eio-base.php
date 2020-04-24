@@ -95,11 +95,17 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			global $ewwwio_temp_debug;
 			global $easyio_temp_debug;
 			$debug_log = $this->content_dir . 'debug.log';
-			if ( is_writable( WP_CONTENT_DIR ) && ! is_dir( $this->content_dir ) ) {
-				mkdir( $this->content_dir );
+			if ( ! is_dir( $this->content_dir ) && is_writable( WP_CONTENT_DIR ) ) {
+				wp_mkdir_p( $this->content_dir );
 			}
 			$debug_enabled = $this->get_option( $this->prefix . 'debug' );
-			if ( ! empty( $eio_debug ) && empty( $ewwwio_temp_debug ) && empty( $easyio_temp_debug ) && $debug_enabled && is_writable( $this->content_dir ) ) {
+			if (
+				! empty( $eio_debug ) &&
+				empty( $easyio_temp_debug ) &&
+				$debug_enabled &&
+				is_dir( $this->content_dir ) &&
+				is_writable( $this->content_dir )
+			) {
 				$memory_limit = $this->memory_limit();
 				clearstatcache();
 				$timestamp = gmdate( 'Y-m-d H:i:s' ) . "\n";

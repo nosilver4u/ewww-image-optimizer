@@ -5469,12 +5469,30 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 				unlink( $temp_file );
 			}
 		}
+		$base_dir = trailingslashit( dirname( $filename ) );
+		// Original image detected.
+		if ( isset( $meta['original_image'] ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_originals' ) ) {
+			ewwwio_debug_message( 'processing original_image' );
+			$base_url = trailingslashit( dirname( $full_url ) );
+			// Build the paths for an original pre-scaled image.
+			$resize_path = $base_dir . wp_basename( $meta['original_image'] );
+			$resize_url  = $base_url . wp_basename( $meta['original_image'] );
+			if ( ! ewwwio_is_file( $resize_path ) ) {
+				ewwwio_debug_message( "fetching $resize_url to $resize_path" );
+				$temp_file = download_url( $resize_url );
+				if ( ! is_wp_error( $temp_file ) ) {
+					if ( ! is_dir( $base_dir ) ) {
+						wp_mkdir_p( $base_dir );
+					}
+					rename( $temp_file, $resize_path );
+				}
+			}
+		}
 		// Resized versions, so we'll grab those too.
 		if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 			$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt', false, true );
 			ewwwio_debug_message( 'retrieving resizes' );
 			// Meta sizes don't contain a path, so we calculate one.
-			$base_dir  = trailingslashit( dirname( $filename ) );
 			$processed = array();
 			foreach ( $meta['sizes'] as $size => $data ) {
 				ewwwio_debug_message( "processing size: $size" );
@@ -5535,13 +5553,29 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 				unlink( $temp_file );
 			}
 		}
+		$base_dir = trailingslashit( dirname( $filename ) );
+		$base_url = trailingslashit( dirname( $full_url ) );
+		// Original image detected.
+		if ( isset( $meta['original_image'] ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_originals' ) ) {
+			ewwwio_debug_message( 'processing original_image' );
+			// Build the paths for an original pre-scaled image.
+			$resize_path = $base_dir . wp_basename( $meta['original_image'] );
+			$resize_url  = $base_url . wp_basename( $meta['original_image'] );
+			if ( ! ewwwio_is_file( $resize_path ) ) {
+				ewwwio_debug_message( "fetching $resize_url to $resize_path" );
+				$temp_file = download_url( $resize_url );
+				if ( ! is_wp_error( $temp_file ) ) {
+					if ( ! is_dir( $base_dir ) ) {
+						wp_mkdir_p( $base_dir );
+					}
+					rename( $temp_file, $resize_path );
+				}
+			}
+		}
 		// Resized versions, so we'll grab those too.
 		if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 			$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt', false, true );
 			ewwwio_debug_message( 'retrieving resizes' );
-			// Meta sizes don't contain a path, so we calculate one.
-			$base_dir = trailingslashit( dirname( $filename ) );
-			$base_url = trailingslashit( dirname( $full_url ) );
 			// Process each resized version.
 			$processed = array();
 			foreach ( $meta['sizes'] as $size => $data ) {
@@ -6973,6 +7007,12 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 	if ( class_exists( 'S3_Uploads' ) ) {
 		ewww_image_optimizer_remote_push( $meta, $id );
 		ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
+	}
+	if ( class_exists( 'Windows_Azure_Helper' ) && function_exists( 'windows_azure_storage_wp_generate_attachment_metadata' ) ) {
+		$meta = windows_azure_storage_wp_generate_attachment_metadata( $meta, $id );
+		if ( Windows_Azure_Helper::delete_local_file() && function_exists( 'windows_azure_storage_delete_local_files' ) ) {
+			windows_azure_storage_delete_local_files( $meta, $id );
+		}
 	}
 	if ( class_exists( 'Cloudinary' ) && Cloudinary::config_get( 'api_secret' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_cloudinary' ) && ! empty( $new_image ) ) {
 		try {
@@ -9958,7 +9998,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$output[] = '<noscript><h2>' . esc_html__( 'WebP', 'ewww-image-optimizer' ) . '</h2></noscript>';
 	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && ! ewww_image_optimizer_easy_active() ) {
 		$output[] = '<p>' . esc_html__( 'Once JPG/PNG to WebP is enabled, WebP images will be generated for new uploads, but you will need to use the Bulk Optimizer for existing uploads.', 'ewww-image-optimizer' ) . "<br>\n" .
-		esc_html__( 'See Easy Mode for automatic on-demand WebP conversion instead.', 'ewww-image-optimizer' ) . "</p>\n";
+		"<a href='https://ewww.io/easy/'>" . esc_html__( 'Get Easy IO for automatic WebP conversion and delivery.', 'ewww-image-optimizer' ) . "</a></p>\n";
 	}
 	$output[] = "<table class='form-table'>\n";
 	if ( ! ewww_image_optimizer_easy_active() || ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
@@ -10450,10 +10490,16 @@ function ewww_image_optimizer_debug_log() {
 	global $eio_debug;
 	global $ewwwio_temp_debug;
 	$debug_log = WP_CONTENT_DIR . '/ewww/debug.log';
-	if ( ! is_dir( WP_CONTENT_DIR . '/ewww/' ) && is_writable( WP_CONTENT_DIR ) ) {
-		wp_mkdir_p( WP_CONTENT_DIR . '/ewww/' );
+	if ( ! is_dir( dirname( $debug_log ) ) && is_writable( WP_CONTENT_DIR ) ) {
+		wp_mkdir_p( dirname( $debug_log ) );
 	}
-	if ( ! empty( $eio_debug ) && empty( $ewwwio_temp_debug ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && is_writable( WP_CONTENT_DIR . '/ewww/' ) ) {
+	if (
+		! empty( $eio_debug ) &&
+		empty( $ewwwio_temp_debug ) &&
+		ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) &&
+		is_dir( dirname( $debug_log ) ) &&
+		is_writable( dirname( $debug_log ) )
+	) {
 		$memory_limit = ewwwio_memory_limit();
 		clearstatcache();
 		$timestamp = gmdate( 'Y-m-d H:i:s' ) . "\n";

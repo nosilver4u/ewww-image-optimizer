@@ -178,6 +178,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * added: ability to define exclusions for JS WebP and <picture> WebP
 * added: include .webp images when using WP Offload Media to copy images from bucket to server
 * added: cleanup/migration tool for folks using EWWW IO 3+ years to remove old metadata entries
+* added: fetch original_image for optimization when local images are removed (WP Offload Media and Microsoft Azure Storage for WordPress)
 * changed: scheduled optimizer uses async/background mode to prevent timeouts
 * changed: images that exceed the max resize dimensions will be queued by the bulk scanner even if previously compressed
 * changed: for security, EWWW IO will only optimize images within the WP root folder, content folder, or uploads folder
@@ -191,8 +192,10 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: notices when parsing JSON data from Envira
 * fixed: fatal error when a WP_Error is passed from Envira to Easy IO
 * fixed: executables could not be installed on Windows due to behavior of is_executable() on directories
+* fixed: Include All Resources rewrites wrong URLs when quotes are html-encoded
 * fixed: <picture> tags do not follow Lazy Load exclusions
 * fixed: <picture> tags broken when exluding images from Lazy Load
+* fixed: Azure storage plugin doesn't re-upload optimized images
 
 = 5.2.5 =
 * removed: data-pin-media attribute, as Pinterest is handling WebP images properly now

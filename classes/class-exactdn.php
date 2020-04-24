@@ -1299,6 +1299,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 */
 		function filter_all_the_things( $content ) {
 			if ( $this->exactdn_domain && $this->upload_domain && $this->plan_id > 1 ) {
+				$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 				$upload_domain = $this->upload_domain;
 				if ( 0 === strpos( $this->upload_domain, 'www.' ) ) {
 					$upload_domain = substr( $this->upload_domain, 4 );
@@ -1323,8 +1324,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					false !== strpos( $this->upload_domain, 'digitaloceanspaces.com' ) ||
 					false !== strpos( $this->upload_domain, 'storage.googleapis.com' )
 				) {
+					$this->debug_message( 'searching for #(https?:)?//(?:www\.)?' . $escaped_upload_domain . $this->remove_path . '/#i and replacing with $1//' . $this->exactdn_domain . '/' );
 					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . $this->remove_path . '/#i', '$1//' . $this->exactdn_domain . '/', $content );
 				} else {
+					$this->debug_message( 'searching for #(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/([^"\'?&>]+?)?(nextgen-image|wp-includes|wp-content)/#i and replacing with $1//' . $this->exactdn_domain . '/$2$3/' );
 					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?(nextgen-image|wp-includes|wp-content)/#i', '$1//' . $this->exactdn_domain . '/$2$3/', $content );
 				}
 				$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );

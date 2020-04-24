@@ -222,7 +222,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				return $buffer;
 			}
 
-			global $exactdn;
 			$above_the_fold   = apply_filters( 'eio_lazy_fold', 0 );
 			$images_processed = 0;
 
@@ -338,6 +337,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 * @return string The modified tag.
 		 */
 		function parse_img_tag( $image, $file = '' ) {
+			global $exactdn;
 			if ( ! $file ) {
 				$file = $this->get_attribute( $image, 'src' );
 			}

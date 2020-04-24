@@ -1997,6 +1997,7 @@ function ewww_image_optimizer_bulk_update_meta() {
 		ewww_image_optimizer_remote_push( $meta, $attachment_id );
 	}
 	wp_update_attachment_metadata( $attachment_id, wp_get_attachment_metadata( $attachment_id ) );
+	do_action( 'ewww_image_optimizer_after_optimize_attachment', $image->attachment_id, $meta );
 	die( ewwwio_json_encode( array( 'success' => 1 ) ) );
 }
 
