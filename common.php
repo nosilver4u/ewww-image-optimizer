@@ -3470,9 +3470,11 @@ function ewww_image_optimizer_delete( $id ) {
 				}
 				if ( ! empty( $image['path'] ) ) {
 					if ( ewwwio_is_file( $image['path'] ) ) {
+						ewwwio_debug_message( 'removing: ' . $image['path'] );
 						ewwwio_delete_file( $image['path'] );
 					}
 					if ( ewwwio_is_file( $image['path'] . '.webp' ) ) {
+						ewwwio_debug_message( 'removing: ' . $image['path'] . '.webp' );
 						ewwwio_delete_file( $image['path'] . '.webp' );
 					}
 				}
@@ -3480,14 +3482,26 @@ function ewww_image_optimizer_delete( $id ) {
 					$image['converted'] = ewww_image_optimizer_absolutize_path( $image['converted'] );
 				}
 				if ( ! empty( $image['converted'] ) && ewwwio_is_file( $image['converted'] ) ) {
+					ewwwio_debug_message( 'removing: ' . $image['converted'] . '.webp' );
 					ewwwio_delete_file( $image['converted'] );
 					if ( ewwwio_is_file( $image['converted'] . '.webp' ) ) {
+						ewwwio_debug_message( 'removing: ' . $image['converted'] . '.webp' );
 						ewwwio_delete_file( $image['converted'] . '.webp' );
 					}
 				}
 			}
 		}
 		$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'attachment_id' => $id ) );
+	}
+	$s3_path = false;
+	$s3_dir  = false;
+	if ( class_exists( 'S3_Uploads' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
+		$s3_path = get_attached_file( $id );
+		if ( 0 === strpos( $s3_path, 's3://' ) ) {
+			ewwwio_debug_message( 'removing: ' . $s3_path . '.webp' );
+			unlink( $s3_path . '.webp' );
+		}
+		$s3_dir = trailingslashit( dirname( $s3_path ) );
 	}
 	// Retrieve the image metadata.
 	$meta = wp_get_attachment_metadata( $id );
@@ -3496,14 +3510,16 @@ function ewww_image_optimizer_delete( $id ) {
 		// Get the filepath from the metadata.
 		$file_path = $meta['orig_file'];
 		// Get the base filename.
-		$filename = basename( $file_path );
+		$filename = wp_basename( $file_path );
 		// Delete any residual webp versions.
 		$webpfile    = $file_path . '.webp';
 		$webpfileold = preg_replace( '/\.\w+$/', '.webp', $file_path );
 		if ( ewwwio_is_file( $webpfile ) ) {
+			ewwwio_debug_message( 'removing: ' . $webpfile );
 			ewwwio_delete_file( $webpfile );
 		}
 		if ( ewwwio_is_file( $webpfileold ) ) {
+			ewwwio_debug_message( 'removing: ' . $webpfileold );
 			ewwwio_delete_file( $webpfileold );
 		}
 		// Retrieve any posts that link the original image.
@@ -3511,6 +3527,7 @@ function ewww_image_optimizer_delete( $id ) {
 		$rows = $ewwwdb->get_row( $esql );
 		// If the original file still exists and no posts contain links to the image.
 		if ( ewwwio_is_file( $file_path ) && empty( $rows ) ) {
+			ewwwio_debug_message( 'removing: ' . $file_path );
 			ewwwio_delete_file( $file_path );
 			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
 		}
@@ -3521,11 +3538,16 @@ function ewww_image_optimizer_delete( $id ) {
 		// One way or another, $file_path is now set, and we can get the base folder name.
 		$base_dir = dirname( $file_path ) . '/';
 		// Get the original filename from the metadata.
-		$orig_path = $base_dir . basename( $meta['original_image'] );
+		$orig_path = $base_dir . wp_basename( $meta['original_image'] );
 		// Delete any residual webp versions.
 		$webpfile = $orig_path . '.webp';
 		if ( ewwwio_is_file( $webpfile ) ) {
+			ewwwio_debug_message( 'removing: ' . $webpfile );
 			ewwwio_delete_file( $webpfile );
+		}
+		if ( $s3_path && $s3_dir && wp_basename( $meta['original_image'] ) ) {
+			ewwwio_debug_message( 'removing: ' . $s3_dir . wp_basename( $meta['original_image'] ) . '.webp' );
+			unlink( $s3_dir . wp_basename( $meta['original_image'] ) . '.webp' );
 		}
 		$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $orig_path ) ) );
 	}
@@ -3537,13 +3559,19 @@ function ewww_image_optimizer_delete( $id ) {
 		$base_dir = dirname( $file_path ) . '/';
 		foreach ( $meta['sizes'] as $size => $data ) {
 			// Delete any residual webp versions.
-			$webpfile    = $base_dir . $data['file'] . '.webp';
-			$webpfileold = preg_replace( '/\.\w+$/', '.webp', $base_dir . $data['file'] );
+			$webpfile    = $base_dir . wp_basename( $data['file'] ) . '.webp';
+			$webpfileold = preg_replace( '/\.\w+$/', '.webp', $base_dir . wp_basename( $data['file'] ) );
 			if ( ewwwio_is_file( $webpfile ) ) {
+				ewwwio_debug_message( 'removing: ' . $webpfile );
 				ewwwio_delete_file( $webpfile );
 			}
 			if ( ewwwio_is_file( $webpfileold ) ) {
+				ewwwio_debug_message( 'removing: ' . $webpfileold );
 				ewwwio_delete_file( $webpfileold );
+			}
+			if ( $s3_path && $s3_dir && wp_basename( $data['file'] ) ) {
+				ewwwio_debug_message( 'removing: ' . $s3_dir . wp_basename( $data['file'] ) . '.webp' );
+				unlink( $s3_dir . wp_basename( $data['file'] ) . '.webp' );
 			}
 			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['file'] ) ) );
 			// If the original resize is set, and still exists.
@@ -3556,6 +3584,7 @@ function ewww_image_optimizer_delete( $id ) {
 				$srows = $ewwwdb->get_row( $esql );
 				// If there are no posts containing links to the original, delete it.
 				if ( empty( $srows ) ) {
+					ewwwio_debug_message( 'removing: ' . $base_dir . $data['orig_file'] );
 					ewwwio_delete_file( $base_dir . $data['orig_file'] );
 					$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize( $base_dir . $data['orig_file'] ) ) );
 				}
@@ -3682,7 +3711,7 @@ function ewww_image_optimizer_media_replace( $image ) {
 		// One way or another, $file_path is now set, and we can get the base folder name.
 		$base_dir = dirname( $file_path ) . '/';
 		// Get the original filename from the metadata.
-		$orig_path = $base_dir . basename( $meta['original_image'] );
+		$orig_path = $base_dir . wp_basename( $meta['original_image'] );
 		// Delete any residual webp versions.
 		$webpfile = $orig_path . '.webp';
 		if ( ewwwio_is_file( $webpfile ) ) {
@@ -4183,7 +4212,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 
 	$payload .= '--' . $boundary;
 	$payload .= "\r\n";
-	$payload .= 'Content-Disposition: form-data; name="file"; filename="' . basename( $file ) . '"' . "\r\n";
+	$payload .= 'Content-Disposition: form-data; name="file"; filename="' . wp_basename( $file ) . '"' . "\r\n";
 	$payload .= 'Content-Type: ' . $type . "\r\n";
 	$payload .= "\r\n";
 	$payload .= file_get_contents( $file );
@@ -4317,7 +4346,7 @@ function ewww_image_optimizer_cloud_autorotate( $file, $type ) {
 
 	$payload .= '--' . $boundary;
 	$payload .= "\r\n";
-	$payload .= 'Content-Disposition: form-data; name="file"; filename="' . basename( $file ) . '"' . "\r\n";
+	$payload .= 'Content-Disposition: form-data; name="file"; filename="' . wp_basename( $file ) . '"' . "\r\n";
 	$payload .= 'Content-Type: ' . $type . "\r\n";
 	$payload .= "\r\n";
 	$payload .= file_get_contents( $file );
@@ -4437,7 +4466,7 @@ function ewww_image_optimizer_cloud_backup( $file ) {
 
 	$payload .= '--' . $boundary;
 	$payload .= "\r\n";
-	$payload .= 'Content-Disposition: form-data; name="file"; filename="' . basename( $file ) . '"' . "\r\n";
+	$payload .= 'Content-Disposition: form-data; name="file"; filename="' . wp_basename( $file ) . '"' . "\r\n";
 	$payload .= 'Content-Type: ' . ewww_image_optimizer_mimetype( $file, 'i' ) . "\r\n";
 	$payload .= "\r\n";
 	$payload .= file_get_contents( $file );
@@ -4565,7 +4594,7 @@ function ewww_image_optimizer_cloud_resize( $file, $type, $dst_x, $dst_y, $src_x
 
 	$payload .= '--' . $boundary;
 	$payload .= "\r\n";
-	$payload .= 'Content-Disposition: form-data; name="file"; filename="' . basename( $file ) . '"' . "\r\n";
+	$payload .= 'Content-Disposition: form-data; name="file"; filename="' . wp_basename( $file ) . '"' . "\r\n";
 	$payload .= 'Content-Type: ' . $type . "\r\n";
 	$payload .= "\r\n";
 	$payload .= file_get_contents( $file );
@@ -5253,6 +5282,10 @@ function ewww_image_optimizer_remote_push( $meta, $id ) {
 		if ( 0 === strpos( $s3_path, 's3://' ) && 0 === strpos( $filename, '/' ) && ewwwio_is_file( $filename ) ) {
 			copy( $filename, $s3_path );
 			unlink( $filename );
+			if ( ewwwio_is_file( $filename . '.webp' ) ) {
+				copy( $filename . '.webp', $s3_path . '.webp' );
+				unlink( $filename . '.webp' );
+			}
 		}
 		// Original image detected.
 		if ( isset( $meta['original_image'] ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_originals' ) ) {
@@ -5266,6 +5299,10 @@ function ewww_image_optimizer_remote_push( $meta, $id ) {
 			if ( 0 === strpos( $s3_rpath, 's3://' ) && 0 === strpos( $resize_path, '/' ) && ewwwio_is_file( $resize_path ) ) {
 				copy( $resize_path, $s3_rpath );
 				unlink( $resize_path );
+				if ( ewwwio_is_file( $resize_path . '.webp' ) ) {
+					copy( $resize_path . '.webp', $s3_rpath . '.webp' );
+					unlink( $resize_path . '.webp' );
+				}
 			}
 		}
 		// Resized versions, so we'll grab those too.
@@ -5296,6 +5333,10 @@ function ewww_image_optimizer_remote_push( $meta, $id ) {
 				if ( 0 === strpos( $s3_rpath, 's3://' ) && 0 === strpos( $resize_path, '/' ) ) {
 					copy( $resize_path, $s3_rpath );
 					unlink( $resize_path );
+					if ( ewwwio_is_file( $resize_path . '.webp' ) ) {
+						copy( $resize_path . '.webp', $s3_rpath . '.webp' );
+						unlink( $resize_path . '.webp' );
+					}
 				}
 			}
 		} // End if().
