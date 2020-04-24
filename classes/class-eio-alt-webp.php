@@ -402,7 +402,11 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			return $buffer;
 		}
 
-		$images = $this->get_images_from_html( preg_replace( '/<noscript.*?\/noscript>/s', '', $buffer ), false );
+		if ( in_array( 'picture', $this->user_element_exclusions, true ) ) {
+			$images = $this->get_images_from_html( preg_replace( '/<(picture|noscript).*?\/\1>/s', '', $buffer ), false );
+		} else {
+			$images = $this->get_images_from_html( preg_replace( '/<noscript.*?\/noscript>/s', '', $buffer ), false );
+		}
 		if ( ! empty( $images[0] ) && $this->is_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
 				// Ignore 0-size Pinterest schema images.
