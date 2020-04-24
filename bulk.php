@@ -1899,6 +1899,12 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 					ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
 					ewww_image_optimizer_remote_push( $meta, $image->attachment_id );
 				}
+				if ( class_exists( 'Windows_Azure_Helper' ) && function_exists( 'windows_azure_storage_wp_generate_attachment_metadata' ) ) {
+					$meta = windows_azure_storage_wp_generate_attachment_metadata( $meta, $image->attachment_id );
+					if ( Windows_Azure_Helper::delete_local_file() && function_exists( 'windows_azure_storage_delete_local_files' ) ) {
+						windows_azure_storage_delete_local_files( $meta, $image->attachment_id );
+					}
+				}
 				wp_update_attachment_metadata( $image->attachment_id, $meta );
 				do_action( 'ewww_image_optimizer_after_optimize_attachment', $image->attachment_id, $meta );
 			} else {
@@ -1995,6 +2001,12 @@ function ewww_image_optimizer_bulk_update_meta() {
 		ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
 		$meta = wp_get_attachment_metadata( $attachment_id );
 		ewww_image_optimizer_remote_push( $meta, $attachment_id );
+	}
+	if ( class_exists( 'Windows_Azure_Helper' ) && function_exists( 'windows_azure_storage_wp_generate_attachment_metadata' ) ) {
+		$meta = windows_azure_storage_wp_generate_attachment_metadata( $meta, $attachment_id );
+		if ( Windows_Azure_Helper::delete_local_file() && function_exists( 'windows_azure_storage_delete_local_files' ) ) {
+			windows_azure_storage_delete_local_files( $meta, $attachment_id );
+		}
 	}
 	wp_update_attachment_metadata( $attachment_id, wp_get_attachment_metadata( $attachment_id ) );
 	do_action( 'ewww_image_optimizer_after_optimize_attachment', $image->attachment_id, $meta );
