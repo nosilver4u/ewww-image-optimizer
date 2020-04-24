@@ -174,6 +174,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 5.2.9 =
+* added: Easy IO replaces image URLs within style elements for page builders like Elementor and Divi
 * added: option to use <picture> tags for WebP rewriting
 * added: ability to define exclusions for JS WebP and <picture> WebP
 * added: include .webp images when using WP Offload Media to copy images from bucket to server

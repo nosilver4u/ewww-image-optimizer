@@ -137,6 +137,21 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 		}
 
 		/**
+		 * Match all <style> tags in a block of HTML.
+		 *
+		 * @param string $content Some HTML.
+		 * @return array An array of $styles matches, containing full elements with ending tags.
+		 */
+		function get_style_tags_from_html( $content ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			$styles = array();
+			if ( preg_match_all( '#(?:<style[^>]*?>\s*).*?</style>?#is', $content, $styles ) ) {
+				return $styles[0];
+			}
+			return array();
+		}
+
+		/**
 		 * Match all elements by tag name in a block of HTML. Does not retrieve contents or closing tags.
 		 *
 		 * @param string $content Some HTML.
@@ -285,6 +300,21 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 				}
 			}
 			return '';
+		}
+
+		/**
+		 * Get CSS background-image rules from HTML.
+		 *
+		 * @param string $html The code containing potential background images.
+		 * @return array The URLs with background/background-image properties.
+		 */
+		function get_background_images( $html ) {
+			if ( ( false !== strpos( $html, 'background:' ) || false !== strpos( $html, 'background-image:' ) ) && false !== strpos( $html, 'url(' ) ) {
+				if ( preg_match_all( '#background(-image)?:\s*?[^;}]*?url\([^)]+\)#', $html, $matches ) ) {
+					return $matches[0];
+				}
+			}
+			return array();
 		}
 
 		/**

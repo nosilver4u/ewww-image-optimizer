@@ -1187,6 +1187,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( $this->filtering_the_page ) {
 				$content = $this->filter_prz_thumb( $content );
 			}
+			if ( $this->filtering_the_page ) {
+				$content = $this->filter_style_blocks( $content );
+			}
 			if ( $this->filtering_the_page && $this->get_option( 'exactdn_all_the_things' ) && $this->plan_id > 1 ) {
 				$this->debug_message( 'rewriting all other wp-content/wp-includes urls' );
 				$content = $this->filter_all_the_things( $content );
@@ -1202,7 +1205,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$this->set_option( 'exactdn_prevent_db_queries', true );
 			}
 			if ( $this->filtering_the_page && $this->get_option( $this->prefix . 'debug' ) ) {
-				$content .= '<!-- Easy IO processing time: ' . $this->elapsed_time . ' -->';
+				$content .= '<!-- Easy IO processing time: ' . $this->elapsed_time . ' seconds -->';
 			}
 			return $content;
 		}
@@ -1264,6 +1267,54 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					}
 					if ( $element !== $elements[ $index ] ) {
 						$content = str_replace( $elements[ $index ], $element, $content );
+					}
+				}
+			}
+			return $content;
+		}
+
+		/**
+		 * Parse page content looking for CSS blocks with background-image properties.
+		 *
+		 * @param string $content The HTML content to parse.
+		 * @return string The filtered HTML content.
+		 */
+		function filter_style_blocks( $content ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			// Process background images on elements.
+			$elements = $this->get_style_tags_from_html( $content );
+			if ( $this->is_iterable( $elements ) ) {
+				foreach ( $elements as $eindex => $element ) {
+					$this->debug_message( 'parsing a style block, starts with: ' . str_replace( "\n", '', substr( $element, 0, 50 ) ) );
+					if ( false === strpos( $element, 'background:' ) && false === strpos( $element, 'background-image:' ) ) {
+						continue;
+					}
+					$bg_images = $this->get_background_images( $element );
+					if ( $this->is_iterable( $bg_images ) ) {
+						foreach ( $bg_images as $bindex => $bg_image ) {
+							$this->debug_message( "parsing a background CSS rule: $bg_image" );
+							$bg_image_url = $this->get_background_image_url( $bg_image );
+							$this->debug_message( "found potential background image url: $bg_image_url" );
+							if ( $this->validate_image_url( $bg_image_url ) ) {
+								/** This filter is already documented in class-exactdn.php */
+								if ( apply_filters( 'exactdn_skip_image', false, $bg_image_url, $element ) ) {
+									continue;
+								}
+								$exactdn_bg_image_url = $this->generate_url( $bg_image_url );
+								if ( $bg_image_url !== $exactdn_bg_image_url ) {
+									$this->debug_message( "replacing $bg_image_url with $exactdn_bg_image_url" );
+									$bg_image = str_replace( $bg_image_url, $exactdn_bg_image_url, $bg_image );
+									if ( $bg_image !== $bg_images[ $bindex ] ) {
+										$this->debug_message( "replacing bg url with $bg_image" );
+										$element = str_replace( $bg_images[ $bindex ], $bg_image, $element );
+									}
+								}
+							}
+						}
+					}
+					if ( $element !== $elements[ $eindex ] ) {
+						$this->debug_message( 'replacing style block' );
+						$content = str_replace( $elements[ $eindex ], $element, $content );
 					}
 				}
 			}
