@@ -10166,6 +10166,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	if ( ewww_image_optimizer_easy_active() || $cf_host ) {
 		ewww_image_optimizer_webp_rewrite_verify();
 	}
+	if ( ! empty( $_SERVER['SERVER_ADDR'] ) ) {
+		ewwwio_debug_message( 'origin: ' . $_SERVER['SERVER_ADDR'] );
+	}
 	if (
 		! $cf_host &&
 		ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) &&
