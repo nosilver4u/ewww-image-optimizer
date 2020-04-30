@@ -632,6 +632,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				}
 			}
 			$this->user_exclusions[] = 'plugins/anti-captcha/';
+			$this->user_exclusions[] = 'fusion-app';
+			$this->user_exclusions[] = 'themes/Avada/';
+			$this->user_exclusions[] = 'plugins/fusion-builder/';
 		}
 
 		/**

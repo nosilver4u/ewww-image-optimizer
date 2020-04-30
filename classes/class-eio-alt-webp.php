@@ -24,6 +24,14 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 	protected $user_exclusions = array();
 
 	/**
+	 * A list of user-defined (element-type) exclusions, populated by validate_user_exclusions().
+	 *
+	 * @access protected
+	 * @var array $user_exclusions
+	 */
+	protected $user_element_exclusions = array();
+
+	/**
 	 * The Alt WebP inline script contents. Current length 11704.
 	 *
 	 * @access private

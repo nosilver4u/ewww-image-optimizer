@@ -173,6 +173,9 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 5.3.1 =
+* fixed: warning related to user-defined exclusions in JS and picture WebP
+
 = 5.3.0 =
 * added: Easy IO replaces image URLs within style elements for page builders like Elementor and Divi
 * added: option to use <picture> tags for WebP rewriting

@@ -24,6 +24,14 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 	protected $user_exclusions = array();
 
 	/**
+	 * A list of user-defined (element-type) exclusions, populated by validate_user_exclusions().
+	 *
+	 * @access protected
+	 * @var array $user_exclusions
+	 */
+	protected $user_element_exclusions = array();
+
+	/**
 	 * Allowed paths for Picture WebP.
 	 *
 	 * @access protected
