@@ -165,6 +165,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				strpos( $uri, 'cornerstone-endpoint' ) !== false ||
 				! empty( $_GET['ct_builder'] ) ||
 				did_action( 'cornerstone_boot_app' ) || did_action( 'cs_before_preview_frame' ) ||
+				'/print/' === substr( $uri, -7 ) ||
 				! empty( $_GET['elementor-preview'] ) ||
 				! empty( $_GET['et_fb'] ) ||
 				! empty( $_GET['tatsu'] ) ||
@@ -189,6 +190,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				}
 				if ( did_action( 'cornerstone_boot_app' ) || did_action( 'cs_before_preview_frame' ) ) {
 					$this->debug_message( 'cornerstone app/preview' );
+				}
+				if ( '/print/' === substr( $uri, -7 ) ) {
+					$this->debug_message( 'print page template' );
 				}
 				if ( ! empty( $_GET['elementor-preview'] ) ) {
 					$this->debug_message( 'elementor preview' );
@@ -452,6 +456,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 * @return string The modified content with LL markup.
 		 */
 		function parse_background_images( $buffer, $tag_type ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			if ( in_array( $tag_type, $this->user_element_exclusions, true ) ) {
 				return $buffer;
 			}

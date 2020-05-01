@@ -174,8 +174,10 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 5.3.1 =
+* added: defer JS with Easy IO via EXACTDN_DEFER_SCRIPTS override
 * fixed: warning related to user-defined exclusions in JS and picture WebP
 * fixed: AMP compatiblity for Lazy Load and WebP rewriters was broken
+* fixed: images not loading on WPURP/WPRM print recipe pages
 
 = 5.3.0 =
 * added: Easy IO replaces image URLs within style elements for page builders like Elementor and Divi

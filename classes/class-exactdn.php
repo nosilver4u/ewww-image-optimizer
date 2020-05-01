@@ -129,6 +129,17 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$this->scheme = $scheme;
 			}
 
+			$uri = $_SERVER['REQUEST_URI'];
+			/**
+			 * Allow pre-empting the parsers by page.
+			 *
+			 * @param bool Whether to skip parsing the page.
+			 * @param string $uri The URL of the page.
+			 */
+			if ( apply_filters( 'exactdn_skip_page', false, $uri ) ) {
+				return;
+			}
+
 			// Images in post content and galleries.
 			add_filter( 'the_content', array( $this, 'filter_the_content' ), 999999 );
 			// Start an output buffer before any output starts.
@@ -179,6 +190,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( $this->get_option( 'exactdn_all_the_things' ) && $this->plan_id > 1 ) {
 				add_filter( 'style_loader_src', array( $this, 'parse_enqueue' ), 20 );
 				add_filter( 'script_loader_src', array( $this, 'parse_enqueue' ), 20 );
+				if ( defined( 'EXACTDN_DEFER_SCRIPTS' ) && EXACTDN_DEFER_SCRIPTS ) {
+					add_filter( 'script_loader_tag', array( $this, 'defer_scripts' ), 20 );
+				}
 			}
 			$this->set_option( 'exactdn_prevent_db_queries', true );
 
@@ -2529,6 +2543,38 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				}
 			}
 			return $skip;
+		}
+
+		/**
+		 * Converts a local script/css url to use ExactDN.
+		 *
+		 * @param string $tag URL to the resource being parsed.
+		 * @return string The ExactDN version of the resource, if it was local.
+		 */
+		function defer_scripts( $tag ) {
+			if ( is_admin() ) {
+				return $tag;
+			}
+			if ( false !== strpos( $tag, 'jquery' ) ) {
+				return $tag;
+			}
+			if ( false !== strpos( $tag, 'lazysizes' ) ) {
+				if ( false !== strpos( $tag, 'ewww-image' ) || false !== strpos( $tag, 'easy-image' ) ) {
+					return str_replace( '></script', ' async></script', $tag );
+				}
+				return $tag;
+			}
+			if ( false !== strpos( $tag, 'async' ) ) {
+				return $tag;
+			}
+			if ( false !== strpos( $tag, 'defer' ) ) {
+				return $tag;
+			}
+			$deferred_tag = str_replace( '></script', ' defer></script', $tag );
+			if ( $deferred_tag && $deferred_tag !== $tag ) {
+				return $deferred_tag;
+			}
+			return $tag;
 		}
 
 		/**
