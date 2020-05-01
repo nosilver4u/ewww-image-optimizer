@@ -369,6 +369,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			( defined( 'REST_REQUEST' ) && REST_REQUEST ) ||
 			preg_match( '/^<\?xml/', $buffer ) ||
 			strpos( $buffer, 'amp-boilerplate' ) ||
+			$this->is_amp() ||
 			ewww_image_optimizer_ce_webp_enabled()
 		) {
 			if ( empty( $buffer ) ) {
@@ -403,6 +404,9 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			}
 			if ( strpos( $buffer, 'amp-boilerplate' ) ) {
 				ewwwio_debug_message( 'AMP page processing' );
+			}
+			if ( $this->is_amp() ) {
+				ewwwio_debug_message( 'AMP page processing (is_amp)' );
 			}
 			if ( ewww_image_optimizer_ce_webp_enabled() ) {
 				ewwwio_debug_message( 'Cache Enabler WebP enabled' );
@@ -1115,7 +1119,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 	 * Load full webp script when SCRIPT_DEBUG is enabled.
 	 */
 	function debug_script() {
-		if ( ewww_image_optimizer_is_amp() ) {
+		if ( $this->is_amp() ) {
 			return;
 		}
 		if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
@@ -1127,7 +1131,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 	 * Load minified webp script when EWWW_IMAGE_OPTIMIZER_WEBP_EXTERNAL_SCRIPT is set.
 	 */
 	function min_external_script() {
-		if ( ewww_image_optimizer_is_amp() ) {
+		if ( $this->is_amp() ) {
 			return;
 		}
 		if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
@@ -1142,7 +1146,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		if ( defined( 'EWWW_IMAGE_OPTIMIZER_NO_JS' ) && EWWW_IMAGE_OPTIMIZER_NO_JS ) {
 			return;
 		}
-		if ( ewww_image_optimizer_is_amp() ) {
+		if ( $this->is_amp() ) {
 			return;
 		}
 		ewwwio_debug_message( 'loading webp script without wp_add_inline_script' );

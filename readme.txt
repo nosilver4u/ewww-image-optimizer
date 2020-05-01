@@ -175,6 +175,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 
 = 5.3.1 =
 * fixed: warning related to user-defined exclusions in JS and picture WebP
+* fixed: AMP compatiblity for Lazy Load and WebP rewriters was broken
 
 = 5.3.0 =
 * added: Easy IO replaces image URLs within style elements for page builders like Elementor and Divi

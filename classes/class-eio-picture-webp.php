@@ -181,6 +181,7 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 			( defined( 'REST_REQUEST' ) && REST_REQUEST ) ||
 			preg_match( '/^<\?xml/', $buffer ) ||
 			strpos( $buffer, 'amp-boilerplate' ) ||
+			$this->is_amp() ||
 			ewww_image_optimizer_ce_webp_enabled()
 		) {
 			if ( empty( $buffer ) ) {
@@ -215,6 +216,9 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 			}
 			if ( strpos( $buffer, 'amp-boilerplate' ) ) {
 				ewwwio_debug_message( 'AMP page processing' );
+			}
+			if ( $this->is_amp() ) {
+				ewwwio_debug_message( 'AMP page processing (is_amp)' );
 			}
 			if ( ewww_image_optimizer_ce_webp_enabled() ) {
 				ewwwio_debug_message( 'Cache Enabler WebP enabled' );

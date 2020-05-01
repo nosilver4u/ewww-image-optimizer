@@ -175,7 +175,8 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				( defined( 'REST_REQUEST' ) && REST_REQUEST ) ||
 				wp_script_is( 'twentytwenty-twentytwenty', 'enqueued' ) ||
 				preg_match( '/^<\?xml/', $buffer ) ||
-				strpos( $buffer, 'amp-boilerplate' )
+				strpos( $buffer, 'amp-boilerplate' ) ||
+				$this->is_amp()
 			) {
 				if ( empty( $buffer ) ) {
 					$this->debug_message( 'empty buffer' );
@@ -218,6 +219,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				}
 				if ( strpos( $buffer, 'amp-boilerplate' ) ) {
 					$this->debug_message( 'AMP page processing' );
+				}
+				if ( $this->is_amp() ) {
+					ewwwio_debug_message( 'AMP page processing (is_amp)' );
 				}
 				return $buffer;
 			}
