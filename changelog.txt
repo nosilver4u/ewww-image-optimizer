@@ -1,3 +1,9 @@
+= 5.3.1 =
+* added: defer JS with Easy IO via EXACTDN_DEFER_SCRIPTS override
+* fixed: warning related to user-defined exclusions in JS and picture WebP
+* fixed: AMP compatiblity for Lazy Load and WebP rewriters was broken
+* fixed: images not loading on WPURP/WPRM print recipe pages
+
 = 5.3.0 =
 * added: Easy IO replaces image URLs within style elements for page builders like Elementor and Divi
 * added: option to use <picture> tags for WebP rewriting
