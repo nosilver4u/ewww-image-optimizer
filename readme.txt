@@ -175,6 +175,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 
 = 5.3.2 =
 * added: defer jQuery also with EXACTDN_DEFER_JQUERY override
+* added: Lazy Load supports VC grid layouts retrieved via AJAX
 * fixed: Lazy Load and JS WebP prevent loading of images in oEmbed endpoint
 * fixed: jQuery exclusion was preventing deferral of jQuery extensions also
 * fixed: Lazy Load parsing Owl Lazy images

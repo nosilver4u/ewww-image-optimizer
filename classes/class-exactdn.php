@@ -2536,7 +2536,6 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		function exactdn_skip_user_exclusions( $skip, $url ) {
 			if ( $this->user_exclusions ) {
 				foreach ( $this->user_exclusions as $exclusion ) {
-					$this->debug_message( "looking for $exclusion in $url" );
 					if ( false !== strpos( $url, $exclusion ) ) {
 						$this->debug_message( "user excluded $url via $exclusion" );
 						return true;

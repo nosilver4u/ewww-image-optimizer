@@ -80,6 +80,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			add_action( 'wp_head', array( $this, 'no_js_css' ) );
 
 			add_filter( $this->prefix . 'filter_page_output', array( $this, 'filter_page_output' ), 15 );
+			add_filter( 'vc_get_vc_grid_data_response', array( $this, 'filter_page_output' ) );
 
 			if ( class_exists( 'ExactDN' ) && $this->get_option( $this->prefix . 'exactdn' ) ) {
 				global $exactdn;
@@ -356,6 +357,30 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			$this->set_attribute( $image, 'data-src', $file, true );
 			$srcset = $this->get_attribute( $image, 'srcset' );
 
+			$disable_native_lazy = false;
+			// Ignore native lazy loading images.
+			$loading_attr = $this->get_attribute( $image, 'loading' );
+			if ( $loading_attr && in_array( trim( $loading_attr ), array( 'auto', 'eager', 'lazy' ), true ) ) {
+				$disable_native_lazy = true;
+			}
+			if (
+				( ! defined( 'EWWWIO_DISABLE_NATIVE_LAZY' ) || ! EWWWIO_DISABLE_NATIVE_LAZY ) &&
+				( ! defined( 'EASYIO_DISABLE_NATIVE_LAZY' ) || ! EASYIO_DISABLE_NATIVE_LAZY ) &&
+				! $disable_native_lazy
+			) {
+				$this->set_attribute( $image, 'loading', 'lazy' );
+			}
+
+			if (
+				! empty( $_POST['action'] ) &&
+				! empty( $_POST['vc_action'] ) &&
+				! empty( $_POST['tag'] ) &&
+				'vc_get_vc_grid_data' === $_POST['action'] &&
+				'vc_get_vc_grid_data' === $_POST['vc_action'] &&
+				'vc_media_grid' === $_POST['tag']
+			) {
+				return $image;
+			}
 			$width_attr      = $this->get_attribute( $image, 'width' );
 			$height_attr     = $this->get_attribute( $image, 'height' );
 			$placeholder_src = $this->placeholder_src;
@@ -434,20 +459,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			} else {
 				$this->set_attribute( $image, 'src', $placeholder_src, true );
 			}
-			$disable_native_lazy = false;
-			// Ignore native lazy loading images.
-			$loading_attr = $this->get_attribute( $image, 'loading' );
-			if ( $loading_attr && in_array( trim( $loading_attr ), array( 'auto', 'eager', 'lazy' ), true ) ) {
-				$disable_native_lazy = true;
-			}
 
-			if (
-				( ! defined( 'EWWWIO_DISABLE_NATIVE_LAZY' ) || ! EWWWIO_DISABLE_NATIVE_LAZY ) &&
-				( ! defined( 'EASYIO_DISABLE_NATIVE_LAZY' ) || ! EASYIO_DISABLE_NATIVE_LAZY ) &&
-				! $disable_native_lazy
-			) {
-				$this->set_attribute( $image, 'loading', 'lazy' );
-			}
 			$this->set_attribute( $image, 'class', $this->get_attribute( $image, 'class' ) . ' lazyload', true );
 			return $image;
 		}
