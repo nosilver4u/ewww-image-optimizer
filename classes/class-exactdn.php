@@ -1159,7 +1159,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					if ( ! empty( $exactdn_url ) ) {
 						$src = $exactdn_url;
 					}
-					if ( $srcset_fill && ( ! defined( 'EXACTDN_PREVENT_SRCSET_FILL' ) || ! EXACTDN_PREVENT_SRCSET_FILL ) && false !== strpos( $src, $this->exactdn_domain ) ) {
+					if ( ! is_feed() && $srcset_fill && ( ! defined( 'EXACTDN_PREVENT_SRCSET_FILL' ) || ! EXACTDN_PREVENT_SRCSET_FILL ) && false !== strpos( $src, $this->exactdn_domain ) ) {
 						if ( ! $this->get_attribute( $images['img_tag'][ $index ], $this->srcset_attr ) && ! $this->get_attribute( $images['img_tag'][ $index ], 'sizes' ) ) {
 							$this->debug_message( "srcset filling with $src" );
 							$zoom = false;
@@ -2536,6 +2536,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		function exactdn_skip_user_exclusions( $skip, $url ) {
 			if ( $this->user_exclusions ) {
 				foreach ( $this->user_exclusions as $exclusion ) {
+					$this->debug_message( "looking for $exclusion in $url" );
 					if ( false !== strpos( $url, $exclusion ) ) {
 						$this->debug_message( "user excluded $url via $exclusion" );
 						return true;
@@ -2555,7 +2556,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( is_admin() ) {
 				return $tag;
 			}
-			if ( false !== strpos( $tag, 'jquery' ) ) {
+			if ( false !== strpos( $tag, 'jquery.js' ) && ! defined( 'EXACTDN_DEFER_JQUERY' ) ) {
 				return $tag;
 			}
 			if ( false !== strpos( $tag, 'lazysizes' ) ) {

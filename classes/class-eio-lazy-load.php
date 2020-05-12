@@ -171,6 +171,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				! empty( $_GET['tatsu'] ) ||
 				( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === $_POST['action'] ) ||
 				! apply_filters( 'eio_do_lazyload', true ) ||
+				is_embed() ||
 				is_feed() ||
 				is_preview() ||
 				( defined( 'REST_REQUEST' ) && REST_REQUEST ) ||
@@ -205,6 +206,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				}
 				if ( ! apply_filters( 'eio_do_lazyload', true ) ) {
 					$this->debug_message( 'do_lazyload short-circuit' );
+				}
+				if ( is_embed() ) {
+					$this->debug_message( 'is_embed' );
 				}
 				if ( is_feed() ) {
 					$this->debug_message( 'is_feed' );
@@ -584,6 +588,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						'gazette-featured-content-thumbnail',
 						'lazy-slider-img=',
 						'mgl-lazy',
+						'owl-lazy',
 						'skip-lazy',
 						'timthumb.php?',
 						'wpcf7_captcha/',

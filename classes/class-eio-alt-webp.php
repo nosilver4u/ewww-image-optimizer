@@ -365,6 +365,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			! empty( $_GET['et_fb'] ) ||
 			! empty( $_GET['tatsu'] ) ||
 			( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === $_POST['action'] ) ||
+			is_embed() ||
 			is_feed() ||
 			is_preview() ||
 			( defined( 'REST_REQUEST' ) && REST_REQUEST ) ||
@@ -393,6 +394,9 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			}
 			if ( ! empty( $_GET['tatsu'] ) || ( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === $_POST['action'] ) ) {
 				ewwwio_debug_message( 'tatsu' );
+			}
+			if ( is_embed() ) {
+				$this->debug_message( 'is_embed' );
 			}
 			if ( is_feed() ) {
 				ewwwio_debug_message( 'is_feed' );

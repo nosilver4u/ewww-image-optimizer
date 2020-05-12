@@ -173,6 +173,13 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 5.3.2 =
+* added: defer jQuery also with EXACTDN_DEFER_JQUERY override
+* fixed: Lazy Load and JS WebP prevent loading of images in oEmbed endpoint
+* fixed: jQuery exclusion was preventing deferral of jQuery extensions also
+* fixed: Lazy Load parsing Owl Lazy images
+* fixed: Easy IO adds srcset/sizes to feeds
+
 = 5.3.1 =
 * added: defer JS with Easy IO via EXACTDN_DEFER_SCRIPTS override
 * fixed: warning related to user-defined exclusions in JS and picture WebP
