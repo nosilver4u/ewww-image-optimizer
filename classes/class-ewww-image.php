@@ -298,8 +298,10 @@ class EWWW_Image {
 					/* ewwwio_debug_message( 'skipping size with missing filename' ); */
 					continue;
 				}
-				foreach ( $sizes as $done ) {
+				foreach ( $sizes as $done_size => $done ) {
 					if ( empty( $done['height'] ) || empty( $done['width'] ) ) {
+						$meta['sizes'][ $size ]['file']      = $meta['sizes'][ $done_size ]['file'];
+						$meta['sizes'][ $size ]['mime-type'] = $meta['sizes'][ $done_size ]['mime-type'];
 						continue;
 					}
 					if ( $data['height'] === $done['height'] && $data['width'] === $done['width'] ) {
@@ -484,11 +486,11 @@ class EWWW_Image {
 			ewwwio_debug_message( 'no file provided to convert' );
 			return false;
 		}
-		if ( false === ewwwio_is_file( $file ) ) {
+		if ( ! ewwwio_is_file( $file ) ) {
 			ewwwio_debug_message( "$file is not a file, cannot convert" );
 			return false;
 		}
-		if ( false === is_writable( $file ) ) {
+		if ( ! is_writable( $file ) ) {
 			ewwwio_debug_message( "$file is not writable, cannot convert" );
 			return false;
 		}
@@ -642,7 +644,7 @@ class EWWW_Image {
 				ewwwio_debug_message( "converted JPG size: $jpg_size" );
 				// If the new JPG is smaller than the original PNG.
 				if ( ! $check_size && $jpg_size && ewwwio_is_file( $newfile ) && ewww_image_optimizer_mimetype( $newfile, 'i' ) === 'image/jpeg' ) {
-					ewwwio_debug_message( 'JPG to PNG successful' );
+					ewwwio_debug_message( 'PNG to JPG successful' );
 					// If the user wants originals delted after a conversion.
 					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) ) {
 						// Delete the original PNG.

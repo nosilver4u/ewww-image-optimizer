@@ -6831,7 +6831,8 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 				if ( $scan['height'] === $data['height'] && $scan['width'] === $data['width'] ) {
 					// We found a duplicate resize, so...
 					// Point this resize at the same image as the previous one.
-					$meta['sizes'][ $size ]['file'] = $meta['sizes'][ $proc ]['file'];
+					$meta['sizes'][ $size ]['file']      = $meta['sizes'][ $proc ]['file'];
+					$meta['sizes'][ $size ]['mime-type'] = $meta['sizes'][ $proc ]['mime-type'];
 					continue( 2 );
 				}
 			}

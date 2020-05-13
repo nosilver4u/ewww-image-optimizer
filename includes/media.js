@@ -15,6 +15,10 @@ jQuery(document).on('click', '.ewww-manual-optimize', function() {
 		} else if (ewww_manual_response.success) {
 			jQuery('#ewww-media-status-' + post_id ).html( ewww_manual_response.success );
 		}
+		if (ewww_manual_response.basename) {
+			var attachment_span = jQuery('#post-' + post_id + ' .column-title .filename .screen-reader-text').html();
+			jQuery('#post-' + post_id + ' .column-title .filename').html('<span class="screen-reader-text">' + attachment_span + '</span>' + ewww_manual_response.basename);
+		}
 	});
 	return false;
 });

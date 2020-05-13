@@ -180,6 +180,8 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: jQuery exclusion was preventing deferral of jQuery extensions also
 * fixed: Lazy Load parsing Owl Lazy images
 * fixed: Easy IO adds srcset/sizes to feeds
+* fixed: filename in attachment metadata not updated for duplicate thumbnails after conversion success
+* fixed: notices for undefined variables during bulk optimize
 
 = 5.3.1 =
 * added: defer JS with Easy IO via EXACTDN_DEFER_SCRIPTS override

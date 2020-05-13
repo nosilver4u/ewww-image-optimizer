@@ -1997,9 +1997,9 @@ function ewww_image_optimizer_bulk_update_meta() {
 	}
 	$attachment_id = (int) $_REQUEST['attachment_id'];
 	ewwwio_debug_message( "saving attachment meta for $attachment_id" );
+	$meta = wp_get_attachment_metadata( $attachment_id );
 	if ( class_exists( 'S3_Uploads' ) ) {
 		ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
-		$meta = wp_get_attachment_metadata( $attachment_id );
 		ewww_image_optimizer_remote_push( $meta, $attachment_id );
 	}
 	if ( class_exists( 'Windows_Azure_Helper' ) && function_exists( 'windows_azure_storage_wp_generate_attachment_metadata' ) ) {
@@ -2008,8 +2008,8 @@ function ewww_image_optimizer_bulk_update_meta() {
 			windows_azure_storage_delete_local_files( $meta, $attachment_id );
 		}
 	}
-	wp_update_attachment_metadata( $attachment_id, wp_get_attachment_metadata( $attachment_id ) );
-	do_action( 'ewww_image_optimizer_after_optimize_attachment', $image->attachment_id, $meta );
+	wp_update_attachment_metadata( $attachment_id, $meta );
+	do_action( 'ewww_image_optimizer_after_optimize_attachment', $attachment_id, $meta );
 	die( ewwwio_json_encode( array( 'success' => 1 ) ) );
 }
 
