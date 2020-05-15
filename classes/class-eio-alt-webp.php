@@ -1158,7 +1158,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			return;
 		}
 		ewwwio_debug_message( 'loading webp script without wp_add_inline_script' );
-		echo '<script type="text/javascript">' . $this->inline_script . '</script>';
+		echo '<script data-cfasync="false" type="text/javascript">' . $this->inline_script . '</script>';
 	}
 }
 

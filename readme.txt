@@ -173,6 +173,9 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 5.3.3 =
+* changed: use data-cfasync=false to prevent deferring inline JS WebP script
+
 = 5.3.2 =
 * added: defer jQuery also with EXACTDN_DEFER_JQUERY override
 * added: Lazy Load supports VC grid layouts retrieved via AJAX
