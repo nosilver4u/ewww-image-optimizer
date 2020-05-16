@@ -174,7 +174,10 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 5.3.3 =
+* added: EXACTDN_DEFER_JQUERY_SAFE override for when inline scripts depend on jQuery
 * changed: use data-cfasync=false to prevent deferring inline JS WebP script
+* changed: Easy IO uses better query-string fall-back for plugins
+* changed: Easy IO enforces https if available rather than protocol-relative URLs
 
 = 5.3.2 =
 * added: defer jQuery also with EXACTDN_DEFER_JQUERY override

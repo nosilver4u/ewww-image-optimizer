@@ -36,9 +36,17 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 * Site (URL) for the plugin to use.
 		 *
 		 * @access public
-		 * @var string $content_url
+		 * @var string $site_url
 		 */
 		public $site_url = '';
+
+		/**
+		 * Home (URL) for the plugin to use.
+		 *
+		 * @access public
+		 * @var string $home_url
+		 */
+		public $home_url = '';
 
 		/**
 		 * Plugin version for the plugin.
@@ -70,6 +78,8 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 * @param string $child_class_path The location of the child class extending the base class.
 		 */
 		function __construct( $child_class_path = '' ) {
+			$this->home_url          = trailingslashit( get_site_url() );
+			$this->relative_home_url = preg_replace( '/https?:/', '', $this->home_url );
 			if ( strpos( $child_class_path, 'plugins/ewww' ) ) {
 				$this->content_url = content_url( 'ewww/' );
 				$this->content_dir = WP_CONTENT_DIR . '/ewww/';
@@ -83,6 +93,8 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 				$this->content_url = content_url( 'ewww/' );
 			}
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			$this->debug_message( "home url: $this->home_url" );
+			$this->debug_message( "relative home url: $this->relative_home_url" );
 		}
 
 		/**
@@ -298,6 +310,43 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			}
 			return false;
 		}
+		/**
+		 * Check if file exists, and that it is local rather than using a protocol like http:// or phar://
+		 *
+		 * @param string $file The path of the file to check.
+		 * @return bool True if the file exists and is local, false otherwise.
+		 */
+		function is_file( $file ) {
+			if ( false !== strpos( $file, '://' ) ) {
+				return false;
+			}
+			if ( false !== strpos( $file, 'phar://' ) ) {
+				return false;
+			}
+			$file       = realpath( $file );
+			$wp_dir     = realpath( ABSPATH );
+			$upload_dir = wp_get_upload_dir();
+			$upload_dir = realpath( $upload_dir['basedir'] );
+
+			$content_dir = realpath( WP_CONTENT_DIR );
+			if ( empty( $content_dir ) ) {
+				$content_dir = $wp_dir;
+			}
+			if ( empty( $upload_dir ) ) {
+				$upload_dir = $content_dir;
+			}
+			$plugin_dir = realpath( constant( strtoupper( $this->prefix ) . 'PLUGIN_PATH' ) );
+			if (
+				false === strpos( $file, $upload_dir ) &&
+				false === strpos( $file, $content_dir ) &&
+				false === strpos( $file, $wp_dir ) &&
+				false === strpos( $file, $plugin_dir )
+			) {
+				return false;
+			}
+			return is_file( $file );
+		}
+
 
 		/**
 		 * Make sure an array/object can be parsed by a foreach().
@@ -364,6 +413,35 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 				$success = update_option( $option_name, $option_value );
 			}
 			return $success;
+		}
+
+		/**
+		 * Converts a URL to a file-system path and checks if the resulting path exists.
+		 *
+		 * @param string $url The URL to mangle.
+		 * @param string $extension An optional extension to append during is_file().
+		 * @return bool|string The path if a local file exists correlating to the URL, false otherwise.
+		 */
+		function url_to_path_exists( $url, $extension = '' ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			if ( 0 === strpos( $url, $this->relative_home_url ) ) {
+				$path = str_replace( $this->relative_home_url, ABSPATH, $url );
+			} elseif ( 0 === strpos( $url, $this->home_url ) ) {
+				$path = str_replace( $this->home_url, ABSPATH, $url );
+			} else {
+				$this->debug_message( 'not a valid local image' );
+				return false;
+			}
+			$path_parts = explode( '?', $path );
+			if ( $this->is_file( $path_parts[0] . $extension ) ) {
+				$this->debug_message( 'local file found' );
+				return $path_parts[0];
+			}
+			if ( $this->is_file( $path . $extension ) ) {
+				$this->debug_message( 'local file found' );
+				return $path;
+			}
+			return false;
 		}
 
 		/**

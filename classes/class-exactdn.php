@@ -188,8 +188,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 
 			// Get all the script/css urls and rewrite them (if enabled).
 			if ( $this->get_option( 'exactdn_all_the_things' ) && $this->plan_id > 1 ) {
-				add_filter( 'style_loader_src', array( $this, 'parse_enqueue' ), 20 );
-				add_filter( 'script_loader_src', array( $this, 'parse_enqueue' ), 20 );
+				add_filter( 'style_loader_src', array( $this, 'parse_enqueue' ), 9999 );
+				add_filter( 'script_loader_src', array( $this, 'parse_enqueue' ), 9999 );
 				if ( defined( 'EXACTDN_DEFER_SCRIPTS' ) && EXACTDN_DEFER_SCRIPTS ) {
 					add_filter( 'script_loader_tag', array( $this, 'defer_scripts' ), 20 );
 				}
@@ -203,7 +203,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 
 			// Configure Autoptimize with our CDN domain.
-			add_filter( 'autoptimize_filter_cssjs_multidomain', array( $this, 'autoptimize_cdn_url' ) );
+			add_filter( 'autoptimize_filter_cssjs_multidomain', array( $this, 'add_cdn_domain' ) );
 
 			$upload_url_parts = $this->parse_url( $this->content_url() );
 			if ( empty( $upload_url_parts ) ) {
@@ -1404,6 +1404,15 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?(nextgen-image|wp-includes|wp-content)/#i', '$1//' . $this->exactdn_domain . '/$2$3/', $content );
 				}
 				$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );
+				if ( defined( 'EXACTDN_DEFER_JQUERY_SAFE' ) && EXACTDN_DEFER_JQUERY_SAFE && false === strpos( $content, 'jQuery' ) ) {
+					preg_match( "#<script\s+type='text/javascript'\s+src='[^']+?/jquery\.js[^']*?'[^>]*?>#is", $content, $jquery_tags );
+					if ( ! empty( $jquery_tags[0] ) && false === strpos( $jquery_tags[0], 'defer' ) && false === strpos( $jquery_tags[0], 'async' ) ) {
+						$deferred_jquery = str_replace( '>', ' defer>', $jquery_tags[0] );
+						if ( $deferred_jquery && $deferred_jquery !== $jquery_tags[0] ) {
+							$content = str_replace( $jquery_tags[0], $deferred_jquery, $content );
+						}
+					}
+				}
 			}
 			return $content;
 		}
@@ -2555,6 +2564,12 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( is_admin() ) {
 				return $tag;
 			}
+			if ( false !== strpos( $tag, 'async' ) ) {
+				return $tag;
+			}
+			if ( false !== strpos( $tag, 'defer' ) ) {
+				return $tag;
+			}
 			if ( false !== strpos( $tag, 'jquery.js' ) && ! defined( 'EXACTDN_DEFER_JQUERY' ) ) {
 				return $tag;
 			}
@@ -2562,12 +2577,6 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				if ( false !== strpos( $tag, 'ewww-image' ) || false !== strpos( $tag, 'easy-image' ) ) {
 					return str_replace( '></script', ' async></script', $tag );
 				}
-				return $tag;
-			}
-			if ( false !== strpos( $tag, 'async' ) ) {
-				return $tag;
-			}
-			if ( false !== strpos( $tag, 'defer' ) ) {
 				return $tag;
 			}
 			$deferred_tag = str_replace( '></script', ' defer></script', $tag );
@@ -2599,6 +2608,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( false !== strpos( $url, 'xmlrpc.php' ) ) {
 				return $url;
 			}
+
 			/**
 			 * Allow specific URLs to avoid going through ExactDN.
 			 *
@@ -2641,14 +2651,16 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				return $url;
 			}
 
+			$scheme = $this->scheme;
+			if ( isset( $parsed_url['scheme'] ) && 'https' === $parsed_url['scheme'] ) {
+				$scheme = 'https';
+			}
+
 			global $wp_version;
 			// If a resource doesn't have a version string, we add one to help with cache-busting.
 			if (
-				(
-					empty( $parsed_url['query'] ) ||
-					( 'ver=' . $wp_version === $parsed_url['query'] && false !== strpos( $url, 'wp-content/themes/' ) )
-				) &&
-				false !== strpos( $url, 'wp-content/' )
+				false !== strpos( $url, 'wp-content/themes/' ) &&
+				( empty( $parsed_url['query'] ) || 'ver=' . $wp_version === $parsed_url['query'] )
 			) {
 				$modified = $this->function_exists( 'filemtime' ) ? filemtime( get_template_directory() ) : '';
 				if ( empty( $modified ) ) {
@@ -2660,13 +2672,31 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				 * @param string Defaults to the modified time of the theme folder, and falls back to the plugin version.
 				 */
 				$parsed_url['query'] = apply_filters( 'exactdn_version_string', "m=$modified" );
-			} elseif ( empty( $parsed_url['query'] ) ) {
+			} elseif (
+				false !== strpos( $url, 'wp-content/plugins/' ) &&
+				( empty( $parsed_url['query'] ) || 'ver=' . $wp_version === $parsed_url['query'] )
+			) {
 				$parsed_url['query'] = '';
+				$path                = $this->url_to_path_exists( $url );
+				if ( $path ) {
+					$modified = $this->function_exists( 'filemtime' ) ? filemtime( dirname( $path ) ) : '';
+					if ( empty( $modified ) ) {
+						$modified = $this->version;
+					}
+					/**
+					 * Allows a custom version string for resources that are missing one.
+					 *
+					 * @param string Defaults to the modified time of the folder, and falls back to the plugin version.
+					 */
+					$parsed_url['query'] = apply_filters( 'exactdn_version_string', "m=$modified" );
+				}
+			} elseif ( empty( $parsed_url['query'] ) ) {
+				$parsed_url['query'] = apply_filters( 'exactdn_version_string', 'm=' . $this->version );
 			}
 
-			$exactdn_url = '//' . $this->exactdn_domain . '/' . ltrim( $parsed_url['path'], '/' ) . '?' . $parsed_url['query'];
+			$exactdn_url = $scheme . '://' . $this->exactdn_domain . '/' . ltrim( $parsed_url['path'], '/' ) . '?' . $parsed_url['query'];
 			$this->debug_message( "exactdn css/script url: $exactdn_url" );
-			return $exactdn_url;
+			return $this->url_scheme( $exactdn_url, $scheme );
 		}
 
 		/**
@@ -2901,10 +2931,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 * @param array $domains A list of domains considered 'local' by Autoptimize.
 		 * @return array The same list, with the ExactDN domain appended.
 		 */
-		function autoptimize_cdn_url( $domains ) {
+		function add_cdn_domain( $domains ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			if ( is_array( $domains ) && ! in_array( $this->exactdn_domain, $domains, true ) ) {
-				$this->debug_message( 'adding to AO list: ' . $this->exactdn_domain );
+				$this->debug_message( 'adding to CDN domain/host list: ' . $this->exactdn_domain );
 				$domains[] = $this->exactdn_domain;
 			}
 			return $domains;

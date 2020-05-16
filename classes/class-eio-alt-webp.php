@@ -74,6 +74,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		if ( ewww_image_optimizer_ce_webp_enabled() ) {
 			return false;
 		}
+		parent::__construct();
 		// Start an output buffer before any output starts.
 		/* add_action( 'template_redirect', array( $this, 'buffer_start' ), 0 ); */
 		add_filter( 'ewww_image_optimizer_filter_page_output', array( $this, 'filter_page_output' ), 20 );
@@ -83,10 +84,6 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		// Load up the minified script so we can inline it.
 		$this->inline_script = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'includes/load_webp.min.js' );
 
-		$this->home_url = trailingslashit( get_site_url() );
-		ewwwio_debug_message( "home url: $this->home_url" );
-		$this->relative_home_url = preg_replace( '/https?:/', '', $this->home_url );
-		ewwwio_debug_message( "relative home url: $this->relative_home_url" );
 		$upload_dir        = wp_get_upload_dir();
 		$this->content_url = trailingslashit( ! empty( $upload_dir['baseurl'] ) ? $upload_dir['baseurl'] : content_url( 'uploads' ) );
 		ewwwio_debug_message( "content_url: $this->content_url" );
@@ -114,11 +111,11 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 				$this->s3_active    = $s3_domain;
 				if ( $as3cf->get_setting( 'enable-object-prefix' ) ) {
 					$this->s3_object_prefix = $as3cf->get_setting( 'object-prefix' );
-					ewwwio_debug_message( $as3cf->get_setting( 'object-prefix' ) );
+					$this->debug_message( $as3cf->get_setting( 'object-prefix' ) );
 				}
 				if ( $as3cf->get_setting( 'object-versioning' ) ) {
 					$this->s3_object_version = true;
-					ewwwio_debug_message( 'object versioning enabled' );
+					$this->debug_message( 'object versioning enabled' );
 				}
 			}
 		}
@@ -129,14 +126,14 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 				$this->webp_domains[] = $webp_domain;
 			}
 		}
-		ewwwio_debug_message( 'checking any images matching these patterns for webp: ' . implode( ',', $this->webp_paths ) );
-		ewwwio_debug_message( 'rewriting any images matching these domains to webp: ' . implode( ',', $this->webp_domains ) );
-		if ( class_exists( 'ExactDN' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+		$this->debug_message( 'checking any images matching these patterns for webp: ' . implode( ',', $this->webp_paths ) );
+		$this->debug_message( 'rewriting any images matching these domains to webp: ' . implode( ',', $this->webp_domains ) );
+		if ( class_exists( 'ExactDN' ) && $this->get_option( 'ewww_image_optimizer_exactdn' ) ) {
 			global $exactdn;
 			$this->exactdn_domain = $exactdn->get_exactdn_domain();
 			if ( $this->exactdn_domain ) {
 				$this->parsing_exactdn = true;
-				ewwwio_debug_message( 'parsing an exactdn page' );
+				$this->debug_message( 'parsing an exactdn page' );
 			}
 		}
 
@@ -959,26 +956,12 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 	/**
 	 * Converts a URL to a file-system path and checks if the resulting path exists.
 	 *
-	 * @param string $image The image URL to mangle.
+	 * @param string $url The URL to mangle.
+	 * @param string $extension An optional extension to append during is_file().
 	 * @return bool True if a local file exists correlating to the URL, false otherwise.
 	 */
-	function url_to_path_exists( $image ) {
-		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-		$image = $this->maybe_strip_object_version( $image );
-		if ( 0 === strpos( $image, $this->relative_home_url ) ) {
-			$imagepath = str_replace( $this->relative_home_url, ABSPATH, $image );
-		} elseif ( 0 === strpos( $image, $this->home_url ) ) {
-			$imagepath = str_replace( $this->home_url, ABSPATH, $image );
-		} else {
-			ewwwio_debug_message( 'not a valid local image' );
-			return false;
-		}
-		$path_parts = explode( '?', $imagepath );
-		if ( ewwwio_is_file( $path_parts[0] . '.webp' ) || ewwwio_is_file( $imagepath . '.webp' ) ) {
-			ewwwio_debug_message( 'local .webp image found' );
-			return true;
-		}
-		return false;
+	function url_to_path_exists( $url, $extension = '' ) {
+		return parent::url_to_path_exists( $url, '.webp' );
 	}
 
 	/**

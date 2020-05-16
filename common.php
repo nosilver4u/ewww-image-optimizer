@@ -3078,7 +3078,7 @@ function ewww_image_optimizer_filesize( $file ) {
 }
 
 /**
- * Check if file exists, and that is is local rather than using a protocol like http:// or phar://
+ * Check if file exists, and that it is local rather than using a protocol like http:// or phar://
  *
  * @param string $file The path of the file to check.
  * @return bool True if the file exists and is local, false otherwise.
@@ -9298,9 +9298,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$status_notices .= '<p><b>Easy IO:</b> ';
 		if ( $exactdn->get_exactdn_domain() && $exactdn->verify_domain( $exactdn->get_exactdn_domain() ) ) {
 			$status_notices .= '<span style="color: #3eadc9; font-weight: bolder">' . esc_html__( 'Verified', 'ewww-image-optimizer' ) . ' </span>';
-			if ( defined( 'WP_ROCKET_VERSION' ) ) {
-				$status_notices .= '<br><i>' . esc_html__( 'If you use the File Optimization options within WP Rocket, you should also enter your Easy IO CNAME in the WP Rocket CDN settings (reserved for CSS and Javascript):', 'ewww-image-optimizer' ) . ' ' . $exactdn->get_exactdn_domain() . '</i>';
-			}
 			if ( $compress_score < 50 ) {
 				$compress_score = 50;
 			}
