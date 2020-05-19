@@ -178,6 +178,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * changed: use data-cfasync=false to prevent deferring inline JS WebP script
 * changed: Easy IO uses better query-string fall-back for plugins
 * changed: Easy IO enforces https if available rather than protocol-relative URLs
+* fixed: images not resized when Media File Renamer is active
 
 = 5.3.2 =
 * added: defer jQuery also with EXACTDN_DEFER_JQUERY override
