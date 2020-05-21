@@ -584,6 +584,11 @@ class EWWWIO_Scan_Async_Handler extends WP_Async_Request {
 	protected function handle() {
 		session_write_close();
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( empty( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww-image-optimizer-bulk' ) ) {
+			return;
+		}
+		global $ewww_scan;
+		$ewww_scan = empty( $_REQUEST['ewww_scan'] ) ? '' : sanitize_key( $_REQUEST['ewww_scan'] );
 		ewww_image_optimizer_aux_images_script( 'ewww-image-optimizer-auto' );
 	}
 }

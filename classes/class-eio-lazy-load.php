@@ -159,7 +159,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				return $buffer;
 			}
 			// Don't lazy load in these cases...
-			$uri = $_SERVER['REQUEST_URI'];
+			$uri = empty( $_SERVER['REQUEST_URI'] ) ? '' : $_SERVER['REQUEST_URI'];
 			if (
 				empty( $buffer ) ||
 				! empty( $_GET['cornerstone'] ) ||

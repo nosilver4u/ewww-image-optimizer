@@ -604,6 +604,7 @@ jQuery(document).ready(function($) {
 			clearInterval(ewww_countdown);
 			var ewww_table_count_data = {
 				action: ewww_table_count_action,
+				ewww_wpnonce: ewww_vars._wpnonce,
 				ewww_inline: 1,
 			};
 			$.post(ajaxurl, ewww_table_count_data, function(response) {

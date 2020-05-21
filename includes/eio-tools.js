@@ -1,6 +1,5 @@
 jQuery(document).ready(function($) {
 	var ewww_table_action = 'bulk_aux_images_table';
-	var ewww_table_count_action = 'bulk_aux_images_table_count';
 	var ewww_total_pages = 0;
 	var ewww_pointer = 0;
 	var ewww_search_total = 0;

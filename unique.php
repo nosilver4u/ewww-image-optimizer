@@ -26,11 +26,6 @@ register_deactivation_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimi
  */
 function ewww_image_optimizer_cloud_init() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	// Basically this happens on settings save, so we need to check if the settings are being saved with an empty key, and pre-emptively set the constant to false.
-	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) && isset( $_POST['ewww_image_optimizer_cloud_key'] ) && ! $_POST['ewww_image_optimizer_cloud_key'] ) {
-		define( 'EWWW_IMAGE_OPTIMIZER_CLOUD', false );
-		return;
-	}
 	if (
 		! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) &&
 		ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&

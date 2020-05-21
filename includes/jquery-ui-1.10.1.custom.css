@@ -458,7 +458,19 @@ button.ewww-handlediv {
 		width: auto;
 	}
 }
+/* settings tabs */
+.ewww-tab span { font-size: 14px; font-weight: 600; color: #555; text-decoration: none; line-height: 36px; padding: 0 10px; }
+.ewww-tab span:hover { color: #464646; }
+.ewww-tab { margin: 0 0 0 5px; padding: 0px; border-width: 1px 1px 1px; border-style: solid solid none; border-image: none; border-color: #ccc; display: inline-block; background-color: #e4e4e4; cursor: pointer }
+.ewww-tab:hover { background-color: #fff }
+.ewww-selected { background-color: #f1f1f1; margin-bottom: -1px; border-bottom: 1px solid #f1f1f1 }
+.ewww-selected span { color: #000; }
+.ewww-selected:hover { background-color: #f1f1f1; }
+.ewww-tab-nav { list-style: none; margin: 10px 0 0; padding-left: 5px; border-bottom: 1px solid #ccc; }
 /* optimization status section */
+#ewww-widgets {
+	max-width: 1170px;
+}
 #ewww-status .inside {
 	margin: 0;
 	padding: 0;
@@ -547,10 +559,82 @@ ul.ewww-blocks li:first-child {
 .ui-tooltip ul.ewww-tooltip li {
 	margin-left: 1em;
 }
+/* other settings UI */
+p.debug-actions {
+	clear: both;
+}
 #ewww-debug-info {
 	border:1px solid #e5e5e5;
 	background: #fff;
 	overflow: auto;
 	height: 300px;
 	width: 800px;
+}
+#ewwwio-banner {
+	min-height: 95px;
+	padding: 15px;
+	background-color: #3eadc9;
+	clear: both;
+}
+#ewwwio-banner img {
+	float: left;
+	margin-right: 10px;
+}
+#ewwwio-banner p {
+	color: #fff;
+	margin-bottom: 1.0em;
+}
+/* iframe ewww.io */
+.top-bar {
+	display: none;
+}
+/* mobile rules */
+@media screen and (max-width: 782px) {
+	#wpbody-content #ewww-widgets {
+		float: right;
+		padding-top: 0px;
+	}
+	#ewww-widgets .postbox {
+		max-width: 215px;
+		min-width: 175px;
+	}
+	#ewww-widgets ul.ewww-blocks {
+		display: block;
+	}
+	.ewww-blocks li {
+		float: none;
+	}
+	.ewww-blocks li .ewww-status-detail {
+		margin: 1em;
+	}
+	#ewww-settings-form .form-table {
+		width: auto;
+		clear: none;
+	}
+	#ewww-settings-disable-resizes th, #ewww-settings-disable-resizes td {
+		display: table-cell;
+	}
+	.ewww-tab-nav {
+		border-style: none;
+	}
+	.ewww-tab {
+		margin: 0 0 3px 3px;
+		border-style: solid;
+	}
+	.ewww-selected {
+		border-color: #ccc;
+	}
+	.ewww-tab span {
+		font-size: 12px;
+		padding: 2px 3px;
+
+	}
+	p.debug-actions {
+		margin-top: 30px;
+		clear: none;
+	}
+	#ewww-debug-info {
+		width: auto;
+		margin-right: 225px;
+	}
 }

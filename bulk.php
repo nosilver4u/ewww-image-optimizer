@@ -887,13 +887,13 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		ewwwio_debug_message( 'bailing no cli' );
 		ewww_image_optimizer_debug_log();
 		ewwwio_ob_clean();
-		die( ewwwio_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
+		die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
 	}
-	if ( ! empty( $_REQUEST['ewww_scan'] ) && ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) ) {
+	if ( ! empty( $_REQUEST['ewww_scan'] ) && ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) ) {
 		ewwwio_debug_message( 'bailing no nonce' );
 		ewww_image_optimizer_debug_log();
 		ewwwio_ob_clean();
-		die( ewwwio_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
+		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
 	}
 	global $wpdb;
 	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
@@ -901,6 +901,28 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		global $ewwwdb;
 	} else {
 		$ewwwdb = $wpdb;
+	}
+	global $ewww_scan;
+	global $ewww_force;
+	global $ewww_force_smart;
+	$ewww_scan = empty( $_REQUEST['ewww_scan'] ) ? '' : sanitize_key( $_REQUEST['ewww_scan'] );
+	// Make the Force Re-optimize option persistent.
+	if ( ! empty( $_REQUEST['ewww_force'] ) ) {
+		ewwwio_debug_message( 'forcing re-optimize: true' );
+		$ewww_force = true;
+		set_transient( 'ewww_image_optimizer_force_reopt', true, HOUR_IN_SECONDS );
+	} else {
+		$ewww_force = false;
+		delete_transient( 'ewww_image_optimizer_force_reopt' );
+	}
+	// Make the Smart Re-optimize option persistent.
+	if ( ! empty( $_REQUEST['ewww_force_smart'] ) ) {
+		ewwwio_debug_message( 'forcing (smart) re-optimize: true' );
+		$ewww_force_smart = true;
+		set_transient( 'ewww_image_optimizer_smart_reopt', true, HOUR_IN_SECONDS );
+	} else {
+		$ewww_force_smart = false;
+		delete_transient( 'ewww_image_optimizer_smart_reopt' );
 	}
 	global $optimized_list;
 	$queued_ids            = array();
@@ -955,7 +977,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 
 	list( $bad_attachments, $bad_attachment ) = ewww_image_optimizer_get_bad_attachments();
 
-	if ( empty( $attachment_ids ) ) {
+	if ( empty( $attachment_ids ) && $ewww_scan ) {
 		// When the media library is finished, run the aux script function to scan for additional images.
 		ewww_image_optimizer_aux_images_script();
 	}
