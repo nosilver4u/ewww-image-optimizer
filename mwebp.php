@@ -30,7 +30,7 @@ function ewww_image_optimizer_webp_migrate_preview() {
 		<div id="webp-status"></div>
 			<div id="bulk-forms">
 			<form id="webp-start" class="webp-form" method="post" action="">
-				<input id="webp-first" type="submit" class="button-secondary action" value="<?php echo $button_text; ?>" />
+				<input id="webp-first" type="submit" class="button-secondary action" value="<?php esc_attr_e( 'Start Migration', 'ewww-image-optimizer' ); ?>" />
 			</form>
 	</div>
 	<?php
@@ -107,7 +107,7 @@ function ewww_image_optimizer_webp_script( $hook ) {
 function ewww_image_optimizer_webp_initialize() {
 	// Verify that an authorized user has started the migration.
 	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
-	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-webp' ) || ! current_user_can( $permissions ) ) {
+	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-webp' ) || ! current_user_can( $permissions ) ) {
 		ewwwio_ob_clean();
 		die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -119,7 +119,7 @@ function ewww_image_optimizer_webp_initialize() {
 	$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
 	// Let the user know that we are beginning.
 	ewwwio_ob_clean();
-	die( '<p>' . esc_html__( 'Scanning', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>" );
+	die( '<p>' . esc_html__( 'Scanning', 'ewww-image-optimizer' ) . '&nbsp;<img src="' . esc_url( $loading_image ) . '" /></p>' );
 }
 
 /**
@@ -128,7 +128,7 @@ function ewww_image_optimizer_webp_initialize() {
 function ewww_image_optimizer_webp_loop() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
-	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-webp' ) || ! current_user_can( $permissions ) ) {
+	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-webp' ) || ! current_user_can( $permissions ) ) {
 		ewwwio_ob_clean();
 		die( esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) );
 	}
@@ -223,7 +223,7 @@ function ewww_image_optimizer_webp_loop() {
  */
 function ewww_image_optimizer_webp_cleanup() {
 	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
-	if ( ! wp_verify_nonce( $_REQUEST['ewww_wpnonce'], 'ewww-image-optimizer-webp' ) || ! current_user_can( $permissions ) ) {
+	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-webp' ) || ! current_user_can( $permissions ) ) {
 		ewwwio_ob_clean();
 		die( esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) );
 	}
@@ -234,7 +234,7 @@ function ewww_image_optimizer_webp_cleanup() {
 	ewwwio_ob_clean();
 	if ( $skipped ) {
 		echo '<p><b>' . esc_html__( 'Skipped:', 'ewww-image-optimizer' ) . '</b></p>';
-		echo "<p>$skipped</p>";
+		echo wp_kses_post( "<p>$skipped</p>" );
 	}
 	// and let the user know we are done.
 	die( '<p><b>' . esc_html__( 'Finished', 'ewww-image-optimizer' ) . '</b></p>' );

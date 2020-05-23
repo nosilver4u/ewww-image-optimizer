@@ -118,14 +118,14 @@ class EWWWIO_Install_Cloud {
 				} else {
 					$redirect_url = admin_url( 'plugins.php?ewwwio_cloud_activated=1' );
 				}
-				wp_redirect( $redirect_url );
+				wp_safe_redirect( $redirect_url );
 				exit( 0 );
 			} else {
-				wp_redirect( admin_url( 'plugins.php' ) );
+				wp_safe_redirect( admin_url( 'plugins.php' ) );
 				exit( 0 );
 			}
 		}
-		wp_redirect( admin_url( 'plugins.php' ) );
+		wp_safe_redirect( admin_url( 'plugins.php' ) );
 		exit( 0 );
 	}
 

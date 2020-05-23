@@ -129,7 +129,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$this->scheme = $scheme;
 			}
 
-			$uri = $_SERVER['REQUEST_URI'];
+			$uri = add_query_arg( null, null );
+			$this->debug_message( "request uri is $uri" );
+
 			/**
 			 * Allow pre-empting the parsers by page.
 			 *
@@ -286,7 +288,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$home_url = home_url();
 			$originip = '';
 			if ( ! empty( $_SERVER['SERVER_ADDR'] ) ) {
-				$originip = $_SERVER['SERVER_ADDR'];
+				$originip = sanitize_text_field( wp_unslash( $_SERVER['SERVER_ADDR'] ) );
 			}
 
 			$url = 'http://optimize.exactlywww.com/exactdn/activate.php';
@@ -1428,16 +1430,16 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( ! wp_doing_ajax() ) {
 				return $allow;
 			}
-			if ( ! empty( $_POST['action'] ) && 'eddvbugm_viewport_downloads' === $_POST['action'] ) {
+			if ( ! empty( $_POST['action'] ) && 'eddvbugm_viewport_downloads' === $_POST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 				return true;
 			}
-			if ( ! empty( $_POST['action'] ) && 'vc_get_vc_grid_data' === $_POST['action'] ) {
+			if ( ! empty( $_POST['action'] ) && 'vc_get_vc_grid_data' === $_POST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 				return true;
 			}
-			if ( ! empty( $_POST['action'] ) && 'Essential_Grid_Front_request_ajax' === $_POST['action'] ) {
+			if ( ! empty( $_POST['action'] ) && 'Essential_Grid_Front_request_ajax' === $_POST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 				return true;
 			}
-			if ( ! empty( $_POST['action'] ) && 'mabel-rpn-getnew-purchased-products' === $_POST['action'] ) {
+			if ( ! empty( $_POST['action'] ) && 'mabel-rpn-getnew-purchased-products' === $_POST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 				return true;
 			}
 			return $allow;

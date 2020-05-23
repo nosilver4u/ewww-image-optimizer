@@ -114,6 +114,7 @@ class EWWW_Image {
 		if ( ! is_string( $gallery ) ) {
 			$gallery = '';
 		}
+		$id = (int) $id;
 		global $wpdb;
 		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
 			ewww_image_optimizer_db_init();

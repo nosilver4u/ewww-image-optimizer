@@ -21,7 +21,13 @@ function ewww_image_optimizer_display_tools() {
 	if ( ! class_exists( 'WP_Background_Process' ) ) {
 		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
 	}
-	if ( ! empty( $_POST['action'] ) && 'ewww_image_optimizer_clear_queue' === $_POST['action'] && current_user_can( 'manage_options' ) && wp_verify_nonce( $_POST['ewww_nonce'], 'ewww_image_optimizer_clear_queue' ) ) {
+	if (
+		! empty( $_POST['action'] ) &&
+		'ewww_image_optimizer_clear_queue' === $_POST['action'] &&
+		current_user_can( 'manage_options' ) &&
+		! empty( $_POST['ewww_nonce'] ) &&
+		wp_verify_nonce( sanitize_key( $_POST['ewww_nonce'] ), 'ewww_image_optimizer_clear_queue' )
+	) {
 		$ewwwio_media_background->cancel_process();
 		$ewwwio_image_background->cancel_process();
 		update_option( 'ewwwio_stop_scheduled_scan', true, false );

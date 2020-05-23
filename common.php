@@ -213,7 +213,7 @@ if ( 'done' !== get_option( 'ewww_image_optimizer_relative_migration_status' ) )
 function ewww_image_optimizer_parser_init() {
 	$buffer_start = false;
 	// If ExactDN is enabled.
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && empty( $_GET['exactdn_disable'] ) ) {
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && false === strpos( add_query_arg( null, null ), 'exactdn_disable=1' ) ) {
 		if ( ! ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ) {
 			// Un-configure Autoptimize CDN domain.
 			if ( defined( 'AUTOPTIMIZE_PLUGIN_DIR' ) && strpos( ewww_image_optimizer_get_option( 'autoptimize_cdn_url' ), 'exactdn' ) ) {
@@ -720,103 +720,116 @@ function ewww_image_optimizer_admin_init() {
 	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
 		ewwwio_debug_message( 'saving network settings' );
 		// Set the common network settings if they have been POSTed.
-		if ( isset( $_POST['option_page'] ) && false !== strpos( $_POST['option_page'], 'ewww_image_optimizer_options' ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) && current_user_can( 'manage_network_options' ) && ! get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) && false === strpos( $_POST['_wp_http_referer'], 'options-general' ) ) {
+		if (
+			isset( $_POST['option_page'] ) &&
+			false !== strpos( sanitize_text_field( wp_unslash( $_POST['option_page'] ) ), 'ewww_image_optimizer_options' ) &&
+			! empty( $_REQUEST['_wpnonce'] ) &&
+			wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) &&
+			current_user_can( 'manage_network_options' ) &&
+			! get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) &&
+			false === strpos( wp_get_referer(), 'options-general' )
+		) {
 			ewwwio_debug_message( 'network-wide settings, no override' );
-			$_POST['ewww_image_optimizer_cloud_key'] = empty( $_POST['ewww_image_optimizer_cloud_key'] ) ? '' : $_POST['ewww_image_optimizer_cloud_key'];
-			update_site_option( 'ewww_image_optimizer_cloud_key', ewww_image_optimizer_cloud_key_sanitize( $_POST['ewww_image_optimizer_cloud_key'] ) );
-			$_POST['ewww_image_optimizer_debug'] = ( empty( $_POST['ewww_image_optimizer_debug'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_debug', $_POST['ewww_image_optimizer_debug'] );
-			$_POST['ewww_image_optimizer_metadata_remove'] = ( empty( $_POST['ewww_image_optimizer_metadata_remove'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_metadata_remove', $_POST['ewww_image_optimizer_metadata_remove'] );
-			$_POST['ewww_image_optimizer_jpg_level'] = empty( $_POST['ewww_image_optimizer_jpg_level'] ) ? '' : $_POST['ewww_image_optimizer_jpg_level'];
-			update_site_option( 'ewww_image_optimizer_jpg_level', (int) $_POST['ewww_image_optimizer_jpg_level'] );
-			$_POST['ewww_image_optimizer_png_level'] = empty( $_POST['ewww_image_optimizer_png_level'] ) ? '' : $_POST['ewww_image_optimizer_png_level'];
-			update_site_option( 'ewww_image_optimizer_png_level', (int) $_POST['ewww_image_optimizer_png_level'] );
-			$_POST['ewww_image_optimizer_gif_level'] = empty( $_POST['ewww_image_optimizer_gif_level'] ) ? '' : $_POST['ewww_image_optimizer_gif_level'];
-			update_site_option( 'ewww_image_optimizer_gif_level', (int) $_POST['ewww_image_optimizer_gif_level'] );
-			$_POST['ewww_image_optimizer_pdf_level'] = empty( $_POST['ewww_image_optimizer_pdf_level'] ) ? '' : $_POST['ewww_image_optimizer_pdf_level'];
-			update_site_option( 'ewww_image_optimizer_pdf_level', (int) $_POST['ewww_image_optimizer_pdf_level'] );
-			$_POST['ewww_image_optimizer_delete_originals'] = ( empty( $_POST['ewww_image_optimizer_delete_originals'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_delete_originals', $_POST['ewww_image_optimizer_delete_originals'] );
-			$_POST['ewww_image_optimizer_jpg_to_png'] = ( empty( $_POST['ewww_image_optimizer_jpg_to_png'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_jpg_to_png', $_POST['ewww_image_optimizer_jpg_to_png'] );
-			$_POST['ewww_image_optimizer_png_to_jpg'] = ( empty( $_POST['ewww_image_optimizer_png_to_jpg'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_png_to_jpg', $_POST['ewww_image_optimizer_png_to_jpg'] );
-			$_POST['ewww_image_optimizer_gif_to_png'] = ( empty( $_POST['ewww_image_optimizer_gif_to_png'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_gif_to_png', $_POST['ewww_image_optimizer_gif_to_png'] );
-			$_POST['ewww_image_optimizer_webp'] = ( empty( $_POST['ewww_image_optimizer_webp'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_webp', $_POST['ewww_image_optimizer_webp'] );
-			$_POST['ewww_image_optimizer_jpg_background'] = empty( $_POST['ewww_image_optimizer_jpg_background'] ) ? '' : $_POST['ewww_image_optimizer_jpg_background'];
-			update_site_option( 'ewww_image_optimizer_jpg_background', ewww_image_optimizer_jpg_background( $_POST['ewww_image_optimizer_jpg_background'] ) );
-			$_POST['ewww_image_optimizer_jpg_quality'] = empty( $_POST['ewww_image_optimizer_jpg_quality'] ) ? '' : $_POST['ewww_image_optimizer_jpg_quality'];
-			update_site_option( 'ewww_image_optimizer_jpg_quality', ewww_image_optimizer_jpg_quality( $_POST['ewww_image_optimizer_jpg_quality'] ) );
-			$_POST['ewww_image_optimizer_disable_convert_links'] = ( empty( $_POST['ewww_image_optimizer_disable_convert_links'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_disable_convert_links', $_POST['ewww_image_optimizer_disable_convert_links'] );
-			$_POST['ewww_image_optimizer_backup_files'] = ( empty( $_POST['ewww_image_optimizer_backup_files'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_backup_files', $_POST['ewww_image_optimizer_backup_files'] );
-			$_POST['ewww_image_optimizer_auto'] = ( empty( $_POST['ewww_image_optimizer_auto'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_auto', $_POST['ewww_image_optimizer_auto'] );
-			$_POST['ewww_image_optimizer_aux_paths'] = empty( $_POST['ewww_image_optimizer_aux_paths'] ) ? '' : $_POST['ewww_image_optimizer_aux_paths'];
-			update_site_option( 'ewww_image_optimizer_aux_paths', ewww_image_optimizer_aux_paths_sanitize( $_POST['ewww_image_optimizer_aux_paths'] ) );
-			$_POST['ewww_image_optimizer_exclude_paths'] = empty( $_POST['ewww_image_optimizer_exclude_paths'] ) ? '' : $_POST['ewww_image_optimizer_exclude_paths'];
-			update_site_option( 'ewww_image_optimizer_exclude_paths', ewww_image_optimizer_exclude_paths_sanitize( $_POST['ewww_image_optimizer_exclude_paths'] ) );
-			$_POST['ewww_image_optimizer_enable_cloudinary'] = ( empty( $_POST['ewww_image_optimizer_enable_cloudinary'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_enable_cloudinary', $_POST['ewww_image_optimizer_enable_cloudinary'] );
-			$_POST['ewww_image_optimizer_exactdn'] = ( empty( $_POST['ewww_image_optimizer_exactdn'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_exactdn', $_POST['ewww_image_optimizer_exactdn'] );
-			$_POST['exactdn_all_the_things'] = ( empty( $_POST['exactdn_all_the_things'] ) ? false : true );
-			update_site_option( 'exactdn_all_the_things', $_POST['exactdn_all_the_things'] );
-			$_POST['exactdn_lossy'] = ( empty( $_POST['exactdn_lossy'] ) ? false : true );
-			update_site_option( 'exactdn_lossy', $_POST['exactdn_lossy'] );
-			$_POST['exactdn_exclude'] = empty( $_POST['exactdn_exclude'] ) ? '' : $_POST['exactdn_exclude'];
-			update_site_option( 'exactdn_exclude', ewww_image_optimizer_exclude_paths_sanitize( $_POST['exactdn_exclude'] ) );
-			$_POST['ewww_image_optimizer_lazy_load'] = ( empty( $_POST['ewww_image_optimizer_lazy_load'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_lazy_load', $_POST['ewww_image_optimizer_lazy_load'] );
-			$_POST['ewww_image_optimizer_use_lqip'] = ( empty( $_POST['ewww_image_optimizer_use_lqip'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_use_lqip', $_POST['ewww_image_optimizer_use_lqip'] );
-			$_POST['ewww_image_optimizer_ll_exclude'] = empty( $_POST['ewww_image_optimizer_ll_exclude'] ) ? '' : $_POST['ewww_image_optimizer_ll_exclude'];
-			update_site_option( 'ewww_image_optimizer_ll_exclude', ewww_image_optimizer_exclude_paths_sanitize( $_POST['ewww_image_optimizer_ll_exclude'] ) );
-			$_POST['ewww_image_optimizer_maxmediawidth'] = empty( $_POST['ewww_image_optimizer_maxmediawidth'] ) ? 0 : $_POST['ewww_image_optimizer_maxmediawidth'];
-			update_site_option( 'ewww_image_optimizer_maxmediawidth', (int) $_POST['ewww_image_optimizer_maxmediawidth'] );
-			$_POST['ewww_image_optimizer_maxmediaheight'] = empty( $_POST['ewww_image_optimizer_maxmediaheight'] ) ? 0 : $_POST['ewww_image_optimizer_maxmediaheight'];
-			update_site_option( 'ewww_image_optimizer_maxmediaheight', (int) $_POST['ewww_image_optimizer_maxmediaheight'] );
-			$_POST['ewww_image_optimizer_resize_detection'] = ( empty( $_POST['ewww_image_optimizer_resize_detection'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_resize_detection', $_POST['ewww_image_optimizer_resize_detection'] );
-			$_POST['ewww_image_optimizer_resize_existing'] = ( empty( $_POST['ewww_image_optimizer_resize_existing'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_resize_existing', $_POST['ewww_image_optimizer_resize_existing'] );
-			$_POST['ewww_image_optimizer_resize_other_existing'] = ( empty( $_POST['ewww_image_optimizer_resize_other_existing'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_resize_other_existing', $_POST['ewww_image_optimizer_resize_other_existing'] );
-			$_POST['ewww_image_optimizer_parallel_optimization'] = ( empty( $_POST['ewww_image_optimizer_parallel_optimization'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_parallel_optimization', $_POST['ewww_image_optimizer_parallel_optimization'] );
-			$_POST['ewww_image_optimizer_include_media_paths'] = ( empty( $_POST['ewww_image_optimizer_include_media_paths'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_include_media_paths', $_POST['ewww_image_optimizer_include_media_paths'] );
-			$_POST['ewww_image_optimizer_include_originals'] = ( empty( $_POST['ewww_image_optimizer_include_originals'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_include_originals', $_POST['ewww_image_optimizer_include_originals'] );
-			$_POST['ewww_image_optimizer_webp_for_cdn'] = ( empty( $_POST['ewww_image_optimizer_webp_for_cdn'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_webp_for_cdn', $_POST['ewww_image_optimizer_webp_for_cdn'] );
-			$_POST['ewww_image_optimizer_picture_webp'] = ( empty( $_POST['ewww_image_optimizer_picture_webp'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_picture_webp', $_POST['ewww_image_optimizer_picture_webp'] );
-			$_POST['ewww_image_optimizer_webp_rewrite_exclude'] = empty( $_POST['ewww_image_optimizer_webp_rewrite_exclude'] ) ? '' : $_POST['ewww_image_optimizer_webp_rewrite_exclude'];
-			update_site_option( 'ewww_image_optimizer_webp_rewrite_exclude', ewww_image_optimizer_exclude_paths_sanitize( $_POST['ewww_image_optimizer_webp_rewrite_exclude'] ) );
-			$_POST['ewww_image_optimizer_webp_force'] = ( empty( $_POST['ewww_image_optimizer_webp_force'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_webp_force', $_POST['ewww_image_optimizer_webp_force'] );
-			$_POST['ewww_image_optimizer_webp_paths'] = ( empty( $_POST['ewww_image_optimizer_webp_paths'] ) ? '' : $_POST['ewww_image_optimizer_webp_paths'] );
-			update_site_option( 'ewww_image_optimizer_webp_paths', ewww_image_optimizer_webp_paths_sanitize( $_POST['ewww_image_optimizer_webp_paths'] ) );
-			$_POST['ewww_image_optimizer_allow_multisite_override'] = empty( $_POST['ewww_image_optimizer_allow_multisite_override'] ) ? false : true;
-			update_site_option( 'ewww_image_optimizer_allow_multisite_override', $_POST['ewww_image_optimizer_allow_multisite_override'] );
-			$_POST['ewww_image_optimizer_enable_help'] = empty( $_POST['ewww_image_optimizer_enable_help'] ) ? false : true;
-			update_site_option( 'ewww_image_optimizer_enable_help', $_POST['ewww_image_optimizer_enable_help'] );
+			$ewww_image_optimizer_cloud_key = empty( $_POST['ewww_image_optimizer_cloud_key'] ) ? '' : sanitize_key( $_POST['ewww_image_optimizer_cloud_key'] );
+			update_site_option( 'ewww_image_optimizer_cloud_key', ewww_image_optimizer_cloud_key_sanitize( $ewww_image_optimizer_cloud_key ) );
+			$ewww_image_optimizer_debug = ( empty( $_POST['ewww_image_optimizer_debug'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_debug', $ewww_image_optimizer_debug );
+			$ewww_image_optimizer_metadata_remove = ( empty( $_POST['ewww_image_optimizer_metadata_remove'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_metadata_remove', $ewww_image_optimizer_metadata_remove );
+			$ewww_image_optimizer_jpg_level = empty( $_POST['ewww_image_optimizer_jpg_level'] ) ? '' : (int) $_POST['ewww_image_optimizer_jpg_level'];
+			update_site_option( 'ewww_image_optimizer_jpg_level', $ewww_image_optimizer_jpg_level );
+			$ewww_image_optimizer_png_level = empty( $_POST['ewww_image_optimizer_png_level'] ) ? '' : (int) $_POST['ewww_image_optimizer_png_level'];
+			update_site_option( 'ewww_image_optimizer_png_level', $ewww_image_optimizer_png_level );
+			$ewww_image_optimizer_gif_level = empty( $_POST['ewww_image_optimizer_gif_level'] ) ? '' : (int) $_POST['ewww_image_optimizer_gif_level'];
+			update_site_option( 'ewww_image_optimizer_gif_level', $ewww_image_optimizer_gif_level );
+			$_POST['ewww_image_optimizer_pdf_level'] = empty( $_POST['ewww_image_optimizer_pdf_level'] ) ? '' : (int) $_POST['ewww_image_optimizer_pdf_level'];
+			update_site_option( 'ewww_image_optimizer_pdf_level', $ewww_image_optimizer_pdf_level );
+			$ewww_image_optimizer_delete_originals = ( empty( $_POST['ewww_image_optimizer_delete_originals'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_delete_originals', $ewww_image_optimizer_delete_originals );
+			$ewww_image_optimizer_jpg_to_png = ( empty( $_POST['ewww_image_optimizer_jpg_to_png'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_jpg_to_png', $ewww_image_optimizer_jpg_to_png );
+			$ewww_image_optimizer_png_to_jpg = ( empty( $_POST['ewww_image_optimizer_png_to_jpg'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_png_to_jpg', $ewww_image_optimizer_png_to_jpg );
+			$ewww_image_optimizer_gif_to_png = ( empty( $_POST['ewww_image_optimizer_gif_to_png'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_gif_to_png', $ewww_image_optimizer_gif_to_png );
+			$ewww_image_optimizer_webp = ( empty( $_POST['ewww_image_optimizer_webp'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_webp', $ewww_image_optimizer_webp );
+			$ewww_image_optimizer_jpg_background = empty( $_POST['ewww_image_optimizer_jpg_background'] ) ? '' : sanitize_text_field( wp_unslash( $_POST['ewww_image_optimizer_jpg_background'] ) );
+			update_site_option( 'ewww_image_optimizer_jpg_background', ewww_image_optimizer_jpg_background( $ewww_image_optimizer_jpg_background ) );
+			$ewww_image_optimizer_jpg_quality = empty( $_POST['ewww_image_optimizer_jpg_quality'] ) ? '' : (int) $_POST['ewww_image_optimizer_jpg_quality'];
+			update_site_option( 'ewww_image_optimizer_jpg_quality', ewww_image_optimizer_jpg_quality( $ewww_image_optimizer_jpg_quality ) );
+			$ewww_image_optimizer_disable_convert_links = ( empty( $_POST['ewww_image_optimizer_disable_convert_links'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_disable_convert_links', $ewww_image_optimizer_disable_convert_links );
+			$ewww_image_optimizer_backup_files = ( empty( $_POST['ewww_image_optimizer_backup_files'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_backup_files', $ewww_image_optimizer_backup_files );
+			$ewww_image_optimizer_auto = ( empty( $_POST['ewww_image_optimizer_auto'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_auto', $ewww_image_optimizer_auto );
+			$ewww_image_optimizer_aux_paths = empty( $_POST['ewww_image_optimizer_aux_paths'] ) ? '' : sanitize_textarea_field( wp_unslash( $_POST['ewww_image_optimizer_aux_paths'] ) );
+			update_site_option( 'ewww_image_optimizer_aux_paths', ewww_image_optimizer_aux_paths_sanitize( $ewww_image_optimizer_aux_paths ) );
+			$ewww_image_optimizer_exclude_paths = empty( $_POST['ewww_image_optimizer_exclude_paths'] ) ? '' : sanitize_textarea_field( wp_unslash( $_POST['ewww_image_optimizer_exclude_paths'] ) );
+			update_site_option( 'ewww_image_optimizer_exclude_paths', ewww_image_optimizer_exclude_paths_sanitize( $ewww_image_optimizer_exclude_paths ) );
+			$ewww_image_optimizer_enable_cloudinary = ( empty( $_POST['ewww_image_optimizer_enable_cloudinary'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_enable_cloudinary', $ewww_image_optimizer_enable_cloudinary );
+			$ewww_image_optimizer_exactdn = ( empty( $_POST['ewww_image_optimizer_exactdn'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_exactdn', $ewww_image_optimizer_exactdn );
+			$exactdn_all_the_things = ( empty( $_POST['exactdn_all_the_things'] ) ? false : true );
+			update_site_option( 'exactdn_all_the_things', $exactdn_all_the_things );
+			$exactdn_lossy = ( empty( $_POST['exactdn_lossy'] ) ? false : true );
+			update_site_option( 'exactdn_lossy', $exactdn_lossy );
+			$exactdn_exclude = empty( $_POST['exactdn_exclude'] ) ? '' : sanitize_textarea_field( wp_unslash( $_POST['exactdn_exclude'] ) );
+			update_site_option( 'exactdn_exclude', ewww_image_optimizer_exclude_paths_sanitize( $exactdn_exclude ) );
+			$ewww_image_optimizer_lazy_load = ( empty( $_POST['ewww_image_optimizer_lazy_load'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_lazy_load', $ewww_image_optimizer_lazy_load );
+			$ewww_image_optimizer_use_lqip = ( empty( $_POST['ewww_image_optimizer_use_lqip'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_use_lqip', $ewww_image_optimizer_use_lqip );
+			$ewww_image_optimizer_ll_exclude = empty( $_POST['ewww_image_optimizer_ll_exclude'] ) ? '' : sanitize_textarea_field( wp_unslash( $_POST['ewww_image_optimizer_ll_exclude'] ) );
+			update_site_option( 'ewww_image_optimizer_ll_exclude', ewww_image_optimizer_exclude_paths_sanitize( $ewww_image_optimizer_ll_exclude ) );
+			$ewww_image_optimizer_maxmediawidth = empty( $_POST['ewww_image_optimizer_maxmediawidth'] ) ? 0 : (int) $_POST['ewww_image_optimizer_maxmediawidth'];
+			update_site_option( 'ewww_image_optimizer_maxmediawidth', $ewww_image_optimizer_maxmediawidth );
+			$ewww_image_optimizer_maxmediaheight = empty( $_POST['ewww_image_optimizer_maxmediaheight'] ) ? 0 : (int) $_POST['ewww_image_optimizer_maxmediaheight'];
+			update_site_option( 'ewww_image_optimizer_maxmediaheight', $ewww_image_optimizer_maxmediaheight );
+			$ewww_image_optimizer_resize_detection = ( empty( $_POST['ewww_image_optimizer_resize_detection'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_resize_detection', $ewww_image_optimizer_resize_detection );
+			$ewww_image_optimizer_resize_existing = ( empty( $_POST['ewww_image_optimizer_resize_existing'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_resize_existing', $ewww_image_optimizer_resize_existing );
+			$ewww_image_optimizer_resize_other_existing = ( empty( $_POST['ewww_image_optimizer_resize_other_existing'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_resize_other_existing', $ewww_image_optimizer_resize_other_existing );
+			$ewww_image_optimizer_parallel_optimization = ( empty( $_POST['ewww_image_optimizer_parallel_optimization'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_parallel_optimization', $ewww_image_optimizer_parallel_optimization );
+			$ewww_image_optimizer_include_media_paths = ( empty( $_POST['ewww_image_optimizer_include_media_paths'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_include_media_paths', $ewww_image_optimizer_include_media_paths );
+			$ewww_image_optimizer_include_originals = ( empty( $_POST['ewww_image_optimizer_include_originals'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_include_originals', $ewww_image_optimizer_include_originals );
+			$ewww_image_optimizer_webp_for_cdn = ( empty( $_POST['ewww_image_optimizer_webp_for_cdn'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_webp_for_cdn', $ewww_image_optimizer_webp_for_cdn );
+			$ewww_image_optimizer_picture_webp = ( empty( $_POST['ewww_image_optimizer_picture_webp'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_picture_webp', $ewww_image_optimizer_picture_webp );
+			$ewww_image_optimizer_webp_rewrite_exclude = empty( $_POST['ewww_image_optimizer_webp_rewrite_exclude'] ) ? '' : sanitize_textarea_field( wp_unslash( $_POST['ewww_image_optimizer_webp_rewrite_exclude'] ) );
+			update_site_option( 'ewww_image_optimizer_webp_rewrite_exclude', ewww_image_optimizer_exclude_paths_sanitize( $ewww_image_optimizer_webp_rewrite_exclude ) );
+			$ewww_image_optimizer_webp_force = ( empty( $_POST['ewww_image_optimizer_webp_force'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_webp_force', $ewww_image_optimizer_webp_force );
+			$ewww_image_optimizer_webp_paths = ( empty( $_POST['ewww_image_optimizer_webp_paths'] ) ? '' : sanitize_textarea_field( wp_unslash( $_POST['ewww_image_optimizer_webp_paths'] ) ) );
+			update_site_option( 'ewww_image_optimizer_webp_paths', ewww_image_optimizer_webp_paths_sanitize( $ewww_image_optimizer_webp_paths ) );
+			$ewww_image_optimizer_allow_multisite_override = empty( $_POST['ewww_image_optimizer_allow_multisite_override'] ) ? false : true;
+			update_site_option( 'ewww_image_optimizer_allow_multisite_override', $ewww_image_optimizer_allow_multisite_override );
+			$ewww_image_optimizer_enable_help = empty( $_POST['ewww_image_optimizer_enable_help'] ) ? false : true;
+			update_site_option( 'ewww_image_optimizer_enable_help', $ewww_image_optimizer_enable_help );
 			global $ewwwio_tracking;
-			$_POST['ewww_image_optimizer_allow_tracking'] = empty( $_POST['ewww_image_optimizer_allow_tracking'] ) ? false : $ewwwio_tracking->check_for_settings_optin( $_POST['ewww_image_optimizer_allow_tracking'] );
-			update_site_option( 'ewww_image_optimizer_allow_tracking', $_POST['ewww_image_optimizer_allow_tracking'] );
+			$ewww_image_optimizer_allow_tracking = empty( $_POST['ewww_image_optimizer_allow_tracking'] ) ? false : $ewwwio_tracking->check_for_settings_optin( (bool) $_POST['ewww_image_optimizer_allow_tracking'] );
+			update_site_option( 'ewww_image_optimizer_allow_tracking', $ewww_image_optimizer_allow_tracking );
 			add_action( 'network_admin_notices', 'ewww_image_optimizer_network_settings_saved' );
-		} elseif ( isset( $_POST['ewww_image_optimizer_allow_multisite_override_active'] ) && current_user_can( 'manage_network_options' ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
+		} elseif (
+			isset( $_POST['ewww_image_optimizer_allow_multisite_override_active'] ) &&
+			current_user_can( 'manage_network_options' ) &&
+			isset( $_REQUEST['_wpnonce'] ) &&
+			wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' )
+		) {
 			ewwwio_debug_message( 'network-wide settings, single-site overriding' );
-			$_POST['ewww_image_optimizer_allow_multisite_override'] = empty( $_POST['ewww_image_optimizer_allow_multisite_override'] ) ? false : true;
-			update_site_option( 'ewww_image_optimizer_allow_multisite_override', $_POST['ewww_image_optimizer_allow_multisite_override'] );
+			$ewww_image_optimizer_allow_multisite_override = empty( $_POST['ewww_image_optimizer_allow_multisite_override'] ) ? false : true;
+			update_site_option( 'ewww_image_optimizer_allow_multisite_override', $ewww_image_optimizer_allow_multisite_override );
 			global $ewwwio_tracking;
-			$_POST['ewww_image_optimizer_allow_tracking'] = empty( $_POST['ewww_image_optimizer_allow_tracking'] ) ? false : $ewwwio_tracking->check_for_settings_optin( $_POST['ewww_image_optimizer_allow_tracking'] );
-			update_site_option( 'ewww_image_optimizer_allow_tracking', $_POST['ewww_image_optimizer_allow_tracking'] );
+			$ewww_image_optimizer_allow_tracking = empty( $_POST['ewww_image_optimizer_allow_tracking'] ) ? false : $ewwwio_tracking->check_for_settings_optin( (bool) $_POST['ewww_image_optimizer_allow_tracking'] );
+			update_site_option( 'ewww_image_optimizer_allow_tracking', $ewww_image_optimizer_allow_tracking );
 			add_action( 'network_admin_notices', 'ewww_image_optimizer_network_settings_saved' );
 		} // End if().
 	} // End if().
@@ -1002,27 +1015,29 @@ function ewww_image_optimizer_ajax_compat_check() {
 		return;
 	}
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	// Check for (Force) Regenerate Thumbnails action (includes MLP regenerate).
-	if ( ! empty( $_REQUEST['action'] ) ) {
-		if (
-			'regeneratethumbnail' === $_REQUEST['action'] ||
-			'rta_regenerate_thumbnails' === $_REQUEST['action'] ||
-			'meauh_save_image' === $_REQUEST['action'] ||
-			'hotspot_save' === $_REQUEST['action']
-		) {
-			ewwwio_debug_message( 'doing regeneratethumbnail' );
-			ewww_image_optimizer_image_sizes( false );
-			return;
-		}
-		if ( 'mic_crop_image' === $_REQUEST['action'] ) {
-			ewwwio_debug_message( 'doing Manual Image Crop' );
-			if ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) ) {
-				define( 'EWWWIO_EDITOR_OVERWRITE', true );
-			}
-			return;
-		}
+	$action = ! empty( $_REQUEST['action'] ) ? sanitize_key( $_REQUEST['action'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+	if ( $action ) {
+		ewwwio_debug_message( "doing $action" );
 	}
-	if ( ! empty( $_REQUEST['action'] ) && false !== strpos( $_REQUEST['action'], 'wc_regenerate_images' ) ) {
+	// Check for (Force) Regenerate Thumbnails action (includes MLP regenerate).
+	if (
+		'regeneratethumbnail' === $action ||
+		'rta_regenerate_thumbnails' === $action ||
+		'meauh_save_image' === $action ||
+		'hotspot_save' === $action
+	) {
+		ewwwio_debug_message( 'doing regeneratethumbnail' );
+		ewww_image_optimizer_image_sizes( false );
+		return;
+	}
+	if ( 'mic_crop_image' === $action ) {
+		ewwwio_debug_message( 'doing Manual Image Crop' );
+		if ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) ) {
+			define( 'EWWWIO_EDITOR_OVERWRITE', true );
+		}
+		return;
+	}
+	if ( false !== strpos( $action, 'wc_regenerate_images' ) ) {
 		// Unhook all automatic processing, and save an option that (does not autoload) tells the user WC regenerated their images and they should run the bulk optimizer.
 		remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
 		remove_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15 );
@@ -1030,25 +1045,25 @@ function ewww_image_optimizer_ajax_compat_check() {
 		return;
 	}
 	// Check for Image Watermark plugin.
-	if ( ! empty( $_POST['iw-action'] ) ) {
-		$action = $_POST['iw-action'];
-		ewwwio_debug_message( "doing $action" );
+	$iwaction = ! empty( $_REQUEST['iw-action'] ) ? sanitize_key( $_REQUEST['iw-action'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+	if ( $iwaction ) {
+		ewwwio_debug_message( "doing $iwaction" );
 		global $ewww_preempt_editor;
 		$ewww_preempt_editor = true;
-		if ( 'applywatermark' === $action ) {
+		if ( 'applywatermark' === $iwaction ) {
 			remove_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15 );
 			add_action( 'iw_after_apply_watermark', 'ewww_image_optimizer_single_size_optimize', 10, 2 );
 		}
 		return;
 	}
 	// Check for other MLP actions, including multi-regen.
-	if ( ! empty( $_REQUEST['action'] ) && class_exists( 'MaxGalleriaMediaLib' ) && ( 'regen_mlp_thumbnails' === $_REQUEST['action'] || 'move_media' === $_REQUEST['action'] || 'copy_media' === $_REQUEST['action'] || 'maxgalleria_rename_image' === $_REQUEST['action'] ) ) {
+	if ( class_exists( 'MaxGalleriaMediaLib' ) && ( 'regen_mlp_thumbnails' === $action || 'move_media' === $action || 'copy_media' === $action || 'maxgalleria_rename_image' === $action ) ) {
 		ewwwio_debug_message( 'doing regen_mlp_thumbnails' );
 		ewww_image_optimizer_image_sizes( false );
 		return;
 	}
 	// Check for MLP upload.
-	if ( ! empty( $_REQUEST['action'] ) && class_exists( 'MaxGalleriaMediaLib' ) && ! empty( $_REQUEST['nonce'] ) && 'upload_attachment' === $_REQUEST['action'] ) {
+	if ( class_exists( 'MaxGalleriaMediaLib' ) && ! empty( $_REQUEST['nonce'] ) && 'upload_attachment' === $action ) { // phpcs:ignore WordPress.Security.NonceVerification
 		ewwwio_debug_message( 'doing maxgalleria upload' );
 		ewww_image_optimizer_image_sizes( false );
 		return;
@@ -1058,9 +1073,9 @@ function ewww_image_optimizer_ajax_compat_check() {
 		ewwwio_debug_message( 'IRSC action/regen' );
 		ewww_image_optimizer_image_sizes( false );
 		return;
-	} elseif ( ! empty( $_REQUEST['action'] ) && 0 === strpos( $_REQUEST['action'], 'sirsc' ) ) {
+	} elseif ( 0 === strpos( $action, 'sirsc' ) ) {
 		// Image Regenerate and Select Crop (old check).
-		ewwwio_debug_message( 'IRSC action/regen' );
+		ewwwio_debug_message( 'IRSC action/regen (old)' );
 		ewww_image_optimizer_image_sizes( false );
 		return;
 	}
@@ -1654,11 +1669,13 @@ function ewww_image_optimizer_scheduled_optimizaton_changed( $new_value, $old_va
 function ewww_image_optimizer_notice_webp_bulk() {
 	$already_done = ewww_image_optimizer_aux_images_table_count();
 	if ( $already_done > 50 ) {
-		$message = esc_html__( 'It looks like you already started optimizing your images, you will need to generate WebP images via the Bulk Optimizer.', 'ewww-image-optimizer' );
-		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-info'><p><a href='" . admin_url( 'upload.php?page=ewww-image-optimizer-bulk&ewww_webp_only=1&ewww_force=1' ) . "'>$message</a></p></div>";
+		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-info'><p><a href='" .
+			esc_url( admin_url( 'upload.php?page=ewww-image-optimizer-bulk&ewww_webp_only=1&ewww_force=1' ) ) .
+			"'>" . esc_html__( 'It looks like you already started optimizing your images, you will need to generate WebP images via the Bulk Optimizer.', 'ewww-image-optimizer' ) . '</a></p></div>';
 	} else {
-		$message = esc_html__( 'Use the Bulk Optimizer to generate WebP images for existing uploads.', 'ewww-image-optimizer' );
-		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-info'><p><a href='" . admin_url( 'upload.php?page=ewww-image-optimizer-bulk' ) . "'>$message</a></p></div>";
+		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-info'><p><a href='" .
+			esc_url( admin_url( 'upload.php?page=ewww-image-optimizer-bulk' ) ) .
+			"'>" . esc_html__( 'Use the Bulk Optimizer to generate WebP images for existing uploads.', 'ewww-image-optimizer' ) . '</a></p></div>';
 	}
 	delete_option( 'ewww_image_optimizer_webp_enabled' );
 }
@@ -1667,18 +1684,18 @@ function ewww_image_optimizer_notice_webp_bulk() {
  * Display a success or failure message after PNGOUT installation.
  */
 function ewww_image_optimizer_pngout_installed() {
-	if ( 'success' === $_REQUEST['ewww_pngout'] ) {
+	if ( ! empty( $_REQUEST['ewww_pngout'] ) && 'success' === $_REQUEST['ewww_pngout'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-success fade'>\n" .
 			'<p>' . esc_html__( 'Pngout was successfully installed.', 'ewww-image-optimizer' ) . "</p>\n" .
 			"</div>\n";
 	}
-	if ( 'failed' === $_REQUEST['ewww_pngout'] ) {
+	if ( ! empty( $_REQUEST['ewww_pngout'] ) && 'failed' === $_REQUEST['ewww_pngout'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 		echo "<div id='ewww-image-optimizer-pngout-failure' class='notice notice-error'>\n" .
 			'<p>' . sprintf(
 				/* translators: 1: An error message 2: The folder where pngout should be installed */
 				esc_html__( 'Pngout was not installed: %1$s. Make sure this folder is writable: %2$s', 'ewww-image-optimizer' ),
-				sanitize_text_field( $_REQUEST['ewww_error'] ),
-				EWWW_IMAGE_OPTIMIZER_TOOL_PATH
+				( ! empty( $_REQUEST['ewww_error'] ) ? esc_html( sanitize_text_field( wp_unslash( $_REQUEST['ewww_error'] ) ) ) : esc_html( 'unknown error', 'ewww-image-optimizer' ) ), // phpcs:ignore WordPress.Security.NonceVerification
+				esc_html( EWWW_IMAGE_OPTIMIZER_TOOL_PATH )
 			) . "</p>\n" .
 			"</div>\n";
 	}
@@ -10188,7 +10205,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 
 		if ( $webp_verified || ! ewww_image_optimizer_webp_rewrite_verify() ) {
 			$output[] = "<form id='ewww-webp-rewrite'>\n";
-			$output[] = "<img id='webp-image' src='" . plugins_url( '/images/test.png', __FILE__ ) . '?m=' . time() . "' style='float: right; padding: 0 0 10px 10px;'>\n" .
+			$output[] = "<img id='webp-image' src='" . plugins_url( '/images/test.png', __FILE__ ) . '?m=' . time() . "' style='float: right; padding: 0 1px 10px 10px;'>\n" .
 				"<p id='ewww-webp-rewrite-status'><b>" . esc_html__( 'Rules verified successfully', 'ewww-image-optimizer' ) . "</b></p>\n" .
 				"<button type='button' id='ewww-webp-remove' class='button-secondary action'>" . esc_html__( 'Remove Rewrite Rules', 'ewww-image-optimizer' ) . "</button>\n";
 			$output[] = "</form>\n";
@@ -10218,11 +10235,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_ce_webp_enabled() ) {
 		$test_webp_image = plugins_url( '/images/test.png.webp', __FILE__ );
 		$test_png_image  = plugins_url( '/images/test.png', __FILE__ );
-		$output[]        = "<noscript data-img='$test_png_image' data-webp='$test_webp_image' data-style='float: right; padding: 0 0 10px 10px;' class='ewww_webp'><img src='$test_png_image' style='float: right; padding: 0 0 10px 10px;'></noscript>\n";
+		$output[]        = "<noscript data-img='$test_png_image' data-webp='$test_webp_image' data-style='padding: 0 0 10px 0;' class='ewww_webp'><img src='$test_png_image' style='float: right; padding: 0 0 10px 10px;'></noscript>\n";
 	} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) && ! ewww_image_optimizer_ce_webp_enabled() ) {
 		$test_webp_image = plugins_url( '/images/test.png.webp', __FILE__ );
 		$test_png_image  = plugins_url( '/images/test.png', __FILE__ );
-		$output[]        = "<picture><source srcset='$test_webp_image' type='image/webp'><img src='$test_png_image' style='float: right; padding: 0 0 10px 10px;'></picture>\n";
+		$output[]        = "<picture><source srcset='$test_webp_image' type='image/webp'><img src='$test_png_image' style='padding: 0 0 10px 0;'></picture>\n";
 	} elseif ( $cf_host && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
 		$output[] = '<p>' . esc_html__( 'Your site is using Cloudflare, please use JS WebP or <picture> WebP rewriting.', 'ewww-image-optimizer' ) . "</p>\n";
 	}
@@ -10260,7 +10277,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 
 	echo $output;
 
-	echo '<hr><div id="ewwwio-banner"><img src="' . esc_url( plugins_url( '/images/ewwwio-logo.png', __FILE__ ) ) . '">' .
+	echo '<hr style="clear:both;"><div id="ewwwio-banner"><img src="' . esc_url( plugins_url( '/images/ewwwio-logo.png', __FILE__ ) ) . '">' .
 		'<p>' . esc_html__( 'Get performance tips, exclusive discounts, and the latest news when you signup for our newsletter!', 'ewww-image-optimizer' ) . '</p>' .
 		'<a href="https://ewww.io/connect/?TB_iframe=true&width=600&height=600" class="thickbox button-secondary">' . esc_html__( 'Subscribe at ewww.io', 'ewww-image-optimizer' ) . ' &rarr;</a></div>';
 
@@ -10270,13 +10287,13 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		'<p><a href="http://shareasale.com/r.cfm?b=917225&amp;u=1481701&amp;m=41388&amp;urllink=&amp;afftrack=">WP Engine</a>* - ' .
 			esc_html__( 'ewww.io is powered by WP Engine, and their performance is worth every penny. This is "managed WordPress hosting" at it\'s finest. 20% discount off your first payment with our link.', 'ewww-image-optimizer' ) .
 		'<br><a href="https://www.siteground.com/wordpress-hosting.htm?afcode=bd82f2335e9c794c1ba7ff4cc3a8b3fd">SiteGround</a>* - ' .
-			esc_html__( 'When I was looking for upgraded hosting for ewww.io, these folks were the only other option I considered. They lost out, just barely, to WP Engine. With their SuperCacher system, the performance is amazing, and their support is pretty good also. I\'ve only used their GoGeek plan, and that\'s what I recommend.', 'ewww-image-optimizer' ) .
+			esc_html__( 'With their SuperCacher system, the performance is amazing, and their support is pretty good also. I\'ve only used their GoGeek plan, so that\'s what I recommend.', 'ewww-image-optimizer' ) .
 		'<br><a href="https://kinsta.com?kaid=OCKKBJARSDFR">Kinsta</a>* - ' .
 			esc_html__( 'Their performance is the same blazing speed as WP Engine, and the support is top notch as well. In addition, they offer SSH access with WP-CLI. Very solid offering and highly recommended.', 'ewww-image-optimizer' ) .
 		'<br><a href="http://www.a2hosting.com/?aid=b6322137">A2 Hosting</a>* - ' .
 			esc_html__( 'I use them for several sites and this is pretty much the fastest shared hosting money can buy.', 'ewww-image-optimizer' ) .
 		'<br><a href="https://vrlps.co/kXJu5yF/cp">Cloudways</a>* - ' .
-			esc_html__( 'This is managed VPS hosting (not limited to WordPress), and they do a good job of keeping it pretty simple. I use their hosting for a few client sites and performance is crazy fast. Support has been great any time I\'ve needed their assistance.', 'ewww-image-optimizer' ) .
+			esc_html__( 'Simple, yet powerful, managed VPS hosting. I use their hosting for a few client sites and performance is crazy fast. Support has been great any time I\'ve needed their assistance.', 'ewww-image-optimizer' ) .
 		'</p>' .
 		'<h3>' . esc_html__( 'Plugins and Services', 'ewww-image-optimizer' ) . '</h3>' .
 		'<p><a href="https://easydigitaldownloads.com/?ref=4735">Easy Digital Downloads</a>* - ' .

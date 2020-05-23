@@ -75,7 +75,7 @@ class EWWWIO_Tracking {
 		$data['wp_version']     = get_bloginfo( 'version' );
 		$data['php_version']    = PHP_VERSION_ID;
 		$data['libxml_version'] = defined( 'LIBXML_VERSION' ) ? LIBXML_VERSION : '';
-		$data['server']         = isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : '';
+		$data['server']         = isset( $_SERVER['SERVER_SOFTWARE'] ) ? sanitize_text_field( wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) ) : '';
 		$data['multisite']      = is_multisite();
 		$data['theme']          = $theme;
 
@@ -232,7 +232,7 @@ class EWWWIO_Tracking {
 	public function check_for_settings_optin( $input ) {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		// Send an intial check in on settings save.
-		if ( isset( $_POST['ewww_image_optimizer_allow_tracking'] ) && $_POST['ewww_image_optimizer_allow_tracking'] ) {
+		if ( $input ) {
 			$this->send_checkin( true );
 			ewww_image_optimizer_set_option( 'ewww_image_optimizer_tracking_notice', 1 );
 		}
@@ -247,7 +247,7 @@ class EWWWIO_Tracking {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_allow_tracking', 1 );
 		$this->send_checkin( true );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_tracking_notice', 1 );
-		wp_redirect( remove_query_arg( 'action', wp_get_referer() ) );
+		wp_safe_redirect( remove_query_arg( 'action', wp_get_referer() ) );
 		exit;
 	}
 
@@ -259,7 +259,7 @@ class EWWWIO_Tracking {
 		delete_option( 'ewww_image_optimizer_allow_tracking' );
 		delete_network_option( null, 'ewww_image_optimizer_allow_tracking' );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_tracking_notice', 1 );
-		wp_redirect( remove_query_arg( 'action', wp_get_referer() ) );
+		wp_safe_redirect( remove_query_arg( 'action', wp_get_referer() ) );
 		exit;
 	}
 
@@ -360,7 +360,7 @@ class EWWWIO_Tracking {
 			$optout_url  = admin_url( 'admin.php?action=ewww_opt_out_of_tracking' );
 			echo '<div class="updated"><p>';
 				/* translators: %s: admin email as configured in settings */
-				printf( esc_html__( 'Allow EWWW Image Optimizer to track plugin usage? Opt-in to tracking and receive 500 free image credits in your admin email: %s. No sensitive data is tracked.', 'ewww-image-optimizer' ), $admin_email );
+				printf( esc_html__( 'Allow EWWW Image Optimizer to track plugin usage? Opt-in to tracking and receive 500 free image credits in your admin email: %s. No sensitive data is tracked.', 'ewww-image-optimizer' ), esc_html( $admin_email ) );
 				echo '&nbsp;<a href="https://docs.ewww.io/article/23-usage-tracking" target="_blank" data-beacon-article="591f3a8e2c7d3a057f893d91">' . esc_html__( 'Learn more.', 'ewww-image-optimizer' ) . '</a>';
 				echo '<a href="' . esc_url( $optin_url ) . '" class="button-secondary" style="margin-left:5px;">' . esc_html__( 'Allow', 'ewww-image-optimizer' ) . '</a>';
 				echo '<a href="' . esc_url( $optout_url ) . '" class="button-secondary" style="margin-left:5px">' . esc_html__( 'Do not allow', 'ewww-image-optimizer' ) . '</a>';

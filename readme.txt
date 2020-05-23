@@ -179,6 +179,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * changed: Easy IO uses better query-string fall-back for plugins
 * changed: Easy IO enforces https if available rather than protocol-relative URLs
 * fixed: images not resized when Media File Renamer is active
+* fixed: PHP warning while using <picture> WebP
 
 = 5.3.2 =
 * added: defer jQuery also with EXACTDN_DEFER_JQUERY override
