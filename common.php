@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '532' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '532.01' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -1715,7 +1715,7 @@ function ewww_image_optimizer_notice_exactdn_activation_error() {
 			esc_html__( 'Could not activate Easy IO, please try again in a few minutes. If this error continues, please see %s for troubleshooting steps.', 'ewww-image-optimizer' ),
 			'https://docs.ewww.io/article/66-exactdn-not-verified'
 		) .
-		'<br><code>' . $exactdn_activate_error . '</code>' .
+		'<br><code>' . esc_html( $exactdn_activate_error ) . '</code>' .
 		'</p></div>';
 }
 
@@ -1906,15 +1906,15 @@ function ewww_image_optimizer_notice_reoptimization() {
 		// Do a check for 10+ optimizations on 5+ images.
 		if ( ! empty( $reoptimized ) && $reoptimized > 5 ) {
 			$debugging_page = admin_url( 'tools.php?page=ewww-image-optimizer-tools' );
-			$reset_page     = wp_nonce_url( $_SERVER['REQUEST_URI'], 'reset_reoptimization_counters', 'ewww_reset_reopt_nonce' );
+			$reset_page     = wp_nonce_url( add_query_var( null, null ), 'reset_reoptimization_counters', 'ewww_reset_reopt_nonce' );
 			// Display an alert, and let the user reset the warning if they wish.
 			echo "<div id='ewww-image-optimizer-warning-reoptimizations' class='error'><p>" .
 				sprintf(
 					/* translators: %s: A link to the EWWW IO Tools page */
 					esc_html__( 'The EWWW Image Optimizer has detected excessive re-optimization of multiple images. Please use the %s page to Show Re-Optimized Images.', 'ewww-image-optimizer' ),
-					"<a href='$debugging_page'>" . esc_html__( 'Tools', 'ewww-image-optimizer' ) . '</a>'
+					"<a href='" . esc_url( $debugging_page ) . "'>" . esc_html__( 'Tools', 'ewww-image-optimizer' ) . '</a>'
 				) .
-				" <a href='$reset_page'>" . esc_html__( 'Reset Counters' ) . '</a></p></div>';
+				" <a href='" . esc_url( $reset_page ) . "'>" . esc_html__( 'Reset Counters' ) . '</a></p></div>';
 		}
 	}
 }
@@ -2341,7 +2341,6 @@ function ewww_image_optimizer_auto() {
 		global $ewwwio_scan_async;
 		$ewwwio_scan_async->data(
 			array(
-				'_wpnonce'  => wp_create_nonce( 'ewww-image-optimizer-bulk' ),
 				'ewww_scan' => 'scheduled',
 			)
 		)->dispatch();
@@ -2572,15 +2571,15 @@ function ewww_image_optimizer_ims() {
 		$galleries = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type = 'ims_gallery' ORDER BY ID" );
 		if ( ewww_image_optimizer_iterable( $galleries ) ) {
 			$gallery_string = implode( ',', $galleries );
-			echo '<p>' . esc_html__( 'Choose a gallery or', 'ewww-image-optimizer' ) . ' <a href="' . admin_url( "upload.php?page=ewww-image-optimizer-bulk&ids=$gallery_string" ) . '">' . esc_html__( 'optimize all galleries', 'ewww-image-optimizer' ) . '</a></p>';
+			echo '<p>' . esc_html__( 'Choose a gallery or', 'ewww-image-optimizer' ) . ' <a href="' . esc_url( admin_url( "upload.php?page=ewww-image-optimizer-bulk&ids=$gallery_string" ) ) . '">' . esc_html__( 'optimize all galleries', 'ewww-image-optimizer' ) . '</a></p>';
 			echo '<table class="wp-list-table widefat media" cellspacing="0"><thead><tr><th>' . esc_html__( 'Gallery ID', 'ewww-image-optimizer' ) . '</th><th>' . esc_html__( 'Gallery Name', 'ewww-image-optimizer' ) . '</th><th>' . esc_html__( 'Images', 'ewww-image-optimizer' ) . '</th><th>' . esc_html__( 'Image Optimizer', 'ewww-image-optimizer' ) . '</th></tr></thead>';
 			foreach ( $galleries as $gid ) {
 				$image_count  = $wpdb->get_var( $wpdb->prepare( "SELECT count(ID) FROM $wpdb->posts WHERE post_type = 'ims_image' AND post_mime_type LIKE %s AND post_parent = %d", '%image%', $gid ) );
 				$gallery_name = get_the_title( $gid );
-				echo "<tr><td>$gid</td>";
-				echo "<td><a href='" . admin_url( "edit.php?post_type=ims_gallery&page=ewww-ims-optimize&ewww_gid=$gid" ) . "'>$gallery_name</a></td>";
-				echo "<td>$image_count</td>";
-				echo "<td><a href='" . admin_url( "upload.php?page=ewww-image-optimizer-bulk&ids=$gid" ) . "'>" . esc_html__( 'Optimize Gallery', 'ewww-image-optimizer' ) . '</a></td></tr>';
+				echo '<tr><td>' . (int) $gid . '</td>';
+				echo "<td><a href='" . esc_url( admin_url( "edit.php?post_type=ims_gallery&page=ewww-ims-optimize&ewww_gid=$gid" ) ) . "'>" . esc_html( $gallery_name ) . '</a></td>';
+				echo '<td>' . (int) $image_count . '</td>';
+				echo "<td><a href='" . esc_url( admin_url( "upload.php?page=ewww-image-optimizer-bulk&ids=$gid" ) ) . "'>" . esc_html__( 'Optimize Gallery', 'ewww-image-optimizer' ) . '</a></td></tr>';
 			}
 			echo '</table>';
 		} else {
@@ -2590,7 +2589,7 @@ function ewww_image_optimizer_ims() {
 		$gid         = (int) $_REQUEST['ewww_gid'];
 		$attachments = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_type = 'ims_image' AND post_mime_type LIKE %s AND post_parent = %d ORDER BY ID", '%image%', $gid ) );
 		if ( ewww_image_optimizer_iterable( $attachments ) ) {
-			echo "<p><a href='" . admin_url( "upload.php?page=ewww-image-optimizer-bulk&ids=$gid" ) . "'>" . esc_html__( 'Optimize Gallery', 'ewww-image-optimizer' ) . '</a></p>';
+			echo "<p><a href='" . esc_url( admin_url( "upload.php?page=ewww-image-optimizer-bulk&ids=$gid" ) ) . "'>" . esc_html__( 'Optimize Gallery', 'ewww-image-optimizer' ) . '</a></p>';
 			echo '<table class="wp-list-table widefat media" cellspacing="0"><thead><tr><th>ID</th><th>&nbsp;</th><th>' . esc_html__( 'Title', 'ewww-image-optimizer' ) . '</th><th>' . esc_html__( 'Gallery', 'ewww-image-optimizer' ) . '</th><th>' . esc_html__( 'Image Optimizer', 'ewww-image-optimizer' ) . '</th></tr></thead>';
 			$alternate = true;
 			foreach ( $attachments as $id ) {
@@ -2609,11 +2608,11 @@ function ewww_image_optimizer_ims() {
 					echo " class='alternate'";
 				}
 				?>
-				><td><?php echo $id; ?></td>
+				><td><?php echo (int) $id; ?></td>
 				<?php
-				echo "<td style='width:80px' class='column-icon'><img src='$image_url' /></td>";
-				echo "<td class='title'>$image_name</td>";
-				echo "<td>$gallery_name</td><td>";
+				echo "<td style='width:80px' class='column-icon'><img src='" . esc_url( $image_url ) . "' /></td>";
+				echo "<td class='title'>" . esc_html( $image_name ) . '</td>';
+				echo '<td>' . esc_html( $gallery_name ) . '</td><td>';
 				ewww_image_optimizer_custom_column( 'ewww-image-optimizer', $id );
 				echo '</td></tr>';
 				$alternate = ! $alternate;
@@ -4725,7 +4724,7 @@ function ewww_image_optimizer_db_init() {
 			sprintf(
 				/* translators: 1: $table_prefix 2: wp-config.php */
 				__( '<strong>ERROR</strong>: %1$s in %2$s can only contain numbers, letters, and underscores.' ),
-				'<code>$table_prefix</code>',
+				"<code>$table_prefix</code>",
 				'<code>wp-config.php</code>'
 			)
 		);
@@ -9277,7 +9276,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$status_notices .= "</p>\n";
 		$disable_level   = '';
 	} else {
-		$status_notices .= '<p><span style="font-weight:bold;color:#3eadc9;">Compress API:</span> <a href="https://ewww.io/free-trial/?TB_iframe=true&width=600&height=600" class="thickbox" target="_blank">' .
+		$status_notices .= '<p><span style="font-weight:bold;color:#3eadc9;">Compress API:</span> <a href="https://optimize.exactlywww.com/api_key/free-trial.php?TB_iframe=true&width=600&height=375" class="thickbox" target="_blank">' .
 			esc_html__( 'Unlock premium compression, save storage space, and reduce server load.', 'ewww-image-optimizer' ) . '</a></p>';
 		delete_option( 'ewww_image_optimizer_cloud_key_invalid' );
 		if ( ! class_exists( 'ExactDN' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
@@ -9652,7 +9651,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2,5ad0c8e7042863075092650b,5a9efec62c7d3a7549516550' ) .
 		"</th><td><input type='text' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='' size='32' /> " .
 		esc_html__( 'API Key will be validated when you save your settings.', 'ewww-image-optimizer' ) .
-		" <a href='https://ewww.io/free-trial/?TB_iframe=true&width=600&height=600' class='thickbox' target='_blank'>" . esc_html__( 'Get a free trial key.', 'ewww-image-optimizer' ) . "</a></td></tr>\n";
+		" <a href='https://optimize.exactlywww.com/api_key/free-trial.php?TB_iframe=true&width=600&height=375' class='thickbox' target='_blank'>" . esc_html__( 'Get a free trial key.', 'ewww-image-optimizer' ) . "</a></td></tr>\n";
 	}
 	$output[] = "<tr class='$network_class'><th scope='row'><label for='ewww_image_optimizer_metadata_remove'>" . esc_html__( 'Remove Metadata', 'ewww-image-optimizer' ) . '</label>' . ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ) . "</th>\n" .
 		"<td><input type='checkbox' id='ewww_image_optimizer_metadata_remove' name='ewww_image_optimizer_metadata_remove' value='true' " . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ? "checked='true'" : '' ) . ' /> ' . esc_html__( 'This will remove ALL metadata: EXIF, comments, color profiles, and anything else that is not pixel data.', 'ewww-image-optimizer' ) .
@@ -9699,7 +9698,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewwwio_debug_message( 'pdf level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) );
 	$output[] = "<tr class='$network_class'><th>&nbsp;</th><td>" .
 		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? "<p class='$network_class nocloud'>* <strong><a href='https://ewww.io/buy-credits/' target='_blank'>" . esc_html__( 'Purchase an API key to unlock these optimization levels and get priority support. Achieve up to 80% compression to speed up your site, save storage space, and reduce server load.', 'ewww-image-optimizer' ) . '</a></strong><br>' .
-		" <a href='https://ewww.io/free-trial/?TB_iframe=true&width=600&height=600' class='thickbox' target='_blank'>" . esc_html__( 'Or get a free trial key and take it for a test drive.', 'ewww-image-optimizer' ) . "</a></p>\n" :
+		" <a href='https://optimize.exactlywww.com/api_key/free-trial.php?TB_iframe=true&width=600&height=375' class='thickbox' target='_blank'>" . esc_html__( 'Or get a free trial key and take it for a test drive.', 'ewww-image-optimizer' ) . "</a></p>\n" :
 		'<p>* ' . esc_html__( 'These levels use the compression API.', 'ewww-image-optimizer' ) ) .
 		"<p class='$network_class description'>" . esc_html__( 'All methods used by the EWWW Image Optimizer are intended to produce visually identical images.', 'ewww-image-optimizer' ) . "</p>\n" .
 		"</td></tr>\n";
@@ -10279,7 +10278,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 
 	echo '<hr style="clear:both;"><div id="ewwwio-banner"><img src="' . esc_url( plugins_url( '/images/ewwwio-logo.png', __FILE__ ) ) . '">' .
 		'<p>' . esc_html__( 'Get performance tips, exclusive discounts, and the latest news when you signup for our newsletter!', 'ewww-image-optimizer' ) . '</p>' .
-		'<a href="https://ewww.io/connect/?TB_iframe=true&width=600&height=600" class="thickbox button-secondary">' . esc_html__( 'Subscribe at ewww.io', 'ewww-image-optimizer' ) . ' &rarr;</a></div>';
+		'<a href="https://eepurl.com/gKyU6L?TB_iframe=true&width=600&height=610" class="thickbox button-secondary">' . esc_html__( 'Subscribe now!', 'ewww-image-optimizer' ) . ' &rarr;</a></div>';
 
 	echo '<h2>' . esc_html__( "Shane's Recommendations", 'ewww-image-optimizer' ) . '</h2>';
 	echo '<p>' . esc_html__( 'These are products I have personally used. An * indicates an affiliate link which allows you to support future development of EWWW IO.', 'ewww-image-optimizer' ) . '</p>';

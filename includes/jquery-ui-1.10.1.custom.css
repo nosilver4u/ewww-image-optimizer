@@ -571,6 +571,7 @@ p.debug-actions {
 	width: 800px;
 }
 #ewwwio-banner {
+	margin-top: 10px;
 	min-height: 95px;
 	padding: 15px;
 	background-color: #3eadc9;
