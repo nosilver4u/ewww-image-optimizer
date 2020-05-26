@@ -414,7 +414,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				<?php
 				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 					ewww_image_optimizer_cloud_verify();
-					echo '<a id="ewww-bulk-credits-available" target="_blank" class="page-title-action" style="float:right;" href="https://ewww.io/my-account/">' . esc_html__( 'Image credits available:', 'ewww-image-optimizer' ) . ' ' . wp_kses_post( ewww_image_optimizer_cloud_quota() ) . '</a>';
+					echo '<a id="ewww-bulk-credits-available" target="_blank" class="page-title-action" style="float:right;" href="https://ewww.io/my-account/">' . esc_html__( 'Image credits available:', 'ewww-image-optimizer' ) . ' ' . esc_html( ewww_image_optimizer_cloud_quota() ) . '</a>';
 				}
 				// Retrieve the value of the 'bulk resume' option and set the button text for the form to use.
 				$resume = get_option( 'ewww_image_optimizer_bulk_ngg_resume' );

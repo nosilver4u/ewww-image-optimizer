@@ -56,10 +56,9 @@ function ewww_image_optimizer_exec_init() {
 	if ( EWWW_IMAGE_OPTIMIZER_CLOUD ) {
 		ewwwio_debug_message( 'cloud options enabled, shutting off binaries' );
 		ewww_image_optimizer_disable_tools();
-	} elseif ( defined( 'WPCOMSH_VERSION' ) || ! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {
+	} elseif ( defined( 'WPCOMSH_VERSION' ) || ! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) || defined( 'WPE_PLUGIN_VERSION' ) ) {
 		if (
 			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
-			empty( $_POST['ewww_image_optimizer_cloud_key'] ) &&
 			( ! is_object( $exactdn ) || ! $exactdn->get_exactdn_domain() )
 		) {
 			add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_hosting_requires_api' );
@@ -68,7 +67,7 @@ function ewww_image_optimizer_exec_init() {
 		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
 			define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
 		}
-		ewwwio_debug_message( 'wp.com/pantheon site, disabling tools' );
+		ewwwio_debug_message( 'WPE/wp.com/pantheon site, disabling tools' );
 		ewww_image_optimizer_disable_tools();
 		// Check if this is an unsupported OS (not Linux or Mac OSX or FreeBSD or Windows or SunOS).
 	} elseif ( 'Linux' !== PHP_OS && 'Darwin' !== PHP_OS && 'FreeBSD' !== PHP_OS && 'WINNT' !== PHP_OS && 'SunOS' !== PHP_OS ) {
@@ -82,7 +81,7 @@ function ewww_image_optimizer_exec_init() {
 		add_action( 'load-upload.php', 'ewww_image_optimizer_tool_init', 9 );
 		add_action( 'load-media-new.php', 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-media_page_ewww-image-optimizer-bulk', 'ewww_image_optimizer_tool_init' );
-		add_action( 'load-settings_page_ewww-image-optimizer', 'ewww_image_optimizer_tool_init' );
+		add_action( 'load-settings_page_ewww-image-optimizer-options', 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-plugins.php', 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-ims_gallery_page_ewww-ims-optimize', 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-media_page_ewww-image-optimizer-unoptimized', 'ewww_image_optimizer_tool_init' );
@@ -166,14 +165,16 @@ function ewww_image_optimizer_notice_hosting_requires_api() {
 		$webhost = 'WordPress.com';
 	} elseif ( ! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {
 		$webhost = 'Pantheon';
+	} elseif ( defined( 'WPE_PLUGIN_VERSION' ) ) {
+		$webhost = 'WP Engine';
 	} else {
 		return;
 	}
 	echo "<div id='ewww-image-optimizer-cloud-key-required' class='notice notice-error'><p><strong>" .
 		/* translators: %s: Name of a web host, like WordPress.com or Pantheon. */
-		sprintf( esc_html__( 'The EWWW Image Optimizer requires an API key or an Easy IO subscription to optimize images on %s sites.', 'ewww-image-optimizer-cloud' ), $webhost ) .
-		"</strong> <a href='https://ewww.io/plans/'>" . esc_html__( 'Purchase a subscription.', 'ewww-image-optimizer-cloud' ) .
-		"</a> <a href='$settings_url'>" . esc_html__( 'Then, activate it on the settings page.', 'ewww-image-optimizer-cloud' ) . '</a></p></div>';
+		sprintf( esc_html__( 'The EWWW Image Optimizer requires an API key or an Easy IO subscription to optimize images on %s sites.', 'ewww-image-optimizer-cloud' ), esc_html( $webhost ) ) .
+		"</strong> <a href='https://ewww.io/plans/'>" . esc_html__( 'Start your trial.', 'ewww-image-optimizer-cloud' ) .
+		"</a> <a href='" . esc_url( $settings_url ) . "'>" . esc_html__( 'Then, activate it on the settings page.', 'ewww-image-optimizer-cloud' ) . '</a></p></div>';
 }
 
 /**
@@ -181,7 +182,9 @@ function ewww_image_optimizer_notice_hosting_requires_api() {
  */
 function ewww_image_optimizer_notice_os() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	echo "<div id='ewww-image-optimizer-warning-os' class='notice notice-error'><p><strong>" . esc_html__( 'The free mode of EWWW Image Optimizer is only supported on Linux, FreeBSD, Mac OSX, Solaris, and Windows.', 'ewww-image-optimizer' ) . '</strong></p></div>';
+	echo "<div id='ewww-image-optimizer-warning-os' class='notice notice-error'><p><strong>" .
+		esc_html__( 'The free mode of EWWW Image Optimizer is only supported on Linux, FreeBSD, Mac OSX, Solaris, and Windows.', 'ewww-image-optimizer' ) .
+		'</strong></p></div>';
 }
 
 /**
@@ -296,25 +299,16 @@ function ewww_image_optimizer_check_permissions( $file, $minimum ) {
  * Alert the user when the tool folder could not be created.
  */
 function ewww_image_optimizer_tool_folder_notice() {
-	echo "<div id='ewww-image-optimizer-warning-tool-folder-create' class='notice notice-error'><p><strong>" . esc_html__( 'EWWW Image Optimizer could not create the tool folder', 'ewww-image-optimizer' ) . ': ' . htmlentities( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) . '.</strong> ' . esc_html__( 'Please adjust permissions or create the folder', 'ewww-image-optimizer' ) . '.</p></div>';
+	echo "<div id='ewww-image-optimizer-warning-tool-folder-create' class='notice notice-error'><p><strong>" . esc_html__( 'EWWW Image Optimizer could not create the tool folder', 'ewww-image-optimizer' ) . ': ' . esc_html( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) . '.</strong> ' . esc_html__( 'Please adjust permissions or create the folder', 'ewww-image-optimizer' ) . '.</p></div>';
 }
 
 /**
  * Alert the user when permissions on the tool folder are insufficient.
  */
 function ewww_image_optimizer_tool_folder_permissions_notice() {
-	if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
-		// Need to include the plugin library for the is_plugin_active function.
-		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-	}
-	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
-		$settings_page = network_admin_url( 'settings.php?page=ewww-image-optimizer-options' );
-	} else {
-		$settings_page = admin_url( 'options-general.php?page=ewww-image-optimizer-options' );
-	}
 	echo "<div id='ewww-image-optimizer-warning-tool-folder-permissions' class='notice notice-error'><p><strong>" .
 		/* translators: %s: Folder location where executables should be installed */
-		sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), htmlentities( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . '.</strong> ' .
+		sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), esc_html( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . '.</strong> ' .
 		esc_html__( 'Please adjust permissions on the folder. If you have installed the tools elsewhere, use the override to skip the bundled tools.', 'ewww-image-optimizer' ) . ' ' .
 		/* translators: s: Installation Instructions (link) */
 		sprintf( esc_html__( 'For more details, see the %s.', 'ewww-image-optimizer' ), "<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
@@ -324,18 +318,9 @@ function ewww_image_optimizer_tool_folder_permissions_notice() {
  * Alert the user when tool installation fails.
  */
 function ewww_image_optimizer_tool_installation_failed_notice() {
-	if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
-		// Need to include the plugin library for the is_plugin_active function.
-		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-	}
-	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
-		$settings_page = network_admin_url( 'settings.php?page=ewww-image-optimizer-options' );
-	} else {
-		$settings_page = admin_url( 'options-general.php?page=ewww-image-optimizer-options' );
-	}
 	echo "<div id='ewww-image-optimizer-warning-tool-install' class='notice notice-error'><p><strong>" .
 		/* translators: %s: Folder location where executables should be installed */
-		sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), htmlentities( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . '.</strong> ' .
+		sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), esc_html( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . '.</strong> ' .
 		/* translators: %s: Installation Instructions */
 		sprintf( esc_html__( 'For more details, see the %s.', 'ewww-image-optimizer' ), "<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
 }
@@ -552,10 +537,17 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 		// Need to be a little particular with the quiet parameter.
 		if ( 'quiet' !== $quiet && ! $no_compression ) {
 			$exactdn_dismiss = ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ? true : false;
+
+			$notice_class  = 'notice notice-error';
+			$notice_action = __( 'An API key or Easy IO subscription will allow you to offload the compression to our dedicated servers instead.', 'ewww-image-optimizer' );
+			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+				$notice_class  = 'notice notice-warning is-dismissible';
+				$notice_action = __( 'Sites that use Easy IO already have built-in image optimization and may dismiss this notice to disable local compression.', 'ewww-image-optimizer' );
+			}
 			// Display a warning if exec() is disabled, can't run local tools without it.
-			echo "<div id='ewww-image-optimizer-warning-exec' " . ( $exactdn_dismiss ? "class='notice notice-warning is-dismissible'" : "class='notice notice-error'" ) . '><p>' . esc_html__( 'EWWW Image Optimizer requires exec() to perform local compression. Your system administrator has disabled the exec() function, ask them to enable it.', 'ewww-image-optimizer' ) .
-				( ! $exactdn_dismiss ? '<br>' . esc_html__( 'An API key or Easy IO subscription will allow you to offload the compression to our dedicated servers instead.', 'ewww-image-optimizer' )
-				: '<br>' . esc_html__( 'Sites that use Easy IO already have built-in image optimization and may dismiss this notice to disable local compression.', 'ewww-image-optimizer' ) ) .
+			echo "<div id='ewww-image-optimizer-warning-exec' class='" . esc_attr( $notice_class ) . "'><p>" .
+				esc_html__( 'EWWW Image Optimizer requires exec() to perform local compression. Your system administrator has disabled the exec() function, ask them to enable it.', 'ewww-image-optimizer' ) . '<br>' .
+				esc_html( $notice_action ) .
 				'</p></div>';
 				echo
 					"<script>\n" .
@@ -679,7 +671,7 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 			sprintf(
 				/* translators: 1: automatically (link) 2: manually (link) */
 				esc_html__( 'You are missing pngout. Install %1$s or %2$s.', 'ewww-image-optimizer' ),
-				"<a href='$pngout_install_url'>" . esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
+				"<a href='" . esc_url( $pngout_install_url ) . "'>" . esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
 				'<a href="https://docs.ewww.io/article/13-installing-pngout" data-beacon-article="5854531bc697912ffd6c1afa">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>'
 			) .
 			'</p></div>';
@@ -694,8 +686,8 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 				"<a href='http://pngquant.org/'>pngquant</a>",
 				"<a href='http://www.lcdf.org/gifsicle/'>gifsicle</a>",
 				"<a href='https://developers.google.com/speed/webp/'>cwebp</a>",
-				$msg,
-				"<a href='$settings_page'>" . esc_html__( 'Settings Page', 'ewww-image-optimizer' ) . '</a>',
+				esc_html( $msg ),
+				"<a href='" . esc_url( $settings_page ) . "'>" . esc_html__( 'Settings Page', 'ewww-image-optimizer' ) . '</a>',
 				"<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something' data-beacon-article='585371e3c697912ffd6c0ba1' target='_blank'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>'
 			) .
 			'</p></div>';
@@ -1743,6 +1735,10 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		return array( false, __( 'Optimization skipped', 'ewww-image-optimizer' ), $converted, $file );
 	}
 	global $ewww_image;
+	global $ewww_force;
+	global $ewww_force_smart;
+	global $ewww_convert;
+	global $ewww_webp_only;
 	// Initialize the original filename.
 	$original = $file;
 	$result   = '';
@@ -1851,8 +1847,8 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			if (
 				1 === (int) $gallery_type &&
 				$fullsize &&
-				( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) || ! empty( $_REQUEST['ewww_convert'] ) ) &&
-				empty( $_REQUEST['ewww_webp_only'] )
+				( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) || ! empty( $ewww_convert ) ) &&
+				empty( $ewww_webp_only )
 			) {
 				// Generate the filename for a PNG:
 				// If this is a resize version.
@@ -1871,9 +1867,9 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			}
 			$compression_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' );
 			// Check for previous optimization, so long as the force flag is not on and this isn't a new image that needs converting.
-			if ( empty( $_REQUEST['ewww_force'] ) && ! ( $new && $convert ) ) {
+			if ( empty( $ewww_force ) && ! ( $new && $convert ) ) {
 				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
-				$smart_reopt = ! empty( $_REQUEST['ewww_force_smart'] ) && ewww_image_optimizer_level_mismatch( $ewww_image->level, $compression_level ) ? true : false;
+				$smart_reopt = ! empty( $ewww_force_smart ) && ewww_image_optimizer_level_mismatch( $ewww_image->level, $compression_level ) ? true : false;
 				if ( $smart_reopt ) {
 					ewwwio_debug_message( "smart re-opt found level mismatch for $file, db says " . $ewww_image->level . " vs. current $compression_level" );
 					// If the current compression level is less than what was previously used, and the previous level was premium (or premium plus).
@@ -1886,7 +1882,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				}
 			}
 			$ewww_image->level = $compression_level;
-			if ( $compression_level > 10 && empty( $_REQUEST['ewww_webp_only'] ) ) {
+			if ( $compression_level > 10 && empty( $ewww_webp_only ) ) {
 				list( $file, $converted, $result, $new_size, $backup_hash ) = ewww_image_optimizer_cloud_optimizer( $file, $type, $convert, $pngfile, 'image/png', $skip_lossy );
 				if ( $converted ) {
 					// Check to see if the user wants the originals deleted.
@@ -1924,7 +1920,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					! $skip['webp']
 				);
 			}
-			if ( ! empty( $_REQUEST['ewww_webp_only'] ) ) {
+			if ( ! empty( $ewww_webp_only ) ) {
 				$optimize = false;
 			} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
 				// Store an appropriate message in $result.
@@ -2095,9 +2091,9 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			if (
 				1 === (int) $gallery_type &&
 				$fullsize &&
-				( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' ) || ! empty( $_REQUEST['ewww_convert'] ) ) &&
+				( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' ) || ! empty( $ewww_convert ) ) &&
 				! $skip_lossy &&
-				empty( $_REQUEST['ewww_webp_only'] )
+				empty( $ewww_webp_only )
 			) {
 				ewwwio_debug_message( 'PNG to JPG conversion turned on' );
 				$cloud_background = '';
@@ -2139,9 +2135,9 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			} // End if().
 			$compression_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' );
 			// Check for previous optimization, so long as the force flag is on and this isn't a new image that needs converting.
-			if ( empty( $_REQUEST['ewww_force'] ) && ! ( $new && $convert ) ) {
+			if ( empty( $ewww_force ) && ! ( $new && $convert ) ) {
 				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
-				$smart_reopt = ! empty( $_REQUEST['ewww_force_smart'] ) && ewww_image_optimizer_level_mismatch( $ewww_image->level, $compression_level ) ? true : false;
+				$smart_reopt = ! empty( $ewww_force_smart ) && ewww_image_optimizer_level_mismatch( $ewww_image->level, $compression_level ) ? true : false;
 				if ( $smart_reopt ) {
 					ewwwio_debug_message( "smart re-opt found level mismatch for $file, db says " . $ewww_image->level . " vs. current $compression_level" );
 					// If the current compression level is less than what was previously used, and the previous level was premium (or premium plus).
@@ -2157,7 +2153,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			if (
 				$compression_level >= 20 &&
 				ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
-				empty( $_REQUEST['ewww_webp_only'] )
+				empty( $ewww_webp_only )
 			) {
 				list( $file, $converted, $result, $new_size, $backup_hash ) = ewww_image_optimizer_cloud_optimizer(
 					$file,
@@ -2202,7 +2198,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				);
 			}
 			// If png optimization is disabled.
-			if ( ! empty( $_REQUEST['ewww_webp_only'] ) ) {
+			if ( ! empty( $ewww_webp_only ) ) {
 				$optimize = false;
 			} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 				// Tell the user all PNG tools are disabled.
@@ -2420,14 +2416,14 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, $type, $tools['CWEBP'], $orig_size !== $new_size );
 			break;
 		case 'image/gif':
-			if ( ! empty( $_REQUEST['ewww_webp_only'] ) ) {
+			if ( ! empty( $ewww_webp_only ) ) {
 				break;
 			}
 			// If gif2png is turned on, and the image is in the WordPress media library.
 			if (
 				1 === (int) $gallery_type &&
 				$fullsize &&
-				( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_to_png' ) || ! empty( $_REQUEST['ewww_convert'] ) ) &&
+				( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_to_png' ) || ! empty( $ewww_convert ) ) &&
 				! ewww_image_optimizer_is_animated( $file )
 			) {
 				// Generate the filename for a PNG:
@@ -2447,9 +2443,9 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			}
 			$compression_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' );
 			// Check for previous optimization, so long as the force flag is on and this isn't a new image that needs converting.
-			if ( empty( $_REQUEST['ewww_force'] ) && ! ( $new && $convert ) ) {
+			if ( empty( $ewww_force ) && ! ( $new && $convert ) ) {
 				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
-				$smart_reopt = ! empty( $_REQUEST['ewww_force_smart'] ) && ewww_image_optimizer_level_mismatch( $ewww_image->level, $compression_level ) ? true : false;
+				$smart_reopt = ! empty( $ewww_force_smart ) && ewww_image_optimizer_level_mismatch( $ewww_image->level, $compression_level ) ? true : false;
 				if ( $smart_reopt ) {
 					ewwwio_debug_message( "smart re-opt found level mismatch for $file, db says " . $ewww_image->level . " vs. current $compression_level" );
 					// If the current compression level is less than what was previously used, and the previous level was premium (or premium plus).
@@ -2592,13 +2588,13 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			} // End if().
 			break;
 		case 'application/pdf':
-			if ( ! empty( $_REQUEST['ewww_webp_only'] ) ) {
+			if ( ! empty( $ewww_webp_only ) ) {
 				break;
 			}
 			$compression_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' );
-			if ( empty( $_REQUEST['ewww_force'] ) ) {
+			if ( empty( $ewww_force ) ) {
 				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
-				$smart_reopt = ! empty( $_REQUEST['ewww_force_smart'] ) && ewww_image_optimizer_level_mismatch( $ewww_image->level, $compression_level ) ? true : false;
+				$smart_reopt = ! empty( $ewww_force_smart ) && ewww_image_optimizer_level_mismatch( $ewww_image->level, $compression_level ) ? true : false;
 				if ( $smart_reopt ) {
 					ewwwio_debug_message( "smart re-opt found level mismatch for $file, db says " . $ewww_image->level . " vs. current $compression_level" );
 					// If the current compression level is less than what was previously used, and the previous level was premium (or premium plus).
@@ -2643,7 +2639,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	}
 	ewwwio_memory( __FUNCTION__ );
 	// Otherwise, send back the filename, the results (some sort of error message), the $converted flag, and the name of the original image.
-	if ( ! empty( $webp_result ) && ! empty( $_REQUEST['ewww_webp_only'] ) ) {
+	if ( ! empty( $webp_result ) && ! empty( $ewww_webp_only ) ) {
 		$result = $webp_result;
 		return array( true, $result, $converted, $original );
 	}
@@ -2662,6 +2658,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
  */
 function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $recreate = false ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	global $ewww_force;
 	$webpfile = $file . '.webp';
 	if ( apply_filters( 'ewww_image_optimizer_bypass_webp', false, $file ) ) {
 		ewwwio_debug_message( "webp generation bypassed: $file" );
@@ -2672,7 +2669,7 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 		return esc_html__( 'Could not find file.', 'ewww-image-optimizer' );
 	} elseif ( ! is_writable( $file ) ) {
 		return esc_html__( 'File is not writable.', 'ewww-image-optimizer' );
-	} elseif ( ewwwio_is_file( $webpfile ) && empty( $_REQUEST['ewww_force'] ) && ! $recreate ) {
+	} elseif ( ewwwio_is_file( $webpfile ) && empty( $ewww_force ) && ! $recreate ) {
 		ewwwio_debug_message( 'webp file exists, not forcing or recreating' );
 		return esc_html__( 'WebP image already exists.', 'ewww-image-optimizer' );
 	}
@@ -2739,7 +2736,7 @@ function ewww_image_optimizer_install_pngout_wrapper() {
 		wp_die( esc_html__( 'You do not have permission to install image optimizer utilities.', 'ewww-image-optimizer' ) );
 	}
 	$sendback = ewww_image_optimizer_install_pngout();
-	wp_redirect( esc_url_raw( $sendback ) );
+	wp_safe_redirect( $sendback );
 	ewwwio_memory( __FUNCTION__ );
 	exit( 0 );
 }

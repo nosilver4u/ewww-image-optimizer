@@ -4,8 +4,10 @@
 	<!-- Only sniff PHP files -->
 	<arg name="extensions" value="php"/>
 
-	<exclude-pattern>*/vendor/*</exclude-pattern>
-	<exclude-pattern>*/tests/*</exclude-pattern>
+	<arg value="s"/>
+
+	<exclude-pattern>/vendor/*</exclude-pattern>
+	<exclude-pattern>/tests/*</exclude-pattern>
 
 	<rule ref="WordPress-Core" />
 	<rule ref="WordPress-Docs" />
@@ -31,9 +33,6 @@
 			<property name="customVariablesWhitelist" type="array" value="formatOutput,parentNode,nextSibling,documentElement" />
 		</properties>
 	</rule>
-
-	<!-- Show sniff codes in all reports -->
-	<!--	<arg value="s"/> -->
 
 	<rule ref="PHPCompatibilityWP">
 		<severity>10</severity>
