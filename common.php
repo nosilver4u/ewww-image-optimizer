@@ -4647,19 +4647,20 @@ function ewww_image_optimizer_db_init() {
 
 	$prefix = $ewwwdb->set_prefix( $table_prefix );
 
-	if ( is_wp_error( $prefix ) ) {
-		wp_load_translations_early();
-		wp_die(
-			sprintf(
-				/* translators: 1: $table_prefix 2: wp-config.php */
-				wp_kses_post( __( '<strong>ERROR</strong>: %1$s in %2$s can only contain numbers, letters, and underscores.' ) ),
-				'<code>' . esc_html( $table_prefix ) . '</code>',
-				'<code>wp-config.php</code>'
-			)
-		);
+	// Setup blog_id and prefix for multisite (and fallback).
+	if ( is_wp_error( $prefix ) || is_multisite() ) {
+		global $wpdb;
+		$ewwwdb->prefix = $wpdb->prefix;
+		$ewwwdb->blogid = $wpdb->blogid;
+		// and just in case we need it...
+		$ewwwdb->base_prefix = $wpdb->base_prefix;
 	}
+
 	if ( ! isset( $ewwwdb->ewwwio_images ) ) {
 		$ewwwdb->ewwwio_images = $ewwwdb->prefix . 'ewwwio_images';
+	}
+	if ( ! isset( $ewwwdb->ewwwio_queue ) ) {
+		$ewwwdb->ewwwio_queue = $ewwwdb->prefix . 'ewwwio_queue';
 	}
 }
 
