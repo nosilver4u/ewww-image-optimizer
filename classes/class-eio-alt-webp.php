@@ -435,8 +435,10 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 					}
 					$nscript = $this->attr_copy( $image, $nscript );
 					$this->set_attribute( $nscript, 'class', 'ewww_webp' );
-					ewwwio_debug_message( "going to swap\n$image\nwith\n$nscript" . $image . '</noscript>' );
-					$buffer = str_replace( $image, $nscript . $image . '</noscript>', $buffer );
+					$ns_img = $image;
+					$this->set_attribute( $ns_img, 'data-eio', 'j', true );
+					ewwwio_debug_message( "going to swap\n$image\nwith\n$nscript" . $ns_img . '</noscript>' );
+					$buffer = str_replace( $image, $nscript . $ns_img . '</noscript>', $buffer );
 				} elseif ( ! empty( $file ) && strpos( $image, 'data-lazy-src=' ) ) {
 					// BJ Lazy Load & WP Rocket.
 					$new_image = $image;

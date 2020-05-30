@@ -219,7 +219,9 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 					if ( empty( $srcset_webp ) || $srcset_webp === $file ) {
 						continue;
 					}
-					$picture_tag = "<picture><source srcset=\"$srcset_webp\" $sizes_attr type='image/webp'>$image</picture>";
+					$pic_img = $image;
+					$this->set_attribute( $pic_img, 'data-eio', 'p', true );
+					$picture_tag = "<picture><source srcset=\"$srcset_webp\" $sizes_attr type='image/webp'>$pic_img</picture>";
 					ewwwio_debug_message( "going to swap\n$image\nwith\n$picture_tag" );
 					$buffer = str_replace( $image, $picture_tag, $buffer );
 				}

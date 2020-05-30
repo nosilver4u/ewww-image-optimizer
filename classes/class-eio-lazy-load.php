@@ -256,8 +256,10 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						$this->debug_message( 'found a valid image tag' );
 						$this->debug_message( "original image tag: $image" );
 						$orig_img = $image;
+						$ns_img   = $image;
 						$image    = $this->parse_img_tag( $image, $file );
-						$noscript = '<noscript>' . $orig_img . '</noscript>';
+						$this->set_attribute( $ns_img, 'data-eio', 'l', true );
+						$noscript = '<noscript>' . $ns_img . '</noscript>';
 						$buffer   = str_replace( $orig_img, $image . $noscript, $buffer );
 					}
 				} // End foreach().
@@ -309,8 +311,10 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 								if ( $this->validate_image_tag( $image ) ) {
 									$this->debug_message( 'found a valid image tag (inside picture)' );
 									$orig_img = $image;
+									$ns_img   = $image;
 									$image    = $this->parse_img_tag( $image, $file );
-									$noscript = '<noscript>' . $orig_img . '</noscript>';
+									$this->set_attribute( $ns_img, 'data-eio', 'l', true );
+									$noscript = '<noscript>' . $ns_img . '</noscript>';
 									$picture  = str_replace( $orig_img, $image . $noscript, $picture );
 									$this->debug_message( 'lazified sources for picture element' );
 									$buffer = str_replace( $pictures[ $index ], $picture, $buffer );

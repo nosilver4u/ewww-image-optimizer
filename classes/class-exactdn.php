@@ -864,6 +864,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						$this->debug_message( 'handling lazy image' );
 					}
 
+					$is_relative = false;
 					// Check for relative urls that start with a slash. Unlikely that we'll attempt relative urls beyond that.
 					if (
 						'/' === substr( $src, 0, 1 ) &&
@@ -872,7 +873,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						false === strpos( $this->upload_domain, 'digitaloceanspaces.com' ) &&
 						false === strpos( $this->upload_domain, 'storage.googleapis.com' )
 					) {
-						$src = '//' . $this->upload_domain . $src;
+						$src         = '//' . $this->upload_domain . $src;
+						$is_relative = true;
 					}
 
 					// Check if image URL should be used with ExactDN.
@@ -1099,7 +1101,11 @@ if ( ! class_exists( 'ExactDN' ) ) {
 							$exactdn_url = str_replace( '&#038;', '&', esc_url( $exactdn_url ) );
 							// Supplant the original source value with our ExactDN URL.
 							$this->debug_message( "replacing $src_orig with $exactdn_url" );
-							$new_tag = str_replace( $src_orig, $exactdn_url, $new_tag );
+							if ( $is_relative ) {
+								$this->set_attribute( $new_tag, 'src', $exactdn_url, true );
+							} else {
+								$new_tag = str_replace( $src_orig, $exactdn_url, $new_tag );
+							}
 
 							// If Lazy Load is in use, pass placeholder image through ExactDN.
 							if ( isset( $placeholder_src ) && $this->validate_image_url( $placeholder_src ) ) {

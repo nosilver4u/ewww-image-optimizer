@@ -183,6 +183,8 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: parallel optimization on multisite fails due to missing db prefix
 * fixed: images not resized when Media File Renamer is active
 * fixed: PHP warning while using <picture> WebP
+* fixed: Lazy Load, JS WebP and <picture> WebP have nested fall-back img elements if an image is found multiple times in a page
+* fixed: Easy IO mangles srcset URLs when src URL is relative instead of absolute
 * deprecated: support for Image Store plugin (abandoned)
 
 = 5.3.2 =
