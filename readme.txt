@@ -179,6 +179,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * changed: use data-cfasync=false to prevent deferring inline JS WebP script
 * changed: Easy IO uses better query-string fall-back for plugins
 * changed: Easy IO enforces https if available rather than protocol-relative URLs
+* changed: resize detection ignores images smaller than 25px
 * fixed: parallel optimization on multisite fails due to missing db prefix
 * fixed: images not resized when Media File Renamer is active
 * fixed: PHP warning while using <picture> WebP

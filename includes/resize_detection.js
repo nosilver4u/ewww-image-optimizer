@@ -21,7 +21,7 @@ function checkImageSizes() {
 }
 function checkImageScale(img) {
         if (img.naturalWidth) {
-        	if ((img.naturalWidth != 1) && (img.naturalHeight != 1)) {
+        	if (img.naturalWidth > 25 && img.naturalHeight > 25 && img.clientWidth > 25 && img.clientHeight > 25) {
                 	// For each image with a natural width which isn't
                 	// a 1x1 image, check its size.
 			var dPR = (window.devicePixelRatio || 1);

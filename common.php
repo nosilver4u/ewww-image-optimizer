@@ -10963,7 +10963,7 @@ function ewww_image_optimizer_resize_detection_script() {
 			"\tmargin: -3px;\n" .
 			"}\n" .
 			"</style>\n";
-		echo '<script type="text/javascript">' . esc_js( $resize_detection_script ) . '</script>';
+		echo '<script type="text/javascript">' . $resize_detection_script . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }
 
