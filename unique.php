@@ -171,9 +171,9 @@ function ewww_image_optimizer_notice_hosting_requires_api() {
 	} else {
 		return;
 	}
-	echo "<div id='ewww-image-optimizer-cloud-key-required' class='notice notice-error'><p><strong>" .
+	echo "<div id='ewww-image-optimizer-cloud-key-required' class='notice notice-warning'><p><strong>" .
 		/* translators: %s: Name of a web host, like WordPress.com or Pantheon. */
-		sprintf( esc_html__( 'The EWWW Image Optimizer requires an API key or an Easy IO subscription to optimize images on %s sites.', 'ewww-image-optimizer-cloud' ), esc_html( $webhost ) ) .
+		sprintf( esc_html__( 'The EWWW Image Optimizer needs an API key or Easy IO subscription to optimize images on %s sites.', 'ewww-image-optimizer-cloud' ), esc_html( $webhost ) ) .
 		"</strong> <a href='https://ewww.io/plans/'>" . esc_html__( 'Start your trial.', 'ewww-image-optimizer-cloud' ) .
 		"</a> <a href='" . esc_url( $settings_url ) . "'>" . esc_html__( 'Then, activate it on the settings page.', 'ewww-image-optimizer-cloud' ) . '</a></p></div>';
 }
