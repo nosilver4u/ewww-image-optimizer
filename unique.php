@@ -44,7 +44,8 @@ function ewww_image_optimizer_cloud_init() {
  */
 function ewww_image_optimizer_exec_init() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( defined( 'WPE_PLUGIN_VERSION' ) ) {
+	// TODO: this one will need to go in favor of the next conditional.
+	if ( false && defined( 'WPE_PLUGIN_VERSION' ) ) {
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_wpengine' );
 		add_action( 'admin_notices', 'ewww_image_optimizer_notice_wpengine' );
 		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {

@@ -55,7 +55,8 @@ class EWWWIO_Table_Tests extends WP_UnitTestCase {
 		if ( ! $original ) {
 			$original = self::$test_gif;
 		}
-		$_REQUEST['ewww_force'] = 1;
+		global $ewww_force;
+		$ewww_force = 1;
 		$filename = $original . ".gif";
 		copy( $original, $filename );
 		$results = ewww_image_optimizer( $filename, 1 );

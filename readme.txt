@@ -175,11 +175,13 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 
 = 5.3.3 =
 * added: EXACTDN_DEFER_JQUERY_SAFE override for when inline scripts depend on jQuery
+* changed: code rewrite to validate output escaping, input sanitization, and markup on settings page
 * changed: use data-cfasync=false to prevent deferring inline JS WebP script
 * changed: Easy IO uses better query-string fall-back for plugins
 * changed: Easy IO enforces https if available rather than protocol-relative URLs
 * fixed: images not resized when Media File Renamer is active
 * fixed: PHP warning while using <picture> WebP
+* deprecated: support for Image Store plugin (abandoned)
 
 = 5.3.2 =
 * added: defer jQuery also with EXACTDN_DEFER_JQUERY override

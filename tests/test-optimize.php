@@ -94,7 +94,8 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * @return array The results of the ewww_image_optimizer() function.
 	 */
 	protected function optimize_jpg() {
-		$_REQUEST['ewww_force'] = 1;
+		global $ewww_force;
+		$ewww_force = 1;
 		$filename = self::$test_jpg . ".jpg";
 		copy( self::$test_jpg, $filename );
 		$results = ewww_image_optimizer( $filename );
@@ -107,7 +108,8 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * @return array The results of the ewww_image_optimizer() function.
 	 */
 	protected function optimize_png() {
-		$_REQUEST['ewww_force'] = 1;
+		global $ewww_force;
+		$ewww_force = 1;
 		$filename = self::$test_png . ".png";
 		copy( self::$test_png, $filename );
 		$results = ewww_image_optimizer( $filename );
@@ -120,7 +122,8 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * @return array The results of the ewww_image_optimizer() function.
 	 */
 	protected function optimize_gif() {
-		$_REQUEST['ewww_force'] = 1;
+		global $ewww_force;
+		$ewww_force = 1;
 		$filename = self::$test_gif . ".gif";
 		copy( self::$test_gif, $filename );
 		$results = ewww_image_optimizer( $filename );
@@ -133,7 +136,8 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * @return array The results of the ewww_image_optimizer() function.
 	 */
 	protected function optimize_pdf() {
-		$_REQUEST['ewww_force'] = 1;
+		global $ewww_force;
+		$ewww_force = 1;
 		$filename = self::$test_pdf . ".pdf";
 		copy( self::$test_pdf, $filename );
 		$results = ewww_image_optimizer( $filename );

@@ -434,6 +434,8 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 				wp_die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
 			}
 			global $ewww_image;
+			global $ewww_force;
+			$ewww_force = ! empty( $_REQUEST['ewww_force'] ) ? true : false;
 			if ( ! class_exists( 'flagMeta' ) ) {
 				require_once( FLAG_ABSPATH . 'lib/meta.php' );
 			}

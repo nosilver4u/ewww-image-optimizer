@@ -69,6 +69,8 @@ class EWWWIO_CLI extends WP_CLI_Command {
 		if ( ! empty( $assoc_args['force'] ) ) {
 			WP_CLI::line( __( 'Forcing re-optimization of previously processed images.', 'ewww-image-optimizer' ) );
 			$_REQUEST['ewww_force'] = true;
+			global $ewww_force;
+			$ewww_force = 1;
 		}
 		/* translators: 1: type of images, like media, or nextgen 2: number of seconds */
 		WP_CLI::line( sprintf( _x( 'Optimizing %1$s with a %2$d second pause between images.', 'string will be something like "media" or "nextgen"', 'ewww-image-optimizer' ), $library, $delay ) );

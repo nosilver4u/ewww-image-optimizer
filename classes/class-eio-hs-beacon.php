@@ -60,10 +60,10 @@ if ( ! class_exists( 'EIO_HS_Beacon' ) ) {
 		public function admin_notice( $network_class = '' ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			$hide_notice = $this->get_option( $this->prefix . 'enable_help_notice' );
-			if ( 'network-multisite' === $network_class && get_site_option( $this->prefix . 'allow_multisite_override' ) ) {
+			if ( 'network-multisite-over' === $network_class ) {
 				return;
 			}
-			if ( 'network-singlesite' === $network_class && ! get_site_option( $this->prefix . 'allow_multisite_override' ) ) {
+			if ( 'network-singlesite' === $network_class ) {
 				return;
 			}
 

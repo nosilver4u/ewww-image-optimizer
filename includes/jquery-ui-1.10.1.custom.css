@@ -391,6 +391,18 @@ a.removeimage, a.restoreimage {
 .ewww-attachment-detail {
 	padding: 13px 0px 0px;
 }
+.ewww-variant-icon {
+	color: white;
+	background-color: #f1900e;
+	border-radius: 50%;
+	font-size: 10px;
+	width: 16px;
+	height: 16px;
+	line-height: 16px;
+	text-align: center;
+	display: inline-block;
+	padding-bottom: 0px;
+}
 /* bulk and settings ui */
 h2.ewww-hndle {
 	font-size: 14px;
@@ -584,6 +596,14 @@ p.debug-actions {
 #ewwwio-banner p {
 	color: #fff;
 	margin-bottom: 1.0em;
+}
+h3 a.ewww-upgrade {
+	font-weight:bold;
+	text-decoration: none;
+	color: #3eadc9;
+}
+.ewww-help-beacon-multi, .ewww-help-beacon-single {
+	margin: 3px;
 }
 /* iframe ewww.io */
 .top-bar {

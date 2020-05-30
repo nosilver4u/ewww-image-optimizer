@@ -27,7 +27,7 @@ function ewww_image_optimizer_aux_images() {
 
 	global $eio_debug;
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-		ewww_image_optimizer_options( 'debug-silent' );
+		ewwwio_debug_info();
 		echo '<div style="clear:both;"></div>';
 		echo '<p><b>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</b> <button id="ewww-copy-debug" class="button button-secondary" type="button">' . esc_html__( 'Copy', 'ewww-image-optimizer' ) . '</button>';
 		if ( ewwwio_is_file( WP_CONTENT_DIR . '/ewww/debug.log' ) ) {
@@ -48,7 +48,7 @@ function ewww_image_optimizer_aux_images() {
 			'</div>';
 	} else {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_debug', true );
-		ewww_image_optimizer_options( 'debug-silent' );
+		ewwwio_debug_info();
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_debug', false );
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
@@ -56,7 +56,7 @@ function ewww_image_optimizer_aux_images() {
 		$help_email   = $current_user->user_email;
 		$hs_debug     = '';
 		if ( ! empty( $eio_debug ) ) {
-			$hs_debug = str_replace( array( "'", '<br>', '<b>', '</b>' ), array( "\'", '\n', '<', '>' ), $eio_debug );
+			$hs_debug = str_replace( array( "'", '<br>', '<b>', '</b>', '=>' ), array( "\'", '\n', '{', '}', '=' ), $eio_debug );
 		}
 		?>
 <script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
@@ -64,7 +64,7 @@ function ewww_image_optimizer_aux_images() {
 	window.Beacon('init', 'aa9c3d3b-d4bc-4e9b-b6cb-f11c9f69da87');
 	Beacon( 'prefill', {
 		email: '<?php echo esc_js( utf8_encode( $help_email ) ); ?>',
-		text: '\n\n----------------------------------------\n<?php echo esc_js( $hs_debug ); ?>',
+		text: '\n\n----------------------------------------\n<?php echo wp_kses_post( $hs_debug ); ?>',
 	});
 </script>
 		<?php

@@ -266,7 +266,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				wp_die( wp_json_encode( array( 'error' => esc_html__( 'No attachment ID was provided.', 'ewww-image-optimizer' ) ) ) );
 			}
 			// Sanitize the attachment $id.
-			$id = intval( $_REQUEST['ewww_attachment_ID'] );
+			$id = (int) $_REQUEST['ewww_attachment_ID'];
 			if ( empty( $_REQUEST['ewww_manual_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_manual_nonce'] ), "ewww-manual-$id" ) ) {
 				if ( ! wp_doing_ajax() ) {
 					wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
@@ -274,6 +274,8 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				ewwwio_ob_clean();
 				wp_die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
 			}
+			global $ewww_force;
+			$ewww_force = ! empty( $_REQUEST['ewww_force'] ) ? true : false;
 			// Creating the 'registry' object for working with nextgen.
 			$registry = C_Component_Registry::get_instance();
 			// Creating a database storage object from the 'registry' object.

@@ -181,6 +181,8 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				ewwwio_ob_clean();
 				wp_die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
 			}
+			global $ewww_force;
+			$ewww_force = ! empty( $_REQUEST['ewww_force'] ) ? true : false;
 			$this->ewww_ngg_optimize( $id );
 			$success = $this->ewww_manage_image_custom_column( 'ewww_image_optimizer', $id, true );
 			if ( ! wp_doing_ajax() ) {
