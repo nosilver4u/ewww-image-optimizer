@@ -835,7 +835,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			if ( $webp_domain === $this->home_domain ) {
 				continue;
 			}
-			ewwwio_debug_message( "looking for $webp_domain in $url" );
+			ewwwio_debug_message( "looking for domain $webp_domain in $url" );
 			if (
 				! empty( $this->s3_active ) &&
 				false !== strpos( $url, $this->s3_active ) &&
@@ -856,10 +856,10 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			}
 		}
 		foreach ( $this->webp_paths as $webp_path ) {
-			if ( false !== strpos( $webp_path, $this->home_domain ) || false === strpos( $webp_path, 'http' ) ) {
+			if ( false === strpos( $webp_path, 'http' ) ) {
 				continue;
 			}
-			ewwwio_debug_message( "looking for $webp_path in $url" );
+			ewwwio_debug_message( "looking for path $webp_path in $url" );
 			if (
 				! empty( $this->s3_active ) &&
 				false !== strpos( $url, $this->s3_active ) &&
@@ -921,6 +921,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 	 * @return bool True if a local file exists correlating to the URL, false otherwise.
 	 */
 	function url_to_path_exists( $url, $extension = '' ) {
+		$url = $this->maybe_strip_object_version( $url );
 		return parent::url_to_path_exists( $url, '.webp' );
 	}
 

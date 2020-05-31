@@ -185,6 +185,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: PHP warning while using <picture> WebP
 * fixed: Lazy Load, JS WebP and <picture> WebP have nested fall-back img elements if an image is found multiple times in a page
 * fixed: Easy IO mangles srcset URLs when src URL is relative instead of absolute
+* fixed: WebP rewriting with WP Offload Media skips sub-domains of blog domain
 * deprecated: support for Image Store plugin (abandoned)
 
 = 5.3.2 =
