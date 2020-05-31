@@ -1442,6 +1442,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( ! empty( $_POST['action'] ) && 'vc_get_vc_grid_data' === $_POST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 				return true;
 			}
+			if ( ! empty( $_POST['action'] ) && 'filter_listing' === $_POST['action'] && ! empty( $_POST['layout'] ) && ! empty( $_POST['paged'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+				return true;
+			}
 			if ( ! empty( $_POST['action'] ) && 'Essential_Grid_Front_request_ajax' === $_POST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 				return true;
 			}
