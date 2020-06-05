@@ -180,11 +180,13 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * changed: Easy IO uses better query-string fall-back for plugins
 * changed: Easy IO enforces https if available rather than protocol-relative URLs
 * changed: resize detection ignores images smaller than 25px
+* changed: setting streamlined when using Easy IO
 * fixed: parallel optimization on multisite fails due to missing db prefix
 * fixed: images not resized when Media File Renamer is active
 * fixed: PHP warning while using <picture> WebP
 * fixed: Lazy Load, JS WebP and <picture> WebP have nested fall-back img elements if an image is found multiple times in a page
 * fixed: Easy IO mangles srcset URLs when src URL is relative instead of absolute
+* fixed: Easy IO URLs leaking into block editor for new uploads
 * fixed: WebP rewriting with WP Offload Media skips sub-domains of blog domain
 * deprecated: support for Image Store plugin (abandoned)
 

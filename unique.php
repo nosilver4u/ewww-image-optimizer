@@ -538,7 +538,7 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 		// Need to be a little particular with the quiet parameter.
 		if ( 'quiet' !== $quiet && ! $no_compression ) {
 			$exactdn_dismiss = ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ? true : false;
-
+			ob_start();
 			$notice_class  = 'notice notice-error';
 			$notice_action = __( 'An API key or Easy IO subscription will allow you to offload the compression to our dedicated servers instead.', 'ewww-image-optimizer' );
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
@@ -563,6 +563,14 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 						"\t});\n" .
 					"});\n" .
 					"</script>\n";
+			if (
+				ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) &&
+				! ewww_image_optimizer_get_option( 'ewww_image_optimizer_local_mode' )
+			) {
+				ob_end_clean();
+			} else {
+				ob_end_flush();
+			}
 		}
 		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
 			define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );

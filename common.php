@@ -140,8 +140,6 @@ add_action( 'sirsc_image_file_deleted', 'ewww_image_optimizer_file_deleted', 10,
 add_action( 'admin_menu', 'ewww_image_optimizer_admin_menu', 60 );
 // Adds the EWWW IO settings to the network admin menu.
 add_action( 'network_admin_menu', 'ewww_image_optimizer_network_admin_menu' );
-// Adds Bulk Optimize to the media library bulk actions.
-add_filter( 'bulk_actions-upload', 'ewww_image_optimizer_add_bulk_media_actions' );
 // Handle the bulk actions from the media library.
 add_filter( 'handle_bulk_actions-upload', 'ewww_image_optimizer_bulk_action_handler', 10, 3 );
 // Adds scripts to ajaxify the one-click actions on the media library, and register tooltips for conversion links.
@@ -2476,7 +2474,15 @@ function ewww_image_optimizer_resize_dup_check() {
 function ewww_image_optimizer_admin_menu() {
 	// Adds bulk optimize to the media library menu.
 	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
-	add_media_page( esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-bulk', 'ewww_image_optimizer_bulk_preview' );
+	if (
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ||
+		ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ||
+		! ewww_image_optimizer_exec_check()
+	) {
+		add_media_page( esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-bulk', 'ewww_image_optimizer_bulk_preview' );
+		// Adds Bulk Optimize to the media library bulk actions.
+		add_filter( 'bulk_actions-upload', 'ewww_image_optimizer_add_bulk_media_actions' );
+	}
 	add_submenu_page( null, esc_html__( 'Migrate WebP Images', 'ewww-image-optimizer' ), esc_html__( 'Migrate WebP Images', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-webp-migrate', 'ewww_image_optimizer_webp_migrate_preview' );
 
 	// Add tools page.
@@ -9337,6 +9343,15 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$debug_info = $eio_debug;
 	ewww_image_optimizer_temp_debug_clear();
 
+	if ( ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) && ! empty( $_GET['enable-local'] ) ) {
+		update_option( 'ewww_image_optimizer_local_mode', true );
+		update_site_option( 'ewww_image_optimizer_local_mode', true );
+	}
+	if ( ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) && isset( $_GET['enable-local'] ) && ! (bool) $_GET['enable-local'] ) {
+		delete_option( 'ewww_image_optimizer_local_mode', true );
+		delete_site_option( 'ewww_image_optimizer_local_mode', true );
+	}
+
 	if ( empty( $network ) ) {
 		$network = 'singlesite';
 	}
@@ -9354,23 +9369,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 <div id='ewww-settings-wrap' class='wrap'>
 	<h1>EWWW Image Optimizer</h1>
 	<?php
-	echo '<p>' . sprintf(
-		/* translators: %s: Bulk Optimize (link) */
-		esc_html__( 'New images uploaded to the Media Library will be optimized automatically. If you have existing images you would like to optimize, you can use the %s tool.', 'ewww-image-optimizer' ),
-		( 'network-multisite' === esc_attr( $network ) ?
-			esc_html__( 'Media Library', 'ewww-image-optimizer' ) . ' -> ' . esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ) :
-			'<a href="' . esc_url( admin_url( 'upload.php?page=ewww-image-optimizer-bulk' ) ) . '">' . esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ) . '</a>'
-			)
-	);
-	ewwwio_help_link( 'https://docs.ewww.io/article/4-getting-started', '5853713bc697912ffd6c0b98' );
-	echo ' ' . ( ! class_exists( 'Amazon_S3_And_CloudFront' ) ?
-		sprintf(
-			/* translators: %s: S3 Image Optimizer (link) */
-			esc_html__( 'Images stored in an Amazon S3 bucket can be optimized using our %s.' ),
-			'<a href="https://ewww.io/downloads/s3-image-optimizer/">' . esc_html__( 'S3 Image Optimizer', 'ewww-image-optimizer' ) . '</a>'
-		) : '' ) .
-		"</p>\n";
-
 	$compress_score = 0;
 	$resize_score   = 0;
 
@@ -9444,6 +9442,15 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		delete_site_option( 'ewww_image_optimizer_exactdn_verified' );
 		delete_site_option( 'ewww_image_optimizer_exactdn_validation' );
 		delete_site_option( 'ewww_image_optimizer_exactdn_suspended' );
+	}
+	$easymode = false;
+	if (
+		$exactdn_enabled &&
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_local_mode' ) &&
+		! get_option( 'easyio_exactdn' )
+	) {
+		$easymode = true;
 	}
 	if (
 		ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' ) ||
@@ -9575,6 +9582,25 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			'src'   => array(),
 		),
 	);
+	if ( ! $easymode ) {
+		echo '<p>' . sprintf(
+			/* translators: %s: Bulk Optimize (link) */
+			esc_html__( 'New images uploaded to the Media Library will be optimized automatically. If you have existing images you would like to optimize, you can use the %s tool.', 'ewww-image-optimizer' ),
+			( 'network-multisite' === esc_attr( $network ) ?
+				esc_html__( 'Media Library', 'ewww-image-optimizer' ) . ' -> ' . esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ) :
+				'<a href="' . esc_url( admin_url( 'upload.php?page=ewww-image-optimizer-bulk' ) ) . '">' . esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ) . '</a>'
+				)
+		);
+		ewwwio_help_link( 'https://docs.ewww.io/article/4-getting-started', '5853713bc697912ffd6c0b98' );
+		echo ' ' . ( ! class_exists( 'Amazon_S3_And_CloudFront' ) ?
+			sprintf(
+				/* translators: %s: S3 Image Optimizer (link) */
+				esc_html__( 'Images stored in an Amazon S3 bucket can be optimized using our %s.' ),
+				'<a href="https://ewww.io/downloads/s3-image-optimizer/">' . esc_html__( 'S3 Image Optimizer', 'ewww-image-optimizer' ) . '</a>'
+			) : '' ) .
+			"</p>\n";
+	}
+
 	if ( 'network-multisite-over' === $network ) {
 		ob_start();
 	}
@@ -9676,7 +9702,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<p>
 								<span style="font-weight:bold;color:#3eadc9;">Compress API:</span>
 								<a href="https://optimize.exactlywww.com/api_key/free-trial.php?TB_iframe=true&width=600&height=375" class="thickbox" target="_blank">
+		<?php if ( $exactdn_enabled ) : ?>
+									<?php esc_html_e( 'Need to save storage space?', 'ewww-image-optimizer' ); ?>
+		<?php else : ?>
 									<?php esc_html_e( 'Unlock premium compression, save storage space, and reduce server load.', 'ewww-image-optimizer' ); ?>
+		<?php endif; ?>
 								</a>
 							</p>
 	<?php endif; ?>
@@ -9750,7 +9780,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	<?php endif; ?>
 
 	<!-- 'network-multisite-over' and 'network-singlesite' get simpler settings, 'network-singlesite-over' masquerades as 'singlesite' -->
-	<?php if ( 'singlesite' === $network || 'network-multisite' === $network ) : ?>
+	<?php if ( ! $easymode && ( 'singlesite' === $network || 'network-multisite' === $network ) ) : ?>
 	<ul class='ewww-tab-nav'>
 		<li class='ewww-tab ewww-general-nav'><span><?php esc_html_e( 'Basic', 'ewww-image-optimizer' ); ?></span></li>
 		<?php if ( ! get_option( 'easyio_exactdn' ) ) : ?>
@@ -9761,6 +9791,14 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<li class='ewww-tab ewww-conversion-nav'><span><?php esc_html_e( 'Convert', 'ewww-image-optimizer' ); ?></span></li>
 		<li class='ewww-tab ewww-webp-nav'><span><?php esc_html_e( 'WebP', 'ewww-image-optimizer' ); ?></span></li>
 		<li class='ewww-tab ewww-overrides-nav'><span><a href='https://docs.ewww.io/article/40-override-options' target='_blank'><span class='ewww-tab-hidden'><?php esc_html_e( 'Overrides', 'ewww-image-optimizer' ); ?></a></span></li>
+		<li class='ewww-tab ewww-support-nav'><span><?php esc_html_e( 'Support', 'ewww-image-optimizer' ); ?></span></li>
+		<li class='ewww-tab ewww-contribute-nav'><span><?php esc_html_e( 'Contribute', 'ewww-image-optimizer' ); ?></span></li>
+	</ul>
+	<?php elseif ( $easymode ) : ?>
+	<ul class='ewww-tab-nav'>
+		<li class='ewww-tab ewww-general-nav'><span><?php esc_html_e( 'Basic', 'ewww-image-optimizer' ); ?></span></li>
+		<li class='ewww-tab ewww-exactdn-nav'><span><?php esc_html_e( 'Easy Mode', 'ewww-image-optimizer' ); ?></span></li>
+		<li class='ewww-tab ewww-resize-nav'><span><?php esc_html_e( 'Resize', 'ewww-image-optimizer' ); ?></span></li>
 		<li class='ewww-tab ewww-support-nav'><span><?php esc_html_e( 'Support', 'ewww-image-optimizer' ); ?></span></li>
 		<li class='ewww-tab ewww-contribute-nav'><span><?php esc_html_e( 'Contribute', 'ewww-image-optimizer' ); ?></span></li>
 	</ul>
@@ -9779,9 +9817,16 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	<?php endif; ?>
 		<div id='ewww-general-settings'>
 			<noscript><h2><?php esc_html_e( 'Basic', 'ewww-image-optimizer' ); ?></h2></noscript>
-	<?php if ( $exactdn_enabled && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
-				<p><?php esc_html_e( 'Easy IO copies your images to our CDN for optimization and does not affect the local images stored on your server. The Basic settings are not necessary for performance while Easy IO is active, but can help you to save server storage space.', 'ewww-image-optimizer' ); ?></p>
+	<?php if ( 'singlesite' === $network && $easymode ) : ?>
+				<p><strong><?php esc_html_e( 'Easy IO is optimizing your site, no more configuration needed!', 'ewww-image-optimizer' ); ?></strong></p>
+				<?php /* translators: %s: Local+Advanced Mode */ ?>
+				<p><?php printf( esc_html__( 'If you need to save storage space, enable %s.', 'ewww-image-optimizer' ), '<a href="' . esc_url( wp_nonce_url( admin_url( 'options-general.php?page=ewww-image-optimizer-options&enable-local=1' ), 'ewww_image_optimizer_options-options' ) ) . '">' . esc_html__( 'Local+Advanced Mode', 'ewww-image-optimizer' ) . '</a>' ); ?></p>
+	<?php elseif ( 'singlesite' === $network ) : ?>
+				<p><strong><?php esc_html_e( 'Easy IO is optimizing your site, no more configuration needed!', 'ewww-image-optimizer' ); ?></strong><br>
+				<?php /* translators: %s: Easy Mode */ ?>
+				<?php printf( esc_html__( 'Switch to %s.', 'ewww-image-optimizer' ), '<a href="' . esc_url( wp_nonce_url( admin_url( 'options-general.php?page=ewww-image-optimizer-options&enable-local=0' ), 'ewww_image_optimizer_options-options' ) ) . '">' . esc_html__( 'Easy Mode', 'ewww-image-optimizer' ) . '</a>' ); ?></p>
 	<?php endif; ?>
+	<?php ob_start(); ?>
 			<table class='form-table'>
 	<?php if ( 'network-multisite' === $network || 'network-multisite-over' === $network ) : ?>
 				<tr>
@@ -9989,6 +10034,13 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				</tr>
 	<?php endif; ?>
 			</table>
+	<?php
+	if ( $easymode ) {
+		ob_end_clean();
+	} else {
+		ob_end_flush();
+	}
+	?>
 		</div>
 
 	<?php
@@ -10277,6 +10329,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						</p>
 					</td>
 				</tr>
+	<?php if ( ! $easymode ) : ?>
 				<tr>
 					<th scope='row'>
 						<label for='ewww_image_optimizer_resize_existing'><?php esc_html_e( 'Resize Existing Images', 'ewww-image-optimizer' ); ?></label>
@@ -10297,7 +10350,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<?php esc_html_e( 'Allow resizing of existing images outside the Media Library. Use this to resize images specified under the Folders to Optimize setting when running Bulk or Scheduled Optimization.', 'ewww-image-optimizer' ); ?>
 					</td>
 				</tr>
-	<?php if ( 'network-multisite' === $network ) : ?>
+	<?php endif; ?>
+
+	<?php if ( $easymode ) : ?>
+	<?php elseif ( 'network-multisite' === $network ) : ?>
 				<tr>
 					<th scope="row">
 						<?php esc_html_e( 'Disable Resizes', 'ewww-image-optimizer' ); ?>
@@ -10323,8 +10379,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					</th>
 					<td>
 						<p>
-							<?php esc_html_e( 'WordPress, your theme, and other plugins generate various image sizes. You may disable optimization for certain sizes, or completely prevent those sizes from being created.', 'ewww-image-optimizer' ); ?><br>
+							<?php esc_html_e( 'WordPress, your theme, and other plugins generate various image sizes for each image uploaded.', 'ewww-image-optimizer' ); ?><br>
+		<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
 							<i><?php esc_html_e( 'Remember that each image size will affect your API credits.', 'ewww-image-optimizer' ); ?></i>
+		<?php endif; ?>
 						</p>
 						<table id="ewww-settings-disable-resizes">
 							<tr>
@@ -10599,6 +10657,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			<p>
 				<a class='ewww-docs-root' href='https://docs.ewww.io/'><?php esc_html_e( 'Documentation', 'ewww-image-optimizer' ); ?></a> |
 				<a class='ewww-docs-root' href='https://ewww.io/contact-us/'><?php esc_html_e( 'Plugin Support', 'ewww-image-optimizer' ); ?></a> |
+				<a href='https://feedback.ewww.io/'><?php esc_html_e( 'Submit Feedback', 'ewww-image-optimizer' ); ?></a> |
+				<a href='https://ewww.io/chat/'><?php esc_html_e( 'Community Chat', 'ewww-image-optimizer' ); ?></a> |
 				<a href='https://ewww.io/status/'><?php esc_html_e( 'Server Status', 'ewww-image-optimizer' ); ?></a>
 			</p>
 			<table class='form-table'>
@@ -10743,8 +10803,6 @@ AddType image/webp .webp</pre>
 		$eio_alt_webp->inline_script();
 	}
 
-	echo '<p>put this somewhere: https://join.slack.com/t/ewwwio/shared_invite/zt-enlb7n5u-UFlJfLf~2F0EgTu~kPfLIA</p>';
-
 	echo '<hr style="clear:both;"><div id="ewwwio-banner"><img src="' . esc_url( plugins_url( '/images/ewwwio-logo.png', __FILE__ ) ) . '">' .
 		'<p>' . esc_html__( 'Get performance tips, exclusive discounts, and the latest news when you signup for our newsletter!', 'ewww-image-optimizer' ) . '</p>' .
 		'<a href="https://eepurl.com/gKyU6L?TB_iframe=true&width=600&height=610" class="thickbox button-secondary">' . esc_html__( 'Subscribe now!', 'ewww-image-optimizer' ) . ' &rarr;</a></div>';
@@ -10784,7 +10842,7 @@ AddType image/webp .webp</pre>
 		$help_email   = $current_user->user_email;
 		$hs_debug     = '';
 		if ( ! empty( $debug_info ) ) {
-			$hs_debug = str_replace( array( "'", '<br>', '<b>', '</b>', '=>' ), array( "\'", '\n', '{', '}', '=' ), $debug_info );
+			$hs_debug = str_replace( array( "'", '<br>', '<b>', '</b>', '=>' ), array( "\'", '\n', '**', '**', '=' ), $debug_info );
 		}
 		?>
 <script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
