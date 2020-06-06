@@ -10055,7 +10055,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		</div>
 
 	<?php
-	$exactdn_enabled   = ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' );
 	$eio_base          = new EIO_Base();
 	$easyio_site_url   = $eio_base->content_url();
 	$exactdn_att_che   = ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) && ( ! is_object( $exactdn ) || 1 < $exactdn->get_plan_id() );
@@ -10811,6 +10810,10 @@ AddType image/webp .webp</pre>
 
 	<?php
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_ce_webp_enabled() && ! ewww_image_optimizer_easy_active() ) {
+		if ( ! isset( $eio_alt_webp ) ) {
+			require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-page-parser.php' );
+			require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-alt-webp.php' );
+		}
 		$eio_alt_webp->inline_script();
 	}
 

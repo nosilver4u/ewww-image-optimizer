@@ -182,6 +182,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * changed: resize detection ignores images smaller than 25px
 * changed: setting streamlined when using Easy IO
 * fixed: parallel optimization on multisite fails due to missing db prefix
+* fixed: error when saving JS WebP on network/multsite admin
 * fixed: images not resized when Media File Renamer is active
 * fixed: PHP warning while using <picture> WebP
 * fixed: Lazy Load, JS WebP and <picture> WebP have nested fall-back img elements if an image is found multiple times in a page
