@@ -510,6 +510,18 @@ function ewww_image_optimizer_init() {
 		}
 	}
 
+	// For the settings page, check for the enable-local param and take appropriate action.
+	if ( ! empty( $_GET['enable-local'] ) && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
+		update_option( 'ewww_image_optimizer_local_mode', true );
+		update_site_option( 'ewww_image_optimizer_local_mode', true );
+	} elseif ( isset( $_GET['enable-local'] ) && ! (bool) $_GET['enable-local'] && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) && isset( $_GET['enable-local'] ) ) {
+		delete_option( 'ewww_image_optimizer_local_mode', true );
+		delete_site_option( 'ewww_image_optimizer_local_mode', true );
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+			ewww_image_optimizer_remove_cloud_key();
+		}
+	}
+
 	// Resizes and auto-rotates images.
 	add_filter( 'wp_handle_upload', 'ewww_image_optimizer_handle_upload' );
 	if ( class_exists( 'S3_Uploads' ) ) {
@@ -9339,18 +9351,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$total_sizes   = ewww_image_optimizer_savings();
 		$total_savings = $total_sizes[1] - $total_sizes[0];
 	}
+
 	ewwwio_debug_info();
 	$debug_info = $eio_debug;
 	ewww_image_optimizer_temp_debug_clear();
-
-	if ( ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) && ! empty( $_GET['enable-local'] ) ) {
-		update_option( 'ewww_image_optimizer_local_mode', true );
-		update_site_option( 'ewww_image_optimizer_local_mode', true );
-	}
-	if ( ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) && isset( $_GET['enable-local'] ) && ! (bool) $_GET['enable-local'] ) {
-		delete_option( 'ewww_image_optimizer_local_mode', true );
-		delete_site_option( 'ewww_image_optimizer_local_mode', true );
-	}
 
 	if ( empty( $network ) ) {
 		$network = 'singlesite';
@@ -9447,8 +9451,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	if (
 		$exactdn_enabled &&
 		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
-		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_local_mode' ) &&
-		! get_option( 'easyio_exactdn' )
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_local_mode' )
 	) {
 		$easymode = true;
 	}
@@ -9702,7 +9705,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<p>
 								<span style="font-weight:bold;color:#3eadc9;">Compress API:</span>
 								<a href="https://optimize.exactlywww.com/api_key/free-trial.php?TB_iframe=true&width=600&height=375" class="thickbox" target="_blank">
-		<?php if ( $exactdn_enabled ) : ?>
+		<?php if ( $exactdn_enabled || get_option( 'easyio_exactdn' ) ) : ?>
 									<?php esc_html_e( 'Need to save storage space?', 'ewww-image-optimizer' ); ?>
 		<?php else : ?>
 									<?php esc_html_e( 'Unlock premium compression, save storage space, and reduce server load.', 'ewww-image-optimizer' ); ?>
@@ -9727,7 +9730,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 								<br><i><?php esc_html_e( 'Plugins that remove query strings are unnecessary with Easy IO. You may remove them at your convenience.', 'ewww-image-optimizer' ); ?></i><?php ewwwio_help_link( 'https://docs.ewww.io/article/50-exactdn-and-query-strings', '5a3d278a2c7d3a1943677b52' ); ?>
 		<?php endif; ?>
 							</p>
-	<?php elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) : ?>
+	<?php elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && ! get_option( 'easyio_exactdn' ) ) : ?>
 							<p><span style="font-weight:bold;color:#3eadc9;">Easy IO:</span> <a href="https://ewww.io/resize/" target="_blank"><?php esc_html_e( 'Comprehensive image optimization with automatic compression, auto-sizing, WebP conversion, and lazy load.', 'ewww-image-optimizer' ); ?></a></p>
 	<?php endif; ?>
 							<p>
@@ -9821,10 +9824,18 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				<p><strong><?php esc_html_e( 'Easy IO is optimizing your site, no more configuration needed!', 'ewww-image-optimizer' ); ?></strong></p>
 				<?php /* translators: %s: Local+Advanced Mode */ ?>
 				<p><?php printf( esc_html__( 'If you need to save storage space, enable %s.', 'ewww-image-optimizer' ), '<a href="' . esc_url( wp_nonce_url( admin_url( 'options-general.php?page=ewww-image-optimizer-options&enable-local=1' ), 'ewww_image_optimizer_options-options' ) ) . '">' . esc_html__( 'Local+Advanced Mode', 'ewww-image-optimizer' ) . '</a>' ); ?></p>
-	<?php elseif ( 'singlesite' === $network ) : ?>
+	<?php elseif ( 'singlesite' === $network && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) : ?>
 				<p><strong><?php esc_html_e( 'Easy IO is optimizing your site, no more configuration needed!', 'ewww-image-optimizer' ); ?></strong><br>
+		<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
+				<?php /* translators: %s: Easy Mode */ ?>
+				<?php printf( esc_html__( 'Remove API key and switch to %s.', 'ewww-image-optimizer' ), '<a href="' . esc_url( wp_nonce_url( admin_url( 'options-general.php?page=ewww-image-optimizer-options&enable-local=0' ), 'ewww_image_optimizer_options-options' ) ) . '">' . esc_html__( 'Easy Mode', 'ewww-image-optimizer' ) . '</a>' ); ?></p>
+		<?php else : ?>
 				<?php /* translators: %s: Easy Mode */ ?>
 				<?php printf( esc_html__( 'Switch to %s.', 'ewww-image-optimizer' ), '<a href="' . esc_url( wp_nonce_url( admin_url( 'options-general.php?page=ewww-image-optimizer-options&enable-local=0' ), 'ewww_image_optimizer_options-options' ) ) . '">' . esc_html__( 'Easy Mode', 'ewww-image-optimizer' ) . '</a>' ); ?></p>
+		<?php endif; ?>
+	<?php elseif ( 'singlesite' === $network && get_option( 'easyio_exactdn' ) ) : ?>
+				<p><strong><?php esc_html_e( 'Easy IO is optimizing your site, no more configuration needed!', 'ewww-image-optimizer' ); ?></strong><br>
+				<?php esc_html_e( 'Unless you need to save storage space, you can now disable the EWWW Image Optimizer.', 'ewww-image-optimizer' ); ?></p>
 	<?php endif; ?>
 	<?php ob_start(); ?>
 			<table class='form-table'>
@@ -10808,7 +10819,7 @@ AddType image/webp .webp</pre>
 		'<a href="https://eepurl.com/gKyU6L?TB_iframe=true&width=600&height=610" class="thickbox button-secondary">' . esc_html__( 'Subscribe now!', 'ewww-image-optimizer' ) . ' &rarr;</a></div>';
 
 	echo '<h2>' . esc_html__( "Shane's Recommendations", 'ewww-image-optimizer' ) . '</h2>';
-	echo '<p>' . esc_html__( 'These are products I have personally used. An * indicates an affiliate link which allows you to support future development of EWWW IO.', 'ewww-image-optimizer' ) . '</p>';
+	echo '<p>' . esc_html__( 'These are products I have personally used. An * indicates an affiliate link so you can support future development of EWWW IO.', 'ewww-image-optimizer' ) . '</p>';
 	echo '<h3>' . esc_html__( 'Hosting', 'ewww-image-optimizer' ) . '</h3>' .
 		'<p><a href="http://shareasale.com/r.cfm?b=917225&amp;u=1481701&amp;m=41388&amp;urllink=&amp;afftrack=">WP Engine</a>* - ' .
 			esc_html__( 'ewww.io is powered by WP Engine, and their performance is worth every penny. This is "managed WordPress hosting" at it\'s finest. 20% discount off your first payment with our link.', 'ewww-image-optimizer' ) .
