@@ -463,7 +463,7 @@ class EWWW_Image {
 	 */
 	private function convert_retina( $file ) {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-		$retina_path = ewww_image_optimizer_hidpi_optimize( $file, true );
+		$retina_path = ewww_image_optimizer_get_hidpi_path( $file );
 		if ( ! $retina_path ) {
 			return;
 		}

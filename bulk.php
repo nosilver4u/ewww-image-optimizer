@@ -1160,7 +1160,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 
 			$attachment_images['full'] = $file_path;
 
-			$retina_path = ewww_image_optimizer_hidpi_optimize( $file_path, true );
+			$retina_path = ewww_image_optimizer_get_hidpi_path( $file_path );
 			if ( $retina_path ) {
 				$attachment_images['full-retina'] = $retina_path;
 			}
@@ -1237,7 +1237,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						ewwwio_debug_message( "found retina via wr2x_get_retina $retina_path" );
 						$attachment_images[ $size . '-retina' ] = $retina_path;
 					} else {
-						$retina_path = ewww_image_optimizer_hidpi_optimize( $resize_path, true );
+						$retina_path = ewww_image_optimizer_get_hidpi_path( $resize_path );
 						if ( $retina_path ) {
 							ewwwio_debug_message( "found retina via hidpi_opt $retina_path" );
 							$attachment_images[ $size . '-retina' ] = $retina_path;
@@ -1913,7 +1913,7 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 			}
 			$image->file      = $file;
 			$image->converted = $original;
-			$meta['file']     = trailingslashit( dirname( $meta['file'] ) ) . basename( $file );
+			$meta['file']     = _wp_relative_upload_path( $file );
 			$image->update_converted_attachment( $meta );
 			$meta = $image->convert_sizes( $meta );
 		}

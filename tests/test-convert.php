@@ -293,7 +293,7 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 
 		$base_dir = trailingslashit( dirname( $file_path ) );
 		foreach ( $meta['sizes'] as $size => $data ) {
-			$image_path = $base_dir . $data['file'];
+			$image_path = $base_dir . wp_basename( $data['file'] );
 			$this->assertEquals( 'image/jpeg', ewww_image_optimizer_mimetype( $image_path, 'i' ) );
 		}
 

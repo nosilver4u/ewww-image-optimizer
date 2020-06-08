@@ -562,7 +562,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				if ( is_writable( $filename ) ) {
 					$stat  = stat( dirname( $filename ) );
 					$perms = $stat['mode'] & 0000666; // Same permissions as parent folder with executable bits stripped.
-					chmod( $filename, $perms );
+					ewwwio_chmod( $filename, $perms );
 				}
 				ewwwio_memory( __METHOD__ );
 				return array(

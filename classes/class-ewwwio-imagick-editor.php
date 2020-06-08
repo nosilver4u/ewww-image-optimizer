@@ -559,7 +559,7 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 				if ( is_writable( $filename ) ) {
 					$stat  = stat( dirname( $filename ) );
 					$perms = $stat['mode'] & 0000666; // Same permissions as parent folder with executable bits stripped.
-					chmod( $filename, $perms );
+					ewwwio_chmod( $filename, $perms );
 				}
 				ewwwio_memory( __FUNCTION__ );
 				return array(
