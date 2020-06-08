@@ -53,7 +53,7 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 50600 ) {
 	require_once( plugin_dir_path( __FILE__ ) . 'classes/class-ewwwio-install-cloud.php' );
 	// Loads the plugin translations.
 	add_action( 'plugins_loaded', 'ewww_image_optimizer_false_init' );
-} elseif ( false && defined( 'WPE_PLUGIN_VERSION' ) ) {
+} elseif ( defined( 'WPE_PLUGIN_VERSION' ) ) {
 	add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_wpengine' );
 	add_action( 'admin_notices', 'ewww_image_optimizer_notice_wpengine' );
 	require_once( plugin_dir_path( __FILE__ ) . 'classes/class-ewwwio-install-cloud.php' );

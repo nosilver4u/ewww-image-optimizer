@@ -3162,11 +3162,10 @@ function ewwwio_rename( $src, $dst ) {
 	global $eio_filesystem;
 	ewwwio_get_filesytem();
 	$src = realpath( $src );
-	$dst = realpath( $dst );
 	if ( false !== strpos( $dst, WP_CONTENT_DIR ) ) {
 		return $eio_filesystem->move( $src, $dst, true );
 	}
-	if ( false !== strpos( $file, ABSPATH ) ) {
+	if ( false !== strpos( $dst, ABSPATH ) ) {
 		return $eio_filesystem->move( $src, $dst, true );
 	}
 	$upload_dir = wp_get_upload_dir();
@@ -4327,12 +4326,13 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 			ewwwio_debug_message( "cloud results: $newsize (new) vs. $orig_size (original)" );
 			ewwwio_rename( $tempfile, $newfile );
 		} elseif ( ! is_null( $newtype ) && ! is_null( $newfile ) && ewww_image_optimizer_mimetype( $tempfile, 'i' ) === $newtype ) {
-			$converted = true;
-			$newsize   = filesize( $tempfile );
-			ewwwio_debug_message( "cloud results: $newsize (new) vs. $orig_size (original)" );
 			ewwwio_debug_message( "renaming file from $tempfile to $newfile" );
-			ewwwio_rename( $tempfile, $newfile );
-			$file = $newfile;
+			if ( ewwwio_rename( $tempfile, $newfile ) ) {
+				$converted = true;
+				$newsize   = filesize( $tempfile );
+				$file      = $newfile;
+				ewwwio_debug_message( "cloud results: $newsize (new) vs. $orig_size (original)" );
+			}
 		} else {
 			ewwwio_delete_file( $tempfile );
 		}

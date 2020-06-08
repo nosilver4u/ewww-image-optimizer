@@ -1139,6 +1139,7 @@ function ewww_image_optimizer_mimetype( $path, $case ) {
 	}
 	$path = realpath( $path );
 	if ( ! ewwwio_is_file( $path ) ) {
+		ewwwio_debug_message( "$path is not a file, or out of bounds" );
 		return $type;
 	}
 	global $eio_filesystem;
@@ -1148,6 +1149,7 @@ function ewww_image_optimizer_mimetype( $path, $case ) {
 		if ( $file_contents ) {
 			// Read first 12 bytes, which equates to 24 hex characters.
 			$magic = bin2hex( substr( $file_contents, 0, 12 ) );
+			ewwwio_debug_message( $magic );
 			if ( 0 === strpos( $magic, '52494646' ) && 16 === strpos( $magic, '57454250' ) ) {
 				$type = 'image/webp';
 				ewwwio_debug_message( "ewwwio type: $type" );
@@ -1183,6 +1185,7 @@ function ewww_image_optimizer_mimetype( $path, $case ) {
 		if ( $file_contents ) {
 			// Read first 4 bytes, which equates to 8 hex characters.
 			$magic = bin2hex( substr( $file_contents, 0, 4 ) );
+			ewwwio_debug_message( $magic );
 			// Mac (Mach-O) binary.
 			if ( 'cffaedfe' === $magic || 'feedface' === $magic || 'feedfacf' === $magic || 'cefaedfe' === $magic || 'cafebabe' === $magic ) {
 				$type = 'application/x-executable';
