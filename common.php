@@ -3027,7 +3027,7 @@ function ewww_image_optimizer_adjust_big_image_threshold( $size, $imagesize, $fi
 /**
  * Setup the global filesystem class variable.
  */
-function ewwwio_get_filesytem() {
+function ewwwio_get_filesystem() {
 	require_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php' );
 	require_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php' );
 	global $eio_filesystem;
@@ -3052,7 +3052,7 @@ function ewww_image_optimizer_filesize( $file ) {
 	$file = realpath( $file );
 	if ( ewwwio_is_file( $file ) ) {
 		global $eio_filesystem;
-		ewwwio_get_filesytem();
+		ewwwio_get_filesystem();
 		// Flush the cache for filesize.
 		clearstatcache();
 		// Find out the size of the new PNG file.
@@ -3070,7 +3070,7 @@ function ewww_image_optimizer_filesize( $file ) {
  */
 function ewwwio_is_readable( $file ) {
 	global $eio_filesystem;
-	ewwwio_get_filesytem();
+	ewwwio_get_filesystem();
 	return $eio_filesystem->is_readable( $file );
 }
 /**
@@ -3087,7 +3087,7 @@ function ewwwio_is_dir( $dir ) {
 		return false;
 	}
 	global $eio_filesystem;
-	ewwwio_get_filesytem();
+	ewwwio_get_filesystem();
 	$dir        = realpath( $dir );
 	$wp_dir     = realpath( ABSPATH );
 	$upload_dir = wp_get_upload_dir();
@@ -3126,7 +3126,7 @@ function ewwwio_is_file( $file ) {
 		return false;
 	}
 	global $eio_filesystem;
-	ewwwio_get_filesytem();
+	ewwwio_get_filesystem();
 	$file       = realpath( $file );
 	$wp_dir     = realpath( ABSPATH );
 	$upload_dir = wp_get_upload_dir();
@@ -3160,7 +3160,7 @@ function ewwwio_is_file( $file ) {
  */
 function ewwwio_rename( $src, $dst ) {
 	global $eio_filesystem;
-	ewwwio_get_filesytem();
+	ewwwio_get_filesystem();
 	$src = realpath( $src );
 	if ( false !== strpos( $dst, WP_CONTENT_DIR ) ) {
 		return $eio_filesystem->move( $src, $dst, true );
@@ -3208,7 +3208,7 @@ function ewwwio_delete_file( $file, $dir = '' ) {
  */
 function ewwwio_chmod( $file, $mode ) {
 	global $eio_filesystem;
-	ewwwio_get_filesytem();
+	ewwwio_get_filesystem();
 	$file       = realpath( $file );
 	$upload_dir = wp_get_upload_dir();
 	if ( false !== strpos( $file, $upload_dir['basedir'] ) ) {
@@ -4148,7 +4148,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	global $ewww_force;
 	global $ewww_force_smart;
 	global $eio_filesystem;
-	ewwwio_get_filesytem();
+	ewwwio_get_filesystem();
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_skip_full' ) && $fullsize ) {
 		$metadata = 1;
 	} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
@@ -4377,7 +4377,7 @@ function ewww_image_optimizer_cloud_autorotate( $file, $type ) {
 		return false;
 	}
 	global $eio_filesystem;
-	ewwwio_get_filesytem();
+	ewwwio_get_filesystem();
 	ewwwio_debug_message( "file: $file " );
 	ewwwio_debug_message( "type: $type" );
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
@@ -4515,7 +4515,7 @@ function ewww_image_optimizer_cloud_backup( $file ) {
 
 	global $ewww_image;
 	global $eio_filesystem;
-	ewwwio_get_filesytem();
+	ewwwio_get_filesystem();
 	if ( is_object( $ewww_image ) && $ewww_image->file === $file && ! empty( $ewww_image->backup ) ) {
 		$post_fields['backup'] = $ewww_image->backup;
 	} elseif ( is_object( $ewww_image ) && $ewww_image->file === $file && empty( $ewww_image->backup ) ) {
@@ -4620,7 +4620,7 @@ function ewww_image_optimizer_cloud_resize( $file, $type, $dst_x, $dst_y, $src_x
 		return new WP_Error( 'invalid_key', __( 'License Exceeded', 'ewww-image-optimizer' ) );
 	}
 	global $eio_filesystem;
-	ewwwio_get_filesytem();
+	ewwwio_get_filesystem();
 	ewwwio_debug_message( "file: $file " );
 	ewwwio_debug_message( "width: $dst_w" );
 	ewwwio_debug_message( "height: $dst_h" );
@@ -6697,7 +6697,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 	global $ewww_image;
 	global $ewww_force;
 	global $eio_filesystem;
-	ewwwio_get_filesytem();
+	ewwwio_get_filesystem();
 	$gallery_type = 1;
 	ewwwio_debug_message( "attachment id: $id" );
 
@@ -7709,7 +7709,7 @@ function ewww_image_optimizer_png_alpha( $filename ) {
 		return false;
 	}
 	global $eio_filesystem;
-	ewwwio_get_filesytem();
+	ewwwio_get_filesystem();
 	$file_contents = $eio_filesystem->get_contents( $filename );
 	// Determine what color type is stored in the file.
 	$color_type = ord( substr( $file_contents, 25, 1 ) );

@@ -85,7 +85,6 @@ function ewww_image_optimizer_exec_init() {
 		add_action( 'load-settings_page_ewww-image-optimizer-options', 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-plugins.php', 'ewww_image_optimizer_tool_init' );
 		add_action( 'load-ims_gallery_page_ewww-ims-optimize', 'ewww_image_optimizer_tool_init' );
-		add_action( 'load-media_page_ewww-image-optimizer-unoptimized', 'ewww_image_optimizer_tool_init' );
 	}
 	ewwwio_memory( __FUNCTION__ );
 }
@@ -1143,7 +1142,7 @@ function ewww_image_optimizer_mimetype( $path, $case ) {
 		return $type;
 	}
 	global $eio_filesystem;
-	ewwwio_get_filesytem();
+	ewwwio_get_filesystem();
 	if ( 'i' === $case ) {
 		$file_contents = $eio_filesystem->get_contents( $path );
 		if ( $file_contents ) {
