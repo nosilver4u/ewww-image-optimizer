@@ -4329,7 +4329,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 			ewwwio_debug_message( "renaming file from $tempfile to $newfile" );
 			if ( ewwwio_rename( $tempfile, $newfile ) ) {
 				$converted = true;
-				$newsize   = filesize( $tempfile );
+				$newsize   = filesize( $newfile );
 				$file      = $newfile;
 				ewwwio_debug_message( "cloud results: $newsize (new) vs. $orig_size (original)" );
 			}
