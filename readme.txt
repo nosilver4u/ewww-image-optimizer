@@ -173,6 +173,9 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 5.4.1 =
+* fixed: Bulk Optimizer sticks on stage 2 when there are no images to optimize
+
 = 5.4.0 =
 * added: EXACTDN_DEFER_JQUERY_SAFE override for when inline scripts depend on jQuery
 * changed: code rewrite to validate output escaping, input sanitization, and markup on settings page
