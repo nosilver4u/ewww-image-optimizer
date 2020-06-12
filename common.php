@@ -7714,11 +7714,11 @@ function ewww_image_optimizer_png_alpha( $filename ) {
 	// Determine what color type is stored in the file.
 	$color_type = ord( substr( $file_contents, 25, 1 ) );
 	ewwwio_debug_message( "color type: $color_type" );
-	// If it is set to RGB alpha or Grayscale alpha.
-	if ( 4 === $color_type || 6 === $color_type ) {
+	// If we do not have GD and the PNG color type is RGB alpha or Grayscale alpha.
+	if ( ! ewww_image_optimizer_gd_support() && ( 4 === $color_type || 6 === $color_type ) ) {
 		ewwwio_debug_message( 'transparency found' );
 		return true;
-	} elseif ( 3 === $color_type && ewww_image_optimizer_gd_support() ) {
+	} elseif ( ewww_image_optimizer_gd_support() ) {
 		$image = imagecreatefrompng( $filename );
 		if ( imagecolortransparent( $image ) >= 0 ) {
 			ewwwio_debug_message( 'transparency found' );
