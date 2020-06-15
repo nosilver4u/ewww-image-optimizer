@@ -4979,7 +4979,7 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 	// First check if the image was converted, so we don't orphan records.
 	if ( $original && $original !== $attachment ) {
 		$already_optimized = ewww_image_optimizer_find_already_optimized( $original );
-		$converted         = $original;
+		$converted         = ewww_image_optimizer_relativize_path( $original );
 	} else {
 		$already_optimized = ewww_image_optimizer_find_already_optimized( $attachment );
 		if ( is_array( $already_optimized ) && ! empty( $already_optimized['converted'] ) ) {
@@ -8332,7 +8332,7 @@ function ewww_image_optimizer_custom_column_results( $id, $optimized_images ) {
 			}
 		}
 		if ( ! empty( $optimized_image['converted'] ) ) {
-			$converted = $optimized_image['converted'];
+			$converted = ewww_image_optimizer_absolutize_path( $optimized_image['converted'] );
 		}
 		$sizes_to_opt++;
 		if ( ! empty( $optimized_image['resize'] ) ) {

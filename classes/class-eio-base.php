@@ -89,6 +89,11 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 				$this->content_dir = WP_CONTENT_DIR . '/easyio/';
 				$this->version     = EASYIO_VERSION;
 				$this->prefix      = 'easyio_';
+			} elseif ( strpos( $child_class_path, 'plugins/swis' ) ) {
+				$this->content_url = content_url( 'swis/' );
+				$this->content_dir = WP_CONTENT_DIR . '/swis/';
+				$this->version     = SWIS_PLUGIN_VERSION;
+				$this->prefix      = 'swis_';
 			} else {
 				$this->content_url = content_url( 'ewww/' );
 			}
@@ -106,6 +111,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			global $eio_debug;
 			global $ewwwio_temp_debug;
 			global $easyio_temp_debug;
+			global $swis_temp_debug;
 			$debug_log = $this->content_dir . 'debug.log';
 			if ( ! is_dir( $this->content_dir ) && is_writable( WP_CONTENT_DIR ) ) {
 				wp_mkdir_p( $this->content_dir );
@@ -114,6 +120,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			if (
 				! empty( $eio_debug ) &&
 				empty( $easyio_temp_debug ) &&
+				empty( $swis_temp_debug ) &&
 				$debug_enabled &&
 				is_dir( $this->content_dir ) &&
 				is_writable( $this->content_dir )
@@ -156,7 +163,8 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			}
 			global $ewwwio_temp_debug;
 			global $easyio_temp_debug;
-			if ( $easyio_temp_debug || $ewwwio_temp_debug || $this->get_option( $this->prefix . 'debug' ) ) {
+			global $swis_temp_debug;
+			if ( $swis_temp_debug || $easyio_temp_debug || $ewwwio_temp_debug || $this->get_option( $this->prefix . 'debug' ) ) {
 				$memory_limit = $this->memory_limit();
 				if ( strlen( $message ) + 4000000 + memory_get_usage( true ) <= $memory_limit ) {
 					global $eio_debug;
@@ -182,13 +190,13 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			if ( function_exists( 'ini_get' ) ) {
 				$disabled = @ini_get( 'disable_functions' );
 				if ( $debug ) {
-					easyio_debug_message( "disable_functions: $disabled" );
+					$this->debug_message( "disable_functions: $disabled" );
 				}
 			}
 			if ( extension_loaded( 'suhosin' ) && function_exists( 'ini_get' ) ) {
 				$suhosin_disabled = @ini_get( 'suhosin.executor.func.blacklist' );
 				if ( $debug ) {
-					easyio_debug_message( "suhosin_blacklist: $suhosin_disabled" );
+					$this->debug_message( "suhosin_blacklist: $suhosin_disabled" );
 				}
 				if ( ! empty( $suhosin_disabled ) ) {
 					$suhosin_disabled = explode( ',', $suhosin_disabled );

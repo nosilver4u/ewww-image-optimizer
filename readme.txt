@@ -178,6 +178,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: transparency in PNG images with color type 0 or 2 not detected
 * fixed: transparency false positives for PNG images with color types 4 and 6
 * fixed: lazy load skips img elements with unquoted src attributes
+* fixed: images converted by PNG to JPG (and friends) do not have restore links in library
 
 = 5.4.0 =
 * added: EXACTDN_DEFER_JQUERY_SAFE override for when inline scripts depend on jQuery
