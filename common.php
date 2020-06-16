@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '540.02' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '541.0' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -590,8 +590,10 @@ function ewww_image_optimizer_upgrade() {
 		ewww_image_optimizer_set_defaults();
 		// This will get re-enabled if things are too slow.
 		ewww_image_optimizer_set_option( 'exactdn_prevent_db_queries', false );
-		delete_option( 'ewww_image_optimizer_exactdn_verify_method' );
-		delete_site_option( 'ewww_image_optimizer_exactdn_verify_method' );
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn_verify_method' ) > 0 ) {
+			delete_option( 'ewww_image_optimizer_exactdn_verify_method' );
+			delete_site_option( 'ewww_image_optimizer_exactdn_verify_method' );
+		}
 		if ( get_option( 'ewww_image_optimizer_version' ) < 297.5 ) {
 			// Cleanup background test mess.
 			wp_clear_scheduled_hook( 'wp_ewwwio_test_optimize_cron' );

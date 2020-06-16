@@ -2572,10 +2572,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		}
 
 		/**
-		 * Converts a local script/css url to use ExactDN.
+		 * Rewrites a script tag to be deferred.
 		 *
-		 * @param string $tag URL to the resource being parsed.
-		 * @return string The ExactDN version of the resource, if it was local.
+		 * @param string $tag URL to the script.
+		 * @return string The deferred version of the resource, if it was allowed.
 		 */
 		function defer_scripts( $tag ) {
 			if ( is_admin() ) {

@@ -265,6 +265,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			if (
 				! $single &&
 				is_multisite() &&
+				defined( strtoupper( $this->prefix ) . 'PLUGIN_FILE_REL' ) &&
 				is_plugin_active_for_network( constant( strtoupper( $this->prefix ) . 'PLUGIN_FILE_REL' ) ) &&
 				! get_site_option( $this->prefix . 'allow_multisite_override' )
 			) {

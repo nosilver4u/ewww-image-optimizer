@@ -122,13 +122,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		}
 
 		/**
-		 * Starts an output buffer and registers the callback function to do WebP replacement.
-		 */
-		function buffer_start() {
-			ob_start( array( $this, 'filter_page_output' ) );
-		}
-
-		/**
 		 * Replaces images within a srcset attribute, just a placeholder at the moment.
 		 *
 		 * @param string $srcset A valid srcset attribute from an img element.
