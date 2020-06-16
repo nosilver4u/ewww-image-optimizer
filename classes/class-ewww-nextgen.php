@@ -511,7 +511,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 					// Display the optimization link with the appropriate text.
 					$this->ewww_render_optimize_action_link( $image->pid, null, true, $backup_available );
 				} elseif ( ewww_image_optimizer_image_is_pending( $image->pid, 'nextg-async' ) ) {
-					echo esc_html( 'In Progress', 'ewww-image-optimizer' ) . '<br>';
+					echo '<div>' . esc_html__( 'In Progress', 'ewww-image-optimizer' ) . '</div>';
 					// Otherwise, give the image size, and a link to optimize right now.
 				} else {
 					// Display the optimization link with the appropriate text.

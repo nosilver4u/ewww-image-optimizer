@@ -380,12 +380,12 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 						}
 					}
 				} elseif ( ewww_image_optimizer_image_is_pending( $id, 'nextc-async' ) ) {
-					esc_html_e( 'In Progress', 'ewww-image-optimizer' );
+					echo '<div>' . esc_html__( 'In Progress', 'ewww-image-optimizer' ) . '</div>';
 					// Otherwise, give the image size, and a link to optimize right now.
 				} else {
 					if ( current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 						printf(
-							'<a class="ewww-manual-optimize" data-id="%1$d" data-nonce="%2$s" href="' . esc_url( admin_url( 'admin.php?action=ewww_ngg_manual' ) ) . '&amp;ewww_manual_nonce=%2$s&amp;ewww_attachment_ID=%1$d">%3$s</a>',
+							'<div><a class="ewww-manual-optimize" data-id="%1$d" data-nonce="%2$s" href="' . esc_url( admin_url( 'admin.php?action=ewww_ngg_manual' ) ) . '&amp;ewww_manual_nonce=%2$s&amp;ewww_attachment_ID=%1$d">%3$s</a></div>',
 							(int) $id,
 							esc_attr( $ewww_manual_nonce ),
 							esc_html__( 'Optimize now!', 'ewww-image-optimizer' )

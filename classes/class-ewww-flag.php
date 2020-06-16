@@ -814,7 +814,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 					}
 				}
 			} elseif ( ewww_image_optimizer_image_is_pending( $id, 'flag-async' ) ) {
-				esc_html_e( 'In Progress', 'ewww-image-optimizer' );
+				echo '<div>' . esc_html__( 'In Progress', 'ewww-image-optimizer' ) . '</div>';
 				// Otherwise, tell the user that they can optimize the image now.
 			} else {
 				if ( current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
