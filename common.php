@@ -2458,7 +2458,7 @@ function ewww_image_optimizer_network_admin_menu() {
 			'EWWW Image Optimizer',                // Page Title.
 			'EWWW Image Optimizer',                // Menu title.
 			$permissions,                          // Capability.
-			'ewww-image-optimizer-options',                // Slug.
+			'ewww-image-optimizer-options',        // Slug.
 			'ewww_image_optimizer_network_options' // Function to call.
 		);
 	}
@@ -3014,7 +3014,7 @@ function ewww_image_optimizer_set_jpg_quality( $quality ) {
  * @param string $file Full path to the uploaded image file.
  * @return int The proper size to use for scaling originals.
  */
-function ewww_image_optimizer_adjust_big_image_threshold( $size, $imagesize, $file ) {
+function ewww_image_optimizer_adjust_big_image_threshold( $size, $imagesize = array(), $file = '' ) {
 	if ( false !== strpos( $file, 'noresize' ) ) {
 		return false;
 	}

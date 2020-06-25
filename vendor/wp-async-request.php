@@ -150,7 +150,7 @@ if ( ! class_exists( 'WP_Async_Request' ) ) {
 
 			$this->handle();
 
-			wp_die();
+			die;
 		}
 
 		/**
