@@ -173,6 +173,11 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * Feature requests can be viewed and submitted at https://github.com/nosilver4u/ewww-image-optimizer/labels/enhancement
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 5.4.2 =
+* changed: plugin removed from disallowed list on WP Engine!
+* fixed: async functions use of wp_die causes empty errors when wp_cron is run from WP-CLI
+* fixed: big image size filter throws error when other plugins run the filter with fewer than 3 parameters
+
 = 5.4.1 =
 * fixed: Bulk Optimizer sticks on stage 2 when there are no images to optimize
 * fixed: transparency in PNG images with color type 0 or 2 not detected

@@ -53,12 +53,6 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 50600 ) {
 	require_once( plugin_dir_path( __FILE__ ) . 'classes/class-ewwwio-install-cloud.php' );
 	// Loads the plugin translations.
 	add_action( 'plugins_loaded', 'ewww_image_optimizer_false_init' );
-} elseif ( defined( 'WPE_PLUGIN_VERSION' ) ) {
-	add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_wpengine' );
-	add_action( 'admin_notices', 'ewww_image_optimizer_notice_wpengine' );
-	require_once( plugin_dir_path( __FILE__ ) . 'classes/class-ewwwio-install-cloud.php' );
-	// Loads the plugin translations.
-	add_action( 'plugins_loaded', 'ewww_image_optimizer_false_init' );
 } elseif ( defined( 'FLYWHEEL_CONFIG_DIR' ) ) {
 	add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_flywheel' );
 	add_action( 'admin_notices', 'ewww_image_optimizer_notice_flywheel' );
@@ -150,14 +144,6 @@ if ( ! function_exists( 'ewww_image_optimizer_unsupported_php' ) ) {
 	function ewww_image_optimizer_false_init() {
 		load_plugin_textdomain( 'ewww-image-optimizer', false, plugin_dir_path( __FILE__ ) . 'languages/' );
 	}
-}
-
-/**
- * Inform the user that only ewww-image-optimizer-cloud is permitted on WP Engine.
- */
-function ewww_image_optimizer_notice_wpengine() {
-	echo "<div id='ewww-image-optimizer-warning-wpengine' class='error'><p>" . esc_html__( 'The regular version of the EWWW Image Optimizer plugin is not permitted on WP Engine sites. However, the cloud version has been approved by WP Engine. Please deactivate EWWW Image Optimizer and install EWWW Image Optimizer Cloud to optimize your images.', 'ewww-image-optimizer' ) .
-		' <a href="' . esc_url( admin_url( 'admin.php?action=ewwwio_install_cloud_plugin' ) ) . '">' . esc_html__( 'Install now.', 'ewww-image-optimizer' ) . '</a></p></div>';
 }
 
 /**
