@@ -451,7 +451,7 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 		if ( ! is_null( $image_path ) && $image_path ) {
 			$extension = strtolower( pathinfo( $image_path, PATHINFO_EXTENSION ) );
 		}
-		if ( $extension && 'gif' === $extension ) {
+		if ( $extension && 'gif' === $extension && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_force_gif2webp' ) ) {
 			return false;
 		}
 		if ( $extension && 'svg' === $extension ) {

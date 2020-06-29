@@ -426,13 +426,21 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	function test_optimize_gif_10_api() {
 		update_option( 'ewww_image_optimizer_gif_level', 10 );
 		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_option( 'ewww_image_optimizer_webp', true );
 		update_site_option( 'ewww_image_optimizer_gif_level', 10 );
 		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_site_option( 'ewww_image_optimizer_webp', true );
 		$results = $this->optimize_gif();
+		update_option( 'ewww_image_optimizer_webp', '' );
+		update_site_option( 'ewww_image_optimizer_webp', '' );
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		$this->assertEquals( 8900, filesize( $results[0] ) );
 		unlink( $results[0] );
+		$this->assertEquals( 8014, filesize( $results[0] . '.webp' ) );
+		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
+			unlink( $results[0] . '.webp' );
+		}
 	}
 
 	/**
