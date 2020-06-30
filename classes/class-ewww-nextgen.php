@@ -346,7 +346,10 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 */
 		function ewww_ngg_manual_actions_script( $hook ) {
 			$screen = get_current_screen();
-			if ( is_null( $screen ) || 'nggallery-manage-images' !== $screen->id ) {
+			if ( is_null( $screen ) ) {
+				return;
+			}
+			if ( 'nextgen-gallery_page_nggallery-manage-gallery' !== $screen->id && 'nggallery-manage-images' !== $screen->id ) {
 				return;
 			}
 			if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {

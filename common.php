@@ -2648,7 +2648,7 @@ function ewww_image_optimizer_settings_link( $links ) {
 	}
 	// Load the html for the settings link.
 	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
-		$settings_link = '<a href="' . network_admin_url( 'network/settings.php?page=ewww-image-optimizer-options' ) . '">' . esc_html__( 'Settings', 'ewww-image-optimizer' ) . '</a>';
+		$settings_link = '<a href="' . network_admin_url( 'settings.php?page=ewww-image-optimizer-options' ) . '">' . esc_html__( 'Settings', 'ewww-image-optimizer' ) . '</a>';
 	} else {
 		$settings_link = '<a href="' . admin_url( 'options-general.php?page=ewww-image-optimizer-options' ) . '">' . esc_html__( 'Settings', 'ewww-image-optimizer' ) . '</a>';
 	}

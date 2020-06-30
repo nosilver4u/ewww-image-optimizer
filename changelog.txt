@@ -4,6 +4,8 @@
 * changed: disable Lazy Load auto-scale by defining EIO_LL_AUTOSCALE as false
 * fixed: async functions use of wp_die causes empty errors when wp_cron is run from WP-CLI
 * fixed: big image size filter throws error when other plugins run the filter with fewer than 3 parameters
+* fixed: styling broken for optimization info on Nextgen gallery pages
+* fixed: broken link for network admin settings from single-site plugins page
 
 = 5.4.1 =
 * fixed: Bulk Optimizer sticks on stage 2 when there are no images to optimize
