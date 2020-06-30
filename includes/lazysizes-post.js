@@ -1,13 +1,19 @@
 lazysizesWebP('alpha', lazySizes.init);
 function shouldAutoScale(target){
+	if (eio_lazy_vars.skip_autoscale == 1) {
+		console.log('autoscale disabled globally');
+		return false;
+	}
 	if (target.hasAttributes()) {
 		var attrs = target.attributes
 		var regNoScale = /skip-autoscale/;
 		for (var i = attrs.length - 1; i >= 0; i--) {
 			if (regNoScale.test(attrs[i].name)) {
+				console.log('autoscale disabled by attr');
 				return false;
 			}
 			if (regNoScale.test(attrs[i].value)) {
+				console.log('autoscale disabled by attr value');
 				return false;
 			}
 		}
@@ -135,8 +141,10 @@ document.addEventListener('lazybeforeunveil', function(e){
 				if (!shouldAutoScale(target)||!shouldAutoScale(target.parentNode)){
 					var newSrc = false;
 				} else if ( window.lazySizes.hC(target,'et_pb_jt_filterable_grid_item_image')) {
+					console.log('et filterable grid, using crop');
 					var newSrc = constrainSrc(src,targetWidth,targetHeight,'img-crop');
 				} else {
+					console.log('plain old img, constraining');
 					var newSrc = constrainSrc(src,targetWidth,targetHeight,'img');
 				}
 				if (newSrc && src != newSrc){

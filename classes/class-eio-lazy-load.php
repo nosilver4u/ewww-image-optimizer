@@ -795,6 +795,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				'eio_lazy_vars',
 				array(
 					'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
+					'skip_autoscale' => ( defined( 'EIO_LL_AUTOSCALE' ) ? 1 : 0 ),
 				)
 			);
 		}
@@ -817,6 +818,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				'eio_lazy_vars',
 				array(
 					'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
+					'skip_autoscale' => ( defined( 'EIO_LL_AUTOSCALE' ) ? 1 : 0 ),
 				)
 			);
 		}

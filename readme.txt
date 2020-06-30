@@ -174,7 +174,9 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 5.4.2 =
+* added: GIF to WebP conversion with API and Easy IO
 * changed: plugin removed from disallowed list on WP Engine!
+* changed: disable Lazy Load auto-scale by defining EIO_LL_AUTOSCALE as false
 * fixed: async functions use of wp_die causes empty errors when wp_cron is run from WP-CLI
 * fixed: big image size filter throws error when other plugins run the filter with fewer than 3 parameters
 
