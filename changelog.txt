@@ -1,3 +1,10 @@
+= 5.5.0 =
+* added: GIF to WebP conversion with API and Easy IO
+* changed: plugin removed from disallowed list on WP Engine!
+* changed: disable Lazy Load auto-scale by defining EIO_LL_AUTOSCALE as false
+* fixed: async functions use of wp_die causes empty errors when wp_cron is run from WP-CLI
+* fixed: big image size filter throws error when other plugins run the filter with fewer than 3 parameters
+
 = 5.4.1 =
 * fixed: Bulk Optimizer sticks on stage 2 when there are no images to optimize
 * fixed: transparency in PNG images with color type 0 or 2 not detected

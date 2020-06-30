@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '541.25' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '550' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -633,7 +633,7 @@ function ewww_image_optimizer_upgrade() {
 		if ( get_option( 'ewww_image_optimizer_version' ) < 530 ) {
 			ewww_image_optimizer_migrate_option_queue_to_table();
 		}
-		if ( get_option( 'ewww_image_optimizer_version' ) < 541.1 && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
+		if ( get_option( 'ewww_image_optimizer_version' ) < 550 && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
 			ewww_image_optimizer_set_option( 'ewww_image_optimizer_force_gif2webp', false );
 		} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_force_gif2webp' ) ) {
 			ewww_image_optimizer_set_option( 'ewww_image_optimizer_force_gif2webp', true );
