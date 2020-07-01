@@ -539,6 +539,7 @@ function ewww_image_optimizer_init() {
 		}
 	}
 	if ( ewww_image_optimizer_iterable( $active_plugins ) ) {
+		ewwwio_debug_message( 'checking active plugins' );
 		foreach ( $active_plugins as $active_plugin ) {
 			if ( strpos( $active_plugin, '/nggallery.php' ) || strpos( $active_plugin, '\nggallery.php' ) ) {
 				$ngg = ewww_image_optimizer_get_plugin_version( trailingslashit( WP_PLUGIN_DIR ) . $active_plugin );
@@ -563,6 +564,7 @@ function ewww_image_optimizer_init() {
 				// Include the file that loads the grand flagallery optimization functions.
 				require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-flag.php' );
 			}
+			ewwwio_debug_message( $active_plugin );
 		}
 	}
 	if ( defined( 'DOING_WPLR_REQUEST' ) && DOING_WPLR_REQUEST && ! defined( 'EWWWIO_WPLR_AUTO' ) ) {
@@ -10722,9 +10724,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					</th>
 					<td>
 						<input type='checkbox' id='ewww_image_optimizer_webp' name='ewww_image_optimizer_webp' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ); ?> />
-						<span><?php esc_html_e( 'JPG to WebP conversion is lossy, but quality loss is minimal. PNG/GIF to WebP conversion is lossless.', 'ewww-image-optimizer' ); ?></span>
+						<span><?php esc_html_e( 'Convert your images to the next generation format for supported browsers, while retaining originals for other browsers.', 'ewww-image-optimizer' ); ?></span>
 						<p class='description'>
-							<?php esc_html_e( 'Originals are never deleted, and WebP images should only be served to supported browsers.', 'ewww-image-optimizer' ); ?>
+							<?php echo ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? '' : esc_html__( 'GIF to WebP conversion requires an active API key.', 'ewww-image-optimizer' ) ); ?>
 							<a href='#ewww-webp-rewrite'><?php echo esc_html( $rewrite_notice ); ?></a>
 						</p>
 					</td>

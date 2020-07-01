@@ -433,7 +433,9 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 */
 		function url_to_path_exists( $url, $extension = '' ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-			if ( 0 === strpos( $url, $this->relative_home_url ) ) {
+			if ( 0 === strpos( $url, WP_CONTENT_URL ) ) {
+				$path = str_replace( WP_CONTENT_URL, WP_CONTENT_DIR, $url );
+			} elseif ( 0 === strpos( $url, $this->relative_home_url ) ) {
 				$path = str_replace( $this->relative_home_url, ABSPATH, $url );
 			} elseif ( 0 === strpos( $url, $this->home_url ) ) {
 				$path = str_replace( $this->home_url, ABSPATH, $url );
@@ -445,10 +447,6 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			if ( $this->is_file( $path_parts[0] . $extension ) ) {
 				$this->debug_message( 'local file found' );
 				return $path_parts[0];
-			}
-			if ( $this->is_file( $path . $extension ) ) {
-				$this->debug_message( 'local file found' );
-				return $path;
 			}
 			return false;
 		}
