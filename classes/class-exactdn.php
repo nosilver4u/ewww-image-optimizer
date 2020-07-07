@@ -1907,12 +1907,16 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$constrained_size = wp_constrain_dimensions( $fullwidth, $fullheight, $reqwidth );
 				$expected_size    = array( $reqwidth, $reqheight );
 
-				$this->debug_message( $constrained_size[0] );
-				$this->debug_message( $constrained_size[1] );
+				$this->debug_message( 'constrained w: ' . $constrained_size[0] );
+				$this->debug_message( 'constrained h: ' . $constrained_size[1] );
 				if ( abs( $constrained_size[0] - $expected_size[0] ) <= 1 && abs( $constrained_size[1] - $expected_size[1] ) <= 1 ) {
 					$this->debug_message( 'soft cropping' );
 					$crop = 'soft';
 					$base = $this->get_content_width(); // Provide a default width if none set by the theme.
+				} elseif ( (int) $expected_size[0] === (int) $fullwidth || (int) $expected_size[1] === (int) $fullheight ) {
+					$this->debug_message( 'soft cropping (indeterminate width/height)' );
+					$crop = 'soft';
+					$base = $reqwidth;
 				} else {
 					$this->debug_message( 'hard cropping' );
 					$crop = 'hard';

@@ -9257,6 +9257,8 @@ function ewwwio_is_cf_host() {
 function ewwwio_debug_info() {
 	global $ewwwio_upgrading;
 	global $content_width;
+	$constrained_size = wp_constrain_dimensions( 1280, 960, 500 );
+	ewwwio_debug_message( 'constrained: ' . print_r( $constrained_size, true ) );
 	ewwwio_debug_version_info();
 	ewwwio_debug_message( 'ABSPATH: ' . ABSPATH );
 	ewwwio_debug_message( 'WP_CONTENT_DIR: ' . WP_CONTENT_DIR );
@@ -11280,7 +11282,7 @@ function ewww_image_optimizer_admin_bar_menu() {
  * @param string $message Debug information to add to the log.
  */
 function ewwwio_debug_message( $message ) {
-	if ( ! is_string( $message ) ) {
+	if ( ! is_string( $message ) && ! is_int( $message ) && ! is_float( $message ) ) {
 		return;
 	}
 	if ( defined( 'WP_CLI' ) && WP_CLI ) {

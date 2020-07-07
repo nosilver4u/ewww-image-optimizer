@@ -154,7 +154,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 * @param string $message Debug information to add to the log.
 		 */
 		function debug_message( $message ) {
-			if ( ! is_string( $message ) ) {
+			if ( ! is_string( $message ) && ! is_int( $message ) && ! is_float( $message ) ) {
 				return;
 			}
 			if ( defined( 'WP_CLI' ) && WP_CLI ) {
