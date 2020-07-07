@@ -49,7 +49,7 @@ function ewww_image_optimizer_exec_init() {
 	if ( EWWW_IMAGE_OPTIMIZER_CLOUD ) {
 		ewwwio_debug_message( 'cloud options enabled, shutting off binaries' );
 		ewww_image_optimizer_disable_tools();
-	} elseif ( defined( 'WPCOMSH_VERSION' ) || ! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) || defined( 'WPE_PLUGIN_VERSION' ) ) {
+	} elseif ( defined( 'WPCOMSH_VERSION' ) || ! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) || defined( 'WPE_PLUGIN_VERSION' ) || defined( 'FLYWHEEL_CONFIG_DIR' ) ) {
 		if (
 			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
 			( ! is_object( $exactdn ) || ! $exactdn->get_exactdn_domain() )
@@ -60,7 +60,7 @@ function ewww_image_optimizer_exec_init() {
 		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
 			define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
 		}
-		ewwwio_debug_message( 'WPE/wp.com/pantheon site, disabling tools' );
+		ewwwio_debug_message( 'WPE/wp.com/pantheon/flywheel site, disabling tools' );
 		ewww_image_optimizer_disable_tools();
 		// Check if this is an unsupported OS (not Linux or Mac OSX or FreeBSD or Windows or SunOS).
 	} elseif ( 'Linux' !== PHP_OS && 'Darwin' !== PHP_OS && 'FreeBSD' !== PHP_OS && 'WINNT' !== PHP_OS && 'SunOS' !== PHP_OS ) {
@@ -160,6 +160,8 @@ function ewww_image_optimizer_notice_hosting_requires_api() {
 		$webhost = 'Pantheon';
 	} elseif ( defined( 'WPE_PLUGIN_VERSION' ) ) {
 		$webhost = 'WP Engine';
+	} elseif ( defined( 'FLYWHEEL_CONFIG_DIR' ) ) {
+		$webhost = 'Flywheel';
 	} else {
 		return;
 	}

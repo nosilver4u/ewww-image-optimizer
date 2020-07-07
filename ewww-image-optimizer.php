@@ -53,12 +53,6 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 50600 ) {
 	require_once( plugin_dir_path( __FILE__ ) . 'classes/class-ewwwio-install-cloud.php' );
 	// Loads the plugin translations.
 	add_action( 'plugins_loaded', 'ewww_image_optimizer_false_init' );
-} elseif ( defined( 'FLYWHEEL_CONFIG_DIR' ) ) {
-	add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_flywheel' );
-	add_action( 'admin_notices', 'ewww_image_optimizer_notice_flywheel' );
-	require_once( plugin_dir_path( __FILE__ ) . 'classes/class-ewwwio-install-cloud.php' );
-	// Loads the plugin translations.
-	add_action( 'plugins_loaded', 'ewww_image_optimizer_false_init' );
 } elseif ( defined( 'WPNET_INIT_PLUGIN_VERSION' ) ) {
 	add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_wpnetnz' );
 	add_action( 'admin_notices', 'ewww_image_optimizer_notice_wpnetnz' );

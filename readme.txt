@@ -175,7 +175,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 
 = 5.5.1 =
 * fixed: JS WebP cannot find local paths when WP_CONTENT_DIR is outside ABSPATH
-* fixed: Easy IO hard crops images when srcset receives a height or width of 9999
+* fixed: Easy IO hard crops images when requested height/width is 9999
 
 = 5.5.0 =
 * added: GIF to WebP conversion with API and Easy IO

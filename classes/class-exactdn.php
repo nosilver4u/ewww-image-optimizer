@@ -1701,8 +1701,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					);
 				} elseif ( is_array( $size ) ) {
 					// Pull width and height values from the provided array, if possible.
-					$width  = isset( $size[0] ) ? (int) $size[0] : false;
-					$height = isset( $size[1] ) ? (int) $size[1] : false;
+					$width  = isset( $size[0] ) && $size[0] < 9999 ? (int) $size[0] : false;
+					$height = isset( $size[1] ) && $size[1] < 9999 ? (int) $size[1] : false;
 
 					// Don't bother if necessary parameters aren't passed.
 					if ( ! $width || ! $height ) {
@@ -1913,10 +1913,6 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					$this->debug_message( 'soft cropping' );
 					$crop = 'soft';
 					$base = $this->get_content_width(); // Provide a default width if none set by the theme.
-				} elseif ( (int) $expected_size[0] === (int) $fullwidth || (int) $expected_size[1] === (int) $fullheight ) {
-					$this->debug_message( 'soft cropping (indeterminate width/height)' );
-					$crop = 'soft';
-					$base = $reqwidth;
 				} else {
 					$this->debug_message( 'hard cropping' );
 					$crop = 'hard';
