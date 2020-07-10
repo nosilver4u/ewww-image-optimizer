@@ -9534,6 +9534,16 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$compress_recommendations = array();
 	$resize_recommendations   = array();
 
+	$free_exec = false;
+	if (
+		defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) && EWWW_IMAGE_OPTIMIZER_NOEXEC &&
+		10 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) &&
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
+		! ewww_image_optimizer_easy_active()
+	) {
+		$free_exec       = true;
+		$compress_score += 5;
+	}
 	$verify_cloud = '';
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_exceeded', 0 );
@@ -9543,12 +9553,12 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) > 20 ) {
 				$compress_score += 50;
 			} else {
-				$compress_recommendations[] = esc_html__( 'Enable premium compression for JPG images.', 'ewww-image-optimizer' );
+				$compress_recommendations[] = __( 'Enable premium compression for JPG images.', 'ewww-image-optimizer' );
 			}
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) > 20 ) {
 				$compress_score += 20;
 			} else {
-				$compress_recommendations[] = esc_html__( 'Enable premium compression for PNG images.', 'ewww-image-optimizer' );
+				$compress_recommendations[] = __( 'Enable premium compression for PNG images.', 'ewww-image-optimizer' );
 			}
 		}
 		$disable_level = false;
@@ -9566,8 +9576,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		update_option( 'ewww_image_optimizer_lazy_load', false );
 		update_option( 'ewww_image_optimizer_webp_for_cdn', false );
 		update_option( 'ewww_image_optimizer_picture_webp', false );
-		$compress_score += 80;
-		$resize_score   += 50;
+		$compress_score = 50;
+		$resize_score  += 50;
+		if ( get_option( 'exactdn_lossy' ) ) {
+			$compress_score = 100;
+		}
 	} elseif (
 		( ! class_exists( 'Jetpack_Photon' ) || ! Jetpack::is_module_active( 'photon' ) ) &&
 		class_exists( 'ExactDN' ) &&
@@ -9581,12 +9594,12 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			if ( ewww_image_optimizer_get_option( 'exactdn_lossy' ) ) {
 				$compress_score = 100;
 			} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) < 30 ) {
-				$compress_recommendations[] = esc_html__( 'Enable premium compression.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/47-getting-more-from-exactdn', '59de6631042863379ddc953c' );
+				$compress_recommendations[] = __( 'Enable premium compression.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/47-getting-more-from-exactdn', '59de6631042863379ddc953c' );
 			}
 			$exactdn_enabled = true;
 		}
 	} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
-		$resize_recommendations[] = esc_html__( 'Enable Easy IO for automatic resizing.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/44-introduction-to-exactdn', '59bc5ad6042863033a1ce370,5c0042892c7d3a31944e88a4' );
+		$resize_recommendations[] = __( 'Enable Easy IO for automatic resizing.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/44-introduction-to-exactdn', '59bc5ad6042863033a1ce370,5c0042892c7d3a31944e88a4' );
 		delete_option( 'ewww_image_optimizer_exactdn_domain' );
 		delete_option( 'ewww_image_optimizer_exactdn_plan_id' );
 		delete_option( 'ewww_image_optimizer_exactdn_failures' );
@@ -9620,13 +9633,13 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	} elseif ( defined( 'IMSANITY_VERSION' ) ) {
 		$resize_score += 30;
 	} else {
-		$resize_recommendations[] = esc_html__( 'Configure maximum image dimensions in Resize settings.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/41-resize-settings', '59849911042863033a1ba5f9' );
+		$resize_recommendations[] = __( 'Configure maximum image dimensions in Resize settings.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/41-resize-settings', '59849911042863033a1ba5f9' );
 	}
 	$jpg_quality = apply_filters( 'jpeg_quality', 82, 'image_resize' );
 	if ( $jpg_quality < 90 && $jpg_quality > 50 ) {
 		$resize_score += 20;
 	} else {
-		$resize_recommendations[] = esc_html__( 'JPG quality level should be between 50 and 90 for optimal resizing.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/11-advanced-configuration', '58542afac697912ffd6c18c0,58543c69c697912ffd6c19a7' );
+		$resize_recommendations[] = __( 'JPG quality level should be between 50 and 90 for optimal resizing.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/11-advanced-configuration', '58542afac697912ffd6c18c0,58543c69c697912ffd6c19a7' );
 	}
 	$skip = ewww_image_optimizer_skip_tools();
 	if ( ! $skip['jpegtran'] && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
@@ -9639,7 +9652,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		if ( ! empty( $jpegtran_installed ) ) {
 			$compress_score += 5;
 		} else {
-			$compress_recommendations[] = esc_html__( 'Install jpegtran.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something', '585371e3c697912ffd6c0ba1' );
+			$compress_recommendations[] = __( 'Install jpegtran.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something', '585371e3c697912ffd6c0ba1' );
 		}
 	}
 	if ( ! $skip['optipng'] && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
@@ -9652,7 +9665,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		if ( ! empty( $optipng_version ) ) {
 			$compress_score += 5;
 		} else {
-			$compress_recommendations[] = esc_html__( 'Install optipng.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something', '585371e3c697912ffd6c0ba1' );
+			$compress_recommendations[] = __( 'Install optipng.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something', '585371e3c697912ffd6c0ba1' );
 		}
 	}
 	if ( ! $skip['pngout'] && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
@@ -9665,7 +9678,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		if ( ! empty( $pngout_version ) ) {
 			$compress_score += 5;
 		} else {
-			$compress_recommendations[] = esc_html__( 'Install pngout', 'ewww-image-optimizer' ) . ': <a href="' . admin_url( 'admin.php?action=ewww_image_optimizer_install_pngout' ) . '">' . esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a> | <a href="https://docs.ewww.io/article/13-installing-pngout" data-beacon-article="5854531bc697912ffd6c1afa">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>';
+			$compress_recommendations[] = __( 'Install pngout', 'ewww-image-optimizer' ) . ': <a href="' . admin_url( 'admin.php?action=ewww_image_optimizer_install_pngout' ) . '">' . esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a> | <a href="https://docs.ewww.io/article/13-installing-pngout" data-beacon-article="5854531bc697912ffd6c1afa">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>';
 		}
 	}
 	if ( ! $skip['pngquant'] && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
@@ -9678,7 +9691,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		if ( ! empty( $pngquant_version ) ) {
 			$compress_score += 5;
 		} else {
-			$compress_recommendations[] = esc_html__( 'Install pngquant.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something', '585371e3c697912ffd6c0ba1' );
+			$compress_recommendations[] = __( 'Install pngquant.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something', '585371e3c697912ffd6c0ba1' );
 		}
 	}
 	if ( ! $skip['gifsicle'] && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
@@ -9691,7 +9704,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		if ( ! empty( $gifsicle_version ) ) {
 			$compress_score += 5;
 		} else {
-			$compress_recommendations[] = esc_html__( 'Install gifsicle.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something', '585371e3c697912ffd6c0ba1' );
+			$compress_recommendations[] = __( 'Install gifsicle.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something', '585371e3c697912ffd6c0ba1' );
 		}
 	}
 	if ( EWWW_IMAGE_OPTIMIZER_CWEBP && ! $skip['webp'] && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
@@ -9704,13 +9717,27 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		if ( ! empty( $webp_version ) ) {
 			$compress_score += 5;
 		} else {
-			$compress_recommendations[] = esc_html__( 'Install webp.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something', '585371e3c697912ffd6c0ba1' );
+			$compress_recommendations[] = __( 'Install webp.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something', '585371e3c697912ffd6c0ba1' );
 		}
 	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
+	if (
+		( $free_exec || ! empty( $jpegtran_installed ) || ewww_image_optimizer_easy_active() || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) &&
+		ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' )
+	) {
 		$compress_score += 5;
-	} else {
-		$compress_recommendations[] = esc_html__( 'Remove metadata from JPG images.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' );
+	} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
+		$compress_recommendations[] = __( 'Remove metadata from JPG images.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' );
+	}
+	if ( ! ewww_image_optimizer_easy_active() && ! $free_exec ) {
+		if ( 0 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
+			$compress_recommendations[] = __( 'Enable JPG compression.', 'ewww-image-optimizer' );
+		}
+		if ( 0 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
+			$compress_recommendations[] = __( 'Enable PNG compression.', 'ewww-image-optimizer' );
+		}
+		if ( 0 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) ) {
+			$compress_recommendations[] = __( 'Enable GIF compression.', 'ewww-image-optimizer' );
+		}
 	}
 
 	// Check that an image library exists for converting resizes. Originals can be done via the API, but resizes are done locally for speed.
@@ -10031,14 +10058,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<?php
 		return;
 	endif;
-	$free_exec = false;
-	if (
-		defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) && EWWW_IMAGE_OPTIMIZER_NOEXEC &&
-		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
-		! $exactdn_enabled && ! get_option( 'easyio_exactdn' )
-	) {
-		$free_exec = true;
-	}
 	?>
 	<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
 				<tr>
