@@ -115,6 +115,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				return 'you are doing it wrong';
 			}
 
+			// Bail out on customizer.
+			if ( is_customize_preview() ) {
+				return;
+			}
 			// Make sure we have an ExactDN domain to use.
 			if ( ! $this->setup() ) {
 				return;
@@ -132,6 +136,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$uri = add_query_arg( null, null );
 			$this->debug_message( "request uri is $uri" );
 
+			if ( '/robots.txt' === $uri ) {
+				return;
+			}
 			/**
 			 * Allow pre-empting the parsers by page.
 			 *

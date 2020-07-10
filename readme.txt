@@ -174,8 +174,10 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 5.5.1 =
+* added: if exec() is disabled, free cloud-based JPG compression will be enabled
 * fixed: JS WebP cannot find local paths when WP_CONTENT_DIR is outside ABSPATH
 * fixed: Easy IO hard crops images when requested height/width is 9999
+* fixed: Lazy Load and WebP parsers running on customizer preview pane
 
 = 5.5.0 =
 * added: GIF to WebP conversion with API and Easy IO

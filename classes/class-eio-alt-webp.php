@@ -367,6 +367,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			is_embed() ||
 			is_feed() ||
 			is_preview() ||
+			is_customize_preview() ||
 			( defined( 'REST_REQUEST' ) && REST_REQUEST ) ||
 			preg_match( '/^<\?xml/', $buffer ) ||
 			strpos( $buffer, 'amp-boilerplate' ) ||

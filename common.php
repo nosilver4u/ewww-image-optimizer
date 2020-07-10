@@ -564,7 +564,6 @@ function ewww_image_optimizer_init() {
 				// Include the file that loads the grand flagallery optimization functions.
 				require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-flag.php' );
 			}
-			ewwwio_debug_message( $active_plugin );
 		}
 	}
 	if ( defined( 'DOING_WPLR_REQUEST' ) && DOING_WPLR_REQUEST && ! defined( 'EWWWIO_WPLR_AUTO' ) ) {
@@ -4145,15 +4144,15 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		ewww_image_optimizer_debug_log();
 	}
 	$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
-	$started     = microtime( true );
 	if ( preg_match( '/exceeded/', $ewww_status ) ) {
+		$started = microtime( true );
 		if ( ! ewww_image_optimizer_cloud_verify() ) {
 			return array( $file, false, 'key verification failed', 0, '' );
 		}
+		// Calculate how much time has elapsed since we started.
+		$elapsed = microtime( true ) - $started;
+		ewwwio_debug_message( "cloud verify took $elapsed seconds" );
 	}
-	// Calculate how much time has elapsed since we started.
-	$elapsed = microtime( true ) - $started;
-	ewwwio_debug_message( "cloud verify took $elapsed seconds" );
 	$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
 	if ( ( ! empty( $ewww_status ) && preg_match( '/exceeded/', $ewww_status ) ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
 		ewwwio_debug_message( 'license exceeded, image not processed' );
@@ -4250,9 +4249,10 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	ewwwio_debug_message( "webp: $webp" );
 	ewwwio_debug_message( "jpg fill: $jpg_fill" );
 	ewwwio_debug_message( "jpg quality: $jpg_quality" );
-	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
-	if ( empty( $api_key ) ) {
-			return array( $file, false, 'key verification failed', 0, '' );
+	$free_exec = EWWW_IMAGE_OPTIMIZER_NOEXEC && 'image/jpeg' === $type;
+	$api_key   = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
+	if ( empty( $api_key ) && ! $free_exec ) {
+		return array( $file, false, 'key verification failed', 0, '' );
 	}
 	$url = 'http://optimize.exactlywww.com/v2/';
 	$ssl = wp_http_supports( array( 'ssl' ) );
@@ -6016,7 +6016,7 @@ function ewww_image_optimizer_autoconvert( $file ) {
 		ewwwio_debug_message( 'not a large PNG, skipping' );
 		return;
 	}
-	if ( ewww_image_optimizer_png_alpha( $file ) && ! ewww_image_optimizer_jpg_background() ) {
+	if ( ewww_image_optimizer_png_alpha( $file ) && ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' ) || ! ewww_image_optimizer_jpg_background() ) ) {
 		ewwwio_debug_message( 'alpha detected, skipping' );
 		return;
 	}
@@ -7954,11 +7954,17 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 				break;
 			case 'image/png':
 				// If pngout and optipng are missing and should not be skipped.
-				if ( ! $skip['optipng'] && ! $skip['pngout'] && ! EWWW_IMAGE_OPTIMIZER_PNGOUT && ! EWWW_IMAGE_OPTIMIZER_OPTIPNG ) {
+				if ( ( ! $skip['optipng'] && ! EWWW_IMAGE_OPTIMIZER_OPTIPNG ) || ( ! $skip['pngout'] && ! EWWW_IMAGE_OPTIMIZER_PNGOUT ) ) {
 					$msg = '<div>' . sprintf(
 						/* translators: %s: name of a tool like jpegtran */
 						__( '%s is missing', 'ewww-image-optimizer' ),
 						'<em>optipng</em>'
+					) . '</div>';
+				} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
+					$msg = '<div>' . sprintf(
+						/* translators: %s: JPG, PNG, GIF, or PDF */
+						__( '%s compression disabled', 'ewww-image-optimizer' ),
+						'PNG'
 					) . '</div>';
 				} else {
 					$convert_link = __( 'PNG to JPG', 'ewww-image-optimizer' );
@@ -7972,6 +7978,12 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 						/* translators: %s: name of a tool like jpegtran */
 						__( '%s is missing', 'ewww-image-optimizer' ),
 						'<em>gifsicle</em>'
+					) . '</div>';
+				} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) ) {
+					$msg = '<div>' . sprintf(
+						/* translators: %s: JPG, PNG, GIF, or PDF */
+						__( '%s compression disabled', 'ewww-image-optimizer' ),
+						'GIF'
 					) . '</div>';
 				} else {
 					$convert_link = __( 'GIF to PNG', 'ewww-image-optimizer' );
@@ -8222,6 +8234,9 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
  */
 function ewww_image_optimizer_restore_possible( $optimized_images, $compression_level ) {
 	if ( empty( $compression_level ) ) {
+		return '';
+	}
+	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 		return '';
 	}
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
@@ -9257,8 +9272,6 @@ function ewwwio_is_cf_host() {
 function ewwwio_debug_info() {
 	global $ewwwio_upgrading;
 	global $content_width;
-	$constrained_size = wp_constrain_dimensions( 1280, 960, 500 );
-	ewwwio_debug_message( 'constrained: ' . print_r( $constrained_size, true ) );
 	ewwwio_debug_version_info();
 	ewwwio_debug_message( 'ABSPATH: ' . ABSPATH );
 	ewwwio_debug_message( 'WP_CONTENT_DIR: ' . WP_CONTENT_DIR );

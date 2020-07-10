@@ -169,6 +169,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				is_embed() ||
 				is_feed() ||
 				is_preview() ||
+				is_customize_preview() ||
 				( defined( 'REST_REQUEST' ) && REST_REQUEST ) ||
 				wp_script_is( 'twentytwenty-twentytwenty', 'enqueued' ) ||
 				preg_match( '/^<\?xml/', $buffer ) ||

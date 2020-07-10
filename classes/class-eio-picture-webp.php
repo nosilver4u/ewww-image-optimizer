@@ -179,8 +179,10 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 			strpos( $uri, 'et_fb=' ) !== false ||
 			strpos( $uri, 'tatsu=' ) !== false ||
 			( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === sanitize_text_field( wp_unslash( $_POST['action'] ) ) ) || // phpcs:ignore WordPress.Security.NonceVerification
+			is_embed() ||
 			is_feed() ||
 			is_preview() ||
+			is_customize_preview() ||
 			( defined( 'REST_REQUEST' ) && REST_REQUEST ) ||
 			preg_match( '/^<\?xml/', $buffer ) ||
 			strpos( $buffer, 'amp-boilerplate' ) ||

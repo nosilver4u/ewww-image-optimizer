@@ -773,7 +773,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 					}
 					break;
 				case 'image/png':
-					if ( ! EWWW_IMAGE_OPTIMIZER_PNGOUT && ! EWWW_IMAGE_OPTIMIZER_OPTIPNG && ! $skip['optipng'] && ! $skip['pngout'] ) {
+					if ( ( ! $skip['optipng'] && ! EWWW_IMAGE_OPTIMIZER_OPTIPNG ) || ( ! $skip['pngout'] && ! EWWW_IMAGE_OPTIMIZER_PNGOUT ) ) {
 						/* translators: %s: name of a tool like jpegtran */
 						echo '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>optipng/pngout</em>' ) . '</div></div>';
 						return;
