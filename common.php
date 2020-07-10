@@ -10031,6 +10031,14 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<?php
 		return;
 	endif;
+	$free_exec = false;
+	if (
+		defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) && EWWW_IMAGE_OPTIMIZER_NOEXEC &&
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
+		! $exactdn_enabled && ! get_option( 'easyio_exactdn' )
+	) {
+		$free_exec = true;
+	}
 	?>
 	<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
 				<tr>
@@ -10110,14 +10118,14 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 								<?php esc_html_e( 'No Compression', 'ewww-image-optimizer' ); ?>
 							</option>
 	<?php if ( defined( 'EWWW_IMAGE_OPTIMIZER_TOOL_PATH' ) ) : ?>
-							<option value='10' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ), 10 ); ?>>
+							<option <?php disabled( $free_exec ); ?> value='10' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ), 10 ); ?>>
 								<?php esc_html_e( 'Pixel Perfect', 'ewww-image-optimizer' ); ?>
 							</option>
 	<?php endif; ?>
 							<option <?php disabled( $disable_level ); ?> value='20' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ), 20 ); ?><?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ), 30 ); ?>>
 								<?php esc_html_e( 'Pixel Perfect Plus', 'ewww-image-optimizer' ); ?> *
 							</option>
-							<option value='40' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ), 40 ); ?>>
+							<option <?php disabled( $free_exec ); ?> value='40' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ), 40 ); ?>>
 								<?php esc_html_e( 'Premium', 'ewww-image-optimizer' ) . ' ' . $maybe_api_level; ?>
 							</option>
 							<option <?php disabled( $disable_level ); ?> value='50' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ), 50 ); ?>>
@@ -10136,7 +10144,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<option value='0' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ), 0 ); ?>>
 								<?php esc_html_e( 'No Compression', 'ewww-image-optimizer' ); ?>
 							</option>
-							<option value='10' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ), 10 ); ?>>
+							<option <?php disabled( $free_exec ); ?> value='10' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ), 10 ); ?>>
 								<?php esc_html_e( 'Pixel Perfect', 'ewww-image-optimizer' ) . ' ' . $maybe_api_level; ?>
 							</option>
 						</select>
@@ -10724,14 +10732,21 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 
 		<div id='ewww-webp-settings'>
 			<noscript><h2><?php esc_html_e( 'WebP', 'ewww-image-optimizer' ); ?></h2></noscript>
-	<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && ! ewww_image_optimizer_easy_active() ) : ?>
+	<?php if ( ! $free_exec && ! ewww_image_optimizer_easy_active() ) : ?>
 			<p>
 				<?php esc_html_e( 'Once WebP conversion is enabled, WebP images will be generated for new uploads, but you will need to use the Bulk Optimizer for existing uploads.', 'ewww-image-optimizer' ); ?><br>
 				<a href='https://ewww.io/easy/'><?php esc_html_e( 'Get Easy IO for automatic WebP conversion and delivery.', 'ewww-image-optimizer' ); ?></a>
 			</p>
 	<?php endif; ?>
 			<table class='form-table'>
-	<?php if ( ! ewww_image_optimizer_easy_active() || ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) : ?>
+	<?php if ( $free_exec ) : ?>
+				<tr>
+					<th>&nbsp;</th>
+					<td>
+						<p class='description'><?php esc_html_e( 'WebP conversion requires an API key or Easy IO subscription.', 'ewww-image-optimizer' ); ?></p>
+					</td>
+				</tr>
+	<?php elseif ( ! ewww_image_optimizer_easy_active() || ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) : ?>
 				<tr>
 					<th scope='row'>
 						<label for='ewww_image_optimizer_webp'><?php esc_html_e( 'WebP Conversion', 'ewww-image-optimizer' ); ?></label>
@@ -10748,7 +10763,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				</tr>
 	<?php endif; ?>
 
-	<?php if ( ! ewww_image_optimizer_ce_webp_enabled() && ! ewww_image_optimizer_easy_active() ) : ?>
+	<?php if ( ! $free_exec && ( ! ewww_image_optimizer_ce_webp_enabled() && ! ewww_image_optimizer_easy_active() ) ) : ?>
 				<tr>
 					<th scope='row'>
 						<label for='ewww_image_optimizer_webp_for_cdn'><?php esc_html_e( 'JS WebP Rewriting', 'ewww-image-optimizer' ); ?></label>
@@ -10807,7 +10822,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				</tr>
 	<?php endif; ?>
 
-	<?php if ( ! ewww_image_optimizer_easy_active() || ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) : ?>
+	<?php if ( ! $free_exec && ( ! ewww_image_optimizer_easy_active() || ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) ) : ?>
 				<tr>
 					<th scope='row'>
 						<label for='ewww_image_optimizer_webp_force'><?php esc_html_e( 'Force WebP', 'ewww-image-optimizer' ); ?></label>
