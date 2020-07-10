@@ -9636,7 +9636,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$resize_recommendations[] = __( 'Configure maximum image dimensions in Resize settings.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/41-resize-settings', '59849911042863033a1ba5f9' );
 	}
 	$jpg_quality = apply_filters( 'jpeg_quality', 82, 'image_resize' );
-	if ( $jpg_quality < 90 && $jpg_quality > 50 ) {
+	if ( $jpg_quality < 91 && $jpg_quality > 49 ) {
 		$resize_score += 20;
 	} else {
 		$resize_recommendations[] = __( 'JPG quality level should be between 50 and 90 for optimal resizing.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/11-advanced-configuration', '58542afac697912ffd6c18c0,58543c69c697912ffd6c19a7' );
