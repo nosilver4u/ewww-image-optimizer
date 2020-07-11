@@ -253,6 +253,61 @@ jQuery(document).ready(function($) {
 		}
 		return false;
 	});
+	var ewww_total_converted = 0;
+	$('#ewww-clean-converted').submit(function() {
+		var ewww_converted_data = {
+			action: 'bulk_aux_images_count_converted',
+			ewww_wpnonce: ewww_vars._wpnonce,
+		};
+		$.post(ajaxurl, ewww_converted_data, function(response) {
+			try {
+				var ewww_response = $.parseJSON(response);
+			} catch (err) {
+				$('#ewww-clean-converted-progress').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
+				console.log( response );
+				return false;
+			}
+			ewww_total_converted = ewww_response.total_converted;
+			$('.ewww-tool-info').hide();
+			$('.ewww-tool-form').hide();
+			$('.ewww-tool-divider').hide();
+			$('#ewww-clean-converted-progressbar').progressbar({ max: ewww_total_converted });
+			$('#ewww-clean-converted-progress').html('<p> 0/' + ewww_total_converted + '</p>');
+			$('#ewww-clean-converted-progressbar').show();
+			$('#ewww-clean-converted-progress').show();
+			ewwwRemoveOriginals(0);
+		});
+		return false;
+	});
+	function ewwwRemoveOriginals(converted_offset){
+		var ewww_converted_data = {
+			action: 'bulk_aux_images_converted_clean',
+			ewww_wpnonce: ewww_vars._wpnonce,
+		};
+		$.post(ajaxurl, ewww_converted_data, function(response) {
+			try {
+				var ewww_response = $.parseJSON(response);
+			} catch (err) {
+				$('#ewww-clean-converted-progressbar').hide();
+				$('#ewww-clean-converted-progress').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
+				console.log( response );
+				return false;
+			}
+			if ( ewww_response.error ) {
+				$('#ewww-clean-converted-progressbar').hide();
+				$('#ewww-clean-converted-progress').html('<span style="color: red"><b>' + ewww_response.error + '</b></span>');
+				return false;
+			}
+			if(ewww_response.finished) {
+				$('#ewww-clean-converted-progress').html(ewww_vars.finished);
+				return false;
+			}
+			converted_offset += ewww_response.completed;
+			$('#ewww-clean-converted-progressbar').progressbar("option", "value", converted_offset);
+			$('#ewww-clean-converted-progress').html('<p>' + converted_offset + '/' + ewww_total_converted + '</p>');
+			ewwwRemoveOriginals(converted_offset);
+		});
+	}
 	$('#ewww-clean-table').submit(function() {
 		ewww_total_pages = Math.ceil(ewww_vars.image_count / 500);
 		$('.ewww-tool-info').hide();

@@ -356,6 +356,80 @@ function ewww_image_optimizer_aux_images_clear_all() {
 }
 
 /**
+ * Find the number of converted images in the ewwwio_images table.
+ *
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_aux_images_count_converted() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	// Verify that an authorized user has called function.
+	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
+	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-tools' ) || ! current_user_can( $permissions ) ) {
+		ewwwio_ob_clean();
+		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
+	}
+	ewwwio_ob_clean();
+	global $wpdb;
+	$count = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->ewwwio_images WHERE converted != ''" );
+	die( wp_json_encode( array( 'total_converted' => $count ) ) );
+}
+
+/**
+ * Cleanup originals of converted images using records from the ewwwio_images table.
+ *
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_aux_images_converted_clean() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	// Verify that an authorized user has called function.
+	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
+	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-tools' ) || ! current_user_can( $permissions ) ) {
+		ewwwio_ob_clean();
+		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
+	}
+	global $wpdb;
+	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+		ewww_image_optimizer_db_init();
+		global $ewwwdb;
+	} else {
+		$ewwwdb = $wpdb;
+	}
+	$completed = 0;
+	$per_page  = 50;
+
+	$converted_images = $wpdb->get_results( $wpdb->prepare( "SELECT path,converted,id FROM $wpdb->ewwwio_images WHERE converted != '' ORDER BY id DESC LIMIT %d", $per_page ), ARRAY_A );
+
+	if ( empty( $converted_images ) || ! is_countable( $converted_images ) || 0 === count( $converted_images ) ) {
+		die( wp_json_encode( array( 'finished' => 1 ) ) );
+	}
+
+	// Because some plugins might have loose filters (looking at your WPML).
+	remove_all_filters( 'wp_delete_file' );
+
+	foreach ( $converted_images as $optimized_image ) {
+		$completed++;
+		$file = ewww_image_optimizer_absolutize_path( $optimized_image['converted'] );
+		ewwwio_debug_message( "$file was converted, checking if it still exists" );
+		if ( ! ewww_image_optimizer_stream_wrapped( $file ) && ewwwio_is_file( $file ) ) {
+			ewwwio_debug_message( "removing original: $file" );
+			if ( ewwwio_delete_file( $file ) ) {
+				ewwwio_debug_message( "removed $file" );
+			}
+		}
+		$wpdb->update(
+			$wpdb->ewwwio_images,
+			array(
+				'converted' => '',
+			),
+			array(
+				'id' => $optimized_image['id'],
+			)
+		);
+	} // End foreach().
+	die( wp_json_encode( array( 'completed' => $completed ) ) );
+}
+
+/**
  * Cleanup duplicate and unreferenced records from the images table.
  *
  * Called via AJAX to find records from the images table and checks them for duplicates and
@@ -366,7 +440,7 @@ function ewww_image_optimizer_aux_images_clear_all() {
 function ewww_image_optimizer_aux_images_clean() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that an authorized user has called function.
-	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
+	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
 	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-tools' ) || ! current_user_can( $permissions ) ) {
 		ewwwio_ob_clean();
 		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
@@ -383,8 +457,6 @@ function ewww_image_optimizer_aux_images_clean() {
 
 	$already_optimized = $wpdb->get_results( $wpdb->prepare( "SELECT path,orig_size,image_size,id,backup,updated FROM $wpdb->ewwwio_images WHERE pending=0 AND image_size > 0 ORDER BY id DESC LIMIT %d,%d", $offset, $per_page ), ARRAY_A );
 
-	$upload_info = wp_get_upload_dir();
-	$upload_path = $upload_info['basedir'];
 	foreach ( $already_optimized as $optimized_image ) {
 		$file = ewww_image_optimizer_absolutize_path( $optimized_image['path'] );
 		ewwwio_debug_message( "checking $file for duplicates and dereferences" );
@@ -1221,6 +1293,8 @@ function ewww_image_optimizer_aux_images_cleanup( $auto = false ) {
 add_action( 'wp_ajax_bulk_aux_images_table', 'ewww_image_optimizer_aux_images_table' );
 add_action( 'wp_ajax_bulk_aux_images_table_count', 'ewww_image_optimizer_aux_images_table_count' );
 add_action( 'wp_ajax_bulk_aux_images_table_clear', 'ewww_image_optimizer_aux_images_clear_all' );
+add_action( 'wp_ajax_bulk_aux_images_count_converted', 'ewww_image_optimizer_aux_images_count_converted' );
+add_action( 'wp_ajax_bulk_aux_images_converted_clean', 'ewww_image_optimizer_aux_images_converted_clean' );
 add_action( 'wp_ajax_bulk_aux_images_table_clean', 'ewww_image_optimizer_aux_images_clean' );
 add_action( 'wp_ajax_bulk_aux_images_meta_clean', 'ewww_image_optimizer_aux_meta_clean' );
 add_action( 'wp_ajax_bulk_aux_images_remove', 'ewww_image_optimizer_aux_images_remove' );

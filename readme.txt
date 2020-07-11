@@ -175,6 +175,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 
 = 5.5.1 =
 * added: if exec() is disabled, free cloud-based JPG compression will be enabled
+* added: tool to remove originals for converted images
 * changed: improved handling of WPML replicas in media library list mode and bulk optimizer
 * fixed: JS WebP cannot find local paths when WP_CONTENT_DIR is outside ABSPATH
 * fixed: Easy IO hard crops images when requested height/width is 9999

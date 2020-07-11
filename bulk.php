@@ -89,6 +89,17 @@ function ewww_image_optimizer_display_tools() {
 	echo "<form id='ewww-clear-table' class='ewww-tool-form' method='post' action=''>\n" .
 		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Erase Optimization History', 'ewww-image-optimizer' ) . "' />\n" .
 		"</form>\n</div>\n";
+
+	echo '<hr class="ewww-tool-divider">';
+	echo "<div>\n<p id='ewww-clean-converted-info' class='ewww-tool-info'>" .
+		esc_html__( 'If you have converted images (PNG to JPG and friends) without deleting the originals, you may remove them when ready.', 'ewww-image-optimizer' ) . "<br>\n" .
+		'<i>' . esc_html__( 'Please perform a site backup before proceeding.', 'ewww-image-optimizer' ) . "</i></p>\n";
+	echo "<form id='ewww-clean-converted' class='ewww-tool-form' method='post' action=''>\n" .
+		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Remove Converted Originals', 'ewww-image-optimizer' ) . "' />\n" .
+		"</form>\n</div>\n";
+	echo "<div id='ewww-clean-converted-progressbar' style='display:none;'></div>";
+	echo "<div id='ewww-clean-converted-progress' style='display:none;'></div>";
+
 	$as3cf_remove = false;
 	if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
 		global $as3cf;
@@ -107,6 +118,7 @@ function ewww_image_optimizer_display_tools() {
 		echo "<div id='ewww-clean-table-progressbar' style='display:none;'></div>";
 		echo "<div id='ewww-clean-table-progress' style='display:none;'></div>";
 	}
+
 	global $wpdb;
 	echo '<hr class="ewww-tool-divider">';
 	echo "<div>\n<p id='ewww-clean-meta-info' class='ewww-tool-info'>" .
