@@ -841,6 +841,8 @@ function ewww_image_optimizer_fetch_metadata_batch( $attachments_in ) {
 			continue;
 		} elseif ( 'tiny_compress_images' === $attachment['meta_key'] ) {
 			$attachment_meta[ $attachment['post_id'] ]['tinypng'] = true;
+		} elseif ( 'wpml_media_processed' === $attachment['meta_key'] ) {
+			$attachment_meta[ $attachment['post_id'] ]['wpml_media_processed'] = (bool) $attachment['meta_value'];
 		}
 		if ( ! empty( $attachment['post_mime_type'] ) && empty( $attachment_meta[ $attachment['post_id'] ]['type'] ) ) {
 			$attachment_meta[ $attachment['post_id'] ]['type'] = $attachment['post_mime_type'];
@@ -1063,6 +1065,11 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			clearstatcache();
 			$pending     = false;
 			$remote_file = false;
+			if ( ! empty( $attachment_meta[ $selected_id ]['wpml_media_processed'] ) ) {
+				ewwwio_debug_message( "skipping WPML replica image $selected_id" );
+				$skipped_ids[] = $selected_id;
+				continue;
+			}
 			if ( in_array( $selected_id, $bad_attachments, true ) ) { // a known broken attachment, which would mean we already tried this once before...
 				ewwwio_debug_message( "skipping bad attachment $selected_id" );
 				$skipped_ids[] = $selected_id;

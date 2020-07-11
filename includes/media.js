@@ -7,6 +7,7 @@ jQuery(document).on('click', '.ewww-manual-optimize', function() {
 		ewww_force: 1,
 		ewww_attachment_ID: post_id,
 	};
+	post_id = jQuery(this).closest('.ewww-media-status').data('id');
 	jQuery('#ewww-media-status-' + post_id ).html( ewww_vars.optimizing );
 	jQuery.post(ajaxurl, ewww_manual_optimize_data, function(response) {
 		var ewww_manual_response = jQuery.parseJSON(response);
@@ -32,6 +33,7 @@ jQuery(document).on('click', '.ewww-manual-convert', function() {
 		ewww_convert: 1,
 		ewww_attachment_ID: post_id,
 	};
+	post_id = jQuery(this).closest('.ewww-media-status').data('id');
 	jQuery('#ewww-media-status-' + post_id ).html( ewww_vars.optimizing );
 	jQuery.post(ajaxurl, ewww_manual_optimize_data, function(response) {
 		var ewww_manual_response = jQuery.parseJSON(response);
@@ -55,6 +57,7 @@ jQuery(document).on('click', '.ewww-manual-restore', function() {
 		ewww_manual_nonce: ewww_nonce,
 		ewww_attachment_ID: post_id,
 	};
+	post_id = jQuery(this).closest('.ewww-media-status').data('id');
 	jQuery('#ewww-media-status-' + post_id ).html( ewww_vars.restoring );
 	jQuery.post(ajaxurl, ewww_manual_optimize_data, function(response) {
 		var ewww_manual_response = jQuery.parseJSON(response);
@@ -78,6 +81,7 @@ jQuery(document).on('click', '.ewww-manual-cloud-restore', function() {
 		ewww_manual_nonce: ewww_nonce,
 		ewww_attachment_ID: post_id,
 	};
+	post_id = jQuery(this).closest('.ewww-media-status').data('id');
 	jQuery('#ewww-media-status-' + post_id ).html( ewww_vars.restoring );
 	jQuery.post(ajaxurl, ewww_manual_optimize_data, function(response) {
 		var ewww_manual_response = jQuery.parseJSON(response);
