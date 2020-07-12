@@ -414,6 +414,9 @@ function ewww_image_optimizer_aux_images_converted_clean() {
 			ewwwio_debug_message( "removing original: $file" );
 			if ( ewwwio_delete_file( $file ) ) {
 				ewwwio_debug_message( "removed $file" );
+			} else {
+				/* translators: %s: file name */
+				die( wp_json_encode( array( 'error' => sprintf( esc_html__( 'Could not delete %s, please remove manually or fix permissions and try again.', 'ewww-image-optimizer' ), esc_html( $file ) ) ) ) );
 			}
 		}
 		$wpdb->update(
