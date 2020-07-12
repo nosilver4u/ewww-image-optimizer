@@ -18,6 +18,14 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 	 */
 	class EWWW_Nextgen {
 		/**
+		 * Stores results for the bulk process.
+		 *
+		 * @access private
+		 * @var array $bulk_sizes
+		 */
+		private $bulk_sizes = array();
+
+		/**
 		 * Initializes the nextgen integration functions.
 		 */
 		public function __construct() {
@@ -114,7 +122,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		function maybe_get_more_sizes( $sizes, $meta ) {
 			if ( 2 === count( $sizes ) && ewww_image_optimizer_iterable( $meta ) ) {
 				foreach ( $meta as $meta_key => $meta_val ) {
-					if ( 'backup' !== $meta_key && is_array( $meta_val ) && isset( $meta_val['width'] ) ) {
+					if ( 'backup' !== $meta_key && is_array( $meta_val ) && isset( $meta_val['width'] ) && ! in_array( $meta_key, $sizes, true ) ) {
 						$sizes[] = $meta_key;
 					}
 				}
@@ -174,6 +182,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				$storage = $registry->get_utility( 'I_Gallery_Storage' );
 			}
 			global $ewww_image;
+			$this->bulk_sizes = array();
 			// Find the image id.
 			if ( is_array( $image ) ) {
 				$image_id = $image['id'];
@@ -204,17 +213,9 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 					// Optimize the image and grab the results.
 					$res = ewww_image_optimizer( $file_path, 2, false, false, $full_size );
 					ewwwio_debug_message( "results {$res[1]}" );
-					// Only if we're dealing with the full-size original.
-					if ( 'full' === $size ) {
-						// Update the metadata for the optimized image.
-						$image->meta_data['ewww_image_optimizer'] = $res[1];
-					} else {
-						$image->meta_data[ $size ]['ewww_image_optimizer'] = $res[1];
-					}
+					$this->bulk_sizes[ $size ] = $res[1];
 				}
 			}
-			ewwwio_debug_message( 'storing results for  image' );
-			nggdb::update_image_meta( $image_id, $image->meta_data );
 			return $image;
 		}
 
@@ -637,6 +638,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 					ewww_image_optimizer_cloud_verify();
 					echo '<a id="ewww-bulk-credits-available" target="_blank" class="page-title-action" style="float:right;" href="https://ewww.io/my-account/">' . esc_html__( 'Image credits available:', 'ewww-image-optimizer' ) . ' ' . esc_html( ewww_image_optimizer_cloud_quota() ) . '</a>';
 				}
+				echo '<div id="ewww-bulk-warning" class="ewww-bulk-info notice notice-warning"><p>' . esc_html__( 'Bulk Optimization will alter your original images and cannot be undone. Please be sure you have a backup of your images before proceeding.', 'ewww-image-optimizer' ) . '</p></div>';
 				// Retrieve the value of the 'bulk resume' option and set the button text for the form to use.
 				$resume = get_option( 'ewww_image_optimizer_bulk_ngg_resume' );
 				if ( empty( $resume ) ) {
@@ -676,26 +678,31 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				</div>
 				</div>
 			</div>
-			<form class="ewww-bulk-form">
-				<p><label for="ewww-force" style="font-weight: bold"><?php esc_html_e( 'Force re-optimize', 'ewww-image-optimizer' ); ?></label>&emsp;<input type="checkbox" id="ewww-force" name="ewww-force"></p>
-				<p><label for="ewww-delay" style="font-weight: bold"><?php esc_html_e( 'Choose how long to pause between images (in seconds, 0 = disabled)', 'ewww-image-optimizer' ); ?></label>&emsp;<input type="text" id="ewww-delay" name="ewww-delay" value="<?php echo (int) $delay; ?>"></p>
-				<div id="ewww-delay-slider" style="width:50%"></div>
+			<form id="ewww-bulk-controls" class="ewww-bulk-form">
+				<p><label for="ewww-force" style="font-weight: bold"><?php esc_html_e( 'Force re-optimize', 'ewww-image-optimizer' ); ?></label><?php ewwwio_help_link( 'https://docs.ewww.io/article/65-force-re-optimization', '5bb640a7042863158cc711cd' ); ?>
+					&emsp;<input type="checkbox" id="ewww-force" name="ewww-force">
+					&nbsp;<?php esc_html_e( 'Previously optimized images will be skipped by default, check this box before scanning to override.', 'ewww-image-optimizer' ); ?>
+					&nbsp;<a href="tools.php?page=ewww-image-optimizer-tools"><?php esc_html_e( 'View optimization history.', 'ewww-image-optimizer' ); ?></a>
+				</p>
+				<p>
+					<label for="ewww-delay" style="font-weight: bold"><?php esc_html_e( 'Pause between images', 'ewww-image-optimizer' ); ?></label>&emsp;<input type="text" id="ewww-delay" name="ewww-delay" value="<?php echo (int) $delay; ?>"> <?php esc_html_e( 'in seconds, 0 = disabled', 'ewww-image-optimmizer' ); ?>
+				</p>
+				<div id="ewww-delay-slider"></div>
 			</form>
 				<div id="ewww-bulk-forms">
-			<p class="ewww-bulk-info"><?php echo esc_html( $selected_images_text ); ?><br />
-			<?php esc_html_e( 'Previously optimized images will be skipped by default.', 'ewww-image-optimizer' ); ?></p>
-				<form id="ewww-bulk-start" class="ewww-bulk-form" method="post" action="">
-						<input type="submit" class="button-primary action" value="<?php echo esc_attr( $button_text ); ?>" />
-				</form>
+			<p class="ewww-bulk-info"><?php echo esc_html( $selected_images_text ); ?></p>
+			<form id="ewww-bulk-start" class="ewww-bulk-form" method="post" action="">
+				<input type="submit" class="button-primary action" value="<?php echo esc_attr( $button_text ); ?>" />
+			</form>
 			<?php
 			// If there is a previous bulk operation to resume, give the user the option to reset the resume flag.
 			if ( ! empty( $resume ) ) {
 				?>
-				<p class="ewww-bulk-info"><?php esc_html_e( 'If you would like to start over again, press the Reset Status button to reset the bulk operation status.', 'ewww-image-optimizer' ); ?></p>
+				<p class="ewww-bulk-info" style="margin-top:3em;"><?php esc_html_e( 'Would like to clear the queue and start over?', 'ewww-image-optimizer' ); ?></p>
 				<form id="ewww-bulk-reset" class="ewww-bulk-form" method="post" action="">
 					<?php wp_nonce_field( 'ewww-image-optimizer-bulk-reset', 'ewww_wpnonce' ); ?>
 					<input type="hidden" name="ewww_reset" value="1">
-					<input type="submit" class="button-secondary action" value="<?php esc_attr_e( 'Reset Status', 'ewww-image-optimizer' ); ?>" />
+					<input type="submit" class="button-secondary action" value="<?php esc_attr_e( 'Clear Queue', 'ewww-image-optimizer' ); ?>" />
 				</form>
 				<?php
 			}
@@ -934,25 +941,23 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			}
 			// Output the results of the optimization.
 			$output['results'] = sprintf( '<p>' . esc_html__( 'Optimized image:', 'ewww-image-optimizer' ) . ' <strong>%s</strong><br>', esc_html( basename( $storage->object->get_image_abspath( $image, 'full' ) ) ) );
-			// Get an array of sizes available for the $image.
-			$sizes = $storage->get_image_sizes( $image );
-			$sizes = $this->maybe_get_more_sizes( $sizes, $image->meta_data );
-			if ( ewww_image_optimizer_iterable( $sizes ) ) {
-				foreach ( $sizes as $size ) {
+			if ( ewww_image_optimizer_iterable( $this->bulk_sizes ) ) {
+				foreach ( $this->bulk_sizes as $size => $results_msg ) {
 					if ( 'backup' === $size ) {
 						continue;
 					} elseif ( 'full' === $size ) {
 						/* Translators: %s: The compression results/savings */
-						$output['results'] .= sprintf( esc_html__( 'Full size - %s', 'ewww-image-optimizer' ) . '<br>', esc_html( $image->meta_data['ewww_image_optimizer'] ) );
+						$output['results'] .= sprintf( esc_html__( 'Full size - %s', 'ewww-image-optimizer' ) . '<br>', esc_html( $results_msg ) );
 					} elseif ( 'thumbnail' === $size ) {
 						// Output the results of the thumb optimization.
 						/* Translators: %s: The compression results/savings */
-						$output['results'] .= sprintf( esc_html__( 'Thumbnail - %s', 'ewww-image-optimizer' ) . '<br>', esc_html( $image->meta_data[ $size ]['ewww_image_optimizer'] ) );
+						$output['results'] .= sprintf( esc_html__( 'Thumbnail - %s', 'ewww-image-optimizer' ) . '<br>', esc_html( $results_msg ) );
 					} else {
 						// Output savings for any other sizes, if they ever exist...
-						$output['results'] .= ucfirst( $size ) . ' - ' . esc_html( $image->meta_data[ $size ]['ewww_image_optimizer'] ) . '<br>';
+						$output['results'] .= ucfirst( $size ) . ' - ' . esc_html( $results_msg ) . '<br>';
 					}
 				}
+				$this->bulk_sizes = array();
 			}
 			// Output how much time we spent.
 			$elapsed = microtime( true ) - $started;
