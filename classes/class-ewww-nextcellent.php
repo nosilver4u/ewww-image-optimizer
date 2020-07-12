@@ -74,7 +74,6 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 * Optimizes a new image from the queue.
 		 *
 		 * @global object $ewww_image Contains more information about the image currently being processed.
-		 * @global object $nggdb
 		 *
 		 * @param int   $id The ID number of the image.
 		 * @param array $meta The image metadata.
@@ -87,9 +86,6 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			$ewww_image->resize = 'full';
 			// Run the optimizer on the current image.
 			$fres = ewww_image_optimizer( $file_path, 2, false, false, true );
-			// Update the metadata for the optimized image.
-			global $nggdb;
-			$nggdb->update_image_meta( $id, array( 'ewww_image_optimizer' => $fres[1] ) );
 		}
 
 		/**
@@ -115,8 +111,6 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				$ewww_image->resize = 'full';
 				// Run the optimizer on the current image.
 				$res = ewww_image_optimizer( ABSPATH . $file_path, 2, false, false, true );
-				// Update the metadata for the optimized image.
-				nggdb::update_image_meta( $image['id'], array( 'ewww_image_optimizer' => $res[1] ) );
 			}
 		}
 
@@ -256,9 +250,6 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			$ewww_image->resize = 'full';
 			// Run the optimizer on the current image.
 			$fres = ewww_image_optimizer( $file_path, 2, false, false, true );
-			// Update the metadata for the optimized image.
-			global $nggdb;
-			$nggdb->update_image_meta( $id, array( 'ewww_image_optimizer' => $fres[1] ) );
 			// Get the filepath of the thumbnail image.
 			$thumb_path         = $meta->image->thumbPath;
 			$ewww_image         = new EWWW_Image( $id, 'nextcell', $thumb_path );
@@ -617,8 +608,6 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			} else {
 				$output['new_nonce'] = '';
 			}
-			// Need this file to work with metadata.
-			require_once( WP_CONTENT_DIR . '/plugins/nextcellent-gallery-nextgen-legacy/lib/meta.php' );
 			// Find out what time we started, in microseconds.
 			$started = microtime( true );
 			// Get the list of attachments remaining from the db.

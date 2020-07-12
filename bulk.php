@@ -454,9 +454,7 @@ function ewww_image_optimizer_reduce_query_count( $max_query ) {
  *     The image count(s) found during the search.
  *
  *     @type int $full_count The number of original uploads found.
- *     @type int $unoptimized_full The number of original uploads that have not been optimized.
  *     @type int $resize_count The number of thumbnails/resizes found.
- *     @type int $unoptimized_re The number of resizes that are not optimized.
  * }
  */
 function ewww_image_optimizer_count_optimized( $gallery ) {
@@ -464,8 +462,6 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 	ewwwio_debug_message( "scanning for $gallery" );
 	global $wpdb;
 	$full_count             = 0;
-	$unoptimized_full       = 0;
-	$unoptimized_re         = 0;
 	$resize_count           = 0;
 	$attachment_query       = '';
 	$started                = microtime( true ); // Retrieve the time when the counting starts.
@@ -510,17 +506,11 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 					if ( ! is_array( $meta ) ) {
 						continue;
 					}
-					if ( empty( $meta['ewww_image_optimizer'] ) ) {
-							$unoptimized_full++;
-					}
 					$ngg_sizes = $ewwwngg->maybe_get_more_sizes( $sizes, $meta );
 					if ( ewww_image_optimizer_iterable( $ngg_sizes ) ) {
 						foreach ( $ngg_sizes as $size ) {
 							if ( 'full' !== $size ) {
 								$resize_count++;
-								if ( empty( $meta[ $size ]['ewww_image_optimizer'] ) ) {
-									$unoptimized_re++;
-								}
 							}
 						}
 					}
@@ -559,20 +549,11 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 					if ( ! is_array( $meta ) ) {
 						continue;
 					}
-					if ( empty( $meta['ewww_image_optimizer'] ) ) {
-						$unoptimized_full++;
-					}
 					if ( ! empty( $meta['webview'] ) ) {
 						$resize_count++;
-						if ( empty( $meta['webview']['ewww_image_optimizer'] ) ) {
-							$unoptimized_re++;
-						}
 					}
 					if ( ! empty( $meta['thumbnail'] ) ) {
 						$resize_count++;
-						if ( empty( $meta['thumbnail']['ewww_image_optimizer'] ) ) {
-							$unoptimized_re++;
-						}
 					}
 				}
 				$full_count += count( $attachments );
@@ -597,9 +578,9 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 	}
 	$elapsed = microtime( true ) - $started;
 	ewwwio_debug_message( "counting images took $elapsed seconds" );
-	ewwwio_debug_message( "found $full_count fullsize ($unoptimized_full unoptimized), and $resize_count resizes ($unoptimized_re unoptimized)" );
+	ewwwio_debug_message( "found $full_count fullsize and $resize_count resizes" );
 	ewwwio_memory( __FUNCTION__ );
-	return array( $full_count, $unoptimized_full, $resize_count, $unoptimized_re );
+	return array( $full_count, $resize_count );
 }
 
 /**
