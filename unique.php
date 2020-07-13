@@ -49,7 +49,13 @@ function ewww_image_optimizer_exec_init() {
 	if ( EWWW_IMAGE_OPTIMIZER_CLOUD ) {
 		ewwwio_debug_message( 'cloud options enabled, shutting off binaries' );
 		ewww_image_optimizer_disable_tools();
-	} elseif ( defined( 'WPCOMSH_VERSION' ) || ! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) || defined( 'WPE_PLUGIN_VERSION' ) || defined( 'FLYWHEEL_CONFIG_DIR' ) ) {
+	} elseif (
+		defined( 'WPCOMSH_VERSION' ) ||
+		! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ||
+		defined( 'WPE_PLUGIN_VERSION' ) ||
+		defined( 'FLYWHEEL_CONFIG_DIR' ) ||
+		defined( 'KINSTAMU_VERSION' )
+	) {
 		if (
 			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
 			( ! is_object( $exactdn ) || ! $exactdn->get_exactdn_domain() )
@@ -162,6 +168,8 @@ function ewww_image_optimizer_notice_hosting_requires_api() {
 		$webhost = 'WP Engine';
 	} elseif ( defined( 'FLYWHEEL_CONFIG_DIR' ) ) {
 		$webhost = 'Flywheel';
+	} elseif ( defined( 'KINSTAMU_VERSION' ) ) {
+		$webhost = 'Kinsta';
 	} else {
 		return;
 	}
@@ -173,8 +181,9 @@ function ewww_image_optimizer_notice_hosting_requires_api() {
 		sprintf( esc_html__( 'Normally, %s sites require cloud-based optimization, because server-based optimization is disallowed. However, we are trying something new, and offering free cloud-based JPG compression. Those who upgrade to our premium service receive much higher compression, PNG/GIF/PDF compression, WebP conversion, and image backups.', 'ewww-image-optimizer' ), esc_html( $webhost ) ) .
 		'<br><strong>' .
 		/* translators: %s: link to 'start your free trial' */
-		sprintf( esc_html__( 'Dismiss this notice to continue with free cloud-based JPG compression or %s.', 'ewww-image-optimizer' ), "<a href='https://ewww.io/plans/'>" . esc_html__( 'start your premium trial', 'ewww-image-optimizer' ) . '</a>' ) .
-		'</strong></p></div>';
+		sprintf( esc_html__( 'Dismiss this notice to continue with free cloud-based JPG compression or %s.', 'ewww-image-optimizer' ), "<a href='https://ewww.io/plans/'>" . esc_html__( 'start your premium trial', 'ewww-image-optimizer' ) . '</a>' );
+	ewwwio_help_link( 'https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it', '592dd12d0428634b4a338c39' );
+	echo '</strong></p></div>';
 	?>
 <script>
 	jQuery(document).on('click', '#ewww-image-optimizer-warning-exec .notice-dismiss', function() {
@@ -562,7 +571,9 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 				:
 				/* translators: %s: link to 'start your free trial' */
 				sprintf( esc_html__( 'You may ask your system administrator to enable exec(), dismiss this notice to continue with free cloud-based compression or %s.', 'ewww-image-optimizer' ), "<a href='https://ewww.io/plans/'>" . esc_html__( 'start your premium trial', 'ewww-image-optimizer' ) . '</a>' )
-				) . '</strong></p></div>';
+			);
+			ewwwio_help_link( 'https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it', '592dd12d0428634b4a338c39' );
+			echo '</strong></p></div>';
 			echo
 				"<script>\n" .
 				"jQuery(document).on('click', '#ewww-image-optimizer-warning-exec .notice-dismiss', function() {\n" .
