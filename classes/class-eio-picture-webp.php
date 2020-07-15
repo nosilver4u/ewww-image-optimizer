@@ -88,9 +88,13 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 			if ( is_wp_error( $s3_region ) ) {
 				$s3_region = '';
 			}
-			$s3_domain = $as3cf->get_provider()->get_url_domain( $s3_bucket, $s3_region, null, array(), true );
-			ewwwio_debug_message( "found S3 domain of $s3_domain with bucket $s3_bucket and region $s3_region" );
+			if ( ! empty( $s3_bucket ) && ! is_wp_error( $s3_bucket ) && method_exists( $as3cf, 'get_provider' ) ) {
+				$s3_domain = $as3cf->get_provider()->get_url_domain( $s3_bucket, $s3_region, null, array(), true );
+			} elseif ( ! empty( $s3_bucket ) && ! is_wp_error( $s3_bucket ) && method_exists( $as3cf, 'get_storage_provider' ) ) {
+				$s3_domain = $as3cf->get_storage_provider()->get_url_domain( $s3_bucket, $s3_region );
+			}
 			if ( ! empty( $s3_domain ) && $as3cf->get_setting( 'serve-from-s3' ) ) {
+				ewwwio_debug_message( "found S3 domain of $s3_domain with bucket $s3_bucket and region $s3_region" );
 				$this->webp_paths[] = $s3_scheme . '://' . $s3_domain . '/';
 				$this->s3_active    = $s3_domain;
 				if ( $as3cf->get_setting( 'enable-object-prefix' ) ) {

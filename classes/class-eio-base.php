@@ -491,8 +491,10 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 					$s3_region = '';
 				}
 				$s3_domain = '';
-				if ( ! empty( $s3_bucket ) && ! is_wp_error( $s3_bucket ) ) {
+				if ( ! empty( $s3_bucket ) && ! is_wp_error( $s3_bucket ) && method_exists( $as3cf, 'get_provider' ) ) {
 					$s3_domain = $as3cf->get_provider()->get_url_domain( $s3_bucket, $s3_region, null, array(), true );
+				} elseif ( ! empty( $s3_bucket ) && ! is_wp_error( $s3_bucket ) && method_exists( $as3cf, 'get_storage_provider' ) ) {
+					$s3_domain = $as3cf->get_storage_provider()->get_url_domain( $s3_bucket, $s3_region );
 				}
 				if ( ! empty( $s3_domain ) && $as3cf->get_setting( 'serve-from-s3' ) ) {
 					$this->s3_active = true;

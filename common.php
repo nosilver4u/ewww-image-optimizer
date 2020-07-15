@@ -10339,6 +10339,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				<a class='ewww-docs-root' href='https://ewww.io/contact-us/'>
 					<?php esc_html_e( 'Then, let us know so we can find a fix for the problem.', 'ewww-image-optimizer' ); ?>
 				</a>
+	<?php if ( $exactdn_enabled && 1 === $exactdn->get_plan_id() ) : ?>
+				<br><i>* <?php esc_html_e( 'Upgrade to a Pro or Developer subscription to unlock additional options below.', 'ewww-image-optimizer' ); ?></i>
+	<?php endif; ?>
 			</p>
 			<table class='form-table'>
 				<tr>
