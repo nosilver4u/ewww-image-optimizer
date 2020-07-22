@@ -136,7 +136,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$uri = add_query_arg( null, null );
 			$this->debug_message( "request uri is $uri" );
 
-			if ( '/robots.txt' === $uri ) {
+			if ( '/robots.txt' === $uri || '/sitemap.xml' === $uri ) {
 				return;
 			}
 			/**

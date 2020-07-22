@@ -481,7 +481,7 @@ button.ewww-handlediv {
 .ewww-tab-nav { list-style: none; margin: 10px 0 0; padding-left: 5px; border-bottom: 1px solid #ccc; }
 /* optimization status section */
 #ewww-widgets {
-	max-width: 1170px;
+	max-width: 1000px;
 }
 #ewww-status .inside {
 	margin: 0;
@@ -528,20 +528,31 @@ ul.ewww-blocks li:first-child {
 .ewww-inactive {
 	stroke: #e6e6e6;
 }
+#ewww-compress {
+	max-width: 250px;
+}
 #ewww-compress-guage .ewww-active {
-	stroke: #3eadc9;
 	stroke-linecap: round;
+}
+#ewww-compress-guage .ewww-red {
+	stroke: #dc3232;
+}
+#ewww-compress-guage .ewww-orange {
+	stroke: #ffb900;
+}
+#ewww-compress-guage .ewww-green {
+	stroke: #46b450;
 }
 #ewww-resize-guage .ewww-active {
 	stroke: #1d3c71;
 	stroke-linecap: round;
 }
 #ewww-savings-guage .ewww-active {
-	stroke: #f26b45;
+	stroke: #3eadc9;
 	stroke-linecap: round;
 }
 #ewww-compress-guage .ewww-score {
-	color: #3eadc9;
+	color: #444;
 }
 #ewww-resize-guage .ewww-score {
 	color: #1d3c71;
@@ -559,7 +570,7 @@ ul.ewww-blocks li:first-child {
 }
 #ewww-savings-guage .ewww-score {
 	font-size: 1rem;
-	color: #f26b45;
+	color: #3eadc9;
 	white-space: nowrap;
 }
 .ewww-recommend {
@@ -602,7 +613,7 @@ h3 a.ewww-upgrade {
 	text-decoration: none;
 	color: #3eadc9;
 }
-.ewww-help-beacon-multi, .ewww-help-beacon-single {
+.ewww-help-beacon-multi, .ewww-help-beacon-single, .ewww-help-external {
 	margin: 3px;
 }
 /* iframe ewww.io */
