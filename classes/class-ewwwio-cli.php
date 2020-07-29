@@ -99,7 +99,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 				// Do a filter to increase the timeout to 999 or something crazy.
 				add_filter( 'ewww_image_optimizer_timeout', 'ewww_image_optimizer_cli_timeout', 200 );
 				ewww_image_optimizer_media_scan( 'ewww-image-optimizer-cli' );
-				$pending_count = ewww_image_optimizer_aux_images_script( 'ewww-image-optimizer-auto' );
+				$pending_count = ewww_image_optimizer_aux_images_script( 'ewww-image-optimizer-cli' );
 				if ( class_exists( 'EwwwNgg' ) ) {
 					global $ngg;
 					if ( preg_match( '/^2/', $ngg->version ) ) {
@@ -159,7 +159,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 				// Do a filter to increase the timeout to 999 or something crazy.
 				add_filter( 'ewww_image_optimizer_timeout', 'ewww_image_optimizer_cli_timeout', 200 );
 				ewww_image_optimizer_media_scan( 'ewww-image-optimizer-cli' );
-				$pending_count = ewww_image_optimizer_aux_images_script( 'ewww-image-optimizer-auto' );
+				$pending_count = ewww_image_optimizer_aux_images_script( 'ewww-image-optimizer-cli' );
 				if ( empty( $assoc_args['noprompt'] ) ) {
 					/* translators: %d: number of images */
 					WP_CLI::confirm( sprintf( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', $pending_count, 'ewww-image-optimizer' ), $pending_count ) );
@@ -235,7 +235,6 @@ function ewww_image_optimizer_bulk_media_cleanup() {
 	// All done, so we can update the bulk options with empty values...
 	update_option( 'ewww_image_optimizer_bulk_resume', '' );
 	update_option( 'ewww_image_optimizer_aux_resume', '' );
-	update_option( 'ewww_image_optimizer_bulk_attachments', '', false );
 	// and let the user know we are done.
 	WP_CLI::success( __( 'Finished Optimization!', 'ewww-image-optimizer' ) );
 }

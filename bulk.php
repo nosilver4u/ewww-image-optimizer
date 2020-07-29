@@ -1059,9 +1059,12 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			$pending     = false;
 			$remote_file = false;
 			if ( ! empty( $attachment_meta[ $selected_id ]['wpml_media_processed'] ) ) {
-				ewwwio_debug_message( "skipping WPML replica image $selected_id" );
-				$skipped_ids[] = $selected_id;
-				continue;
+				$wpml_id = ewww_image_optimizer_get_primary_wpml_id( $selected_id );
+				if ( (int) $wpml_id !== (int) $selected_id ) {
+					ewwwio_debug_message( "skipping WPML replica image $selected_id" );
+					$skipped_ids[] = $selected_id;
+					continue;
+				}
 			}
 			if ( in_array( $selected_id, $bad_attachments, true ) ) { // a known broken attachment, which would mean we already tried this once before...
 				ewwwio_debug_message( "skipping bad attachment $selected_id" );

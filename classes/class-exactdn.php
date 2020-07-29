@@ -2882,6 +2882,11 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$args = wp_parse_args( $image_url_parts['query'], $args );
 			}
 
+			// Clear out args for some files (like videos) that might go through image_downsize.
+			if ( ! empty( $extension ) && in_array( $extension, array( 'mp4', 'm4p', 'm4v', 'mov', 'wvm', 'qt', 'webp', 'ogv', 'mpg', 'mpeg', 'mpv' ), true ) ) {
+				$args = array();
+			}
+
 			if ( $args ) {
 				if ( is_array( $args ) ) {
 					$exactdn_url = add_query_arg( $args, $exactdn_url );

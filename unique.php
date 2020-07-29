@@ -1769,6 +1769,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) ) {
 		ewww_image_optimizer_cloud_init();
 	}
+	ewww_image_optimizer_define_noexec();
 	if ( apply_filters( 'ewww_image_optimizer_bypass', false, $file ) ) {
 		ewwwio_debug_message( "optimization bypassed: $file" );
 		// Tell the user optimization was skipped.
@@ -1830,7 +1831,6 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	}
 	$nice = '';
 	if ( ! EWWW_IMAGE_OPTIMIZER_CLOUD ) {
-		ewww_image_optimizer_define_noexec();
 		if ( ! EWWW_IMAGE_OPTIMIZER_NOEXEC && PHP_OS !== 'WINNT' ) {
 			// Check to see if 'nice' exists.
 			$nice = ewww_image_optimizer_find_nix_binary( 'nice', 'n' );

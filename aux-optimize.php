@@ -1217,7 +1217,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 	update_option( 'ewww_image_optimizer_aux_resume', '' );
 	update_option( 'ewww_image_optimizer_bulk_resume', '' );
 	ewww_image_optimizer_debug_log();
-	if ( wp_doing_ajax() && 'ewww-image-optimizer-auto' !== $hook ) {
+	if ( wp_doing_ajax() && 'ewww-image-optimizer-auto' !== $hook && ( ! defined( 'WP_CLI' ) || ! WP_CLI ) ) {
 		$verify_cloud = ewww_image_optimizer_cloud_verify( false );
 		$usage        = false;
 		if ( preg_match( '/great/', $verify_cloud ) ) {
