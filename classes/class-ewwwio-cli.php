@@ -25,7 +25,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 	 * : valid values are 'all' (default), 'media', 'nextgen', and 'flagallery'
 	 * : media: Media Library, theme, and configured folders
 	 * : nextgen: Nextcellent and NextGEN 2.x
-	 * : flagallery: Grand FlaGallery
+	 * : flagallery: Grand FlAGallery
 	 *
 	 * <delay>
 	 * : optional, number of seconds to pause between images
@@ -112,10 +112,10 @@ class EWWWIO_CLI extends WP_CLI_Command {
 						WP_CLI::line( 'Nextgen: ' . sprintf( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', count( $attachments ), 'ewww-image-optimizer' ), count( $attachments ) ) );
 					}
 				}
-				if ( class_exists( 'ewwwflag' ) ) {
-					list( $fullsize_count, $unoptimized_count, $resize_count, $unoptimized_resize_count ) = ewww_image_optimizer_count_optimized( 'flag' );
+				if ( class_exists( 'EWWW_Flag' ) ) {
+					list( $fullsize_count, $resize_count ) = ewww_image_optimizer_count_optimized( 'flag' );
 					/* translators: 1-4: number of images */
-					WP_CLI::line( 'Flagallery: ' . sprintf( __( '%1$d images have been selected (%2$d unoptimized), with %3$d resizes (%4$d unoptimized).', 'ewww-image-optimizer' ), $fullsize_count, $unoptimized_count, $resize_count, $unoptimized_resize_count ) );
+					WP_CLI::line( 'FlAGallery: ' . sprintf( __( '%1$d images have been selected, with %2$d resized versions.', 'ewww-image-optimizer' ), $fullsize_count, $resize_count ) );
 				}
 				if ( empty( $assoc_args['noprompt'] ) ) {
 					/* translators: %d: number of images */
@@ -201,11 +201,11 @@ class EWWWIO_CLI extends WP_CLI_Command {
 					update_option( 'ewww_image_optimizer_bulk_flag_resume', '' );
 					WP_CLI::line( __( 'Bulk status has been reset, starting from the beginning.', 'ewww-image-optimizer' ) );
 				}
-				if ( class_exists( 'ewwwflag' ) ) {
-					list( $fullsize_count, $unoptimized_count, $resize_count, $unoptimized_resize_count ) = ewww_image_optimizer_count_optimized( 'flag' );
+				if ( class_exists( 'EWWW_Flag' ) ) {
+					list( $fullsize_count, $resize_count ) = ewww_image_optimizer_count_optimized( 'flag' );
 					if ( empty( $assoc_args['noprompt'] ) ) {
 						/* translators: 1-4: number of images */
-						WP_CLI::confirm( sprintf( __( '%1$d images have been selected (%2$d unoptimized), with %3$d resizes (%4$d unoptimized).', 'ewww-image-optimizer' ), $fullsize_count, $unoptimized_count, $resize_count, $unoptimized_resize_count ) );
+						WP_CLI::confirm( 'FlAGallery: ' . sprintf( __( '%1$d images have been selected, with %2$d resized versions.', 'ewww-image-optimizer' ), $fullsize_count, $resize_count ) );
 					}
 					ewww_image_optimizer_bulk_flag( $delay );
 				} else {
@@ -258,6 +258,7 @@ function ewww_image_optimizer_bulk_flag( $delay = 0 ) {
 		// Store the IDs to optimize in the options table of the db.
 		update_option( 'ewww_image_optimizer_bulk_flag_attachments', $ids, false );
 	}
+	$attachments = $ids; // Use this separately to keep track of progress in the db.
 	// Set the resume flag to indicate the bulk operation is in progress.
 	update_option( 'ewww_image_optimizer_bulk_flag_resume', 'true' );
 	// Need this file to work with flag meta.
@@ -273,8 +274,10 @@ function ewww_image_optimizer_bulk_flag( $delay = 0 ) {
 		// Record the starting time for the current image (in microseconds).
 		$started = microtime( true );
 		// Retrieve the meta for the current ID.
-		$meta      = new flagMeta( $id );
-		$file_path = $meta->image->imagePath;
+		$meta               = new flagMeta( $id );
+		$file_path          = $meta->image->imagePath;
+		$ewww_image         = new EWWW_Image( $id, 'flag', $file_path );
+		$ewww_image->resize = 'full';
 		// Optimize the full-size version.
 		$fres = ewww_image_optimizer( $file_path, 3, false, false, true );
 		WP_CLI::line( __( 'Optimized image:', 'ewww-image-optimizer' ) . ' ' . esc_html( $meta->image->filename ) );
@@ -282,12 +285,16 @@ function ewww_image_optimizer_bulk_flag( $delay = 0 ) {
 		WP_CLI::line( sprintf( __( 'Full size – %s', 'ewww-image-optimizer' ), html_entity_decode( $fres[1] ) ) );
 		if ( ! empty( $meta->image->meta_data['webview'] ) ) {
 			// Determine path of the webview.
-			$web_path = $meta->image->webimagePath;
-			$wres     = ewww_image_optimizer( $web_path, 3, false, true );
+			$web_path           = $meta->image->webimagePath;
+			$ewww_image         = new EWWW_Image( $id, 'flag', $web_path );
+			$ewww_image->resize = 'webview';
+			$wres               = ewww_image_optimizer( $web_path, 3, false, true );
 			/* translators: %s: compression results */
 			WP_CLI::line( sprintf( __( 'Optimized size – %s', 'ewww-image-optimizer' ), html_entity_decode( $wres[1] ) ) );
 		}
-		$thumb_path = $meta->image->thumbPath;
+		$thumb_path         = $meta->image->thumbPath;
+		$ewww_image         = new EWWW_Image( $id, 'flag', $thumb_path );
+		$ewww_image->resize = 'thumbnail';
 		// Optimize the thumbnail.
 		$tres = ewww_image_optimizer( $thumb_path, 3, false, true );
 		/* translators: %s: compression results */
@@ -297,8 +304,6 @@ function ewww_image_optimizer_bulk_flag( $delay = 0 ) {
 		// and output it to the user.
 		/* translators: %s: localized number of seconds */
 		WP_CLI::line( sprintf( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, 'ewww-image-optimizer' ), number_format_i18n( $elapsed ) ) );
-		// Retrieve the list of attachments left to work on.
-		$attachments = get_option( 'ewww_image_optimizer_bulk_flag_attachments' );
 		// Take the first image off the list.
 		if ( ! empty( $attachments ) ) {
 			array_shift( $attachments );
