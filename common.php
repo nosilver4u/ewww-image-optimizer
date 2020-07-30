@@ -5254,7 +5254,7 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 				/* translators: %s: number of seconds */
 				_n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, 'ewww-image-optimizer' )
 			) . '</p>',
-			number_format_i18n( $elapsed )
+			number_format_i18n( $elapsed, 2 )
 		);
 		if ( get_site_option( 'ewww_image_optimizer_debug' ) ) {
 			global $eio_debug;

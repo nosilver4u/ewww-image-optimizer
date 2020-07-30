@@ -643,7 +643,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			$elapsed = microtime( true ) - $started;
 			// And output it to the user.
 			/* Translators: %s: number of seconds, localized */
-			$output['results']  .= sprintf( esc_html( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, 'ewww-image-optimizer' ) ) . '</p>', number_format_i18n( $elapsed ) );
+			$output['results']  .= sprintf( esc_html( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, 'ewww-image-optimizer' ) ) . '</p>', number_format_i18n( $elapsed, 2 ) );
 			$output['completed'] = 1;
 			// Send the list back to the db.
 			update_option( 'ewww_image_optimizer_bulk_flag_attachments', $attachments, false );

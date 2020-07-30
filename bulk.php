@@ -1992,13 +1992,13 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 	// Output how much time has elapsed since we started.
 	if ( defined( 'WP_CLI' ) && WP_CLI ) {
 		/* translators: %s: number of seconds */
-		WP_CLI::line( sprintf( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, 'ewww-image-optimizer' ), number_format_i18n( $elapsed ) ) );
+		WP_CLI::line( sprintf( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, 'ewww-image-optimizer' ), number_format_i18n( $elapsed, 2 ) ) );
 		if ( ewww_image_optimizer_function_exists( 'sleep' ) ) {
 			sleep( $delay );
 		}
 	}
 	/* translators: %s: number of seconds */
-	$output['results'] .= sprintf( '<p>' . esc_html( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, 'ewww-image-optimizer' ) ) . '</p>', number_format_i18n( $elapsed ) );
+	$output['results'] .= sprintf( '<p>' . esc_html( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, 'ewww-image-optimizer' ) ) . '</p>', number_format_i18n( $elapsed, 1 ) );
 	// Store the updated list of attachment IDs back in the 'bulk_attachments' option.
 	// update_option( 'ewww_image_optimizer_bulk_attachments', $attachments, false );.
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {

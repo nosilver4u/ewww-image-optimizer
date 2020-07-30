@@ -23,12 +23,13 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 * @access private
 		 * @var array $bulk_sizes
 		 */
-		private $bulk_sizes = array();
+		public $bulk_sizes = array();
 
 		/**
 		 * Initializes the nextgen integration functions.
 		 */
 		public function __construct() {
+			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			add_filter( 'ngg_manage_images_number_of_columns', array( $this, 'ewww_manage_images_number_of_columns' ) );
 			add_filter( 'ngg_manage_images_columns', array( $this, 'manage_images_columns' ) );
 			add_filter( 'ngg_manage_images_row_actions', array( $this, 'ewww_manage_images_row_actions' ) );
@@ -962,7 +963,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			// Output how much time we spent.
 			$elapsed = microtime( true ) - $started;
 			/* Translators: %s: The localized number of seconds */
-			$output['results']  .= sprintf( esc_html( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, 'ewww-image-optimizer' ) ) . '</p>', number_format_i18n( $elapsed ) );
+			$output['results']  .= sprintf( esc_html( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, 'ewww-image-optimizer' ) ) . '</p>', number_format_i18n( $elapsed, 2 ) );
 			$output['completed'] = 1;
 			// Store the list back in the db.
 			update_option( 'ewww_image_optimizer_bulk_ngg_attachments', $attachments, false );

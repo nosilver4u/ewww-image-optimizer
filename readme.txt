@@ -176,6 +176,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: query paramaters added to videos via image_downsize filter
 * fixed: WP-CLI command triggers async queueing
 * fixed: WPML check skips too many images during bulk scanner
+* fixed: WP-CLI command options for FlAGallery and NextGEN using outdated code
 
 = 5.6.0 =
 * added: if exec() is disabled, free cloud-based JPG compression will be enabled

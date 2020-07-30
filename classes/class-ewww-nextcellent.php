@@ -632,7 +632,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			// Output how much time we spent.
 			$elapsed = microtime( true ) - $started;
 			/* Translators: %s: localized number of seconds */
-			$output['results']  .= sprintf( esc_html( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, 'ewww-image-optimizer' ) ) . '</p>', number_format_i18n( $elapsed ) );
+			$output['results']  .= sprintf( esc_html( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, 'ewww-image-optimizer' ) ) . '</p>', number_format_i18n( $elapsed, 2 ) );
 			$output['completed'] = 1;
 			// Store the list back in the db.
 			update_option( 'ewww_image_optimizer_bulk_ngg_attachments', $attachments, false );
