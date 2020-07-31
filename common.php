@@ -571,6 +571,7 @@ function ewww_image_optimizer_init() {
 		remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
 		remove_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15 );
 		add_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_lr_sync_update' );
+		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 	}
 }
 
@@ -1049,6 +1050,7 @@ function ewww_image_optimizer_ajax_compat_check() {
 	) {
 		ewwwio_debug_message( 'doing regeneratethumbnail' );
 		ewww_image_optimizer_image_sizes( false );
+		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 		return;
 	}
 	if ( 'mic_crop_image' === $action ) {
@@ -1056,6 +1058,7 @@ function ewww_image_optimizer_ajax_compat_check() {
 		if ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) ) {
 			define( 'EWWWIO_EDITOR_OVERWRITE', true );
 		}
+		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 		return;
 	}
 	if ( false !== strpos( $action, 'wc_regenerate_images' ) ) {
@@ -1075,29 +1078,34 @@ function ewww_image_optimizer_ajax_compat_check() {
 			remove_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15 );
 			add_action( 'iw_after_apply_watermark', 'ewww_image_optimizer_single_size_optimize', 10, 2 );
 		}
+		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 		return;
 	}
 	// Check for other MLP actions, including multi-regen.
 	if ( class_exists( 'MaxGalleriaMediaLib' ) && ( 'regen_mlp_thumbnails' === $action || 'move_media' === $action || 'copy_media' === $action || 'maxgalleria_rename_image' === $action ) ) {
 		ewwwio_debug_message( 'doing regen_mlp_thumbnails' );
 		ewww_image_optimizer_image_sizes( false );
+		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 		return;
 	}
 	// Check for MLP upload.
 	if ( class_exists( 'MaxGalleriaMediaLib' ) && ! empty( $_REQUEST['nonce'] ) && 'upload_attachment' === $action ) { // phpcs:ignore WordPress.Security.NonceVerification
 		ewwwio_debug_message( 'doing maxgalleria upload' );
 		ewww_image_optimizer_image_sizes( false );
+		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 		return;
 	}
 	// Check for Image Regenerate and Select Crop (better way).
 	if ( defined( 'DOING_SIRSC' ) && DOING_SIRSC ) {
 		ewwwio_debug_message( 'IRSC action/regen' );
 		ewww_image_optimizer_image_sizes( false );
+		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 		return;
 	} elseif ( 0 === strpos( $action, 'sirsc' ) ) {
 		// Image Regenerate and Select Crop (old check).
 		ewwwio_debug_message( 'IRSC action/regen (old)' );
 		ewww_image_optimizer_image_sizes( false );
+		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 		return;
 	}
 }
@@ -1242,6 +1250,7 @@ function ewww_image_optimizer_restapi_compat_check() {
 	if ( ! empty( $GLOBALS['wp']->query_vars['rest_route'] ) && false !== strpos( $GLOBALS['wp']->query_vars['rest_route'], '/regenerate-thumbnails' ) ) {
 		ewwwio_debug_message( 'doing regenerate-thumbnails via REST' );
 		ewww_image_optimizer_image_sizes( false );
+		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 		return;
 	}
 }
@@ -1931,7 +1940,7 @@ function ewww_image_optimizer_notice_reoptimization() {
 		$reoptimized = get_transient( 'ewww_image_optimizer_images_reoptimized' );
 		if ( empty( $reoptimized ) ) {
 			global $wpdb;
-			$reoptimized = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->ewwwio_images WHERE updates > 10 AND path NOT LIKE '%wp-content/themes%' AND path NOT LIKE '%wp-content/plugins%'  LIMIT 10" );
+			$reoptimized = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->ewwwio_images WHERE updates > 5 AND path NOT LIKE '%wp-content/themes%' AND path NOT LIKE '%wp-content/plugins%'  LIMIT 10" );
 			if ( empty( $reoptimized ) ) {
 				set_transient( 'ewww_image_optimizer_images_reoptimized', 'zero', HOUR_IN_SECONDS );
 			} else {
@@ -3262,6 +3271,7 @@ function ewww_image_optimizer_manual() {
 	global $ewww_convert;
 	global $ewww_defer;
 	$ewww_defer = false;
+	add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 	// Check permissions of current user.
 	$permissions = apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
 	if ( ! current_user_can( $permissions ) ) {
@@ -4972,7 +4982,7 @@ function ewww_image_optimizer_check_table( $file, $orig_size ) {
 			);
 		}
 		return $already_optimized;
-	} elseif ( is_array( $image ) && ! empty( $image['updates'] ) && $image['updates'] > 15 ) {
+	} elseif ( is_array( $image ) && ! empty( $image['updates'] ) && $image['updates'] > 5 ) {
 		ewwwio_debug_message( "prevented excessive re-opt: {$image['path']}" );
 		// Make sure the image isn't pending.
 		if ( $image['pending'] ) {
@@ -5074,7 +5084,9 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 			$updates['orig_size'] = $orig_size;
 		}
 		ewwwio_debug_message( "updating existing record ({$already_optimized['id']}), path: $attachment, size: $opt_size" );
-		if ( $already_optimized['updates'] ) {
+		if ( $already_optimized['updates'] && apply_filters( 'ewww_image_optimizer_allowed_reopt', false ) ) {
+			$updates['updates'] = $already_optimized['updates'];
+		} elseif ( $already_optimized['updates'] ) {
 			$updates['updates'] = $already_optimized['updates'] + 1;
 		}
 		$updates['pending'] = 0;

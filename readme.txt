@@ -172,6 +172,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
 = 5.6.1 =
+* changed: prevent unintentional image re-optimization from plugins with a threshold of 5x, indicate intential regen with ewww_image_optimizer_allowed_reopt filter
 * changed: include lazy load and WebP in optimization score
 * fixed: query paramaters added to videos via image_downsize filter
 * fixed: WP-CLI command triggers async queueing

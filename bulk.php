@@ -1766,6 +1766,7 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 	$ewww_defer      = false;
 	$output          = array();
 	$time_adjustment = 0;
+	add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 	// Verify that an authorized user has started the optimizer.
 	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 	if (
