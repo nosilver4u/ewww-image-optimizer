@@ -4972,7 +4972,7 @@ function ewww_image_optimizer_check_table( $file, $orig_size ) {
 			);
 		}
 		return $already_optimized;
-	} elseif ( $image['updates'] > 15 ) {
+	} elseif ( is_array( $image ) && ! empty( $image['updates'] ) && $image['updates'] > 15 ) {
 		ewwwio_debug_message( "prevented excessive re-opt: {$image['path']}" );
 		// Make sure the image isn't pending.
 		if ( $image['pending'] ) {
