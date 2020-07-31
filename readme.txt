@@ -177,6 +177,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: WP-CLI command triggers async queueing
 * fixed: WPML check skips too many images during bulk scanner
 * fixed: WP-CLI command options for FlAGallery and NextGEN using outdated code
+* fixed: re-optimization tracker not tracking
 
 = 5.6.0 =
 * added: if exec() is disabled, free cloud-based JPG compression will be enabled

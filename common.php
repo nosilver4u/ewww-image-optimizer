@@ -4972,6 +4972,22 @@ function ewww_image_optimizer_check_table( $file, $orig_size ) {
 			);
 		}
 		return $already_optimized;
+	} elseif ( $image['updates'] > 15 ) {
+		ewwwio_debug_message( "prevented excessive re-opt: {$image['path']}" );
+		// Make sure the image isn't pending.
+		if ( $image['pending'] ) {
+			global $wpdb;
+			$wpdb->update(
+				$wpdb->ewwwio_images,
+				array(
+					'pending' => 0,
+				),
+				array(
+					'id' => $image['id'],
+				)
+			);
+		}
+		return __( 'Re-optimize prevented', 'ewww-image-optimizer' );
 	}
 	return '';
 }
@@ -5059,7 +5075,7 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 		}
 		ewwwio_debug_message( "updating existing record ({$already_optimized['id']}), path: $attachment, size: $opt_size" );
 		if ( $already_optimized['updates'] ) {
-			$updates['updates'] = $already_optimized['updates']++;
+			$updates['updates'] = $already_optimized['updates'] + 1;
 		}
 		$updates['pending'] = 0;
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && $already_optimized['updates'] > 1 ) {
