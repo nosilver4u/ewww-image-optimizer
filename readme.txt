@@ -2,10 +2,10 @@
 Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization, lossless, lossy, seo, scale
-Requires at least: 5.0
-Tested up to: 5.4
+Requires at least: 5.1
+Tested up to: 5.5
 Requires PHP: 5.6
-Stable tag: 5.6.0
+Stable tag: 5.6.1
 License: GPLv3
 
 Speed up your website to better connect with your visitors. Properly compress and size/scale images. Includes lazy load and WebP convert.
