@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '561.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '562.0' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -1952,7 +1952,7 @@ function ewww_image_optimizer_notice_reoptimization() {
 		// Do a check for 10+ optimizations on 5+ images.
 		if ( ! empty( $reoptimized ) && $reoptimized > 5 ) {
 			$debugging_page = admin_url( 'tools.php?page=ewww-image-optimizer-tools' );
-			$reset_page     = wp_nonce_url( add_query_var( null, null ), 'reset_reoptimization_counters', 'ewww_reset_reopt_nonce' );
+			$reset_page     = wp_nonce_url( add_query_arg( null, null ), 'reset_reoptimization_counters', 'ewww_reset_reopt_nonce' );
 			// Display an alert, and let the user reset the warning if they wish.
 			echo "<div id='ewww-image-optimizer-warning-reoptimizations' class='error'><p>" .
 				sprintf(
@@ -3632,7 +3632,7 @@ function ewww_image_optimizer_delete( $id ) {
 			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
 		}
 	}
-	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
+	$file_path = get_attached_file( $id );
 	// If the attachment has an original file set.
 	if ( ! empty( $meta['original_image'] ) ) {
 		// One way or another, $file_path is now set, and we can get the base folder name.
@@ -6281,7 +6281,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
 	}
 	// to here is replaced by cloud/API function.
 	$new_size = ewww_image_optimizer_filesize( $new_file );
-	if ( apply_filters( 'ewww_image_optimizer_resize_filesize_ignore', false ) || ( $new_size && $new_size < $orig_size ) ) {
+	if ( ( $new_size && (int) $new_size !== (int) $orig_size && apply_filters( 'ewww_image_optimizer_resize_filesize_ignore', false ) ) || ( $new_size && $new_size < $orig_size ) ) {
 		// Use this action to perform any operations on the original file before it is overwritten with the new, smaller file.
 		do_action( 'ewww_image_optimizer_image_resized', $file, $new_file );
 		ewwwio_debug_message( "after resizing: $new_size" );
