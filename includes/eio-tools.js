@@ -36,6 +36,18 @@ jQuery(document).ready(function($) {
 			$('.ewww-aux-table').show();
 			$('.ewww-search-count').text(ewww_response.search_result);
 			$('.current-page').text(ewww_response.pagination);
+			// from here
+			if ( ewww_response.search_total > 0 ) {
+				ewww_search_total = ewww_response.search_total;
+			}
+			if (ewww_response.search_count < 50) {
+				$('.next-page').hide();
+				$('.last-page').hide();
+			}
+			if (ewww_table_debug) {
+				$('.displaying-num').hide();
+			}
+			// to here
 			if (ewww_vars.image_count >= 50) {
 				$('.tablenav').show();
 				$('.next-page').show();
@@ -167,7 +179,7 @@ jQuery(document).ready(function($) {
 	$('.last-page').click(function() {
 		var ewww_search = $('.ewww-search-input').val();
 		ewww_pointer = ewww_total_pages - 1;
-		if (ewww_search) {
+		if (ewww_search || ewww_table_debug) {
 			ewww_pointer = ewww_search_total - 1;
 		}
 	        var ewww_table_data = {

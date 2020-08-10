@@ -171,6 +171,11 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * Feature requests can be viewed and submitted at https://feedback.ewww.io
 * If you would like to help translate this plugin in your language, get started here: https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/
 
+= 5.6.3 =
+* fixed: third-party plugins sometimes set erroneous WebP quality values
+* fixed: Show Re-optimized Images lists images in reverse order
+* fixed: cannot skip to last page of re-optimized images
+
 = 5.6.2 =
 * fixed: fatal error for undefined add_query_var
 

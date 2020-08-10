@@ -2741,6 +2741,9 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 			$copy_opt = 'all';
 		}
 		$quality = (int) apply_filters( 'jpeg_quality', 82, 'image/webp' );
+		if ( $quality < 50 ) {
+			$quality = 82;
+		}
 		if ( defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) && EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) {
 			$lossless = "-q $quality";
 		} else {
