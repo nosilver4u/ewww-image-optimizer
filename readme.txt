@@ -175,6 +175,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: third-party plugins sometimes set erroneous WebP quality values
 * fixed: Show Re-optimized Images lists images in reverse order
 * fixed: cannot skip to last page of re-optimized images
+* fixed: Scheduled Optimizer skips files that need scaling/resizing if they have already been compressed
 
 = 5.6.2 =
 * fixed: fatal error for undefined add_query_var

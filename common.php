@@ -6086,6 +6086,9 @@ function ewww_image_optimizer_noresize( $dimensions, $filename ) {
 /**
  * Check non-Media Library filenames to see if the image is eligible for resizing.
  *
+ * This function specifically checks to be sure the filename does not preclude an image.
+ * It does not check the dimensions, that is done by ewww_image_optimizer_should_resize().
+ *
  * @param string $file The image filename.
  * @return bool True to allow resizing, false otherwise.
  */

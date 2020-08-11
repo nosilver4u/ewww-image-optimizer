@@ -79,7 +79,12 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 
 			add_action( 'wp_head', array( $this, 'no_js_css' ) );
 
-			add_filter( $this->prefix . 'filter_page_output', array( $this, 'filter_page_output' ), 15 );
+			if ( method_exists( 'autoptimizeImages', 'imgopt_active' ) && autoptimizeImages::imgopt_active() ) {
+				add_filter( 'autoptimize_filter_html_before_minify', array( $this, 'filter_page_output' ) );
+			} else {
+				add_filter( $this->prefix . 'filter_page_output', array( $this, 'filter_page_output' ), 15 );
+			}
+
 			add_filter( 'vc_get_vc_grid_data_response', array( $this, 'filter_page_output' ) );
 
 			if ( class_exists( 'ExactDN' ) && $this->get_option( $this->prefix . 'exactdn' ) ) {

@@ -856,7 +856,7 @@ function ewww_image_optimizer_should_resize( $file, $media = false ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if (
 		! ewwwio_is_file( $file ) ||
-		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) ||
+		( $media && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) ) ||
 		function_exists( 'imsanity_get_max_width_height' )
 	) {
 		return false;
