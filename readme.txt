@@ -176,6 +176,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 * fixed: Show Re-optimized Images lists images in reverse order
 * fixed: cannot skip to last page of re-optimized images
 * fixed: Scheduled Optimizer skips files that need scaling/resizing if they have already been compressed
+* fixed: Lazy Load placeholders not rewritten for CDN usage by Autoptimize and WP Offload Media Assets Add-on
 
 = 5.6.2 =
 * fixed: fatal error for undefined add_query_var

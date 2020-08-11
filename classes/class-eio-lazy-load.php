@@ -449,6 +449,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 					$this->set_attribute( $image, 'srcset', $placeholder_src, true );
 					$this->remove_attribute( $image, 'src' );
 				} else {
+					$placeholder_src = apply_filters( 'as3cf_get_asset', $placeholder_src );
 					$this->set_attribute( $image, 'src', $placeholder_src, true );
 					$this->remove_attribute( $image, 'srcset' );
 				}
