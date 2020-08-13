@@ -4226,6 +4226,9 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	} else {
 		$webp = 0;
 	}
+	if ( $jpg_quality < 50 ) {
+		$jpg_quality = 82;
+	}
 	if ( 30 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 		$png_compress = 1;
 	} else {
