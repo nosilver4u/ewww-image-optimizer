@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '562.03' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '562.05' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -6139,6 +6139,8 @@ function ewww_image_optimizer_resize_upload( $file ) {
 	// Parts adapted from Imsanity (THANKS Jason!).
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $ewww_webp_only;
+	global $ewwwio_resize_status;
+	$ewwwio_resize_status = '';
 	if ( ! $file ) {
 		return false;
 	}
@@ -6209,6 +6211,8 @@ function ewww_image_optimizer_resize_upload( $file ) {
 	list( $oldwidth, $oldheight ) = getimagesize( $file );
 	if ( $oldwidth <= $maxwidth && $oldheight <= $maxheight ) {
 		ewwwio_debug_message( 'image too small for resizing' );
+		/* translators: 1: width in pixels 2: height in pixels */
+		$ewwwio_resize_status = sprintf( __( 'Resize not required, image smaller than %1$s x %2$s', 'ewww-image-optimizer' ), $maxwidth . 'w', $maxheight . 'h' );
 		if ( $oldwidth && $oldheight ) {
 			return array( $oldwidth, $oldheight );
 		}
@@ -6233,6 +6237,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
 	}
 	if ( ! function_exists( 'wp_get_image_editor' ) ) {
 		ewwwio_debug_message( 'no image editor function' );
+		$ewwwio_resize_status = __( 'wp_get_image_editor function is missing', 'ewww-image-optimizer' );
 		return false;
 	}
 
@@ -6242,7 +6247,10 @@ function ewww_image_optimizer_resize_upload( $file ) {
 
 	$editor = wp_get_image_editor( $file );
 	if ( is_wp_error( $editor ) ) {
-		ewwwio_debug_message( 'could not get image editor' );
+		$error_message = $resized_image->get_error_message();
+		ewwwio_debug_message( "could not get image editor: $error_message" );
+		/* translators: %s: a WP error message, translated elsewhere */
+		$ewwwio_resize_status = sprintf( __( 'Unable to load resize function: %s', 'ewww-image-optimizer' ), $error_message );
 		return false;
 	}
 	// Rotation only happens on existing media here, so we need to swap dimension when we rotate by 90.
@@ -6272,6 +6280,8 @@ function ewww_image_optimizer_resize_upload( $file ) {
 	if ( is_wp_error( $resized_image ) ) {
 		$error_message = $resized_image->get_error_message();
 		ewwwio_debug_message( "error during resizing: $error_message" );
+		/* translators: %s: a WP error message, translated elsewhere */
+		$ewwwio_resize_status = sprintf( __( 'Resizing error: %s', 'ewww-image-optimizer' ), $error_message );
 		return false;
 	}
 	$new_file  = $editor->generate_filename( 'tmp' );
@@ -6281,6 +6291,8 @@ function ewww_image_optimizer_resize_upload( $file ) {
 	if ( is_wp_error( $saved ) ) {
 		$error_message = $saved->get_error_message();
 		ewwwio_debug_message( "error saving resized image: $error_message" );
+		/* translators: %s: a WP error message, translated elsewhere */
+		$ewwwio_resize_status = sprintf( __( 'Could not save resized image: %s', 'ewww-image-optimizer' ), $error_message );
 	}
 	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) && ( ! defined( 'EWWW_IMAGE_OPTIMIZER_DISABLE_EDITOR' ) || ! EWWW_IMAGE_OPTIMIZER_DISABLE_EDITOR ) ) {
 		$ewww_preempt_editor = false;
@@ -6328,6 +6340,8 @@ function ewww_image_optimizer_resize_upload( $file ) {
 			ewwwio_rename( $new_file, $file );
 		} else {
 			ewwwio_debug_message( "resizing did not create a valid image: $new_type" );
+			/* translators: %s: the mime type of the new file */
+			$ewwwio_resize_status = sprintf( __( 'Resizing resulted in an invalid file type: %s', 'ewww-image-optimizer' ), $new_type );
 			unlink( $new_file );
 			return false;
 		}
@@ -6377,10 +6391,13 @@ function ewww_image_optimizer_resize_upload( $file ) {
 				);
 			}
 		}
+		/* translators: 1: width in pixels 2: height in pixels */
+		$ewwwio_resize_status = sprintf( __( 'Resized to %1$s x %2$s', 'ewww-image-optimizer' ), $newwidth . 'w', $newheight . 'h' );
 		return array( $newwidth, $newheight );
 	} // End if().
 	if ( ewwwio_is_file( $new_file ) ) {
 		ewwwio_debug_message( "resizing did not create a smaller image: $new_size" );
+		$ewwwio_resize_status = __( 'Resizing did not reduce the file size, result discarded', 'ewww-image-optimizer' );
 		unlink( $new_file );
 	}
 	return false;
@@ -8395,6 +8412,7 @@ function ewww_image_optimizer_custom_column_results( $id, $optimized_images ) {
 		return array( '', false, false );
 	}
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	global $ewwwio_resize_status;
 	$orig_size        = 0;
 	$opt_size         = 0;
 	$converted        = false;
@@ -8427,6 +8445,9 @@ function ewww_image_optimizer_custom_column_results( $id, $optimized_images ) {
 	}
 	$detail_output .= '</table>';
 
+	if ( ! empty( $ewwwio_resize_status ) ) {
+		$output .= '<div>' . esc_html( $ewwwio_resize_status ) . '</div>';
+	}
 	$output .= '<div>' . sprintf(
 		esc_html(
 			/* translators: %d: number of resizes/thumbnails compressed */

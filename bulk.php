@@ -1763,6 +1763,7 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 	global $ewww_force_smart;
 	global $ewww_webp_only;
 	global $ewww_defer;
+	global $ewwwio_resize_status;
 	$ewww_defer      = false;
 	$output          = array();
 	$time_adjustment = 0;
@@ -1927,6 +1928,9 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 			WP_CLI::line( str_replace( '&nbsp;', '', $msg ) );
 		}
 		$output['results'] .= sprintf( '<p>' . esc_html__( 'Optimized', 'ewww-image-optimizer' ) . ' <strong>%s</strong><br>', esc_html( $image->file ) );
+		if ( ! empty( $ewwwio_resize_status ) ) {
+			$output['results'] .= esc_html( $ewwwio_resize_status ) . '<br>';
+		}
 		$output['results'] .= "$msg</p>";
 
 		// Do metadata update after full-size is processed, usually because of conversion or resizing.

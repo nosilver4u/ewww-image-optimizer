@@ -248,13 +248,15 @@ jQuery(document).ready(function($) {
 			});
 		});
 		var ewwwdelayinput = document.getElementById("ewww-delay");
-		ewwwdelayinput.onblur = function() {
-			if (isNaN(this.value)) {
-				this.value = 0;
-			} else {
-				this.value = Math.ceil(this.value);
-			}
-		};
+		if (ewwwdelayinput) {
+			ewwwdelayinput.onblur = function() {
+				if (isNaN(this.value)) {
+					this.value = 0;
+				} else {
+					this.value = Math.ceil(this.value);
+				}
+			};
+		}
 		var ewww_attachments = ewww_vars.attachments;
 		var ewww_i = 0;
 		var ewww_k = 0;
