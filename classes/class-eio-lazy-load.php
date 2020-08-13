@@ -370,6 +370,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if (
 				( ! defined( 'EWWWIO_DISABLE_NATIVE_LAZY' ) || ! EWWWIO_DISABLE_NATIVE_LAZY ) &&
 				( ! defined( 'EASYIO_DISABLE_NATIVE_LAZY' ) || ! EASYIO_DISABLE_NATIVE_LAZY ) &&
+				apply_filters( 'wp_lazy_loading_enabled', true ) &&
 				! $disable_native_lazy
 			) {
 				$this->set_attribute( $image, 'loading', 'lazy' );
