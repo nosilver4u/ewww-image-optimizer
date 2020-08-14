@@ -174,6 +174,7 @@ https://developers.google.com/web/tools/lighthouse/audits/optimize-images
 = 5.6.3 =
 * added: resizing results displayed in bulk & single optimization report
 * changed: The browser-native portion of the Lazy Load feature obeys the wp_lazy_loading_enabled filter
+* fixed: plugin tables do not have PRIMARY indexes
 * fixed: Third-party plugins sometimes set erroneous WebP quality values
 * fixed: Show Re-optimized Images lists images in reverse order
 * fixed: cannot skip to last page of re-optimized images
