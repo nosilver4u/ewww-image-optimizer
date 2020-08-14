@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '562.05' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '562.06' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -3577,12 +3577,17 @@ function ewww_image_optimizer_delete( $id ) {
 						ewwwio_debug_message( 'removing: ' . $image['path'] . '.webp' );
 						ewwwio_delete_file( $image['path'] . '.webp' );
 					}
+					$webpfileold = preg_replace( '/\.\w+$/', '.webp', $image['path'] );
+					if ( ewwwio_is_file( $webpfileold ) ) {
+						ewwwio_debug_message( 'removing: ' . $webpfileold );
+						ewwwio_delete_file( $webpfileold );
+					}
 				}
 				if ( ! empty( $image['converted'] ) ) {
 					$image['converted'] = ewww_image_optimizer_absolutize_path( $image['converted'] );
 				}
 				if ( ! empty( $image['converted'] ) && ewwwio_is_file( $image['converted'] ) ) {
-					ewwwio_debug_message( 'removing: ' . $image['converted'] . '.webp' );
+					ewwwio_debug_message( 'removing: ' . $image['converted'] );
 					ewwwio_delete_file( $image['converted'] );
 					if ( ewwwio_is_file( $image['converted'] . '.webp' ) ) {
 						ewwwio_debug_message( 'removing: ' . $image['converted'] . '.webp' );
@@ -3691,7 +3696,15 @@ function ewww_image_optimizer_delete( $id ) {
 			}
 		}
 	}
-	ewwwio_memory( __FUNCTION__ );
+	if ( ewwwio_is_file( $file_path . '.webp' ) ) {
+		ewwwio_debug_message( 'removing: ' . $file_path . '.webp' );
+		ewwwio_delete_file( $image['path'] . '.webp' );
+	}
+	$webpfileold = preg_replace( '/\.\w+$/', '.webp', $file_path );
+	if ( ewwwio_is_file( $webpfileold ) ) {
+		ewwwio_debug_message( 'removing: ' . $webpfileold );
+		ewwwio_delete_file( $webpfileold );
+	}
 }
 
 /**

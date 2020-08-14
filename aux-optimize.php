@@ -414,7 +414,7 @@ function ewww_image_optimizer_aux_images_converted_clean() {
 		die( wp_json_encode( array( 'finished' => 1 ) ) );
 	}
 
-	// Because some plugins might have loose filters (looking at your WPML).
+	// Because some plugins might have loose filters (looking at you WPML).
 	remove_all_filters( 'wp_delete_file' );
 
 	foreach ( $converted_images as $optimized_image ) {
@@ -441,6 +441,212 @@ function ewww_image_optimizer_aux_images_converted_clean() {
 		);
 	} // End foreach().
 	die( wp_json_encode( array( 'completed' => $completed ) ) );
+}
+
+/**
+ * Cleanup WebP images using records from the ewwwio_images table.
+ *
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_aux_images_webp_clean() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	// Verify that an authorized user has called function.
+	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
+	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-tools' ) || ! current_user_can( $permissions ) ) {
+		ewwwio_ob_clean();
+		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
+	}
+	global $wpdb;
+	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+		ewww_image_optimizer_db_init();
+		global $ewwwdb;
+	} else {
+		$ewwwdb = $wpdb;
+	}
+	$completed = 0;
+	$per_page  = 50;
+	$offset    = empty( $_POST['ewww_offset'] ) ? 0 : (int) $_POST['ewww_offset'];
+
+	ewwwio_debug_message( "searching for $per_page records starting at $offset" );
+	$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT path,converted,id FROM $wpdb->ewwwio_images WHERE pending = 0 AND image_size > 0 AND updates > 0 ORDER BY id DESC LIMIT %d,%d", $offset, $per_page ), ARRAY_A );
+
+	if ( empty( $optimized_images ) || ! is_countable( $optimized_images ) || 0 === count( $optimized_images ) ) {
+		die( wp_json_encode( array( 'finished' => 1 ) ) );
+	}
+
+	// Because some plugins might have loose filters (looking at you WPML).
+	remove_all_filters( 'wp_delete_file' );
+
+	foreach ( $optimized_images as $optimized_image ) {
+		$completed++;
+		$file = ewww_image_optimizer_absolutize_path( $optimized_image['path'] );
+		ewwwio_debug_message( "looking for $file.webp" );
+		if ( ! ewww_image_optimizer_stream_wrapped( $file ) && ewwwio_is_file( $file . '.webp' ) ) {
+			ewwwio_debug_message( "removing: $file.webp" );
+			if ( ewwwio_delete_file( $file . '.webp' ) ) {
+				ewwwio_debug_message( "removed $file.webp" );
+			} else {
+				/* translators: %s: file name */
+				die( wp_json_encode( array( 'error' => sprintf( esc_html__( 'Could not delete %s, please remove manually or fix permissions and try again.', 'ewww-image-optimizer' ), esc_html( $file . '.webp' ) ) ) ) );
+			}
+		}
+		if ( ! empty( $optimized_image['converted'] ) ) {
+			$file = ewww_image_optimizer_absolutize_path( $optimized_image['converted'] );
+			ewwwio_debug_message( "$file was converted, checking if webp version exists" );
+			if ( ! ewww_image_optimizer_stream_wrapped( $file ) && ewwwio_is_file( $file . '.webp' ) ) {
+				ewwwio_debug_message( "removing: $file.webp" );
+				if ( ewwwio_delete_file( $file . '.webp' ) ) {
+					ewwwio_debug_message( "removed $file.webp" );
+				} else {
+					/* translators: %s: file name */
+					die( wp_json_encode( array( 'error' => sprintf( esc_html__( 'Could not delete %s, please remove manually or fix permissions and try again.', 'ewww-image-optimizer' ), esc_html( $file . '.webp' ) ) ) ) );
+				}
+			}
+		}
+	} // End foreach().
+	die( wp_json_encode( array( 'completed' => $completed ) ) );
+}
+
+/**
+ * Cleans up WebP images via AJAX for a particular attachment.
+ *
+ * @global object $wpdb
+ * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
+ */
+function ewww_image_optimizer_delete_webp() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	// Verify that an authorized user has called function.
+	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
+	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-tools' ) || ! current_user_can( $permissions ) ) {
+		ewwwio_ob_clean();
+		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
+	}
+	global $wpdb;
+	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+		ewww_image_optimizer_db_init();
+		global $ewwwdb;
+	} else {
+		$ewwwdb = $wpdb;
+	}
+	if ( empty( $_POST['attachment_id'] ) ) {
+		die;
+	}
+
+	// Because some plugins might have loose filters (looking at you WPML).
+	remove_all_filters( 'wp_delete_file' );
+
+	$id = (int) $_POST['attachment_id'];
+	// Finds non-meta images to remove from disk, and from db, as well as converted originals.
+	$optimized_images = $ewwwdb->get_results( "SELECT path,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media'", ARRAY_A );
+	if ( $optimized_images ) {
+		if ( ewww_image_optimizer_iterable( $optimized_images ) ) {
+			foreach ( $optimized_images as $image ) {
+				if ( ! empty( $image['path'] ) ) {
+					$image['path'] = ewww_image_optimizer_absolutize_path( $image['path'] );
+				}
+				if ( ! empty( $image['path'] ) ) {
+					if ( ewwwio_is_file( $image['path'] . '.webp' ) ) {
+						ewwwio_debug_message( 'removing: ' . $image['path'] . '.webp' );
+						ewwwio_delete_file( $image['path'] . '.webp' );
+					}
+					$webpfileold = preg_replace( '/\.\w+$/', '.webp', $image['path'] );
+					if ( ewwwio_is_file( $webpfileold ) ) {
+						ewwwio_debug_message( 'removing: ' . $webpfileold );
+						ewwwio_delete_file( $webpfileold );
+					}
+				}
+				if ( ! empty( $image['converted'] ) && ewwwio_is_file( $image['converted'] . '.webp' ) ) {
+					ewwwio_debug_message( 'removing: ' . $image['converted'] . '.webp' );
+					ewwwio_delete_file( $image['converted'] . '.webp' );
+				}
+			}
+		}
+	}
+	$s3_path = false;
+	$s3_dir  = false;
+	if ( class_exists( 'S3_Uploads' ) ) {
+		$s3_path = get_attached_file( $id );
+		if ( 0 === strpos( $s3_path, 's3://' ) ) {
+			ewwwio_debug_message( 'removing: ' . $s3_path . '.webp' );
+			unlink( $s3_path . '.webp' );
+		}
+		$s3_dir = trailingslashit( dirname( $s3_path ) );
+	}
+	// Retrieve the image metadata.
+	$meta = wp_get_attachment_metadata( $id );
+	// If the attachment has an original file set.
+	if ( ! empty( $meta['orig_file'] ) ) {
+		// Get the filepath from the metadata.
+		$file_path = $meta['orig_file'];
+		// Get the base filename.
+		$filename = wp_basename( $file_path );
+		// Delete any residual webp versions.
+		$webpfile    = $file_path . '.webp';
+		$webpfileold = preg_replace( '/\.\w+$/', '.webp', $file_path );
+		if ( ewwwio_is_file( $webpfile ) ) {
+			ewwwio_debug_message( 'removing: ' . $webpfile );
+			ewwwio_delete_file( $webpfile );
+		}
+		if ( ewwwio_is_file( $webpfileold ) ) {
+			ewwwio_debug_message( 'removing: ' . $webpfileold );
+			ewwwio_delete_file( $webpfileold );
+		}
+	}
+	$file_path = get_attached_file( $id );
+	// If the attachment has an original file set.
+	if ( ! empty( $meta['original_image'] ) ) {
+		// One way or another, $file_path is now set, and we can get the base folder name.
+		$base_dir = dirname( $file_path ) . '/';
+		// Get the original filename from the metadata.
+		$orig_path = $base_dir . wp_basename( $meta['original_image'] );
+		// Delete any residual webp versions.
+		$webpfile = $orig_path . '.webp';
+		if ( ewwwio_is_file( $webpfile ) ) {
+			ewwwio_debug_message( 'removing: ' . $webpfile );
+			ewwwio_delete_file( $webpfile );
+		}
+		if ( $s3_path && $s3_dir && wp_basename( $meta['original_image'] ) ) {
+			ewwwio_debug_message( 'removing: ' . $s3_dir . wp_basename( $meta['original_image'] ) . '.webp' );
+			unlink( $s3_dir . wp_basename( $meta['original_image'] ) . '.webp' );
+		}
+	}
+	// Resized versions, so we can continue.
+	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
+		// One way or another, $file_path is now set, and we can get the base folder name.
+		$base_dir = dirname( $file_path ) . '/';
+		foreach ( $meta['sizes'] as $size => $data ) {
+			// Delete any residual webp versions.
+			$webpfile    = $base_dir . wp_basename( $data['file'] ) . '.webp';
+			$webpfileold = preg_replace( '/\.\w+$/', '.webp', $base_dir . wp_basename( $data['file'] ) );
+			if ( ewwwio_is_file( $webpfile ) ) {
+				ewwwio_debug_message( 'removing: ' . $webpfile );
+				ewwwio_delete_file( $webpfile );
+			}
+			if ( ewwwio_is_file( $webpfileold ) ) {
+				ewwwio_debug_message( 'removing: ' . $webpfileold );
+				ewwwio_delete_file( $webpfileold );
+			}
+			if ( $s3_path && $s3_dir && wp_basename( $data['file'] ) ) {
+				ewwwio_debug_message( 'removing: ' . $s3_dir . wp_basename( $data['file'] ) . '.webp' );
+				unlink( $s3_dir . wp_basename( $data['file'] ) . '.webp' );
+			}
+			// If the original resize is set, and still exists.
+			if ( ! empty( $data['orig_file'] ) && ewwwio_is_file( $base_dir . $data['orig_file'] ) . '.webp' ) {
+				ewwwio_debug_message( 'removing: ' . $base_dir . $data['orig_file'] . '.webp' );
+				ewwwio_delete_file( $base_dir . $data['orig_file'] . '.webp' );
+			}
+		}
+	}
+	if ( ewwwio_is_file( $file_path . '.webp' ) ) {
+		ewwwio_debug_message( 'removing: ' . $file_path . '.webp' );
+		ewwwio_delete_file( $image['path'] . '.webp' );
+	}
+	$webpfileold = preg_replace( '/\.\w+$/', '.webp', $file_path );
+	if ( ewwwio_is_file( $webpfileold ) ) {
+		ewwwio_debug_message( 'removing: ' . $webpfileold );
+		ewwwio_delete_file( $webpfileold );
+	}
+	die( wp_json_encode( array( 'completed' => 1 ) ) );
 }
 
 /**
@@ -498,7 +704,7 @@ function ewww_image_optimizer_aux_images_clean() {
 function ewww_image_optimizer_aux_meta_clean() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that an authorized user has called function.
-	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
+	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
 	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-tools' ) || ! current_user_can( $permissions ) ) {
 		ewwwio_ob_clean();
 		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
@@ -687,6 +893,27 @@ function ewww_image_optimizer_image_is_pending( $id, $gallery = 'media' ) {
 	global $wpdb;
 	$id = (int) $id;
 	return $wpdb->get_var( $wpdb->prepare( "SELECT attachment_id FROM $wpdb->ewwwio_queue WHERE attachment_id = %d AND gallery = %s", $id, $gallery ) );
+}
+
+/**
+ * Retrieve all the images (and PDFs) from the wp_posts table.
+ *
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_get_all_attachments() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
+	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-tools' ) || ! current_user_can( $permissions ) ) {
+		ewwwio_ob_clean();
+		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
+	}
+	global $wpdb;
+	$attachments = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%') ORDER BY ID DESC" );
+	if ( empty( $attachments ) || ! is_countable( $attachments ) || 0 === count( $attachments ) ) {
+		die( wp_json_encode( array( 'error' => esc_html__( 'No media uploads found.', 'ewww-image-optimizer' ) ) ) );
+	}
+	ewwwio_debug_message( gettype( $attachments ) );
+	die( wp_json_encode( $attachments ) );
 }
 
 /**
@@ -1307,9 +1534,12 @@ function ewww_image_optimizer_aux_images_cleanup( $auto = false ) {
 add_action( 'wp_ajax_bulk_aux_images_table', 'ewww_image_optimizer_aux_images_table' );
 add_action( 'wp_ajax_bulk_aux_images_table_count', 'ewww_image_optimizer_aux_images_table_count' );
 add_action( 'wp_ajax_bulk_aux_images_table_clear', 'ewww_image_optimizer_aux_images_clear_all' );
+add_action( 'wp_ajax_bulk_aux_images_remove', 'ewww_image_optimizer_aux_images_remove' );
 add_action( 'wp_ajax_bulk_aux_images_count_converted', 'ewww_image_optimizer_aux_images_count_converted' );
 add_action( 'wp_ajax_bulk_aux_images_converted_clean', 'ewww_image_optimizer_aux_images_converted_clean' );
 add_action( 'wp_ajax_bulk_aux_images_table_clean', 'ewww_image_optimizer_aux_images_clean' );
 add_action( 'wp_ajax_bulk_aux_images_meta_clean', 'ewww_image_optimizer_aux_meta_clean' );
-add_action( 'wp_ajax_bulk_aux_images_remove', 'ewww_image_optimizer_aux_images_remove' );
+add_action( 'wp_ajax_bulk_aux_images_webp_clean', 'ewww_image_optimizer_aux_images_webp_clean' );
+add_action( 'wp_ajax_bulk_aux_images_delete_webp', 'ewww_image_optimizer_delete_webp' );
+add_action( 'wp_ajax_ewwwio_get_all_attachments', 'ewww_image_optimizer_get_all_attachments' );
 ?>

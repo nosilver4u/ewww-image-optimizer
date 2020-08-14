@@ -298,11 +298,12 @@ jQuery(document).ready(function($) {
 		};
 		$.post(ajaxurl, ewww_converted_data, function(response) {
 			try {
-				var ewww_response = $.parseJSON(response);
+				var ewww_response = JSON.parse(response);
 			} catch (err) {
 				$('#ewww-clean-converted-progressbar').hide();
 				$('#ewww-clean-converted-progress').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
-				console.log( response );
+				console.log(err);
+				console.log(response);
 				return false;
 			}
 			if ( ewww_response.error ) {
@@ -318,6 +319,102 @@ jQuery(document).ready(function($) {
 			$('#ewww-clean-converted-progressbar').progressbar("option", "value", converted_offset);
 			$('#ewww-clean-converted-progress').html('<p>' + converted_offset + '/' + ewww_total_converted + '</p>');
 			ewwwRemoveOriginals(converted_offset);
+		});
+	}
+	var ewww_total_webp = 0;
+	var ewww_webp_attachments = false;
+	$('#ewww-clean-webp').submit(function() {
+		var ewww_webp_data = {
+			action: 'ewwwio_get_all_attachments',
+			ewww_wpnonce: ewww_vars._wpnonce,
+		};
+		$.post(ajaxurl, ewww_webp_data, function(response) {
+			try {
+				ewww_webp_attachments = JSON.parse(response);
+			} catch (err) {
+				$('#ewww-clean-webp-progress').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
+				console.log(err);
+				console.log(response);
+				return false;
+			}
+			ewww_total_webp = ewww_webp_attachments.length;
+			$('.ewww-tool-info').hide();
+			$('.ewww-tool-form').hide();
+			$('.ewww-tool-divider').hide();
+			$('#ewww-clean-webp-progressbar').progressbar({ max: ewww_total_webp });
+			$('#ewww-clean-webp-progress').html('<p>' + ewww_vars.stage1 + ' 0/' + ewww_total_webp + '</p>');
+			$('#ewww-clean-webp-progressbar').show();
+			$('#ewww-clean-webp-progress').show();
+			ewwwRemoveWebPByID();
+		});
+		return false;
+	});
+	function ewwwRemoveWebPByID(){
+		var attachment_id = ewww_webp_attachments.pop();
+		console.log('removing webp for attachment: ' + attachment_id);
+		var ewww_webp_data = {
+			action: 'bulk_aux_images_delete_webp',
+			ewww_wpnonce: ewww_vars._wpnonce,
+			attachment_id: attachment_id,
+		};
+		$.post(ajaxurl, ewww_webp_data, function(response) {
+			try {
+				var ewww_response = JSON.parse(response);
+			} catch (err) {
+				$('#ewww-clean-webp-progressbar').hide();
+				$('#ewww-clean-webp-progress').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
+				console.log(err);
+				console.log(response);
+				return false;
+			}
+			if ( ewww_response.error ) {
+				$('#ewww-clean-webp-progressbar').hide();
+				$('#ewww-clean-webp-progress').html('<span style="color: red"><b>' + ewww_response.error + '</b></span>');
+				return false;
+			}
+			if(!ewww_webp_attachments.length) {
+				ewww_total_webp = ewww_vars.image_count;
+				$('#ewww-clean-webp-progressbar').progressbar({ max: ewww_total_webp });
+				$('#ewww-clean-webp-progressbar').progressbar("option", "value", 0);
+				$('#ewww-clean-webp-progress').html('<p>' + ewww_vars.stage2 + ' 0/' + ewww_total_webp + '</p>');
+				ewwwRemoveWebP(0);
+				return false;
+			}
+			var completed = ewww_total_webp - ewww_webp_attachments.length;
+			$('#ewww-clean-webp-progressbar').progressbar("option", "value", completed);
+			$('#ewww-clean-webp-progress').html('<p>' + ewww_vars.stage1 + ' ' + completed + '/' + ewww_total_webp + '</p>');
+			ewwwRemoveWebPByID();
+		});
+	}
+	function ewwwRemoveWebP(webp_offset){
+		var ewww_webp_data = {
+			action: 'bulk_aux_images_webp_clean',
+			ewww_wpnonce: ewww_vars._wpnonce,
+			ewww_offset: webp_offset,
+		};
+		$.post(ajaxurl, ewww_webp_data, function(response) {
+			try {
+				var ewww_response = JSON.parse(response);
+			} catch (err) {
+				$('#ewww-clean-webp-progressbar').hide();
+				$('#ewww-clean-webp-progress').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
+				console.log(err);
+				console.log(response);
+				return false;
+			}
+			if ( ewww_response.error ) {
+				$('#ewww-clean-webp-progressbar').hide();
+				$('#ewww-clean-webp-progress').html('<span style="color: red"><b>' + ewww_response.error + '</b></span>');
+				return false;
+			}
+			if(ewww_response.finished) {
+				$('#ewww-clean-webp-progress').html(ewww_vars.finished);
+				return false;
+			}
+			webp_offset += ewww_response.completed;
+			$('#ewww-clean-webp-progressbar').progressbar("option", "value", webp_offset);
+			$('#ewww-clean-webp-progress').html('<p>' + ewww_vars.stage2 + ' ' + webp_offset + '/' + ewww_total_webp + '</p>');
+			ewwwRemoveWebP(webp_offset);
 		});
 	}
 	$('#ewww-clean-table').submit(function() {
