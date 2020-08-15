@@ -1253,6 +1253,15 @@ function ewww_image_optimizer_restapi_compat_check() {
 		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 		return;
 	}
+	if (
+		! empty( $GLOBALS['wp']->query_vars['rest_route'] ) &&
+		strpos( $GLOBALS['wp']->query_vars['rest_route'], '/media/' ) &&
+		preg_match( '/media\/\d+\/edit$/', $GLOBALS['wp']->query_vars['rest_route'] )
+	) {
+		ewwwio_debug_message( 'image edited via REST' );
+		global $ewww_preempt_editor;
+		$ewww_preempt_editor = true;
+	}
 }
 
 /**
