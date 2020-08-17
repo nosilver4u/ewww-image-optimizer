@@ -202,9 +202,11 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			'usemap',
 			'vspace',
 			'width',
+			'data-animation',
 			'data-attachment-id',
 			'data-caption',
 			'data-comments-opened',
+			'data-delay',
 			'data-event-trigger',
 			'data-height',
 			'data-highlight-color',
@@ -226,6 +228,8 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			'data-pin-id',
 			'data-pin-media',
 			'data-pin-url',
+			'data-shadow',
+			'data-shadow-direction',
 			'data-width',
 		);
 		foreach ( $attributes as $attribute ) {

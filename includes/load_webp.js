@@ -508,9 +508,11 @@ function ewwwLoadImages(ewww_webp_supported) {
 				'usemap',
 				'vspace',
 				'width',
+				'data-animation',
 				'data-attachment-id',
 				'data-caption',
 				'data-comments-opened',
+				'data-delay',
 				'data-event-trigger',
 				'data-height',
 				'data-highlight-color',
@@ -532,6 +534,8 @@ function ewwwLoadImages(ewww_webp_supported) {
 				'data-pin-id',
 				'data-pin-media',
 				'data-pin-url',
+				'data-shadow',
+				'data-shadow-direction',
 				'data-width',
 			];
 			for (var i = 0, len = attrs.length; i < len; i++) {
