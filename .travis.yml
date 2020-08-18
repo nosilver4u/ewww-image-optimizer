@@ -20,7 +20,8 @@ services:
 
 env:
   - WP_VERSION=latest WP_MULTISITE=0
-  - WP_VERSION=5.1 WP_MULTISITE=0
+  - WP_VERSION=5.4 WP_MULTISITE=0
+  - WP_VERSION=5.2 WP_MULTISITE=0
 
 jobs:
   include:
@@ -40,8 +41,6 @@ before_script:
   - |
     if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then
       composer global require phpunit/phpunit ^5
-    elif [[ ${WP_VERSION:0:3} == "5.0" ]]; then
-      composer global require phpunit/phpunit ^6
     else
       composer global require phpunit/phpunit ^7
     fi
