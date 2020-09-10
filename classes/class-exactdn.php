@@ -2941,7 +2941,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		}
 
 		/**
-		 * Adds link to header which enables DNS prefetching for faster speed.
+		 * Adds link to header which enables DNS prefetching and preconnect for faster speed.
 		 *
 		 * @param array  $hints A list of hints for a particular relationship type.
 		 * @param string $relationship_type The type of hint being filtered: dns-prefetch, preconnect, etc.
@@ -2949,6 +2949,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 */
 		function dns_prefetch( $hints, $relationship_type ) {
 			if ( 'dns-prefetch' === $relationship_type && $this->exactdn_domain ) {
+				$hints[] = '//' . $this->exactdn_domain;
+			}
+			if ( 'preconnect' === $relationship_type && $this->exactdn_domain ) {
 				$hints[] = '//' . $this->exactdn_domain;
 			}
 			return $hints;

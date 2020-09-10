@@ -319,6 +319,40 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			}
 			return false;
 		}
+
+		/**
+		 * Make sure this is really and truly a "front-end request", excluding page builders and such.
+		 *
+		 * @return bool True for front-end requests, false for admin/builder requests.
+		 */
+		function is_frontend() {
+			if ( is_admin() ) {
+				return false;
+			}
+			$uri = add_query_arg( null, null );
+			if (
+				strpos( $uri, 'cornerstone=' ) !== false ||
+				strpos( $uri, 'cornerstone-endpoint' ) !== false ||
+				strpos( $uri, 'ct_builder=' ) !== false ||
+				did_action( 'cornerstone_boot_app' ) || did_action( 'cs_before_preview_frame' ) ||
+				'/print/' === substr( $uri, -7 ) ||
+				strpos( $uri, 'elementor-preview=' ) !== false ||
+				strpos( $uri, 'et_fb=' ) !== false ||
+				strpos( $uri, 'vc_editable=' ) !== false ||
+				strpos( $uri, 'tatsu=' ) !== false ||
+				( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === sanitize_text_field( wp_unslash( $_POST['action'] ) ) ) || // phpcs:ignore WordPress.Security.NonceVerification
+				strpos( $uri, 'wp-login.php' ) !== false ||
+				is_embed() ||
+				is_feed() ||
+				is_preview() ||
+				is_customize_preview() ||
+				( defined( 'REST_REQUEST' ) && REST_REQUEST )
+			) {
+				return false;
+			}
+			return true;
+		}
+
 		/**
 		 * Check if file exists, and that it is local rather than using a protocol like http:// or phar://
 		 *

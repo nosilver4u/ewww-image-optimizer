@@ -54,7 +54,8 @@ function ewww_image_optimizer_exec_init() {
 		! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ||
 		defined( 'WPE_PLUGIN_VERSION' ) ||
 		defined( 'FLYWHEEL_CONFIG_DIR' ) ||
-		defined( 'KINSTAMU_VERSION' )
+		defined( 'KINSTAMU_VERSION' ) ||
+		defined( 'WPNET_INIT_PLUGIN_VERSION' )
 	) {
 		if (
 			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
@@ -170,6 +171,8 @@ function ewww_image_optimizer_notice_hosting_requires_api() {
 		$webhost = 'Flywheel';
 	} elseif ( defined( 'KINSTAMU_VERSION' ) ) {
 		$webhost = 'Kinsta';
+	} elseif ( defined( 'WPNET_INIT_PLUGIN_VERSION' ) ) {
+		$webhost = 'WPNET';
 	} else {
 		return;
 	}
@@ -532,7 +535,7 @@ function ewww_image_optimizer_dismiss_exec_notice() {
 	ewwwio_ob_clean();
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that the user is properly authorized.
-	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ) ) ) {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
 	update_option( 'ewww_image_optimizer_jpg_level', 10 );
@@ -2784,8 +2787,7 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
  */
 function ewww_image_optimizer_install_pngout_wrapper() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
-	if ( false === current_user_can( $permissions ) ) {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'You do not have permission to install image optimizer utilities.', 'ewww-image-optimizer' ) );
 	}
 	$sendback = ewww_image_optimizer_install_pngout();

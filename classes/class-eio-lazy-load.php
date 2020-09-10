@@ -108,6 +108,11 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				$this->allow_piip = is_writable( $this->piip_folder ) && $this->gd_support();
 			}
 
+			if ( ! apply_filters( 'wp_lazy_loading_enabled', true ) ) {
+				define( 'EWWWIO_DISABLE_NATIVE_LAZY', true );
+			}
+			add_filter( 'wp_lazy_loading_enabled', '__return_false' );
+
 			// Filter early, so that others at the default priority take precendence.
 			add_filter( 'eio_use_piip', array( $this, 'maybe_piip' ), 9 );
 			add_filter( 'eio_use_siip', array( $this, 'maybe_siip' ), 9 );
@@ -370,7 +375,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if (
 				( ! defined( 'EWWWIO_DISABLE_NATIVE_LAZY' ) || ! EWWWIO_DISABLE_NATIVE_LAZY ) &&
 				( ! defined( 'EASYIO_DISABLE_NATIVE_LAZY' ) || ! EASYIO_DISABLE_NATIVE_LAZY ) &&
-				apply_filters( 'wp_lazy_loading_enabled', true ) &&
 				! $disable_native_lazy
 			) {
 				$this->set_attribute( $image, 'loading', 'lazy' );
@@ -611,6 +615,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						'lazy-slider-img=',
 						'mgl-lazy',
 						'owl-lazy',
+						'preload-me',
 						'skip-lazy',
 						'timthumb.php?',
 						'wpcf7_captcha/',
@@ -831,7 +836,4 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			);
 		}
 	}
-
-	global $eio_lazy_load;
-	$eio_lazy_load = new EIO_Lazy_Load();
 }

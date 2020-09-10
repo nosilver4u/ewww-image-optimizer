@@ -244,6 +244,9 @@ function ewww_image_optimizer_parser_init() {
 		 * Lazy Load class for parsing image urls and rewriting them to defer off-screen images.
 		 */
 		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-lazy-load.php' );
+
+		global $eio_lazy_load;
+		$eio_lazy_load = new EIO_Lazy_Load();
 	}
 	// If Alt WebP Rewriting is enabled.
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
@@ -693,8 +696,7 @@ function ewww_image_optimizer_enable_background_optimization() {
  * Re-tests background optimization at a user's request.
  */
 function ewww_image_optimizer_retest_background_optimization() {
-	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' );
-	if ( false === current_user_can( $permissions ) ) {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
 	ewww_image_optimizer_enable_background_optimization();
@@ -8763,7 +8765,7 @@ function ewww_image_optimizer_dismiss_wc_regen() {
 	ewwwio_ob_clean();
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that the user is properly authorized.
-	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ) ) ) {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
 	delete_option( 'ewww_image_optimizer_wc_regen' );
@@ -8777,7 +8779,7 @@ function ewww_image_optimizer_dismiss_lr_sync() {
 	ewwwio_ob_clean();
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that the user is properly authorized.
-	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ) ) ) {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
 	delete_option( 'ewww_image_optimizer_lr_sync' );
@@ -8791,7 +8793,7 @@ function ewww_image_optimizer_dismiss_media_notice() {
 	ewwwio_ob_clean();
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that the user is properly authorized.
-	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ) ) ) {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
 	update_option( 'ewww_image_optimizer_dismiss_media_notice', true, false );
@@ -8806,7 +8808,7 @@ function ewww_image_optimizer_dismiss_review_notice() {
 	ewwwio_ob_clean();
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that the user is properly authorized.
-	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ) ) ) {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
 	update_option( 'ewww_image_optimizer_dismiss_review_notice', true, false );
@@ -9031,42 +9033,33 @@ function ewww_image_optimizer_settings_script( $hook ) {
 /**
  * Get a total of how much space we have saved so far.
  *
+ * @param bool $network_admin True if this is called from the network admin dashboard, false otherwise.
  * @global object $wpdb
  *
  * @return int The total savings found, in bytes.
  */
-function ewww_image_optimizer_savings() {
+function ewww_image_optimizer_savings( $network_admin = false ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
-	if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
-		// Need to include the plugin library for the is_plugin_active function.
-		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-	}
 	$total_orig    = 0;
 	$total_opt     = 0;
 	$total_savings = 0;
-	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
+	$started       = microtime( true );
+	if ( is_multisite() && $network_admin ) {
 		ewwwio_debug_message( 'querying savings for multi-site' );
 
 		if ( get_blog_count() > 1000 ) {
 			return 0;
 		}
 		if ( function_exists( 'get_sites' ) ) {
-			ewwwio_debug_message( 'retrieving list of sites the easy way (4.6+)' );
 			$blogs = get_sites(
 				array(
 					'fields' => 'ids',
 					'number' => 1000,
 				)
 			);
-		} elseif ( function_exists( 'wp_get_sites' ) ) {
-			ewwwio_debug_message( 'retrieving list of sites the easy way (pre 4.6)' );
-			$blogs = wp_get_sites(
-				array(
-					'network_id' => $wpdb->siteid,
-					'limit'      => 1000,
-				)
-			);
+		} else {
+			return 0;
 		}
 		if ( ewww_image_optimizer_iterable( $blogs ) ) {
 			foreach ( $blogs as $blog ) {
@@ -9108,6 +9101,8 @@ function ewww_image_optimizer_savings() {
 
 		$total_savings = $orig_size - $opt_size;
 	} // End if().
+	$elapsed = microtime( true ) - $started;
+	ewwwio_debug_message( "savings query took $elapsed seconds" );
 	ewwwio_debug_message( "total original size: $total_orig" );
 	ewwwio_debug_message( "total current(opt) size: $total_opt" );
 	ewwwio_debug_message( "savings found: $total_savings" );
@@ -9178,7 +9173,7 @@ function ewww_image_optimizer_webp_rewrite() {
 	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
-	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ) ) ) {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
 	$ewww_rules = ewww_image_optimizer_webp_rewrite_verify();
@@ -9202,7 +9197,7 @@ function ewww_image_optimizer_webp_unwrite() {
 	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
-	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ) ) ) {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
 	if ( insert_with_markers( ewww_image_optimizer_htaccess_path(), 'EWWWIO', '' ) ) {
@@ -9667,7 +9662,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	global $exactdn;
 	global $eio_alt_webp;
 	$total_savings = 0;
-	if ( false === strpos( $network, 'network-multisite' ) ) {
+	ewwwio_debug_message( "settings for $network" );
+	if ( 'network-multisite' === $network ) {
+		$total_sizes   = ewww_image_optimizer_savings( true );
+		$total_savings = $total_sizes[1] - $total_sizes[0];
+	} else {
 		$total_sizes   = ewww_image_optimizer_savings();
 		$total_savings = $total_sizes[1] - $total_sizes[0];
 	}
@@ -11377,7 +11376,7 @@ function ewww_image_optimizer_easy_active() {
  * @param boolean|string $redirect Should the plugin do a silent redirect back to the referring page? Default true.
  */
 function ewww_image_optimizer_remove_cloud_key( $redirect = true ) {
-	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' );
+	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
 	if ( 'none' !== $redirect && false === current_user_can( $permissions ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -11412,8 +11411,7 @@ function ewww_image_optimizer_remove_cloud_key( $redirect = true ) {
  * Enables Forced WebP for GIF images once the site is ready.
  */
 function ewww_image_optimizer_enable_force_gif2webp() {
-	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' );
-	if ( ! current_user_can( $permissions ) ) {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_force_gif2webp', true );
@@ -11426,7 +11424,7 @@ function ewww_image_optimizer_enable_force_gif2webp() {
  */
 function ewww_image_optimizer_resize_detection_script() {
 	if (
-		! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', 'edit_others_posts' ) ) ||
+		! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ||
 		( ! empty( $_SERVER['SCRIPT_NAME'] ) && 'wp-login.php' === basename( sanitize_text_field( wp_unslash( $_SERVER['SCRIPT_NAME'] ) ) ) )
 	) {
 		return;
@@ -11482,7 +11480,7 @@ function ewww_image_optimizer_is_amp() {
  */
 function ewww_image_optimizer_admin_bar_init() {
 	if (
-		! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', 'edit_others_posts' ) ) ||
+		! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ||
 		! is_admin_bar_showing() ||
 		( ! empty( $_SERVER['SCRIPT_NAME'] ) && 'wp-login.php' === basename( sanitize_text_field( wp_unslash( $_SERVER['SCRIPT_NAME'] ) ) ) ) ||
 		is_admin()
@@ -11496,9 +11494,10 @@ function ewww_image_optimizer_admin_bar_init() {
 
 /**
  * Adds a resize detection button to the wp admin bar.
+ *
+ * @param object $wp_admin_bar The WP Admin Bar object, passed by reference.
  */
-function ewww_image_optimizer_admin_bar_menu() {
-	global $wp_admin_bar;
+function ewww_image_optimizer_admin_bar_menu( $wp_admin_bar ) {
 	$wp_admin_bar->add_menu(
 		array(
 			'id'     => 'resize-detection',
@@ -11582,8 +11581,7 @@ function ewww_image_optimizer_debug_log() {
  * View the debug.log file from the wp-admin.
  */
 function ewww_image_optimizer_view_debug_log() {
-	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' );
-	if ( false === current_user_can( $permissions ) ) {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
 	if ( ewwwio_is_file( WP_CONTENT_DIR . '/ewww/debug.log' ) ) {
@@ -11599,8 +11597,7 @@ function ewww_image_optimizer_view_debug_log() {
  * Removes the debug.log file from the plugin folder.
  */
 function ewww_image_optimizer_delete_debug_log() {
-	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' );
-	if ( false === current_user_can( $permissions ) ) {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
 	if ( ewwwio_is_file( WP_CONTENT_DIR . '/ewww/debug.log' ) ) {
