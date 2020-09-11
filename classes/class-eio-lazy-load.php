@@ -235,7 +235,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 					$this->debug_message( 'AMP page processing' );
 				}
 				if ( $this->is_amp() ) {
-					ewwwio_debug_message( 'AMP page processing (is_amp)' );
+					$this->debug_message( 'AMP page processing (is_amp)' );
 				}
 				return $buffer;
 			}

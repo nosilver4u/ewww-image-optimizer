@@ -134,7 +134,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 5.7.1 =
 * added: alert on domain change for Easy IO, like if you clone from a production environment to staging
-* changed: Easy IO domain plan_id refresh automatically when visiting settings page
+* changed: Easy IO domain and plan_id refresh automatically when visiting settings page
 * changed: better JS WebP and WPBakery Page Builder compatibility
 * changed: restore savings gauge for network settings page
 * fixed: resize detection visible for editors, should be admin-only

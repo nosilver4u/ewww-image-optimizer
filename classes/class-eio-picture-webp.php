@@ -61,8 +61,12 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 
 		// Make sure gallery block images crop properly.
 		add_action( 'wp_head', array( $this, 'gallery_block_css' ) );
-		// Start an output buffer before any output starts.
-		add_filter( 'ewww_image_optimizer_filter_page_output', array( $this, 'filter_page_output' ), 10 );
+		// Hook onto the output buffer function.
+		if ( function_exists( 'swis' ) && swis()->settings->get_option( 'lazy_load' ) ) {
+			add_filter( 'swis_filter_page_output', array( $this, 'filter_page_output' ) );
+		} else {
+			add_filter( 'ewww_image_optimizer_filter_page_output', array( $this, 'filter_page_output' ), 10 );
+		}
 
 		$this->home_url = trailingslashit( get_site_url() );
 		ewwwio_debug_message( "home url: $this->home_url" );
@@ -108,6 +112,9 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 			}
 		}
 
+		if ( function_exists( 'swis' ) && swis()->settings->get_option( 'cdn_domain' ) ) {
+			$this->webp_paths[] = swis()->settings->get_option( 'cdn_domain' );
+		}
 		foreach ( $this->webp_paths as $webp_path ) {
 			$webp_domain = $this->parse_url( $webp_path, PHP_URL_HOST );
 			if ( $webp_domain ) {

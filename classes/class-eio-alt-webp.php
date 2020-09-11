@@ -124,6 +124,9 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			}
 		}
 
+		if ( function_exists( 'swis' ) && swis()->settings->get_option( 'cdn_domain' ) ) {
+			$this->webp_paths[] = swis()->settings->get_option( 'cdn_domain' );
+		}
 		foreach ( $this->webp_paths as $webp_path ) {
 			$webp_domain = $this->parse_url( $webp_path, PHP_URL_HOST );
 			if ( $webp_domain ) {

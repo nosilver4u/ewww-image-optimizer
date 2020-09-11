@@ -468,7 +468,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$exactdn_activate_error = $error_message;
 				add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_error' );
 				return false;
-			} elseif ( ! empty( $result['body'] ) && strpos( $result['body'], 'error' ) === false ) {
+			} elseif ( ! empty( $result['body'] ) && false === strpos( $result['body'], 'error' ) ) {
 				$response = json_decode( $result['body'], true );
 				if ( ! empty( $response['success'] ) ) {
 					if ( 2 === (int) $response['success'] ) {
@@ -493,6 +493,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$error_message = $response['error'];
 				$this->debug_message( "exactdn verification request failed: $error_message" );
 				$exactdn_activate_error = $error_message;
+				if ( false !== strpos( $error_message, 'not found' ) ) {
+					delete_option( $this->prefix . 'exactdn_domain' );
+					delete_site_option( $this->prefix . 'exactdn_domain' );
+				}
 				add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_error' );
 				return false;
 			}
