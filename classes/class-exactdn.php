@@ -112,7 +112,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			global $exactdn;
 			if ( is_object( $exactdn ) ) {
-				return 'you are doing it wrong';
+				$this->debug_message( 'you are doing it wrong' );
+				return;
 			}
 
 			// Bail out on customizer.
@@ -220,6 +221,12 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				return;
 			}
 			$this->upload_domain = $upload_url_parts['host'];
+			if ( ! $this->get_option( $this->prefix . 'exactdn_local_domain' ) ) {
+				$this->set_option( $this->prefix . 'exactdn_local_domain', $this->upload_domain );
+			}
+			if ( $this->get_option( $this->prefix . 'exactdn_local_domain' ) !== $this->upload_domain && is_admin() ) {
+				add_action( 'admin_notices', $this->prefix . 'notice_exactdn_domain_mismatch' );
+			}
 			$this->debug_message( "allowing images from here: $this->upload_domain" );
 			if (
 				( false !== strpos( $this->upload_domain, 'amazonaws.com' ) || false !== strpos( $this->upload_domain, 'storage.googleapis.com' ) ) &&

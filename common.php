@@ -1786,10 +1786,35 @@ function ewww_image_optimizer_notice_exactdn_activation_success() {
 }
 
 /**
- * Display a notice that PHP version 5.5 support is going away.
+ * Let the user know the local domain appears to have changed from what Easy IO has recorded in the db.
  */
-function ewww_image_optimizer_php55_warning() {
-	echo '<div id="ewww-image-optimizer-notice-php55" class="notice notice-info"><p><a href="https://docs.ewww.io/article/55-upgrading-php" target="_blank" data-beacon-article="5ab2baa6042863478ea7c2ae">' . esc_html__( 'The next major release of EWWW Image Optimizer will require PHP 5.6 or greater. Newer versions of PHP, like 7.1 and 7.2, are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</a></p></div>';
+function ewww_image_optimizer_notice_exactdn_domain_mismatch() {
+	global $exactdn;
+	if ( ! isset( $exactdn->upload_domain ) ) {
+		return;
+	}
+	?>
+	<div id="ewww-image-optimizer-notice-exactdn-domain-mismatch" class="notice notice-warning">
+		<p>
+	<?php
+			printf(
+				/* translators: 1: old domain name, 2: current domain name */
+				esc_html__( 'Easy IO detected that the Site URL has changed since the initial activation (previously %1$s, currently %2$s).', 'ewww-image-optimizer' ),
+				'<strong>' . esc_html( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn_local_domain' ) ) . '</strong>',
+				'<strong>' . esc_html( $exactdn->upload_domain ) . '</strong>'
+			);
+	?>
+			<br>
+		<?php
+		printf(
+			/* translators: %s: settings page */
+			esc_html__( 'Please visit the %s to refresh the Easy IO settings and verify activation status.', 'ewww-image-optimizer' ),
+			'<a href="' . esc_url( admin_url( 'options-general.php?page=ewww-image-optimizer-options' ) ) . '">' . esc_html__( 'settings page', 'ewww-image-optimizer' ) . '</a>'
+		);
+		?>
+		</p>
+	</div>
+	<?php
 }
 
 /**
@@ -1797,6 +1822,13 @@ function ewww_image_optimizer_php55_warning() {
  */
 function ewww_image_optimizer_notice_exactdn_sp_conflict() {
 	echo "<div id='ewww-image-optimizer-exactdn-sp' class='notice notice-warning'><p>" . esc_html__( 'ShortPixel image optimization has been disabled to prevent conflicts with Easy IO (EWWW Image Optimizer).', 'ewww-image-optimizer' ) . '</p></div>';
+}
+
+/**
+ * Display a notice that PHP version 5.5 support is going away.
+ */
+function ewww_image_optimizer_php55_warning() {
+	echo '<div id="ewww-image-optimizer-notice-php55" class="notice notice-info"><p><a href="https://docs.ewww.io/article/55-upgrading-php" target="_blank" data-beacon-article="5ab2baa6042863478ea7c2ae">' . esc_html__( 'The next major release of EWWW Image Optimizer will require PHP 5.6 or greater. Newer versions of PHP, like 7.1 and 7.2, are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</a></p></div>';
 }
 
 /**
@@ -9020,6 +9052,17 @@ function ewww_image_optimizer_settings_script( $hook ) {
 	if ( 'settings_page_ewww-image-optimizer-options' !== $hook ) {
 		return;
 	}
+	delete_option( 'ewww_image_optimizer_exactdn_checkin' );
+	global $exactdn;
+	if ( has_action( 'admin_notices', 'ewww_image_optimizer_notice_exactdn_domain_mismatch' ) ) {
+		delete_option( 'ewww_image_optimizer_exactdn_domain' );
+		delete_option( 'ewww_image_optimizer_exactdn_local_domain' );
+		delete_option( 'ewww_image_optimizer_exactdn_plan_id' );
+		delete_option( 'ewww_image_optimizer_exactdn_failures' );
+		delete_option( 'ewww_image_optimizer_exactdn_verified' );
+		remove_action( 'admin_notices', 'ewww_image_optimizer_notice_exactdn_domain_mismatch' );
+		$exactdn->setup();
+	}
 	add_thickbox();
 	wp_enqueue_script( 'jquery-ui-tooltip' );
 	wp_enqueue_script( 'ewwwbulkscript', plugins_url( '/includes/eio.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
@@ -9662,7 +9705,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	global $exactdn;
 	global $eio_alt_webp;
 	$total_savings = 0;
-	ewwwio_debug_message( "settings for $network" );
 	if ( 'network-multisite' === $network ) {
 		$total_sizes   = ewww_image_optimizer_savings( true );
 		$total_savings = $total_sizes[1] - $total_sizes[0];
