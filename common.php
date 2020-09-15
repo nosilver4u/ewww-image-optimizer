@@ -4014,7 +4014,7 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 		return false;
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
-		set_transient( 'ewww_image_optimizer_cloud_status', 'exceeded', 3600 );
+		set_transient( 'ewww_image_optimizer_cloud_status', 'exceeded', HOUR_IN_SECONDS );
 		ewwwio_debug_message( 'license exceeded notice has not expired' );
 		return 'exceeded';
 	}
@@ -4071,7 +4071,7 @@ function ewww_image_optimizer_cloud_verify( $cache = true, $api_key = '' ) {
 		ewwwio_memory( __FUNCTION__ );
 		return false;
 	} else {
-		set_transient( 'ewww_image_optimizer_cloud_status', $verified, 3600 );
+		set_transient( 'ewww_image_optimizer_cloud_status', $verified, HOUR_IN_SECONDS );
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) < 20 && ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) < 20 && ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) < 20 && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) ) {
 			ewww_image_optimizer_cloud_enable();
 		}
@@ -4413,7 +4413,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 			ewww_image_optimizer_remove_cloud_key( 'none' );
 		} elseif ( 100 > strlen( $response['body'] ) && strpos( $response['body'], 'exceeded' ) ) {
 			ewwwio_debug_message( 'License Exceeded' );
-			set_transient( 'ewww_image_optimizer_cloud_status', 'exceeded', 3600 );
+			set_transient( 'ewww_image_optimizer_cloud_status', 'exceeded', HOUR_IN_SECONDS );
 			$msg = 'exceeded';
 			ewwwio_delete_file( $tempfile );
 		} elseif ( ewww_image_optimizer_mimetype( $tempfile, 'i' ) === $type ) {
@@ -4545,7 +4545,7 @@ function ewww_image_optimizer_cloud_autorotate( $file, $type ) {
 		$newsize   = $orig_size;
 		if ( preg_match( '/exceeded/', $response['body'] ) ) {
 			ewwwio_debug_message( 'License Exceeded' );
-			set_transient( 'ewww_image_optimizer_cloud_status', 'exceeded', 3600 );
+			set_transient( 'ewww_image_optimizer_cloud_status', 'exceeded', HOUR_IN_SECONDS );
 			ewwwio_delete_file( $tempfile );
 		} elseif ( ewww_image_optimizer_mimetype( $tempfile, 'i' ) === $type ) {
 			$newsize = filesize( $tempfile );
@@ -5069,6 +5069,41 @@ function ewww_image_optimizer_check_table( $file, $orig_size ) {
 }
 
 /**
+ * Updates the savings statistics cache.
+ *
+ * @param int $opt_size The new size of the image.
+ * @param int $orig_size The original size of the image.
+ */
+function ewww_image_optimizer_update_savings( $opt_size, $orig_size ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( ! $opt_size || ! $orig_size ) {
+		return;
+	}
+	$cache_savings = get_transient( 'ewww_image_optimizer_savings' );
+	if ( ! empty( $cache_savings ) && is_array( $cache_savings ) && 2 === count( $cache_savings ) ) {
+		$total_opt  = (int) $cache_savings[0];
+		$total_orig = (int) $cache_savings[1];
+		ewwwio_debug_message( "increasing $total_opt by $opt_size" );
+		$total_opt += (int) $opt_size;
+		ewwwio_debug_message( "increasing $total_orig by $orig_size" );
+		$total_orig += (int) $orig_size;
+		set_transient( 'ewww_image_optimizer_savings', array( $total_opt, $total_orig ), DAY_IN_SECONDS );
+	}
+	if ( is_multisite() ) {
+		$cache_savings = get_site_transient( 'ewww_image_optimizer_savings' );
+		if ( ! empty( $cache_savings ) && is_array( $cache_savings ) && 2 === count( $cache_savings ) ) {
+			$total_opt  = (int) $cache_savings[0];
+			$total_orig = (int) $cache_savings[1];
+			ewwwio_debug_message( "increasing $total_opt by $opt_size" );
+			$total_opt += (int) $opt_size;
+			ewwwio_debug_message( "increasing $total_orig by $orig_size" );
+			$total_orig += (int) $orig_size;
+			set_site_transient( 'ewww_image_optimizer_savings', array( $total_opt, $total_orig ), DAY_IN_SECONDS );
+		}
+	}
+}
+
+/**
  * Inserts or updates an image record in the database.
  *
  * @global object $wpdb
@@ -5090,6 +5125,7 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 	} else {
 		$ewwwdb = $wpdb;
 	}
+	ewww_image_optimizer_update_savings( $opt_size, $orig_size );
 	global $ewww_image;
 	// First check if the image was converted, so we don't orphan records.
 	if ( $original && $original !== $attachment ) {
@@ -9089,6 +9125,11 @@ function ewww_image_optimizer_savings( $network_admin = false ) {
 	$total_savings = 0;
 	$started       = microtime( true );
 	if ( is_multisite() && $network_admin ) {
+		$cache_savings = get_site_transient( 'ewww_image_optimizer_savings' );
+		if ( ! empty( $cache_savings ) && is_array( $cache_savings ) && 2 === count( $cache_savings ) ) {
+			ewwwio_debug_message( 'savings query avoided via (multi-site) cache' );
+			return $cache_savings;
+		}
 		ewwwio_debug_message( 'querying savings for multi-site' );
 
 		if ( get_blog_count() > 1000 ) {
@@ -9130,7 +9171,13 @@ function ewww_image_optimizer_savings( $network_admin = false ) {
 				restore_current_blog();
 			}
 		}
+		set_site_transient( 'ewww_image_optimizer_savings', array( $total_opt, $total_orig ), DAY_IN_SECONDS );
 	} else {
+		$cache_savings = get_transient( 'ewww_image_optimizer_savings' );
+		if ( ! empty( $cache_savings ) && is_array( $cache_savings ) && 2 === count( $cache_savings ) ) {
+			ewwwio_debug_message( 'savings query avoided via (single-site) cache' );
+			return $cache_savings;
+		}
 		ewwwio_debug_message( 'querying savings for single site' );
 		$table_name = $wpdb->ewwwio_images;
 		ewwwio_debug_message( "table name is $table_name" );
@@ -9143,6 +9190,7 @@ function ewww_image_optimizer_savings( $network_admin = false ) {
 		$total_opt  += $opt_size;
 
 		$total_savings = $orig_size - $opt_size;
+		set_transient( 'ewww_image_optimizer_savings', array( $total_opt, $total_orig ), DAY_IN_SECONDS );
 	} // End if().
 	$elapsed = microtime( true ) - $started;
 	ewwwio_debug_message( "savings query took $elapsed seconds" );
@@ -10090,7 +10138,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<p><i><?php esc_html_e( 'Priority Support included with any purchase.', 'ewww-image-optimizer' ); ?></i></p>
 	<?php endif; ?>
 	<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
-							<p><strong><?php esc_html_e( 'Cloud optimization API Key', 'ewww-image-optimizer' ); ?></strong>
+							<p><strong><?php esc_html_e( 'Compress API Key', 'ewww-image-optimizer' ); ?></strong>
 		<?php if ( false !== strpos( $verify_cloud, 'great' ) ) : ?>
 								<span style="color: #3eadc9; font-weight: bolder"><?php esc_html_e( 'Verified,', 'ewww-image-optimizer' ); ?> </span><?php echo esc_html( ewww_image_optimizer_cloud_quota() ); ?>
 		<?php elseif ( false !== strpos( $verify_cloud, 'exceeded' ) ) : ?>
@@ -10120,6 +10168,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<p><b>Easy IO:</b>
 		<?php if ( $exactdn->get_exactdn_domain() && $exactdn->verify_domain( $exactdn->get_exactdn_domain() ) ) : ?>
 								<span style="color: #3eadc9; font-weight: bolder"><?php esc_html_e( 'Verified', 'ewww-image-optimizer' ); ?></span>
+								<br><?php echo esc_html( $exactdn->get_exactdn_domain() ); ?>
 		<?php elseif ( $exactdn->get_exactdn_domain() && $exactdn->get_exactdn_option( 'verified' ) ) : ?>
 								<span style="color: orange; font-weight: bolder"><?php esc_html_e( 'Temporarily disabled.', 'ewww-image-optimizer' ); ?></span>
 		<?php elseif ( $exactdn->get_exactdn_domain() && $exactdn->get_exactdn_option( 'suspended' ) ) : ?>
@@ -10132,7 +10181,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<?php endif; ?>
 							</p>
 	<?php elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && ! get_option( 'easyio_exactdn' ) ) : ?>
-							<p><span style="font-weight:bold;color:#3eadc9;">Easy IO:</span> <a href="https://ewww.io/resize/" target="_blank"><?php esc_html_e( 'Comprehensive image optimization with automatic compression, auto-sizing, WebP conversion, and lazy load.', 'ewww-image-optimizer' ); ?></a></p>
+							<p><span style="font-weight:bold;color:#3eadc9;">Easy IO:</span> <a href="https://ewww.io/easy/" target="_blank"><?php esc_html_e( 'Comprehensive image optimization with automatic compression, auto-sizing, WebP conversion, and lazy load.', 'ewww-image-optimizer' ); ?></a></p>
+	<?php endif; ?>
+	<?php if ( ! function_exists( 'swis' ) ) : ?>
+							<p><span style="font-weight:bold;color:#3eadc9;">SWIS Performance:</span> <a href="https://ewww.io/swis/" target="_blank"><?php esc_html_e( 'Go beyond image optimization with this collection of tools that I use for improving site speed.', 'ewww-image-optimizer' ); ?></a></p>
 	<?php endif; ?>
 							<p>
 								<strong><?php esc_html_e( 'Background optimization (faster uploads):', 'ewww-image-optimizer' ); ?></strong><br>
@@ -10281,7 +10333,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
 				<tr>
 					<th scope='row'>
-						<label for='ewww_image_optimizer_cloud_notkey'><?php esc_html_e( 'Optimization API Key', 'ewww-image-optimizer' ); ?></label>
+						<label for='ewww_image_optimizer_cloud_notkey'><?php esc_html_e( 'Compress API Key', 'ewww-image-optimizer' ); ?></label>
 					</th>
 					<td>
 						<input type='text' id='ewww_image_optimizer_cloud_notkey' name='ewww_image_optimizer_cloud_notkey' readonly='readonly' value='****************************<?php	echo esc_attr( substr( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), 28 ) ); ?>' size='32' />
@@ -10294,7 +10346,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	<?php else : ?>
 				<tr>
 					<th scope='row'>
-						<label for='ewww_image_optimizer_cloud_key'><?php esc_html_e( 'Optimization API Key', 'ewww-image-optimizer' ); ?></label>
+						<label for='ewww_image_optimizer_cloud_key'><?php esc_html_e( 'Compress API Key', 'ewww-image-optimizer' ); ?></label>
 						<?php ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2,5ad0c8e7042863075092650b,5a9efec62c7d3a7549516550' ); ?>
 					</th>
 					<td>
@@ -11255,20 +11307,14 @@ AddType image/webp .webp</pre>
 	echo '<h3>' . esc_html__( 'Hosting', 'ewww-image-optimizer' ) . '</h3>' .
 		'<p><a href="http://shareasale.com/r.cfm?b=917225&amp;u=1481701&amp;m=41388&amp;urllink=&amp;afftrack=">WP Engine</a>* - ' .
 			esc_html__( 'ewww.io is powered by WP Engine, and their performance is worth every penny. This is "managed WordPress hosting" at it\'s finest. 20% discount off your first payment with our link.', 'ewww-image-optimizer' ) .
-		'<br><a href="https://www.siteground.com/wordpress-hosting.htm?afcode=bd82f2335e9c794c1ba7ff4cc3a8b3fd">SiteGround</a>* - ' .
-			esc_html__( 'With their SuperCacher system, the performance is amazing, and their support is pretty good also. I\'ve only used their GoGeek plan, so that\'s what I recommend.', 'ewww-image-optimizer' ) .
 		'<br><a href="https://kinsta.com?kaid=OCKKBJARSDFR">Kinsta</a>* - ' .
 			esc_html__( 'Their performance is the same blazing speed as WP Engine, and the support is top notch as well. In addition, they offer SSH access with WP-CLI. Very solid offering and highly recommended.', 'ewww-image-optimizer' ) .
-		'<br><a href="http://www.a2hosting.com/?aid=b6322137">A2 Hosting</a>* - ' .
-			esc_html__( 'I use them for several sites and this is pretty much the fastest shared hosting money can buy.', 'ewww-image-optimizer' ) .
 		'<br><a href="https://vrlps.co/kXJu5yF/cp">Cloudways</a>* - ' .
 			esc_html__( 'Simple, yet powerful, managed VPS hosting. I use their hosting for a few client sites and performance is crazy fast. Support has been great any time I\'ve needed their assistance.', 'ewww-image-optimizer' ) .
 		'</p>' .
 		'<h3>' . esc_html__( 'Plugins and Services', 'ewww-image-optimizer' ) . '</h3>' .
 		'<p><a href="https://easydigitaldownloads.com/?ref=4735">Easy Digital Downloads</a>* - ' .
 			esc_html__( 'Sell digital products with a huge number of extensions for amazing flexibility. Naturally, this is how we sell our services and plugins.', 'ewww-image-optimizer' ) .
-		'<br><a href="https://tomasz-dobrzynski.com/wordpress-gonzales">Gonzales</a> - ' .
-			esc_html__( 'Lets you customize the loading of JS and CSS resources so that every page has only what is needed to operate.', 'ewww-image-optimizer' ) .
 		'<br><a href="https://www.helpscout.net/referral/?code=SVhaTmZDSSt2WG4xYS9FRmZrNllUa3RSR25VTStXcGhmaStQQ21QQjBDVmdZdz09OnoyVTFIUzBnbldtM21VMEM.">Helpscout</a>* - ' .
 			esc_html__( 'Treat your customers like people, not numbers, and keep them satisfied. Personal favorite feature is Traffic Cop that keeps you from sending a message if you receive another message from the customer while you are typing.', 'ewww-image-optimizer' ) .
 		'<br><a href="http://eepurl.com/cLPIeD">MailChimp</a>* - ' .
