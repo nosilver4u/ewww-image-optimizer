@@ -1,3 +1,12 @@
+= 5.7.1 =
+* added: alert on domain change for Easy IO, like if you clone from a production environment to staging
+* changed: Easy IO domain and plan_id refresh automatically when visiting settings page
+* changed: better JS WebP and WPBakery Page Builder compatibility
+* changed: restore savings gauge for network settings page
+* fixed: resize detection visible for editors, should be admin-only
+* fixed: (force) re-optimize not working with parallel mode
+* fixed: upload error when WP cannot load image editor
+
 = 5.7.0 =
 * added: cleanup tool if you no longer need local WebP copies of images
 * added: resizing results displayed in bulk & single optimization report

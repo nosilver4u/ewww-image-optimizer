@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.2
 Tested up to: 5.5
 Requires PHP: 5.6
-Stable tag: 5.7.0
+Stable tag: 5.7.1
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -138,6 +138,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * changed: better JS WebP and WPBakery Page Builder compatibility
 * changed: restore savings gauge for network settings page
 * fixed: resize detection visible for editors, should be admin-only
+* fixed: (force) re-optimize not working with parallel mode
+* fixed: upload error when WP cannot load image editor
 
 = 5.7.0 =
 * added: cleanup tool if you no longer need local WebP copies of images
@@ -149,27 +151,6 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: cannot skip to last page of re-optimized images
 * fixed: Scheduled Optimizer skips files that need scaling/resizing if they have already been compressed
 * fixed: Lazy Load placeholders not rewritten for CDN usage by Autoptimize and WP Offload Media Assets Add-on
-
-= 5.6.2 =
-* fixed: fatal error for undefined add_query_var
-
-= 5.6.1 =
-* changed: prevent unintentional image re-optimization from plugins with a threshold of 5x, indicate intential regen with ewww_image_optimizer_allowed_reopt filter
-* changed: include lazy load and WebP in optimization score
-* fixed: query paramaters added to videos via image_downsize filter
-* fixed: WP-CLI command triggers async queueing
-* fixed: WPML check skips too many images during bulk scanner
-* fixed: WP-CLI command options for FlAGallery and NextGEN using outdated code
-* fixed: re-optimization tracker not tracking
-
-= 5.6.0 =
-* added: if exec() is disabled, free cloud-based JPG compression will be enabled
-* added: tool to remove originals for converted images
-* changed: improved handling of WPML replicas in media library list mode and bulk optimizer
-* fixed: JS WebP, picture WebP, and Easy IO errors with WP Offload Media 2.4
-* fixed: JS WebP cannot find local paths when WP_CONTENT_DIR is outside ABSPATH
-* fixed: Easy IO hard crops images when requested height/width is 9999
-* fixed: Lazy Load and WebP parsers running on customizer preview pane
 
 = Earlier versions =
 Please refer to the separate changelog.txt file.

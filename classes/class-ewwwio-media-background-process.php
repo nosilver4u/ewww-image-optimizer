@@ -517,6 +517,7 @@ class EWWWIO_Async_Request extends WP_Async_Request {
 		session_write_close();
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		check_ajax_referer( $this->identifier, 'nonce' );
+		global $ewww_force;
 		if ( empty( $_POST['ewwwio_size'] ) ) {
 			$size = '';
 		} else {
@@ -530,7 +531,8 @@ class EWWWIO_Async_Request extends WP_Async_Request {
 		if ( empty( $_POST['ewwwio_id'] ) ) {
 			return;
 		}
-		$ewwwio_id = (int) $_POST['ewwwio_id'];
+		$ewww_force = ! empty( $_REQUEST['ewww_force'] ) ? true : false;
+		$ewwwio_id  = (int) $_POST['ewwwio_id'];
 		global $ewww_image;
 		$file_path = ewww_image_optimizer_find_file_by_id( $ewwwio_id );
 		if ( $file_path && 'full' === $size ) {

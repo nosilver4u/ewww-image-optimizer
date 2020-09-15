@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '570.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '571.0' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -6346,7 +6346,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
 
 	$editor = wp_get_image_editor( $file );
 	if ( is_wp_error( $editor ) ) {
-		$error_message = $resized_image->get_error_message();
+		$error_message = $editor->get_error_message();
 		ewwwio_debug_message( "could not get image editor: $error_message" );
 		/* translators: %s: a WP error message, translated elsewhere */
 		$ewwwio_resize_status = sprintf( __( 'Unable to load resize function: %s', 'ewww-image-optimizer' ), $error_message );
