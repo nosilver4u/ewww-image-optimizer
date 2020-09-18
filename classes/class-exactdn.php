@@ -2544,6 +2544,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( strpos( $image_url, 'easyio/lazy/placeholder' ) ) {
 				return array();
 			}
+			if ( strpos( $image_url, 'swis/lazy/placeholder' ) ) {
+				return array();
+			}
 			if ( strpos( $image_url, '/dummy.png' ) ) {
 				return array();
 			}
