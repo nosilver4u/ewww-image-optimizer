@@ -1087,6 +1087,9 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) ) {
 		$enabled_types[] = 'application/pdf';
 	}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ) ) {
+		$enabled_types[] = 'image/svg+xml';
+	}
 	foreach ( $iterator as $file ) {
 		if ( get_transient( 'ewww_image_optimizer_aux_iterator' ) && get_transient( 'ewww_image_optimizer_aux_iterator' ) > $file_counter ) {
 			continue;
@@ -1404,13 +1407,13 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 								}
 								$mimetype = ewww_image_optimizer_mimetype( $path, 'i' );
 								// This is a brand new image.
-								if ( preg_match( '/^image\/(jpeg|png|gif)/', $mimetype ) && empty( $already_optimized ) ) {
+								if ( preg_match( '/^image\/(jpeg|png|gif|svg\+xml)/', $mimetype ) && empty( $already_optimized ) ) {
 									$slide_paths[] = array(
 										'path'      => ewww_image_optimizer_relativize_path( $path ),
 										'orig_size' => $image_size,
 									);
 									// This is a changed image.
-								} elseif ( preg_match( '/^image\/(jpeg|png|gif)/', $mimetype ) && ! empty( $already_optimized ) && (int) $already_optimized['image_size'] !== $image_size ) {
+								} elseif ( preg_match( '/^image\/(jpeg|png|gif|svg\+xml)/', $mimetype ) && ! empty( $already_optimized ) && (int) $already_optimized['image_size'] !== $image_size ) {
 									$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->ewwwio_images SET pending = 1 WHERE id = %d", $already_optimized['id'] ) );
 								}
 							}
