@@ -3598,7 +3598,7 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 		ewwwio_memory( __FUNCTION__ );
 		return false;
 	} elseif ( ! empty( $result['body'] ) && strpos( $result['body'], 'missing' ) === false ) {
-		$enabled_types = array( 'image/jpeg', 'image/png', 'image/gif', 'application/pdf' );	// TODO: add image/svg+xml once svg is supported
+		$enabled_types = array( 'image/jpeg', 'image/png', 'image/gif', 'application/pdf' ); // TODO: add image/svg+xml once svg is supported.
 		if ( ! is_dir( dirname( $image['path'] ) ) ) {
 			wp_mkdir_p( dirname( $image['path'] ) );
 		}
@@ -3997,7 +3997,7 @@ function ewww_image_optimizer_cloud_enable() {
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_png_level', 20 );
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_gif_level', 10 );
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_pdf_level', 10 );
-	//ewww_image_optimizer_set_option( 'ewww_image_optimizer_svg_level', 20 );	// TODO: enable when cloud supports svg
+	// ewww_image_optimizer_set_option( 'ewww_image_optimizer_svg_level', 20 ); //TODO: enable when cloud supports svg.
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_backup_files', 1 );
 }
 
@@ -7430,7 +7430,7 @@ function ewww_image_optimizer_lr_sync_update( $meta, $id = null ) {
 		'image/png',
 		'image/gif',
 		'application/pdf',
-		'image/svg+xml'
+		'image/svg+xml',
 	);
 	if ( ! in_array( $type, $supported_types, true ) ) {
 		ewwwio_debug_message( "mimetype not supported: $id" );
@@ -8139,7 +8139,6 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 		}
 		$skip = ewww_image_optimizer_skip_tools();
 		// Run the appropriate code based on the mimetype.
-		error_log("$file_path>>>$type");
 		switch ( $type ) {
 			case 'image/jpeg':
 				// If jpegtran is missing and should not be skipped.
@@ -9972,12 +9971,12 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	}
 	$skip = ewww_image_optimizer_skip_tools();
 	if ( ewww_image_optimizer_easy_active() ) {
-		$skip['jpegtran'] = true;
-		$skip['optipng']  = true;
-		$skip['gifsicle'] = true;
-		$skip['pngout']   = true;
-		$skip['pngquant'] = true;
-		$skip['webp']     = true;
+		$skip['jpegtran']   = true;
+		$skip['optipng']    = true;
+		$skip['gifsicle']   = true;
+		$skip['pngout']     = true;
+		$skip['pngquant']   = true;
+		$skip['webp']       = true;
 		$skip['svgcleaner'] = true;
 	}
 	if ( ! $skip['jpegtran'] && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
@@ -10063,11 +10062,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			$svgcleaner_version = ewww_image_optimizer_tool_found( EWWW_IMAGE_OPTIMIZER_SVGCLEANER, 'p' );
 		}
 		if ( ! empty( $svgcleaner_version ) ) {
-			$speed_score += 0;	//TODO: not sure here so 0 increase
+			$speed_score += 0; // TODO: not sure here so 0 increase.
 		} else {
-			$speed_recommendations[] = __( 'Install svgcleaner', 'ewww-image-optimizer' ) . ': <a href="' . admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' ) . '">'
-				//. esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a> | <a href="https://docs.ewww.io/article/13-installing-pngout" data-beacon-article="5854531bc697912ffd6c1afa">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>' //TODO: reference article
-				;
+			$speed_recommendations[] = __( 'Install svgcleaner', 'ewww-image-optimizer' ) . ': <a href="' . admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' ) . '">';
+				// esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a> | <a href="https://docs.ewww.io/article/13-installing-pngout" data-beacon-article="5854531bc697912ffd6c1afa">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>' //TODO: create reference article.
 		}
 	}
 	if ( get_option( 'easyio_lazy_load' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ) {

@@ -489,9 +489,9 @@ function ewww_image_optimizer_skip_tools() {
 	$skip['optipng']  = false;
 	$skip['gifsicle'] = false;
 	// Except these which are off by default.
-	$skip['pngout']   = true;
-	$skip['pngquant'] = true;
-	$skip['webp']     = true;
+	$skip['pngout']     = true;
+	$skip['pngquant']   = true;
+	$skip['webp']       = true;
 	$skip['svgcleaner'] = true;
 	// If the user has disabled a tool, we aren't going to bother checking to see if it is there.
 	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) > 10 || ( defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) && EWWW_IMAGE_OPTIMIZER_NOEXEC ) ) {
@@ -744,12 +744,11 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 				/* translators: 1: automatically (link) 2: manually (link) */
 				esc_html__( 'You are missing svgleaner. Install %1$s or %2$s.', 'ewww-image-optimizer' ),
 				"<a href='" . esc_url( $svgcleaner_install_url ) . "'>" . esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
-				// TODO: provide article for installing svgcleaner
+				// TODO: provide article for installing svgcleaner.
 				'<a href="https://docs.ewww.io/article/13-installing-pngout" data-beacon-article="5854531bc697912ffd6c1afa">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>'
 			) .
 			'</p></div>';
-		}
-		else {
+		} else {
 			echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-error'><p>" .
 			sprintf(
 				/* translators: 1-6: jpegtran, optipng, pngout, pngquant, gifsicle, and cwebp (links) 7: Settings Page (link) 8: Installation Instructions (link) */
@@ -798,22 +797,22 @@ function ewww_image_optimizer_exec_check() {
  */
 function ewww_image_optimizer_path_check( $j = true, $o = true, $g = true, $p = true, $q = true, $w = true, $s = true ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	$jpegtran = false;
-	$optipng  = false;
-	$gifsicle = false;
-	$pngout   = false;
-	$pngquant = false;
-	$webp     = false;
+	$jpegtran   = false;
+	$optipng    = false;
+	$gifsicle   = false;
+	$pngout     = false;
+	$pngquant   = false;
+	$webp       = false;
 	$svgcleaner = false;
 	ewww_image_optimizer_define_noexec();
 	if ( EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
 		return array(
-			'JPEGTRAN' => false,
-			'OPTIPNG'  => false,
-			'GIFSICLE' => false,
-			'PNGOUT'   => false,
-			'PNGQUANT' => false,
-			'CWEBP'    => false,
+			'JPEGTRAN'   => false,
+			'OPTIPNG'    => false,
+			'GIFSICLE'   => false,
+			'PNGOUT'     => false,
+			'PNGQUANT'   => false,
+			'CWEBP'      => false,
 			'SVGCLEANER' => false,
 		);
 	}
@@ -994,12 +993,12 @@ function ewww_image_optimizer_path_check( $j = true, $o = true, $g = true, $p = 
 	}
 	ewwwio_memory( __FUNCTION__ );
 	return array(
-		'JPEGTRAN' => $jpegtran,
-		'OPTIPNG'  => $optipng,
-		'GIFSICLE' => $gifsicle,
-		'PNGOUT'   => $pngout,
-		'PNGQUANT' => $pngquant,
-		'CWEBP'    => $webp,
+		'JPEGTRAN'   => $jpegtran,
+		'OPTIPNG'    => $optipng,
+		'GIFSICLE'   => $gifsicle,
+		'PNGOUT'     => $pngout,
+		'PNGQUANT'   => $pngquant,
+		'CWEBP'      => $webp,
 		'SVGCLEANER' => $svgcleaner,
 	);
 }
@@ -1196,10 +1195,10 @@ function ewww_image_optimizer_md5check( $path ) {
 		'66568f3b31f8f22deef38aa6ba3d2be19516514e94b7d623cd2ce2a290ccdd69', // cwebp-sol   1.0.3, EWWW 5.1.0.
 		'e1041c5486fb4e57e31155c45d66117f8fc270e5a56a1049408a05f54bd52969', // cwebp.exe   1.0.3, EWWW 5.1.0.
 		// end cwebp.
-		'15d8b7d54b73059a9a63ab3d5ca8201cd30c2f6fc59fc068f7bd6c85e6a22420', // svgcleaner-linux 0.9.5
-		'c88c1961374b3edc93a29376ccbd447a514c1cda335fe6a868c0dac6d77c79fa', // svgcleaner-mac 0.9.5
-		'5f0b5d64e7975275cd8649f4b29bd0526ba06961aef92aa9812e26443e454fe0', // svgcleaner.exe 0.9.5
-		// end svgcleaner
+		'15d8b7d54b73059a9a63ab3d5ca8201cd30c2f6fc59fc068f7bd6c85e6a22420', // svgcleaner-linux 0.9.5.
+		'c88c1961374b3edc93a29376ccbd447a514c1cda335fe6a868c0dac6d77c79fa', // svgcleaner-mac 0.9.5.
+		'5f0b5d64e7975275cd8649f4b29bd0526ba06961aef92aa9812e26443e454fe0', // svgcleaner.exe 0.9.5.
+		// end svgcleaner.
 	);
 	foreach ( $valid_sums as $checksum ) {
 		if ( $checksum === $binary_sum ) {
@@ -1536,7 +1535,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 				return esc_html__( 'unknown', 'ewww-image-optimizer' );
 			}
 			break;
-		case 's': //svgcleaner
+		case 's': // svgcleaner.
 			exec( "$path --version 2>&1", $svgcleaner_version );
 			if ( ewww_image_optimizer_iterable( $svgcleaner_version ) ) {
 				ewwwio_debug_message( "$path: {$svgcleaner_version[0]}" );
@@ -1545,7 +1544,7 @@ function ewww_image_optimizer_tool_found( $path, $tool ) {
 				break;
 			}
 			if ( ! empty( $svgcleaner_version ) && strpos( $svgcleaner_version[0], 'svgcleaner' ) === 0 ) {
-				$svgcleaner_out = explode(" ", $svgcleaner_version[0]);
+				$svgcleaner_out = explode( ' ', $svgcleaner_version[0] );
 				ewwwio_debug_message( 'optimizer found' );
 				return $svgcleaner_out[1];
 			}
@@ -1927,13 +1926,13 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	}
 	$skip = ewww_image_optimizer_skip_tools();
 	if ( EWWW_IMAGE_OPTIMIZER_CLOUD ) {
-		$skip['jpegtran'] = true;
-		$skip['optipng']  = true;
-		$skip['gifsicle'] = true;
-		$skip['pngout']   = true;
-		$skip['pngquant'] = true;
-		$skip['webp']     = true;
-		$skip['svgcleaner'] = true;	// TODO: not sure here - cloud has no SVG support (yet)
+		$skip['jpegtran']   = true;
+		$skip['optipng']    = true;
+		$skip['gifsicle']   = true;
+		$skip['pngout']     = true;
+		$skip['pngquant']   = true;
+		$skip['webp']       = true;
+		$skip['svgcleaner'] = true; // TODO: not sure here - cloud has no SVG support (yet).
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_skip_full' ) && $fullsize ) {
 		$keep_metadata = true;
@@ -2789,8 +2788,9 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				$svgcleaner_options = array(
 					'--allow-bigger-file',
 				);
-				if ( $compression_level == 1 ) {
-					array_push($svgcleaner_options,
+				if ( 1 === $compression_level ) {
+					array_push(
+						$svgcleaner_options,
 						'--paths-to-relative=no',
 						'--remove-unused-segments=no',
 						'--convert-segments=no',
@@ -3114,7 +3114,7 @@ function ewww_image_optimizer_install_svgcleaner() {
 	if ( ! extension_loaded( 'zlib' ) || ! class_exists( 'PharData' ) ) {
 		$download_error = __( 'zlib or phar extension missing from PHP', 'ewww-image-optimizer' );
 	}
-	$os_chmod = true;
+	$os_chmod  = true;
 	$os_binary = 'svgcleaner';
 	if ( PHP_OS === 'Linux' ) {
 		$arch_type = 'x86_64';
@@ -3122,12 +3122,10 @@ function ewww_image_optimizer_install_svgcleaner() {
 			$arch_type = php_uname( 'm' );
 		}
 		$os_string = 'linux_' . $arch_type;
-	}
-	elseif ( PHP_OS === 'Darwin' ) {
+	} elseif ( PHP_OS === 'Darwin' ) {
 		$os_string = 'macos';
-	}
-	elseif ( PHP_OS === 'WINNT' ) {
-		$os_chmod = false;
+	} elseif ( PHP_OS === 'WINNT' ) {
+		$os_chmod  = false;
 		$os_string = 'win32';
 		$os_binary = 'svgcleaner.exe';
 	}
@@ -3146,8 +3144,8 @@ function ewww_image_optimizer_install_svgcleaner() {
 				rename( $download_result, $tmpname );
 				$download_result = $tmpname;
 
-				$pkg_gzipped  = new PharData( $download_result );
-				$pkg_tarball  = $pkg_gzipped->decompress();
+				$pkg_gzipped     = new PharData( $download_result );
+				$pkg_tarball     = $pkg_gzipped->decompress();
 				$download_result = $pkg_tarball->getPath();
 				$pkg_tarball->extractTo(
 					EWWW_IMAGE_OPTIMIZER_BINARY_PATH,
@@ -3157,7 +3155,7 @@ function ewww_image_optimizer_install_svgcleaner() {
 				if ( ewwwio_is_file( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . $os_binary ) ) {
 					if ( ! rename( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . $os_binary, $tool_path . $os_binary ) ) {
 						if ( empty( $download_error ) ) {
-							$download_error = __( 'could not move ' . $os_binary, 'ewww-image-optimizer' );
+							$download_error = __( 'could not move svgcleaner', 'ewww-image-optimizer' );
 						}
 					}
 					if ( $os_chmod && ! chmod( $tool_path . $os_binary, 0755 ) ) {
@@ -3186,7 +3184,7 @@ function ewww_image_optimizer_install_svgcleaner() {
 		$sendback = add_query_arg(
 			array(
 				'ewww_svgcleaner' => 'failed',
-				'ewww_error'  => urlencode( $download_error ),
+				'ewww_error'      => urlencode( $download_error ),
 			),
 			remove_query_arg( array( 'ewww_svgcleaner', 'ewww_error' ), wp_get_referer() )
 		);
