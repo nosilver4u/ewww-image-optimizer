@@ -300,10 +300,6 @@ if ( ! class_exists( 'ExactDN' ) ) {
 
 			$site_url = $this->content_url();
 			$home_url = home_url();
-			$originip = '';
-			if ( ! empty( $_SERVER['SERVER_ADDR'] ) ) {
-				$originip = sanitize_text_field( wp_unslash( $_SERVER['SERVER_ADDR'] ) );
-			}
 
 			$url = 'http://optimize.exactlywww.com/exactdn/activate.php';
 			$ssl = wp_http_supports( array( 'ssl' ) );
@@ -318,7 +314,6 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					'body'    => array(
 						'site_url' => $site_url,
 						'home_url' => $home_url,
-						'originip' => $originip,
 					),
 				)
 			);
@@ -404,7 +399,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 
 			$this->check_verify_method();
-			$this->set_exactdn_option( 'checkin', time() + 3600 );
+			$this->set_exactdn_option( 'checkin', time() + DAY_IN_SECONDS );
 
 			// Set a default error.
 			global $exactdn_activate_error;

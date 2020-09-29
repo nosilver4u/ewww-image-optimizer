@@ -2717,8 +2717,10 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 	} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
 		return '';
 	} elseif ( ! ewwwio_is_file( $file ) ) {
+		ewwwio_debug_message( 'original file not found' );
 		return esc_html__( 'Could not find file.', 'ewww-image-optimizer' );
 	} elseif ( ! is_writable( $file ) ) {
+		ewwwio_debug_message( 'original file not writable' );
 		return esc_html__( 'File is not writable.', 'ewww-image-optimizer' );
 	} elseif ( ewwwio_is_file( $webpfile ) && empty( $ewww_force ) && ! $recreate ) {
 		ewwwio_debug_message( 'webp file exists, not forcing or recreating' );
