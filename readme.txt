@@ -134,6 +134,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 5.7.2 =
 * fixed: Lazy Load and other front-end parsers breaks JSON-encoded img elements
+* fixed: Easy IO adds excess markup for images with height and/or width set to 'auto'
 
 = 5.7.1 =
 * added: alert on domain change for Easy IO, like if you clone from a production environment to staging

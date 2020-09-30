@@ -897,15 +897,16 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						// Find the width and height attributes.
 						$width  = $this->get_img_width( $images['img_tag'][ $index ] );
 						$height = $this->get_img_height( $images['img_tag'][ $index ] );
-						// Falsify them if empty.
-						$width  = $width ? $width : false;
-						$height = $height ? $height : false;
 
 						// Can't pass both a relative width and height, so unset the dimensions in favor of not breaking the horizontal layout.
 						if ( false !== strpos( $width, '%' ) && false !== strpos( $height, '%' ) ) {
 							$width  = false;
 							$height = false;
 						}
+
+						// Falsify them if empty.
+						$width  = $width && is_numeric( $width ) ? $width : false;
+						$height = $height && is_numeric( $height ) ? $height : false;
 
 						// Detect WP registered image size from HTML class.
 						if ( preg_match( '#class=["|\']?[^"\']*size-([^"\'\s]+)[^"\']*["|\']?#i', $images['img_tag'][ $index ], $size ) ) {
