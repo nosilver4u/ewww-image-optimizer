@@ -2767,9 +2767,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			);
 			// If svgcleaner is disabled.
 			$compression_level = 0;
-			if ( ! empty( $ewww_webp_only ) ) {
-				$optimize = false;
-			} elseif ( ! $skip['svgcleaner'] && ! $tools['SVGCLEANER'] ) {
+			if ( ! $skip['svgcleaner'] && ! $tools['SVGCLEANER'] ) {
 				/* translators: %s: name of a tool like jpegtran */
 				$result = sprintf( __( '%s is missing', 'ewww-image-optimizer' ), '<em>svgcleaner</em>' );
 			} else {
