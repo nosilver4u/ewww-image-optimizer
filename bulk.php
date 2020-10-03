@@ -241,7 +241,14 @@ function ewww_image_optimizer_bulk_preview() {
 		echo '<a id="ewww-bulk-credits-available" target="_blank" style="margin-left:20px" class="page-title-action" href="https://ewww.io/my-account/">' . esc_html__( 'Image credits available:', 'ewww-image-optimizer' ) . ' ' . esc_html( ewww_image_optimizer_cloud_quota() ) . '</a>';
 		echo '<hr class="wp-header-end">';
 	}
-	echo '<div id="ewww-bulk-warning" class="ewww-bulk-info notice notice-warning"><p>' . esc_html__( 'Bulk Optimization will alter your original images and cannot be undone. Please be sure you have a backup of your images before proceeding.', 'ewww-image-optimizer' ) . '</p></div>';
+	if (
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
+		ewww_image_optimizer_easy_active()
+	) {
+		echo '<div id="ewww-bulk-warning" class="ewww-bulk-info notice notice-warning"><p>' . esc_html__( 'Easy IO is automatically optimizing your site! Bulk Optimization of local images is not necessary unless you wish to save storage space. Please be sure you have a backup of your images before proceeding.', 'ewww-image-optimizer' ) . '</p></div>';
+	} else {
+		echo '<div id="ewww-bulk-warning" class="ewww-bulk-info notice notice-warning"><p>' . esc_html__( 'Bulk Optimization will alter your original images and cannot be undone. Please be sure you have a backup of your images before proceeding.', 'ewww-image-optimizer' ) . '</p></div>';
+	}
 	// Retrieve the value of the 'bulk resume' option and set the button text for the form to use.
 	$resume = get_option( 'ewww_image_optimizer_bulk_resume' );
 	if ( empty( $resume ) ) {
@@ -1889,7 +1896,7 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		// Gotta make sure we don't delete a pending record if the license is exceeded, so the license check goes first.
 		$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
 		if ( ! empty( $ewww_status ) && preg_match( '/exceeded/', $ewww_status ) ) {
-			$output['error'] = esc_html__( 'License Exceeded', 'ewww-image-optimizer' );
+			$output['error'] = '<a href="https://ewww.io/buy-credits/" target="_blank">' . esc_html__( 'License Exceeded', 'ewww-image-optimizer' ) . '</a>';
 			delete_transient( 'ewww_image_optimizer_bulk_counter_measures' );
 			delete_transient( 'ewww_image_optimizer_bulk_current_image' );
 			ewwwio_ob_clean();

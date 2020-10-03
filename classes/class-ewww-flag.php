@@ -614,7 +614,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			$fres        = ewww_image_optimizer( $file_path, 3, false, false, true );
 			$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
 			if ( ! empty( $ewww_status ) && preg_match( '/exceeded/', $ewww_status ) ) {
-				$output['error'] = esc_html__( 'License Exceeded', 'ewww-image-optimizer' );
+				$output['error'] = '<a href="https://ewww.io/buy-credits/" target="_blank">' . esc_html__( 'License Exceeded', 'ewww-image-optimizer' ) . '</a>';
 				ewwwio_ob_clean();
 				wp_die( wp_json_encode( $output ) );
 			}

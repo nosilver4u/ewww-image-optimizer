@@ -431,6 +431,12 @@ button.ewww-handlediv {
 .js .postbox.closed .ewww-handlediv .toggle-indicator:before {
 	content: "\f140";
 }
+.ewww-bulk-error {
+	color: red;
+}
+.ewww-bulk-error a, .ewww-bulk-error a:visited {
+	color: red;
+}
 #ewww-bulk-controls {
 	border: solid 1px #e5e5e5;
 	background: #fff;
@@ -551,6 +557,11 @@ ul.ewww-blocks li:first-child {
 	stroke: #3eadc9;
 	stroke-linecap: round;
 }
+#easyio-savings-guage .ewww-active {
+	stroke: #3eadc9;
+	stroke: #1d3c71;
+	stroke-linecap: round;
+}
 #ewww-compress-guage .ewww-score {
 	color: #444;
 }
@@ -571,6 +582,12 @@ ul.ewww-blocks li:first-child {
 #ewww-savings-guage .ewww-score {
 	font-size: 1rem;
 	color: #3eadc9;
+	white-space: nowrap;
+}
+#easyio-savings-guage .ewww-score {
+	font-size: 1rem;
+	color: #3eadc9;
+	color: #1d3c71;
 	white-space: nowrap;
 }
 .ewww-recommend {

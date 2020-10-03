@@ -288,7 +288,13 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			$success = $this->ewww_manage_image_custom_column( '', $image );
 			if ( get_transient( 'ewww_image_optimizer_cloud_status' ) === 'exceeded' || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
 				ewwwio_ob_clean();
-				wp_die( wp_json_encode( array( 'error' => esc_html__( 'License exceeded', 'ewww-image-optimizer' ) ) ) );
+				wp_die(
+					wp_json_encode(
+						array(
+							'error' => '<a href="https://ewww.io/buy-credits/" target="_blank">' . esc_html__( 'License exceeded', 'ewww-image-optimizer' ) . '</a>',
+						)
+					)
+				);
 			}
 			if ( ! wp_doing_ajax() ) {
 				// Get the referring page, and send the user back there.

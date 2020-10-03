@@ -2981,6 +2981,41 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 			return $domains;
 		}
+
+		/**
+		 * Checks the configured alias for savings information.
+		 *
+		 * @return array The original size of all images that have been compressed by Easy IO along with how much was saved.
+		 */
+		function savings() {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			$url = 'http://optimize.exactlywww.com/exactdn/savings.php';
+			$ssl = wp_http_supports( array( 'ssl' ) );
+			if ( $ssl ) {
+				$url = set_url_scheme( $url, 'https' );
+			}
+			add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', PHP_INT_MAX );
+			$result = wp_remote_post(
+				$url,
+				array(
+					'timeout' => 10,
+					'body'    => array(
+						'alias' => $this->exactdn_domain,
+					),
+				)
+			);
+			if ( is_wp_error( $result ) ) {
+				$error_message = $result->get_error_message();
+				$this->debug_message( "savings request failed: $error_message" );
+			} elseif ( ! empty( $result['body'] ) ) {
+				$this->debug_message( "savings data retrieved: {$result['body']}" );
+				$response = json_decode( $result['body'], true );
+				if ( is_array( $response ) && ! empty( $response['original'] ) && ! empty( $response['savings'] ) ) {
+					return $response;
+				}
+			}
+			return false;
+		}
 	}
 
 	global $exactdn;

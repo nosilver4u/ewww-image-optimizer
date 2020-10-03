@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '571.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '571.04' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -944,11 +944,21 @@ function ewww_image_optimizer_admin_init() {
 			add_action( 'admin_notices', 'ewww_image_optimizer_notice_exactdn_sp_conflict' );
 		}
 	}
+	global $exactdn;
+	if (
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_local_mode' ) &&
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
+		ewww_image_optimizer_easy_active()
+	) {
+		// Suppress the custom column in the media library if local mode is disabled and easy mode is active.
+		remove_filter( 'manage_media_columns', 'ewww_image_optimizer_columns' );
+	} else {
+		add_action( 'admin_notices', 'ewww_image_optimizer_notice_media_listmode' );
+	}
 
 	// Alert user if multiple re-optimizations detected.
 	add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
 	add_action( 'admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
-	add_action( 'admin_notices', 'ewww_image_optimizer_notice_media_listmode' );
 	if (
 		is_super_admin() &&
 		ewww_image_optimizer_get_option( 'ewww_image_optimizer_review_time' ) &&
@@ -3381,10 +3391,16 @@ function ewww_image_optimizer_manual() {
 	}
 	if ( get_transient( 'ewww_image_optimizer_cloud_status' ) === 'exceeded' || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
 		if ( ! wp_doing_ajax() ) {
-			wp_die( esc_html__( 'License exceeded', 'ewww-image-optimizer' ) );
+			wp_die( '<a href="https://ewww.io/buy-credits/" target="_blank">' . esc_html__( 'License exceeded', 'ewww-image-optimizer' ) . '</a>' );
 		}
 		ewwwio_ob_clean();
-		wp_die( wp_json_encode( array( 'error' => esc_html__( 'License exceeded', 'ewww-image-optimizer' ) ) ) );
+		wp_die(
+			wp_json_encode(
+				array(
+					'error' => '<a href="https://ewww.io/buy-credits/" target="_blank">' . esc_html__( 'License exceeded', 'ewww-image-optimizer' ) . '</a>',
+				)
+			)
+		);
 	}
 	$success = ewww_image_optimizer_custom_column_capture( 'ewww-image-optimizer', $attachment_id, $new_meta );
 	ewww_image_optimizer_debug_log();
@@ -5363,7 +5379,7 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 	$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
 	if ( ! empty( $ewww_status ) && preg_match( '/exceeded/', $ewww_status ) ) {
 		if ( ! $auto ) {
-			$output['error'] = esc_html__( 'License Exceeded', 'ewww-image-optimizer' );
+			$output['error'] = '<a href="https://ewww.io/buy-credits/" target="_blank">' . esc_html__( 'License Exceeded', 'ewww-image-optimizer' ) . '</a>';
 			echo wp_json_encode( $output );
 		}
 		if ( $cli ) {
@@ -7503,6 +7519,7 @@ function ewww_image_optimizer_as3cf_object_meta( $args ) {
 	}
 	return $args;
 }
+
 /**
  * Update the attachment's meta data after being converted.
  *
@@ -9851,6 +9868,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				$speed_score += 20;
 			}
 			$exactdn_enabled = true;
+			$exactdn_savings = $exactdn->savings();
 		}
 	} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
@@ -10125,8 +10143,24 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 								</svg>
 								<div class="ewww-score"><?php echo esc_html( ewww_image_optimizer_size_format( $total_savings, 2 ) ); ?></div>
 							</div><!-- end .ewww-guage -->
-							<p style="text-align:center"><strong><?php esc_html_e( 'Savings', 'ewww-image-optimizer' ); ?></strong></p>
+							<p style="text-align:center"><strong><?php esc_html_e( 'Local Compression Savings', 'ewww-image-optimizer' ); ?></strong></p>
 							<p><a href="<?php echo esc_url( admin_url( 'tools.php?page=ewww-image-optimizer-tools' ) ); ?>"><?php esc_html_e( 'View optimized images.', 'ewww-image-optimizer' ); ?></a></p>
+						</div><!-- end .ewww-status-detail --></li>
+	<?php } ?>
+	<?php
+	if ( $exactdn_enabled && ! empty( $exactdn_savings ) && ! empty( $exactdn_savings['original'] ) && ! empty( $exactdn_savings['savings'] ) ) {
+		$savings_stroke_dashoffset = $guage_stroke_dasharray * ( 1 - $exactdn_savings['savings'] / $exactdn_savings['original'] );
+		?>
+						<li><div id="easyio-savings" class="ewww-status-detail">
+							<div id="easyio-savings-guage" class="ewww-guage" data-score="<?php echo esc_attr( $exactdn_savings['savings'] / $exactdn_savings['original'] ); ?>">
+								<svg width="120" height="120">
+									<title><?php echo esc_html( round( $exactdn_savings['savings'] / $exactdn_savings['original'], 3 ) * 100 ); ?>%</title>
+									<circle class="ewww-inactive" r="54" cy="60" cx="60" stroke-width="12" />
+									<circle class="ewww-active" r="54" cy="60" cx="60" stroke-width="12" style="stroke-dasharray: <?php echo esc_attr( $guage_stroke_dasharray ); ?>px; stroke-dashoffset: <?php echo esc_attr( $savings_stroke_dashoffset ); ?>px;" />
+								</svg>
+								<div class="ewww-score"><?php echo esc_html( ewww_image_optimizer_size_format( $exactdn_savings['savings'], 2 ) ); ?></div>
+							</div><!-- end .ewww-guage -->
+							<p style="text-align:center"><strong><?php esc_html_e( 'Easy IO Savings', 'ewww-image-optimizer' ); ?></strong></p>
 						</div><!-- end .ewww-status-detail --></li>
 	<?php } ?>
 						<!-- begin notices section -->
@@ -10557,7 +10591,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<?php esc_html_e( 'CDN Included', 'ewww-image-optimizer' ); ?><br>
 	<?php if ( ! $exactdn_enabled ) : ?>
 							<strong>
-								<a href="https://ewww.io/resize/" target="_blank">
+								<a href="https://ewww.io/easy/" target="_blank">
 									<?php esc_html_e( 'Purchase a subscription for your site.', 'ewww-image-optimizer' ); ?>
 								</a>
 							</strong><br>

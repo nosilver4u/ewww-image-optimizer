@@ -349,7 +349,7 @@ jQuery(document).ready(function($) {
 					is_json = false;
 				}
 				if ( ! is_json ) {
-					$('#ewww-scanning').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
+					$('#ewww-scanning').html('<span class="ewww-bulk-error"><b>' + ewww_vars.invalid_response + '</b></span>');
 					console.log( response );
 					return false;
 				}
@@ -358,7 +358,7 @@ jQuery(document).ready(function($) {
 					ewww_wpnonce: ewww_vars._wpnonce,
 				};
 				if ( ewww_response.error ) {
-					$('#ewww-scanning').html('<span style="color: red"><b>' + ewww_response.error + '</b></span>');
+					$('#ewww-scanning').html('<span class="ewww-bulk-error"><b>' + ewww_response.error + '</b></span>');
 				} else if ( ewww_response.remaining ) {
 					$('.ewww-aux-table').hide();
 					$('#ewww-show-table').hide();
@@ -400,9 +400,9 @@ jQuery(document).ready(function($) {
 			.fail(function() {
 				ewww_scan_failures++;
 				if (ewww_scan_failures > 10) {
-					$('#ewww-scanning').html('<span style="color: red"><b>' + ewww_vars.scan_fail + ':</b> ' + ewww_vars.bulk_fail_more + '</span>');
+					$('#ewww-scanning').html('<span class="ewww-bulk-error"><b>' + ewww_vars.scan_fail + ':</b> ' + ewww_vars.bulk_fail_more + '</span>');
 				} else {
-					$('#ewww-scanning').html('<span style="color: red"><b>' + ewww_vars.scan_incomplete + '</b></span>');
+					$('#ewww-scanning').html('<span class="ewww-bulk-error"><b>' + ewww_vars.scan_incomplete + '</b></span>');
 					setTimeout(function() {
 						ewwwStartScan();
 					}, 1000);
@@ -453,12 +453,12 @@ jQuery(document).ready(function($) {
 				is_json = false;
 			}
 			if ( ! is_json || ! response ) {
-				$('#ewww-bulk-loading').append('<p style="color: red"><b>' + ewww_vars.invalid_response + '</b></p>');
+				$('#ewww-bulk-loading').append('<p class="ewww-bulk-error"><b>' + ewww_vars.invalid_response + '</b></p>');
 				console.log( response );
 				return false;
 			}
 			if ( ewww_init_response.error ) {
-				$('#ewww-bulk-loading').append('<p style="color: red"><b>' + ewww_init_response.error + '</b></p>');
+				$('#ewww-bulk-loading').append('<p class="ewww-bulk-error"><b>' + ewww_init_response.error + '</b></p>');
 				if ( ewww_init_response.data ) {
 					console.log( ewww_init_response.data );
 				}
@@ -500,7 +500,7 @@ jQuery(document).ready(function($) {
 				is_json = false;
 			}
 			if ( ! is_json || ! response ) {
-				$('#ewww-bulk-loading').append('<p style="color: red"><b>' + ewww_vars.invalid_response + '</b></p>');
+				$('#ewww-bulk-loading').append('<p class="ewww-bulk-error"><b>' + ewww_vars.invalid_response + '</b></p>');
 				clearInterval(ewww_quota_update);
 				clearInterval(ewww_countdown);
 				if ( ! response ) {
@@ -522,7 +522,12 @@ jQuery(document).ready(function($) {
 				$.post(ajaxurl, ewww_updatemeta_data);
 			}
 			if ( ewww_response.error ) {
-				$('#ewww-bulk-loading').append('<p style="color: red"><b>' + ewww_response.error + '</b></p>');
+				$('#ewww-bulk-loading img').hide();
+				$('#ewww-bulk-progressbar').hide();
+				$('#ewww-bulk-timer').hide();
+				$('#ewww-bulk-counter').hide();
+				$('#ewww-bulk-stop').hide();
+				$('#ewww-bulk-loading').append('<p class="ewww-bulk-error"><b>' + ewww_response.error + '</b></p>');
 				clearInterval(ewww_quota_update);
 				clearInterval(ewww_countdown);
 				ewwwUpdateQuota();
@@ -534,12 +539,12 @@ jQuery(document).ready(function($) {
 				}
 				clearInterval(ewww_quota_update);
 				clearInterval(ewww_countdown);
-				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.operation_stopped + '</b></p>');
+				$('#ewww-bulk-loading').html('<p class="ewww-bulk-error"><b>' + ewww_vars.operation_stopped + '</b></p>');
 			}
 			else if ( response == 0 ) {
 				clearInterval(ewww_quota_update);
 				clearInterval(ewww_countdown);
-				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.operation_stopped + '</b></p>');
+				$('#ewww-bulk-loading').html('<p class="ewww-bulk-error"><b>' + ewww_vars.operation_stopped + '</b></p>');
 			}
 			else if ( ewww_i < ewww_attachments && ! ewww_response.done ) {
 				if ( ewww_bulk_start_time && ewww_response.current_time ) {
@@ -588,9 +593,9 @@ jQuery(document).ready(function($) {
 	        })
 		.fail(function() {
 			if (ewww_error_counter == 0) {
-				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.operation_interrupted + ':</b> ' + ewww_vars.bulk_fail_more + '</p>');
+				$('#ewww-bulk-loading').html('<p class="ewww-bulk-error"><b>' + ewww_vars.operation_interrupted + ':</b> ' + ewww_vars.bulk_fail_more + '</p>');
 			} else {
-				$('#ewww-bulk-loading').html('<p style="color: red"><b>' + ewww_vars.temporary_failure + ' ' + ewww_error_counter + ' (' + ewww_vars.bulk_fail_more + ')</b></p>');
+				$('#ewww-bulk-loading').html('<p class="ewww-bulk-error"><b>' + ewww_vars.temporary_failure + ' ' + ewww_error_counter + ' (' + ewww_vars.bulk_fail_more + ')</b></p>');
 				ewww_error_counter--;
 				setTimeout(function() {
 					ewwwProcessImage();
