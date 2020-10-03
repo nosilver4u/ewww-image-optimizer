@@ -1019,6 +1019,9 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) ) {
 		$enabled_types[] = 'application/pdf';
 	}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ) ) {
+		$enabled_types[] = 'image/svg+xml';
+	}
 
 	ewww_image_optimizer_debug_log();
 	$starting_memory_usage = memory_get_usage( true );

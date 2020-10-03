@@ -765,6 +765,8 @@ function ewww_image_optimizer_admin_init() {
 			update_site_option( 'ewww_image_optimizer_gif_level', $ewww_image_optimizer_gif_level );
 			$ewww_image_optimizer_pdf_level = empty( $_POST['ewww_image_optimizer_pdf_level'] ) ? '' : (int) $_POST['ewww_image_optimizer_pdf_level'];
 			update_site_option( 'ewww_image_optimizer_pdf_level', $ewww_image_optimizer_pdf_level );
+			$ewww_image_optimizer_svg_level = empty( $_POST['ewww_image_optimizer_svg_level'] ) ? '' : (int) $_POST['ewww_image_optimizer_svg_level'];
+			update_site_option( 'ewww_image_optimizer_svg_level', $ewww_image_optimizer_svg_level );
 			$ewww_image_optimizer_delete_originals = ( empty( $_POST['ewww_image_optimizer_delete_originals'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_delete_originals', $ewww_image_optimizer_delete_originals );
 			$ewww_image_optimizer_jpg_to_png = ( empty( $_POST['ewww_image_optimizer_jpg_to_png'] ) ? false : true );
@@ -858,16 +860,19 @@ function ewww_image_optimizer_admin_init() {
 		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) &&
 		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) &&
 		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) &&
-		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' )
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) &&
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' )
 	) {
 		ewww_image_optimizer_set_defaults();
 		update_option( 'ewww_image_optimizer_disable_pngout', true );
+		update_option( 'ewww_image_optimizer_disable_svgcleaner', true );
 		update_option( 'ewww_image_optimizer_optipng_level', 2 );
 		update_option( 'ewww_image_optimizer_pngout_level', 2 );
 		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_jpg_level', '10' );
 		update_option( 'ewww_image_optimizer_png_level', '10' );
 		update_option( 'ewww_image_optimizer_gif_level', '10' );
+		update_option( 'ewww_image_optimizer_svg_level', 0 );
 	}
 	// Register all the common EWWW IO settings.
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_cloud_key', 'ewww_image_optimizer_cloud_key_sanitize' );
@@ -877,6 +882,7 @@ function ewww_image_optimizer_admin_init() {
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_png_level', 'intval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_gif_level', 'intval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_pdf_level', 'intval' );
+	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_svg_level', 'intval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_backup_files', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_enable_cloudinary', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_jpg_quality', 'ewww_image_optimizer_jpg_quality' );
@@ -982,6 +988,10 @@ function ewww_image_optimizer_admin_init() {
 	if ( ! empty( $_GET['ewww_pngout'] ) ) {
 		add_action( 'admin_notices', 'ewww_image_optimizer_pngout_installed' );
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_pngout_installed' );
+	}
+	if ( ! empty( $_GET['ewww_svgcleaner'] ) ) {
+		add_action( 'admin_notices', 'ewww_image_optimizer_svgcleaner_installed' );
+		add_action( 'network_admin_notices', 'ewww_image_optimizer_svgcleaner_installed' );
 	}
 	if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 		ewww_image_optimizer_privacy_policy_content();
@@ -1180,6 +1190,7 @@ function ewww_image_optimizer_single_size_optimize( $id, $size ) {
 		'image/png',
 		'image/gif',
 		'application/pdf',
+		'image/svg+xml',
 	);
 	if ( ! in_array( $type, $supported_types, true ) ) {
 		ewwwio_debug_message( "mimetype not supported: $id" );
@@ -1301,6 +1312,9 @@ function ewww_image_optimizer_disable_tools() {
 	}
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CWEBP' ) ) {
 		define( 'EWWW_IMAGE_OPTIMIZER_CWEBP', false );
+	}
+	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_SVGCLEANER' ) ) {
+		define( 'EWWW_IMAGE_OPTIMIZER_SVGCLEANER', false );
 	}
 	ewwwio_memory( __FUNCTION__ );
 }
@@ -1755,6 +1769,27 @@ function ewww_image_optimizer_pngout_installed() {
 			'<p>' . sprintf(
 				/* translators: 1: An error message 2: The folder where pngout should be installed */
 				esc_html__( 'Pngout was not installed: %1$s. Make sure this folder is writable: %2$s', 'ewww-image-optimizer' ),
+				( ! empty( $_REQUEST['ewww_error'] ) ? esc_html( sanitize_text_field( wp_unslash( $_REQUEST['ewww_error'] ) ) ) : esc_html( 'unknown error', 'ewww-image-optimizer' ) ), // phpcs:ignore WordPress.Security.NonceVerification
+				esc_html( EWWW_IMAGE_OPTIMIZER_TOOL_PATH )
+			) . "</p>\n" .
+			"</div>\n";
+	}
+}
+
+/**
+ * Display a success or failure message after SVGCLEANER installation.
+ */
+function ewww_image_optimizer_svgcleaner_installed() {
+	if ( ! empty( $_REQUEST['ewww_svgcleaner'] ) && 'success' === $_REQUEST['ewww_svgcleaner'] ) { // phpcs:ignore WordPress.Security.NonceVerification
+		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-success fade'>\n" .
+			'<p>' . esc_html__( 'Svgcleaner was successfully installed.', 'ewww-image-optimizer' ) . "</p>\n" .
+			"</div>\n";
+	}
+	if ( ! empty( $_REQUEST['ewww_svgcleaner'] ) && 'failed' === $_REQUEST['ewww_svgcleaner'] ) { // phpcs:ignore WordPress.Security.NonceVerification
+		echo "<div id='ewww-image-optimizer-pngout-failure' class='notice notice-error'>\n" .
+			'<p>' . sprintf(
+				/* translators: 1: An error message 2: The folder where svgcleaner should be installed */
+				esc_html__( 'Svgcleaner was not installed: %1$s. Make sure this folder is writable: %2$s', 'ewww-image-optimizer' ),
 				( ! empty( $_REQUEST['ewww_error'] ) ? esc_html( sanitize_text_field( wp_unslash( $_REQUEST['ewww_error'] ) ) ) : esc_html( 'unknown error', 'ewww-image-optimizer' ) ), // phpcs:ignore WordPress.Security.NonceVerification
 				esc_html( EWWW_IMAGE_OPTIMIZER_TOOL_PATH )
 			) . "</p>\n" .
@@ -3579,7 +3614,7 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 		ewwwio_memory( __FUNCTION__ );
 		return false;
 	} elseif ( ! empty( $result['body'] ) && strpos( $result['body'], 'missing' ) === false ) {
-		$enabled_types = array( 'image/jpeg', 'image/png', 'image/gif', 'application/pdf' );
+		$enabled_types = array( 'image/jpeg', 'image/png', 'image/gif', 'application/pdf' ); // TODO: add image/svg+xml once svg is supported.
 		if ( ! is_dir( dirname( $image['path'] ) ) ) {
 			wp_mkdir_p( dirname( $image['path'] ) );
 		}
@@ -3978,6 +4013,7 @@ function ewww_image_optimizer_cloud_enable() {
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_png_level', 20 );
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_gif_level', 10 );
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_pdf_level', 10 );
+	ewww_image_optimizer_set_option( 'ewww_image_optimizer_svg_level', 10 );
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_backup_files', 1 );
 }
 
@@ -6938,6 +6974,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		'image/png',
 		'image/gif',
 		'application/pdf',
+		'image/svg+xml',
 	);
 	if ( ! in_array( $type, $supported_types, true ) ) {
 		ewwwio_debug_message( "mimetype not supported: $id" );
@@ -7401,6 +7438,7 @@ function ewww_image_optimizer_lr_sync_update( $meta, $id = null ) {
 		'image/png',
 		'image/gif',
 		'application/pdf',
+		'image/svg+xml',
 	);
 	if ( ! in_array( $type, $supported_types, true ) ) {
 		ewwwio_debug_message( "mimetype not supported: $id" );
@@ -7613,14 +7651,17 @@ function ewww_image_optimizer_update_attachment( $meta, $id ) {
 			} // End if().
 		} // End foreach().
 	} // End if().
-	if ( preg_match( '/.jpg$/i', basename( $meta['file'] ) ) ) {
+	if ( preg_match( '/\.jpg$/i', basename( $meta['file'] ) ) ) {
 		$mime = 'image/jpeg';
 	}
-	if ( preg_match( '/.png$/i', basename( $meta['file'] ) ) ) {
+	if ( preg_match( '/\.png$/i', basename( $meta['file'] ) ) ) {
 		$mime = 'image/png';
 	}
-	if ( preg_match( '/.gif$/i', basename( $meta['file'] ) ) ) {
+	if ( preg_match( '/\.gif$/i', basename( $meta['file'] ) ) ) {
 		$mime = 'image/gif';
+	}
+	if ( preg_match( '/\.svg$/i', basename( $meta['file'] ) ) ) {
+		$mime = 'image/svg+xml';
 	}
 	// Update the attachment post with the new mimetype and id.
 	wp_update_post(
@@ -7876,6 +7917,8 @@ function ewww_image_optimizer_quick_mimetype( $path ) {
 			return 'image/webp';
 		case 'pdf':
 			return 'application/pdf';
+		case 'svg':
+			return 'image/svg+xml';
 		default:
 			if ( empty( $pathextension ) && ! ewww_image_optimizer_stream_wrapped( $path ) && ewwwio_is_file( $path ) ) {
 				return ewww_image_optimizer_mimetype( $path, 'i' );
@@ -8172,6 +8215,21 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 					) . '</div>';
 				} else {
 					$convert_desc = '';
+				}
+				break;
+			case 'image/svg+xml':
+				if ( ! $skip['svgcleaner'] && ! EWWW_IMAGE_OPTIMIZER_SVGCLEANER ) {
+					$msg = '<div>' . sprintf(
+						/* translators: %s: name of a tool like jpegtran */
+						__( '%s is missing', 'ewww-image-optimizer' ),
+						'<em>svgcleaner</em>'
+					) . '</div>';
+				} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ) ) {
+					$msg = '<div>' . sprintf(
+						/* translators: %s: JPG, PNG, GIF, PDF or SVG */
+						__( '%s compression disabled', 'ewww-image-optimizer' ),
+						'SVG'
+					) . '</div>';
 				}
 				break;
 			default:
@@ -8965,6 +9023,9 @@ function ewww_image_optimizer_get_level( $type ) {
 	if ( 'application/pdf' === $type ) {
 		return (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' );
 	}
+	if ( 'image/svg+xml' === $type ) {
+		return (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' );
+	}
 	return 0;
 }
 
@@ -9583,6 +9644,7 @@ function ewwwio_debug_info() {
 	ewwwio_debug_message( 'png level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) );
 	ewwwio_debug_message( 'gif level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) );
 	ewwwio_debug_message( 'pdf level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) );
+	ewwwio_debug_message( 'svg level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ) );
 	ewwwio_debug_message( 'bulk delay: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' ) );
 	ewwwio_debug_message( 'backup mode: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'cloudinary upload: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_cloudinary' ) ? 'on' : 'off' ) );
@@ -9603,6 +9665,7 @@ function ewwwio_debug_info() {
 		ewwwio_debug_message( 'optipng level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_optipng_level' ) );
 		ewwwio_debug_message( 'pngout disabled: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_pngout' ) ? 'yes' : 'no' ) );
 		ewwwio_debug_message( 'pngout level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_pngout_level' ) );
+		ewwwio_debug_message( 'svgcleaner disabled: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_svgcleaner' ) ? 'yes' : 'no' ) );
 	}
 	ewwwio_debug_message( 'effective quality: ' . ewww_image_optimizer_set_jpg_quality( 82 ) );
 	ewwwio_debug_message( 'parallel optimization: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_parallel_optimization' ) ? 'on' : 'off' ) );
@@ -9917,12 +9980,13 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	}
 	$skip = ewww_image_optimizer_skip_tools();
 	if ( ewww_image_optimizer_easy_active() ) {
-		$skip['jpegtran'] = true;
-		$skip['optipng']  = true;
-		$skip['gifsicle'] = true;
-		$skip['pngout']   = true;
-		$skip['pngquant'] = true;
-		$skip['webp']     = true;
+		$skip['jpegtran']   = true;
+		$skip['optipng']    = true;
+		$skip['gifsicle']   = true;
+		$skip['pngout']     = true;
+		$skip['pngquant']   = true;
+		$skip['webp']       = true;
+		$skip['svgcleaner'] = true;
 	}
 	if ( ! $skip['jpegtran'] && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
 		if ( EWWW_IMAGE_OPTIMIZER_JPEGTRAN ) {
@@ -10000,6 +10064,15 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			$speed_score += 10;
 		} else {
 			$speed_recommendations[] = __( 'Install WebP.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something', '585371e3c697912ffd6c0ba1' );
+		}
+	}
+	if ( ! $skip['svgcleaner'] && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
+
+		if ( EWWW_IMAGE_OPTIMIZER_SVGCLEANER ) {
+			$svgcleaner_version = ewww_image_optimizer_tool_found( EWWW_IMAGE_OPTIMIZER_SVGCLEANER, 's' );
+		}
+		if ( empty( $svgcleaner_version ) ) {
+			$speed_recommendations[] = '<a href="' . admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' ) . '">' . __( 'Install svgcleaner', 'ewww-image-optimizer' ) . '</a>';
 		}
 	}
 	if ( get_option( 'easyio_lazy_load' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ) {
@@ -10316,6 +10389,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			<input type='hidden' id='ewww_image_optimizer_png_level' name='ewww_image_optimizer_png_level' value='<?php echo (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ); ?>'>
 			<input type='hidden' id='ewww_image_optimizer_gif_level' name='ewww_image_optimizer_gif_level' value='<?php echo (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ); ?>'>
 			<input type='hidden' id='ewww_image_optimizer_pdf_level' name='ewww_image_optimizer_pdf_level' value='<?php echo (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ); ?>'>
+			<input type='hidden' id='ewww_image_optimizer_svg_level' name='ewww_image_optimizer_svg_level' value='<?php echo (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ); ?>'>
 	<?php elseif ( 'singlesite' === $network && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) : ?>
 			<p><strong><?php esc_html_e( 'Easy IO is optimizing your site, no more configuration needed!', 'ewww-image-optimizer' ); ?></strong><br>
 		<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
@@ -10491,6 +10565,29 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 								<?php esc_html_e( 'High Compression', 'ewww-image-optimizer' ); ?> *
 							</option>
 						</select>
+					</td>
+				</tr>
+	<?php $disable_svg_level = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_svgcleaner' ); ?>
+				<tr>
+					<th scope='row'>
+						<label for='ewww_image_optimizer_svg_level'><?php esc_html_e( 'SVG Optimization Level', 'ewww-image-optimizer' ); ?></label>
+						<?php ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ); ?>
+					</th>
+					<td>
+						<select id='ewww_image_optimizer_svg_level' name='ewww_image_optimizer_svg_level'>
+							<option value='0' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ), 0 ); ?>>
+								<?php esc_html_e( 'No Compression', 'ewww-image-optimizer' ); ?>
+							</option>
+							<option <?php disabled( $disable_svg_level ); ?> value='1' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ), 1 ); ?>>
+								<?php esc_html_e( 'Minimal', 'ewww-image-optimizer' ); ?>
+							</option>
+							<option <?php disabled( $disable_svg_level ); ?> value='10' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ), 10 ); ?>>
+								<?php esc_html_e( 'Default', 'ewww-image-optimizer' ); ?>
+							</option>
+						</select>
+	<?php if ( $disable_svg_level ) : ?>
+						<a href="<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' ) ); ?>"><?php esc_html_e( 'Install svgcleaner', 'ewww-image-optimizer' ); ?></a>
+	<?php endif; ?>
 					</td>
 				</tr>
 				<tr>
@@ -11518,6 +11615,9 @@ function ewww_image_optimizer_remove_cloud_key( $redirect = true ) {
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) > 0 ) {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_pdf_level', 0 );
+	}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_svgcleaner' ) ) {
+		ewww_image_optimizer_set_option( 'ewww_image_optimizer_svg_level', 0 );
 	}
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_exceeded', 0 );
 	delete_transient( 'ewww_image_optimizer_cloud_status' );
