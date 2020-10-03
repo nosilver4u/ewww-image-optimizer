@@ -2777,12 +2777,33 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					$optimize = true;
 				}
 			}
+			// Check for previous optimization, so long as the force flag is not on and this isn't a new image that needs converting.
+			if ( empty( $ewww_force ) && ! $new ) {
+				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
+				$smart_reopt = ! empty( $ewww_force_smart ) && ewww_image_optimizer_level_mismatch( $ewww_image->level, $compression_level ) ? true : false;
+				if ( $smart_reopt ) {
+					ewwwio_debug_message( "smart re-opt found level mismatch for $file, db says " . $ewww_image->level . " vs. current $compression_level" );
+					// If the current compression level is less than what was previously used, and the previous level was premium (or premium plus).
+					if ( $compression_level && $compression_level < $ewww_image->level && $ewww_image->level > 0 ) {
+						ewwwio_debug_message( "smart re-opt triggering restoration for $file" );
+						ewww_image_optimizer_cloud_restore_single_image( $ewww_image->record );
+					}
+				} elseif ( $results_msg ) {
+					return array( $file, $results_msg, $converted, $original );
+				}
+			}
+			$ewww_image->level = $compression_level;
+			if ( $compression_level > 0 ) {
+				list( $file, $converted, $result, $new_size, $backup_hash ) = ewww_image_optimizer_cloud_optimizer( $file, $type );
+				break;
+			}
 			// If optimization is turned ON.
 			if ( $optimize ) {
 				$tempfile = $file . '.tmp.svg'; // temporary SVG output (must end with .svg)
 				// Run svgcleaner on the SVG.
 				$svgcleaner_options = array(
 					'--allow-bigger-file',
+					'--quiet',
 				);
 				if ( 1 === $compression_level ) {
 					array_push(
@@ -3179,7 +3200,7 @@ function ewww_image_optimizer_install_svgcleaner() {
 		unlink( $download_result );
 	}
 	if ( ! empty( $pkg_version ) ) {
-		update_option( 'ewww_image_optimizer_disable_svgcleaner', false );
+		ewww_image_optimizer_set_option( 'ewww_image_optimizer_disable_svgcleaner', false );
 		$sendback = add_query_arg( 'ewww_svgcleaner', 'success', remove_query_arg( array( 'ewww_svgcleaner', 'ewww_error' ), wp_get_referer() ) );
 	}
 	if ( ! isset( $sendback ) ) {

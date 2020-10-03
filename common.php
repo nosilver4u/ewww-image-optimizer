@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '571.04' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '571.05' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -4344,10 +4344,12 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	if ( $jpg_quality < 50 ) {
 		$jpg_quality = 82;
 	}
-	if ( 30 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
+	$png_compress = 0;
+	if ( 'image/svg+xml' === $type && 10 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ) ) {
 		$png_compress = 1;
-	} else {
-		$png_compress = 0;
+	}
+	if ( 'image/png' === $type && 30 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
+		$png_compress = 1;
 	}
 	if ( ! $webp && ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' )
 			&& strpos( $file, '/wp-admin/' ) === false
@@ -6846,6 +6848,9 @@ function ewww_image_optimizer_test_parallel_opt( $type = '', $id = 0 ) {
 	if ( 'application/pdf' === $type ) {
 		return false;
 	}
+	if ( 'image/svg+xml' === $type ) {
+		return false;
+	}
 	return true;
 }
 
@@ -7037,9 +7042,12 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 			$meta['height'] = $new_dimensions[1];
 		}
 	}
-	// This gets a bit long, so here goes:
-	// we run in parallel if we didn't detect breakage (test_parallel_opt), and there are enough resizes to make it worthwhile (or if the API is enabled).
-	if ( ewww_image_optimizer_test_parallel_opt( $type, $id ) && isset( $meta['sizes'] ) && ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) || count( $meta['sizes'] ) > 5 ) ) {
+	// Run in parallel if it's enabled+safe (test_parallel_opt), and there are enough resizes to make it worthwhile or if the API is enabled.
+	if (
+		ewww_image_optimizer_test_parallel_opt( $type, $id ) &&
+		isset( $meta['sizes'] ) &&
+		( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) || count( $meta['sizes'] ) > 5 )
+	) {
 		ewwwio_debug_message( 'running in parallel' );
 		$parallel_opt = true;
 	} else {
@@ -7160,6 +7168,11 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 			if ( 'application/pdf' === $type && 'full' === $size ) {
 				$size = 'pdf-full';
 				ewwwio_debug_message( 'processing full size pdf preview' );
+			}
+			// Because some SVG plugins populate the resizes with the original path (since SVG is "scalable", of course).
+			// Though it could happen for other types perhaps...
+			if ( $resize_path === $file_path ) {
+				continue;
 			}
 			if ( $parallel_opt && ewwwio_is_file( $resize_path ) ) {
 				$parallel_sizes[ $size ] = $resize_path;
@@ -10585,7 +10598,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 								<?php esc_html_e( 'Default', 'ewww-image-optimizer' ); ?>
 							</option>
 						</select>
-	<?php if ( $disable_svg_level ) : ?>
+	<?php if ( $disable_svg_level || empty( $svgcleaner_version ) ) : ?>
 						<a href="<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' ) ); ?>"><?php esc_html_e( 'Install svgcleaner', 'ewww-image-optimizer' ); ?></a>
 	<?php endif; ?>
 					</td>
