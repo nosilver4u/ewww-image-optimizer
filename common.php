@@ -11582,7 +11582,7 @@ function ewww_image_optimizer_remove_cloud_key( $redirect = true ) {
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) > 0 ) {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_pdf_level', 0 );
 	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ) > 0 ) {
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_svgcleaner' ) ) {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_svg_level', 0 );
 	}
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_exceeded', 0 );
