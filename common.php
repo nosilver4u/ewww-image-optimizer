@@ -10053,7 +10053,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		if ( EWWW_IMAGE_OPTIMIZER_SVGCLEANER ) {
 			$svgcleaner_version = ewww_image_optimizer_tool_found( EWWW_IMAGE_OPTIMIZER_SVGCLEANER, 's' );
 		}
-		if ( ! empty( $svgcleaner_version ) ) {
+		if ( empty( $svgcleaner_version ) ) {
 			$speed_recommendations[] = '<a href="' . admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' ) . '">' . __( 'Install svgcleaner', 'ewww-image-optimizer' ) . '</a>';
 		}
 	}
