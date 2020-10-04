@@ -742,8 +742,7 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 				/* translators: 1: automatically (link) 2: manually (link) */
 				esc_html__( 'You are missing svgleaner. Install %1$s or %2$s.', 'ewww-image-optimizer' ),
 				"<a href='" . esc_url( $svgcleaner_install_url ) . "'>" . esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
-				// TODO: provide article for installing svgcleaner.
-				'<a href="https://docs.ewww.io/article/13-installing-pngout" data-beacon-article="5854531bc697912ffd6c1afa">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>'
+				'<a href="https://docs.ewww.io/article/95-installing-svgcleaner" data-beacon-article="5f7921c9cff47e001a58adbc">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>'
 			) .
 			'</p></div>';
 		} else {
@@ -1930,7 +1929,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		$skip['pngout']     = true;
 		$skip['pngquant']   = true;
 		$skip['webp']       = true;
-		$skip['svgcleaner'] = true; // TODO: not sure here - cloud has no SVG support (yet).
+		$skip['svgcleaner'] = true;
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_skip_full' ) && $fullsize ) {
 		$keep_metadata = true;
@@ -3201,6 +3200,9 @@ function ewww_image_optimizer_install_svgcleaner() {
 	}
 	if ( ! empty( $pkg_version ) ) {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_disable_svgcleaner', false );
+		if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ) ) {
+			ewww_image_optimizer_set_option( 'ewww_image_optimizer_svg_level', 10 );
+		}
 		$sendback = add_query_arg( 'ewww_svgcleaner', 'success', remove_query_arg( array( 'ewww_svgcleaner', 'ewww_error' ), wp_get_referer() ) );
 	}
 	if ( ! isset( $sendback ) ) {

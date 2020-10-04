@@ -3614,7 +3614,7 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 		ewwwio_memory( __FUNCTION__ );
 		return false;
 	} elseif ( ! empty( $result['body'] ) && strpos( $result['body'], 'missing' ) === false ) {
-		$enabled_types = array( 'image/jpeg', 'image/png', 'image/gif', 'application/pdf' ); // TODO: add image/svg+xml once svg is supported.
+		$enabled_types = array( 'image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'image/svg+xml' );
 		if ( ! is_dir( dirname( $image['path'] ) ) ) {
 			wp_mkdir_p( dirname( $image['path'] ) );
 		}
@@ -10598,7 +10598,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 								<?php esc_html_e( 'Default', 'ewww-image-optimizer' ); ?>
 							</option>
 						</select>
-	<?php if ( $disable_svg_level || empty( $svgcleaner_version ) ) : ?>
+	<?php if ( $disable_svg_level || ( empty( $svgcleaner_version ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) ) : ?>
 						<a href="<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' ) ); ?>"><?php esc_html_e( 'Install svgcleaner', 'ewww-image-optimizer' ); ?></a>
 	<?php endif; ?>
 					</td>
