@@ -2792,7 +2792,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				}
 			}
 			$ewww_image->level = $compression_level;
-			if ( $compression_level > 0 ) {
+			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && $compression_level > 0 ) {
 				list( $file, $converted, $result, $new_size, $backup_hash ) = ewww_image_optimizer_cloud_optimizer( $file, $type );
 				break;
 			}

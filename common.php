@@ -4455,6 +4455,9 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		$error_message = $response->get_error_message();
 		ewwwio_debug_message( "optimize failed: $error_message" );
 		return array( $file, false, 'cloud optimize failed', 0, '' );
+	} elseif ( empty( $response['body'] ) ) {
+		ewwwio_debug_message( 'cloud results: no savings' );
+		return array( $file, false, '', filesize( $file ), $hash );
 	} else {
 		$tempfile = $file . '.tmp';
 		file_put_contents( $tempfile, $response['body'] );
@@ -10598,7 +10601,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 								<?php esc_html_e( 'Default', 'ewww-image-optimizer' ); ?>
 							</option>
 						</select>
-	<?php if ( $disable_svg_level || ( empty( $svgcleaner_version ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) ) : ?>
+	<?php if ( $disable_svg_level || ( ! EWWW_IMAGE_OPTIMIZER_SVGCLEANER && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) ) : ?>
 						<a href="<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' ) ); ?>"><?php esc_html_e( 'Install svgcleaner', 'ewww-image-optimizer' ); ?></a>
 	<?php endif; ?>
 					</td>
