@@ -132,9 +132,12 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
-= 5.7.2 =
+= 5.8.0 =
+* added: SVG optimization, huge thanks to @samsk for making this happen!
 * fixed: Lazy Load and other front-end parsers breaks JSON-encoded img elements
 * fixed: Easy IO adds excess markup for images with height and/or width set to 'auto'
+* fixed: memory_limit check should be case-insensitive: g vs. G
+* fixed: PHP error during detection of Cache Enabler's WebP option
 
 = 5.7.1 =
 * added: alert on domain change for Easy IO, like if you clone from a production environment to staging

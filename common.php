@@ -102,6 +102,8 @@ add_filter( 'myarcade_filter_thumbnail', 'ewww_image_optimizer_myarcade_thumbnai
 add_filter( 'load_image_to_edit_path', 'ewww_image_optimizer_editor_save_pre' );
 // Allows the user to override the default JPG quality used by WordPress.
 add_filter( 'jpeg_quality', 'ewww_image_optimizer_set_jpg_quality' );
+// Allows the user to override the default WebP quality used by EWWW IO.
+add_filter( 'webp_quality', 'ewww_image_optimizer_set_webp_quality' );
 // Prevent WP from over-riding EWWW IO's resize settings.
 add_filter( 'big_image_size_threshold', 'ewww_image_optimizer_adjust_big_image_threshold', 10, 3 );
 // Makes sure the plugin bypasses any files affected by the Folders to Ignore setting.
@@ -331,9 +333,9 @@ function ewww_image_optimizer_get_plugin_version( $plugin_file ) {
  */
 function ewww_image_optimizer_ce_webp_enabled() {
 	if ( class_exists( 'Cache_Enabler' ) ) {
-		$ce_options = Cache_Enabler::$options;
-		if ( $ce_options['webp'] ) {
-			ewwwio_debug_message( 'Cache Enabler webp option enabled' );
+		$ce_options = get_option( 'cache_enabler', array() );
+		if ( ! empty( $ce_options['convert_image_urls_to_webp'] ) || ! empty( $ce_options['webp'] ) ) {
+			ewwwio_debug_message( 'Cache Enabler WebP option enabled' );
 			return true;
 		}
 	}
@@ -781,6 +783,8 @@ function ewww_image_optimizer_admin_init() {
 			update_site_option( 'ewww_image_optimizer_jpg_background', ewww_image_optimizer_jpg_background( $ewww_image_optimizer_jpg_background ) );
 			$ewww_image_optimizer_jpg_quality = empty( $_POST['ewww_image_optimizer_jpg_quality'] ) ? '' : (int) $_POST['ewww_image_optimizer_jpg_quality'];
 			update_site_option( 'ewww_image_optimizer_jpg_quality', ewww_image_optimizer_jpg_quality( $ewww_image_optimizer_jpg_quality ) );
+			$ewww_image_optimizer_webp_quality = empty( $_POST['ewww_image_optimizer_webp_quality'] ) ? '' : (int) $_POST['ewww_image_optimizer_webp_quality'];
+			update_site_option( 'ewww_image_optimizer_webp_quality', ewww_image_optimizer_webp_quality( $ewww_image_optimizer_webp_quality ) );
 			$ewww_image_optimizer_disable_convert_links = ( empty( $_POST['ewww_image_optimizer_disable_convert_links'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_disable_convert_links', $ewww_image_optimizer_disable_convert_links );
 			$ewww_image_optimizer_backup_files = ( empty( $_POST['ewww_image_optimizer_backup_files'] ) ? false : true );
@@ -886,6 +890,7 @@ function ewww_image_optimizer_admin_init() {
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_backup_files', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_enable_cloudinary', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_jpg_quality', 'ewww_image_optimizer_jpg_quality' );
+	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_quality', 'ewww_image_optimizer_webp_quality' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_parallel_optimization', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_auto', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_include_media_paths', 'boolval' );
@@ -963,8 +968,10 @@ function ewww_image_optimizer_admin_init() {
 	}
 
 	// Alert user if multiple re-optimizations detected.
-	add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
-	add_action( 'admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
+	if ( ! defined( 'EWWWIO_DISABLE_REOPT_NOTICE' ) ) {
+		add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
+		add_action( 'admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
+	}
 	if (
 		is_super_admin() &&
 		ewww_image_optimizer_get_option( 'ewww_image_optimizer_review_time' ) &&
@@ -3123,6 +3130,46 @@ function ewww_image_optimizer_set_jpg_quality( $quality ) {
 }
 
 /**
+ * Retrieves/sanitizes the WebP quality setting or returns null.
+ *
+ * @param int $quality The WebP quality level as set by the user.
+ * @return int The sanitize WebP quality level.
+ */
+function ewww_image_optimizer_webp_quality( $quality = null ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( is_null( $quality ) ) {
+		// Retrieve the user-supplied value for jpg quality.
+		$quality = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_quality' );
+	}
+	// Verify that the quality level is an integer, 1-100.
+	if ( preg_match( '/^(100|[1-9][0-9]?)$/', $quality ) ) {
+		ewwwio_debug_message( "webp quality: $quality" );
+		// Send back the valid quality level.
+		return $quality;
+	} else {
+		if ( ! empty( $quality ) ) {
+			add_settings_error( 'ewww_image_optimizer_webp_quality', 'ewwwio-webp-quality', esc_html__( 'Could not save the WebP quality, please enter an integer between 50 and 100.', 'ewww-image-optimizer' ) );
+		}
+		// Send back nothing.
+		return null;
+	}
+}
+
+/**
+ * Overrides the default WebP quality (if a user-defined value is set).
+ *
+ * @param int $quality The default WebP quality level.
+ * @return int The default quality, or the user configured level.
+ */
+function ewww_image_optimizer_set_webp_quality( $quality ) {
+	$new_quality = ewww_image_optimizer_webp_quality();
+	if ( ! empty( $new_quality ) ) {
+		return min( 92, $new_quality );
+	}
+	return min( 92, $quality );
+}
+
+/**
  * Check default WP threshold and adjust to comply with normal EWWW IO behavior.
  *
  * @param int    $size The default WP scaling size, or whatever has been filtered by other plugins.
@@ -4331,7 +4378,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	}
 	if ( 'image/webp' === $newtype ) {
 		$webp        = 1;
-		$jpg_quality = apply_filters( 'jpeg_quality', $jpg_quality, 'image/webp' );
+		$jpg_quality = apply_filters( 'webp_quality', 75, 'image/webp' );
 		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) || ! EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) {
 			$lossy = 0;
 		}
@@ -4342,7 +4389,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		$webp = 0;
 	}
 	if ( $jpg_quality < 50 ) {
-		$jpg_quality = 82;
+		$jpg_quality = 75;
 	}
 	$png_compress = 0;
 	if ( 'image/svg+xml' === $type && 10 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ) ) {
@@ -9684,6 +9731,7 @@ function ewwwio_debug_info() {
 		ewwwio_debug_message( 'svgcleaner disabled: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_svgcleaner' ) ? 'yes' : 'no' ) );
 	}
 	ewwwio_debug_message( 'effective quality: ' . ewww_image_optimizer_set_jpg_quality( 82 ) );
+	ewwwio_debug_message( 'effective WebP quality: ' . ewww_image_optimizer_set_webp_quality( 75 ) );
 	ewwwio_debug_message( 'parallel optimization: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_parallel_optimization' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'background optimization: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ? 'on' : 'off' ) );
 	if ( ! $ewwwio_upgrading && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ) {
@@ -11933,7 +11981,7 @@ function ewwwio_memory_limit() {
 		// Unlimited, set to 32GB.
 		$memory_limit = '32000M';
 	}
-	if ( strpos( $memory_limit, 'G' ) ) {
+	if ( stripos( $memory_limit, 'g' ) ) {
 		$memory_limit = intval( $memory_limit ) * 1024 * 1024 * 1024;
 	} else {
 		$memory_limit = intval( $memory_limit ) * 1024 * 1024;

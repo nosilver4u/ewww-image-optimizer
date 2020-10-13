@@ -123,6 +123,8 @@ function ewww_image_optimizer_set_defaults() {
 	add_option( 'ewww_image_optimizer_gif_level', '10' );
 	add_option( 'ewww_image_optimizer_pdf_level', '0' );
 	add_option( 'ewww_image_optimizer_svg_level', '0' );
+	add_option( 'ewww_image_optimizer_jpg_quality', '' );
+	add_option( 'ewww_image_optimizer_webp_quality', '' );
 	add_option( 'ewww_image_optimizer_exactdn', false );
 	add_option( 'ewww_image_optimizer_exactdn_plan_id', 0 );
 	add_option( 'exactdn_all_the_things', true );
@@ -146,6 +148,8 @@ function ewww_image_optimizer_set_defaults() {
 	add_site_option( 'ewww_image_optimizer_gif_level', '10' );
 	add_site_option( 'ewww_image_optimizer_pdf_level', '0' );
 	add_site_option( 'ewww_image_optimizer_svg_level', '0' );
+	add_site_option( 'ewww_image_optimizer_jpg_quality', '' );
+	add_site_option( 'ewww_image_optimizer_webp_quality', '' );
 	add_site_option( 'ewww_image_optimizer_disable_pngout', true );
 	add_site_option( 'ewww_image_optimizer_disable_svgcleaner', true );
 	add_site_option( 'ewww_image_optimizer_optipng_level', 2 );
@@ -2921,9 +2925,9 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 			// Copy all the metadata.
 			$copy_opt = 'all';
 		}
-		$quality = (int) apply_filters( 'jpeg_quality', 82, 'image/webp' );
+		$quality = (int) apply_filters( 'webp_quality', 75, 'image/webp' );
 		if ( $quality < 50 ) {
-			$quality = 82;
+			$quality = 75;
 		}
 		if ( defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) && EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) {
 			$lossless = "-q $quality";

@@ -2771,7 +2771,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 
 			$jpg_quality  = apply_filters( 'jpeg_quality', null, 'image_resize' );
-			$webp_quality = apply_filters( 'jpeg_quality', $jpg_quality, 'image/webp' );
+			$webp_quality = apply_filters( 'webp_quality', 75, 'image/webp' );
 
 			$more_args = array();
 			if ( false === strpos( $image_url, 'strip=all' ) && $this->get_option( $this->prefix . 'metadata_remove' ) ) {

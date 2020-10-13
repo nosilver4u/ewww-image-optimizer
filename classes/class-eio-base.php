@@ -426,7 +426,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 				// Unlimited, set to 32GB.
 				$memory_limit = '32000M';
 			}
-			if ( strpos( $memory_limit, 'G' ) ) {
+			if ( stripos( $memory_limit, 'g' ) ) {
 				$memory_limit = intval( $memory_limit ) * 1024 * 1024 * 1024;
 			} else {
 				$memory_limit = intval( $memory_limit ) * 1024 * 1024;
