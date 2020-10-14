@@ -3171,14 +3171,25 @@ function ewww_image_optimizer_install_svgcleaner() {
 				rename( $download_result, $tmpname );
 				$download_result = $tmpname;
 
-				$pkg_gzipped     = new PharData( $download_result );
-				$pkg_tarball     = $pkg_gzipped->decompress();
-				$download_result = $pkg_tarball->getPath();
-				$pkg_tarball->extractTo(
-					EWWW_IMAGE_OPTIMIZER_BINARY_PATH,
-					'svgcleaner',
-					true
-				);
+				if ( 'zip' === $os_ext ) {
+					WP_Filesystem();
+					$unzipped = unzip_file(
+						$download_result,
+						EWWW_IMAGE_OPTIMIZER_BINARY_PATH
+					);
+					if ( is_wp_error( $unzipped ) ) {
+						$download_error = $unzipped->get_error_message();
+					}
+				} else {
+					$pkg_gzipped     = new PharData( $download_result );
+					$pkg_tarball     = $pkg_gzipped->decompress();
+					$download_result = $pkg_tarball->getPath();
+					$pkg_tarball->extractTo(
+						EWWW_IMAGE_OPTIMIZER_BINARY_PATH,
+						'svgcleaner',
+						true
+					);
+				}
 				if ( ewwwio_is_file( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . $os_binary ) ) {
 					if ( ! rename( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . $os_binary, $tool_path . $os_binary ) ) {
 						if ( empty( $download_error ) ) {
