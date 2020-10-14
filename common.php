@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '571.05' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '571.07' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -1440,12 +1440,11 @@ function ewww_image_optimizer_install_table() {
 	// See if the path column exists, and what collation it uses to determine the column index size.
 	if ( $wpdb->get_var( "SHOW TABLES LIKE '$wpdb->ewwwio_images'" ) === $wpdb->ewwwio_images ) {
 		ewwwio_debug_message( 'upgrading table and checking collation for path, table exists' );
+		if ( ! $wpdb->get_results( "SHOW INDEX FROM $wpdb->ewwwio_images WHERE Key_name = 'PRIMARY'", ARRAY_A ) ) {
+			$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images ADD PRIMARY KEY(id)" );
+		}
 		if ( $wpdb->get_results( "SHOW INDEX FROM $wpdb->ewwwio_images WHERE Key_name = 'id'", ARRAY_A ) ) {
-			$id_key = $wpdb->get_results( "SHOW INDEX FROM $wpdb->ewwwio_images WHERE Key_name = 'id'", ARRAY_A );
-			// Possibly use AND NOT Non_unique (double-negativity fun).
-			if ( $wpdb->query( "ALTER TABLE $wpdb->ewwwio_images ADD PRIMARY KEY(id)" ) ) {
-				$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images DROP INDEX id" );
-			}
+			$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images DROP INDEX id" );
 		}
 		// Check if the old path_image_size index exists, and drop it.
 		if ( $wpdb->get_results( "SHOW INDEX FROM $wpdb->ewwwio_images WHERE Key_name = 'path_image_size'", ARRAY_A ) ) {

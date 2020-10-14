@@ -139,6 +139,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: Easy IO adds excess markup for images with height and/or width set to 'auto'
 * fixed: memory_limit check should be case-insensitive: g vs. G
 * fixed: PHP error during detection of Cache Enabler's WebP option
+* fixed: table upgrade routine error when primary key already exists
 
 = 5.7.1 =
 * added: alert on domain change for Easy IO, like if you clone from a production environment to staging
