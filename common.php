@@ -5229,7 +5229,6 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 	} else {
 		$ewwwdb = $wpdb;
 	}
-	ewww_image_optimizer_update_savings( $opt_size, $orig_size );
 	global $ewww_image;
 	// First check if the image was converted, so we don't orphan records.
 	if ( $original && $original !== $attachment ) {
@@ -5270,6 +5269,7 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 	// Store info on the current image for future reference.
 	if ( empty( $already_optimized ) || ! is_array( $already_optimized ) ) {
 		ewwwio_debug_message( "creating new record, path: $attachment, size: $opt_size" );
+		ewww_image_optimizer_update_savings( $opt_size, $orig_size );
 		if ( is_object( $ewww_image ) && $ewww_image instanceof EWWW_Image && $ewww_image->gallery ) {
 			$updates['gallery'] = $ewww_image->gallery;
 		}
@@ -8301,6 +8301,12 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 		} // End switch().
 		$compression_level = ewww_image_optimizer_get_level( $type );
 		if ( ! empty( $msg ) ) {
+			if ( ewww_image_optimizer_easy_active() ) {
+				echo '<div>' . esc_html__( 'Easy IO enabled', 'ewww-image-optimizer' );
+				ewwwio_help_link( 'https://docs.ewww.io/article/96-easy-io-is-it-working', '5f871dd2c9e77c0016217c4e' );
+				echo '</div>';
+				return;
+			}
 			echo wp_kses_post( $msg ) . '</div>';
 			return;
 		}
@@ -8363,7 +8369,11 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 				}
 			} elseif ( ! $in_progress && current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 				// Give the user the option to optimize the image right now.
-				if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
+				if ( ewww_image_optimizer_easy_active() ) {
+					echo '<div>' . esc_html__( 'Easy IO enabled', 'ewww-image-optimizer' );
+					ewwwio_help_link( 'https://docs.ewww.io/article/96-easy-io-is-it-working', '5f871dd2c9e77c0016217c4e' );
+					echo '</div>';
+				} elseif ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 					$sizes_to_opt = ewww_image_optimizer_count_unoptimized_sizes( $meta['sizes'] ) + 1;
 					if ( isset( $meta['original_image'] ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_originals' ) ) {
 						$sizes_to_opt++;
@@ -8475,7 +8485,11 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 			}
 		} elseif ( ! $in_progress ) {
 			// Otherwise, this must be an image we haven't processed.
-			if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
+			if ( ewww_image_optimizer_easy_active() ) {
+				echo '<div>' . esc_html__( 'Easy IO enabled', 'ewww-image-optimizer' );
+				ewwwio_help_link( 'https://docs.ewww.io/article/96-easy-io-is-it-working', '5f871dd2c9e77c0016217c4e' );
+				echo '</div>';
+			} elseif ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 				$sizes_to_opt = ewww_image_optimizer_count_unoptimized_sizes( $meta['sizes'] ) + 1;
 				if ( isset( $meta['original_image'] ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_originals' ) ) {
 					$sizes_to_opt++;
@@ -10297,7 +10311,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 								</svg>
 								<div class="ewww-score"><?php echo esc_html( ewww_image_optimizer_size_format( $exactdn_savings['savings'], 2 ) ); ?></div>
 							</div><!-- end .ewww-guage -->
-							<p style="text-align:center"><strong><?php esc_html_e( 'Easy IO Savings', 'ewww-image-optimizer' ); ?></strong></p>
+							<p style="text-align:center">
+								<strong><?php esc_html_e( 'Easy IO Savings', 'ewww-image-optimizer' ); ?></strong>
+								<?php ewwwio_help_link( 'https://docs.ewww.io/article/96-easy-io-is-it-working', '5f871dd2c9e77c0016217c4e' ); ?>
+							</p>
 						</div><!-- end .ewww-status-detail --></li>
 	<?php } ?>
 						<!-- begin notices section -->
