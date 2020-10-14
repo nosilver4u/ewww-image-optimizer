@@ -11249,6 +11249,15 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						</p>
 					</td>
 				</tr>
+				<tr>
+					<th scope='row'>
+						<label for='ewww_image_optimizer_webp_quality'><?php esc_html_e( 'WebP Quality Level', 'ewww-image-optimizer' ); ?></label>
+					</th>
+					<td>
+						<input type='text' id='ewww_image_optimizer_webp_quality' name='ewww_image_optimizer_webp_quality' class='small-text' value='<?php echo esc_attr( ewww_image_optimizer_webp_quality() ); ?>' />
+						<?php esc_html_e( 'Default is 75, allowed range is 50-100.', 'ewww-image-optimizer' ); ?>
+					</td>
+				</tr>
 	<?php endif; ?>
 
 	<?php if ( ! $free_exec && ( ! ewww_image_optimizer_ce_webp_enabled() && ! ewww_image_optimizer_easy_active() ) ) : ?>

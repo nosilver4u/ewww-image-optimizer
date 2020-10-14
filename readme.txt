@@ -134,6 +134,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 5.8.0 =
 * added: SVG optimization, huge thanks to @samsk for making this happen!
+* added: WebP quality setting, changed default to 75
 * fixed: Lazy Load and other front-end parsers breaks JSON-encoded img elements
 * fixed: Easy IO adds excess markup for images with height and/or width set to 'auto'
 * fixed: memory_limit check should be case-insensitive: g vs. G

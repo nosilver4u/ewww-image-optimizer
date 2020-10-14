@@ -878,6 +878,7 @@ function ewww_image_optimizer_path_check( $j = true, $o = true, $g = true, $p = 
 				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_SVGCLEANER' );
 				define( 'EWWW_IMAGE_OPTIMIZER_SVGCLEANER', $svgcleaner );
 			} else {
+				ewwwio_debug_message( 'using existing EWWW_IMAGE_OPTIMIZER_SVGCLEANER' );
 				$svgcleaner = EWWW_IMAGE_OPTIMIZER_SVGCLEANER;
 			}
 		}
@@ -967,6 +968,7 @@ function ewww_image_optimizer_path_check( $j = true, $o = true, $g = true, $p = 
 				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_SVGCLEANER' );
 				define( 'EWWW_IMAGE_OPTIMIZER_SVGCLEANER', $svgcleaner );
 			} else {
+				ewwwio_debug_message( 'using existing EWWW_IMAGE_OPTIMIZER_SVGCLEANER' );
 				$svgcleaner = EWWW_IMAGE_OPTIMIZER_SVGCLEANER;
 			}
 		}

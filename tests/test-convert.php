@@ -61,6 +61,7 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_png_level', 40 );
 		ewww_image_optimizer_install_tools();
 		ewww_image_optimizer_install_pngout();
+		ewww_image_optimizer_install_svgcleaner();
 		update_option( 'ewww_image_optimizer_webp', '' );
 		update_option( 'ewww_image_optimizer_png_level', 10 );
 		update_site_option( 'ewww_image_optimizer_webp', '' );
