@@ -140,6 +140,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: memory_limit check should be case-insensitive: g vs. G
 * fixed: PHP error during detection of Cache Enabler's WebP option
 * fixed: table upgrade routine error when primary key already exists
+* fixed: deleting files by always using realpath, props @ocean90
 
 = 5.7.1 =
 * added: alert on domain change for Easy IO, like if you clone from a production environment to staging
