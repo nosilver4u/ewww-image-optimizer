@@ -2792,6 +2792,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( $this->plan_id > 1 && false === strpos( $image_url, 'quality=' ) && ! is_null( $jpg_quality ) && 82 !== (int) $jpg_quality ) {
 				$more_args['quality'] = $jpg_quality;
 			}
+			if ( $this->plan_id > 1 && false === strpos( $image_url, 'quality=' ) && 75 !== (int) $web_quality && $webp_quality < $jpg_quality ) {
+				$more_args['quality'] = $webp_quality;
+			}
 			// Merge given args with the automatic (option-based) args, and also makes sure args is an array if it was previously a string.
 			$args = wp_parse_args( $args, $more_args );
 
