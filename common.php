@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '571.07' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '571.12' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -10261,8 +10261,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			<div id='ewww-status' class='postbox'>
 				<h2 class='ewww-hndle'><?php esc_html_e( 'Optimization Status', 'ewww-image-optimizer' ); ?></h2>
 				<div class='inside'>
-					<div class="ewww-row"><ul class="ewww-blocks">
-						<li><div id="ewww-compress" class="ewww-status-detail">
+					<div class="ewww-row ewww-blocks">
+						<div id="ewww-compress" class="ewww-status-detail">
 							<div id="ewww-compress-guage" class="ewww-guage" data-score="<?php echo (int) $speed_score; ?>">
 								<svg width="120" height="120">
 									<circle class="ewww-inactive" r="54" cy="60" cx="60" stroke-width="12" />
@@ -10284,12 +10284,12 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	<?php if ( $speed_score < 100 ) : ?>
 							<p class="description"><?php esc_html_e( 'Hover over score for recommendations to improve the speed of your site.', 'ewww-image-optimizer' ); ?></p>
 	<?php endif; ?>
-						</div><!-- end .ewww-status-detail --></li>
+						</div><!-- end .ewww-status-detail -->
 	<?php
 	if ( $total_savings > 0 ) {
 		$savings_stroke_dashoffset = $guage_stroke_dasharray * ( 1 - $total_savings / $total_sizes[1] );
 		?>
-						<li><div id="ewww-savings" class="ewww-status-detail">
+						<div id="ewww-savings" class="ewww-status-detail">
 							<div id="ewww-savings-guage" class="ewww-guage" data-score="<?php echo esc_attr( $total_savings / $total_sizes[1] ); ?>">
 								<svg width="120" height="120">
 									<title><?php echo esc_html( round( $total_savings / $total_sizes[1], 3 ) * 100 ); ?>%</title>
@@ -10300,13 +10300,13 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							</div><!-- end .ewww-guage -->
 							<p style="text-align:center"><strong><?php esc_html_e( 'Local Compression Savings', 'ewww-image-optimizer' ); ?></strong></p>
 							<p><a href="<?php echo esc_url( admin_url( 'tools.php?page=ewww-image-optimizer-tools' ) ); ?>"><?php esc_html_e( 'View optimized images.', 'ewww-image-optimizer' ); ?></a></p>
-						</div><!-- end .ewww-status-detail --></li>
+						</div><!-- end .ewww-status-detail -->
 	<?php } ?>
 	<?php
 	if ( $exactdn_enabled && ! empty( $exactdn_savings ) && ! empty( $exactdn_savings['original'] ) && ! empty( $exactdn_savings['savings'] ) ) {
 		$savings_stroke_dashoffset = $guage_stroke_dasharray * ( 1 - $exactdn_savings['savings'] / $exactdn_savings['original'] );
 		?>
-						<li><div id="easyio-savings" class="ewww-status-detail">
+						<div id="easyio-savings" class="ewww-status-detail">
 							<div id="easyio-savings-guage" class="ewww-guage" data-score="<?php echo esc_attr( $exactdn_savings['savings'] / $exactdn_savings['original'] ); ?>">
 								<svg width="120" height="120">
 									<title><?php echo esc_html( round( $exactdn_savings['savings'] / $exactdn_savings['original'], 3 ) * 100 ); ?>%</title>
@@ -10319,10 +10319,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 								<strong><?php esc_html_e( 'Easy IO Savings', 'ewww-image-optimizer' ); ?></strong>
 								<?php ewwwio_help_link( 'https://docs.ewww.io/article/96-easy-io-is-it-working', '5f871dd2c9e77c0016217c4e' ); ?>
 							</p>
-						</div><!-- end .ewww-status-detail --></li>
+						</div><!-- end .ewww-status-detail -->
 	<?php } ?>
 						<!-- begin notices section -->
-						<li><div class="ewww-status-detail"><div id="ewww-notices">
+						<div id="ewww-notices" class="ewww-status-detail">
 	<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) : ?>
 							<h3>
 								<a href='https://ewww.io/plans/' target='_blank' class='ewww-upgrade'><?php esc_html_e( 'Premium Upgrades:', 'ewww-image-optimizer' ); ?></a>
@@ -10373,10 +10373,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<?php endif; ?>
 							</p>
 	<?php elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && ! get_option( 'easyio_exactdn' ) ) : ?>
-							<p><span style="font-weight:bold;color:#3eadc9;">Easy IO:</span> <a href="https://ewww.io/easy/" target="_blank"><?php esc_html_e( 'Comprehensive image optimization with automatic compression, auto-sizing, WebP conversion, and lazy load.', 'ewww-image-optimizer' ); ?></a></p>
+							<p><span style="font-weight:bold;color:#3eadc9;">Easy IO:</span> <a href="https://ewww.io/easy/" target="_blank"><?php esc_html_e( 'Comprehensive image optimization with auto-compress, auto-sizing, auto-WebP, and lazy load.', 'ewww-image-optimizer' ); ?></a></p>
 	<?php endif; ?>
 	<?php if ( ! function_exists( 'swis' ) ) : ?>
-							<p><span style="font-weight:bold;color:#3eadc9;">SWIS Performance:</span> <a href="https://ewww.io/swis/" target="_blank"><?php esc_html_e( 'Go beyond image optimization with this collection of tools that I use for improving site speed.', 'ewww-image-optimizer' ); ?></a></p>
+							<p><span style="font-weight:bold;color:#3eadc9;">SWIS Performance:</span> <a href="https://ewww.io/swis/" target="_blank"><?php esc_html_e( 'Go beyond image optimization with the tools I use for improving site speed.', 'ewww-image-optimizer' ); ?></a></p>
 	<?php endif; ?>
 							<p>
 								<strong><?php esc_html_e( 'Background optimization (faster uploads):', 'ewww-image-optimizer' ); ?></strong><br>
@@ -10404,8 +10404,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 								</span>
 	<?php endif; ?>
 							</p>
-						</div></div><!-- end .ewww-status-detail --></li>
-					</ul><!-- end .ewww-blocks --></div><!-- end .ewww-row -->
+						</div><!-- end .ewww-status-detail -->
+					</div><!-- end .ewww-blocks --><!-- end .ewww-row -->
 				</div><!-- end .inside -->
 			</div>
 		</div>
