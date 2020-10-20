@@ -1,3 +1,14 @@
+= 5.8.0 =
+* added: SVG optimization, huge thanks to @samsk for making this happen!
+* added: WebP quality setting, changed default to 75
+* fixed: Lazy Load and other front-end parsers breaks JSON-encoded img elements
+* fixed: Easy IO adds excess markup for images with height and/or width set to 'auto'
+* fixed: memory_limit check should be case-insensitive: g vs. G
+* fixed: PHP error during detection of Cache Enabler's WebP option
+* fixed: table upgrade routine error when primary key already exists
+* fixed: deleting files by always using realpath, props @ocean90
+* fixed: Easy IO skips images in AJAX Load More requests
+
 = 5.7.1 =
 * added: alert on domain change for Easy IO, like if you clone from a production environment to staging
 * changed: Easy IO domain and plan_id refresh automatically when visiting settings page
