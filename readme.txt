@@ -132,6 +132,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 5.8.1 =
+* fixed: Easy IO parser has typo in $webp_quality variable
+
 = 5.8.0 =
 * added: SVG optimization, huge thanks to @samsk for making this happen!
 * added: WebP quality setting, changed default to 75
