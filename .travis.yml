@@ -22,12 +22,14 @@ services:
 
 env:
   - WP_VERSION=latest WP_MULTISITE=0
-  - WP_VERSION=5.2 WP_MULTISITE=0
+  - WP_VERSION=5.3 WP_MULTISITE=0
 
 jobs:
   include:
     - php: 5.6
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
+    - php: 7.3
+      env: WP_VERSION=5.2
     - php: 7.4
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
 
