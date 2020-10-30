@@ -1,3 +1,6 @@
+= 5.8.1 =
+* fixed: Easy IO parser has typo in $webp_quality variable
+
 = 5.8.0 =
 * added: SVG optimization, huge thanks to @samsk for making this happen!
 * added: WebP quality setting, changed default to 75
