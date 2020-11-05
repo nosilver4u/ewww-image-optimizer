@@ -131,6 +131,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				if ( strpos( $site_url, 'https://' ) !== false ) {
 					$this->debug_message( "$site_url contains https" );
 					$scheme = 'https';
+				} elseif ( strpos( $this->content_url, 'https://' ) !== false ) {
+					$this->debug_message( $this->content_url . ' contains https' );
+					$scheme = 'https';
 				} elseif ( isset( $_SERVER['HTTPS'] ) && 'off' !== $_SERVER['HTTPS'] ) {
 					$this->debug_message( 'page requested over https' );
 					$scheme = 'https';
@@ -2762,6 +2765,11 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( is_null( $scheme ) ) {
 				$scheme = $this->scheme;
 			}
+			if ( is_string( $scheme ) ) {
+				$this->debug_message( "starting scheme: $scheme" );
+			} else {
+				$this->debug_message( 'no starting scheme' );
+			}
 
 			/**
 			 * Disables ExactDN URL processing for local development.
@@ -2835,8 +2843,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 
 			if ( isset( $image_url_parts['scheme'] ) && 'https' === $image_url_parts['scheme'] ) {
 				if ( is_array( $args ) && false === strpos( $image_url, 'ssl=' ) ) {
+					$this->debug_message( 'adding ssl=1' );
 					$args['ssl'] = 1;
 				}
+				$this->debug_message( 'setting scheme to https' );
 				$scheme = 'https';
 			}
 
