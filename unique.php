@@ -182,7 +182,7 @@ function ewww_image_optimizer_notice_hosting_requires_api() {
 	} elseif ( defined( 'KINSTAMU_VERSION' ) ) {
 		$webhost = 'Kinsta';
 	} elseif ( defined( 'WPNET_INIT_PLUGIN_VERSION' ) ) {
-		$webhost = 'WPNET';
+		$webhost = 'WP NET';
 	} else {
 		return;
 	}

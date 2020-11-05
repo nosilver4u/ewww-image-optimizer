@@ -108,7 +108,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				$this->allow_piip = is_writable( $this->piip_folder ) && $this->gd_support();
 			}
 
-			if ( ! apply_filters( 'wp_lazy_loading_enabled', true ) ) {
+			if ( ! apply_filters( 'wp_lazy_loading_enabled', true, 'img', '' ) ) {
 				define( 'EWWWIO_DISABLE_NATIVE_LAZY', true );
 			}
 			add_filter( 'wp_lazy_loading_enabled', '__return_false' );

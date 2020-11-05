@@ -132,6 +132,12 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 5.8.2 =
+* security: improper nonce verification for Nextgen bulk optimizer initialization (minor severity)
+* fixed: Easy IO missing https availability for admin-ajax.php requests when home_url is using plain http
+* fixed: wp_lazy_loading_enabled filter should have 3 parameters
+* fixed: Easy IO shows alert for domain change when a non-default WPML language is active
+
 = 5.8.1 =
 * fixed: Easy IO parser has typo in $webp_quality variable
 

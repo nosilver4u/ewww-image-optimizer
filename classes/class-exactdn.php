@@ -129,7 +129,13 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$site_url = get_home_url();
 				$scheme   = 'http';
 				if ( strpos( $site_url, 'https://' ) !== false ) {
+					$this->debug_message( "$site_url contains https" );
 					$scheme = 'https';
+				} elseif ( isset( $_SERVER['HTTPS'] ) && 'off' !== $_SERVER['HTTPS'] ) {
+					$this->debug_message( 'page requested over https' );
+					$scheme = 'https';
+				} else {
+					$this->debug_message( 'using plain http' );
 				}
 				$this->scheme = $scheme;
 			}
@@ -225,9 +231,6 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( ! $this->get_option( $this->prefix . 'exactdn_local_domain' ) ) {
 				$this->set_option( $this->prefix . 'exactdn_local_domain', $this->upload_domain );
 			}
-			if ( $this->get_option( $this->prefix . 'exactdn_local_domain' ) !== $this->upload_domain && is_admin() ) {
-				add_action( 'admin_notices', $this->prefix . 'notice_exactdn_domain_mismatch' );
-			}
 			$this->debug_message( "allowing images from here: $this->upload_domain" );
 			if (
 				( false !== strpos( $this->upload_domain, 'amazonaws.com' ) || false !== strpos( $this->upload_domain, 'storage.googleapis.com' ) ) &&
@@ -252,6 +255,13 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				foreach ( $wpml_domains as $wpml_domain ) {
 					$this->allowed_domains[] = $wpml_domain;
 				}
+			}
+			if (
+				$this->get_option( $this->prefix . 'exactdn_local_domain' ) !== $this->upload_domain &&
+				! $this->allow_image_domain( $this->get_option( $this->prefix . 'exactdn_local_domain' ) ) &&
+				is_admin()
+			) {
+				add_action( 'admin_notices', $this->prefix . 'notice_exactdn_domain_mismatch' );
 			}
 			$this->allowed_domains[] = $this->exactdn_domain;
 			$this->allowed_domains   = apply_filters( 'exactdn_allowed_domains', $this->allowed_domains );
