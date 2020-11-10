@@ -112,10 +112,17 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			if ( ! empty( $s3_domain ) && $as3cf->get_setting( 'serve-from-s3' ) ) {
 				ewwwio_debug_message( "found S3 domain of $s3_domain with bucket $s3_bucket and region $s3_region" );
 				$this->webp_paths[] = $s3_scheme . '://' . $s3_domain . '/';
-				$this->s3_active    = $s3_domain;
+				if ( $as3cf->get_setting( 'enable-delivery-domain' ) && $as3cf->get_setting( 'delivery-domain' ) ) {
+					$delivery_domain    = $as3cf->get_setting( 'delivery-domain' );
+					$this->webp_paths[] = $s3_scheme . '://' . $delivery_domain . '/';
+					ewwwio_debug_message( "found WOM delivery domain of $delivery_domain" );
+				}
+				$this->s3_active = $s3_domain;
 				if ( $as3cf->get_setting( 'enable-object-prefix' ) ) {
 					$this->s3_object_prefix = $as3cf->get_setting( 'object-prefix' );
 					$this->debug_message( $as3cf->get_setting( 'object-prefix' ) );
+				} else {
+					$this->debug_message( 'no WOM prefix' );
 				}
 				if ( $as3cf->get_setting( 'object-versioning' ) ) {
 					$this->s3_object_version = true;

@@ -1210,6 +1210,7 @@ function ewww_image_optimizer_md5check( $path ) {
 			return true;
 		}
 	}
+	ewwwio_debug_message( 'invalid checksum' );
 	ewwwio_memory( __FUNCTION__ );
 	return false;
 }
