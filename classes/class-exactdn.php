@@ -225,6 +225,11 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			// Configure Autoptimize with our CDN domain.
 			add_filter( 'autoptimize_filter_cssjs_multidomain', array( $this, 'add_cdn_domain' ) );
 
+			if ( $this->is_as3cf_cname_active() ) {
+				add_action( 'admin_notices', $this->prefix . 'notice_exactdn_as3cf_cname_active' );
+				return;
+			}
+
 			$upload_url_parts = $this->parse_url( $this->content_url() );
 			if ( empty( $upload_url_parts ) ) {
 				$this->debug_message( "could not break down URL: $this->site_url" );
@@ -312,6 +317,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		function activate_site() {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 
+			if ( $this->is_as3cf_cname_active() ) {
+				add_action( 'admin_notices', $this->prefix . 'notice_exactdn_as3cf_cname_active' );
+				return false;
+			}
 			$site_url = $this->content_url();
 			$home_url = home_url();
 
@@ -418,6 +427,12 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			// Set a default error.
 			global $exactdn_activate_error;
 			$exactdn_activate_error = 'zone not verified';
+			// Primary check sends the test URL to the API for full verification.
+			$api_url = 'http://optimize.exactlywww.com/exactdn/verify.php';
+			$ssl     = wp_http_supports( array( 'ssl' ) );
+			if ( $ssl ) {
+				$api_url = set_url_scheme( $api_url, 'https' );
+			}
 			if ( ! defined( 'EXACTDN_LOCAL_DOMAIN' ) && $this->get_exactdn_option( 'verify_method' ) > 0 ) {
 				// Test with an image file that should be available on the ExactDN zone.
 				$test_url     = plugins_url( '/images/test.png', constant( strtoupper( $this->prefix ) . 'PLUGIN_FILE' ) );
@@ -425,28 +440,42 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$test_url     = str_replace( $local_domain, $domain, $test_url );
 				$this->debug_message( "test url is $test_url" );
 				add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', PHP_INT_MAX );
-				$test_result = wp_remote_get( $test_url );
+				$test_result = wp_remote_post(
+					$api_url,
+					array(
+						'timeout' => 10,
+						'body'    => array(
+							'alias' => $domain,
+							'url'   => $test_url,
+						),
+					)
+				);
 				if ( is_wp_error( $test_result ) ) {
 					$error_message = $test_result->get_error_message();
-					$this->debug_message( "exactdn verification request failed: $error_message" );
+					$this->debug_message( "exactdn (1) verification request failed: $error_message" );
 					$exactdn_activate_error = $error_message;
 					add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_error' );
 					return false;
-				} elseif ( ! empty( $test_result['response']['code'] ) && ( 403 === (int) $test_result['response']['code'] || 404 === (int) $test_result['response']['code'] ) ) {
-					// If we get a 403 or 404, we should use secondary verification.
-					$this->debug_message( 'received response code: ' . $test_result['response']['code'] );
-					$this->set_exactdn_option( 'verify_method', -1, false );
-				} elseif ( ! empty( $test_result['body'] ) && strlen( $test_result['body'] ) > 300 ) {
-					if ( 200 === (int) $test_result['response']['code'] &&
-						( '89504e470d0a1a0a' === bin2hex( substr( $test_result['body'], 0, 8 ) ) || '52494646' === bin2hex( substr( $test_result['body'], 0, 4 ) ) ) ) {
+				} elseif ( ! empty( $test_result['body'] ) && false === strpos( $test_result['body'], 'error' ) ) {
+					$response = json_decode( $test_result['body'], true );
+					if ( ! empty( $response['success'] ) ) {
 						$this->debug_message( 'exactdn (real-world) verification succeeded' );
 						$this->set_exactdn_option( 'verified', 1, false );
-						$this->set_exactdn_option( 'verify_method', -1, false ); // After initial activation, use API directly.
+						$this->set_exactdn_option( 'verify_method', -1, false ); // After initial activation, use simpler API verification.
 						add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_success' );
 						return true;
 					}
-					$this->debug_message( 'mime check failed: ' . bin2hex( substr( $test_result['body'], 0, 3 ) ) );
-					$exactdn_activate_error = 'zone setup pending';
+				} elseif ( ! empty( $test_result['body'] ) ) {
+					$response      = json_decode( $test_result['body'], true );
+					$error_message = $response['error'];
+					$this->debug_message( "exactdn (1) verification request failed: $error_message" );
+					$exactdn_activate_error = $error_message;
+					if ( false !== strpos( $error_message, 'not found' ) ) {
+						delete_option( $this->prefix . 'exactdn_domain' );
+						delete_site_option( $this->prefix . 'exactdn_domain' );
+					}
+					add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_error' );
+					return false;
 				}
 				if ( ! empty( $test_result['response']['code'] ) && 200 !== (int) $test_result['response']['code'] ) {
 					$this->debug_message( 'received response code: ' . $test_result['response']['code'] );
@@ -456,14 +485,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 
 			// Secondary test against the API db.
-			$url = 'http://optimize.exactlywww.com/exactdn/verify.php';
-			$ssl = wp_http_supports( array( 'ssl' ) );
-			if ( $ssl ) {
-				$url = set_url_scheme( $url, 'https' );
-			}
 			add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', PHP_INT_MAX );
 			$result = wp_remote_post(
-				$url,
+				$api_url,
 				array(
 					'timeout' => 10,
 					'body'    => array(
@@ -508,6 +532,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				}
 				add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_error' );
 				return false;
+			}
+			if ( ! empty( $result['response']['code'] ) && 200 !== (int) $result['response']['code'] ) {
+				$this->debug_message( 'received response code: ' . $result['response']['code'] );
 			}
 			add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_error' );
 			return false;
@@ -656,6 +683,27 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				}
 			}
 			return update_option( $this->prefix . 'exactdn_' . $option_name, $option_value, $autoload );
+		}
+
+		/**
+		 * Check to see if a CNAME is configured in WP Offload Media.
+		 *
+		 * @return bool True if a CNAME is active, false otherwise.
+		 */
+		function is_as3cf_cname_active() {
+			// Find the WP Offload Media domain/path.
+			global $as3cf;
+			if ( class_exists( 'Amazon_S3_And_CloudFront' ) && is_object( $as3cf ) ) {
+				if ( 'storage' !== $as3cf->get_setting( 'delivery-provider' ) ) {
+					$this->debug_message( 'active delivery provider: ' . $as3cf->get_setting( 'delivery-provider' ) );
+					if ( $as3cf->get_setting( 'enable-delivery-domain' ) && $as3cf->get_setting( 'delivery-domain' ) ) {
+						$delivery_domain = $as3cf->get_setting( 'delivery-domain' );
+						$this->debug_message( "found WOM CNAME domain: $delivery_domain" );
+						return true;
+					}
+				}
+			}
+			return false;
 		}
 
 		/**

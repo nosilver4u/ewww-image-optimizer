@@ -115,7 +115,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 				if ( $as3cf->get_setting( 'enable-delivery-domain' ) && $as3cf->get_setting( 'delivery-domain' ) ) {
 					$delivery_domain    = $as3cf->get_setting( 'delivery-domain' );
 					$this->webp_paths[] = $s3_scheme . '://' . $delivery_domain . '/';
-					ewwwio_debug_message( "found WOM delivery domain of $delivery_domain" );
+					$this->debug_message( "found WOM delivery domain of $delivery_domain" );
 				}
 				$this->s3_active = $s3_domain;
 				if ( $as3cf->get_setting( 'enable-object-prefix' ) ) {

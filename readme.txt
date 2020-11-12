@@ -2,10 +2,10 @@
 Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization, lossless, lossy, seo, scale
-Requires at least: 5.2
+Requires at least: 5.3
 Tested up to: 5.5
 Requires PHP: 5.6
-Stable tag: 5.8.1
+Stable tag: 5.8.2
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -134,7 +134,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 5.8.2 =
 * security: improper nonce verification for Nextgen bulk optimizer initialization (minor severity)
+* changed: Easy IO verification performed via API for better reliability
 * fixed: Easy IO missing https availability for admin-ajax.php requests when home_url is using plain http
+* fixed: Easy IO silently fails to rewrite URLs when using CNAME with WP Offload Media
 * fixed: wp_lazy_loading_enabled filter should have 3 parameters
 * fixed: Easy IO shows alert for domain change when a non-default WPML language is active
 * fixed: JS WebP does not auto-detect WP Offload Media CNAME

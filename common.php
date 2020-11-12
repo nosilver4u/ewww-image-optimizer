@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '581.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '582.0' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -1717,7 +1717,7 @@ function ewww_image_optimizer_webp_cdn_check_force( $new_value, $old_value ) {
 	if ( ! empty( $new_value ) && (bool) $new_value !== (bool) $old_value ) {
 		if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
 			global $as3cf;
-			if ( $as3cf->get_setting( 'serve-from-s3' ) && $as3cf->get_setting( 'remove-local-file' ) ) {
+			if ( is_object( $as3cf ) && $as3cf->get_setting( 'serve-from-s3' ) && $as3cf->get_setting( 'remove-local-file' ) ) {
 				update_option( 'ewww_image_optimizer_webp_force', true );
 			}
 		}
@@ -1863,6 +1863,19 @@ function ewww_image_optimizer_notice_exactdn_domain_mismatch() {
 			'<a href="' . esc_url( admin_url( 'options-general.php?page=ewww-image-optimizer-options' ) ) . '">' . esc_html__( 'settings page', 'ewww-image-optimizer' ) . '</a>'
 		);
 		?>
+		</p>
+	</div>
+	<?php
+}
+
+/**
+ * Let the user know they need to disable the WP Offload Media CNAME.
+ */
+function ewww_image_optimizer_notice_exactdn_as3cf_cname_active() {
+	?>
+	<div id="ewww-image-optimizer-notice-exactdn-as3cf-cname-active" class="notice notice-error">
+		<p>
+			<?php esc_html_e( 'Easy IO cannot optimize your images while using a custom domain (CNAME) in WP Offload Media. Please disable the custom domain in the WP Offload Media settings.', 'ewww-image-optimizer' ); ?>
 		</p>
 	</div>
 	<?php
@@ -10777,10 +10790,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 									<?php esc_html_e( 'Purchase a subscription for your site.', 'ewww-image-optimizer' ); ?>
 								</a>
 							</strong><br>
-							<a href="https://ewww.io/manage-sites/" target="_blank">
-								<?php esc_html_e( 'Then, add your Site URL to your account:', 'easy-image-optimizer' ); ?>
-							</a>
-							<?php echo esc_url( $easyio_site_url ); ?><br>
+							<a href="https://ewww.io/manage-sites/" target="_blank"><?php esc_html_e( 'Then, add your Site URL to your account:', 'easy-image-optimizer' ); ?></a>
+							<?php echo ' ' . esc_url( $easyio_site_url ); ?><br>
 	<?php endif; ?>
 							<a href="https://docs.ewww.io/article/44-introduction-to-exactdn" target="_blank" data-beacon-article="59bc5ad6042863033a1ce370">
 								<?php esc_html_e( 'Learn more about Easy IO', 'ewww-image-optimizer' ); ?>
