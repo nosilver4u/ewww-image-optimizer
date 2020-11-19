@@ -132,6 +132,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 5.8.3 =
+* fixed: Easy IO not activating properly when plugin is activated network-wide for multi-site installs
+
 = 5.8.2 =
 * security: improper nonce verification for Nextgen bulk optimizer initialization (minor severity)
 * changed: Easy IO verification performed via API for better reliability
