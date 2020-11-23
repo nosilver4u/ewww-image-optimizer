@@ -2205,57 +2205,18 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$this->debug_message( 'no TST plugin' );
 				return $args;
 			}
-			if ( ! class_exists( 'TstPostOptions' ) || ! defined( 'TstPostOptions::META_POSITION' ) ) {
-				$this->debug_message( 'no TstPostOptions class' );
-				return $args;
-			}
 			if ( ! $meta || ! is_array( $meta ) || empty( $meta['sizes'] ) ) {
-				// $focus_point = get_post_meta( $attachment_id, TstPostOptions::META_POSITION, true );
 				$meta = wp_get_attachment_metadata( $attachment_id );
-				if ( ! is_array( $meta ) || empty( $meta['width'] ) || empty( $meta['height'] ) ) {
+				if ( ! is_array( $meta ) || empty( $meta ) ) {
 					$this->debug_message( 'unusable meta retrieved' );
 					return $args;
 				}
-				$focus_point = TstPostOptions::get_meta( $attachment_id, $meta['width'], $meta['height'] );
-			} elseif ( ! empty( $meta['tst_thumbnail_version'] ) ) {
-				if ( empty( $meta['width'] ) || empty( $meta['height'] ) ) {
-					$this->debug_message( 'unusable meta passed' );
-					return $args;
-				}
-				$focus_point = TstPostOptions::get_meta( $attachment_id, $meta['width'], $meta['height'] );
-			} else {
-				$this->debug_message( 'unusable meta' );
+			}
+			if ( ! empty( $meta['tst_thumbnail_version'] ) ) {
+				$args['theia_smart_thumbnails_file_version'] = (int) $meta['tst_thumbnail_version'];
 				return $args;
 			}
-			if ( empty( $focus_point ) || ! is_array( $focus_point ) ) {
-				$this->debug_message( 'unusable focus point' );
-				return $args;
-			}
-
-			$dimensions = explode( ',', $args['resize'] );
-
-			$new_w = $dimensions[0];
-			$new_h = $dimensions[1];
-			$this->debug_message( "full size dims: w{$meta['width']} h{$meta['height']}" );
-			$this->debug_message( "smart crop dims: w$new_w h$new_h" );
-			if ( ! empty( $args['zoom'] ) ) {
-				$new_w = round( $args['zoom'] * $new_w );
-				$new_h = round( $args['zoom'] * $new_h );
-				$this->debug_message( "zooming: {$args['zoom']} w$new_w h$new_h" );
-			}
-			if ( ! $new_w || ! $new_h ) {
-				$this->debug_message( 'empty dimension, not cropping' );
-				return $args;
-			}
-			$size_ratio = max( $new_w / $meta['width'], $new_h / $meta['height'] );
-			$crop_w     = round( $new_w / $size_ratio );
-			$crop_h     = round( $new_h / $size_ratio );
-			$s_x        = floor( ( $meta['width'] - $crop_w ) * $focus_point[0] );
-			$s_y        = floor( ( $meta['height'] - $crop_h ) * $focus_point[1] );
-			$this->debug_message( "doing the math with size_ratio of $size_ratio" );
-
-			$args['crop'] = $s_x . ',' . $s_y . ',' . $crop_w . ',' . $crop_h;
-			$this->debug_message( $args['crop'] );
+			$this->debug_message( 'no tst version in meta' );
 			return $args;
 		}
 
@@ -2962,7 +2923,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( isset( $image_url_parts['query'] ) && apply_filters( 'exactdn_add_query_string_to_domain', false, $image_url_parts['host'] ) ) {
 				$exactdn_url .= '?q=' . rawurlencode( $image_url_parts['query'] );
 			}
-			// This is disabled, as I don't think we really need it.
+
+			// This makes sure we populate args with the existing TST image version.
 			if ( ! empty( $image_url_parts['query'] ) && false !== strpos( $image_url_parts['query'], 'theia_smart' ) ) {
 				$args = wp_parse_args( $image_url_parts['query'], $args );
 			}
