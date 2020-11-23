@@ -2963,7 +2963,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$exactdn_url .= '?q=' . rawurlencode( $image_url_parts['query'] );
 			}
 			// This is disabled, as I don't think we really need it.
-			if ( false && ! empty( $image_url_parts['query'] ) && false !== strpos( $image_url_parts['query'], 'theia_smart' ) ) {
+			if ( ! empty( $image_url_parts['query'] ) && false !== strpos( $image_url_parts['query'], 'theia_smart' ) ) {
 				$args = wp_parse_args( $image_url_parts['query'], $args );
 			}
 

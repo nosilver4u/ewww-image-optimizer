@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '582.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '582.07' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -1463,11 +1463,21 @@ function ewww_image_optimizer_install_table() {
 	// See if the path column exists, and what collation it uses to determine the column index size.
 	if ( $wpdb->get_var( "SHOW TABLES LIKE '$wpdb->ewwwio_images'" ) === $wpdb->ewwwio_images ) {
 		ewwwio_debug_message( 'upgrading table and checking collation for path, table exists' );
-		if ( ! $wpdb->get_results( "SHOW INDEX FROM $wpdb->ewwwio_images WHERE Key_name = 'PRIMARY'", ARRAY_A ) ) {
-			$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images ADD PRIMARY KEY(id)" );
+		$mysql_version = 'unknown';
+		if ( method_exists( $wpdb, 'db_server_info' ) ) {
+			$mysql_version = strtolower( $wpdb->db_server_info() );
 		}
-		if ( $wpdb->get_results( "SHOW INDEX FROM $wpdb->ewwwio_images WHERE Key_name = 'id'", ARRAY_A ) ) {
-			$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images DROP INDEX id" );
+		ewwwio_debug_message( $mysql_version );
+		if ( false === strpos( $mysql_version, 'maria' ) || false === strpos( $mysql_version, '10.4.' ) ) {
+			ewwwio_debug_message( 'checking primary/unique index' );
+			if ( ! $wpdb->get_results( "SHOW INDEX FROM $wpdb->ewwwio_images WHERE Key_name = 'PRIMARY'", ARRAY_A ) ) {
+				ewwwio_debug_message( 'adding primary index' );
+				$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images ADD PRIMARY KEY(id)" );
+			}
+			if ( $wpdb->get_results( "SHOW INDEX FROM $wpdb->ewwwio_images WHERE Key_name = 'id'", ARRAY_A ) ) {
+				ewwwio_debug_message( 'dropping unique index' );
+				$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images DROP INDEX id" );
+			}
 		}
 		// Check if the old path_image_size index exists, and drop it.
 		if ( $wpdb->get_results( "SHOW INDEX FROM $wpdb->ewwwio_images WHERE Key_name = 'path_image_size'", ARRAY_A ) ) {
