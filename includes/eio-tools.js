@@ -22,7 +22,7 @@ jQuery(document).ready(function($) {
 	        };
 		$.post(ajaxurl, ewww_table_data, function(response) {
 			try {
-				var ewww_response = $.parseJSON(response);
+				var ewww_response = JSON.parse(response);
 			} catch (err) {
 				$('#ewww-bulk-table').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
 				console.log( response );
@@ -77,7 +77,7 @@ jQuery(document).ready(function($) {
 	        };
 		$.post(ajaxurl, ewww_table_data, function(response) {
 			try {
-				var ewww_response = $.parseJSON(response);
+				var ewww_response = JSON.parse(response);
 			} catch (err) {
 				$('#ewww-bulk-table').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
 				console.log( response );
@@ -115,7 +115,7 @@ jQuery(document).ready(function($) {
 	        };
 		$.post(ajaxurl, ewww_table_data, function(response) {
 			try {
-				var ewww_response = $.parseJSON(response);
+				var ewww_response = JSON.parse(response);
 			} catch (err) {
 				$('#ewww-bulk-table').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
 				console.log( response );
@@ -154,7 +154,7 @@ jQuery(document).ready(function($) {
 	        };
 		$.post(ajaxurl, ewww_table_data, function(response) {
 			try {
-				var ewww_response = $.parseJSON(response);
+				var ewww_response = JSON.parse(response);
 			} catch (err) {
 				$('#ewww-bulk-table').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
 				console.log( response );
@@ -192,7 +192,7 @@ jQuery(document).ready(function($) {
 	        };
 		$.post(ajaxurl, ewww_table_data, function(response) {
 			try {
-				var ewww_response = $.parseJSON(response);
+				var ewww_response = JSON.parse(response);
 			} catch (err) {
 				$('#ewww-bulk-table').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
 				console.log( response );
@@ -225,7 +225,7 @@ jQuery(document).ready(function($) {
 	        };
 		$.post(ajaxurl, ewww_table_data, function(response) {
 			try {
-				var ewww_response = $.parseJSON(response);
+				var ewww_response = JSON.parse(response);
 			} catch (err) {
 				$('#ewww-bulk-table').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
 				console.log( response );
@@ -273,7 +273,7 @@ jQuery(document).ready(function($) {
 		};
 		$.post(ajaxurl, ewww_converted_data, function(response) {
 			try {
-				var ewww_response = $.parseJSON(response);
+				var ewww_response = JSON.parse(response);
 			} catch (err) {
 				$('#ewww-clean-converted-progress').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
 				console.log( response );
@@ -537,7 +537,7 @@ function ewwwRestoreImage(imageID) {
 	jQuery.post(ajaxurl, ewww_image_restore, function(response) {
 		var is_json = true;
 		try {
-			var ewww_response = jQuery.parseJSON(response);
+			var ewww_response = JSON.parse(response);
 		} catch (err) {
 			is_json = false;
 		}

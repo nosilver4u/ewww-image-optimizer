@@ -461,15 +461,20 @@ var Arrive = (function(window, $, undefined) {
 
 })(window, typeof jQuery === 'undefined' ? null : jQuery, undefined);
 
+var ewww_webp_supported = false;
 // webp detection adapted from https://developers.google.com/speed/webp/faq#how_can_i_detect_browser_support_using_javascript
 function check_webp_feature(feature, callback) {
+	if (ewww_webp_supported) {
+                callback(ewww_webp_supported);
+		return;
+	}
         var kTestImages = {
                 alpha: "UklGRkoAAABXRUJQVlA4WAoAAAAQAAAAAAAAAAAAQUxQSAwAAAARBxAR/Q9ERP8DAABWUDggGAAAABQBAJ0BKgEAAQAAAP4AAA3AAP7mtQAAAA==",
                 animation: "UklGRlIAAABXRUJQVlA4WAoAAAASAAAAAAAAAAAAQU5JTQYAAAD/////AABBTk1GJgAAAAAAAAAAAAAAAAAAAGQAAABWUDhMDQAAAC8AAAAQBxAREYiI/gcA"
         };
         var img = new Image();
         img.onload = function () {
-                var ewww_webp_supported = (img.width > 0) && (img.height > 0);
+                ewww_webp_supported = (img.width > 0) && (img.height > 0);
                 callback(ewww_webp_supported);
         };
         img.onerror = function () {
@@ -662,23 +667,88 @@ function ewwwWebPInit(ewww_webp_supported) {
                 document.arrive('videos', function() {
                         ewwwLoadImages(ewww_webp_supported);
                 });
-                var ewww_ngg_galleries_timer = 0;
-                var ewww_ngg_galleries = setInterval(function() {
-                        if ( typeof galleries !== 'undefined' ) {
-                                ewwwNggParseGalleries(ewww_webp_supported);
-                                clearInterval(ewww_ngg_galleries);
-                        }
-                        ewww_ngg_galleries_timer += 25;
-                        if (ewww_ngg_galleries_timer > 1000) {
-                                clearInterval(ewww_ngg_galleries);
-                        }
-                }, 25);
+                if (document.readyState == 'loading') {
+			console.log('deferring ewwwJSONParserInit until DOMContentLoaded')
+			document.addEventListener('DOMContentLoaded', ewwwJSONParserInit);
+                } else {
+			console.log(document.readyState);
+			console.log('running JSON parsers post haste')
+                	if ( typeof galleries !== 'undefined' ) {
+				console.log('galleries found, parsing')
+                        	ewwwNggParseGalleries(ewww_webp_supported);
+			}
+                	ewwwWooParseVariations(ewww_webp_supported);
+                        //clearInterval(ewww_ngg_galleries);
+		}
+                // var ewww_ngg_galleries_timer = 0;
+                // var ewww_ngg_galleries = setInterval(function() {
+                //        if ( typeof galleries !== 'undefined' ) {
+                //                ewwwNggParseGalleries(ewww_webp_supported);
+                //                clearInterval(ewww_ngg_galleries);
+                //        }
+                //        ewww_ngg_galleries_timer += 25;
+                //        if (ewww_ngg_galleries_timer > 1000) {
+                //                clearInterval(ewww_ngg_galleries);
+                //        }
+                //}, 25);
 
 }
 function ewwwAttr(elem, attr, value) {
         if (value != null && value !== false) {
                 elem.setAttribute(attr, value);
         }
+}
+function ewwwJSONParserInit() {
+        if ( typeof galleries !== 'undefined' ) {
+		check_webp_feature('alpha', ewwwNggParseGalleries);
+	}
+	check_webp_feature('alpha', ewwwWooParseVariations);
+}
+function ewwwWooParseVariations(ewww_webp_supported) {
+	if (!ewww_webp_supported) {
+		return;
+	}
+        var elems = document.querySelectorAll('form.variations_form');
+	for (var i = 0, len = elems.length; i < len; i++){
+		var variations = elems[i].getAttribute('data-product_variations');
+		var variations_changed = false;
+		try {
+			variations = JSON.parse(variations);
+			//console.log(variations);
+			console.log('parsing WC variations');
+			for ( var num in variations ) {
+                                if (variations[ num ] !== undefined && variations[ num ].image !== undefined) {
+					console.log(variations[num].image);
+					if (variations[num].image.src_webp !== undefined) {
+						variations[num].image.src = variations[num].image.src_webp;
+						variations_changed = true;
+					}
+					if (variations[num].image.srcset_webp !== undefined) {
+						variations[num].image.srcset = variations[num].image.srcset_webp;
+						variations_changed = true;
+					}
+					if (variations[num].image.full_src_webp !== undefined) {
+						variations[num].image.full_src = variations[num].image.full_src_webp;
+						variations_changed = true;
+					}
+					if (variations[num].image.gallery_thumbnail_src_webp !== undefined) {
+						variations[num].image.gallery_thumbnail_src = variations[num].image.gallery_thumbnail_src_webp;
+						variations_changed = true;
+					}
+					if (variations[num].image.thumb_src_webp !== undefined) {
+						variations[num].image.thumb_src = variations[num].image.thumb_src_webp;
+						variations_changed = true;
+					}
+				}
+			}
+			if (variations_changed) {
+                                ewwwAttr(elems[i], 'data-product_variations', JSON.stringify(variations));
+			}
+		} catch (err) {
+			console.log(err);
+			console.log(response);
+		}
+	}
 }
 function ewwwNggParseGalleries(ewww_webp_supported) {
         if (ewww_webp_supported) {

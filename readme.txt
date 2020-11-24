@@ -133,6 +133,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 5.9.0 =
+* added: (maybe) JS WebP is able to rewrite WooCommerce product variations
 * added: JS WebP recognizes video elements added via JS (e.g. infinite scroll)
 * changed: JS WebP can be used with picture WebP + Lazy Load to support CSS background images
 * changed: better compatibility with Theia Smart Thumbnails
