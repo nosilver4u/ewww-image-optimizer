@@ -274,6 +274,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$this->allowed_domains[] = $this->exactdn_domain;
 			$this->allowed_domains   = apply_filters( 'exactdn_allowed_domains', $this->allowed_domains );
 			$this->debug_message( 'allowed domains: ' . implode( ',', $this->allowed_domains ) );
+			$this->get_allowed_paths();
 			$this->validate_user_exclusions();
 		}
 
@@ -707,6 +708,29 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		}
 
 		/**
+		 * Get the paths for wp-content, wp-includes, and the uploads directory.
+		 * These are used to help determine which URLs are allowed to be rewritten for Easy IO.
+		 */
+		function get_allowed_paths() {
+			$wp_content_path = trim( $this->parse_url( content_url(), PHP_URL_PATH ), '/' );
+			$wp_include_path = trim( $this->parse_url( includes_url(), PHP_URL_PATH ), '/' );
+			$this->debug_message( "wp-content path: $wp_content_path" );
+			$this->debug_message( "wp-includes path: $wp_include_path" );
+
+			$this->content_path = basename( $wp_content_path );
+			$this->include_path = basename( $wp_include_path );
+			$this->uploads_path = basename( $wp_content_path );
+
+			// NOTE: This bit is not currently in use, so we'll see if anyone needs it.
+			$uploads_info = wp_upload_dir();
+			if ( ! empty( $uploads_info['baseurl'] ) && false === strpos( $uploads_info['baseurl'], $wp_content_path ) ) {
+				$uploads_path = trim( $this->parse_url( $uploads_info['baseurl'], PHP_URL_PATH ), '/' );
+				$this->debug_message( "wp uploads path: $uploads_path" );
+				$this->uploads_path = basename( $uploads_path );
+			}
+		}
+
+		/**
 		 * Validate the user-defined exclusions for "all the things" rewriting.
 		 */
 		function validate_user_exclusions() {
@@ -720,8 +744,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						if ( ! is_string( $exclusion ) ) {
 							continue;
 						}
-						if ( false !== strpos( $exclusion, 'wp-content' ) ) {
-							$exclusion = preg_replace( '#([^"\'?>]+?)?wp-content/#i', '', $exclusion );
+						if ( false !== strpos( $exclusion, $this->content_path ) ) {
+							$exclusion = preg_replace( '#([^"\'?>]+?)?' . $this->content_path . '/#i', '', $exclusion );
 						}
 						$this->user_exclusions[] = ltrim( $exclusion, '/' );
 					}
@@ -1464,18 +1488,18 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$escaped_upload_domain = str_replace( '.', '\.', $upload_domain );
 				$this->debug_message( $escaped_upload_domain );
 				if ( ! empty( $this->user_exclusions ) ) {
-					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)?(' . implode( '|', $this->user_exclusions ) . ')#i', '$1//' . $this->upload_domain . '$2/?wpcontent-bypass?/$3$4', $content );
+					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/' . $this->content_path . '/([^"\'?>]+?)?(' . implode( '|', $this->user_exclusions ) . ')#i', '$1//' . $this->upload_domain . '$2/?wpcontent-bypass?/$3$4', $content );
 				}
 				if ( strpos( $content, '<use ' ) ) {
 					// Pre-empt rewriting of files within <use> tags, particularly to prevent security errors for SVGs.
-					$content = preg_replace( '#(<use.+?href=["\'])(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)/wp-content/#is', '$1$2//' . $this->upload_domain . '$3/?wpcontent-bypass?/', $content );
+					$content = preg_replace( '#(<use.+?href=["\'])(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)/' . $this->content_path . '/#is', '$1$2//' . $this->upload_domain . '$3/?wpcontent-bypass?/', $content );
 				}
 				// Pre-empt rewriting of wp-includes and wp-content if the extension is not allowed by using a temporary placeholder.
-				$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/wp-content/([^"\'?>]+?)\.(htm|html|php|ashx|m4v|mov|wvm|qt|webm|ogv|mp4|m4p|mpg|mpeg|mpv)#i', '$1//' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
+				$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/' . $this->content_path . '/([^"\'?>]+?)\.(htm|html|php|ashx|m4v|mov|wvm|qt|webm|ogv|mp4|m4p|mpg|mpeg|mpv)#i', '$1//' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
 				// Pre-empt partial paths that are used by JS to build other URLs.
-				$content = str_replace( 'wp-content/themes/jupiter"', '?wpcontent-bypass?/themes/jupiter"', $content );
-				$content = str_replace( 'wp-content/plugins/onesignal-free-web-push-notifications/sdk_files/"', '?wpcontent-bypass?/plugins/onesignal-free-web-push-notifications/sdk_files/"', $content );
-				$content = str_replace( 'wp-content/plugins/u-shortcodes/shortcodes/monthview/"', '?wpcontent-bypass?/plugins/u-shortcodes/shortcodes/monthview/"', $content );
+				$content = str_replace( $this->content_path . '/themes/jupiter"', '?wpcontent-bypass?/themes/jupiter"', $content );
+				$content = str_replace( $this->content_path . '/plugins/onesignal-free-web-push-notifications/sdk_files/"', '?wpcontent-bypass?/plugins/onesignal-free-web-push-notifications/sdk_files/"', $content );
+				$content = str_replace( $this->content_path . '/plugins/u-shortcodes/shortcodes/monthview/"', '?wpcontent-bypass?/plugins/u-shortcodes/shortcodes/monthview/"', $content );
 				if (
 					false !== strpos( $this->upload_domain, 'amazonaws.com' ) ||
 					false !== strpos( $this->upload_domain, 'digitaloceanspaces.com' ) ||
@@ -1484,10 +1508,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					$this->debug_message( 'searching for #(https?:)?//(?:www\.)?' . $escaped_upload_domain . $this->remove_path . '/#i and replacing with $1//' . $this->exactdn_domain . '/' );
 					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . $this->remove_path . '/#i', '$1//' . $this->exactdn_domain . '/', $content );
 				} else {
-					$this->debug_message( 'searching for #(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/([^"\'?&>]+?)?(nextgen-image|wp-includes|wp-content)/#i and replacing with $1//' . $this->exactdn_domain . '/$2$3/' );
-					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?(nextgen-image|wp-includes|wp-content)/#i', '$1//' . $this->exactdn_domain . '/$2$3/', $content );
+					$this->debug_message( 'searching for #(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/([^"\'?&>]+?)?(nextgen-image|' . $this->include_path . '|' . $this->content_path . ')/#i and replacing with $1//' . $this->exactdn_domain . '/$2$3/' );
+					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?(nextgen-image|' . $this->include_path . '|' . $this->content_path . ')/#i', '$1//' . $this->exactdn_domain . '/$2$3/', $content );
 				}
-				$content = str_replace( '?wpcontent-bypass?', 'wp-content', $content );
+				$content = str_replace( '?wpcontent-bypass?', $this->content_path, $content );
 				if ( defined( 'EXACTDN_DEFER_JQUERY_SAFE' ) && EXACTDN_DEFER_JQUERY_SAFE && false === strpos( $content, 'jQuery' ) ) {
 					preg_match( "#<script\s+type='text/javascript'\s+src='[^']+?/jquery\.js[^']*?'[^>]*?>#is", $content, $jquery_tags );
 					if ( ! empty( $jquery_tags[0] ) && false === strpos( $jquery_tags[0], 'defer' ) && false === strpos( $jquery_tags[0], 'async' ) ) {
@@ -2719,7 +2743,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			global $wp_version;
 			// If a resource doesn't have a version string, we add one to help with cache-busting.
 			if (
-				false !== strpos( $url, 'wp-content/themes/' ) &&
+				false !== strpos( $url, $this->content_path . '/themes/' ) &&
 				( empty( $parsed_url['query'] ) || 'ver=' . $wp_version === $parsed_url['query'] )
 			) {
 				$modified = $this->function_exists( 'filemtime' ) ? filemtime( get_template_directory() ) : '';
@@ -2733,7 +2757,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				 */
 				$parsed_url['query'] = apply_filters( 'exactdn_version_string', "m=$modified" );
 			} elseif (
-				false !== strpos( $url, 'wp-content/plugins/' ) &&
+				false !== strpos( $url, $this->content_path . '/plugins/' ) &&
 				( empty( $parsed_url['query'] ) || 'ver=' . $wp_version === $parsed_url['query'] )
 			) {
 				$parsed_url['query'] = '';
