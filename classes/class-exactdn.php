@@ -2201,7 +2201,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				return $args;
 			}
 			// TST is not active.
-			if ( ! defined( 'TST_VERSION' ) ) {
+			if ( ! defined( 'TST_VERSION' ) && ! defined( 'THEIA_SMART_THUMBNAILS_VERSION' ) ) {
 				$this->debug_message( 'no TST plugin' );
 				return $args;
 			}
