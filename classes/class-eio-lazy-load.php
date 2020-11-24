@@ -268,16 +268,11 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 					}
 				} // End foreach().
 			} // End if().
-			// Process background images on div elements.
-			$buffer = $this->parse_background_images( $buffer, 'div' );
-			// Process background images on li elements.
-			$buffer = $this->parse_background_images( $buffer, 'li' );
-			// Process background images on span elements.
-			$buffer = $this->parse_background_images( $buffer, 'span' );
-			// Process background images on section elements.
-			$buffer = $this->parse_background_images( $buffer, 'section' );
-			// Process background images on a/link elements.
-			$buffer = $this->parse_background_images( $buffer, 'a' );
+			$element_types = apply_filters( 'eio_allowed_background_image_elements', array( 'div', 'li', 'span', 'section', 'a' ) );
+			foreach ( $element_types as $element_type ) {
+				// Process background images on HTML elements.
+				$buffer = $this->parse_background_images( $buffer, $element_type );
+			}
 			if ( in_array( 'picture', $this->user_element_exclusions, true ) ) {
 				$pictures = '';
 			} else {

@@ -1285,11 +1285,11 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					}
 				} // End foreach().
 			} // End if();
-			$content = $this->filter_bg_images( $content, 'div' );
-			$content = $this->filter_bg_images( $content, 'li' );
-			$content = $this->filter_bg_images( $content, 'span' );
-			$content = $this->filter_bg_images( $content, 'section' );
-			$content = $this->filter_bg_images( $content, 'a' );
+			$element_types = apply_filters( 'eio_allowed_background_image_elements', array( 'div', 'li', 'span', 'section', 'a' ) );
+			foreach ( $element_types as $element_type ) {
+				// Process background images on HTML elements.
+				$content = $this->filter_bg_images( $content, $element_type );
+			}
 			if ( $this->filtering_the_page ) {
 				$content = $this->filter_prz_thumb( $content );
 			}

@@ -137,6 +137,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * changed: JS WebP can be used with picture WebP + Lazy Load to support CSS background images
 * changed: better compatibility with Theia Smart Thumbnails
 * changed: Lazy Load auto-sizing will no longer decrease the image size, only increasing is allowed
+* changed: filter to include additional HTML element types via eio_allowed_background_image_elements filter for Lazy Load and Easy IO
 * fixed: Easy IO not activating properly when plugin is activated network-wide for multi-site installs
 * fixed: database upgrade throws errors on MariaDB 10.4.x
 
