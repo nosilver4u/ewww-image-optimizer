@@ -659,6 +659,9 @@ function ewwwWebPInit(ewww_webp_supported) {
                 document.arrive('.ewww_webp_lazy_load', function() {
                         ewwwLoadImages(ewww_webp_supported);
                 });
+                document.arrive('videos', function() {
+                        ewwwLoadImages(ewww_webp_supported);
+                });
                 var ewww_ngg_galleries_timer = 0;
                 var ewww_ngg_galleries = setInterval(function() {
                         if ( typeof galleries !== 'undefined' ) {

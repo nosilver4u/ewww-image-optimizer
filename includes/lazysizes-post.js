@@ -109,7 +109,15 @@ function constrainSrc(url,objectWidth,objectHeight,objectType){
 	return url;
 }
 document.addEventListener('lazybeforesizes', function(e){
-	console.log(e);
+	console.log('auto-sizing to: ' + e.detail.width);
+	if (e.target._lazysizesWidth === undefined) {
+		return;
+	}
+	console.log('previous width was ' + e.target._lazysizesWidth);
+	if (e.detail.width < e.target._lazysizesWidth) {
+		console.log('no way! ' + e.detail.width + ' is smaller than ' + e.target._lazysizesWidth);
+		e.detail.width = e.target._lazysizesWidth;
+	}
 });
 document.addEventListener('lazybeforeunveil', function(e){
         var target = e.target;

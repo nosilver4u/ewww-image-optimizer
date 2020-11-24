@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '582.07' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '582.16' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -261,7 +261,8 @@ function ewww_image_optimizer_parser_init() {
 		 * Alt WebP class for parsing image urls and rewriting them for WebP support.
 		 */
 		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-alt-webp.php' );
-	} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+	}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		$buffer_start = true;
 		/**
 		 * Page Parsing class for working with HTML content.
