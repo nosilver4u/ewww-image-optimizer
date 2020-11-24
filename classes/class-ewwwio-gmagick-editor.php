@@ -27,7 +27,7 @@ if ( class_exists( 'WP_Image_Editor_Gmagick' ) ) {
 		protected function _save( $image, $filename = null, $mime_type = null ) {
 			global $ewww_defer;
 			global $ewww_preempt_editor;
-			if ( ! empty( $ewww_preempt_editor ) ) {
+			if ( ! empty( $ewww_preempt_editor ) || ! defined( 'EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR' ) || ! EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR ) {
 				return parent::_save( $image, $filename, $mime_type );
 			}
 			list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );

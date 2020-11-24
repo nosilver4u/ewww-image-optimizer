@@ -135,6 +135,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 5.9.0 =
 * added: (maybe) JS WebP is able to rewrite WooCommerce product variations
 * added: JS WebP recognizes video elements added via JS (e.g. infinite scroll)
+* changed: extensions for WP_Image_Editor now disabled by default, use EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR constant to enable them
 * changed: JS WebP can be used with picture WebP + Lazy Load to support CSS background images
 * changed: better compatibility with Theia Smart Thumbnails
 * changed: Lazy Load auto-sizing will no longer decrease the image size, only increasing is allowed

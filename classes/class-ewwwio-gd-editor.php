@@ -10,97 +10,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
-	/**
-	 * Extension of the WP_Image_Editor_GD class to auto-compress edited images.
-	 *
-	 * @see WP_Image_Editor_GD
-	 */
-	class EWWWIO_GD_Editor extends Bbpp_Animated_Gif {
-
-		/**
-		 * Saves a file from the image editor.
-		 *
-		 * @param resource $image A GD image object.
-		 * @param string   $filename Optional. The name of the file to be saved to.
-		 * @param string   $mime_type Optional. The mimetype of the file.
-		 * @return WP_Error| array The full path, base filename, width, height, and mimetype.
-		 */
-		protected function _save( $image, $filename = null, $mime_type = null ) {
-			ewwwio_debug_message( '<b>(agr)' . __METHOD__ . '()</b>' );
-			global $ewww_defer;
-			global $ewww_preempt_editor;
-			if ( ! empty( $ewww_preempt_editor ) ) {
-				return parent::_save( $image, $filename, $mime_type );
-			}
-			list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
-			if ( ! $filename ) {
-				$filename = $this->generate_filename( null, null, $extension );
-			}
-			if ( ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) || ! EWWWIO_EDITOR_OVERWRITE ) && ewwwio_is_file( $filename ) ) {
-				ewwwio_debug_message( "detected existing file: $filename" );
-				$current_size = getimagesize( $filename );
-				if ( $current_size && (int) $this->size['width'] === (int) $current_size[0] && (int) $this->size['height'] === (int) $current_size[1] ) {
-					ewwwio_debug_message( "existing file has same dimensions, not saving $filename" );
-					return array(
-						'path'      => $filename,
-						'file'      => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
-						'width'     => $this->size['width'],
-						'height'    => $this->size['height'],
-						'mime-type' => $mime_type,
-					);
-				}
-			}
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) ) {
-				ewww_image_optimizer_cloud_init();
-			}
-			$saved = parent::_save( $image, $filename, $mime_type );
-			if ( ! is_wp_error( $saved ) ) {
-				if ( ! $filename ) {
-					$filename = $saved['path'];
-				}
-				if ( file_exists( $filename ) ) {
-					ewww_image_optimizer( $filename );
-					ewwwio_debug_message( "image editor (AGR gd) saved: $filename" );
-					$image_size = ewww_image_optimizer_filesize( $filename );
-					ewwwio_debug_message( "image editor size: $image_size" );
-				}
-			}
-			ewwwio_memory( __METHOD__ );
-			return $saved;
-		}
-		/**
-		 * Resize multiple images from a single source.
-		 *
-		 * @param array $sizes An array of image size arrays. Default sizes are 'small', 'medium', 'medium_large', 'large'.
-		 * @return array An array of resized images' metadata by size.
-		 */
-		public function multi_resize( $sizes ) {
-			global $ewww_defer;
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) ) {
-				ewww_image_optimizer_cloud_init();
-			}
-			$metadata = parent::multi_resize( $sizes );
-			ewwwio_debug_message( 'image editor (AGR gd) multi resize' );
-			$info = pathinfo( $this->file );
-			$dir  = $info['dirname'];
-			if ( ewww_image_optimizer_iterable( $metadata ) ) {
-				foreach ( $metadata as $size ) {
-					$filename = trailingslashit( $dir ) . $size['file'];
-					if ( file_exists( $filename ) ) {
-						ewww_image_optimizer( $filename );
-						ewwwio_debug_message( "image editor (AGR gd) saved: $filename" );
-						$image_size = ewww_image_optimizer_filesize( $filename );
-						ewwwio_debug_message( "image editor size: $image_size" );
-					}
-				}
-			}
-			ewwwio_memory( __METHOD__ );
-			return $metadata;
-		}
-	}
+	// Do nothing, they should just get rid of that unsupported plugin.
 } elseif ( class_exists( 'WP_Thumb_Image_Editor_GD' ) ) {
 	/**
-	 * Extension of the WP_Image_Editor_GD class to auto-compress edited images.
+	 * Extension of the WP_Thumb_Image_Editor_GD class to auto-compress edited images.
+	 * The parent class is from the WPThumb library, developed at Human Made, but no longer maintained.
 	 *
 	 * @see WP_Image_Editor_GD
 	 */
@@ -117,7 +31,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 			ewwwio_debug_message( '<b>(wpthumb)' . __METHOD__ . '()</b>' );
 			global $ewww_defer;
 			global $ewww_preempt_editor;
-			if ( ! empty( $ewww_preempt_editor ) ) {
+			if ( ! empty( $ewww_preempt_editor ) || ! defined( 'EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR' ) || ! EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR ) {
 				return parent::_save( $image, $filename, $mime_type );
 			}
 			list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
@@ -159,7 +73,8 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 	}
 } elseif ( class_exists( 'BFI_Image_Editor_GD' ) ) {
 	/**
-	 * Extension of the WP_Image_Editor_GD class to auto-compress edited images.
+	 * Extension of the BFI_Image_Editor_GD class to auto-compress edited images.
+	 * Also no longer maintained, if you're using this, update your code!.
 	 *
 	 * @see WP_Image_Editor_GD
 	 */
@@ -176,7 +91,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 			ewwwio_debug_message( '<b>(bfi)::' . __METHOD__ . '()</b>' );
 			global $ewww_defer;
 			global $ewww_preempt_editor;
-			if ( ! empty( $ewww_preempt_editor ) ) {
+			if ( ! empty( $ewww_preempt_editor ) || ! defined( 'EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR' ) || ! EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR ) {
 				return parent::_save( $image, $filename, $mime_type );
 			}
 			list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
@@ -206,10 +121,10 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 					$filename = $saved['path'];
 				}
 				if ( file_exists( $filename ) ) {
-						ewww_image_optimizer( $filename );
-						ewwwio_debug_message( "image editor (BFI GD) saved: $filename" );
-						$image_size = ewww_image_optimizer_filesize( $filename );
-						ewwwio_debug_message( "image editor size: $image_size" );
+					ewww_image_optimizer( $filename );
+					ewwwio_debug_message( "image editor (BFI GD) saved: $filename" );
+					$image_size = ewww_image_optimizer_filesize( $filename );
+					ewwwio_debug_message( "image editor size: $image_size" );
 				}
 			}
 			ewwwio_memory( __METHOD__ );
@@ -594,7 +509,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 			if ( ! empty( $this->ewww_image ) && empty( $this->modified ) ) {
 				return $this->_save_ewwwio_file( $this->ewww_image, $filename, $mime_type );
 			}
-			if ( ! empty( $ewww_preempt_editor ) ) {
+			if ( ! empty( $ewww_preempt_editor ) || ! defined( 'EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR' ) || ! EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR ) {
 				return parent::_save( $image, $filename, $mime_type );
 			}
 			list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
