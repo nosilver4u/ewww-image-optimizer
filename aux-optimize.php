@@ -650,6 +650,34 @@ function ewww_image_optimizer_delete_webp() {
 }
 
 /**
+ * Cleans up original_image via AJAX for a particular attachment.
+ */
+function ewww_image_optimizer_ajax_delete_original() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	// Verify that an authorized user has called function.
+	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
+	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-tools' ) || ! current_user_can( $permissions ) ) {
+		ewwwio_ob_clean();
+		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
+	}
+	if ( empty( $_POST['attachment_id'] ) ) {
+		die( wp_json_encode( array( 'error' => esc_html__( 'Missing attachment ID number.', 'ewww-image-optimizer' ) ) ) );
+	}
+
+	// Because some plugins might have loose filters (looking at you WPML).
+	remove_all_filters( 'wp_delete_file' );
+
+	$id = (int) $_POST['attachment_id'];
+
+	$new_meta = ewwwio_remove_original_image( $id );
+	if ( ewww_image_optimizer_iterable( $new_meta ) ) {
+		wp_update_attachment_metadata( $id, $new_meta );
+	}
+	sleep( 1 );
+	die( wp_json_encode( array( 'completed' => 1 ) ) );
+}
+
+/**
  * Cleanup duplicate and unreferenced records from the images table.
  *
  * Called via AJAX to find records from the images table and checks them for duplicates and
@@ -1544,5 +1572,6 @@ add_action( 'wp_ajax_bulk_aux_images_table_clean', 'ewww_image_optimizer_aux_ima
 add_action( 'wp_ajax_bulk_aux_images_meta_clean', 'ewww_image_optimizer_aux_meta_clean' );
 add_action( 'wp_ajax_bulk_aux_images_webp_clean', 'ewww_image_optimizer_aux_images_webp_clean' );
 add_action( 'wp_ajax_bulk_aux_images_delete_webp', 'ewww_image_optimizer_delete_webp' );
+add_action( 'wp_ajax_bulk_aux_images_delete_original', 'ewww_image_optimizer_ajax_delete_original' );
 add_action( 'wp_ajax_ewwwio_get_all_attachments', 'ewww_image_optimizer_get_all_attachments' );
 ?>

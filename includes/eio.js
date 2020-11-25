@@ -344,7 +344,7 @@ jQuery(document).ready(function($) {
 			$.post(ajaxurl, ewww_scan_data, function(response) {
 				var is_json = true;
 				try {
-					var ewww_response = $.parseJSON(response);
+					var ewww_response = JSON.parse(response);
 				} catch (err) {
 					is_json = false;
 				}
@@ -448,7 +448,7 @@ jQuery(document).ready(function($) {
 	        $.post(ajaxurl, ewww_init_data, function(response) {
 			var is_json = true;
 			try {
-				var ewww_init_response = $.parseJSON(response);
+				var ewww_init_response = JSON.parse(response);
 			} catch (err) {
 				is_json = false;
 			}
@@ -495,7 +495,7 @@ jQuery(document).ready(function($) {
 	        var ewww_jqxhr = $.post(ajaxurl, ewww_loop_data, function(response) {
 			var is_json = true;
 			try {
-				var ewww_response = $.parseJSON(response);
+				var ewww_response = JSON.parse(response);
 			} catch (err) {
 				is_json = false;
 			}
@@ -686,7 +686,7 @@ function ewwwRestoreImage(imageID) {
 	jQuery.post(ajaxurl, ewww_image_restore, function(response) {
 		var is_json = true;
 		try {
-			var ewww_response = jQuery.parseJSON(response);
+			var ewww_response = JSON.parse(response);
 		} catch (err) {
 			is_json = false;
 		}

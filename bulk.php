@@ -91,6 +91,15 @@ function ewww_image_optimizer_display_tools() {
 		"</form>\n</div>\n";
 
 	echo '<hr class="ewww-tool-divider">';
+	echo "<div>\n<p id='ewww-clean-originals-info' class='ewww-tool-info'>" .
+		esc_html__( 'When WordPress scales down large images, it keeps the original on disk for thumbnail generation. You may delete them to save disk space.', 'ewww-image-optimizer' ) . "</p>\n";
+	echo "<form id='ewww-clean-originals' class='ewww-tool-form' method='post' action=''>\n" .
+		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Delete Originals', 'ewww-image-optimizer' ) . "' />\n" .
+		"</form>\n</div>\n";
+	echo "<div id='ewww-clean-originals-progressbar' style='display:none;'></div>";
+	echo "<div id='ewww-clean-originals-progress' style='display:none;'></div>";
+
+	echo '<hr class="ewww-tool-divider">';
 	echo "<div>\n<p id='ewww-clean-converted-info' class='ewww-tool-info'>" .
 		esc_html__( 'If you have converted images (PNG to JPG and friends) without deleting the originals, you may remove them when ready.', 'ewww-image-optimizer' ) . "<br>\n" .
 		'<i>' . esc_html__( 'Please perform a site backup before proceeding.', 'ewww-image-optimizer' ) . "</i></p>\n";
@@ -216,6 +225,7 @@ function ewww_image_optimizer_tool_script( $hook ) {
 			/* translators: used for Table Cleanup progress bar, like so: batch 32/346 */
 			'batch'             => esc_html__( 'batch', 'ewww-image-optimizer' ),
 			'erase_warning'     => $erase_warning,
+			'tool_warning'      => esc_html__( 'Please be sure to backup your site before proceeding. Do you wish to continue?', 'ewww-image-optimizer' ),
 		)
 	);
 	// Load the stylesheet for the jquery progressbar.

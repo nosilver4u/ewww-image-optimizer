@@ -9,7 +9,7 @@ jQuery(document).on( 'click', '.ewww-manual-optimize', function() {
 	};
 	jQuery('#ewww-flag-status-' + post_id ).html( ewww_vars.optimizing );
 	jQuery.post(ajaxurl, ewww_manual_optimize_data, function(response) {
-		var ewww_manual_response = jQuery.parseJSON(response);
+		var ewww_manual_response = JSON.parse(response);
 		if (ewww_manual_response.error) {
 			jQuery('#ewww-flag-status-' + post_id ).html( ewww_manual_response.error );
 		} else if (ewww_manual_response.success) {
@@ -28,7 +28,7 @@ jQuery(document).on( 'click', '.ewww-manual-cloud-restore', function() {
 	};
 	jQuery('#ewww-flag-status-' + post_id ).html( ewww_vars.restoring );
 	jQuery.post(ajaxurl, ewww_manual_optimize_data, function(response) {
-		var ewww_manual_response = jQuery.parseJSON(response);
+		var ewww_manual_response = JSON.parse(response);
 		if (ewww_manual_response.error) {
 			jQuery('#ewww-flag-status-' + post_id ).html( ewww_manual_response.error );
 		} else if (ewww_manual_response.success) {

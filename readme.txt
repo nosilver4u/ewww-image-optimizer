@@ -133,6 +133,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 5.9.0 =
+* added: tool to delete originals from WP 5.3+ auto-scaling behavior (Tools menu)
 * added: (maybe) JS WebP is able to rewrite WooCommerce product variations
 * added: JS WebP recognizes video elements added via JS (e.g. infinite scroll)
 * changed: extensions for WP_Image_Editor now disabled by default, use EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR constant to enable them
