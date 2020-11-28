@@ -193,7 +193,7 @@ function ewww_image_optimizer_tool_script( $hook ) {
 	if ( 'tools_page_ewww-image-optimizer-tools' !== $hook ) {
 		return;
 	}
-	wp_enqueue_script( 'ewwwtoolscript', plugins_url( '/includes/eio-tools.js', __FILE__ ), array( 'jquery', 'jquery-ui-progressbar' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+	wp_enqueue_script( 'ewww-tool-script', plugins_url( '/includes/eio-tools.js', __FILE__ ), array( 'jquery', 'jquery-ui-progressbar' ), EWWW_IMAGE_OPTIMIZER_VERSION, true );
 	// Number of images in the ewwwio_table (previously optimized images).
 	$image_count = ewww_image_optimizer_aux_images_table_count();
 	// Submit a couple variables for our javascript to work with.
@@ -205,7 +205,7 @@ function ewww_image_optimizer_tool_script( $hook ) {
 	global $wpdb;
 	$attachment_count = $wpdb->get_var( "SELECT count(ID) FROM $wpdb->posts WHERE (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%') ORDER BY ID DESC" );
 	wp_localize_script(
-		'ewwwtoolscript',
+		'ewww-tool-script',
 		'ewww_vars',
 		array(
 			'_wpnonce'          => wp_create_nonce( 'ewww-image-optimizer-tools' ),
@@ -713,13 +713,14 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 		update_option( 'ewww_image_optimizer_bulk_resume', '' );
 		update_option( 'ewww_image_optimizer_aux_resume', '' );
 	}
-	wp_enqueue_script( 'ewwwbulkscript', plugins_url( '/includes/eio.js', __FILE__ ), array( 'jquery', 'jquery-ui-slider', 'jquery-ui-progressbar', 'postbox', 'dashboard' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+	wp_enqueue_script( 'ewww-beacon-script', plugins_url( '/includes/eio-beacon.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+	wp_enqueue_script( 'ewww-bulk-script', plugins_url( '/includes/eio-bulk.js', __FILE__ ), array( 'jquery', 'jquery-ui-slider', 'jquery-ui-progressbar', 'postbox', 'dashboard' ), EWWW_IMAGE_OPTIMIZER_VERSION );
 	// Number of images in the ewwwio_table (previously optimized images).
 	$image_count = ewww_image_optimizer_aux_images_table_count();
 	// Submit a couple variables for our javascript to work with.
 	$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
 	wp_localize_script(
-		'ewwwbulkscript',
+		'ewww-bulk-script',
 		'ewww_vars',
 		array(
 			'_wpnonce'              => wp_create_nonce( 'ewww-image-optimizer-bulk' ),

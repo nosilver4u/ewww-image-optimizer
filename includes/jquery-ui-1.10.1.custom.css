@@ -370,7 +370,7 @@ body .ui-tooltip {
         top: auto;
 }
 /* media library actions and details */
-a.removeimage, a.restoreimage {
+a.ewww-remove-image, a.ewww-restore-image {
 	cursor: pointer;
 }
 .ewww-attachment-detail-container {
@@ -488,6 +488,7 @@ button.ewww-handlediv {
 /* optimization status section */
 #ewww-widgets {
 	max-width: 1000px;
+	clear: right;
 }
 #ewww-status .inside {
 	margin: 0;
@@ -616,20 +617,49 @@ p.debug-actions {
 	height: 300px;
 	width: 800px;
 }
+#ewwwio-wizard {
+	display: flex;
+	max-width: 400px;
+	flex-direction: column;
+	margin: auto;
+	padding: 5% 0;
+}
+#ewwwio-wizard-header {
+	background-color: #3eadc9;
+}
+#ewwwio-wizard-header img:first-child {
+	margin: 15px auto;
+	display: block;
+}
+#ewwwio-wizard-body {
+	background-color: #fff;
+	padding: 20px;
+}
+#ewwwio-wizard-form {
+	margin: auto 0;
+}
 #ewwwio-banner {
-	margin-top: 10px;
-	min-height: 95px;
+	display: flex;
+	margin: 0px;
 	padding: 15px;
 	background-color: #3eadc9;
-	clear: both;
 }
-#ewwwio-banner img {
-	float: left;
-	margin-right: 10px;
+#ewwwio-banner img:first-child {
+	margin: auto 10px auto 0;
+}
+#ewwwio-banner a.ewww-help-beacon-single img {
+	padding: 0;
+}
+#ewwwio-banner p:first-of-type {
+	margin-top: 0;
 }
 #ewwwio-banner p {
 	color: #fff;
-	margin-bottom: 1.0em;
+	/* margin-bottom: 1.0em; */
+	/* line-height: 1; */
+}
+#ewwwio-banner a {
+	color: #272727;
 }
 h3 a.ewww-upgrade {
 	font-weight:bold;

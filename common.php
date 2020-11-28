@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '582.24' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '582.33' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -2585,6 +2585,24 @@ function ewww_image_optimizer_auto() {
 }
 
 /**
+ * Simulates regenerating a resize for an attachment.
+ */
+function ewww_image_optimizer_resize_dup_check() {
+	$meta = wp_get_attachment_metadata( 34 );
+
+	list( $file, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, 34 );
+
+	$editor        = wp_get_image_editor( $file );
+	$resized_image = $editor->resize( 150, 150, true );
+	$new_file      = $editor->generate_filename();
+	echo esc_html( $new_file );
+	if ( ewwwio_is_file( $new_file ) ) {
+		echo '<br>file already exists<br>';
+	}
+	$saved = $editor->save( $new_file );
+}
+
+/**
  * Clears scheduled jobs for multisite when the plugin is deactivated.
  *
  * @global object $wpdb
@@ -2639,24 +2657,6 @@ function ewww_image_optimizer_network_admin_menu() {
 }
 
 /**
- * Simulates regenerating a resize for an attachment.
- */
-function ewww_image_optimizer_resize_dup_check() {
-	$meta = wp_get_attachment_metadata( 34 );
-
-	list( $file, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, 34 );
-
-	$editor        = wp_get_image_editor( $file );
-	$resized_image = $editor->resize( 150, 150, true );
-	$new_file      = $editor->generate_filename();
-	echo esc_html( $new_file );
-	if ( ewwwio_is_file( $new_file ) ) {
-		echo '<br>file already exists<br>';
-	}
-	$saved = $editor->save( $new_file );
-}
-
-/**
  * Adds various items to the admin menu.
  */
 function ewww_image_optimizer_admin_menu() {
@@ -2704,6 +2704,14 @@ function ewww_image_optimizer_admin_menu() {
 			'ewww_image_optimizer_network_singlesite_options'                            // Function to call.
 		);
 	}
+	// Add temporary wizard page to menu.
+	add_options_page(
+		'EWWW Image Optimizer W',                                                    // Page title.
+		'EWWW Image Optimizer W',                                                    // Menu title.
+		apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ), // Capability.
+		'ewww-image-optimizer-wizard',                                               // Slug.
+		'ewww_image_optimizer_intro_wizard'                                          // Function to call.
+	);
 }
 
 /**
@@ -2780,12 +2788,12 @@ function ewww_image_optimizer_media_scripts( $hook ) {
 	if ( 'upload.php' === $hook || 'ims_gallery_page_ewww-ims-optimize' === $hook ) {
 		add_thickbox();
 		wp_enqueue_script( 'jquery-ui-tooltip' );
-		wp_enqueue_script( 'ewwwmediascript', plugins_url( '/includes/media.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+		wp_enqueue_script( 'ewww-media-script', plugins_url( '/includes/media.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
 		wp_enqueue_style( 'jquery-ui-tooltip-custom', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 		// Submit a couple variables to the javascript to work with.
 		$loading_image = plugins_url( '/images/spinner.gif', __FILE__ );
 		wp_localize_script(
-			'ewwwmediascript',
+			'ewww-media-script',
 			'ewww_vars',
 			array(
 				'optimizing' => '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
@@ -9367,7 +9375,7 @@ function ewww_image_optimizer_get_bad_attachments() {
 function ewww_image_optimizer_settings_script( $hook ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Make sure we are being called from the settings page.
-	if ( 'settings_page_ewww-image-optimizer-options' !== $hook ) {
+	if ( 'settings_page_ewww-image-optimizer-options' !== $hook && 'settings_page_ewww-image-optimizer-wizard' !== $hook ) {
 		return;
 	}
 	delete_option( 'ewww_image_optimizer_exactdn_checkin' );
@@ -9383,11 +9391,12 @@ function ewww_image_optimizer_settings_script( $hook ) {
 	}
 	add_thickbox();
 	wp_enqueue_script( 'jquery-ui-tooltip' );
-	wp_enqueue_script( 'ewwwbulkscript', plugins_url( '/includes/eio.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+	wp_enqueue_script( 'ewww-beacon-script', plugins_url( '/includes/eio-beacon.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+	wp_enqueue_script( 'ewww-settings-script', plugins_url( '/includes/eio-settings.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
 	wp_enqueue_style( 'jquery-ui-tooltip-custom', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 	wp_enqueue_script( 'postbox' );
 	wp_enqueue_script( 'dashboard' );
-	wp_localize_script( 'ewwwbulkscript', 'ewww_vars', array( '_wpnonce' => wp_create_nonce( 'ewww-image-optimizer-settings' ) ) );
+	wp_localize_script( 'ewww-settings-script', 'ewww_vars', array( '_wpnonce' => wp_create_nonce( 'ewww-image-optimizer-settings' ) ) );
 	ewwwio_memory( __FUNCTION__ );
 }
 
@@ -9999,6 +10008,43 @@ function ewwwio_debug_info() {
 	ewwwio_check_memory_available();
 }
 
+/**
+ * Displays the EWWW IO wizard/intro to assist the user in setting up the plugin initially.
+ */
+function ewww_image_optimizer_intro_wizard() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	global $exactdn;
+	?>
+<div id='ewww-settings-wrap' class='wrap'>
+	<div id='ewwwio-wizard'>
+		<h1 style="display:none;">EWWW Image Optimizer setup</h1><!-- remove this -->
+		<div id="ewwwio-wizard-header">
+			<img height="95" width="167" src="<?php echo esc_url( plugins_url( '/images/ewwwio-logo.png', __FILE__ ) ); ?>">
+		</div>
+		<div id="ewwwio-wizard-body">
+			<form id='ewwwio-wizard-form' method='post' action=''>
+				<input type='hidden' name='option_page' value='ewww_image_optimizer_wizard' />
+				<?php wp_nonce_field( 'ewww_image_optimizer_wizard' ); ?>
+				<h2><?php esc_html_e( 'Do you want to:', 'ewww-image-optimizer' ); ?></h2>
+				<p>
+					<input type='checkbox' id='ewww_image_optimizer_goal_site_speed' name='ewww_image_optimizer_goal_site_speed' value='true' />
+					<label for='ewww_image_optimizer_goal_site_speed'><?php esc_html_e( 'Speed up your site', 'ewww-image-optimizer' ); ?></label><br>
+					<input type='checkbox' id='ewww_image_optimizer_goal_save_space' name='ewww_image_optimizer_goal_save_space' value='true' />
+					<label for='ewww_image_optimizer_goal_save_space'><?php esc_html_e( 'Save storage space', 'ewww-image-optimizer' ); ?></label>
+				</p>
+				<p>
+					<input type='radio' id='ewww_image_optimizer_budget_pay' name='ewww_image_optimizer_budget' value='pay'>
+					<label for='ewww_image_optimizer_budget_pay'><?php esc_html_e( 'Get 5x more compression', 'ewww-image-optimizer' ); ?></label><br>
+					<input type='radio' id='ewww_image_optimizer_budget_free' name='ewww_image_optimizer_budget' value='free'>
+					<label for='ewww_image_optimizer_budget_free'><?php esc_html_e( 'Stick with free mode for now', 'ewww-image-optimizer' ); ?></label>
+				</p>
+				<p class='submit'><input type='submit' class='button-primary' value='<?php esc_attr_e( 'Next', 'ewww-image-optimizer' ); ?>' /></p>
+			</form>
+		</div>
+	</div>
+</div>
+	<?php
+}
 
 /**
  * Wrapper that displays the EWWW IO options in the multisite network admin.
@@ -10065,7 +10111,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	jQuery(document).ready(function($) {$(".fade").fadeTo(5000,1).fadeOut(3000);});
 </script>
 <div id='ewww-settings-wrap' class='wrap'>
-	<h1>EWWW Image Optimizer</h1>
+	<h1 style="display:none;">EWWW Image Optimizer</h1>
 	<?php
 	$speed_score = 0;
 
@@ -10346,7 +10392,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			'src'   => array(),
 		),
 	);
-	if ( ! $easymode ) {
+	if ( false && ! $easymode ) {
 		echo '<p>' . sprintf(
 			/* translators: %s: Bulk Optimize (link) */
 			esc_html__( 'New images uploaded to the Media Library will be optimized automatically. If you have existing images you would like to optimize, you can use the %s tool.', 'ewww-image-optimizer' ),
@@ -10382,7 +10428,39 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	<div id='ewww-widgets' class='metabox-holder'>
 		<div class='meta-box-sortables'>
 			<div id='ewww-status' class='postbox'>
-				<h2 class='ewww-hndle'><?php esc_html_e( 'Optimization Status', 'ewww-image-optimizer' ); ?></h2>
+				<!--<h2 class='ewww-hndle'><?php esc_html_e( 'Optimization Status', 'ewww-image-optimizer' ); ?></h2>-->
+				<div class='ewww-hndle' id="ewwwio-banner">
+					<img height="95" width="167" src="<?php echo esc_url( plugins_url( '/images/ewwwio-logo.png', __FILE__ ) ); ?>">
+					<div>
+	<?php if ( ! $easymode ) : ?>
+						<p>
+		<?php
+							printf(
+								/* translators: %s: Bulk Optimize (link) */
+								esc_html__( 'New uploads will be optimized automatically. Optimize existing images with the %s.', 'ewww-image-optimizer' ),
+								( 'network-multisite' === esc_attr( $network ) ?
+								esc_html__( 'Media Library', 'ewww-image-optimizer' ) . ' -> ' . esc_html__( 'Bulk Optimizer', 'ewww-image-optimizer' ) :
+								'<a href="' . esc_url( admin_url( 'upload.php?page=ewww-image-optimizer-bulk' ) ) . '">' . esc_html__( 'Bulk Optimizer', 'ewww-image-optimizer' ) . '</a>'
+								)
+							);
+							/* ewwwio_help_link( 'https://docs.ewww.io/article/4-getting-started', '5853713bc697912ffd6c0b98' ); */
+							echo ' ' . ( ! class_exists( 'Amazon_S3_And_CloudFront' ) ?
+								'<br>' .
+								sprintf(
+									/* translators: %s: S3 Image Optimizer (link) */
+									esc_html__( 'Optimize unlimited Amazon S3 buckets with our %s.' ),
+									'<a href="https://ewww.io/downloads/s3-image-optimizer/">' . esc_html__( 'S3 Image Optimizer', 'ewww-image-optimizer' ) . '</a>'
+								) : '' );
+		?>
+						</p>
+	<?php endif; ?>
+						<p>
+							<?php esc_html_e( 'Get performance tips, exclusive discounts, and the latest news when you signup for our newsletter!', 'ewww-image-optimizer' ); ?>
+						</p>
+						<a href="https://eepurl.com/gKyU6L?TB_iframe=true&width=600&height=610" class="thickbox button-secondary"><?php esc_html_e( 'Subscribe now!', 'ewww-image-optimizer' ); ?> &rarr;</a>
+						<a target="_blank" href="https://wordpress.org/support/plugin/ewww-image-optimizer/reviews/#new-post" class="button-secondary"><?php // esc_html_e( ' Review', 'ewww-image-optimizer' ) . '</a>' . ?></a>
+					</div>
+				</div>
 				<div class='inside'>
 					<div class="ewww-row ewww-blocks">
 						<div id="ewww-compress" class="ewww-status-detail">
@@ -11643,10 +11721,6 @@ AddType image/webp .webp</pre>
 		}
 		$eio_alt_webp->inline_script();
 	}
-
-	echo '<hr style="clear:both;"><div id="ewwwio-banner"><img src="' . esc_url( plugins_url( '/images/ewwwio-logo.png', __FILE__ ) ) . '">' .
-		'<p>' . esc_html__( 'Get performance tips, exclusive discounts, and the latest news when you signup for our newsletter!', 'ewww-image-optimizer' ) . '</p>' .
-		'<a href="https://eepurl.com/gKyU6L?TB_iframe=true&width=600&height=610" class="thickbox button-secondary">' . esc_html__( 'Subscribe now!', 'ewww-image-optimizer' ) . ' &rarr;</a></div>';
 
 	echo '<h2>' . esc_html__( "Shane's Recommendations", 'ewww-image-optimizer' ) . '</h2>';
 	echo '<p>' . esc_html__( 'These are products I have personally used. An * indicates an affiliate link so you can support future development of EWWW IO.', 'ewww-image-optimizer' ) . '</p>';
