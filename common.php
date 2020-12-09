@@ -11419,7 +11419,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 								/* translators: 1: Bulk Optimizer 2: Easy IO */
 								esc_html__( 'Use the %1$s for existing uploads or get %2$s for automatic WebP conversion and delivery.', 'ewww-image-optimizer' ),
 								'<a href="' . esc_url( admin_url( 'upload.php?page=ewww-image-optimizer-bulk' ) ) . '">' . esc_html__( 'Bulk Optimizer', 'ewww-image-optimizer' ) . '</a>',
-								'<a href="https://ewww.io/easy/">' . esc_html__( 'Easy IO', 'ewww-image-optimizer' ) . '</a>',
+								'<a href="https://ewww.io/easy/">' . esc_html__( 'Easy IO', 'ewww-image-optimizer' ) . '</a>'
 							);
 							?>
 						</p>
