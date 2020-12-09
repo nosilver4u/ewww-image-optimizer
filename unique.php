@@ -560,7 +560,7 @@ function ewww_image_optimizer_dismiss_exec_notice() {
 	update_option( 'ewww_image_optimizer_svg_level', 0 );
 	update_option( 'ewww_image_optimizer_dismiss_exec_notice', 1 );
 	update_site_option( 'ewww_image_optimizer_dismiss_exec_notice', 1 );
-	wp_die();
+	die();
 }
 
 /**

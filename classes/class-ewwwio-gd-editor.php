@@ -178,14 +178,14 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 			}
 			if ( 'image/gif' === $this->mime_type && ( ! defined( 'EWWW_IMAGE_OPTIMIZER_GIFSICLE' ) || ! EWWW_IMAGE_OPTIMIZER_GIFSICLE ) ) {
 				if ( false === strpos( $ewww_status, 'great' ) ) {
-					if ( ! ewww_image_optimizer_cloud_verify() ) {
+					if ( ! ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) ) {
 						ewwwio_debug_message( 'no gifsicle or API to resize an animated GIF' );
 						return parent::_resize( $max_w, $max_h, $crop );
 					}
 				}
 			}
 			if ( 'image/gif' !== $this->mime_type && false === strpos( $ewww_status, 'great' ) ) {
-				if ( ! ewww_image_optimizer_cloud_verify() ) {
+				if ( ! ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) ) {
 					ewwwio_debug_message( 'no API to resize the image' );
 					return parent::_resize( $max_w, $max_h, $crop );
 				}

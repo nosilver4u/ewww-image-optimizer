@@ -1163,12 +1163,12 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 					'ewww_scan' => 'scheduled',
 				)
 			)->dispatch();
-			wp_die();
+			die();
 		} elseif ( 'scheduled' === $ewww_scan && get_option( 'ewwwio_stop_scheduled_scan' ) ) {
 			ewwwio_debug_message( 'ending current scan iteration because of stop_scan' );
 			delete_option( 'ewwwio_stop_scheduled_scan' );
 			ewww_image_optimizer_debug_log();
-			wp_die();
+			die();
 		}
 		if ( $ewww_scan && 0 === $file_counter % 100 && ! ewwwio_check_memory_available( 2097000 ) ) {
 			ewwwio_debug_message( 'ending current scan iteration because of memory constraints' );
@@ -1487,7 +1487,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 	update_option( 'ewww_image_optimizer_bulk_resume', '' );
 	ewww_image_optimizer_debug_log();
 	if ( wp_doing_ajax() && 'ewww-image-optimizer-auto' !== $hook && ( ! defined( 'WP_CLI' ) || ! WP_CLI ) ) {
-		$verify_cloud = ewww_image_optimizer_cloud_verify( false );
+		$verify_cloud = ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), false );
 		$usage        = false;
 		if ( preg_match( '/great/', $verify_cloud ) ) {
 			$usage = ewww_image_optimizer_cloud_quota( true );

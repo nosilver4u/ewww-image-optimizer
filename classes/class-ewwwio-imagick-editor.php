@@ -282,14 +282,14 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 			}
 			if ( 'image/gif' === $this->mime_type && ( ! defined( 'EWWW_IMAGE_OPTIMIZER_GIFSICLE' ) || ! EWWW_IMAGE_OPTIMIZER_GIFSICLE ) ) {
 				if ( false === strpos( $ewww_status, 'great' ) ) {
-					if ( ! ewww_image_optimizer_cloud_verify() ) {
+					if ( ! ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) ) {
 						ewwwio_debug_message( 'no gifsicle or API to resize an animated GIF' );
 						$return_parent = true;
 					}
 				}
 			}
 			if ( 'image/gif' !== $this->mime_type && false === strpos( $ewww_status, 'great' ) ) {
-				if ( ! ewww_image_optimizer_cloud_verify() ) {
+				if ( ! ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) ) {
 					ewwwio_debug_message( 'no API to resize the image' );
 					$return_parent = true;
 				}

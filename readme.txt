@@ -136,6 +136,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: tool to delete originals from WP 5.3+ auto-scaling behavior (Tools menu)
 * added: (maybe) JS WebP is able to rewrite WooCommerce product variations
 * added: JS WebP recognizes video elements added via JS (e.g. infinite scroll)
+* added: automatically convert GIF to PNG during new uploads, unless animated
+* changed: settings UI revamped with wizard for first-time installs
+* changed: automatic PNG to JPG threshold lowered to 250kb
 * changed: extensions for WP_Image_Editor now disabled by default, use EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR constant to enable them
 * changed: JS WebP can be used with picture WebP + Lazy Load to support CSS background images
 * changed: better compatibility with Theia Smart Thumbnails
@@ -144,6 +147,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: Easy IO uses hard-coded wp-content/ and wp-includes/ paths in some cases
 * fixed: Easy IO not activating properly when plugin is activated network-wide for multi-site installs
 * fixed: database upgrade throws errors on MariaDB 10.4.x
+* fixed: WebP .htaccess error in Vary header rule
+* fixed: Easy IO doubles part of image URL when there are no thumbnails, but one is requested by a plugin or theme
 
 = 5.8.2 =
 * security: improper nonce verification for Nextgen bulk optimizer initialization (minor severity)

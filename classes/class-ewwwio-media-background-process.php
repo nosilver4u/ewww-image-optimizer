@@ -623,7 +623,7 @@ class EWWWIO_Async_Key_Verification extends WP_Async_Request {
 		session_write_close();
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		check_ajax_referer( $this->identifier, 'nonce' );
-		ewww_image_optimizer_cloud_verify( false );
+		ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), false );
 	}
 }
 global $ewwwio_async_key_verification;

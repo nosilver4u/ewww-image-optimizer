@@ -1671,6 +1671,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 			// Set this to true later when we know we have size meta.
 			$has_size_meta = false;
+			// To indicate whether or not we've already tried to get meta from the db.
+			$got_meta = false;
 
 			if ( $image_url ) {
 				// Check if image URL should be used with ExactDN.
@@ -1695,11 +1697,13 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					if ( 'full' === $size ) {
 						$image_meta   = wp_get_attachment_metadata( $attachment_id );
 						$intermediate = false;
+						$got_meta     = true;
 					} elseif ( ! $image_meta ) {
 						$this->debug_message( 'still do not have meta, getting it now' );
 						// If we still don't have any image meta at this point, it's probably from a custom thumbnail size
 						// for an image that was uploaded before the custom image was added to the theme. Try to determine the size manually.
 						$image_meta = wp_get_attachment_metadata( $attachment_id );
+						$got_meta   = true;
 
 						if ( isset( $image_meta['width'], $image_meta['height'] ) ) {
 							$image_resized = image_resize_dimensions( $image_meta['width'], $image_meta['height'], $image_args['width'], $image_args['height'], $image_args['crop'] );
@@ -1730,7 +1734,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 							$exactdn_args['w'] = $image_args['width'];
 						}
 					} else {
-						if ( ! isset( $image_meta['sizes'] ) ) {
+						if ( ! isset( $image_meta['sizes'] ) && empty( $got_meta ) ) {
 							$size_meta = $image_meta;
 							// Because we don't have the "real" meta, just the height/width for the specific size.
 							$this->debug_message( 'getting attachment meta now' );
@@ -1768,6 +1772,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						$filename_width  = $image_meta['width'] ? $image_meta['width'] : $filename_width;
 						$filename_height = $image_meta['height'] ? $image_meta['height'] : $filename_height;
 						if ( $filename_width && $filename_height && $image_args['width'] === $filename_width && $image_args['height'] === $filename_height ) {
+							$this->debug_message( "changing $image_url to $intermediate_url" );
 							$image_url = $intermediate_url;
 						} else {
 							$resize_existing = true;
@@ -2794,6 +2799,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		function generate_url( $image_url, $args = array(), $scheme = null ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			$image_url = trim( $image_url );
+			$this->debug_message( "starting with $image_url" );
 
 			if ( is_null( $scheme ) ) {
 				$scheme = $this->scheme;
@@ -2810,6 +2816,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			 * @param bool false default
 			 */
 			if ( true === apply_filters( 'exactdn_development_mode', false ) ) {
+				$this->debug_message( 'skipping in dev mode' );
 				return $image_url;
 			}
 
@@ -2822,6 +2829,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			 * @param string|null $scheme URL scheme. Default to null.
 			 */
 			if ( true === apply_filters( 'exactdn_skip_for_url', false, $image_url, $args, $scheme ) ) {
+				$this->debug_message( 'skipping via filter' );
 				return $image_url;
 			}
 
@@ -2861,6 +2869,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			 * @param string|null $scheme Image scheme. Default to null.
 			 */
 			$image_url = apply_filters( 'exactdn_pre_image_url', $image_url, $args, $scheme );
+			$this->debug_message( "after exactdn_pre_image_url: $image_url" );
 
 			if ( empty( $image_url ) ) {
 				return $image_url;
@@ -2905,6 +2914,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 
 			$this->debug_message( $image_url_parts['host'] );
+			$this->debug_message( $image_url_parts['path'] );
 
 			// Figure out which CDN (sub)domain to use.
 			if ( empty( $this->exactdn_domain ) ) {
@@ -2931,6 +2941,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 
 			if ( $this->remove_path && 0 === strpos( $image_url_parts['path'], $this->remove_path ) ) {
 				$image_url_parts['path'] = substr( $image_url_parts['path'], strlen( $this->remove_path ) );
+				$this->debug_message( "trimming $this->remove_path from " . $image_url_parts['path'] );
 			}
 			$domain      = 'http://' . $this->exactdn_domain . '/';
 			$exactdn_url = $domain . ltrim( $image_url_parts['path'], '/' );
