@@ -323,6 +323,7 @@ class EWWWIO_Tracking {
 	 * @return void
 	 */
 	public function admin_notice() {
+		return;
 		// If network-active and network notice is hidden, or single-active and single site notice has been hidden, don't show it again.
 		$hide_notice = ewww_image_optimizer_get_option( 'ewww_image_optimizer_tracking_notice' );
 		// But what if they allow overrides? Then the above was checking single-site settings, so we need to check the network admin.

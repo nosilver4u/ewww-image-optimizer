@@ -133,9 +133,33 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 			}
 		}
 
+		if (
+			class_exists( 'S3_Uploads' ) &&
+			function_exists( 's3_uploads_enabled' ) && s3_uploads_enabled() &&
+			method_exists( 'S3_Uploads', 'get_instance' ) && method_exists( 'S3_Uploads', 'get_s3_url' )
+		) {
+			$s3_uploads_instance = \S3_Uploads::get_instance();
+			$s3_uploads_url      = $s3_uploads_instance->get_s3_url();
+			$this->webp_paths[]  = $s3_uploads_url;
+			$this->debug_message( "found S3 URL from S3_Uploads: $s3_uploads_url" );
+		}
+
+		if ( class_exists( 'wpCloud\StatelessMedia\EWWW' ) && function_exists( 'ud_get_stateless_media' ) ) {
+			$sm = ud_get_stateless_media();
+			if ( method_exists( $sm, 'get' ) && method_exists( $sm, 'get_gs_host' ) ) {
+				$sm_mode = $sm->get( 'sm.mode' );
+				if ( 'disabled' !== $sm_mode ) {
+					$sm_host = $sm->get_gs_host();
+					$this->debug_message( $sm_host );
+					$this->webp_paths[] = $sm_host;
+				}
+			}
+		}
+
 		if ( function_exists( 'swis' ) && swis()->settings->get_option( 'cdn_domain' ) ) {
 			$this->webp_paths[] = swis()->settings->get_option( 'cdn_domain' );
 		}
+
 		foreach ( $this->webp_paths as $webp_path ) {
 			$webp_domain = $this->parse_url( $webp_path, PHP_URL_HOST );
 			if ( $webp_domain ) {
@@ -166,6 +190,14 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 		$this->validate_user_exclusions();
 	}
 
+	/**
+	 * Grant read-only access to allowed WebP domains.
+	 *
+	 * @return array A list of WebP domains.
+	 */
+	function get_webp_domains() {
+		return $this->webp_domains;
+	}
 
 	/**
 	 * Starts an output buffer and registers the callback function to do WebP replacement.

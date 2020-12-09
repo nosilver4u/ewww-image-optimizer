@@ -196,8 +196,6 @@ add_action( 'admin_action_ewww_image_optimizer_view_debug_log', 'ewww_image_opti
 add_action( 'admin_action_ewww_image_optimizer_delete_debug_log', 'ewww_image_optimizer_delete_debug_log' );
 // Check if WebP option was turned off and is now enabled.
 add_filter( 'pre_update_option_ewww_image_optimizer_webp', 'ewww_image_optimizer_webp_maybe_enabled', 10, 2 );
-// Check if JS WebP option has just been enabled and see if Force WebP is needed for WP Offload Media.
-add_filter( 'pre_update_option_ewww_image_optimizer_webp_for_cdn', 'ewww_image_optimizer_webp_cdn_check_force', 10, 2 );
 // Check Scheduled Opt option has just been disabled and clear the queues/stop the process.
 add_filter( 'pre_update_option_ewww_image_optimizer_auto', 'ewww_image_optimizer_scheduled_optimizaton_changed', 10, 2 );
 // Makes sure to flush out any scheduled jobs on deactivation.
@@ -976,6 +974,9 @@ function ewww_image_optimizer_admin_init() {
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_enabled' ) ) {
 		add_action( 'admin_notices', 'ewww_image_optimizer_notice_webp_bulk' );
+		if ( ewww_image_optimizer_cloud_based_media() ) {
+			ewww_image_optimizer_set_option( 'ewww_image_optimizer_webp_force', true );
+		}
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) && ! ewww_image_optimizer_background_mode_enabled() ) {
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_schedule_noasync' );
@@ -1761,22 +1762,30 @@ function ewww_image_optimizer_webp_maybe_enabled( $new_value, $old_value ) {
 }
 
 /**
- * Checks to see if the JS WebP Rewriting was just enabled and perhaps we should enable Force mode for S3.
+ * Checks if a plugin is offloading media to cloud storage and removing local copies.
  *
- * @param mixed $new_value The new value, in this case it will be boolean usually.
- * @param mixed $old_value The old value, also a boolean generally.
- * @return mixed The new value, unaltered.
+ * @return bool True if a plugin is removing local files, false otherwise..
  */
-function ewww_image_optimizer_webp_cdn_check_force( $new_value, $old_value ) {
-	if ( ! empty( $new_value ) && (bool) $new_value !== (bool) $old_value ) {
-		if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
-			global $as3cf;
-			if ( is_object( $as3cf ) && $as3cf->get_setting( 'serve-from-s3' ) && $as3cf->get_setting( 'remove-local-file' ) ) {
-				update_option( 'ewww_image_optimizer_webp_force', true );
+function ewww_image_optimizer_cloud_based_media() {
+	if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
+		global $as3cf;
+		if ( is_object( $as3cf ) && $as3cf->get_setting( 'serve-from-s3' ) && $as3cf->get_setting( 'remove-local-file' ) ) {
+			return true;
+		}
+	}
+	if ( class_exists( 'S3_Uploads' ) && function_exists( 's3_uploads_enabled' ) && s3_uploads_enabled() ) {
+		return true;
+	}
+	if ( class_exists( 'wpCloud\StatelessMedia\EWWW' ) && function_exists( 'ud_get_stateless_media' ) ) {
+		$sm = ud_get_stateless_media();
+		if ( method_exists( $sm, 'get' ) ) {
+			$sm_mode = $sm->get( 'sm.mode' );
+			if ( 'disabled' !== $sm_mode ) {
+				return true;
 			}
 		}
 	}
-	return $new_value;
+	return false;
 }
 
 /**
@@ -9509,12 +9518,17 @@ function ewww_image_optimizer_settings_script( $hook ) {
 		'ewww-settings-script',
 		'ewww_vars',
 		array(
-			'_wpnonce'          => wp_create_nonce( 'ewww-image-optimizer-settings' ),
-			'invalid_response'  => esc_html__( 'Received an invalid response from your website, please check for errors in the Developer Tools console of your browser.', 'ewww-image-optimizer' ),
-			'loading_image_url' => plugins_url( '/images/spinner.gif', __FILE__ ),
-			'save_space'        => (int) get_option( 'ewww_image_optimizer_goal_save_space' ),
-			'site_speed'        => (int) get_option( 'ewww_image_optimizer_goal_site_speed' ),
+			'_wpnonce'           => wp_create_nonce( 'ewww-image-optimizer-settings' ),
+			'invalid_response'   => esc_html__( 'Received an invalid response from your website, please check for errors in the Developer Tools console of your browser.', 'ewww-image-optimizer' ),
+			'loading_image_url'  => plugins_url( '/images/spinner.gif', __FILE__ ),
+			'webp_cloud_warning' => esc_html__( 'If you have not run the Bulk Optimizer on existing images, you will likely encounter broken image URLs. Are you ready to continue?', 'ewww-image-optimizer' ),
 		)
+	);
+	wp_add_inline_script(
+		'ewww-settings-script',
+		'ewww_vars.cloud_media = ' . ( ewww_image_optimizer_cloud_based_media() ? 1 : 0 ) . ";\n" .
+		'ewww_vars.save_space = ' . ( get_option( 'ewww_image_optimizer_goal_save_space' ) ? 1 : 0 ) . ";\n" .
+		'ewww_vars.site_speed = ' . ( get_option( 'ewww_image_optimizer_goal_site_speed' ) ? 1 : 0 ) . ";\n"
 	);
 	ewwwio_memory( __FUNCTION__ );
 }
@@ -10387,7 +10401,8 @@ function ewww_image_optimizer_intro_wizard() {
 		<?php if ( ! $no_tracking ) : ?>
 				<p>
 					<input type='checkbox' id='ewww_image_optimizer_allow_tracking' name='ewww_image_optimizer_allow_tracking' value='true' checked />
-					<label for='ewww_image_optimizer_allow_tracking'><?php esc_html_e( 'Anonymous Reporting', 'ewww-image-optimizer' ); ?></label><br>
+					<label for='ewww_image_optimizer_allow_tracking'><?php esc_html_e( 'Anonymous Reporting', 'ewww-image-optimizer' ); ?></label>
+					<span><?php ewwwio_help_link( 'https://docs.ewww.io/article/23-usage-tracking', '591f3a8e2c7d3a057f893d91' ); ?></span><br>
 					<span class='description'><?php esc_html_e( 'Send anonymized usage data to help make the plugin better. Opt-in and get a 10% discount code.', 'ewww-image-optimizer' ); ?></span>
 				</p>
 		<?php endif; ?>
@@ -10416,6 +10431,18 @@ function ewww_image_optimizer_intro_wizard() {
 					'<br><code>wp help ewwwio optimize</code>'
 				);
 				ewwwio_help_link( 'https://docs.ewww.io/article/25-optimizing-with-wp-cli', '592da1482c7d3a074e8aeb6b' );
+				?>
+			</p>
+			<p>
+				<?php
+				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_allow_tracking' ) ) {
+					printf(
+						/* translators: 1: link to https://ewww.io/plans/ 2: discount code (yes, you may use it) */
+						esc_html__( 'Use this code at %1$s: %2$s', 'ewww-image-optimizer' ),
+						'<a href="https://ewww.io/plans/" target="_blank">https://ewww.io/</a>',
+						'<code>SPEEDER1012</code>'
+					);
+				}
 				?>
 			</p>
 			<p><a type='submit' class='button-primary' href='<?php echo esc_url( $settings_page_url ); ?>'><?php esc_attr_e( 'Done', 'ewww-image-optimizer' ); ?></a></p>
@@ -10844,6 +10871,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 								<p id='ewww-show-recommendations'>
 		<?php if ( $speed_score < 100 ) : ?>
 									<a href='#'><?php esc_html_e( 'View recommendations', 'ewww-image-optimizer' ); ?></a>
+									<a style='display:none' href='#'><?php esc_html_e( 'Hide recommendations', 'ewww-image-optimizer' ); ?></a>
 		<?php endif; ?>
 								</p>
 							</div>
@@ -11121,7 +11149,19 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					</th>
 					<td>
 						<input type='checkbox' id='ewww_image_optimizer_allow_tracking' name='ewww_image_optimizer_allow_tracking' value='true' <?php checked( get_site_option( 'ewww_image_optimizer_allow_tracking' ) ); ?> />
-						<?php esc_html_e( 'Allow EWWW Image Optimizer to anonymously track how this plugin is used and help us make the plugin better. Opt-in to tracking and receive 500 API image credits free. No sensitive data is tracked.', 'ewww-image-optimizer' ); ?>
+						<?php esc_html_e( 'Allow EWWW Image Optimizer to anonymously track how this plugin is used and help us make the plugin better. Opt-in to tracking and receive a 10% discount on premium compression. No sensitive data is tracked.', 'ewww-image-optimizer' ); ?>
+						<p>
+							<?php
+							if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_allow_tracking' ) ) {
+								printf(
+									/* translators: 1: link to https://ewww.io/plans/ 2: discount code (yes, you may use it) */
+									esc_html__( 'Use this code at %1$s: %2$s', 'ewww-image-optimizer' ),
+									'<a href="https://ewww.io/plans/" target="_blank">https://ewww.io/</a>',
+									'<code>SPEEDER1012</code>'
+								);
+							}
+							?>
+						</p>
 					</td>
 				</tr>
 			</table>
@@ -11172,7 +11212,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					<th scope='row'>&nbsp;</th>
 					<td>
 						<input type='radio' id='ewww_image_optimizer_budget_pay' name='ewww_image_optimizer_budget' value='pay' required />
-						<label for='ewww_image_optimizer_budget_pay'><?php esc_html_e( 'Get 5x more optimization and priority support with Easy IO and/or the Compress API', 'ewww-image-optimizer' ); ?></label><br>
+						<label for='ewww_image_optimizer_budget_pay'><?php esc_html_e( 'Activate Easy IO and/or the Compress API to get 5x more optimization and priority support', 'ewww-image-optimizer' ); ?></label><br>
 						<input type='radio' id='ewww_image_optimizer_budget_free' name='ewww_image_optimizer_budget' value='free' required <?php checked( (bool) $premium_hide ); ?> />
 						<label for='ewww_image_optimizer_budget_free'><?php esc_html_e( 'Stick with free mode for now', 'ewww-image-optimizer' ); ?></label>
 						<p class="ewwwio-premium-setup-disabled-for-now" <?php echo wp_kses_post( $premium_hide ); ?>><strong><a href='https://ewww.io/plans/' target='_blank'>&gt;&gt;<?php esc_html_e( 'Start your free trial', 'ewww-image-optimizer' ); ?></a></strong></p>
@@ -11301,15 +11341,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<a href="https://ewww.io/swis/" target="_blank"><?php esc_html_e( 'Go beyond image optimization with the tools I use for improving site speed.', 'ewww-image-optimizer' ); ?></a>
 					</td>
 				</tr>
-	<?php elseif ( 'valid' === get_option( 'swis_license_status' ) ) : ?>
-				<tr id="swis_promo_container" class="ewwwio-premium-setup" <?php echo wp_kses_post( $premium_hide ); ?>>
-					<th scope='row'>
-						SWIS Performance
-					</th>
-					<td>
-						<a href='<?php echo esc_url( admin_url( 'options-general.php?page=swis-performance-options' ) ); ?>'><?php esc_html_e( 'Installed and activated.', 'ewww-image-optimizer' ); ?></a>
-					</td>
-				</tr>
 	<?php endif; ?>
 				<tr>
 					<th scope='row'>
@@ -11409,7 +11440,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<p id='ewwwio-webp-storage-warning'>
 							<i><?php esc_html_e( 'Enabling WebP Conversion without Easy IO will increase your storage requirements. Do you want to continue?', 'ewww-image-optimizer' ); ?></i><br>
 							<a id='ewwwio-cancel-webp' href='#'><?php esc_html_e( 'Nevermind', 'ewww-image-optimizer' ); ?></a><br>
-							<a id='ewwwio-easyio-webp-info' href='#ewwwio-exactdn-anchor'><?php esc_html_e( 'Tell me more about Easy IO', 'ewww-image-optimizer' ); ?></a><br>
+							<a id='ewwwio-easyio-webp-info' class='ewww-help-beacon-single' href='https://docs.ewww.io/article/44-introduction-to-exactdn' data-beacon-article='59bc5ad6042863033a1ce370'><?php esc_html_e( 'Tell me more about Easy IO', 'ewww-image-optimizer' ); ?></a><br>
+							<?php ewwwio_help_link( 'https://docs.ewww.io/article/44-introduction-to-exactdn', '59bc5ad6042863033a1ce370,5c0042892c7d3a31944e88a4' ); ?>
 							<span id='ewwwio-confirm-webp' class='button-primary'><?php esc_html_e( 'Continue', 'ewww-image-optimizer' ); ?></span>
 						</p>
 						<p class='description'>
@@ -11557,7 +11589,7 @@ AddType image/webp .webp</pre>
 						</p>
 					</td>
 				</tr>
-				<tr class='ewww_image_optimizer_webp_rewrite_setting_container' <?php echo $webp_php_rewriting ? '' : ' style="display:none"'; ?>>
+				<tr class='ewww_image_optimizer_webp_rewrite_setting_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) && $webp_php_rewriting ? '' : ' style="display:none"'; ?>>
 					<td>&nbsp;</td>
 					<td>
 						<label for='ewww_image_optimizer_webp_rewrite_exclude'><strong><?php esc_html_e( 'JS WebP and <picture> Web Exclusions', 'ewww-image-optimizer' ); ?></strong></label><br>
@@ -11574,6 +11606,31 @@ AddType image/webp .webp</pre>
 						<span><?php esc_html_e( 'Enter additional URL patterns, like a CDN URL, that should be permitted for WebP Rewriting. One URL per line, must include the domain name (cdn.example.com).', 'ewww-image-optimizer' ); ?></span>
 						<p><?php esc_html_e( 'Optionally include a folder with the URL if your CDN path is different from your local path.', 'ewww-image-optimizer' ); ?></p>
 						<textarea id='ewww_image_optimizer_webp_paths' name='ewww_image_optimizer_webp_paths' rows='3' cols='60'><?php echo esc_html( $webp_paths ); ?></textarea>
+						<?php
+						if ( ewww_image_optimizer_cloud_based_media() ) {
+							$webp_domains = false;
+							if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ) {
+								global $eio_alt_webp;
+								if ( isset( $eio_alt_webp ) && is_object( $eio_alt_webp ) ) {
+									$webp_domains = $eio_alt_webp->get_webp_domains();
+								}
+							} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) ) {
+								global $eio_picture_webp;
+								if ( isset( $eio_picture_webp ) && is_object( $eio_picture_webp ) ) {
+									$webp_domains = $eio_picture_webp->get_webp_domains();
+								}
+							}
+							if ( ! empty( $webp_domains ) ) {
+								echo "<p class='description'>";
+								printf(
+									/* translators: %s: a comma-separated list of domain names */
+									'*' . esc_html__( 'These domains have been auto-detected: %s', 'ewww-image-optimizer' ),
+									esc_html( implode( ',', $webp_domains ) )
+								);
+								echo '</p>';
+							}
+						}
+						?>
 						<p class='description'><?php echo wp_kses_post( $webp_url_example ); ?></p>
 					</td>
 				</tr>
@@ -11609,6 +11666,20 @@ AddType image/webp .webp</pre>
 						<?php esc_html_e( 'Default is 75, allowed range is 50-100.', 'ewww-image-optimizer' ); ?>
 					</td>
 				</tr>
+		<?php elseif ( ewww_image_optimizer_cloud_based_media() ) : ?>
+				<tr class='ewww_image_optimizer_webp_setting_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? '' : ' style="display:none"'; ?>>
+					<th>&nbsp;</th>
+					<td>
+						<p class='description'>
+							<?php
+							printf(
+								/* translators: %s: Enable Ludicrous Mode */
+								'*' . esc_html__( 'It seems your images are being offloaded to cloud-based storage without retaining the local copies. Force WebP mode has been configured automatically. %s to view/change these settings.', 'ewww-image-optimizer' ),
+								"<a href='" . esc_url( $enable_local_url ) . "'>" . esc_html__( 'Enable Ludicrous Mode', 'ewww-image-optimizer' ) . '</a>'
+							);
+							?>
+						</p>
+					</td>
 		<?php endif; ?>
 	<?php elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) : ?>
 				<tr>
@@ -12206,7 +12277,19 @@ AddType image/webp .webp</pre>
 					</th>
 					<td>
 						<input type='checkbox' id='ewww_image_optimizer_allow_tracking' name='ewww_image_optimizer_allow_tracking' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_allow_tracking' ) ); ?> />
-						<span><?php esc_html_e( 'Allow EWWW Image Optimizer to anonymously track how this plugin is used and help us make the plugin better. Opt-in to tracking and receive 500 API image credits free. No sensitive data is tracked.', 'ewww-image-optimizer' ); ?></span>
+						<?php esc_html_e( 'Allow EWWW Image Optimizer to anonymously track how this plugin is used and help us make the plugin better. Opt-in to tracking and receive a 10% discount on premium compression. No sensitive data is tracked.', 'ewww-image-optimizer' ); ?>
+						<p>
+							<?php
+							if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_allow_tracking' ) ) {
+								printf(
+									/* translators: 1: link to https://ewww.io/plans/ 2: discount code (yes, you may use it) */
+									esc_html__( 'Use this code at %1$s: %2$s', 'ewww-image-optimizer' ),
+									'<a href="https://ewww.io/plans/" target="_blank">https://ewww.io/</a>',
+									'<code>SPEEDER1012</code>'
+								);
+							}
+							?>
+						</p>
 					</td>
 				</tr>
 			</table>
