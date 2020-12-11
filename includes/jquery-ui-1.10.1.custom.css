@@ -698,6 +698,19 @@ p#ewww-webp-rewrite-status {
 #ewwwio-easy-activate, #ewwwio-easy-deactivate {
 	margin-top: 10px;
 }
+.ewwwio-notice {
+	background-color: white;
+	border: 1px solid #ccd0d4;
+	border-left: 4px solid #3eadc9;
+	margin: 10px 10px 15px 0;
+	padding: 12px;
+}
+.ewwwio-notice.notice-warning {
+	border-left-color: #ffb900;
+}
+.ewwwio-notice.notice-success {
+	border-left-color: #46b450;
+}
 #ewwwio-api-activation-result, #ewwwio-easy-activation-result, #ewww-webp-rewrite-result {
 	display: none;
 	background-color: white;

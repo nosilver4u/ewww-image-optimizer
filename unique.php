@@ -553,6 +553,15 @@ function ewww_image_optimizer_dismiss_exec_notice() {
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
+	ewww_image_optimizer_enable_free_exec();
+	die();
+}
+
+/**
+ * Put site in "free exec" mode with JPG-only API compression, and suppress the exec() notice.
+ */
+function ewww_image_optimizer_enable_free_exec() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	update_option( 'ewww_image_optimizer_jpg_level', 10 );
 	update_option( 'ewww_image_optimizer_png_level', 0 );
 	update_option( 'ewww_image_optimizer_gif_level', 0 );
@@ -560,7 +569,6 @@ function ewww_image_optimizer_dismiss_exec_notice() {
 	update_option( 'ewww_image_optimizer_svg_level', 0 );
 	update_option( 'ewww_image_optimizer_dismiss_exec_notice', 1 );
 	update_site_option( 'ewww_image_optimizer_dismiss_exec_notice', 1 );
-	die();
 }
 
 /**
@@ -574,18 +582,10 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 	if ( ewww_image_optimizer_exec_check() ) {
 		// Need to be a little particular with the quiet parameter.
 		if ( 'quiet' !== $quiet && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_exec_notice' ) ) {
-			$exactdn_dismiss = ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ? true : false;
 			ob_start();
-			$notice_class  = 'notice notice-warning is-dismissible';
-			$notice_action = __( 'An API key or Easy IO subscription will allow you to offload the compression to our dedicated servers instead.', 'ewww-image-optimizer' );
-			/* translators: %s: link to 'start your free trial' */
-			$notice_action = sprintf( __( 'You may ask your system administrator to enable exec(), dismiss this notice to continue with free cloud-based compression or %s.', 'ewww-image-optimizer' ), "<a href='https://ewww.io/plans/'>" . __( 'start your premium trial', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
-			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
-				$notice_action = __( 'Sites that use Easy IO already have built-in image optimization and may dismiss this notice to disable local compression.', 'ewww-image-optimizer' );
-			}
 			// Display a warning if exec() is disabled, can't run local tools without it.
-			echo "<div id='ewww-image-optimizer-warning-exec' class='" . esc_attr( $notice_class ) . "'><p>" .
-				esc_html__( ' Normally, sites where the exec() function is banned require cloud-based optimization, because free server-based optimization will not work. However, we are trying something new, and offering free cloud-based JPG compression. Those who upgrade to our premium service receive much higher compression, PNG/GIF/PDF compression, WebP conversion, and image backups.', 'ewww-image-optimizer' ) . '<br>' .
+			echo "<div id='ewww-image-optimizer-warning-exec' class='notice notice-warning is-dismissible'><p>" .
+				esc_html__( 'Normally, sites where the exec() function is banned require cloud-based optimization, because free server-based optimization will not work. However, we are trying something new, and offering free cloud-based JPG compression. Those who upgrade to our premium service receive much higher compression, PNG/GIF/PDF compression, WebP conversion, and image backups.', 'ewww-image-optimizer' ) . '<br>' .
 				'<strong>' .
 				( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) || get_option( 'easyio_exactdn' ) ?
 				esc_html__( 'Sites that use Easy IO already have built-in image optimization and may dismiss this notice to disable local compression.', 'ewww-image-optimizer' )
