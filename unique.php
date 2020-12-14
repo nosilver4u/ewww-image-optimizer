@@ -191,7 +191,7 @@ function ewww_image_optimizer_notice_hosting_requires_api() {
 	}
 	echo "<div id='ewww-image-optimizer-warning-exec' class='notice notice-warning is-dismissible'><p>" .
 		/* translators: %s: Name of a web host, like WordPress.com or Pantheon. */
-		sprintf( esc_html__( 'Normally, %s sites require cloud-based optimization, because server-based optimization is disallowed. However, we are trying something new, and offering free cloud-based JPG compression. Those who upgrade to our premium service receive much higher compression, PNG/GIF/PDF compression, WebP conversion, and image backups.', 'ewww-image-optimizer' ), esc_html( $webhost ) ) .
+		sprintf( esc_html__( '%s sites require cloud-based optimization, because server-based optimization is disallowed. Those who upgrade to our premium service receive much higher compression, PNG/GIF/PDF compression, WebP conversion, and image backups.', 'ewww-image-optimizer' ), esc_html( $webhost ) ) .
 		'<br><strong>' .
 		/* translators: %s: link to 'start your free trial' */
 		sprintf( esc_html__( 'Dismiss this notice to continue with free cloud-based JPG compression or %s.', 'ewww-image-optimizer' ), "<a href='https://ewww.io/plans/'>" . esc_html__( 'start your premium trial', 'ewww-image-optimizer' ) . '</a>' );
@@ -585,13 +585,13 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 			ob_start();
 			// Display a warning if exec() is disabled, can't run local tools without it.
 			echo "<div id='ewww-image-optimizer-warning-exec' class='notice notice-warning is-dismissible'><p>" .
-				esc_html__( 'Normally, sites where the exec() function is banned require cloud-based optimization, because free server-based optimization will not work. However, we are trying something new, and offering free cloud-based JPG compression. Those who upgrade to our premium service receive much higher compression, PNG/GIF/PDF compression, WebP conversion, and image backups.', 'ewww-image-optimizer' ) . '<br>' .
+				esc_html__( 'Sites where the exec() function is banned require cloud-based optimization, because free server-based optimization will not work. Those who upgrade to our premium service receive much higher compression, PNG/GIF/PDF compression, WebP conversion, and image backups.', 'ewww-image-optimizer' ) . '<br>' .
 				'<strong>' .
 				( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) || get_option( 'easyio_exactdn' ) ?
 				esc_html__( 'Sites that use Easy IO already have built-in image optimization and may dismiss this notice to disable local compression.', 'ewww-image-optimizer' )
 				:
 				/* translators: %s: link to 'start your free trial' */
-				sprintf( esc_html__( 'You may ask your system administrator to enable exec(), dismiss this notice to continue with free cloud-based compression or %s.', 'ewww-image-optimizer' ), "<a href='https://ewww.io/plans/'>" . esc_html__( 'start your premium trial', 'ewww-image-optimizer' ) . '</a>' )
+				sprintf( esc_html__( 'You may ask your system administrator to enable exec(), dismiss this notice to continue with free cloud-based JPG compression or %s.', 'ewww-image-optimizer' ), "<a href='https://ewww.io/plans/'>" . esc_html__( 'start your premium trial', 'ewww-image-optimizer' ) . '</a>' )
 			);
 			ewwwio_help_link( 'https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it', '592dd12d0428634b4a338c39' );
 			echo '</strong></p></div>';
@@ -749,10 +749,18 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 				'<a href="https://docs.ewww.io/article/95-installing-svgcleaner" data-beacon-article="5f7921c9cff47e001a58adbc">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>'
 			) .
 			'</p></div>';
-		} else {
-			echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-error'><p>" .
+		} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_exec_notice' ) ) {
+			$dismissible = false;
+			if (
+				in_array( 'jpegtran', $missing, true ) &&
+				in_array( 'optipng', $missing, true ) &&
+				in_array( 'gifsicle', $missing, true )
+			) {
+				$dismissible = true;
+			}
+			echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-error" . ( $dismissible ? ' is-dismissible' : '' ) . "'><p>" .
 			sprintf(
-				/* translators: 1-6: jpegtran, optipng, pngout, pngquant, gifsicle, and cwebp (links) 7: Settings Page (link) 8: Installation Instructions (link) */
+				/* translators: 1-6: jpegtran, optipng, pngout, pngquant, gifsicle, and cwebp (links) 7: comma-separated list of missing tools 8: Settings Page (link) 9: Installation Instructions (link) */
 				esc_html__( 'EWWW Image Optimizer uses %1$s, %2$s, %3$s, %4$s, %5$s, and %6$s. You are missing: %7$s. Please install via the %8$s or the %9$s.', 'ewww-image-optimizer' ),
 				"<a href='http://jpegclub.org/jpegtran/'>jpegtran</a>",
 				"<a href='http://optipng.sourceforge.net/'>optipng</a>",
@@ -765,6 +773,19 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 				"<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something' data-beacon-article='585371e3c697912ffd6c0ba1' target='_blank'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>'
 			) .
 			'</p></div>';
+			echo
+				"<script>\n" .
+				"jQuery(document).on('click', '#ewww-image-optimizer-warning-opt-missing .notice-dismiss', function() {\n" .
+					"\tvar ewww_dismiss_exec_data = {\n" .
+						"\t\taction: 'ewww_dismiss_exec_notice',\n" .
+					"\t};\n" .
+					"\tjQuery.post(ajaxurl, ewww_dismiss_exec_data, function(response) {\n" .
+						"\t\tif (response) {\n" .
+							"\t\t\tconsole.log(response);\n" .
+						"\t\t}\n" .
+					"\t});\n" .
+				"});\n" .
+				"</script>\n";
 		}
 		ewwwio_memory( __FUNCTION__ );
 	}
@@ -2030,7 +2051,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				}
 				break;
 			}
-			if ( 10 === (int) $compression_level && EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
+			if ( 10 === (int) $compression_level && ( EWWW_IMAGE_OPTIMIZER_NOEXEC || ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) || ! EWWW_IMAGE_OPTIMIZER_JPEGTRAN ) ) {
 				list( $file, $converted, $result, $new_size, $backup_hash ) = ewww_image_optimizer_cloud_optimizer( $file, $type );
 				break;
 			}
