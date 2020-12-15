@@ -664,6 +664,9 @@ button.ewww-handlediv {
 	margin-left: 1em;
 }
 /* other settings UI */
+#ewww-rescue-mode {
+	margin: 10px 0;
+}
 p.debug-actions {
 	clear: both;
 }
@@ -753,23 +756,35 @@ p#ewww-webp-rewrite-status {
 .ewww-attachment-detail-container, .top-bar, #exactdn-site-url-copied, #exactdn-site-url-copy, #ewwwio-api-activation-processing, #ewwwio-easy-activation-processing, #ewwwio-webp-storage-warning {
 	display: none;
 }
-#ewwwio-wizard {
+#ewwwio-rescue ul {
+	list-style: disc;
+	margin-left: 10px;
+}
+#ewwwio-wizard, #ewwwio-rescue {
 	display: flex;
 	max-width: 450px;
 	flex-direction: column;
 	margin: auto;
 	padding: 5% 0;
 }
-#ewwwio-wizard-header {
+#ewwwio-rescue .ewww-help-beacon-single {
+	margin: 0px;
+}
+#ewwwio-wizard-header, #ewwwio-rescue-header {
 	background-color: #3eadc9;
 }
-#ewwwio-wizard-header img:first-child {
+#ewwwio-wizard-header img, #ewwwio-rescue-header img {
 	margin: 15px auto;
 	display: block;
 }
-#ewwwio-wizard-body {
+#ewwwio-wizard-body, #ewwwio-rescue-body {
 	background-color: #fff;
 	padding: 20px;
+}
+.ewwwio-intro-text {
+	font-weight: bold;
+	font-size: 1.3em;
+	margin: 1em 0;
 }
 .ewwwio-wizard-form {
 	margin: auto 0;
@@ -795,8 +810,6 @@ p#ewww-webp-rewrite-status {
 .ewwwio-flex-space-between {
 	display: flex;
 	justify-content: space-between;
-}
-.ewwwio-wizard-back {
 }
 #ewwwio-banner {
 	display: flex;

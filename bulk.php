@@ -1908,13 +1908,15 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		}
 		list( $file, $msg, $converted, $original ) = ewww_image_optimizer( $image->file, 1, false, false, 'full' === $image->resize );
 		// Gotta make sure we don't delete a pending record if the license is exceeded, so the license check goes first.
-		$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
-		if ( ! empty( $ewww_status ) && preg_match( '/exceeded/', $ewww_status ) ) {
-			$output['error'] = '<a href="https://ewww.io/buy-credits/" target="_blank">' . esc_html__( 'License Exceeded', 'ewww-image-optimizer' ) . '</a>';
-			delete_transient( 'ewww_image_optimizer_bulk_counter_measures' );
-			delete_transient( 'ewww_image_optimizer_bulk_current_image' );
-			ewwwio_ob_clean();
-			die( wp_json_encode( $output ) );
+		if ( ewww_image_optimmizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+			$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
+			if ( ! empty( $ewww_status ) && preg_match( '/exceeded/', $ewww_status ) ) {
+				$output['error'] = '<a href="https://ewww.io/buy-credits/" target="_blank">' . esc_html__( 'License Exceeded', 'ewww-image-optimizer' ) . '</a>';
+				delete_transient( 'ewww_image_optimizer_bulk_counter_measures' );
+				delete_transient( 'ewww_image_optimizer_bulk_current_image' );
+				ewwwio_ob_clean();
+				die( wp_json_encode( $output ) );
+			}
 		}
 		// Delete a pending record if the optimization failed for whatever reason.
 		if ( ! $file && $image->id ) {

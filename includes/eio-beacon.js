@@ -17,6 +17,11 @@ jQuery(document).ready(function($) {
 				Beacon('article', '59710ce4042863033a1b45a6', { type: 'modal' });
 				return false;
 			});
+			$('.ewww-contact-root').on( 'click', function() {
+				Beacon('navigate', '/ask/')
+				Beacon('open');
+				return false;
+			});
 			$('.ewww-docs-root').on( 'click', function() {
 				Beacon('navigate', '/answers/')
 				Beacon('open');

@@ -1943,7 +1943,7 @@ function ewww_image_optimizer_notice_exactdn_activation_success() {
 	<div id="ewww-image-optimizer-notice-exactdn-success" class="notice notice-success"><p>
 		<strong><?php esc_html_e( 'Easy IO setup and verification is complete.', 'ewww-image-optimizer' ); ?></strong>
 		<?php esc_html_e( 'If you have problems, try disabling Lazy Load and Include All Resources. Finally, disable Easy IO if problems remain.', 'ewww-image-optimizer' ); ?><br>
-		<a class='ewww-docs-root' href='https://ewww.io/contact-us/'>
+		<a class='ewww-contact-root' href='https://ewww.io/contact-us/'>
 			<?php esc_html_e( 'Then, let us know so we can find a fix for the problem.', 'ewww-image-optimizer' ); ?>
 		</a>
 	</p></div>
@@ -9555,6 +9555,9 @@ function ewww_image_optimizer_settings_script( $hook ) {
 	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_wizard_complete' ) ) {
 		remove_all_actions( 'admin_notices' );
 	}
+	if ( ! empty( $_GET['rescue_mode'] ) && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
+		remove_all_actions( 'admin_notices' );
+	}
 	delete_option( 'ewww_image_optimizer_exactdn_checkin' );
 	global $exactdn;
 	if ( has_action( 'admin_notices', 'ewww_image_optimizer_notice_exactdn_domain_mismatch' ) ) {
@@ -10406,7 +10409,6 @@ function ewww_image_optimizer_intro_wizard() {
 	?>
 <div id='ewww-settings-wrap' class='wrap'>
 	<div id='ewwwio-wizard'>
-		<h1 style="display:none;">EWWW Image Optimizer setup</h1><!-- remove this AND clear admin notices -->
 		<div id="ewwwio-wizard-header">
 			<img height="95" width="167" src="<?php echo esc_url( plugins_url( '/images/ewwwio-logo.png', __FILE__ ) ); ?>">
 		</div>
@@ -10457,7 +10459,7 @@ function ewww_image_optimizer_intro_wizard() {
 			<form id='ewwwio-wizard-step-1' class='ewwwio-wizard-form' method='post' action=''>
 				<input type='hidden' name='ewwwio_wizard_step' value='2' />
 				<?php wp_nonce_field( 'ewww_image_optimizer_wizard' ); ?>
-				<h2><?php esc_html_e( 'In order to recommend the best settings for your site, please select which goal(s) are most important:', 'ewww-image-optimizer' ); ?></h2>
+				<div class='ewwwio-intro-text'><?php esc_html_e( 'In order to recommend the best settings for your site, please select which goal(s) are most important:', 'ewww-image-optimizer' ); ?></div>
 				<div class='ewwwio-wizard-form-group'>
 					<input type='checkbox' id='ewww_image_optimizer_goal_site_speed' name='ewww_image_optimizer_goal_site_speed' value='true' required />
 					<label for='ewww_image_optimizer_goal_site_speed'><?php esc_html_e( 'Speed up your site', 'ewww-image-optimizer' ); ?></label><br>
@@ -10522,7 +10524,7 @@ function ewww_image_optimizer_intro_wizard() {
 			<form id='ewwwio-wizard-step-2' class='ewwwio-wizard-form' method='post' action=''>
 				<input type='hidden' name='ewwwio_wizard_step' value='3' />
 				<?php wp_nonce_field( 'ewww_image_optimizer_wizard' ); ?>
-				<h2><?php esc_html_e( 'Here are the recommended settings for your site. Please review and then save the settings.', 'ewww-image-optimizer' ); ?></h2>
+				<div class='ewwwio-intro-text'><?php esc_html_e( 'Here are the recommended settings for your site. Please review and then save the settings.', 'ewww-image-optimizer' ); ?></div>
 				<p>
 					<input type='checkbox' id='ewww_image_optimizer_metadata_remove' name='ewww_image_optimizer_metadata_remove' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ); ?> />
 					<label for='ewww_image_optimizer_metadata_remove'><?php esc_html_e( 'Remove Metadata', 'ewww-image-optimizer' ); ?></label>
@@ -10658,6 +10660,103 @@ function ewww_image_optimizer_intro_wizard() {
 }
 
 /**
+ * De-activates front-end parsing functions and displays troubleshooting instructions.
+ */
+function ewww_image_optimizer_rescue_mode() {
+	$settings_page_url  = admin_url( 'options-general.php?page=ewww-image-optimizer-options' );
+	$frontend_functions = array();
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+		ewww_image_optimizer_set_option( 'ewww_image_optimizer_exactdn', '' );
+		$frontend_functions[] = 'easyio';
+	}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ) {
+		ewww_image_optimizer_set_option( 'ewww_image_optimizer_lazy_load', false );
+		$frontend_functions[] = 'lazyload';
+	}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ) {
+		ewww_image_optimizer_set_option( 'ewww_image_optimizer_webp_for_cdn', false );
+		$frontend_functions[] = 'jswebp';
+	}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) ) {
+		ewww_image_optimizer_set_option( 'ewww_image_optimizer_picture_webp', false );
+		$frontend_functions[] = 'picturewebp';
+	}
+	global $eio_debug;
+	$debug_info = '';
+	if ( ! empty( $eio_debug ) ) {
+		$debug_info = $eio_debug;
+	}
+	?>
+<div id='ewww-settings-wrap' class='wrap'>
+	<div id='ewwwio-rescue'>
+		<div id="ewwwio-rescue-header">
+			<img height="95" width="167" src="<?php echo esc_url( plugins_url( '/images/ewwwio-logo.png', __FILE__ ) ); ?>">
+		</div>
+		<div id='ewwwio-rescue-body'>
+			<div id='ewww-image-optimizer-warning-exec' class='ewwwio-notice notice-warning'>
+				<?php esc_html_e( 'All front-end functions have been disabled. Please clear all caches, and check your site to ensure it is functioning normally.', 'ewww-image-optimizer' ); ?>
+				<br>
+				<a class='ewww-contact-root' href='https://ewww.io/contact-us/'>
+					<?php esc_html_e( 'If you continue to have problems, let us know right away!', 'ewww-image-optimizer' ); ?>
+				</a>
+			</div>
+			<div class='ewwwio-intro-text'>
+				<?php esc_html_e( 'We don\'t want you to settle for reduced functionality, so here are some troubleshooting tips:', 'ewww-image-optimizer' ); ?>
+			</div>
+			<ul>
+	<?php if ( in_array( 'easyio', $frontend_functions, true ) ) : ?>
+				<li>
+					<?php esc_html_e( 'Without Easy IO, several key optimizations are no longer working. First, re-enable Easy IO, and if your site is encounters problems again, try disabling the option to Include All Resources.', 'ewww-image-optimizer' ); ?>
+				</li>
+	<?php endif; ?>
+	<?php if ( in_array( 'lazyload', $frontend_functions, true ) ) : ?>
+				<li>
+					<?php /* translators: %s: Documentation (link) */ ?>
+					<?php printf( esc_html__( 'The lazy loader has browser-native and auto-scaling components that may not be compatible with some themes/plugins. Instructions for disabling these can be found in the %s.', 'ewww-image-optimizer' ), "<a class='ewww-help-beacon-single' href='https://docs.ewww.io/article/74-lazy-load' data-beacon-article='5c6c36ed042863543ccd2d9b'>" . esc_html__( 'Documentation', 'ewww-image-optimizer' ) . '</a>' ); ?>
+				</li>
+	<?php endif; ?>
+	<?php if ( in_array( 'jswebp', $frontend_functions, true ) ) : ?>
+				<li>
+					<?php esc_html_e( 'Enabling Lazy Load alongside JS WebP enables better compatibility with some themes/plugins. Alternatively, you may try <picture> WebP Rewriting for a JavaScript-free delivery method.', 'ewww-image-optimizer' ); ?>
+				</li>
+	<?php endif; ?>
+	<?php if ( in_array( 'picturewebp', $frontend_functions, true ) ) : ?>
+				<li>
+					<?php esc_html_e( 'Some themes may not display <picture> elements properly, so try JS WebP Rewriting for WebP delivery.', 'ewww-image-optimizer' ); ?>
+				</li>
+	<?php endif; ?>
+			</ul>
+			<p>
+				<a class='ewww-contact-root' href='https://ewww.io/contact-us/'>
+					<?php esc_html_e( 'If you have not found a solution that works for your site, let us know! We would love to help you find a solution.', 'ewww-image-optimizer' ); ?>
+				</a>
+			</p>
+			<p><a href='<?php echo esc_url( $settings_page_url ); ?>' class='button-secondary'><?php esc_html_e( 'Return to Settings', 'ewww-image-optimizer' ); ?></a></p>
+		</div>
+	</div>
+</div>
+	<?php
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
+		$current_user = wp_get_current_user();
+		$help_email   = $current_user->user_email;
+		$hs_debug     = '';
+		if ( ! empty( $debug_info ) ) {
+			$hs_debug = str_replace( array( "'", '<br>', '<b>', '</b>', '=>' ), array( "\'", '\n', '**', '**', '=' ), $debug_info );
+		}
+		?>
+<script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
+<script type="text/javascript">
+	window.Beacon('init', 'aa9c3d3b-d4bc-4e9b-b6cb-f11c9f69da87');
+	Beacon( 'prefill', {
+		email: '<?php echo esc_js( utf8_encode( $help_email ) ); ?>',
+		text: '\n\n----------------------------------------\n<?php echo wp_kses_post( $hs_debug ); ?>',
+	});
+</script>
+		<?php
+	}
+}
+
+/**
  * Wrapper that displays the EWWW IO options in the multisite network admin.
  */
 function ewww_image_optimizer_network_options() {
@@ -10710,6 +10809,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	}
 	if ( 'singlesite' === $network && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_wizard_complete' ) ) {
 		ewww_image_optimizer_intro_wizard();
+		return;
+	}
+	if ( ! empty( $_GET['rescue_mode'] ) && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
+		ewww_image_optimizer_rescue_mode();
 		return;
 	}
 	if ( 'network-multisite' === $network && get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
@@ -11066,9 +11169,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 								<p><strong><?php echo ( (int) $speed_score < 100 ? esc_html__( 'How do I get to 100%?', 'ewww-image-optimizer' ) : esc_html__( 'You got the perfect score!', 'ewww-image-optimizer' ) ); ?></strong></p>
 	<?php if ( $speed_score < 100 ) : ?>
 								<ul class="ewww-tooltip">
-		<?php foreach ( $speed_recommendations as $recommendation ) { ?>
+		<?php foreach ( $speed_recommendations as $recommendation ) : ?>
 									<li><?php echo wp_kses( $recommendation, $allow_help_html ); ?></li>
-		<?php } ?>
+		<?php endforeach; ?>
 								</ul>
 	<?php endif; ?>
 							</div><!-- end .ewww-recommend -->
@@ -11169,6 +11272,19 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	</script>
 	<?php endif; ?>
 	<?php
+	$frontend_functions = array();
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ) {
+		$frontend_functions[] = __( 'Lazy Load', 'ewww-image-optimizer' );
+	}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ) {
+		$frontend_functions[] = __( 'JS WebP Rewriting', 'ewww-image-optimizer' );
+	}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) ) {
+		$frontend_functions[] = __( '<picture> WebP Rewriting', 'ewww-image-optimizer' );
+	}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+		$frontend_functions[] = __( 'Easy IO', 'ewww-image-optimizer' );
+	}
 	$loading_image_url    = plugins_url( '/images/spinner.gif', __FILE__ );
 	$eio_base             = new EIO_Base();
 	$easyio_site_url      = $eio_base->content_url();
@@ -11845,10 +11961,6 @@ AddType image/webp .webp</pre>
 		<div id='ewww-local-settings'>
 			<noscript><h2><?php esc_html_e( 'Local', 'ewww-image-optimizer' ); ?></h2></noscript>
 			<p>
-				<?php esc_html_e( 'Having problems? Try disabling Lazy Load and Include All Resources. Finally, disable Easy IO if problems remain.', 'ewww-image-optimizer' ); ?><br>
-				<a class='ewww-docs-root' href='https://ewww.io/contact-us/'>
-					<?php esc_html_e( 'Then, let us know so we can find a fix for the problem.', 'ewww-image-optimizer' ); ?>
-				</a>
 	<?php if ( $exactdn_enabled && 1 === $exactdn->get_plan_id() ) : ?>
 				<br><i>* <?php esc_html_e( 'Upgrade to a Pro or Developer subscription to unlock additional options below.', 'ewww-image-optimizer' ); ?></i>
 	<?php endif; ?>
@@ -12349,6 +12461,20 @@ AddType image/webp .webp</pre>
 				<a href='https://ewww.io/chat/'><?php esc_html_e( 'Community Chat', 'ewww-image-optimizer' ); ?></a> |
 				<a href='https://ewww.io/status/'><?php esc_html_e( 'Server Status', 'ewww-image-optimizer' ); ?></a>
 			</p>
+	<?php if ( ! empty( $frontend_functions ) ) : ?>
+			<p>
+				<strong><?php esc_html_e( 'Having problems with a broken site or wrong-sized images?', 'ewww-image-optimizer' ); ?></strong><br>
+				<?php esc_html_e( 'Try disabling each of these options to identify the problem, or use the Panic Button to disable them all at once:', 'ewww-image-optimizer' ); ?><br>
+				<?php
+				foreach ( $frontend_functions as $frontend_function ) {
+					echo '<i>' . esc_html( $frontend_function ) . '</i><br>';
+				}
+				?>
+				<a id='ewww-rescue-mode' class='button-secondary' href='<?php echo esc_url( wp_nonce_url( admin_url( 'options-general.php?page=ewww-image-optimizer-options&rescue_mode=1' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
+					<?php esc_html_e( 'Panic Button', 'ewww-image-optimizer' ); ?>
+				</a>
+			</p>
+	<?php endif; ?>
 			<table class='form-table'>
 				<tr>
 					<th scope='row'>
