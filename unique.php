@@ -2051,14 +2051,11 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				}
 				break;
 			}
-			if ( 10 === (int) $compression_level && ( EWWW_IMAGE_OPTIMIZER_NOEXEC || ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) || ! EWWW_IMAGE_OPTIMIZER_JPEGTRAN ) ) {
+			// For exec-deprived servers.
+			if ( 10 === (int) $compression_level && EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
 				list( $file, $converted, $result, $new_size, $backup_hash ) = ewww_image_optimizer_cloud_optimizer( $file, $type );
 				break;
 			}
-			// If we get this far, we are using local (jpegtran) optimization, so do an autorotate on the image.
-			ewww_image_optimizer_autorotate( $file );
-			// Get the (possibly new) original image size.
-			$orig_size = ewww_image_optimizer_filesize( $file );
 			if ( $convert ) {
 				$tools = ewww_image_optimizer_path_check(
 					! $skip['jpegtran'],
@@ -2080,6 +2077,14 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					false
 				);
 			}
+			if ( 10 === (int) $compression_level && defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) && ! EWWW_IMAGE_OPTIMIZER_JPEGTRAN ) {
+				list( $file, $converted, $result, $new_size, $backup_hash ) = ewww_image_optimizer_cloud_optimizer( $file, $type );
+				break;
+			}
+			// If we get this far, we are using local (jpegtran) optimization, so do an autorotate on the image.
+			ewww_image_optimizer_autorotate( $file );
+			// Get the (possibly new) original image size.
+			$orig_size = ewww_image_optimizer_filesize( $file );
 			if ( ! empty( $ewww_webp_only ) ) {
 				$optimize = false;
 			} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {

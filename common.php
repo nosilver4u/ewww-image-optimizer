@@ -4658,9 +4658,8 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	$free_exec = EWWW_IMAGE_OPTIMIZER_NOEXEC && 'image/jpeg' === $type;
 	if (
 		! $free_exec &&
-		( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) || ! EWWW_IMAGE_OPTIMIZER_JPEGTRAN ) &&
-		'image/jpeg' === $type &&
-		ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_exec_notice' )
+		defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) && ! EWWW_IMAGE_OPTIMIZER_JPEGTRAN &&
+		'image/jpeg' === $type
 	) {
 		$free_exec = true;
 	}
@@ -10740,11 +10739,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	}
 	if (
 		! $free_exec &&
-		( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) || ! EWWW_IMAGE_OPTIMIZER_JPEGTRAN ) &&
+		defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) && ! EWWW_IMAGE_OPTIMIZER_JPEGTRAN &&
 		10 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) &&
 		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
-		! ewww_image_optimizer_easy_active() &&
-		ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_exec_notice' )
+		! ewww_image_optimizer_easy_active()
 	) {
 		$free_exec    = true;
 		$speed_score += 5;
