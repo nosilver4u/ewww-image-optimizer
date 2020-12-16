@@ -138,6 +138,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: JS WebP recognizes video elements added via JS (e.g. infinite scroll)
 * added: automatically convert GIF to PNG during new uploads, unless animated
 * added: JS WebP and picture WebP auto-detect configuration for S3 Uploads and WP Stateless
+* added: Lazy Load for external CSS and separate style blocks (div elements only for now)
+* added: Easy IO/CDN rewriting for Ultimate Member AJAX-powered activity wall
 * changed: settings UI revamped with wizard for first-time installs
 * changed: automatic PNG to JPG threshold lowered to 250kb
 * changed: extensions for WP_Image_Editor now disabled by default, use EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR constant to enable them
