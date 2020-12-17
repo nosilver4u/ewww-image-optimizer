@@ -878,6 +878,7 @@ function ewww_image_optimizer_upgrade() {
 		}
 		if ( get_option( 'ewww_image_optimizer_version' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_wizard_complete' ) ) {
 			add_option( 'ewww_image_optimizer_wizard_complete', true, '', false );
+			add_site_option( 'ewww_image_optimizer_wizard_complete', true );
 		}
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 			if ( 'external' === get_option( 'elementor_css_print_method' ) ) {
@@ -1974,7 +1975,7 @@ function ewww_image_optimizer_notice_exactdn_domain_mismatch() {
 		printf(
 			/* translators: %s: settings page */
 			esc_html__( 'Please visit the %s to refresh the Easy IO settings and verify activation status.', 'ewww-image-optimizer' ),
-			'<a href="' . esc_url( admin_url( 'options-general.php?page=ewww-image-optimizer-options' ) ) . '">' . esc_html__( 'settings page', 'ewww-image-optimizer' ) . '</a>'
+			'<a href="' . esc_url( ewww_image_optimizer_get_settings_link() ) . '">' . esc_html__( 'settings page', 'ewww-image-optimizer' ) . '</a>'
 		);
 		?>
 		</p>
@@ -2876,25 +2877,34 @@ function ewww_image_optimizer_media_scripts( $hook ) {
 }
 
 /**
+ * Gets the link to the main EWWW IO settings.
+ *
+ * @return string The link to the main settings (network vs. single-site).
+ */
+function ewww_image_optimizer_get_settings_link() {
+	if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
+		// Need to include the plugin library for the is_plugin_active function.
+		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	}
+	// Load the html for the settings link.
+	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) && ! get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
+		return network_admin_url( 'settings.php?page=ewww-image-optimizer-options' );
+	} else {
+		return admin_url( 'options-general.php?page=ewww-image-optimizer-options' );
+	}
+}
+
+/**
  * Adds a link on the Plugins page for the EWWW IO settings.
  *
  * @param array $links A list of links to display next to the plugin listing.
  * @return array The new list of links to be displayed.
  */
 function ewww_image_optimizer_settings_link( $links ) {
-	if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
-		// Need to include the plugin library for the is_plugin_active function.
-		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-	}
 	if ( ! is_array( $links ) ) {
 		$links = array();
 	}
-	// Load the html for the settings link.
-	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
-		$settings_link = '<a href="' . network_admin_url( 'settings.php?page=ewww-image-optimizer-options' ) . '">' . esc_html__( 'Settings', 'ewww-image-optimizer' ) . '</a>';
-	} else {
-		$settings_link = '<a href="' . admin_url( 'options-general.php?page=ewww-image-optimizer-options' ) . '">' . esc_html__( 'Settings', 'ewww-image-optimizer' ) . '</a>';
-	}
+	$settings_link = '<a href="' . ewww_image_optimizer_get_settings_link() . '">' . esc_html__( 'Settings', 'ewww-image-optimizer' ) . '</a>';
 	// Load the settings link into the plugin links array.
 	array_unshift( $links, $settings_link );
 	// Send back the plugin links array.
@@ -9552,7 +9562,11 @@ function ewww_image_optimizer_settings_script( $hook ) {
 	if ( 'settings_page_ewww-image-optimizer-options' !== $hook ) {
 		return;
 	}
-	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_wizard_complete' ) ) {
+	if (
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_wizard_complete' ) &&
+		! is_network_admin() &&
+		( ! is_multisite() || get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) || ! is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) )
+	) {
 		remove_all_actions( 'admin_notices' );
 	}
 	if ( ! empty( $_GET['rescue_mode'] ) && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
@@ -10270,8 +10284,8 @@ function ewww_image_optimizer_intro_wizard() {
 	$display_exec_notice  = false;
 	$tools_missing_notice = false;
 	$current_jpeg_quality = apply_filters( 'jpeg_quality', 82, 'image_resize' );
-	$wizard_complete_url  = wp_nonce_url( admin_url( 'options-general.php?page=ewww-image-optimizer-options&complete_wizard=1' ), 'ewww_image_optimizer_options-options' );
-	$settings_page_url    = admin_url( 'options-general.php?page=ewww-image-optimizer-options' );
+	$wizard_complete_url  = wp_nonce_url( add_query_arg( 'complete_wizard', 1, ewww_image_optimizer_get_settings_link() ), 'ewww_image_optimizer_options-options' );
+	$settings_page_url    = ewww_image_optimizer_get_settings_link();
 	$loading_image_url    = plugins_url( '/images/spinner.gif', __FILE__ );
 	$wizard_step          = 1;
 	$show_premium         = false;
@@ -10663,7 +10677,7 @@ function ewww_image_optimizer_intro_wizard() {
  * De-activates front-end parsing functions and displays troubleshooting instructions.
  */
 function ewww_image_optimizer_rescue_mode() {
-	$settings_page_url  = admin_url( 'options-general.php?page=ewww-image-optimizer-options' );
+	$settings_page_url  = ewww_image_optimizer_get_settings_link();
 	$frontend_functions = array();
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_exactdn', '' );
@@ -10707,6 +10721,11 @@ function ewww_image_optimizer_rescue_mode() {
 	<?php if ( in_array( 'easyio', $frontend_functions, true ) ) : ?>
 				<li>
 					<?php esc_html_e( 'Without Easy IO, several key optimizations are no longer working. First, re-enable Easy IO, and if your site is encounters problems again, try disabling the option to Include All Resources.', 'ewww-image-optimizer' ); ?>
+				</li>
+	<?php endif; ?>
+	<?php if ( in_array( 'lazyload', $frontend_functions, true ) || in_array( 'easyio', $frontend_functions, true ) ) : ?>
+				<li>
+					<?php esc_html_e( 'Third-party lazy loaders prevent Easy IO from auto-scaling some images, and may cause conflicts. We recommend disabling them and using the EWWW IO lazy loader.', 'ewww-image-optimizer' ); ?>
 				</li>
 	<?php endif; ?>
 	<?php if ( in_array( 'lazyload', $frontend_functions, true ) ) : ?>
@@ -10807,6 +10826,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	if ( empty( $network ) ) {
 		$network = 'singlesite';
 	}
+	if ( 'network-multisite' === $network && get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
+		$network = 'network-multisite-over';
+	} elseif ( 'network-singlesite' === $network && get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
+		$network = 'singlesite';
+	}
 	if ( 'singlesite' === $network && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_wizard_complete' ) ) {
 		ewww_image_optimizer_intro_wizard();
 		return;
@@ -10814,11 +10838,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	if ( ! empty( $_GET['rescue_mode'] ) && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
 		ewww_image_optimizer_rescue_mode();
 		return;
-	}
-	if ( 'network-multisite' === $network && get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
-		$network = 'network-multisite-over';
-	} elseif ( 'network-singlesite' === $network && get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
-		$network = 'singlesite';
 	}
 	$eio_hs_beacon->admin_notice( $network );
 	?>
@@ -11300,7 +11319,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$lqip_dis             = ! $exactdn_enabled || 1 === $exactdn->get_plan_id();
 	$ll_exclude_paths     = ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_exclude' ) ? implode( "\n", ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_exclude' ) ) : '';
 	$current_jpeg_quality = apply_filters( 'jpeg_quality', 82, 'image_resize' );
-	$enable_local_url     = wp_nonce_url( admin_url( 'options-general.php?page=ewww-image-optimizer-options&enable-local=1' ), 'ewww_image_optimizer_options-options' );
 	$webp_php_rewriting   = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' );
 	$webp_exclude_paths   = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_rewrite_exclude' ) ? implode( "\n", ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_rewrite_exclude' ) ) : '';
 	$webp_paths           = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' ) ? implode( "\n", ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' ) ) : '';
@@ -11310,6 +11328,37 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		'https://cdn.example.com/<strong>files/</strong>2038/01/image.jpg',
 		'https://example.com/<strong>wp-content/uploads/</strong>2038/01/image.jpg',
 		'https://cdn.example.com/<strong>files/</strong>'
+	);
+	// Setup URLs for Ludicrous/Easy Mode.
+	$enable_local_url = wp_nonce_url(
+		add_query_arg(
+			array(
+				'page'         => 'ewww-image-optimizer-options',
+				'enable-local' => 1,
+			),
+			null
+		),
+		'ewww_image_optimizer_options-options'
+	);
+	$enable_easy_url  = wp_nonce_url(
+		add_query_arg(
+			array(
+				'page'         => 'ewww-image-optimizer-options',
+				'enable-local' => 0,
+			),
+			null
+		),
+		'ewww_image_optimizer_options-options'
+	);
+	$rescue_mode_url  = wp_nonce_url(
+		add_query_arg(
+			array(
+				'page'        => 'ewww-image-optimizer-options',
+				'rescue_mode' => 1,
+			),
+			null
+		),
+		'ewww_image_optimizer_options-options'
 	);
 	// Make sure .htaccess rules are terminated when ExactDN is enabled or if Cloudflare is detected.
 	$cf_host = ewwwio_is_cf_host();
@@ -11349,12 +11398,14 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<input type='hidden' name='action' value='update' />
 		<?php wp_nonce_field( 'ewww_image_optimizer_options-options' ); ?>
 	<?php if ( 'network-singlesite' === $network ) : ?>
-		<i class="network-singlesite"><strong><?php esc_html_e( 'Configure network-wide settings in the Network Admin.', 'ewww-image-optimizer' ); ?></strong></i>
+		<p><i class="network-singlesite"><strong>
+			<?php /* translators: %s: Network Admin */ ?>
+			<?php printf( esc_html__( 'Configure network-wide settings in the %s.', 'ewww-image-optimizer' ), '<a href="' . esc_url( ewww_image_optimizer_get_settings_link() ) . '">' . esc_html__( 'Network Admin', 'ewww-image-optimizer' ) . '</a>' ); ?>
+		</strong></i></p>
 		<?php ob_start(); ?>
 	<?php endif; ?>
 		<div id='ewww-general-settings'>
 			<noscript><h2><?php esc_html_e( 'Basic', 'ewww-image-optimizer' ); ?></h2></noscript>
-			<!-- TODO: test easy mode switcher in multi-site. -->
 	<?php if ( $easymode ) : ?>
 			<p>
 				<a href='<?php echo esc_url( $enable_local_url ); ?>'>
@@ -11364,7 +11415,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	<?php else : ?>
 			<p>
 				<?php /* translators: %s: Easy Mode */ ?>
-				<?php printf( esc_html__( 'Switch to %s.', 'ewww-image-optimizer' ), '<a href="' . esc_url( wp_nonce_url( admin_url( 'options-general.php?page=ewww-image-optimizer-options&enable-local=0' ), 'ewww_image_optimizer_options-options' ) ) . '">' . esc_html__( 'Easy Mode', 'ewww-image-optimizer' ) . '</a>' ); ?>
+				<?php printf( esc_html__( 'Switch to %s.', 'ewww-image-optimizer' ), '<a href="' . esc_url( $enable_easy_url ) . '">' . esc_html__( 'Easy Mode', 'ewww-image-optimizer' ) . '</a>' ); ?>
 			</p>
 	<?php endif; ?>
 			<p>
@@ -12458,7 +12509,6 @@ AddType image/webp .webp</pre>
 				<a class='ewww-docs-root' href='https://docs.ewww.io/'><?php esc_html_e( 'Documentation', 'ewww-image-optimizer' ); ?></a> |
 				<a class='ewww-docs-root' href='https://ewww.io/contact-us/'><?php esc_html_e( 'Plugin Support', 'ewww-image-optimizer' ); ?></a> |
 				<a href='https://feedback.ewww.io/'><?php esc_html_e( 'Submit Feedback', 'ewww-image-optimizer' ); ?></a> |
-				<a href='https://ewww.io/chat/'><?php esc_html_e( 'Community Chat', 'ewww-image-optimizer' ); ?></a> |
 				<a href='https://ewww.io/status/'><?php esc_html_e( 'Server Status', 'ewww-image-optimizer' ); ?></a>
 			</p>
 	<?php if ( ! empty( $frontend_functions ) ) : ?>
@@ -12470,7 +12520,7 @@ AddType image/webp .webp</pre>
 					echo '<i>' . esc_html( $frontend_function ) . '</i><br>';
 				}
 				?>
-				<a id='ewww-rescue-mode' class='button-secondary' href='<?php echo esc_url( wp_nonce_url( admin_url( 'options-general.php?page=ewww-image-optimizer-options&rescue_mode=1' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
+				<a id='ewww-rescue-mode' class='button-secondary' href='<?php echo esc_url( $rescue_mode_url ); ?>'>
 					<?php esc_html_e( 'Panic Button', 'ewww-image-optimizer' ); ?>
 				</a>
 			</p>
