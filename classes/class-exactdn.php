@@ -981,18 +981,34 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						$this->debug_message( 'url validated' );
 
 						// Find the width and height attributes.
-						$width  = $this->get_img_width( $images['img_tag'][ $index ] );
-						$height = $this->get_img_height( $images['img_tag'][ $index ] );
+						$width  = $this->get_attribute( $images['img_tag'][ $index ], 'width' );
+						$height = $this->get_attribute( $images['img_tag'][ $index ], 'height' );
 
 						// Can't pass both a relative width and height, so unset the dimensions in favor of not breaking the horizontal layout.
-						if ( false !== strpos( $width, '%' ) && false !== strpos( $height, '%' ) ) {
-							$width  = false;
+						if ( false !== strpos( $width, '%' ) ) {
+							$width = false;
+						}
+						if ( false !== strpos( $height, '%' ) ) {
 							$height = false;
 						}
 
 						// Falsify them if empty.
 						$width  = $width && is_numeric( $width ) ? $width : false;
 						$height = $height && is_numeric( $height ) ? $height : false;
+
+						// See if there is a width/height set in the style attribute.
+						$style_width  = $this->get_img_style_width( $images['img_tag'][ $index ] );
+						$style_height = $this->get_img_style_height( $images['img_tag'][ $index ] );
+						if ( $style_width && $style_height ) {
+							$width  = min( $style_width, $width );
+							$height = min( $style_height, $height );
+						} elseif ( $style_width && $style_width < $width ) {
+							$width     = $style_width;
+							$transform = 'fit';
+						} elseif ( $style_height && $style_height < $height ) {
+							$height    = $style_height;
+							$transform = 'fit';
+						}
 
 						// Detect WP registered image size from HTML class.
 						if ( preg_match( '#class=["|\']?[^"\']*size-([^"\'\s]+)[^"\']*["|\']?#i', $images['img_tag'][ $index ], $size ) ) {
@@ -1224,7 +1240,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					} elseif ( ! $lazy && $this->validate_image_url( $src, true ) ) {
 						$this->debug_message( "found a potential exactdn src url to insert into srcset: $src" );
 						// Find the width attribute.
-						$width = $this->get_img_width( $images['img_tag'][ $index ] );
+						$width = $this->get_attribute( $images['img_tag'][ $index ], 'width' );
 						if ( $width ) {
 							$this->debug_message( 'found the width' );
 							// Insert new image src into the srcset as well, if we have a width.
@@ -1280,7 +1296,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 								}
 							}
 							if ( empty( $width ) || ! is_numeric( $width ) ) {
-								$width = $this->get_img_width( $images['img_tag'][ $index ] );
+								$width = $this->get_attribute( $images['img_tag'][ $index ], 'width' );
 							}
 							list( $filename_width, $discard_height ) = $this->get_dimensions_from_filename( $src );
 							if ( empty( $width ) || ! is_numeric( $width ) ) {
