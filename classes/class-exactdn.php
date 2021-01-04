@@ -560,8 +560,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						$this->set_exactdn_option( 'verify_method', 1, false );
 						return;
 					}
+				} else {
+					$this->debug_message( 'exactdn (simulated) verification request failed, error unknown' );
 				}
-				$this->debug_message( 'exactdn (simulated) verification request failed, error unknown' );
 				$this->set_exactdn_option( 'verify_method', -1, false );
 			}
 		}
@@ -766,6 +767,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$content_width = isset( $GLOBALS['content_width'] ) && is_numeric( $GLOBALS['content_width'] ) && $GLOBALS['content_width'] > 100 ? $GLOBALS['content_width'] : 1920;
 			if ( function_exists( 'twentynineteen_setup' ) && 640 === (int) $content_width ) {
 				$content_width = 932;
+			}
+			if ( defined( 'EXACTDN_CONTENT_WIDTH' ) && EXACTDN_CONTENT_WIDTH ) {
+				$content_width = EXACTDN_CONTENT_WIDTH;
 			}
 			/**
 			 * Filter the Content Width value.

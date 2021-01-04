@@ -1,3 +1,4 @@
+// version 5.2.2
 (function(window, factory) {
 	var lazySizes = factory(window, window.document, Date);
 	window.lazySizes = lazySizes;
