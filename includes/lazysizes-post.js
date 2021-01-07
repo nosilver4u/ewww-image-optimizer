@@ -148,8 +148,8 @@ document.addEventListener('lazybeforeunveil', function(e){
 				}
 				if (!shouldAutoScale(target)||!shouldAutoScale(target.parentNode)){
 					var newSrc = false;
-				} else if ( window.lazySizes.hC(target,'et_pb_jt_filterable_grid_item_image')) {
-					console.log('et filterable grid, using crop');
+				} else if ( window.lazySizes.hC(target,'et_pb_jt_filterable_grid_item_image') || window.lazySizes.hC(target,'ss-foreground-image') ) {
+					console.log('img that needs a hard crop');
 					var newSrc = constrainSrc(src,targetWidth,targetHeight,'img-crop');
 				} else {
 					console.log('plain old img, constraining');

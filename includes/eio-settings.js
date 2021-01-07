@@ -68,7 +68,7 @@ jQuery(document).ready(function($) {
 			$('#ewwwio-api-activate').trigger('click');
 			return false;
 		}
-	})
+	});
 	$('#ewwwio-api-activate').on('click', function() {
 		var ewww_post_action = 'ewww_cloud_key_verify';
 		var ewww_post_data = {

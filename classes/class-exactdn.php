@@ -1533,7 +1533,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				}
 				$content = str_replace( '?wpcontent-bypass?', $this->content_path, $content );
 				if ( defined( 'EXACTDN_DEFER_JQUERY_SAFE' ) && EXACTDN_DEFER_JQUERY_SAFE && false === strpos( $content, 'jQuery' ) ) {
-					preg_match( "#<script\s+type='text/javascript'\s+src='[^']+?/jquery\.js[^']*?'[^>]*?>#is", $content, $jquery_tags );
+					preg_match( "#<script\s+type='text/javascript'\s+src='[^']+?/jquery(\.min)?\.js[^']*?'[^>]*?>#is", $content, $jquery_tags );
 					if ( ! empty( $jquery_tags[0] ) && false === strpos( $jquery_tags[0], 'defer' ) && false === strpos( $jquery_tags[0], 'async' ) ) {
 						$deferred_jquery = str_replace( '>', ' defer>', $jquery_tags[0] );
 						if ( $deferred_jquery && $deferred_jquery !== $jquery_tags[0] ) {
@@ -1562,10 +1562,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( ! empty( $_POST['action'] ) && 'eddvbugm_viewport_downloads' === $_POST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 				return true;
 			}
-			if ( ! empty( $_POST['action'] ) && 'filter_listing' === $_POST['action'] && ! empty( $_POST['layout'] ) && ! empty( $_POST['paged'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			if ( ! empty( $_POST['action'] ) && 'Essential_Grid_Front_request_ajax' === $_POST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 				return true;
 			}
-			if ( ! empty( $_POST['action'] ) && 'Essential_Grid_Front_request_ajax' === $_POST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification
+			if ( ! empty( $_POST['action'] ) && 'filter_listing' === $_POST['action'] && ! empty( $_POST['layout'] ) && ! empty( $_POST['paged'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 				return true;
 			}
 			if ( ! empty( $_POST['action'] ) && 'mabel-rpn-getnew-purchased-products' === $_POST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification
