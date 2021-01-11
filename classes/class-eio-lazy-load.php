@@ -173,6 +173,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				'/print/' === substr( $uri, -7 ) ||
 				strpos( $uri, 'elementor-preview=' ) !== false ||
 				strpos( $uri, 'et_fb=' ) !== false ||
+				strpos( $uri, '?fl_builder' ) !== false ||
 				strpos( $uri, 'tatsu=' ) !== false ||
 				( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === sanitize_text_field( wp_unslash( $_POST['action'] ) ) ) || // phpcs:ignore WordPress.Security.NonceVerification
 				! apply_filters( 'eio_do_lazyload', true ) ||
@@ -206,6 +207,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				}
 				if ( strpos( $uri, 'et_fb=' ) !== false ) {
 					$this->debug_message( 'et_fb' );
+				}
+				if ( strpos( $uri, '?fl_builder' ) !== false ) {
+					$this->debug_message( 'beaver builder' );
 				}
 				if ( strpos( $uri, 'tatsu=' ) !== false || ( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === $_POST['action'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 					$this->debug_message( 'tatsu' );

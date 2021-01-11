@@ -153,6 +153,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: database upgrade throws errors on MariaDB 10.4.x
 * fixed: WebP .htaccess error in Vary header rule
 * fixed: Easy IO doubles part of image URL when there are no thumbnails, but one is requested by a plugin or theme
+* fixed: Easy IO minifier breaks Beaver Builder
+* fixed: Lazy Load breaks Beaver Builder text editor
 
 = 5.8.2 =
 * security: improper nonce verification for Nextgen bulk optimizer initialization (minor severity)
