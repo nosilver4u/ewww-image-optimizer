@@ -192,6 +192,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_array' ), 1001, 5 );
 			add_filter( 'wp_calculate_image_sizes', array( $this, 'filter_sizes' ), 1, 2 ); // Early so themes can still filter.
 
+			/* add_filter( 'fl_builder_render_assets_inline', '__return_true' ); */
+
 			// Filter for NextGEN image URLs within JS.
 			add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ) );
 			add_filter( 'ngg_get_image_url', array( $this, 'plugin_get_image_url' ) );
@@ -210,9 +212,6 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( $this->get_option( 'exactdn_all_the_things' ) && $this->plan_id > 1 ) {
 				add_filter( 'style_loader_src', array( $this, 'parse_enqueue' ), 9999 );
 				add_filter( 'script_loader_src', array( $this, 'parse_enqueue' ), 9999 );
-				if ( defined( 'EXACTDN_DEFER_SCRIPTS' ) && EXACTDN_DEFER_SCRIPTS ) {
-					add_filter( 'script_loader_tag', array( $this, 'defer_scripts' ), 20 );
-				}
 			}
 			$this->set_option( 'exactdn_prevent_db_queries', true );
 
@@ -1532,15 +1531,6 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?(nextgen-image|' . $this->include_path . '|' . $this->content_path . ')/#i', '$1//' . $this->exactdn_domain . '/$2$3/', $content );
 				}
 				$content = str_replace( '?wpcontent-bypass?', $this->content_path, $content );
-				if ( defined( 'EXACTDN_DEFER_JQUERY_SAFE' ) && EXACTDN_DEFER_JQUERY_SAFE && false === strpos( $content, 'jQuery' ) ) {
-					preg_match( "#<script\s+type='text/javascript'\s+src='[^']+?/jquery(\.min)?\.js[^']*?'[^>]*?>#is", $content, $jquery_tags );
-					if ( ! empty( $jquery_tags[0] ) && false === strpos( $jquery_tags[0], 'defer' ) && false === strpos( $jquery_tags[0], 'async' ) ) {
-						$deferred_jquery = str_replace( '>', ' defer>', $jquery_tags[0] );
-						if ( $deferred_jquery && $deferred_jquery !== $jquery_tags[0] ) {
-							$content = str_replace( $jquery_tags[0], $deferred_jquery, $content );
-						}
-					}
-				}
 			}
 			return $content;
 		}
@@ -2664,38 +2654,6 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				}
 			}
 			return $skip;
-		}
-
-		/**
-		 * Rewrites a script tag to be deferred.
-		 *
-		 * @param string $tag URL to the script.
-		 * @return string The deferred version of the resource, if it was allowed.
-		 */
-		function defer_scripts( $tag ) {
-			if ( is_admin() ) {
-				return $tag;
-			}
-			if ( false !== strpos( $tag, 'async' ) ) {
-				return $tag;
-			}
-			if ( false !== strpos( $tag, 'defer' ) ) {
-				return $tag;
-			}
-			if ( false !== strpos( $tag, 'jquery.js' ) && ! defined( 'EXACTDN_DEFER_JQUERY' ) ) {
-				return $tag;
-			}
-			if ( false !== strpos( $tag, 'lazysizes' ) ) {
-				if ( false !== strpos( $tag, 'ewww-image' ) || false !== strpos( $tag, 'easy-image' ) ) {
-					return str_replace( '></script', ' async></script', $tag );
-				}
-				return $tag;
-			}
-			$deferred_tag = str_replace( '></script', ' defer></script', $tag );
-			if ( $deferred_tag && $deferred_tag !== $tag ) {
-				return $deferred_tag;
-			}
-			return $tag;
 		}
 
 		/**

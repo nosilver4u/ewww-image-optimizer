@@ -147,6 +147,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * changed: better compatibility with Theia Smart Thumbnails
 * changed: Lazy Load auto-sizing will no longer decrease the image size, only increasing is allowed
 * changed: filter to include additional HTML element types via eio_allowed_background_image_elements filter for Lazy Load and Easy IO
+* fixed: compatibility between Easy IO and Autoptimize
 * fixed: Easy IO uses hard crop when constraining an image via a width/height found in the style attribute
 * fixed: Easy IO uses hard-coded wp-content/ and wp-includes/ paths in some cases
 * fixed: Easy IO not activating properly when plugin is activated network-wide for multi-site installs
@@ -155,6 +156,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: Easy IO doubles part of image URL when there are no thumbnails, but one is requested by a plugin or theme
 * fixed: Easy IO minifier breaks Beaver Builder
 * fixed: Lazy Load breaks Beaver Builder text editor
+* removed: JS defer with Easy IO, use SWIS Performance instead: https://ewww.io/swis/
 
 = 5.8.2 =
 * security: improper nonce verification for Nextgen bulk optimizer initialization (minor severity)
