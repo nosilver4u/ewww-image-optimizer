@@ -3,9 +3,9 @@ Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization, lossless, lossy, seo, scale
 Requires at least: 5.3
-Tested up to: 5.5
+Tested up to: 5.6
 Requires PHP: 5.6
-Stable tag: 5.8.2
+Stable tag: 6.0.0
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -132,9 +132,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
-= 5.9.0 =
+= 6.0.0 =
 * added: tool to delete originals from WP 5.3+ auto-scaling behavior (Tools menu)
-* added: (maybe) JS WebP is able to rewrite WooCommerce product variations
 * added: JS WebP recognizes video elements added via JS (e.g. infinite scroll)
 * added: automatically convert GIF to PNG during new uploads, unless animated
 * added: JS WebP and picture WebP auto-detect configuration for S3 Uploads and WP Stateless
