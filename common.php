@@ -4481,7 +4481,7 @@ function ewww_image_optimizer_cloud_quota( $raw = false ) {
 		if ( $raw ) {
 			return $quota;
 		}
-		if ( ! empty( $quota['unlimited'] ) ) {
+		if ( ! empty( $quota['unlimited'] ) && $quota['consumed'] >= 0 ) {
 			return sprintf(
 				/* translators: %d: Number of images */
 				__( 'optimized %d images.', 'ewww-image-optimizer' ),
