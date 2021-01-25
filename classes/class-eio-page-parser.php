@@ -163,7 +163,7 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 			if ( ! ctype_alpha( $tag_name ) ) {
 				return array();
 			}
-			if ( preg_match_all( '#<' . $tag_name . '\s[^>]+?>#is', $content, $elements ) ) {
+			if ( preg_match_all( '#<' . $tag_name . '\s[^\\\\>]+?>#is', $content, $elements ) ) {
 				return $elements[0];
 			}
 			return array();

@@ -63,7 +63,6 @@ class EWWWIO_Tracking {
 		// Retrieve current theme info.
 		$theme_data      = wp_get_theme();
 		$theme           = $theme_data->Name . ' ' . $theme_data->Version;
-		$data['email']   = get_bloginfo( 'admin_email' ); // Not tracked, used to issue free credits.
 		$data['site_id'] = md5( home_url() );
 		if ( strlen( ewww_image_optimizer_get_option( 'ewww_image_optimizer_tracking_site_id' ) ) === 32 && ctype_alnum( ewww_image_optimizer_get_option( 'ewww_image_optimizer_tracking_site_id' ) ) ) {
 			ewwwio_debug_message( 'using pre-existing site_id' );

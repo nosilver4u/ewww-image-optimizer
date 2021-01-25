@@ -7236,7 +7236,6 @@ function ewwwio_remove_original_image( $id, $meta = null ) {
 
 	if (
 		$meta && is_array( $meta ) &&
-		imsanity_get_option( 'imsanity_delete_originals', false ) &&
 		! empty( $meta['original_image'] ) && function_exists( 'wp_get_original_image_path' )
 	) {
 		$original_image = ewwwio_get_original_image_path( $id, '', $meta );

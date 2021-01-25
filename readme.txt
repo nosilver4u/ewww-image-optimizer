@@ -132,6 +132,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 6.0.1 =
+* fixed: lazy load for external CSS impacting div elements in JS/JSON
+* fixed: call to undefined function from Imsanity
+
 = 6.0.0 =
 * added: tool to delete originals from WP 5.3+ auto-scaling behavior (Tools menu)
 * added: JS WebP recognizes video elements added via JS (e.g. infinite scroll)
