@@ -135,6 +135,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 6.0.1 =
 * fixed: lazy load for external CSS impacting div elements in JS/JSON
 * fixed: call to undefined function from Imsanity
+* fixed: database upgrade check triggers error on MySQL 8.0.17+
+* fixed: delete originals tool is slow
+* fixed: wpdb error when attempting to run migration routine for fresh installs
 
 = 6.0.0 =
 * added: tool to delete originals from WP 5.3+ auto-scaling behavior (Tools menu)

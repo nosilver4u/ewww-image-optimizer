@@ -673,7 +673,6 @@ function ewww_image_optimizer_ajax_delete_original() {
 	if ( ewww_image_optimizer_iterable( $new_meta ) ) {
 		wp_update_attachment_metadata( $id, $new_meta );
 	}
-	sleep( 1 );
 	die( wp_json_encode( array( 'completed' => 1 ) ) );
 }
 

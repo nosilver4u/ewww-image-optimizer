@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '600' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '600.1' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -206,9 +206,6 @@ add_action( 'shutdown', 'ewww_image_optimizer_debug_log' );
 
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-cli.php' );
-}
-if ( 'done' !== get_option( 'ewww_image_optimizer_relative_migration_status' ) ) {
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-relative-migration.php' );
 }
 
 /**
@@ -963,6 +960,9 @@ function ewww_image_optimizer_admin_init() {
 	ewww_image_optimizer_cloud_init();
 	ewww_image_optimizer_upgrade();
 
+	if ( 'done' !== get_option( 'ewww_image_optimizer_relative_migration_status' ) ) {
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-relative-migration.php' );
+	}
 	// Do settings validation for multi-site.
 	ewww_image_optimizer_save_network_settings();
 
@@ -1623,19 +1623,19 @@ function ewww_image_optimizer_install_table() {
 	 * trace: tracelog from the last optimization if debugging was enabled.
 	 */
 	$sql = "CREATE TABLE $wpdb->ewwwio_images (
-		id int(14) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
-		attachment_id bigint(20) unsigned,
+		id int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		attachment_id bigint unsigned,
 		gallery varchar(10),
 		resize varchar(75),
 		path text NOT NULL,
 		converted text NOT NULL,
 		results varchar(75) NOT NULL,
-		image_size int(10) unsigned,
-		orig_size int(10) unsigned,
+		image_size int unsigned,
+		orig_size int unsigned,
 		backup varchar(100),
-		level int(5) unsigned,
-		pending tinyint(1) NOT NULL DEFAULT 0,
-		updates int(5) unsigned,
+		level int unsigned,
+		pending tinyint NOT NULL DEFAULT 0,
+		updates int unsigned,
 		updated timestamp DEFAULT '1971-01-01 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
 		trace blob,
 		KEY path (path($path_index_size)),
@@ -1654,11 +1654,11 @@ function ewww_image_optimizer_install_table() {
 	 * scanned: 1 if the image is queued for optimization, 0 if it still needs scanning.
 	 */
 	$sql = "CREATE TABLE $wpdb->ewwwio_queue (
-		id int(14) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
-		attachment_id bigint(20) unsigned,
+		id int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		attachment_id bigint unsigned,
 		gallery varchar(20),
-		scanned tinyint(3) NOT NULL DEFAULT 0,
-		new tinyint(1) NOT NULL DEFAULT 0,
+		scanned tinyint NOT NULL DEFAULT 0,
+		new tinyint NOT NULL DEFAULT 0,
 		KEY attachment_info (gallery(3),attachment_id)
 	) COLLATE utf8_general_ci;";
 
