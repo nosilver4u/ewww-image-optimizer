@@ -10035,7 +10035,6 @@ function ewwwio_ip_in_range( $ip, $range ) {
 	}
 
 	list( $range, $netmask ) = explode( '/', $range, 2 );
-	ewwwio_debug_message( "testing $ip is in $range with net $netmask" );
 
 	$range_decimal    = ip2long( $range );
 	$ip_decimal       = ip2long( $ip );
@@ -10050,7 +10049,7 @@ function ewwwio_ip_in_range( $ip, $range ) {
  * @return bool True if it is, false if it ain't.
  */
 function ewwwio_is_cf_host() {
-	$cf_ips   = array(
+	$cf_ips = array(
 		'173.245.48.0/20',
 		'103.21.244.0/22',
 		'103.22.200.0/22',
@@ -10066,8 +10065,34 @@ function ewwwio_is_cf_host() {
 		'172.64.0.0/13',
 		'131.0.72.0/22',
 	);
+	if ( ! empty( $_SERVER['HTTP_CF_IPCOUNTRY'] ) ) {
+		ewwwio_debug_message( 'found Cloudflare host via HTTP_CF_IPCOUNTRY' );
+		return true;
+	}
+	if ( ! empty( $_SERVER['HTTP_CF_RAY'] ) ) {
+		ewwwio_debug_message( 'found Cloudflare host via HTTP_CF_RAY' );
+		return true;
+	}
+	if ( ! empty( $_SERVER['HTTP_CF_VISITOR'] ) ) {
+		ewwwio_debug_message( 'found Cloudflare host via HTTP_CF_VISITOR' );
+		return true;
+	}
+	if ( ! empty( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ) {
+		ewwwio_debug_message( 'found Cloudflare host via HTTP_CF_CONNECTING_IP' );
+		return true;
+	}
+	if ( ! empty( $_SERVER['HTTP_CF_REQUEST_ID'] ) ) {
+		ewwwio_debug_message( 'found Cloudflare host via HTTP_CF_REQUEST_ID' );
+		return true;
+	}
+	if ( ! empty( $_SERVER['HTTP_CDN_LOOP'] ) && 'cloudflare' === $_SERVER['HTTP_CDN_LOOP'] ) {
+		ewwwio_debug_message( 'found Cloudflare host via HTTP_CDN_LOOP' );
+		return true;
+	}
 	$eio_base = new EIO_Base();
-	$home_ip  = gethostbyname( $eio_base->parse_url( get_site_url(), PHP_URL_HOST ) );
+	$hostname = $eio_base->parse_url( get_site_url(), PHP_URL_HOST );
+	$home_ip  = gethostbyname( $hostname );
+	ewwwio_debug_message( "checking $home_ip from gethostbyname" );
 	foreach ( $cf_ips as $cf_range ) {
 		if ( ewwwio_ip_in_range( $home_ip, $cf_range ) ) {
 			ewwwio_debug_message( "found Cloudflare host: $home_ip" );
@@ -10076,6 +10101,21 @@ function ewwwio_is_cf_host() {
 	}
 	ewwwio_debug_message( "not a Cloudflare host: $home_ip" );
 	return false;
+	// Double-check via Cloudflare DNS. Disabled for now, we'll see if we need to cross that bridge later.
+	$home_ip_lookup = wp_remote_get( 'https://cloudflare-dns.com/dns-query?name=' . urlencode( $hostname ) . '&type=A&ct=' . urlencode( 'application/dns-json' ) );
+	if ( ! is_wp_error( $home_ip_lookup ) && ! empty( $home_ip_lookup['body'] ) && is_string( $home_ip_lookup['body'] ) ) {
+		$home_ip_data = json_decode( $home_ip_lookup['body'], true );
+		if ( is_array( $home_ip_data ) && ! empty( $home_ip_data['Answer'][0]['data'] ) && filter_var( $home_ip_data['Answer'][0]['data'], FILTER_VALIDATE_IP ) ) {
+			$home_ip = $home_ip_data['Answer'][0]['data'];
+			ewwwio_debug_message( "checking $home_ip from CF DoH" );
+			foreach ( $cf_ips as $cf_range ) {
+				if ( ewwwio_ip_in_range( $home_ip, $cf_range ) ) {
+					ewwwio_debug_message( "found Cloudflare host: $home_ip" );
+					return true;
+				}
+			}
+		}
+	}
 }
 
 /**
@@ -10249,7 +10289,7 @@ function ewwwio_debug_info() {
 	ewwwio_debug_message( 'forced gif2webp: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_force_gif2webp' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'enable help beacon: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ? 'yes' : 'no' ) );
 	if ( ! empty( $_SERVER['SERVER_ADDR'] ) ) {
-		ewwwio_debug_message( 'origin: ' . sanitize_text_field( wp_unslash( $_SERVER['SERVER_ADDR'] ) ) );
+		ewwwio_debug_message( 'origin (SERVER_ADDR): ' . sanitize_text_field( wp_unslash( $_SERVER['SERVER_ADDR'] ) ) );
 	}
 	if (
 		! ewwwio_is_cf_host() &&
