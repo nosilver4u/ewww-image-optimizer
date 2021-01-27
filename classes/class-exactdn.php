@@ -586,6 +586,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( ! $domain ) {
 				return;
 			}
+			$domain = trim( $domain );
 			if ( strlen( $domain ) > 80 ) {
 				$this->debug_message( "$domain too long" );
 				return false;
