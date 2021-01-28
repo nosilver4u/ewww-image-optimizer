@@ -1,3 +1,11 @@
+= 6.0.1 =
+* changed: more reliable Cloudflare detection for WebP delivery methods
+* fixed: lazy load for external CSS breaking div elements in JS/JSON
+* fixed: call to undefined function from Imsanity
+* fixed: database upgrade check triggers error on MySQL 8.0.17+
+* fixed: delete originals tool is slow
+* fixed: wpdb error when attempting to run migration routine for fresh installs
+
 = 6.0.0 =
 * added: tool to delete originals from WP 5.3+ auto-scaling behavior (Tools menu)
 * added: JS WebP recognizes video elements added via JS (e.g. infinite scroll)
