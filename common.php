@@ -1623,7 +1623,7 @@ function ewww_image_optimizer_install_table() {
 	 * trace: tracelog from the last optimization if debugging was enabled.
 	 */
 	$sql = "CREATE TABLE $wpdb->ewwwio_images (
-		id int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		id int unsigned NOT NULL AUTO_INCREMENT,
 		attachment_id bigint unsigned,
 		gallery varchar(10),
 		resize varchar(75),
@@ -1638,6 +1638,7 @@ function ewww_image_optimizer_install_table() {
 		updates int unsigned,
 		updated timestamp DEFAULT '1971-01-01 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
 		trace blob,
+		PRIMARY KEY  (id),
 		KEY path (path($path_index_size)),
 		KEY attachment_info (gallery(3),attachment_id)
 	) $db_collation;";
@@ -1654,11 +1655,12 @@ function ewww_image_optimizer_install_table() {
 	 * scanned: 1 if the image is queued for optimization, 0 if it still needs scanning.
 	 */
 	$sql = "CREATE TABLE $wpdb->ewwwio_queue (
-		id int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		id int unsigned NOT NULL AUTO_INCREMENT,
 		attachment_id bigint unsigned,
 		gallery varchar(20),
 		scanned tinyint NOT NULL DEFAULT 0,
 		new tinyint NOT NULL DEFAULT 0,
+		PRIMARY KEY  (id),
 		KEY attachment_info (gallery(3),attachment_id)
 	) COLLATE utf8_general_ci;";
 
