@@ -28,6 +28,7 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 			'jpeg',
 			'jpe',
 			'png',
+			'svg',
 		);
 
 		/**
