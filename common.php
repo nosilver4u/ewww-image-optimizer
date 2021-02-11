@@ -967,7 +967,6 @@ function ewww_image_optimizer_admin_init() {
 	ewww_image_optimizer_save_network_settings();
 
 	// Register all the common EWWW IO settings.
-	/* register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_cloud_key', 'ewww_image_optimizer_cloud_key_sanitize' ); */
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_debug', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_metadata_remove', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_jpg_level', 'intval' );
@@ -4191,30 +4190,18 @@ function ewww_image_optimizer_exactdn_activate_ajax() {
 }
 
 /**
- * Sanitizes and verifies an API key for the cloud service.
+ * Sanitizes an API key for the cloud service.
  *
  * @param string $key An API key entered by the user.
- * @return string A sanitized and validated API key.
+ * @return string A sanitized API key.
  */
 function ewww_image_optimizer_cloud_key_sanitize( $key ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$key = trim( $key );
-	if ( empty( $key ) ) {
-		return '';
-	}
-	if ( ewww_image_optimizer_cloud_verify( $key, false ) ) {
-		add_settings_error( 'ewww_image_optimizer_cloud_key', 'ewwwio-cloud-key', esc_html__( 'Successfully validated API key, happy optimizing!', 'ewww-image-optimizer' ), 'updated' );
-		ewwwio_debug_message( 'sanitize (verification) successful' );
-		ewwwio_memory( __FUNCTION__ );
+	if ( ! empty( $key ) && strlen( $key ) < 200 && preg_match( '/^[a-zA-Z0-9]+$/', $key ) ) {
 		return $key;
-	} else {
-		if ( ! empty( $key ) ) {
-			add_settings_error( 'ewww_image_optimizer_cloud_key', 'ewwwio-cloud-key', esc_html__( 'Could not validate API key, please copy and paste your key to ensure it is correct.', 'ewww-image-optimizer' ) );
-		}
-		ewwwio_debug_message( 'sanitize (verification) failed' );
-		ewwwio_memory( __FUNCTION__ );
-		return '';
 	}
+	return '';
 }
 
 /**
@@ -4228,7 +4215,7 @@ function ewww_image_optimizer_cloud_key_verify_ajax() {
 	if ( empty( $_POST['compress_api_key'] ) ) {
 		die( wp_json_encode( array( 'error' => esc_html__( 'Please enter your API key and try again.', 'ewww-image-optimizer' ) ) ) );
 	}
-	$api_key = trim( sanitize_key( $_POST['compress_api_key'] ) );
+	$api_key = trim( ewww_image_optimizer_cloud_key_sanitize( wp_unslash( $_POST['compress_api_key'] ) ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 	$url     = 'http://optimize.exactlywww.com/verify/';
 	if ( wp_http_supports( array( 'ssl' ) ) ) {
 		$url = set_url_scheme( $url, 'https' );

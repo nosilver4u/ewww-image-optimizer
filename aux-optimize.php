@@ -1494,7 +1494,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 		ewwwio_memory( __FUNCTION__ );
 		/* translators: %s: number of images */
 		$ready_msg = sprintf( esc_html( _n( 'There is %s image ready to optimize.', 'There are %s images ready to optimize.', $image_count, 'ewww-image-optimizer' ) ), '<strong>' . number_format_i18n( $image_count ) . '</strong>' );
-		if ( is_array( $usage ) && ! $usage['metered'] ) {
+		if ( is_array( $usage ) && ! $usage['metered'] && ! $usage['unlimited'] ) {
 			$credits_available = $usage['licensed'] - $usage['consumed'];
 			if ( $credits_available < $image_count ) {
 				$ready_msg .= ' ' . esc_html__( 'You do not appear to have enough image credits to complete this operation.', 'ewww-image-optimizer' );
