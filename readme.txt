@@ -135,6 +135,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 6.0.2 =
 * changed: Easy IO supports img tags with SVG images
 * fixed: bulk optimizer gives incorrect message about not enough credits for unlimited plans
+* fixed: db upgrade error because MariaDB 10.4 cannot create a primary key with the same name as an existing index
 
 = 6.0.1 =
 * changed: more reliable Cloudflare detection for WebP delivery methods

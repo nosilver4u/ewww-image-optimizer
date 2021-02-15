@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '601' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '601.1' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -1539,7 +1539,7 @@ function ewww_image_optimizer_install_table() {
 			$mysql_version = strtolower( $wpdb->db_server_info() );
 		}
 		ewwwio_debug_message( $mysql_version );
-		if ( false === strpos( $mysql_version, 'maria' ) || false === strpos( $mysql_version, '10.4.' ) ) {
+		if ( false && false === strpos( $mysql_version, 'maria' ) || false === strpos( $mysql_version, '10.4.' ) ) {
 			ewwwio_debug_message( 'checking primary/unique index' );
 			if ( ! $wpdb->get_results( "SHOW INDEX FROM $wpdb->ewwwio_images WHERE Key_name = 'PRIMARY'", ARRAY_A ) ) {
 				ewwwio_debug_message( 'adding primary index' );
@@ -1637,7 +1637,7 @@ function ewww_image_optimizer_install_table() {
 		updates int unsigned,
 		updated timestamp DEFAULT '1971-01-01 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
 		trace blob,
-		PRIMARY KEY  (id),
+		PRIMARY KEY image_id (id),
 		KEY path (path($path_index_size)),
 		KEY attachment_info (gallery(3),attachment_id)
 	) $db_collation;";
@@ -1648,10 +1648,12 @@ function ewww_image_optimizer_install_table() {
 	ewwwio_debug_message( 'images db upgrade results: ' . implode( '<br>', $updates ) );
 
 	/*
-	 * Create a table with XX columns:
+	 * Create a table with 5 columns:
+	 * id: unique for each record/image,
 	 * attachment_id: the unique id within the media library, nextgen, or flag
 	 * gallery: 'media', 'nextgen', 'nextcell', 'flag', plus -async variants.
 	 * scanned: 1 if the image is queued for optimization, 0 if it still needs scanning.
+	 * new: 1 if the image is a 'new' upload queued for optimization, 0 otherwise.
 	 */
 	$sql = "CREATE TABLE $wpdb->ewwwio_queue (
 		id int unsigned NOT NULL AUTO_INCREMENT,
