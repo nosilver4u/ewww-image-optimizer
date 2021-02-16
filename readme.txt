@@ -138,6 +138,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: bulk optimizer gives incorrect message about not enough credits for unlimited plans
 * fixed: db install workaround for MariaDB 10.4 bug
 * fixed: errors with custom db setups when DB_* constants are not defined
+* fixed: error with JS WebP when a class attribute with no value is encountered
 
 = 6.0.1 =
 * changed: more reliable Cloudflare detection for WebP delivery methods

@@ -326,7 +326,7 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 		 */
 		function set_attribute( &$element, $name, $value, $replace = false ) {
 			if ( 'class' === $name ) {
-				$element = preg_replace( "#\s$name\s+[^=]#", ' ', $element );
+				$element = preg_replace( "#\s$name\s+([^=])#", ' $1', $element );
 			}
 			$element = preg_replace( "#\s$name=\"\"#", ' ', $element );
 			$value   = trim( $value );
