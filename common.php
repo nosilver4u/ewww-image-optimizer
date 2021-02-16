@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '601.1' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '601.222' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -864,6 +864,15 @@ function ewww_image_optimizer_upgrade() {
 		} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_force_gif2webp' ) ) {
 			ewww_image_optimizer_set_option( 'ewww_image_optimizer_force_gif2webp', true );
 		}
+		if (
+			get_option( 'ewww_image_optimizer_version' ) <= 601.0 &&
+			PHP_OS !== 'WINNT' &&
+			ewwwio_is_file( EWWW_IMAGE_OPTIMIZER_TOOL_PATH . '/pngout-static' ) &&
+			is_writable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH . '/pngout-static' )
+		) {
+			ewwwio_debug_message( 'removing old version of pngout' );
+			ewwwio_delete_file( EWWW_IMAGE_OPTIMIZER_TOOL_PATH . '/pngout-static' );
+		}
 		if ( get_option( 'ewww_image_optimizer_version' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_review_time' ) ) {
 			$review_time = rand( time(), time() + 51 * DAY_IN_SECONDS );
 			add_option( 'ewww_image_optimizer_review_time', $review_time, '', false );
@@ -1531,6 +1540,7 @@ function ewww_image_optimizer_install_table() {
 	$db_collation = $wpdb->get_charset_collate();
 	ewwwio_debug_message( "current collation: $db_collation" );
 
+	$primary_key_definition = 'PRIMARY KEY  (id),';
 	// See if the path column exists, and what collation it uses to determine the column index size.
 	if ( $wpdb->get_var( "SHOW TABLES LIKE '$wpdb->ewwwio_images'" ) === $wpdb->ewwwio_images ) {
 		ewwwio_debug_message( 'upgrading table and checking collation for path, table exists' );
@@ -1539,6 +1549,9 @@ function ewww_image_optimizer_install_table() {
 			$mysql_version = strtolower( $wpdb->db_server_info() );
 		}
 		ewwwio_debug_message( $mysql_version );
+		if ( false !== strpos( $mysql_version, 'maria' ) && false !== strpos( $mysql_version, '10.4.' ) ) {
+			$primary_key_definition = 'UNIQUE KEY id (id),';
+		}
 		if ( false && false === strpos( $mysql_version, 'maria' ) || false === strpos( $mysql_version, '10.4.' ) ) {
 			ewwwio_debug_message( 'checking primary/unique index' );
 			if ( ! $wpdb->get_results( "SHOW INDEX FROM $wpdb->ewwwio_images WHERE Key_name = 'PRIMARY'", ARRAY_A ) ) {
@@ -1637,7 +1650,7 @@ function ewww_image_optimizer_install_table() {
 		updates int unsigned,
 		updated timestamp DEFAULT '1971-01-01 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
 		trace blob,
-		PRIMARY KEY image_id (id),
+		$primary_key_definition
 		KEY path (path($path_index_size)),
 		KEY attachment_info (gallery(3),attachment_id)
 	) $db_collation;";

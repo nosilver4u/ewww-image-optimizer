@@ -1139,6 +1139,15 @@ function ewww_image_optimizer_md5check( $path ) {
 		'12afd90e04387d4c3be985042c1eada89e0c4504f84c0b4739c459c7b3831774', // 20150319-mac/pngout.
 		'843f0be42e86680c1663c4ef58eb0677ace15fc29ab23897c83f4b7e5af3ef36', // 20150319-windows/pngout.exe 20150319.
 		'aa3993937455094c0f66ac77d60bf53be441fdf8f14618520c2af68f2253085d', // 20150920-mac/pngout.
+		'0b1483c00f495d6341bb3d5941d14184c8c3be68d140470828b6bc1183d815a6', // 20200115-bsd/i686/pngout
+		'42af74a2a2ea71234d9098d1e405ed7b0e402e6b3334c86bb2d25c733143e53b', // 20200115-bsd/amd64/pngout
+		'6d6c3b9d821e5562e68511e8daeaf7a239afdfb2587e520df47f5dfa673a8008', // 20200115-bsd-static/i686/pngout-static
+		'30c8043dbcff879a060c463d7ea1aa253344eedaafbf62687956f589f94bdcb0', // 20200115-bsd-static/amd64/pngout-static
+		'8b9eb97b000592844725def8ede4e45c15cad83c5accd672dad76cf9c47e52cd', // 20200115-linux/i686/pngout
+		'c509286fccedd7529b32dfdee2b39906f06d35350034df6dfbf75a4c7dc9a0b5', // 20200115-linux/amd64/pngout
+		'fcac0af92eca59a87ed8d446ab707cdf39d8c7961e0feab27b5bec862d1b11d5', // 20200115-linux-static/i686/pngout-static
+		'9339c71b57dc71cf4d7c1d027383b76c1f426305ae8b7557d0d68f1ca396a06c', // 20200115-linux-static/amd64/pngout-static
+		'020c15f908f26aac59988eff77296e57b546cc0e784746efb9ec84e4316edca1', // 20200115-macos/pngout
 		// end pngout.
 		'8417d5d60bc66442ecc666e31ec7b9e1b7c55f48291e74b4b81f35703e2aef2e', // pngquant-fbsd  2.0.2, EWWW 1.8.3.
 		'78668c38d0be70764b18f3f4e0ea2b647df2ae87cedb2216d0ef69c8c55b688a', // pngquant-linux 2.0.2, EWWW 1.8.3.
@@ -3022,7 +3031,7 @@ function ewww_image_optimizer_install_pngout() {
 	if ( PHP_OS === 'FreeBSD' ) {
 		$os_string = 'bsd';
 	}
-	$latest    = '20150319';
+	$latest    = '20200115';
 	$tool_path = trailingslashit( EWWW_IMAGE_OPTIMIZER_TOOL_PATH );
 	if ( empty( $pngout_error ) ) {
 		if ( PHP_OS === 'Linux' || PHP_OS === 'FreeBSD' ) {
@@ -3036,6 +3045,9 @@ function ewww_image_optimizer_install_pngout() {
 					$arch_type = 'i686';
 					if ( ewww_image_optimizer_function_exists( 'php_uname' ) ) {
 						$arch_type = php_uname( 'm' );
+						if ( 'x86_64' === $arch_type ) {
+							$arch_type = 'amd64';
+						}
 					}
 
 					$tmpname  = current( explode( '.', $download_result ) );
@@ -3069,10 +3081,11 @@ function ewww_image_optimizer_install_pngout() {
 					}
 				}
 			}
-		}
-		if ( PHP_OS === 'Darwin' ) {
-			$latest          = '20150920';
-			$download_result = download_url( 'http://static.jonof.id.au/dl/kenutils/pngout-' . $latest . '-darwin.tar.gz' );
+		} elseif ( PHP_OS === 'Darwin' ) {
+			$latest          = '20200115';
+			$os_ext          = 'tar.gz';
+			$os_ext          = 'zip';
+			$download_result = download_url( 'http://static.jonof.id.au/dl/kenutils/pngout-' . $latest . '-macos.' . $os_ext );
 			if ( is_wp_error( $download_result ) ) {
 				$pngout_error = $download_result->get_error_message();
 			} else {
@@ -3080,20 +3093,28 @@ function ewww_image_optimizer_install_pngout() {
 					$pngout_error = __( 'insufficient memory available for installation', 'ewww-image-optimizer' );
 				} else {
 					$tmpname  = current( explode( '.', $download_result ) );
-					$tmpname .= '-' . uniqid() . '.tar.gz';
+					$tmpname .= '-' . uniqid() . '.' . $os_ext;
 					rename( $download_result, $tmpname );
 					$download_result = $tmpname;
 
-					$pngout_gzipped  = new PharData( $download_result );
-					$pngout_tarball  = $pngout_gzipped->decompress();
-					$download_result = $pngout_tarball->getPath();
-					$pngout_tarball->extractTo(
-						EWWW_IMAGE_OPTIMIZER_BINARY_PATH,
-						'pngout-' . $latest . '-darwin/pngout',
-						true
-					);
-					if ( ewwwio_is_file( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-darwin/pngout' ) ) {
-						if ( ! rename( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-darwin/pngout', $tool_path . 'pngout-static' ) ) {
+					if ( 'zip' === $os_ext ) {
+						WP_Filesystem();
+						$unzipped = unzip_file(
+							$download_result,
+							EWWW_IMAGE_OPTIMIZER_BINARY_PATH
+						);
+					} else {
+						$pngout_gzipped  = new PharData( $download_result );
+						$pngout_tarball  = $pngout_gzipped->decompress();
+						$download_result = $pngout_tarball->getPath();
+						$pngout_tarball->extractTo(
+							EWWW_IMAGE_OPTIMIZER_BINARY_PATH,
+							'pngout-' . $latest . '-darwin/pngout',
+							true
+						);
+					}
+					if ( ewwwio_is_file( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-macos/pngout' ) ) {
+						if ( ! rename( EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngout-' . $latest . '-macos/pngout', $tool_path . 'pngout-static' ) ) {
 							if ( empty( $pngout_error ) ) {
 								$pngout_error = __( 'could not move pngout', 'ewww-image-optimizer' );
 							}
@@ -3104,6 +3125,8 @@ function ewww_image_optimizer_install_pngout() {
 							}
 						}
 						$pngout_version = ewww_image_optimizer_tool_found( ewww_image_optimizer_escapeshellarg( $tool_path ) . 'pngout-static', 'p' );
+					} elseif ( ! empty( $unzipped ) && is_wp_error( $unzipped ) ) {
+						$pngout_error = $unzipped->get_error_message();
 					} else {
 						$pngout_error = __( 'extraction of files failed', 'ewww-image-optimizer' );
 					}

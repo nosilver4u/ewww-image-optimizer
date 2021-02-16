@@ -133,9 +133,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.0.2 =
+* security: new version of PNGOUT available on settings page (if enabled)
 * changed: Easy IO supports img tags with SVG images
 * fixed: bulk optimizer gives incorrect message about not enough credits for unlimited plans
-* fixed: db upgrade error because MariaDB 10.4 cannot create a primary key with the same name as an existing index
+* fixed: db install workaround for MariaDB 10.4 bug
 
 = 6.0.1 =
 * changed: more reliable Cloudflare detection for WebP delivery methods
