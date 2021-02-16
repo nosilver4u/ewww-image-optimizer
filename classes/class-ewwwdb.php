@@ -99,5 +99,4 @@ class EwwwDB extends wpdb {
 		$this->check_current_query = false;
 		return $this->query( $this->prepare( "INSERT INTO `$table` ($fields) VALUES $multi_formats", $values ) );
 	}
-
 }
