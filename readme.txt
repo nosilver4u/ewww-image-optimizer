@@ -134,6 +134,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.0.2 =
 * security: new version of PNGOUT available on settings page (if enabled)
+* added: compatibility with Phoenix Media Rename plugin
 * changed: Easy IO supports img tags with SVG images
 * fixed: bulk optimizer gives incorrect message about not enough credits for unlimited plans
 * fixed: db install workaround for MariaDB 10.4 bug

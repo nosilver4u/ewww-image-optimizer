@@ -92,8 +92,6 @@ add_filter( 'plugin_action_links_' . EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL, 'ewww
 add_filter( 'intermediate_image_sizes_advanced', 'ewww_image_optimizer_image_sizes_advanced' );
 // Ditto for PDF files (or anything non-image).
 add_filter( 'fallback_intermediate_image_sizes', 'ewww_image_optimizer_fallback_sizes' );
-// Filters the settings page output when cloud settings are enabled.
-add_filter( 'ewww_image_optimizer_settings', 'ewww_image_optimizer_filter_settings_page' );
 // Processes screenshots imported with MyArcadePlugin.
 add_filter( 'myarcade_filter_screenshot', 'ewww_image_optimizer_myarcade_thumbnail' );
 // Processes thumbnails created by MyArcadePlugin.
@@ -136,6 +134,8 @@ add_action( 'admin_action_ewww_image_optimizer_manual_cloud_restore', 'ewww_imag
 add_action( 'delete_attachment', 'ewww_image_optimizer_delete' );
 // Cleanup db records when Enable Media Replace replaces a file.
 add_action( 'wp_handle_replace', 'ewww_image_optimizer_media_replace' );
+// Cleanup db records when Phoenix Media Rename is finished.
+add_action( 'pmr_renaming_successful', 'ewww_image_optimizer_media_rename', 10, 2 );
 // Cleanup db records when Image Regenerate & Select Crop deletes a file.
 add_action( 'sirsc_image_file_deleted', 'ewww_image_optimizer_file_deleted', 10, 2 );
 // Adds the EWWW IO pages to the admin menu.
@@ -1239,6 +1239,17 @@ function ewww_image_optimizer_ajax_compat_check() {
 		ewww_image_optimizer_image_sizes( false );
 		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 		return;
+	}
+	// Check for Phoenix Media Rename action.
+	if ( class_exists( 'Phoenix_Media_Rename' ) && 'phoenix_media_rename' === $action ) {
+		ewwwio_debug_message( 'Phoenix Media Rename, verifying' );
+		if ( check_ajax_referer( 'phoenix_media_rename', '_wpnonce', false ) ) {
+			ewwwio_debug_message( 'PMR verified' );
+			remove_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15 );
+			ewww_image_optimizer_image_sizes( false );
+			add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
+			return;
+		}
 	}
 }
 
@@ -3995,7 +4006,7 @@ function ewww_image_optimizer_delete( $id ) {
 				if ( empty( $srows ) ) {
 					ewwwio_debug_message( 'removing: ' . $base_dir . $data['orig_file'] );
 					ewwwio_delete_file( $base_dir . $data['orig_file'] );
-					$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize( $base_dir . $data['orig_file'] ) ) );
+					$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['orig_file'] ) ) );
 				}
 			}
 		}
@@ -4062,11 +4073,11 @@ function ewww_image_optimizer_file_deleted( $id, $file ) {
 }
 
 /**
- * Cleans records from database when an image is being replaced.
+ * Cleans records from database when an image is about to be replaced.
  *
- * @param array $image An array with the attachment/image ID.
+ * @param array $attachment An array with the attachment/image ID.
  */
-function ewww_image_optimizer_media_replace( $image ) {
+function ewww_image_optimizer_media_replace( $attachment ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
 	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
@@ -4075,7 +4086,7 @@ function ewww_image_optimizer_media_replace( $image ) {
 	} else {
 		$ewwwdb = $wpdb;
 	}
-	$id = (int) $image['post_id'];
+	$id = (int) $attachment['post_id'];
 	// Finds non-meta images to remove from disk, and from db, as well as converted originals.
 	$optimized_images = $ewwwdb->get_results( "SELECT path,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media'", ARRAY_A );
 	if ( $optimized_images ) {
@@ -4084,7 +4095,7 @@ function ewww_image_optimizer_media_replace( $image ) {
 				if ( ! empty( $image['path'] ) ) {
 					$image['path'] = ewww_image_optimizer_absolutize_path( $image['path'] );
 				}
-				if ( strpos( $image['path'], WP_CONTENT_DIR ) === false ) {
+				if ( false === strpos( $image['path'], WP_CONTENT_DIR ) ) {
 					continue;
 				}
 				if ( ! empty( $image['path'] ) ) {
@@ -4157,10 +4168,101 @@ function ewww_image_optimizer_media_replace( $image ) {
 			if ( ! empty( $data['orig_file'] ) ) {
 				// Retrieve the filename from the metadata.
 				$filename = $data['orig_file'];
-				$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize( $base_dir . $data['orig_file'] ) ) );
+				$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['orig_file'] ) ) );
 			}
 		}
 	}
+}
+
+/**
+ * Cleans records from database after an image has been renamed.
+ *
+ * @param string $old_name The filename of the original/old image.
+ * @param string $new_name The filename of the new image.
+ */
+function ewww_image_optimizer_media_rename( $old_name, $new_name ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	global $wpdb;
+	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+		ewww_image_optimizer_db_init();
+		global $ewwwdb;
+	} else {
+		$ewwwdb = $wpdb;
+	}
+	if ( ! check_ajax_referer( 'phoenix_media_rename', '_wpnonce', false ) || empty( $_REQUEST['post_id'] ) ) {
+		return;
+	}
+	$id = (int) $_REQUEST['post_id'];
+	ewwwio_debug_message( "image renamed from $old_name to $new_name, looking for old records (id $id)" );
+	// Finds images to remove from disk, and from db, as well as converted originals.
+	$optimized_images = $ewwwdb->get_results( "SELECT id,path,resize,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media'", ARRAY_A );
+	if ( ewww_image_optimizer_iterable( $optimized_images ) ) {
+		foreach ( $optimized_images as $image ) {
+			if ( ! empty( $image['path'] ) ) {
+				$image['path'] = ewww_image_optimizer_absolutize_path( $image['path'] );
+			}
+			ewwwio_debug_message( "checking to see if {$image['path']} is stale" );
+			if ( false === strpos( $image['path'], WP_CONTENT_DIR ) ) {
+				ewwwio_debug_message( 'not in ' . WP_CONTENT_DIR );
+				continue;
+			}
+			if ( ewwwio_is_file( $image['path'] ) ) {
+				ewwwio_debug_message( 'file still exists, skipping' );
+				continue;
+			}
+			if ( ! empty( $image['path'] ) && ewwwio_is_file( $image['path'] . '.webp' ) ) {
+				ewwwio_debug_message( 'removing WebP version' );
+				ewwwio_delete_file( $image['path'] . '.webp' );
+			}
+			if ( ! empty( $image['converted'] ) ) {
+				$image['converted'] = ewww_image_optimizer_absolutize_path( $image['converted'] );
+			}
+			if ( ! empty( $image['converted'] ) && ewwwio_is_file( $image['converted'] ) ) {
+				ewwwio_debug_message( 'removing "converted" file' );
+				ewwwio_delete_file( $image['converted'] );
+				if ( ewwwio_is_file( $image['converted'] . '.webp' ) ) {
+					ewwwio_debug_message( 'and WebP derivative' );
+					ewwwio_delete_file( $image['converted'] . '.webp' );
+				}
+			}
+			if ( 'full' === $image['resize'] ) {
+				ewwwio_debug_message( "updating path for $id (full)" );
+				$new_path = str_replace( wp_basename( $old_name ), wp_basename( $new_name ), $image['path'] );
+				if ( ewwwio_is_file( $new_path ) ) {
+					$new_path = ewww_image_optimizer_relativize_path( $new_path );
+					$ewwwdb->update(
+						$ewwwdb->ewwwio_images,
+						array(
+							'path' => $new_path,
+						),
+						array(
+							'id' => $image['id'],
+						)
+					);
+					continue;
+				}
+			}
+			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'id' => $image['id'] ) );
+		}
+	}
+	// Retrieve the image metadata.
+	$meta = wp_get_attachment_metadata( $id );
+	// If the attachment has an original file set.
+	if ( ! empty( $meta['orig_file'] ) && ! ewwwio_is_file( $meta['orig_file'] ) ) {
+		// Get the filepath from the metadata.
+		$file_path = $meta['orig_file'];
+
+		$webpfile    = $file_path . '.webp';
+		$webpfileold = preg_replace( '/\.\w+$/', '.webp', $file_path );
+		if ( ewwwio_is_file( $webpfile ) ) {
+			ewwwio_delete_file( $webpfile );
+		}
+		if ( ewwwio_is_file( $webpfileold ) ) {
+			ewwwio_delete_file( $webpfileold );
+		}
+		$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
+	}
+	ewww_image_optimizer_resize_from_meta_data( $meta, $id );
 }
 
 /**
