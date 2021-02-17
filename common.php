@@ -2518,6 +2518,9 @@ function ewww_image_optimizer_handle_upload( $params ) {
 		clearstatcache();
 		return $params;
 	}
+
+	$orig_size = ewww_image_optimizer_filesize( $file_path );
+
 	ewww_image_optimizer_autorotate( $file_path );
 	$new_image = ewww_image_optimizer_autoconvert( $file_path );
 	if ( $new_image ) {
@@ -2548,6 +2551,46 @@ function ewww_image_optimizer_handle_upload( $params ) {
 		}
 	}
 	clearstatcache();
+	if ( ! empty( $orig_size ) && $orig_size > ewww_image_optimizer_filesize( $file_path ) ) {
+		ewwwio_debug_message( "stashing $orig_size for $file_path" );
+		global $wpdb;
+		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+			ewww_image_optimizer_db_init();
+			global $ewwwdb;
+		} else {
+			$ewwwdb = $wpdb;
+		}
+		$already_optimized = ewww_image_optimizer_find_already_optimized( $file_path );
+		if ( empty( $already_optimized ) ) {
+			// If the file didn't already get optimized (and it shouldn't), then just insert a dummy record to be updated shortly.
+			ewwwio_debug_message( 'creating new record' );
+			$dbinserted = $ewwwdb->insert(
+				$ewwwdb->ewwwio_images,
+				array(
+					'path'      => ewww_image_optimizer_relativize_path( $file_path ),
+					'orig_size' => $orig_size,
+				)
+			);
+			if ( $dbinserted ) {
+				ewwwio_debug_message( 'insert success' );
+			}
+		} else {
+			// Update the existing record.
+			ewwwio_debug_message( 'updating existing record' );
+			$dbupdated = $ewwwdb->update(
+				$ewwwdb->ewwwio_images,
+				array(
+					'orig_size' => $orig_size,
+				),
+				array(
+					'path' => ewww_image_optimizer_relativize_path( $file_path ),
+				)
+			);
+			if ( $dbupdated ) {
+				ewwwio_debug_message( 'update success' );
+			}
+		}
+	}
 	return $params;
 }
 
@@ -6937,43 +6980,18 @@ function ewww_image_optimizer_resize_upload( $file ) {
 		} else {
 			$ewwwdb = $wpdb;
 		}
-		$already_optimized = ewww_image_optimizer_find_already_optimized( $file );
-		// If the original file has never been optimized, then just update the record that was created with the proper filename (because the resized file has usually been optimized).
-		if ( empty( $already_optimized ) ) {
-			$tmp_exists = $ewwwdb->update(
+		// Delete the record created from optimizing the resized file (if it exists, which it shouldn't).
+		$temp_optimized = ewww_image_optimizer_find_already_optimized( $new_file );
+		if ( is_array( $temp_optimized ) && ! empty( $temp_optimized['id'] ) ) {
+			$ewwwdb->delete(
 				$ewwwdb->ewwwio_images,
 				array(
-					'path'      => ewww_image_optimizer_relativize_path( $file ),
-					'orig_size' => $orig_size,
+					'id' => $temp_optimized['id'],
 				),
 				array(
-					'path' => ewww_image_optimizer_relativize_path( $new_file ),
+					'%d',
 				)
 			);
-			// If the tmp file didn't get optimized (and it shouldn't), then just insert a dummy record to be updated shortly.
-			if ( ! $tmp_exists ) {
-				$ewwwdb->insert(
-					$ewwwdb->ewwwio_images,
-					array(
-						'path'      => ewww_image_optimizer_relativize_path( $file ),
-						'orig_size' => $orig_size,
-					)
-				);
-			}
-		} else {
-			// Otherwise, we delete the record created from optimizing the resized file.
-			$temp_optimized = ewww_image_optimizer_find_already_optimized( $new_file );
-			if ( is_array( $temp_optimized ) && ! empty( $temp_optimized['id'] ) ) {
-				$ewwwdb->delete(
-					$ewwwdb->ewwwio_images,
-					array(
-						'id' => $temp_optimized['id'],
-					),
-					array(
-						'%d',
-					)
-				);
-			}
 		}
 		/* translators: 1: width in pixels 2: height in pixels */
 		$ewwwio_resize_status = sprintf( __( 'Resized to %1$s x %2$s', 'ewww-image-optimizer' ), $newwidth . 'w', $newheight . 'h' );
