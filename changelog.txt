@@ -1,3 +1,6 @@
+= 6.0.3 =
+* fixed: syntax error on PHP 7.2 or less
+
 = 6.0.2 =
 * security: new version of PNGOUT available on settings page (if enabled)
 * added: compatibility with Phoenix Media Rename plugin
