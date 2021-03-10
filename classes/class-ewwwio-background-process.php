@@ -68,7 +68,6 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		protected $cron_interval_identifier;
 
 		/**
-		 * Either an 'a' or a 'b', depending on which one is currently running.
 		 * A unique identifier for each background class extension.
 		 *
 		 * @var string
@@ -142,7 +141,7 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		}
 
 		/**
-		 * Delete queue
+		 * Delete queue item
 		 *
 		 * @param string $key Key.
 		 */

@@ -132,6 +132,11 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 6.0.4 =
+* changed: Easy IO's Include All Resources unlocked for all plans
+* fixed: detection for Shield Security plugin lock to location
+* fixed: relative path migration showing errors in site tools
+
 = 6.0.3 =
 * fixed: syntax error on PHP 7.2 or less
 

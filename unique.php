@@ -1,6 +1,6 @@
 <?php
 /**
- * Unique functions for Standard EWWW I.O. plugins.
+ * Unique functions for Standard EWWW IO plugins.
  *
  * This file contains functions that are unique to the regular EWWW IO plugin.
  *

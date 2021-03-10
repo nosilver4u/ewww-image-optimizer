@@ -26,7 +26,7 @@ require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-backgroun
 /**
  * Processes media uploads in background/async mode.
  *
- * Uses a dual-queue system to track uploads to be optimized, handling them one at a time.
+ * Uses a db queue system to track uploads to be optimized, handling them one at a time.
  *
  * @see EWWWIO_Background_Process
  */

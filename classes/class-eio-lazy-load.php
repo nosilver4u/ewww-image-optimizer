@@ -69,8 +69,22 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 */
 		function __construct() {
 			parent::__construct( __FILE__ );
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+
+			$uri = add_query_arg( null, null );
+			$this->debug_message( "request uri is $uri" );
+
+			/**
+			 * Allow pre-empting Lazy Load by page.
+			 *
+			 * @param bool Whether to parse the page for images to lazy load, default true.
+			 * @param string $uri The URL of the page.
+			 */
+			if ( ! apply_filters( 'eio_do_lazyload', true, $uri ) ) {
+				return;
+			}
+
 			$this->piip_folder = $this->content_dir . 'lazy/';
-			$this->debug_message( 'firing up lazy load' );
 			global $eio_lazy_load;
 			if ( is_object( $eio_lazy_load ) ) {
 				$this->debug_message( 'you are doing it wrong' );
@@ -176,7 +190,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				strpos( $uri, '?fl_builder' ) !== false ||
 				strpos( $uri, 'tatsu=' ) !== false ||
 				( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === sanitize_text_field( wp_unslash( $_POST['action'] ) ) ) || // phpcs:ignore WordPress.Security.NonceVerification
-				! apply_filters( 'eio_do_lazyload', true ) ||
 				is_embed() ||
 				is_feed() ||
 				is_preview() ||
@@ -213,9 +226,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				}
 				if ( strpos( $uri, 'tatsu=' ) !== false || ( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === $_POST['action'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 					$this->debug_message( 'tatsu' );
-				}
-				if ( ! apply_filters( 'eio_do_lazyload', true ) ) {
-					$this->debug_message( 'do_lazyload short-circuit' );
 				}
 				if ( is_embed() ) {
 					$this->debug_message( 'is_embed' );
@@ -401,7 +411,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			}
 
 			if ( false === strpos( $file, 'nggid' ) && ! preg_match( '#\.svg(\?|$)#', $file ) && $this->parsing_exactdn && strpos( $file, $this->exactdn_domain ) ) {
-				$this->debug_message( 'using lqip' );
+				$this->debug_message( 'using lqip, maybe' );
 				list( $width, $height ) = $this->get_dimensions_from_filename( $file, true );
 				if ( $width && $height && $width < 201 && $height < 201 ) {
 					$placeholder_src = $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $width . 'x' . $height . '.png' );

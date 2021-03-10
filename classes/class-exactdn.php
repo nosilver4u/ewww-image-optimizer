@@ -209,7 +209,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			add_filter( 'wp_resource_hints', array( $this, 'dns_prefetch' ), 10, 2 );
 
 			// Get all the script/css urls and rewrite them (if enabled).
-			if ( $this->get_option( 'exactdn_all_the_things' ) && $this->plan_id > 1 ) {
+			if ( $this->get_option( 'exactdn_all_the_things' ) ) {
 				add_filter( 'style_loader_src', array( $this, 'parse_enqueue' ), 9999 );
 				add_filter( 'script_loader_src', array( $this, 'parse_enqueue' ), 9999 );
 			}
@@ -367,16 +367,13 @@ if ( ! class_exists( 'ExactDN' ) ) {
 							$this->plan_id = 3;
 						} else {
 							$this->set_exactdn_option( 'plan_id', 1 );
-							$this->set_option( 'exactdn_all_the_things', true );
 							$this->plan_id = 1;
 						}
 					}
 					if ( get_option( 'exactdn_never_been_active' ) ) {
 						$this->set_option( $this->prefix . 'lazy_load', true );
 						$this->set_option( 'exactdn_lossy', true );
-						if ( $this->plan_id > 1 ) {
-							$this->set_option( 'exactdn_all_the_things', true );
-						}
+						$this->set_option( 'exactdn_all_the_things', true );
 						delete_option( 'exactdn_never_been_active' );
 					}
 					if ( 'external' === get_option( 'elementor_css_print_method' ) ) {
@@ -1340,7 +1337,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( $this->filtering_the_page ) {
 				$content = $this->filter_style_blocks( $content );
 			}
-			if ( $this->filtering_the_page && $this->get_option( 'exactdn_all_the_things' ) && $this->plan_id > 1 ) {
+			if ( $this->filtering_the_page && $this->get_option( 'exactdn_all_the_things' ) ) {
 				$this->debug_message( 'rewriting all other wp-content/wp-includes urls' );
 				$content = $this->filter_all_the_things( $content );
 			}
@@ -1354,7 +1351,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( ! $this->get_option( 'exactdn_prevent_db_queries' ) && $this->elapsed_time > .5 ) {
 				$this->set_option( 'exactdn_prevent_db_queries', true );
 			}
-			if ( $this->filtering_the_page && $this->get_option( $this->prefix . 'debug' ) && 0 !== strpos( $content, '{' ) ) {
+			if ( $this->filtering_the_page && $this->get_option( $this->prefix . 'debug' ) && 0 !== strpos( $content, '{' ) && false === strpos( '$content', '<loc>' ) ) {
 				$content .= '<!-- Easy IO processing time: ' . $this->elapsed_time . ' seconds -->';
 			}
 			return $content;
@@ -1499,7 +1496,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 * @return string The filtered HTML content.
 		 */
 		function filter_all_the_things( $content ) {
-			if ( $this->exactdn_domain && $this->upload_domain && $this->plan_id > 1 ) {
+			if ( $this->exactdn_domain && $this->upload_domain ) {
 				$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 				$upload_domain = $this->upload_domain;
 				if ( 0 === strpos( $this->upload_domain, 'www.' ) ) {

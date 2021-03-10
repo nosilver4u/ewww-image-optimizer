@@ -39,10 +39,25 @@ class EWWWIO_Relative_Migration {
 		if ( 'done' === get_option( 'ewww_image_optimizer_relative_migration_status' ) ) {
 			return;
 		}
+		if ( ! $this->table_exists() ) {
+			$this->unschedule();
+			update_option( 'ewww_image_optimizer_relative_migration_status', 'done' );
+			delete_option( 'ewww_image_optimizer_relative_migration_offset' );
+		}
 		if ( ! get_option( 'ewww_image_optimizer_relative_migration_status' ) ) {
 			update_option( 'ewww_image_optimizer_relative_migration_status', 'started' );
 		}
 		$this->maybe_schedule();
+	}
+
+	/**
+	 * Check to see if the ewwwio_images table actually exists.
+	 *
+	 * @return bool True if does, false if it don't.
+	 */
+	private function table_exists() {
+		global $wpdb;
+		return $wpdb->get_var( "SHOW TABLES LIKE '$wpdb->ewwwio_images'" ) === $wpdb->ewwwio_images;
 	}
 
 	/**
@@ -179,7 +194,7 @@ class EWWWIO_Relative_Migration {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$schedules['ewwwio_relative_migration_interval'] = array(
 			'interval' => MINUTE_IN_SECONDS * 5,
-			'display'  => 'Every 5 Minutes',
+			'display'  => 'Every 5 Minutes until complete',
 		);
 		return $schedules;
 	}
