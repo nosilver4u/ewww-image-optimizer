@@ -56,8 +56,6 @@ add_action( 'init', 'ewww_image_optimizer_parser_init', 99 );
 add_action( 'admin_init', 'ewww_image_optimizer_admin_init' );
 // Check the current screen ID to see if temp debugging should still be enabled.
 add_action( 'current_screen', 'ewww_image_optimizer_current_screen', 10, 1 );
-// Run things that need to follow admin_init like the relative migration tool.
-add_action( 'wp', 'ewww_image_optimizer_late_init' );
 // If automatic optimization is NOT disabled.
 if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_DISABLE_EDITOR' ) || ! EWWW_IMAGE_OPTIMIZER_DISABLE_EDITOR ) {
