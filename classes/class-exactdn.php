@@ -120,10 +120,6 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( is_customize_preview() ) {
 				return;
 			}
-			// Make sure we have an ExactDN domain to use.
-			if ( ! $this->setup() ) {
-				return;
-			}
 
 			if ( ! $this->scheme ) {
 				$site_url = get_home_url();
@@ -156,6 +152,11 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			 * @param string $uri The URL of the page.
 			 */
 			if ( apply_filters( 'exactdn_skip_page', false, $uri ) ) {
+				return;
+			}
+
+			// Make sure we have an ExactDN domain to use.
+			if ( ! $this->setup() ) {
 				return;
 			}
 
@@ -229,39 +230,25 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				return;
 			}
 
-			$upload_url_parts = $this->parse_url( $this->content_url() );
+			$upload_url_parts = $this->parse_url( $this->site_url );
 			if ( empty( $upload_url_parts ) ) {
 				$this->debug_message( "could not break down URL: $this->site_url" );
 				return;
 			}
-			$this->upload_domain = $upload_url_parts['host'];
 			if ( ! $this->get_option( $this->prefix . 'exactdn_local_domain' ) ) {
 				$this->set_option( $this->prefix . 'exactdn_local_domain', $this->upload_domain );
 			}
 			$this->debug_message( "allowing images from here: $this->upload_domain" );
 			if (
-				( false !== strpos( $this->upload_domain, 'amazonaws.com' ) || false !== strpos( $this->upload_domain, 'storage.googleapis.com' ) ) &&
-				! empty( $upload_url_parts['path'] )
+				(
+					false !== strpos( $this->upload_domain, 'amazonaws.com' ) ||
+					false !== strpos( $this->upload_domain, 'digitaloceanspaces.com' ) ||
+					false !== strpos( $this->upload_domain, 'storage.googleapis.com' )
+				)
+				&& ! empty( $upload_url_parts['path'] )
 			) {
 				$this->remove_path = rtrim( $upload_url_parts['path'], '/' );
 				$this->debug_message( "removing this from urls: $this->remove_path" );
-			}
-			$this->allowed_domains[] = $this->upload_domain;
-			if ( ! $this->s3_active && false === strpos( $this->upload_domain, 'www' ) ) {
-				$this->allowed_domains[] = 'www.' . $this->upload_domain;
-			} elseif ( 0 === strpos( $this->upload_domain, 'www' ) ) {
-				$nonwww = ltrim( ltrim( $this->upload_domain, 'w' ), '.' );
-				if ( $nonwww && $nonwww !== $this->upload_domain ) {
-					$this->allowed_domains[] = $nonwww;
-				}
-			}
-			$wpml_domains = apply_filters( 'wpml_setting', array(), 'language_domains' );
-			if ( $this->is_iterable( $wpml_domains ) ) {
-				$this->debug_message( 'wpml domains: ' . implode( ',', $wpml_domains ) );
-				$this->allowed_domains[] = $this->parse_url( get_option( 'home' ), PHP_URL_HOST );
-				foreach ( $wpml_domains as $wpml_domain ) {
-					$this->allowed_domains[] = $wpml_domain;
-				}
 			}
 			if (
 				$this->get_option( $this->prefix . 'exactdn_local_domain' ) !== $this->upload_domain &&
@@ -719,8 +706,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$this->include_path = basename( $wp_include_path );
 			$this->uploads_path = basename( $wp_content_path );
 
-			// NOTE: This bit is not currently in use, so we'll see if anyone needs it.
-			$uploads_info = wp_upload_dir();
+			// NOTE: $this->uploads_path is not currently in use, so we'll see if anyone needs it.
+			$uploads_info = wp_get_upload_dir();
 			if ( ! empty( $uploads_info['baseurl'] ) && false === strpos( $uploads_info['baseurl'], $wp_content_path ) ) {
 				$uploads_path = trim( $this->parse_url( $uploads_info['baseurl'], PHP_URL_PATH ), '/' );
 				$this->debug_message( "wp uploads path: $uploads_path" );
@@ -997,6 +984,13 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						$width  = $width && is_numeric( $width ) ? $width : false;
 						$height = $height && is_numeric( $height ) ? $height : false;
 
+						// Get width/height attributes from the URL/file if they are missing.
+						$insert_dimensions = false;
+						if ( apply_filters( 'eio_add_missing_width_height_attrs', true ) && ( empty( $width ) || empty( $height ) ) ) {
+							$this->debug_message( 'missing width attr or height attr' );
+							$insert_dimensions = true;
+						}
+
 						// See if there is a width/height set in the style attribute.
 						$style_width  = $this->get_img_style_width( $images['img_tag'][ $index ] );
 						$style_height = $this->get_img_style_height( $images['img_tag'][ $index ] );
@@ -1235,6 +1229,12 @@ if ( ! class_exists( 'ExactDN' ) ) {
 								unset( $placeholder_src );
 							}
 
+							if ( $insert_dimensions && $filename_width > 0 && $filename_height > 0 ) {
+								$this->debug_message( "filling in width = $filename_width and height = $filename_height" );
+								$this->set_attribute( $new_tag, 'width', $filename_width, true );
+								$this->set_attribute( $new_tag, 'height', $filename_height, true );
+							}
+
 							// Replace original tag with modified version.
 							$content = str_replace( $tag, $new_tag, $content );
 						}
@@ -1296,10 +1296,17 @@ if ( ! class_exists( 'ExactDN' ) ) {
 									$zoom = true;
 								}
 							}
-							if ( empty( $width ) || ! is_numeric( $width ) ) {
-								$width = $this->get_attribute( $images['img_tag'][ $index ], 'width' );
+							$width_attr = $this->get_attribute( $images['img_tag'][ $index ], 'width' );
+							// Get width/height attributes from the URL/file if they are missing.
+							$insert_dimensions = false;
+							if ( apply_filters( 'eio_add_missing_width_height_attrs', true ) && empty( $width_attr ) ) {
+								$this->debug_message( 'missing width attr or height attr' );
+								$insert_dimensions = true;
 							}
-							list( $filename_width, $discard_height ) = $this->get_dimensions_from_filename( $src );
+							if ( empty( $width ) || ! is_numeric( $width ) ) {
+								$width = $width_attr;
+							}
+							list( $filename_width, $filename_height ) = $this->get_dimensions_from_filename( $src );
 							if ( empty( $width ) || ! is_numeric( $width ) ) {
 								$width = $filename_width;
 							}
@@ -1317,6 +1324,11 @@ if ( ! class_exists( 'ExactDN' ) ) {
 									$this->set_attribute( $new_tag, $this->srcset_attr, $srcset );
 									$this->set_attribute( $new_tag, 'sizes', sprintf( '(max-width: %1$dpx) 100vw, %1$dpx', $width ) );
 								}
+							}
+							if ( $insert_dimensions && $filename_width > 0 && $filename_height > 0 ) {
+								$this->debug_message( "filling in width = $filename_width and height = $filename_height" );
+								$this->set_attribute( $new_tag, 'width', $filename_width, true );
+								$this->set_attribute( $new_tag, 'height', $filename_height, true );
 							}
 							if ( $new_tag !== $images['img_tag'][ $index ] ) {
 								// Replace original tag with modified version.

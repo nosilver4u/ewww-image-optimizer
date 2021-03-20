@@ -107,6 +107,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				if ( $this->exactdn_domain ) {
 					$this->parsing_exactdn = true;
 					$this->debug_message( 'parsing an exactdn page' );
+					$this->allowed_urls[] = 'https://' . $this->exactdn_domain;
+					$this->allowed_urls[] = 'http://' . $this->exactdn_domain;
+					$this->allowed_urls[] = '//' . $this->exactdn_domain;
 				}
 				$this->allow_lqip = false;
 				if ( $exactdn->get_plan_id() > 1 ) {
@@ -122,10 +125,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				$this->allow_piip = is_writable( $this->piip_folder ) && $this->gd_support();
 			}
 
-			if ( ! apply_filters( 'wp_lazy_loading_enabled', true, 'img', '' ) ) {
-				define( 'EWWWIO_DISABLE_NATIVE_LAZY', true );
-			}
-			add_filter( 'wp_lazy_loading_enabled', '__return_false' );
+			add_filter( 'wp_lazy_loading_enabled', array( $this, 'wp_lazy_loading_enabled' ), 10, 2 );
 
 			// Filter early, so that others at the default priority take precendence.
 			add_filter( 'eio_use_piip', array( $this, 'maybe_piip' ), 9 );
@@ -137,12 +137,13 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			// Load the appropriate JS.
 			if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
 				// Load the non-minified and separate versions of the lazy load scripts.
-				add_action( 'wp_enqueue_scripts', array( $this, 'debug_script' ) );
+				add_action( 'wp_enqueue_scripts', array( $this, 'debug_script' ), 1 );
 			} else {
 				// Load the minified, combined version of the lazy load script.
-				add_action( 'wp_enqueue_scripts', array( $this, 'min_script' ) );
+				add_action( 'wp_enqueue_scripts', array( $this, 'min_script' ), 1 );
 			}
 			$this->validate_user_exclusions();
+			$this->get_allowed_domains();
 		}
 
 		/**
@@ -153,6 +154,23 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 */
 		function srcset_replace( $srcset ) {
 			return $srcset;
+		}
+
+		/**
+		 * Disable native lazy load for img elements.
+		 *
+		 * @param bool   $default True if it is an img or iframe element. Should be false otherwise.
+		 * @param string $tag_name The type of HTML tag/element being parsed.
+		 * @return bool False for img elements, leave as-is for others.
+		 */
+		function wp_lazy_loading_enabled( $default, $tag_name ) {
+			if ( 'img' === $tag_name ) {
+				if ( defined( 'EIO_ENABLE_NATIVE_LAZY' ) && EIO_ENABLE_NATIVE_LAZY ) {
+					return true;
+				}
+				return false;
+			}
+			return $default;
 		}
 
 		/**
@@ -391,76 +409,125 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				return $image;
 			}
 
+			$physical_width  = false;
+			$physical_height = false;
 			$width_attr      = $this->get_attribute( $image, 'width' );
 			$height_attr     = $this->get_attribute( $image, 'height' );
+			// Can't use a relative width or height, so unset the dimensions in favor of not breaking things.
+			if ( false !== strpos( $width_attr, '%' ) || false !== strpos( $height_attr, '%' ) ) {
+				$width_attr  = false;
+				$height_attr = false;
+			}
 			$placeholder_src = $this->placeholder_src;
 
-			$disable_native_lazy = false;
-			// Ignore native lazy loading images.
-			$loading_attr = $this->get_attribute( $image, 'loading' );
-			if ( $loading_attr && in_array( trim( $loading_attr ), array( 'auto', 'eager', 'lazy' ), true ) ) {
-				$disable_native_lazy = true;
+			$insert_dimensions = false;
+			if ( apply_filters( 'eio_add_missing_width_height_attrs', true ) && ( empty( $width_attr ) || empty( $height_attr ) ) ) {
+				$this->debug_message( 'missing width attr or height attr' );
+				list( $width_attr, $height_attr ) = $this->get_image_dimensions_by_url( $file );
+				if ( $width_attr && is_numeric( $width_attr ) && $height_attr && is_numeric( $height_attr ) ) {
+					$this->debug_message( "found $width_attr and $height_attr to insert" );
+					$physical_width    = $width_attr;
+					$physical_height   = $height_attr;
+					$insert_dimensions = true;
+				}
 			}
-			if (
-				is_numeric( $width_attr ) && is_numeric( $height_attr ) &&
-				( ! defined( 'EWWWIO_DISABLE_NATIVE_LAZY' ) || ! EWWWIO_DISABLE_NATIVE_LAZY ) &&
-				( ! defined( 'EASYIO_DISABLE_NATIVE_LAZY' ) || ! EASYIO_DISABLE_NATIVE_LAZY ) &&
-				! $disable_native_lazy
-			) {
+			// Check for native lazy loading images.
+			$loading_attr = $this->get_attribute( $image, 'loading' );
+			if ( defined( 'EIO_ENABLE_NATIVE_LAZY' ) && EIO_ENABLE_NATIVE_LAZY && ! $loading_attr && is_numeric( $width_attr ) && is_numeric( $height_attr ) ) {
 				$this->set_attribute( $image, 'loading', 'lazy' );
 			}
 
-			if ( false === strpos( $file, 'nggid' ) && ! preg_match( '#\.svg(\?|$)#', $file ) && $this->parsing_exactdn && strpos( $file, $this->exactdn_domain ) ) {
-				$this->debug_message( 'using lqip, maybe' );
-				list( $width, $height ) = $this->get_dimensions_from_filename( $file, true );
-				if ( $width && $height && $width < 201 && $height < 201 ) {
-					$placeholder_src = $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $width . 'x' . $height . '.png' );
-				} elseif ( $this->allow_lqip && apply_filters( 'eio_use_lqip', $this->get_option( $this->prefix . 'use_lqip' ), $file ) ) {
-					$placeholder_src = add_query_arg( array( 'lazy' => 1 ), $file );
-				} elseif ( $width && $height ) {
-					$placeholder_src = $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $width . 'x' . $height . '.png' );
-				} else {
-					$placeholder_src = add_query_arg( array( 'lazy' => 2 ), $file );
-				}
-			} elseif ( $this->allow_piip && $srcset && apply_filters( 'eio_use_piip', true, $file ) ) {
-				$this->debug_message( 'trying piip' );
-				// Get image dimensions for PNG placeholder.
-				list( $width, $height ) = $this->get_dimensions_from_filename( $file, $this->parsing_exactdn );
+			$placeholder_types = array();
+			if ( $this->parsing_exactdn && $this->allow_lqip && apply_filters( 'eio_use_lqip', $this->get_option( $this->prefix . 'use_lqip' ), $file ) ) {
+				$placeholder_types[] = 'lqip';
+			}
+			if ( apply_filters( 'eio_use_siip', $this->get_option( $this->prefix . 'use_siip' ), $file ) ) {
+				$placeholder_types[] = 'siip';
+			}
+			if ( $this->parsing_exactdn && apply_filters( 'eio_use_piip', true, $file ) ) {
+				$placeholder_types[] = 'epip';
+			}
+			if ( $this->allow_piip && apply_filters( 'eio_use_piip', true, $file ) ) {
+				$placeholder_types[] = 'piip';
+			}
 
-				// Can't use a relative width or height, so unset the dimensions in favor of not breaking things.
-				if ( false !== strpos( $width_attr, '%' ) || false !== strpos( $height_attr, '%' ) ) {
-					$width_attr  = false;
-					$height_attr = false;
-				}
+			list( $filename_width, $filename_height ) = $this->get_dimensions_from_filename( $file, $this->parsing_exactdn );
+			if ( $filename_width && is_numeric( $filename_width ) && $filename_height && is_numeric( $filename_height ) ) {
+				$physical_width  = $filename_width;
+				$physical_height = $filename_height;
+			} elseif (
+				( ! $physical_width || ! $physical_height ) &&
+				$width_attr && is_numeric( $width_attr ) && $height_attr && is_numeric( $height_attr )
+			) {
+					$physical_width  = $width_attr;
+					$physical_height = $height_attr;
+			}
+			foreach ( $placeholder_types as $placeholder_type ) {
+				switch ( $placeholder_type ) {
+					case 'lqip':
+						$this->debug_message( 'using lqip, maybe' );
+						if ( false === strpos( $file, 'nggid' ) && ! preg_match( '#\.svg(\?|$)#', $file ) && strpos( $file, $this->exactdn_domain ) ) {
+							if ( $filename_width && $filename_height && $filename_width < 201 && $filename_height < 201 ) {
+								break;
+							}
+							$placeholder_src = add_query_arg( array( 'lazy' => 1 ), $file );
+							break 2;
+						}
+						break;
+					case 'siip':
+						$this->debug_message( 'trying siip' );
+						// Can't use a relative width or height, so unset the dimensions in favor of not breaking things.
+						if ( false !== strpos( $width_attr, '%' ) || false !== strpos( $height_attr, '%' ) ) {
+							break;
+						}
 
-				if ( false === $width || false === $height ) {
-					$width  = $width_attr;
-					$height = $height_attr;
-				}
+						// Falsify them if empty.
+						$width_attr  = (int) $width_attr ? (int) $width_attr : false;
+						$height_attr = (int) $height_attr ? (int) $height_attr : false;
+						if ( $width_attr && $height_attr ) {
+							$placeholder_src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 $width_attr $height_attr'%3E%3C/svg%3E";
+							break 2;
+						}
+						break;
+					case 'epip':
+						$this->debug_message( 'using epip, maybe' );
+						if ( false === strpos( $file, 'nggid' ) && ! preg_match( '#\.svg(\?|$)#', $file ) && strpos( $file, $this->exactdn_domain ) ) {
+							if ( false === $filename_width || false === $filename_height ) {
+								$filename_width  = $width_attr;
+								$filename_height = $height_attr;
+							}
 
-				// Falsify them if empty.
-				$width  = $width ? (int) $width : false;
-				$height = $height ? (int) $height : false;
-				if ( $width && $height ) {
-					$this->debug_message( "creating piip of $width x $height" );
-					$placeholder_src = $this->create_piip( $width, $height );
-				}
-			} elseif ( apply_filters( 'eio_use_siip', true, $file ) ) {
-				$this->debug_message( 'trying siip' );
-				$width  = $width_attr;
-				$height = $height_attr;
+							if ( $filename_width && $filename_height ) {
+								$placeholder_src = $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $filename_width . 'x' . $filename_height . '.png' );
+								break 2;
+							} else {
+								$placeholder_src = add_query_arg( array( 'lazy' => 2 ), $file );
+								break 2;
+							}
+						}
+						break;
+					case 'piip':
+						$this->debug_message( 'trying piip' );
 
-				// Can't use a relative width or height, so unset the dimensions in favor of not breaking things.
-				if ( false !== strpos( $width, '%' ) || false !== strpos( $height, '%' ) ) {
-					$width  = false;
-					$height = false;
-				}
+						if ( false === $filename_width || false === $filename_height ) {
+							$filename_width  = $width_attr;
+							$filename_height = $height_attr;
+						}
 
-				// Falsify them if empty.
-				$width  = $width ? (int) $width : false;
-				$height = $height ? (int) $height : false;
-				if ( $width && $height ) {
-					$placeholder_src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 $width $height'%3E%3C/svg%3E";
+						// Falsify them if empty.
+						$filename_width  = (int) $filename_width ? (int) $filename_width : false;
+						$filename_height = (int) $filename_height ? (int) $filename_height : false;
+						if ( $filename_width && $filename_height ) {
+							$this->debug_message( "creating piip of $filename_width x $filename_height" );
+							$png_placeholder_src = $this->create_piip( $filename_width, $filename_height );
+							if ( $png_placeholder_src ) {
+								$placeholder_src = $png_placeholder_src;
+								break 2;
+							}
+						}
+						break;
+					default:
+						$this->debug_message( "what in the world is $placeholder_type?" );
 				}
 			}
 			$this->debug_message( "current placeholder is $placeholder_src" );
@@ -471,7 +538,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 					$this->set_attribute( $image, 'srcset', $placeholder_src, true );
 					$this->remove_attribute( $image, 'src' );
 				} else {
-					$placeholder_src = apply_filters( 'as3cf_get_asset', $placeholder_src );
 					$this->set_attribute( $image, 'src', $placeholder_src, true );
 					$this->remove_attribute( $image, 'srcset' );
 				}
@@ -491,7 +557,20 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				$this->set_attribute( $image, 'src', $placeholder_src, true );
 			}
 
-			$this->set_attribute( $image, 'class', $this->get_attribute( $image, 'class' ) . ' lazyload', true );
+			$existing_class = trim( $this->get_attribute( $image, 'class' ) );
+			if ( ! empty( $existing_class ) ) {
+				$this->set_attribute( $image, 'class', $existing_class . ' lazyload', true );
+			} else {
+				$this->set_attribute( $image, 'class', 'lazyload', true );
+			}
+			if ( $insert_dimensions ) {
+				$this->set_attribute( $image, 'width', $width_attr, true );
+				$this->set_attribute( $image, 'height', $height_attr, true );
+			}
+			if ( 0 === strpos( $placeholder_src, 'data:image/svg+xml' ) ) {
+				$this->set_attribute( $image, 'data-eio-rwidth', $physical_width, true );
+				$this->set_attribute( $image, 'data-eio-rheight', $physical_height, true );
+			}
 			return $image;
 		}
 
