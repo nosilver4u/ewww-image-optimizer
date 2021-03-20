@@ -235,7 +235,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_webp', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
-		$this->assertEquals( 1335586, filesize( $results[0] ) );
+		$this->assertEquals( 1339854, filesize( $results[0] ) );
 		unlink( $results[0] );
 		$this->assertEquals( 171174, filesize( $results[0] . '.webp' ) );
 		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
@@ -261,7 +261,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_webp', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		// size post opt.
-		$this->assertEquals( 1355138, filesize( $results[0] ) );
+		$this->assertEquals( 1359406, filesize( $results[0] ) );
 		// orientation pre-rotation.
 		$this->assertEquals( ewww_image_optimizer_get_orientation( $results[0], 'image/jpeg' ), 1 );
 		unlink( $results[0] );
@@ -285,7 +285,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$results = $this->optimize_jpg();
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
-		$this->assertEquals( 344192, filesize( $results[0] ) );
+		$this->assertEquals( 348295, filesize( $results[0] ) );
 		unlink( $results[0] );
 	}
 
@@ -302,7 +302,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$results = $this->optimize_jpg();
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
-		$this->assertEquals( 307434, filesize( $results[0] ) );
+		$this->assertEquals( 310924, filesize( $results[0] ) );
 		unlink( $results[0] );
 	}
 
@@ -397,7 +397,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$results = $this->optimize_png();
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
-		$this->assertEquals( 178258, filesize( $results[0] ) );
+		$this->assertEquals( 176857, filesize( $results[0] ) );
 		unlink( $results[0] );
 	}
 

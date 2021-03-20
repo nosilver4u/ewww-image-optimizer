@@ -138,6 +138,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: Lazy Load - right-sized placeholders can be generated for full-sized images
 * changed: Easy IO's Include All Resources unlocked for all plans
 * changed: native lazy loading is now disabled when using EWWW IO lazy load, override with EIO_ENABLE_NATIVE_LAZY constant
+* changed: Lazy Load picture elements use right-sized img placeholder instead of 1x1 inline GIF
 * fixed: native iframe lazy load disabled in WP 5.7+
 * fixed: detection for Shield Security plugin lock to location
 * fixed: relative path migration showing errors in site tools
