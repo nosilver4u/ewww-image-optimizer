@@ -4554,9 +4554,6 @@ function ewww_image_optimizer_cloud_verify( $api_key, $cache = true ) {
 		return false;
 	} else {
 		set_transient( 'ewww_image_optimizer_cloud_status', $verified, HOUR_IN_SECONDS );
-		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) < 20 && ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) < 20 && ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) < 20 && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) ) {
-			ewww_image_optimizer_cloud_enable();
-		}
 		ewwwio_debug_message( "verification body contents: {$result['body']}" );
 		ewwwio_memory( __FUNCTION__ );
 		return $verified;
@@ -8521,7 +8518,7 @@ function ewww_image_optimizer_png_alpha( $filename ) {
 }
 
 /**
- * Check the submitted GIF to see if it is animated
+ * Check the submitted GIF to see if it is animated.
  *
  * @param string $filename Name of the GIF to test for animation.
  * @return bool True if animation found.
@@ -8546,6 +8543,48 @@ function ewww_image_optimizer_is_animated( $filename ) {
 	ewwwio_debug_message( "scanned GIF and found $count frames" );
 	ewwwio_memory( __FUNCTION__ );
 	return $count > 1;
+}
+
+/**
+ * Check the submitted PNG to see if it is animated. Thanks @GregOriol!
+ *
+ * @param string $filename Name of the PNG to test for animation.
+ * @return bool True if animation found.
+ */
+function ewww_image_optimizer_is_animated_png( $filename ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$apng = false;
+	if ( ! ewwwio_is_file( $filename ) ) {
+		return false;
+	}
+	// If we can't open the file in read-only buffered mode.
+	$fh = fopen( $filename, 'rb' );
+	if ( ! $fh ) {
+		return false;
+	}
+	$previousdata = '';
+	// We read through the file til we reach the end of the file, or we've found an acTL or IDAT chunk.
+	while ( ! feof( $fh ) ) {
+		$data = fread( $fh, 1024 ); // Read 1kb at a time.
+		if ( false !== strpos( $data, 'acTL' ) ) {
+			ewwwio_debug_message( 'found acTL chunk (animated) in PNG' );
+			$apng = true;
+			break;
+		} elseif ( false !== strpos( $previousdata . $data, 'acTL' ) ) {
+			ewwwio_debug_message( 'found acTL chunk (animated) in PNG' );
+			$apng = true;
+			break;
+		} elseif ( false !== strpos( $data, 'IDAT' ) ) {
+			ewwwio_debug_message( 'found IDAT, but no acTL (animated) chunk in PNG' );
+			break;
+		} elseif ( false !== strpos( $previousdata . $data, 'IDAT' ) ) {
+			ewwwio_debug_message( 'found IDAT, but no acTL (animated) chunk in PNG' );
+			break;
+		}
+		$previousdata = $data;
+	}
+	fclose( $fh );
+	return $apng;
 }
 
 /**
@@ -8714,11 +8753,17 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 				break;
 			case 'image/png':
 				// If pngout and optipng are missing and should not be skipped.
-				if ( ( ! $skip['optipng'] && ! EWWW_IMAGE_OPTIMIZER_OPTIPNG ) || ( ! $skip['pngout'] && ! EWWW_IMAGE_OPTIMIZER_PNGOUT ) ) {
+				if ( ! $skip['optipng'] && ! EWWW_IMAGE_OPTIMIZER_OPTIPNG ) {
 					$msg = '<div>' . sprintf(
 						/* translators: %s: name of a tool like jpegtran */
 						__( '%s is missing', 'ewww-image-optimizer' ),
 						'<em>optipng</em>'
+					) . '</div>';
+				} elseif ( ! $skip['pngout'] && ! EWWW_IMAGE_OPTIMIZER_PNGOUT ) {
+					$msg = '<div>' . sprintf(
+						/* translators: %s: name of a tool like jpegtran */
+						__( '%s is missing', 'ewww-image-optimizer' ),
+						'<em>pngout</em>'
 					) . '</div>';
 				} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
 					$msg = '<div>' . sprintf(

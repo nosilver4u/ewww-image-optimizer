@@ -20,6 +20,7 @@ function checkImageSizes() {
 	return false;
 }
 function checkImageScale(img) {
+	console.log('checking size of: ' + img.src);
         if (img.naturalWidth) {
         	if (img.naturalWidth > 25 && img.naturalHeight > 25 && img.clientWidth > 25 && img.clientHeight > 25) {
                 	// For each image with a natural width which isn't

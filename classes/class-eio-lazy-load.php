@@ -471,9 +471,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 					case 'lqip':
 						$this->debug_message( 'using lqip, maybe' );
 						if ( false === strpos( $file, 'nggid' ) && ! preg_match( '#\.svg(\?|$)#', $file ) && strpos( $file, $this->exactdn_domain ) ) {
-							if ( $filename_width && $filename_height && $filename_width < 201 && $filename_height < 201 ) {
-								break;
-							}
 							$placeholder_src = add_query_arg( array( 'lazy' => 1 ), $file );
 							break 2;
 						}

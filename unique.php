@@ -250,7 +250,7 @@ function ewww_image_optimizer_install_paths() {
 		$optipng_src  = EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'optipng-mac';
 		$jpegtran_src = EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'jpegtran-mac';
 		$pngquant_src = EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'pngquant-mac';
-		$webp_src     = EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'cwebp-mac14';
+		$webp_src     = EWWW_IMAGE_OPTIMIZER_BINARY_PATH . 'cwebp-mac15';
 		$gifsicle_dst = $tool_path . 'gifsicle';
 		$optipng_dst  = $tool_path . 'optipng';
 		$jpegtran_dst = $tool_path . 'jpegtran';
@@ -1057,6 +1057,11 @@ function ewww_image_optimizer_md5check( $path ) {
 		'4d1a1c601d291f96dc03ea7e42ab9137a17f93ebc391353db65b4e32c1e9fbdb', // jpegtran-mac   9b, EWWW 2.6.0.
 		'7e8719703d31e1ab9bf2b2ad7ab633649012ab6aae46ea40462365b9c00876d5', // jpegtran-sol   9b, EWWW 2.6.0.
 		'9767f05ae1b59d4fea25a73b276dcd1245f5281b53386dc03784539265bffbea', // jpegtran.exe   9b, EWWW 2.6.0.
+		'd2f3f9c1fb90a56a4afad411e70f5bb596c0a373e7799104f5c3ff79bf617697', // jpegtran-fbsd  9d, EWWW 6.1.0.
+		'c0a44f6f16ddc78d8d027ffd3e09c512d637876833c5ffaaf5b1e7acd5ce3cda', // jpegtran-linux 9d, EWWW 6.1.0.
+		'68bbeddef97f9aca5f76fcf71f3394dae98559c4107c3497f4f097196f09ff89', // jpegtran-mac   9d, EWWW 6.1.0.
+		'9f728b5fd533a73d46138c14514ba5424ef153386d80f75669ab9b64df02aef6', // jpegtran-sol   9d, EWWW 6.1.0.
+		'39096e3dd3d9c375de23e5d6ac2c4e0000c994d768d9de5c60680a1d5b99cb7b', // jpegtran.exe   9d, EWWW 6.1.0.
 		// end jpegtran.
 		'6deddb5562ac13ffc3e46a0af79b592e92fb4553c5df294b6e0052bc890fd0e3', // optipng-linux 0.7.4, EWWW 1.2.0.
 		'51df81fa8c765efbe0aa4c1cf5293e25e7e2e7f6962f5161615239c54aec4c01', // optipng-linux 0.7.4, EWWW 1.3.0.
@@ -1111,6 +1116,7 @@ function ewww_image_optimizer_md5check( $path ) {
 		'03602b141432af2211882fc079ba15a773a7ec782c92755cb31279eb6d8b99d4', // gifsicle-mac   1.91, EWWW 4.1.0.
 		'5fcdd102146984e41b01a160d072dd36852d7be14ab569a323c47e7e56916d0d', // gifsicle-sol   1.91, EWWW 4.x.
 		'7156bfe16dc5e33af7facdc6847d268154ffeb75c0217517e4e188b58b293c6a', // gifsicle.exe   1.91, EWWW 4.1.0.
+		'3f59274d214a9c4f7a3bf68755ff75b6801c94f3e9e73b5a95767e2d7ec0fc42', // gifsicle.exe   1.92, EWWW 6.1.0.
 		// end gifsicle.
 		'bdea95497d6e60aae8938cae8e999ef74a255ad603531bf523dcdb531f61fc8f', // 20110722-bsd/i686/pngout.
 		'57c09b3ebd7d4623d16f6056efd7951e8f98e2362a27993a7d865af677875c00', // 20110722-bsd-static/i686/pngout-static.
@@ -1174,11 +1180,16 @@ function ewww_image_optimizer_md5check( $path ) {
 		'c924e11d9a3166afd5ed19165193c1351ff4a2cc993498f1f28c7daee829ca76', // pngquant-mac   2.11.7 EWWW 4.1.0.
 		'34534e69929e7fe267f77c55f487e419f76cc1d24e41fdb642f9671383012c56', // pngquant-sol   2.11.7 EWWW 4.1.0.
 		'af7598aa09ba519ad15305a56011949db19c5b2176187662640bc0ebc4ddd19a', // pngquant.exe   2.11.7 EWWW 4.1.0.
-		'6b1d4e685a4f5b3cbed9b9c7b71c7f75ae860684783e4a8274cdc66247d11fae', // pngquant.exe   2.12.5 EWWW 5.1.0.
 		'1ab09e21dd0c8aafe482227c2b53f13faf00fa9ba2b9046c1e9f8c4d4d851b9d', // pngquant-fbsd  2.12.5 EWWW 5.1.0.
 		'b580c7d68c3ec7cd7685fb388cdbb2635aae92c7d520e54e8f67c57fc6215db0', // pngquant-linux 2.12.5 EWWW 5.1.0.
 		'ddec62d4074d54d76dde9313302b6a95025286ad82006a0f83eb0452cc86da6c', // pngquant-mac   2.12.5 EWWW 5.1.0.
 		'7c10d643f936114aaa307c5fa2024c5bd5f9a25fa90a07e7f2b100c161f15898', // pngquant-sol   2.12.5 EWWW 5.1.0.
+		'6b1d4e685a4f5b3cbed9b9c7b71c7f75ae860684783e4a8274cdc66247d11fae', // pngquant.exe   2.12.5 EWWW 5.1.0.
+		'f5a4258d284542c44fe2847fc1a0058bb819418160069ee6010071ab1aefd7f9', // pngquant-fbsd  2.13.1 EWWW 6.1.0.
+		'b52b6b90385f1eed71d265fd181c15b515a10b64c959e974f7d6301695a689cf', // pngquant-linux 2.13.1 EWWW 6.1.0.
+		'd8f5cfeb240ade34cf2f4b06dd66d29a28b8fd38e275d4caa9278bc83a39571f', // pngquant-mac   2.13.1 EWWW 6.1.0.
+		'199365d719c045a291596fc47cddc0111125cc3ff9d55235cabffdf476db4ca4', // pngquant-sol   2.13.1 EWWW 6.1.0.
+		'1e93bc6991d7e77ad7a1f48560d62a1b80faa99df38ddf56030e23d48476769e', // pngquant.exe   2.13.1 EWWW 6.1.0.
 		// end pngquant.
 		'bf0e12f996802dc114a864e5150647ce41089a5a2b5e36c3a270ac848b655c26', // cwebp-fbsd 0.4.1, EWWW 2.0.0.
 		'5349646072c3ef5f8b4588bbee8635e882c245439e2d86b863f04b7e27f4fafe', // cwebp-fbsd64 0.4.1, EWWW 2.0.0.
@@ -1227,6 +1238,11 @@ function ewww_image_optimizer_md5check( $path ) {
 		'7332ed5f0d4091e2379b1eaa32a764f8c0d51b7926996a1dc8b4ef4e3c441a12', // cwebp-mac14 1.0.3, EWWW 5.1.0.
 		'66568f3b31f8f22deef38aa6ba3d2be19516514e94b7d623cd2ce2a290ccdd69', // cwebp-sol   1.0.3, EWWW 5.1.0.
 		'e1041c5486fb4e57e31155c45d66117f8fc270e5a56a1049408a05f54bd52969', // cwebp.exe   1.0.3, EWWW 5.1.0.
+		'709804fe0c89ce7b3a23df11a503c663c6476cbb02f2ed0135245af9e81ac24b', // cwebp-fbsd  1.2.0, EWWW 6.1.0.
+		'5fec3397c56b74b8a8ac8c9bac99dc11d40f9528a6c05e4108f1cd65d5a0a4fc', // cwebp-linux 1.2.0, EWWW 6.1.0.
+		'fc25866344efb604b3e70dc3e5519199605da13b550ccee4b7bbdcdeb0b5e6be', // cwebp-mac15 1.2.0, EWWW 6.1.0.
+		'488410937dbbc4ec55fddfc0fa6835b862f7024680744a5e5ac8b88be9270fcc', // cwebp-sol   1.2.0, EWWW 6.1.0.
+		'2849fd06012a9eb311b02a4f8918ae4b16775693bc21e95f4cc6a382eac299f9', // cwebp.exe   1.2.0, EWWW 6.1.0.
 		// end cwebp.
 		'15d8b7d54b73059a9a63ab3d5ca8201cd30c2f6fc59fc068f7bd6c85e6a22420', // svgcleaner-linux 0.9.5.
 		'c88c1961374b3edc93a29376ccbd447a514c1cda335fe6a868c0dac6d77c79fa', // svgcleaner-mac 0.9.5.
@@ -1686,16 +1702,16 @@ function ewww_image_optimizer_find_nix_binary( $binary, $switch ) {
 		}
 	}
 	// If we still haven't found a usable binary, try a system-installed version.
-	if ( ewww_image_optimizer_tool_found( $binary, $switch ) ) {
-		return $binary;
-	} elseif ( ewww_image_optimizer_tool_found( '/usr/bin/' . $binary, $switch ) ) {
+	if ( is_file( '/usr/bin/' . $binary ) && ewww_image_optimizer_tool_found( '/usr/bin/' . $binary, $switch ) ) {
 		return '/usr/bin/' . $binary;
-	} elseif ( ewww_image_optimizer_tool_found( '/usr/local/bin/' . $binary, $switch ) ) {
+	} elseif ( is_file( '/usr/local/bin/' . $binary ) && ewww_image_optimizer_tool_found( '/usr/local/bin/' . $binary, $switch ) ) {
 		return '/usr/local/bin/' . $binary;
-	} elseif ( ewww_image_optimizer_tool_found( '/usr/gnu/bin/' . $binary, $switch ) ) {
+	} elseif ( is_file( '/usr/gnu/bin/' . $binary ) && ewww_image_optimizer_tool_found( '/usr/gnu/bin/' . $binary, $switch ) ) {
 		return '/usr/gnu/bin/' . $binary;
-	} elseif ( ewww_image_optimizer_tool_found( '/usr/syno/bin/' . $binary, $switch ) ) { // For synology diskstation OS.
+	} elseif ( is_file( '/usr/syno/bin/' . $binary ) && ewww_image_optimizer_tool_found( '/usr/syno/bin/' . $binary, $switch ) ) { // For synology diskstation OS.
 		return '/usr/syno/bin/' . $binary;
+	} elseif ( ewww_image_optimizer_tool_found( $binary, $switch ) ) {
+		return $binary;
 	} else {
 		return '';
 	}
@@ -2262,6 +2278,11 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			$jpg_size = 0;
 			// Png2jpg conversion is turned on, and the image is in the WordPress media library.
 			// We check for transparency later, after optimization, because optipng might fix an empty alpha channel.
+			$apng = ewww_image_optimizer_is_animated_png( $file );
+			if ( $apng ) {
+				$keep_metadata = true;
+				$skip_lossy    = true;
+			}
 			if (
 				1 === (int) $gallery_type &&
 				$fullsize &&
@@ -2414,10 +2435,9 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				if ( $tools['OPTIPNG'] ) {
 					// Retrieve the optimization level for optipng.
 					$optipng_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_optipng_level' );
+					$strip         = '';
 					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) && preg_match( '/0.7/', ewww_image_optimizer_tool_found( $tools['OPTIPNG'], 'o' ) ) && ! $keep_metadata ) {
 						$strip = '-strip all ';
-					} else {
-						$strip = '';
 					}
 					// Run optipng on the PNG file.
 					exec( "$nice " . $tools['OPTIPNG'] . " -o$optipng_level -quiet $strip " . ewww_image_optimizer_escapeshellarg( $tempfile ) );
@@ -2426,8 +2446,12 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_pngout' ) ) {
 					// Retrieve the optimization level for pngout.
 					$pngout_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pngout_level' );
+					$strip        = '';
+					if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) || $keep_metadata ) {
+						$strip = '-k1';
+					}
 					// Run pngout on the PNG file.
-					exec( "$nice " . $tools['PNGOUT'] . " -s$pngout_level -q " . ewww_image_optimizer_escapeshellarg( $tempfile ) );
+					exec( "$nice " . $tools['PNGOUT'] . " -s$pngout_level -k1 -q " . ewww_image_optimizer_escapeshellarg( $tempfile ) );
 				}
 				// Retrieve the filesize of the temporary PNG.
 				$new_size = ewww_image_optimizer_filesize( $tempfile );
@@ -2943,6 +2967,9 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 	} elseif ( ewwwio_is_file( $webpfile ) && empty( $ewww_force ) && ! $recreate ) {
 		ewwwio_debug_message( 'webp file exists, not forcing or recreating' );
 		return esc_html__( 'WebP image already exists.', 'ewww-image-optimizer' );
+	} elseif ( 'image/png' === $type && ewww_image_optimizer_is_animated_png( $file ) ) {
+		ewwwio_debug_message( 'APNG found, WebP not possible' );
+		return esc_html__( 'APNG cannot be converted to WebP.', 'ewww-image-optimizer' );
 	}
 	if ( empty( $tool ) || 'image/gif' === $type ) {
 		ewww_image_optimizer_cloud_optimizer( $file, $type, false, $webpfile, 'image/webp' );

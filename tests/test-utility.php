@@ -30,6 +30,7 @@ class EWWWIO_Utility_Tests extends WP_UnitTestCase {
 			if ( ! ewwwio_is_file( $binary ) ) {
 				continue;
 			}
+			echo "checking $binary\n";
 			$this->assertTrue( ewww_image_optimizer_md5check( $binary ) );
 		}
 	}
