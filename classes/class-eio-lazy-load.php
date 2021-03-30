@@ -33,6 +33,14 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		protected $user_element_exclusions = array();
 
 		/**
+		 * A list of user-defined inclusions to lazy load for "external" CSS background images.
+		 *
+		 * @access protected
+		 * @var array $css_element_inclusions
+		 */
+		protected $css_element_inclusions = array();
+
+		/**
 		 * Base64-encoded placeholder image.
 		 *
 		 * @access protected
@@ -127,6 +135,10 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 
 			add_filter( 'wp_lazy_loading_enabled', array( $this, 'wp_lazy_loading_enabled' ), 10, 2 );
 
+			if ( ! defined( 'EIO_LL_AUTOSCALE' ) && ! $this->get_option( $this->prefix . 'll_autoscale' ) ) {
+				define( 'EIO_LL_AUTOSCALE', false );
+			}
+
 			// Filter early, so that others at the default priority take precendence.
 			add_filter( 'eio_use_piip', array( $this, 'maybe_piip' ), 9 );
 			add_filter( 'eio_use_siip', array( $this, 'maybe_siip' ), 9 );
@@ -143,6 +155,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				add_action( 'wp_enqueue_scripts', array( $this, 'min_script' ), 1 );
 			}
 			$this->validate_user_exclusions();
+			$this->validate_css_element_inclusions();
 			$this->get_allowed_domains();
 		}
 
@@ -592,9 +605,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				foreach ( $elements as $index => $element ) {
 					$this->debug_message( "parsing a $tag_type" );
 					if ( false === strpos( $element, 'background:' ) && false === strpos( $element, 'background-image:' ) ) {
-						if ( 'div' === $tag_type ) {
-							$element = $this->lazify_element( $element );
-						}
+						$element = $this->lazify_element( $element );
 						if ( $element !== $elements[ $index ] ) {
 							$this->debug_message( "$tag_type lazified, replacing in html source" );
 							$buffer = str_replace( $elements[ $index ], $element, $buffer );
@@ -643,8 +654,10 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			}
 			if ( false === strpos( $element, 'background:' ) && false === strpos( $element, 'background-image:' ) && false === strpos( $element, 'style=' ) ) {
 				if ( false !== strpos( $element, 'id=' ) || false !== strpos( $element, 'class=' ) ) {
-					if ( $this->validate_bgimage_tag( $element ) ) {
-						$this->set_attribute( $element, 'class', $this->get_attribute( $element, 'class' ) . ' lazyload', true );
+					foreach ( $this->css_element_inclusions as $inclusion ) {
+						if ( false !== strpos( $element, $inclusion ) && $this->validate_bgimage_tag( $element ) ) {
+							$this->set_attribute( $element, 'class', $this->get_attribute( $element, 'class' ) . ' lazyload', true );
+						}
 					}
 				}
 			}
@@ -678,6 +691,31 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 							continue;
 						}
 						$this->user_exclusions[] = $exclusion;
+					}
+				}
+			}
+		}
+
+		/**
+		 * Validate the user-defined CSS element inclusions.
+		 */
+		function validate_css_element_inclusions() {
+			$user_inclusions = $this->get_option( $this->prefix . 'll_all_things' );
+			if ( ! empty( $user_inclusions ) ) {
+				if ( ! is_string( $user_inclusions ) ) {
+					return;
+				}
+				$user_inclusions = explode( ',', $user_inclusions );
+				if ( is_array( $user_inclusions ) ) {
+					foreach ( $user_inclusions as $inclusion ) {
+						if ( ! is_string( $inclusion ) ) {
+							continue;
+						}
+						$inclusion = trim( $inclusion );
+						if ( empty( $inclusion ) ) {
+							continue;
+						}
+						$this->css_element_inclusions[] = $inclusion;
 					}
 				}
 			}
@@ -934,7 +972,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				'eio_lazy_vars',
 				array(
 					'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
-					'skip_autoscale' => ( defined( 'EIO_LL_AUTOSCALE' ) ? 1 : 0 ),
+					'skip_autoscale' => ( defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
 				)
 			);
 		}
@@ -957,7 +995,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				'eio_lazy_vars',
 				array(
 					'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
-					'skip_autoscale' => ( defined( 'EIO_LL_AUTOSCALE' ) ? 1 : 0 ),
+					'skip_autoscale' => ( defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
 				)
 			);
 		}

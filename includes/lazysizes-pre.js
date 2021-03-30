@@ -16,3 +16,4 @@ function lazysizesWebP(feature, callback) {
 }
 window.lazySizesConfig = window.lazySizesConfig || {};
 window.lazySizesConfig.init = false;
+window.lazySizesConfig.expand = document.documentElement.clientHeight > 500 && document.documentElement.clientWidth > 500 ? 2500 : 1250;

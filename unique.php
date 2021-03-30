@@ -131,7 +131,9 @@ function ewww_image_optimizer_set_defaults() {
 	add_option( 'exactdn_lossy', true );
 	add_option( 'exactdn_exclude', '' );
 	add_option( 'ewww_image_optimizer_lazy_load', false );
+	add_option( 'ewww_image_optimizer_ll_autoscale', true );
 	add_option( 'ewww_image_optimizer_ll_exclude', '' );
+	add_option( 'ewww_image_optimizer_ll_all_things', '' );
 	add_option( 'ewww_image_optimizer_disable_pngout', true );
 	add_option( 'ewww_image_optimizer_disable_svgcleaner', true );
 	add_option( 'ewww_image_optimizer_optipng_level', 2 );
@@ -156,6 +158,7 @@ function ewww_image_optimizer_set_defaults() {
 	add_site_option( 'ewww_image_optimizer_pngout_level', 2 );
 	add_site_option( 'exactdn_all_the_things', true );
 	add_site_option( 'exactdn_lossy', true );
+	add_site_option( 'ewww_image_optimizer_ll_autoscale', true );
 }
 
 /**
