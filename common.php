@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '603.010' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '603.011' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -11998,8 +11998,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<?php ewwwio_help_link( 'https://docs.ewww.io/article/74-lazy-load', '5c6c36ed042863543ccd2d9b' ); ?><br>
 						<input type='text' name='ewww_image_optimizer_ll_all_things' id='ewww_image_optimizer_all_things' class='regular-text' value='<?php echo esc_attr( ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_all_things' ) ); ?>' />
 						<p class='description'>
-							<?php esc_html_e( 'Specify class/id values of elements with "external" CSS background images (comma-separated).', 'ewww-image-optimizer' ); ?>
-							<br>*<?php esc_html_e( 'Background images directly attached via style attributes will be lazy loaded by default.', 'ewww-image-optimizer' ); ?>
+							<?php esc_html_e( 'Specify class/id values of elements with CSS background images (comma-separated).', 'ewww-image-optimizer' ); ?>
+							<br>*<?php esc_html_e( 'Background images directly attached via inline style attributes will be lazy loaded by default.', 'ewww-image-optimizer' ); ?>
 						</p>
 					</td>
 				</tr>

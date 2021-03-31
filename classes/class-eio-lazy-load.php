@@ -600,7 +600,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( in_array( $tag_type, $this->user_element_exclusions, true ) ) {
 				return $buffer;
 			}
-			$elements = $this->get_elements_from_html( $buffer, $tag_type );
+			$elements = $this->get_elements_from_html( preg_replace( '/<(noscript|script).*?\/\1>/s', '', $buffer ), $tag_type );
 			if ( $this->is_iterable( $elements ) ) {
 				foreach ( $elements as $index => $element ) {
 					$this->debug_message( "parsing a $tag_type" );
