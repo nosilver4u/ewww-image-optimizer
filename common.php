@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '603.014' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '610' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
