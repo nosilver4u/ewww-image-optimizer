@@ -132,7 +132,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
-= 6.0.9 =
+= 6.1.0 =
 * added: ability to use SVG placeholders for more efficient lazy load
 * added: Easy IO and Lazy Load add missing width and height to image elements
 * added: Lazy Load - right-sized placeholders can be generated for full-sized images
