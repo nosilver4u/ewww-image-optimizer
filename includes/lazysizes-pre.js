@@ -16,4 +16,8 @@ function lazysizesWebP(feature, callback) {
 }
 window.lazySizesConfig = window.lazySizesConfig || {};
 window.lazySizesConfig.init = false;
-window.lazySizesConfig.expand = document.documentElement.clientHeight > 500 && document.documentElement.clientWidth > 500 ? 2500 : 1250;
+window.lazySizesConfig.expand = document.documentElement.clientHeight > 500 && document.documentElement.clientWidth > 500 ? 1000 : 740;
+if (eio_lazy_vars.threshold > 50) {
+	window.lazySizesConfig.expand = eio_lazy_vars.threshold;
+}
+console.log( 'root margin: ' + window.lazySizesConfig.expand );

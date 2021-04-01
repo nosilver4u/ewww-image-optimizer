@@ -769,6 +769,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						'data-lazy-srcset=',
 						'data-lazyload=',
 						'data-lazysrc=',
+						'data-mk-image-src',
 						'data-no-lazy=',
 						'data-src=',
 						'data-srcset=',
@@ -967,12 +968,14 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( defined( strtoupper( $this->prefix ) . 'LAZY_PRINT' ) && constant( strtoupper( $this->prefix ) . 'LAZY_PRINT' ) ) {
 				wp_enqueue_script( 'eio-lazy-load-print', plugins_url( '/includes/ls.print.js', $plugin_file ), array(), $this->version );
 			}
+			$threshold = defined( 'EIO_LL_THRESHOLD' ) && EIO_LL_THRESHOLD ? EIO_LL_THRESHOLD : 0;
 			wp_localize_script(
 				'eio-lazy-load',
 				'eio_lazy_vars',
 				array(
 					'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
 					'skip_autoscale' => ( defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
+					'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
 				)
 			);
 		}

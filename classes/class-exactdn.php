@@ -729,7 +729,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						if ( ! is_string( $exclusion ) ) {
 							continue;
 						}
-						if ( false !== strpos( $exclusion, $this->content_path ) ) {
+						if ( $this->content_path && false !== strpos( $exclusion, $this->content_path ) ) {
 							$exclusion = preg_replace( '#([^"\'?>]+?)?' . $this->content_path . '/#i', '', $exclusion );
 						}
 						$this->user_exclusions[] = ltrim( $exclusion, '/' );
@@ -1508,7 +1508,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 * @return string The filtered HTML content.
 		 */
 		function filter_all_the_things( $content ) {
-			if ( $this->exactdn_domain && $this->upload_domain ) {
+			if ( $this->exactdn_domain && $this->upload_domain && $this->content_path ) {
 				$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 				$upload_domain = $this->upload_domain;
 				if ( 0 === strpos( $this->upload_domain, 'www.' ) ) {

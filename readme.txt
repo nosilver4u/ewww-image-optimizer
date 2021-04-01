@@ -136,9 +136,11 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: ability to use SVG placeholders for more efficient lazy load
 * added: Easy IO and Lazy Load add missing width and height to image elements
 * added: Lazy Load - right-sized placeholders can be generated for full-sized images
+* added: configure Lazy Load pre-load threshold via EIO_LL_THRESHOLD constant
 * changed: Lazy Load for external (non-inline) CSS images must be configured for specific elements
 * changed: Easy IO's Include All Resources unlocked for all plans
 * changed: native lazy loading is now disabled when using EWWW IO lazy load, override with EIO_ENABLE_NATIVE_LAZY constant
+* changed: Lazy Load pre-load threshold increased from 500px to 1000px
 * changed: Lazy Load picture elements use right-sized img placeholder instead of 1x1 inline GIF
 * changed: system-installed binary detection improved
 * fixed: native iframe lazy load disabled in WP 5.7+
@@ -149,6 +151,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: <img> elements inside <picture> elements incorrectly handled by JS WebP Rewriting
 * fixed: removing metadata clobbers APNG animations
 * fixed: some JSON elements still being altered by Lazy Load
+* fixed: Easy IO throws warnings when WP content is not in a sub-directory
 * updated: jpegtran to version 9d
 * updated: cwebp to version 1.2.0
 * updated: pngquant to version 2.13.1
