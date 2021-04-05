@@ -986,7 +986,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 
 						// Get width/height attributes from the URL/file if they are missing.
 						$insert_dimensions = false;
-						if ( apply_filters( 'eio_add_missing_width_height_attrs', true ) && ( empty( $width ) || empty( $height ) ) ) {
+						if ( apply_filters( 'eio_add_missing_width_height_attrs', $this->get_option( $this->prefix . 'add_missing_dims' ) ) && ( empty( $width ) || empty( $height ) ) ) {
 							$this->debug_message( 'missing width attr or height attr' );
 							$insert_dimensions = true;
 						}
@@ -1299,7 +1299,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 							$width_attr = $this->get_attribute( $images['img_tag'][ $index ], 'width' );
 							// Get width/height attributes from the URL/file if they are missing.
 							$insert_dimensions = false;
-							if ( apply_filters( 'eio_add_missing_width_height_attrs', true ) && empty( $width_attr ) ) {
+							if ( apply_filters( 'eio_add_missing_width_height_attrs', $this->get_option( $this->prefix . 'add_missing_dims' ) ) && empty( $width_attr ) ) {
 								$this->debug_message( 'missing width attr or height attr' );
 								$insert_dimensions = true;
 							}

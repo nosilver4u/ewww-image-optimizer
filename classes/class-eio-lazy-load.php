@@ -176,7 +176,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 * @param string $tag_name The type of HTML tag/element being parsed.
 		 * @return bool False for img elements, leave as-is for others.
 		 */
-		function wp_lazy_loading_enabled( $default, $tag_name ) {
+		function wp_lazy_loading_enabled( $default, $tag_name = 'img' ) {
 			if ( 'img' === $tag_name ) {
 				if ( defined( 'EIO_ENABLE_NATIVE_LAZY' ) && EIO_ENABLE_NATIVE_LAZY ) {
 					return true;
@@ -438,7 +438,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			$placeholder_src = $this->placeholder_src;
 
 			$insert_dimensions = false;
-			if ( apply_filters( 'eio_add_missing_width_height_attrs', true ) && ( empty( $width_attr ) || empty( $height_attr ) ) ) {
+			if ( apply_filters( 'eio_add_missing_width_height_attrs', $this->get_option( $this->prefix . 'add_missing_dims' ) ) && ( empty( $width_attr ) || empty( $height_attr ) ) ) {
 				$this->debug_message( 'missing width attr or height attr' );
 				list( $width_attr, $height_attr ) = $this->get_image_dimensions_by_url( $file );
 				if ( $width_attr && is_numeric( $width_attr ) && $height_attr && is_numeric( $height_attr ) ) {

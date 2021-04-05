@@ -132,6 +132,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 6.1.1 =
+* change: added setting to enable adding of missing width/height dimensions, disabled by default
+* fixed: warning from plugins using core wp_lazy_load filter without second parameter/argument
+
 = 6.1.0 =
 * added: ability to use SVG placeholders for more efficient lazy load
 * added: Easy IO and Lazy Load add missing width and height to image elements
@@ -155,94 +159,6 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * updated: jpegtran to version 9d
 * updated: cwebp to version 1.2.0
 * updated: pngquant to version 2.13.1
-
-= 6.0.3 =
-* fixed: syntax error on PHP 7.2 or less
-
-= 6.0.2 =
-* security: new version of PNGOUT available on settings page (if enabled)
-* added: compatibility with Phoenix Media Rename plugin
-* changed: Easy IO supports img tags with SVG images
-* fixed: bulk optimizer gives incorrect message about not enough credits for unlimited plans
-* fixed: db install workaround for MariaDB 10.4 bug
-* fixed: errors with custom db setups when DB_* constants are not defined
-* fixed: error with JS WebP when a class attribute with no value is encountered
-
-= 6.0.1 =
-* changed: more reliable Cloudflare detection for WebP delivery methods
-* fixed: lazy load for external CSS breaking div elements in JS/JSON
-* fixed: call to undefined function from Imsanity
-* fixed: database upgrade check triggers error on MySQL 8.0.17+
-* fixed: delete originals tool is slow
-* fixed: wpdb error when attempting to run migration routine for fresh installs
-
-= 6.0.0 =
-* added: tool to delete originals from WP 5.3+ auto-scaling behavior (Tools menu)
-* added: JS WebP recognizes video elements added via JS (e.g. infinite scroll)
-* added: automatically convert GIF to PNG during new uploads, unless animated
-* added: JS WebP and picture WebP auto-detect configuration for S3 Uploads and WP Stateless
-* added: Lazy Load for external CSS and separate style blocks (div elements only for now)
-* added: Easy IO/CDN rewriting for Ultimate Member AJAX-powered activity wall
-* changed: settings UI revamped with wizard for first-time installs
-* changed: automatic PNG to JPG threshold lowered to 250kb
-* changed: extensions for WP_Image_Editor now disabled by default, use EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR constant to enable them
-* changed: JS WebP can be used with picture WebP + Lazy Load to support CSS background images
-* changed: better compatibility with Theia Smart Thumbnails
-* changed: Lazy Load auto-sizing will no longer decrease the image size, only increasing is allowed
-* changed: filter to include additional HTML element types via eio_allowed_background_image_elements filter for Lazy Load and Easy IO
-* fixed: compatibility between Easy IO and Autoptimize
-* fixed: Easy IO uses hard crop when constraining an image via a width/height found in the style attribute
-* fixed: Easy IO uses hard-coded wp-content/ and wp-includes/ paths in some cases
-* fixed: Easy IO not activating properly when plugin is activated network-wide for multi-site installs
-* fixed: database upgrade throws errors on MariaDB 10.4.x
-* fixed: WebP .htaccess error in Vary header rule
-* fixed: Easy IO doubles part of image URL when there are no thumbnails, but one is requested by a plugin or theme
-* fixed: Easy IO minifier breaks Beaver Builder
-* fixed: Lazy Load breaks Beaver Builder text editor
-* removed: JS defer with Easy IO, use SWIS Performance instead: https://ewww.io/swis/
-
-= 5.8.2 =
-* security: improper nonce verification for Nextgen bulk optimizer initialization (minor severity)
-* changed: Easy IO verification performed via API for better reliability
-* fixed: Easy IO missing https availability for admin-ajax.php requests when home_url is using plain http
-* fixed: Easy IO silently fails to rewrite URLs when using CNAME with WP Offload Media
-* fixed: wp_lazy_loading_enabled filter should have 3 parameters
-* fixed: Easy IO shows alert for domain change when a non-default WPML language is active
-* fixed: JS WebP does not auto-detect WP Offload Media CNAME
-
-= 5.8.1 =
-* fixed: Easy IO parser has typo in $webp_quality variable
-
-= 5.8.0 =
-* added: SVG optimization, huge thanks to @samsk for making this happen!
-* added: WebP quality setting, changed default to 75
-* fixed: Lazy Load and other front-end parsers breaks JSON-encoded img elements
-* fixed: Easy IO adds excess markup for images with height and/or width set to 'auto'
-* fixed: memory_limit check should be case-insensitive: g vs. G
-* fixed: PHP error during detection of Cache Enabler's WebP option
-* fixed: table upgrade routine error when primary key already exists
-* fixed: deleting files by always using realpath, props @ocean90
-* fixed: Easy IO skips images in AJAX Load More requests
-
-= 5.7.1 =
-* added: alert on domain change for Easy IO, like if you clone from a production environment to staging
-* changed: Easy IO domain and plan_id refresh automatically when visiting settings page
-* changed: better JS WebP and WPBakery Page Builder compatibility
-* changed: restore savings gauge for network settings page
-* fixed: resize detection visible for editors, should be admin-only
-* fixed: (force) re-optimize not working with parallel mode
-* fixed: upload error when WP cannot load image editor
-
-= 5.7.0 =
-* added: cleanup tool if you no longer need local WebP copies of images
-* added: resizing results displayed in bulk & single optimization report
-* changed: The browser-native portion of the Lazy Load feature obeys the wp_lazy_loading_enabled filter
-* fixed: plugin tables do not have PRIMARY indexes
-* fixed: Third-party plugins sometimes set erroneous WebP quality values
-* fixed: Show Re-optimized Images lists images in reverse order
-* fixed: cannot skip to last page of re-optimized images
-* fixed: Scheduled Optimizer skips files that need scaling/resizing if they have already been compressed
-* fixed: Lazy Load placeholders not rewritten for CDN usage by Autoptimize and WP Offload Media Assets Add-on
 
 = Earlier versions =
 Please refer to the separate changelog.txt file.

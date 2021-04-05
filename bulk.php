@@ -1133,7 +1133,6 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				continue;
 			}
 			ewwwio_debug_message( "id: $selected_id and type: $mime" );
-			ewww_image_optimizer_debug_log();
 			$attached_file = ( ! empty( $attachment_meta[ $selected_id ]['_wp_attached_file'] ) ? $attachment_meta[ $selected_id ]['_wp_attached_file'] : '' );
 
 			list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $selected_id, $attached_file, false );
@@ -1142,7 +1141,6 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			if ( class_exists( 'Amazon_S3_And_CloudFront' ) && ewww_image_optimizer_stream_wrapped( $file_path ) ) {
 				ewww_image_optimizer_check_table_as3cf( $meta, $selected_id, $file_path );
 			}
-			ewww_image_optimizer_debug_log();
 			if (
 				( ewww_image_optimizer_stream_wrapped( $file_path ) || ! ewwwio_is_file( $file_path ) ) &&
 				(
@@ -1175,6 +1173,13 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			} elseif ( ! $file_path ) {
 				ewwwio_debug_message( "no file path for $selected_id" );
 				$skipped_ids[] = $selected_id;
+				continue;
+			}
+
+			// Early check for bypass based on full-size path.
+			if ( apply_filters( 'ewww_image_optimizer_bypass', false, $file_path ) === true ) {
+				ewwwio_debug_message( "skipping $file_path as instructed" );
+				ewww_image_optimizer_debug_log();
 				continue;
 			}
 

@@ -630,6 +630,8 @@ function ewww_image_optimizer_save_network_settings() {
 			update_site_option( 'exactdn_lossy', $exactdn_lossy );
 			$exactdn_exclude = empty( $_POST['exactdn_exclude'] ) ? '' : sanitize_textarea_field( wp_unslash( $_POST['exactdn_exclude'] ) );
 			update_site_option( 'exactdn_exclude', ewww_image_optimizer_exclude_paths_sanitize( $exactdn_exclude ) );
+			$ewww_image_optimizer_add_missing_dims = ( empty( $_POST['ewww_image_optimizer_add_missing_dims'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_add_missing_dims', $ewww_image_optimizer_add_missing_dims );
 			$ewww_image_optimizer_lazy_load = ( empty( $_POST['ewww_image_optimizer_lazy_load'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_lazy_load', $ewww_image_optimizer_lazy_load );
 			$ewww_image_optimizer_ll_autoscale = ( empty( $_POST['ewww_image_optimizer_ll_autoscale'] ) ? false : true );
@@ -1006,6 +1008,7 @@ function ewww_image_optimizer_admin_init() {
 	register_setting( 'ewww_image_optimizer_options', 'exactdn_all_the_things', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'exactdn_lossy', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'exactdn_exclude', 'ewww_image_optimizer_exclude_paths_sanitize' );
+	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_add_missing_dims', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_lazy_load', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_ll_autoscale', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_use_lqip', 'boolval' );
@@ -10390,6 +10393,7 @@ function ewwwio_debug_info() {
 	ewwwio_debug_message( 'Easy IO exclusions:' );
 	$eio_exclude_paths = ewww_image_optimizer_get_option( 'exactdn_exclude' ) ? esc_html( implode( "\n", ewww_image_optimizer_get_option( 'exactdn_exclude' ) ) ) : '';
 	ewwwio_debug_message( $eio_exclude_paths );
+	ewwwio_debug_message( 'add missing dimensions: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_add_missing_dims' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'lazy load: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? 'on' : 'off' ) );
 	ewwwio_other_lazy_detected();
 	ewwwio_debug_message( 'LL autoscale: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_autoscale' ) ? 'on' : 'off' ) );
@@ -11941,6 +11945,25 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				</tr>
 				<tr>
 					<th scope='row'>
+						<label for='ewww_image_optimizer_add_missing_dims'>
+							<?php esc_html_e( 'Add Missing Dimensions', 'ewww-image-optimizer' ); ?>
+						</label>
+					</th>
+					<td>
+	<?php if ( function_exists( 'easyio_get_option' ) && easyio_get_option( 'easyio_lazy_load' ) && easyio_get_option( 'easyio_add_missing_dims' ) ) : ?>
+						<p class='description'><?php esc_html_e( 'Enabled in Easy Image Optimizer.', 'ewww-image-optimizer' ); ?></p>
+						<input type='hidden' id='ewww_image_optimizer_add_missing_dims' name='ewww_image_optimizer_add_missing_dims' <?php echo ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_add_missing_dims' ) ? "value='1'" : "value='0'" ); ?> />
+	<?php else : ?>
+						<input type='checkbox' id='ewww_image_optimizer_add_missing_dims' name='ewww_image_optimizer_add_missing_dims' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_add_missing_dims' ) ); ?> <?php disabled( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ); ?> />
+						<?php esc_html_e( 'Add width/height attributes to reduce layout shifts and improve user experience.', 'ewww-image-optimizer' ); ?>
+		<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ) : ?>
+						<p class ='description'>*<?php esc_html_e( 'Requires Lazy Load.', 'ewww-image-optimizer' ); ?></p>
+		<?php endif; ?>
+	<?php endif; ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope='row'>
 						<label for='ewww_image_optimizer_lazy_load'><?php esc_html_e( 'Lazy Load', 'ewww-image-optimizer' ); ?></label>
 						<?php ewwwio_help_link( 'https://docs.ewww.io/article/74-lazy-load', '5c6c36ed042863543ccd2d9b' ); ?>
 					</th>
@@ -12178,7 +12201,7 @@ AddType image/webp .webp</pre>
 		<?php endif; ?>
 					</td>
 				</tr>
-				<tr class='ewww_image_optimizer_webp_setting_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? '' : ' style="display:none"'; ?>>
+				<tr class='ewww_image_optimizer_webp_setting_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ? '' : ' style="display:none"'; ?>>
 					<th>&nbsp;</th>
 					<td>
 						<input type='checkbox' id='ewww_image_optimizer_webp_for_cdn' name='ewww_image_optimizer_webp_for_cdn' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ); ?> />
@@ -12190,7 +12213,7 @@ AddType image/webp .webp</pre>
 						</p>
 					</td>
 				</tr>
-				<tr class='ewww_image_optimizer_webp_setting_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? '' : ' style="display:none"'; ?>>
+				<tr class='ewww_image_optimizer_webp_setting_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) ? '' : ' style="display:none"'; ?>>
 					<th>&nbsp;</th>
 					<td>
 						<input type='checkbox' id='ewww_image_optimizer_picture_webp' name='ewww_image_optimizer_picture_webp' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) ); ?> />
