@@ -1,3 +1,7 @@
+= 6.1.1 =
+* change: added setting to enable adding of missing width/height dimensions, disabled by default
+* fixed: warning from plugins using core wp_lazy_load filter without second parameter/argument
+
 = 6.1.0 =
 * added: ability to use SVG placeholders for more efficient lazy load
 * added: Easy IO and Lazy Load add missing width and height to image elements
