@@ -1179,6 +1179,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			// Early check for bypass based on full-size path.
 			if ( apply_filters( 'ewww_image_optimizer_bypass', false, $file_path ) === true ) {
 				ewwwio_debug_message( "skipping $file_path as instructed" );
+				$skipped_ids[] = $selected_id;
 				ewww_image_optimizer_debug_log();
 				continue;
 			}

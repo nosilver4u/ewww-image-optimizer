@@ -132,6 +132,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 6.1.2 =
+* fixed: bug from bypass/exclusion code for bulk scanner in 6.1.1
+
 = 6.1.1 =
 * change: added setting to enable adding of missing width/height dimensions, disabled by default
 * fixed: warning from plugins using core wp_lazy_load filter without second parameter/argument
