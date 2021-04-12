@@ -134,6 +134,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.1.2 =
 * fixed: bug from bypass/exclusion code for bulk scanner in 6.1.1
+* fixed: running is_file on system binaries may trigger open_basedir warnings, use EWWWIO_OPEN_BASEDIR to override PHP's open_basedir restriction
 
 = 6.1.1 =
 * change: added setting to enable adding of missing width/height dimensions, disabled by default
