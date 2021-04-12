@@ -129,9 +129,10 @@ class EWWWIO_Utility_Tests extends WP_UnitTestCase {
 			'197.234.240.0/22',
 			'198.41.128.0/17',
 			'162.158.0.0/15',
-			'104.16.0.0/12',
 			'172.64.0.0/13',
 			'131.0.72.0/22',
+			'104.16.0.0/13',
+			'104.24.0.0/14',
 		);
 		foreach( $latest_ips as $key => $range ) {
 			if ( empty( $range ) ) {
