@@ -1128,7 +1128,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				ewwwio_debug_message( "missing mime for $selected_id" );
 			}
 
-			if ( ! in_array( $mime, $enabled_types, true ) ) {
+			if ( ! in_array( $mime, $enabled_types, true ) && empty( $ewww_webp_only ) ) {
 				$skipped_ids[] = $selected_id;
 				continue;
 			}

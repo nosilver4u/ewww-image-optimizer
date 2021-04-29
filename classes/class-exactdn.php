@@ -305,6 +305,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 
 			if ( $this->is_as3cf_cname_active() ) {
+				global $exactdn_activate_error;
+				$exactdn_activate_error = 'as3cf_cname_active';
 				add_action( 'admin_notices', $this->prefix . 'notice_exactdn_as3cf_cname_active' );
 				return false;
 			}

@@ -4377,15 +4377,19 @@ function ewww_image_optimizer_exactdn_activate_ajax() {
 	if ( empty( $exactdn_activate_error ) ) {
 		$exactdn_activate_error = 'error unknown';
 	}
+	$error_message = sprintf(
+		/* translators: 1: A link to the documentation 2: the error message/details */
+		esc_html__( 'Could not activate Easy IO, please try again in a few minutes. If this error continues, please see %1$s for troubleshooting steps: %2$s', 'ewww-image-optimizer' ),
+		'https://docs.ewww.io/article/66-exactdn-not-verified',
+		'<code>' . esc_html( $exactdn_activate_error ) . '</code>'
+	);
+	if ( 'as3cf_cname_active' === $exactdn_activate_error ) {
+		$error_message = esc_html__( 'Easy IO cannot optimize your images while using a custom domain (CNAME) in WP Offload Media. Please disable the custom domain in the WP Offload Media settings.', 'ewww-image-optimizer' );
+	}
 	die(
 		wp_json_encode(
 			array(
-				'error' => sprintf(
-					/* translators: 1: A link to the documentation 2: the error message/details */
-					esc_html__( 'Could not activate Easy IO, please try again in a few minutes. If this error continues, please see %1$s for troubleshooting steps: %2$s', 'ewww-image-optimizer' ),
-					'https://docs.ewww.io/article/66-exactdn-not-verified',
-					'<code>' . esc_html( $exactdn_activate_error ) . '</code>'
-				),
+				'error' => $error_message,
 			)
 		)
 	);
@@ -6302,13 +6306,21 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 		ewwwio_debug_message( "unfiltered fullsize path: $filename" );
 		$temp_file = download_url( $full_url );
 		if ( ! is_wp_error( $temp_file ) ) {
+			ewwwio_debug_message( "downloaded to $temp_file" );
 			if ( ! is_dir( dirname( $filename ) ) ) {
 				wp_mkdir_p( dirname( $filename ) );
 			}
-			if ( ! ewwwio_is_file( $filename ) ) {
+			if ( ! ewwwio_is_file( $filename ) && is_writable( dirname( $filename ) ) ) {
+				ewwwio_debug_message( "renaming $temp_file to $filename" );
 				ewwwio_rename( $temp_file, $filename );
+			} elseif ( ! is_writable( dirname( $filename ) ) ) {
+				ewwwio_debug_message( 'destination dir not writable' );
 			} else {
+				ewwwio_debug_message( 'file already found, nuking temp file' );
 				unlink( $temp_file );
+			}
+			if ( ! ewwwio_is_file( $filename ) ) {
+				ewwwio_debug_message( 'download failed' );
 			}
 		}
 		$base_dir = trailingslashit( dirname( $filename ) );
@@ -6464,8 +6476,10 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 	} // End if().
 	clearstatcache();
 	if ( ! empty( $filename ) && ewwwio_is_file( $filename ) ) {
+		ewwwio_debug_message( "$filename found, success!" );
 		return $filename;
 	} else {
+		ewwwio_debug_message( "$filename not found, boo..." );
 		return false;
 	}
 }
