@@ -286,12 +286,22 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			$image   = $storage->object->_image_mapper->find( $id );
 			$image   = $this->ewww_added_new_image( $image, $storage );
 			$success = $this->ewww_manage_image_custom_column( '', $image );
-			if ( get_transient( 'ewww_image_optimizer_cloud_status' ) === 'exceeded' || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
+			if ( 'exceeded' === get_transient( 'ewww_image_optimizer_cloud_status' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
 				ewwwio_ob_clean();
 				wp_die(
 					wp_json_encode(
 						array(
 							'error' => '<a href="https://ewww.io/buy-credits/" target="_blank">' . esc_html__( 'License exceeded', 'ewww-image-optimizer' ) . '</a>',
+						)
+					)
+				);
+			}
+			if ( 'exceeded quota' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
+				ewwwio_ob_clean();
+				wp_die(
+					wp_json_encode(
+						array(
+							'error' => '<a href="https://ewww.io/contact-us/" target="_blank">' . esc_html__( 'Soft quota reached, contact us for more', 'ewww-image-optimizer' ) . '</a>',
 						)
 					)
 				);

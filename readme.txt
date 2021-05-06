@@ -132,6 +132,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 6.1.4 =
+* changed: better handling for API quotas
+* fixed: bundled tools don't work if the binary/tool directory is mounted on a filesystem separate from wp-content/
+
 = 6.1.3 =
 * changed: bulk optimizer no longer skips image types set to "no compression" in WebP-only mode
 * fixed: CNAME setting from WP Offload Media triggers "unknown" error in Easy IO
