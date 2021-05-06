@@ -134,6 +134,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.1.4 =
 * changed: better handling for API quotas
+* fixed: picture elements not parsed when using JS WebP with Lazy Load
 * fixed: bundled tools don't work if the binary/tool directory is mounted on a filesystem separate from wp-content/
 
 = 6.1.3 =
