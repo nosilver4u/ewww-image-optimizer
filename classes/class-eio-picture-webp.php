@@ -208,6 +208,8 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 						$srcset_attr_name = 'srcset';
 						if ( false !== strpos( $source, 'base64,R0lGOD' ) && false !== strpos( $source, 'data-srcset=' ) ) {
 							$srcset_attr_name = 'data-srcset';
+						} elseif ( ! $this->get_attribute( $source, $srcset_attr_name ) && false !== strpos( $source, 'data-srcset=' ) ) {
+							$srcset_attr_name = 'data-srcset';
 						}
 						$srcset = $this->get_attribute( $source, $srcset_attr_name );
 						if ( $srcset ) {
