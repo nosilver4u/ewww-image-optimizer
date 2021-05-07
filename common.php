@@ -3558,7 +3558,7 @@ function ewwwio_is_file( $file ) {
 	}
 	$plugin_dir = realpath( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH );
 	$tool_dir   = $content_dir;
-	if ( defined( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
+	if ( defined( 'EWWW_IMAGE_OPTIMIZER_TOOL_PATH' ) ) {
 		$tool_dir = realpath( EWWW_IMAGE_OPTIMIZER_TOOL_PATH );
 		$tool_dir = dirname( $tool_dir );
 	}
