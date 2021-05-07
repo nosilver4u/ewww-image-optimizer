@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '613' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '614' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -3743,13 +3743,13 @@ function ewww_image_optimizer_manual() {
 		);
 	} elseif ( 'exceeded quota' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
 		if ( ! wp_doing_ajax() ) {
-			wp_die( '<a href="https://ewww.io/contact-us/" target="_blank">' . esc_html__( 'Soft Quota reached, contact us for more', 'ewww-image-optimizer' ) . '</a>' );
+			wp_die( '<a href="https://docs.ewww.io/article/101-soft-quotas-on-unlimited-plans" data-beacon-article="608ddf128996210f18bd95d3" target="_blank">' . esc_html__( 'Soft quota reached, contact us for more', 'ewww-image-optimizer' ) . '</a>' );
 		}
 		ewwwio_ob_clean();
 		wp_die(
 			wp_json_encode(
 				array(
-					'error' => '<a href="https://ewww.io/contact-us/" target="_blank">' . esc_html__( 'Soft Quota reached, contact us for more', 'ewww-image-optimizer' ) . '</a>',
+					'error' => '<a href="https://docs.ewww.io/article/101-soft-quotas-on-unlimited-plans" data-beacon-article="608ddf128996210f18bd95d3" target="_blank">' . esc_html__( 'Soft quota reached, contact us for more', 'ewww-image-optimizer' ) . '</a>',
 				)
 			)
 		);
@@ -4975,7 +4975,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 			ewwwio_debug_message( 'License Invalid' );
 			ewww_image_optimizer_remove_cloud_key( 'none' );
 		} elseif ( 100 > strlen( $response['body'] ) && strpos( $response['body'], 'exceeded quota' ) ) {
-			ewwwio_debug_message( 'Soft Quota Exceeded' );
+			ewwwio_debug_message( 'Soft quota Exceeded' );
 			set_transient( 'ewww_image_optimizer_cloud_status', 'exceeded quota', HOUR_IN_SECONDS );
 			$msg = 'exceeded quota';
 			ewwwio_delete_file( $tempfile );
@@ -5963,7 +5963,7 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 	}
 	if ( 'exceeded quota' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
 		if ( ! $auto ) {
-			$output['error'] = '<a href="https://ewww.io/contact-us/" target="_blank">' . esc_html__( 'Soft quota reached, contact us for more', 'ewww-image-optimizer' ) . '</a>';
+			$output['error'] = '<a href="https://docs.ewww.io/article/101-soft-quotas-on-unlimited-plans" data-beacon-article="608ddf128996210f18bd95d3" target="_blank">' . esc_html__( 'Soft quota reached, contact us for more', 'ewww-image-optimizer' ) . '</a>';
 			echo wp_json_encode( $output );
 		}
 		if ( $cli ) {
@@ -11829,7 +11829,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<?php if ( false !== strpos( $verify_cloud, 'great' ) ) : ?>
 							<span style="color: #3eadc9; font-weight: bolder"><?php esc_html_e( 'Verified,', 'ewww-image-optimizer' ); ?> </span><?php echo esc_html( ewww_image_optimizer_cloud_quota() ); ?>
 		<?php elseif ( 'exceeded quota' === $verify_cloud ) : ?>
-							<span style="color: orange; font-weight: bolder"><a href="https://ewww.io/contact-us/" target="_blank"><?php esc_html_e( 'Soft quota reached, contact us for more', 'ewww-image-optimizer' ); ?></a></span>
+							<span style="color: orange; font-weight: bolder"><a href="https://docs.ewww.io/article/101-soft-quotas-on-unlimited-plans" data-beacon-article="608ddf128996210f18bd95d3" target="_blank"><?php esc_html_e( 'Soft quota reached, contact us for more', 'ewww-image-optimizer' ); ?></a></span>
 		<?php elseif ( 'exceeded' === $verify_cloud ) : ?>
 							<span style="color: orange; font-weight: bolder"><?php esc_html_e( 'Out of credits', 'ewww-image-optimizer' ); ?></span> - <a href="https://ewww.io/buy-credits/" target="_blank"><?php esc_html_e( 'Purchase more', 'ewww-image-optimizer' ); ?></a>
 		<?php else : ?>

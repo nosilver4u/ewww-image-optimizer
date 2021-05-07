@@ -301,7 +301,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				wp_die(
 					wp_json_encode(
 						array(
-							'error' => '<a href="https://ewww.io/contact-us/" target="_blank">' . esc_html__( 'Soft quota reached, contact us for more', 'ewww-image-optimizer' ) . '</a>',
+							'error' => '<a href="https://docs.ewww.io/article/101-soft-quotas-on-unlimited-plans" target="_blank">' . esc_html__( 'Soft quota reached, contact us for more', 'ewww-image-optimizer' ) . '</a>',
 						)
 					)
 				);

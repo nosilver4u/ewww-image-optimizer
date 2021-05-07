@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.4
 Tested up to: 5.7
 Requires PHP: 7.1
-Stable tag: 6.1.3
+Stable tag: 6.1.4
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -136,6 +136,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * changed: better handling for API quotas
 * fixed: picture elements not parsed when using JS WebP with Lazy Load
 * fixed: bundled tools don't work if the binary/tool directory is mounted on a filesystem separate from wp-content/
+* fixed: bulk optimizer not finding images from cloud storage (like S3) when local versions are removed
 
 = 6.1.3 =
 * changed: bulk optimizer no longer skips image types set to "no compression" in WebP-only mode
