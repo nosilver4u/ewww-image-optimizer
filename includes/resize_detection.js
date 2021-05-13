@@ -45,6 +45,9 @@ function clearScaledImages() {
 }
 document.addEventListener('lazyloaded', function(e){
 	e.target.classList.remove('scaled-image');
-        e.target.title = '';
+	var current_title = e.target.title;
+	if (0 === current_title.search('Forced to wrong size')) {
+        	e.target.title = '';
+	}
 	checkImageScale(e.target);
 });

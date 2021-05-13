@@ -132,6 +132,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 6.1.5 =
+* fixed: prevent erasing title attributes for admin users when Lazy Load and Resize Detection are enabled
+
 = 6.1.4 =
 * changed: better handling for API quotas
 * fixed: picture elements not parsed when using JS WebP with Lazy Load
