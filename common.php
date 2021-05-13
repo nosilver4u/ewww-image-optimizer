@@ -6275,6 +6275,8 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 			} else {
 				unlink( $temp_file );
 			}
+		} elseif ( is_wp_error( $temp_file ) ) {
+			ewwwio_debug_message( 'could not download: ' . $temp_file->get_error_message() );
 		}
 		// Resized versions, so we'll grab those too.
 		if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
@@ -6352,6 +6354,8 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 			if ( ! ewwwio_is_file( $filename ) ) {
 				ewwwio_debug_message( 'download failed' );
 			}
+		} elseif ( is_wp_error( $temp_file ) ) {
+			ewwwio_debug_message( 'could not download: ' . $temp_file->get_error_message() );
 		}
 		$base_dir = trailingslashit( dirname( $filename ) );
 		// Original image detected.
@@ -6369,6 +6373,8 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 						wp_mkdir_p( $base_dir );
 					}
 					ewwwio_rename( $temp_file, $resize_path );
+				} elseif ( is_wp_error( $temp_file ) ) {
+					ewwwio_debug_message( 'could not download: ' . $temp_file->get_error_message() );
 				}
 			}
 		}
@@ -12300,7 +12306,8 @@ AddType image/webp .webp</pre>
 						<span><?php ewwwio_help_link( 'https://docs.ewww.io/article/16-ewww-io-and-webp-images', '5854745ac697912ffd6c1c89,59443d162c7d3a0747cdf9f0' ); ?></span><br>
 						<p class='description'>
 							<?php esc_html_e( 'A JavaScript-free rewriting method using picture tags.', 'ewww-image-optimizer' ); ?>
-							<?php esc_html_e( 'Some themes may not display <picture> tags properly, and does not support CSS background images.', 'ewww-image-optimizer' ); ?>
+							<?php esc_html_e( 'Some themes may not display <picture> tags properly.', 'ewww-image-optimizer' ); ?>
+							<?php esc_html_e( 'May be combined with JS WebP and Lazy Load for CSS background image support.', 'ewww-image-optimizer' ); ?>
 						</p>
 					</td>
 				</tr>
