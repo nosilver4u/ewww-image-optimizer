@@ -899,7 +899,7 @@ function ewww_image_optimizer_should_resize( $file, $media = false ) {
 		$maxwidth  = ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' );
 		$maxheight = ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' );
 	}
-	list( $oldwidth, $oldheight ) = getimagesize( $file );
+	list( $oldwidth, $oldheight ) = wp_getimagesize( $file );
 	if ( ( $maxwidth && $oldwidth > $maxwidth ) || ( $maxheight && $oldheight > $maxheight ) ) {
 		ewwwio_debug_message( "$file ($oldwidth x $oldheight) larger than $maxwidth x $maxheight" );
 		return true;

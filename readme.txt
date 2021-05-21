@@ -133,7 +133,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.1.5 =
+* changed: use core wp_getimagesize() for proper error handling
 * fixed: prevent erasing title attributes for admin users when Lazy Load and Resize Detection are enabled
+* fixed: creates empty file when image is too large for WebP conversion
 
 = 6.1.4 =
 * changed: better handling for API quotas

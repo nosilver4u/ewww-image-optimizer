@@ -242,7 +242,7 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 					$file = $this->url_to_path_exists( $url );
 				}
 				if ( $file && $this->is_file( $file ) ) {
-					list( $width, $height ) = getimagesize( $file );
+					list( $width, $height ) = wp_getimagesize( $file );
 				}
 			}
 			$width  = $width && is_numeric( $width ) ? (int) $width : false;

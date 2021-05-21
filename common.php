@@ -483,6 +483,18 @@ if ( ! function_exists( 'boolval' ) ) {
 		return (bool) $value;
 	}
 }
+if ( ! function_exists( 'wp_getimagesize' ) ) {
+	/**
+	 * Stub for WP prior to 5.7.
+	 *
+	 * @param string $filename The file path.
+	 * @return array|false Array of image information or false on failure.
+	 */
+	function wp_getimagesize( $filename ) {
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors
+		return @getimagesize( $filename );
+	}
+}
 
 /**
  * Wrapper around json_encode to handle non-utf8 characters.
@@ -3836,7 +3848,7 @@ function ewww_image_optimizer_cloud_restore_from_meta_data( $id, $gallery = 'med
 		}
 		ewww_image_optimizer_cloud_restore_single_image( $image );
 		if ( 'media' === $gallery && 'full' === $image['resize'] && ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
-			list( $width, $height ) = getimagesize( $image['path'] );
+			list( $width, $height ) = wp_getimagesize( $image['path'] );
 			if ( (int) $width !== (int) $meta['width'] || (int) $height !== (int) $meta['height'] ) {
 				$meta['height'] = $height;
 				$meta['width']  = $width;
@@ -6925,7 +6937,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
 		return false;
 	}
 	// Check file size (dimensions).
-	list( $oldwidth, $oldheight ) = getimagesize( $file );
+	list( $oldwidth, $oldheight ) = wp_getimagesize( $file );
 	if ( $oldwidth <= $maxwidth && $oldheight <= $maxheight ) {
 		ewwwio_debug_message( 'image too small for resizing' );
 		/* translators: 1: width in pixels 2: height in pixels */
@@ -8587,7 +8599,7 @@ function ewww_image_optimizer_png_alpha( $filename ) {
 			ewwwio_debug_message( 'transparency found' );
 			return true;
 		}
-		list( $width, $height ) = getimagesize( $filename );
+		list( $width, $height ) = wp_getimagesize( $filename );
 		ewwwio_debug_message( "image dimensions: $width x $height" );
 		ewwwio_debug_message( 'preparing to scan image' );
 		for ( $y = 0; $y < $height; $y++ ) {
@@ -10586,7 +10598,7 @@ function ewwwio_debug_info() {
 	ewwwio_debug_message( $webp_paths );
 	ewwwio_debug_message( 'forced webp: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ? 'on' : 'off' ) );
 	if ( ewww_image_optimizer_cloud_based_media() ) {
-		ewwwio_debug_message( 'forced webp auto-enabled' );
+		ewwwio_debug_message( 'cloud-based media (no local copies), force webp auto-enabled' );
 	}
 	ewwwio_debug_message( 'forced gif2webp: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_force_gif2webp' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'enable help beacon: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ? 'yes' : 'no' ) );

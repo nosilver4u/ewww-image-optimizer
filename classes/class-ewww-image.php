@@ -626,7 +626,7 @@ class EWWW_Image {
 					// Retrieve the data from the PNG.
 					$input = imagecreatefrompng( $file );
 					// Retrieve the dimensions of the PNG.
-					list( $width, $height ) = getimagesize( $file );
+					list( $width, $height ) = wp_getimagesize( $file );
 					// Create a new image with those dimensions.
 					$output = imagecreatetruecolor( $width, $height );
 					if ( '' === $r ) {

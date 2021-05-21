@@ -546,8 +546,8 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			}
 			$this->debug_message( "current placeholder is $placeholder_src" );
 
+			$placeholder_src = apply_filters( 'eio_lazy_placeholder', $placeholder_src, $image );
 			if ( $srcset ) {
-				$placeholder_src = apply_filters( 'eio_lazy_placeholder', $placeholder_src, $image );
 				if ( strpos( $placeholder_src, '64,R0lGOD' ) ) {
 					$this->set_attribute( $image, 'srcset', $placeholder_src, true );
 					$this->remove_attribute( $image, 'src' );

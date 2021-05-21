@@ -67,7 +67,7 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 		$id = $this->factory->attachment->create_upload_object( self::$test_jpg );
 		$meta = wp_get_attachment_metadata( $id );
 		list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
-		list( $width, $height ) = getimagesize( $file_path );
+		list( $width, $height ) = wp_getimagesize( $file_path );
 		$this->assertEquals( 576, $width );
 		$this->assertEquals( 1024, $height );
 	}
@@ -87,7 +87,7 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 		remove_filter( 'ewww_image_optimizer_crop_image', '__return_true' );
 		$meta = wp_get_attachment_metadata( $id );
 		list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
-		list( $width, $height ) = getimagesize( $file_path );
+		list( $width, $height ) = wp_getimagesize( $file_path );
 		$this->assertEquals( 1024, $width );
 		$this->assertEquals( 1024, $height );
 	}
@@ -106,7 +106,7 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 		$id = $this->factory->attachment->create_upload_object( self::$test_jpg );
 		$meta = wp_get_attachment_metadata( $id );
 		list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
-		list( $width, $height ) = getimagesize( $file_path );
+		list( $width, $height ) = wp_getimagesize( $file_path );
 		$this->assertEquals( 576, $width );
 		$this->assertEquals( 1024, $height );
 	}
@@ -127,7 +127,7 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 		remove_filter( 'ewww_image_optimizer_crop_image', '__return_true' );
 		$meta = wp_get_attachment_metadata( $id );
 		list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
-		list( $width, $height ) = getimagesize( $file_path );
+		list( $width, $height ) = wp_getimagesize( $file_path );
 		$this->assertEquals( 1024, $width );
 		$this->assertEquals( 1024, $height );
 	}
