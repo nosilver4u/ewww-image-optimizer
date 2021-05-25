@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '614' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '615' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -3649,15 +3649,16 @@ function ewwwio_delete_file( $file, $dir = '' ) {
 function ewwwio_chmod( $file, $mode ) {
 	global $eio_filesystem;
 	ewwwio_get_filesystem();
+	clearstatcache();
 	$file       = realpath( $file );
 	$upload_dir = wp_get_upload_dir();
-	if ( false !== strpos( $file, $upload_dir['basedir'] ) ) {
+	if ( false !== strpos( $file, $upload_dir['basedir'] ) && is_writable( $file ) ) {
 		return $eio_filesystem->chmod( $file, $mode );
 	}
-	if ( false !== strpos( $file, WP_CONTENT_DIR ) ) {
+	if ( false !== strpos( $file, WP_CONTENT_DIR ) && is_writable( $file ) ) {
 		return $eio_filesystem->chmod( $file, $mode );
 	}
-	if ( false !== strpos( $file, ABSPATH ) ) {
+	if ( false !== strpos( $file, ABSPATH ) && is_writable( $file ) ) {
 		return $eio_filesystem->chmod( $file, $mode );
 	}
 	return false;
@@ -12932,7 +12933,7 @@ AddType image/webp .webp</pre>
 			<p>
 				<a class='ewww-docs-root' href='https://docs.ewww.io/'><?php esc_html_e( 'Documentation', 'ewww-image-optimizer' ); ?></a> |
 				<a class='ewww-docs-root' href='https://ewww.io/contact-us/'><?php esc_html_e( 'Plugin Support', 'ewww-image-optimizer' ); ?></a> |
-				<a href='https://feedback.ewww.io/'><?php esc_html_e( 'Submit Feedback', 'ewww-image-optimizer' ); ?></a> |
+				<a href='https://feedback.ewww.io/b/features'><?php esc_html_e( 'Submit Feedback', 'ewww-image-optimizer' ); ?></a> |
 				<a href='https://ewww.io/status/'><?php esc_html_e( 'Server Status', 'ewww-image-optimizer' ); ?></a>
 			</p>
 			<p style='float:right;'>

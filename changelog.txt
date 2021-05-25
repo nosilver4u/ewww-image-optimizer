@@ -1,3 +1,8 @@
+= 6.1.5 =
+* changed: use core wp_getimagesize() for proper error handling
+* fixed: prevent erasing title attributes for admin users when Lazy Load and Resize Detection are enabled
+* fixed: creates empty file when image is too large for WebP conversion
+
 = 6.1.4 =
 * changed: better handling for API quotas
 * fixed: picture elements not parsed when using JS WebP with Lazy Load
