@@ -255,9 +255,23 @@ function ewww_image_optimizer_bulk_preview() {
 		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
 		ewww_image_optimizer_easy_active()
 	) {
-		echo '<div id="ewww-bulk-warning" class="ewww-bulk-info notice notice-warning"><p>' . esc_html__( 'Easy IO is automatically optimizing your site! Bulk Optimization of local images is not necessary unless you wish to save storage space. Please be sure you have a backup of your images before proceeding.', 'ewww-image-optimizer' ) . '</p></div>';
+		?>
+		<div id="ewww-bulk-warning" class="ewww-bulk-info notice notice-warning">
+			<p>
+				<?php esc_html_e( 'Easy IO is automatically optimizing your site! Bulk Optimization of local images is not necessary unless you wish to save storage space. Please be sure you have a backup of your images before proceeding.', 'ewww-image-optimizer' ); ?>
+				<?php ewww_image_optimizer_bulk_resize_warning_message(); ?>
+			</p>
+		</div>
+		<?php
 	} else {
-		echo '<div id="ewww-bulk-warning" class="ewww-bulk-info notice notice-warning"><p>' . esc_html__( 'Bulk Optimization will alter your original images and cannot be undone. Please be sure you have a backup of your images before proceeding.', 'ewww-image-optimizer' ) . '</p></div>';
+		?>
+		<div id="ewww-bulk-warning" class="ewww-bulk-info notice notice-warning">
+			<p>
+				<?php esc_html_e( 'Bulk Optimization will alter your original images and cannot be undone. Please be sure you have a backup of your images before proceeding.', 'ewww-image-optimizer' ); ?>
+				<?php ewww_image_optimizer_bulk_resize_warning_message(); ?>
+			</p>
+		</div>
+		<?php
 	}
 	// Retrieve the value of the 'bulk resume' option and set the button text for the form to use.
 	$resume = get_option( 'ewww_image_optimizer_bulk_resume' );
@@ -312,6 +326,31 @@ function ewww_image_optimizer_bulk_preview() {
 	ewww_image_optimizer_aux_images();
 }
 
+/**
+ * Make sure folks know their images will be resized during bulk optimization.
+ */
+function ewww_image_optimizer_bulk_resize_warning_message() {
+	if (
+		ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) &&
+		( ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' ) )
+	) {
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_other_existing' ) ) {
+			printf(
+				/* translators: 1: width in pixels, 2: height in pixels */
+				esc_html__( 'All images will be scaled to %1$d x %2$d.', 'ewww-image-optimizer' ),
+				(int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' ),
+				(int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' ),
+			);
+		} else {
+			printf(
+				/* translators: 1: width in pixels, 2: height in pixels */
+				esc_html__( 'All images in the Media Library will be scaled to %1$d x %2$d.', 'ewww-image-optimizer' ),
+				(int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' ),
+				(int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' ),
+			);
+		}
+	}
+}
 /**
  * Outputs the status area and delay/force controls for the Bulk optimize page.
  */
@@ -2051,7 +2090,6 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 	/* translators: %s: number of seconds */
 	$output['results'] .= sprintf( '<p>' . esc_html( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $elapsed, 'ewww-image-optimizer' ) ) . '</p>', number_format_i18n( $elapsed, 1 ) );
 	// Store the updated list of attachment IDs back in the 'bulk_attachments' option.
-	// update_option( 'ewww_image_optimizer_bulk_attachments', $attachments, false );.
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 		global $eio_debug;
 		$debug_button       = esc_html__( 'Show Debug Output', 'ewww-image-optimizer' );

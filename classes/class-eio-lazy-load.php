@@ -970,15 +970,20 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				wp_enqueue_script( 'eio-lazy-load-print', plugins_url( '/includes/ls.print.js', $plugin_file ), array(), $this->version );
 			}
 			$threshold = defined( 'EIO_LL_THRESHOLD' ) && EIO_LL_THRESHOLD ? EIO_LL_THRESHOLD : 0;
-			wp_localize_script(
+			wp_add_inline_script(
 				'eio-lazy-load',
-				'eio_lazy_vars',
-				array(
-					'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
-					'skip_autoscale' => ( defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
-					'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
-				)
+				'var eio_lazy_vars = ' .
+					wp_json_encode(
+						array(
+							'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
+							'skip_autoscale' => ( defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
+							'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
+						)
+					)
+					. ';',
+				'before'
 			);
+			return;
 		}
 
 		/**
@@ -995,15 +1000,20 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				wp_enqueue_script( 'eio-lazy-load-print', plugins_url( '/includes/ls.print.min.js', $plugin_file ), array(), $this->version );
 			}
 			$threshold = defined( 'EIO_LL_THRESHOLD' ) && EIO_LL_THRESHOLD ? EIO_LL_THRESHOLD : 0;
-			wp_localize_script(
+			wp_add_inline_script(
 				'eio-lazy-load',
-				'eio_lazy_vars',
-				array(
-					'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
-					'skip_autoscale' => ( defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
-					'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
-				)
+				'var eio_lazy_vars = ' .
+					wp_json_encode(
+						array(
+							'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
+							'skip_autoscale' => ( defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
+							'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
+						)
+					)
+					. ';',
+				'before'
 			);
+			return;
 		}
 	}
 }

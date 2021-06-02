@@ -12037,6 +12037,13 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	<?php else : ?>
 						<p class='description'>
 							<?php esc_html_e( 'Resize uploaded images to these dimensions (in pixels).', 'ewww-image-optimizer' ); ?>
+							<?php
+							printf(
+								/* translators: %s: Bulk Optimizer (link) */
+								esc_html__( 'Use the %s for existing uploads.', 'ewww-image-optimizer' ),
+								'<a href="' . esc_url( admin_url( 'upload.php?page=ewww-image-optimizer-bulk' ) ) . '">' . esc_html__( 'Bulk Optimizer', 'ewww-image-optimizer' ) . '</a>',
+							);
+							?>
 						</p>
 	<?php endif; ?>
 					</td>
