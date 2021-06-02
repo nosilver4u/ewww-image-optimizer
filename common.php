@@ -82,6 +82,8 @@ if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
 	add_filter( 'mpp_generate_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
 	// Processes an attachment after IRSC has done a thumb regen.
 	add_filter( 'sirsc_attachment_images_ready', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
+	// Process BuddyPress uploads from Vikinger theme.
+	add_action( 'vikinger_file_uploaded', 'ewww_image_optimizer' );
 }
 // Skips resizing for images with 'noresize' in the filename.
 add_filter( 'ewww_image_optimizer_resize_dimensions', 'ewww_image_optimizer_noresize', 10, 2 );
@@ -210,6 +212,7 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 if ( 'done' !== get_option( 'ewww_image_optimizer_relative_migration_status' ) ) {
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-relative-migration.php' );
 }
+require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-alt-webp-weglot-alt.php' );
 
 /**
  * Setup page parsing classes after theme functions.php is loaded and plugins have run init routines.
@@ -12041,7 +12044,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							printf(
 								/* translators: %s: Bulk Optimizer (link) */
 								esc_html__( 'Use the %s for existing uploads.', 'ewww-image-optimizer' ),
-								'<a href="' . esc_url( admin_url( 'upload.php?page=ewww-image-optimizer-bulk' ) ) . '">' . esc_html__( 'Bulk Optimizer', 'ewww-image-optimizer' ) . '</a>',
+								'<a href="' . esc_url( admin_url( 'upload.php?page=ewww-image-optimizer-bulk' ) ) . '">' . esc_html__( 'Bulk Optimizer', 'ewww-image-optimizer' ) . '</a>'
 							);
 							?>
 						</p>
