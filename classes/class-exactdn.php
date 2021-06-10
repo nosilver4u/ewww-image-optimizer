@@ -1114,6 +1114,11 @@ if ( ! class_exists( 'ExactDN' ) ) {
 							}
 						}
 
+						// Override fit by class/id/attr 'img-crop'.
+						if ( 'fit' === $transform && strpos( $images['img_tag'][ $index ], 'img-crop' ) ) {
+							$transform = 'resize';
+						}
+
 						// Detect if image source is for a custom-cropped thumbnail and prevent further URL manipulation.
 						if ( ! $fullsize_url && preg_match_all( '#-e[a-z0-9]+(-\d+x\d+)?\.(' . implode( '|', $this->extensions ) . '){1}$#i', wp_basename( $src ), $filename ) ) {
 							$fullsize_url = true;

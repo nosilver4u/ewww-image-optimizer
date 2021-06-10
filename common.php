@@ -12469,7 +12469,7 @@ AddType image/webp .webp</pre>
 				<tr>
 					<th scope='row'>
 						<label for='ewww_image_optimizer_jpg_level'><?php esc_html_e( 'JPG Optimization Level', 'ewww-image-optimizer' ); ?></label>
-						<?php ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ); ?>
+						<?php ewwwio_help_link( 'https://docs.ewww.io/article/102-local-compression-options', '60c24b24a6d12c2cd643e9fb' ); ?>
 					</th>
 					<td>
 						<select id='ewww_image_optimizer_jpg_level' name='ewww_image_optimizer_jpg_level'>
@@ -12496,7 +12496,7 @@ AddType image/webp .webp</pre>
 				<tr>
 					<th scope='row'>
 						<label for='ewww_image_optimizer_png_level'><?php esc_html_e( 'PNG Optimization Level', 'ewww-image-optimizer' ); ?></label>
-						<?php ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2,5854531bc697912ffd6c1afa' ); ?>
+						<?php ewwwio_help_link( 'https://docs.ewww.io/article/102-local-compression-options', '60c24b24a6d12c2cd643e9fb' ); ?>
 					</th>
 					<td>
 						<select id='ewww_image_optimizer_png_level' name='ewww_image_optimizer_png_level'>
@@ -12523,7 +12523,7 @@ AddType image/webp .webp</pre>
 				<tr>
 					<th scope='row'>
 						<label for='ewww_image_optimizer_gif_level'><?php esc_html_e( 'GIF Optimization Level', 'ewww-image-optimizer' ); ?></label>
-						<?php ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ); ?>
+						<?php ewwwio_help_link( 'https://docs.ewww.io/article/102-local-compression-options', '60c24b24a6d12c2cd643e9fb' ); ?>
 					</th>
 					<td>
 						<select id='ewww_image_optimizer_gif_level' name='ewww_image_optimizer_gif_level'>
@@ -12539,7 +12539,7 @@ AddType image/webp .webp</pre>
 				<tr>
 					<th scope='row'>
 						<label for='ewww_image_optimizer_pdf_level'><?php esc_html_e( 'PDF Optimization Level', 'ewww-image-optimizer' ); ?></label>
-						<?php ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ); ?>
+						<?php ewwwio_help_link( 'https://docs.ewww.io/article/102-local-compression-options', '60c24b24a6d12c2cd643e9fb' ); ?>
 					</th>
 					<td>
 						<select id='ewww_image_optimizer_pdf_level' name='ewww_image_optimizer_pdf_level'>
@@ -12559,7 +12559,7 @@ AddType image/webp .webp</pre>
 				<tr>
 					<th scope='row'>
 						<label for='ewww_image_optimizer_svg_level'><?php esc_html_e( 'SVG Optimization Level', 'ewww-image-optimizer' ); ?></label>
-						<?php ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ); ?>
+						<?php ewwwio_help_link( 'https://docs.ewww.io/article/102-local-compression-options', '60c24b24a6d12c2cd643e9fb' ); ?>
 					</th>
 					<td>
 						<select id='ewww_image_optimizer_svg_level' name='ewww_image_optimizer_svg_level'>
@@ -12600,7 +12600,7 @@ AddType image/webp .webp</pre>
 				<tr>
 					<th scope='row'>
 						<label for='ewww_image_optimizer_backup_files'><?php esc_html_e( 'Backup Originals', 'ewww-image-optimizer' ); ?></label>
-						<?php ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ); ?>
+						<?php ewwwio_help_link( 'https://docs.ewww.io/article/102-local-compression-options', '60c24b24a6d12c2cd643e9fb' ); ?>
 					</th>
 					<td>
 						<input type='checkbox' id='ewww_image_optimizer_backup_files' name='ewww_image_optimizer_backup_files' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ); ?> <?php disabled( $disable_level ); ?>>
@@ -12978,7 +12978,6 @@ AddType image/webp .webp</pre>
 				<tr>
 					<th scope='row'>
 						<label for='ewww_image_optimizer_debug'><?php esc_html_e( 'Debugging', 'ewww-image-optimizer' ); ?></label>
-						<span><?php ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ); ?></span>
 					</th>
 					<td>
 						<input type='checkbox' id='ewww_image_optimizer_debug' name='ewww_image_optimizer_debug' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ); ?> />
