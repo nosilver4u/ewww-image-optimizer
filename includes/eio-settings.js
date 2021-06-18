@@ -7,6 +7,8 @@ jQuery(document).ready(function($) {
 				$('.ewwwio-premium-setup').show();
 			} else {
 				$('.ewwwio-premium-setup').hide();
+				$('#ewww-image-optimizer-warning-opt-missing').show();
+				$('#ewww-image-optimizer-warning-exec').show();
 			}
 		}
 	);
@@ -173,6 +175,10 @@ jQuery(document).ready(function($) {
 				$('#ewwwio-easy-activation-result').show();
 				$('.ewwwio-exactdn-options input').prop('disabled', false);
 				$('.ewwwio-exactdn-options').show();
+				$('#ewww_image_optimizer_webp_container').hide();
+				$('.ewww_image_optimizer_webp_setting_container').hide();
+				$('.ewww_image_optimizer_webp_rewrite_setting_container').hide();
+				$('#ewww_image_optimizer_webp_easyio_container').show();
 			}
 		});
 		return false;

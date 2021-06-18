@@ -401,6 +401,20 @@ a.ewww-remove-image, a.ewww-restore-image {
 	padding-bottom: 0px;
 }
 /* bulk and settings ui */
+#ewww-bulk-credits-available {
+	margin-left: 20px;
+	padding: 4px 8px;
+	position: relative;
+	top: -3px;
+	border: 1px solid #2271b1;
+	border-radius: 2px;
+	text-shadow: none;
+	font-weight: 600;
+	font-size: 13px;
+	line-height: normal;
+	color: #2271b1;
+	background: #f6f7f7;
+}
 h2.ewww-hndle {
 	font-size: 14px;
 	padding: 8px 12px;

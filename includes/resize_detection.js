@@ -20,6 +20,13 @@ function checkImageSizes() {
 	return false;
 }
 function checkImageScale(img) {
+	if (!img.src) {
+		return;
+	}
+	if ('string' == typeof img.src && img.src.search(/\.svg/) > -1) {
+		console.log('not checking size of SVG: ' + img.src);
+		return;
+	}
 	console.log('checking size of: ' + img.src);
         if (img.naturalWidth) {
         	if (img.naturalWidth > 25 && img.naturalHeight > 25 && img.clientWidth > 25 && img.clientHeight > 25) {

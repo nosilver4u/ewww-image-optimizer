@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.4
 Tested up to: 5.7
 Requires PHP: 7.1
-Stable tag: 6.1.5
+Stable tag: 6.1.6
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -137,6 +137,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: compatibility with Weglot.
 * added: use 'img-crop' id/class, or data-img-crop attribute to force cropping with Easy IO + Lazy Load.
 * changed: Resize Existing enabled by default for new installs.
+* changed: Lazy Load JS moved to footer
+* fixed: prevent Resize Detection from flagging SVG files.
 
 = 6.1.5 =
 * changed: use core wp_getimagesize() for proper error handling

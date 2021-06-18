@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '615.1' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '616.0' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -475,17 +475,6 @@ function ewww_image_optimizer_superadmin_permissions( $permissions ) {
 	return $permissions;
 }
 
-if ( ! function_exists( 'boolval' ) ) {
-	/**
-	 * Cast a value to boolean.
-	 *
-	 * @param mixed $value Any value that can be cast to boolean.
-	 * @return bool The boolean version of the provided value.
-	 */
-	function boolval( $value ) {
-		return (bool) $value;
-	}
-}
 if ( ! function_exists( 'wp_getimagesize' ) ) {
 	/**
 	 * Stub for WP prior to 5.7.
@@ -4707,12 +4696,15 @@ function ewww_image_optimizer_cloud_quota( $raw = false ) {
 		if ( $raw ) {
 			return $quota;
 		}
-		if ( ! empty( $quota['unlimited'] ) ) {
-			$quota['consumed'] = max( $quota['consumed'], 0 );
+		if ( ! empty( $quota['unlimited'] ) && $quota['consumed'] >= 0 ) {
+			$consumed  = (int) $quota['consumed'];
+			$soft_cap  = '<a title="Help" data-beacon-article="608ddf128996210f18bd95d3" href="https://docs.ewww.io/article/101-soft-quotas-on-unlimited-plans">' . (int) $quota['soft_cap'] . '</a>';
+			$soft_cap .= ewwwio_get_help_link( 'https://docs.ewww.io/article/101-soft-quotas-on-unlimited-plans', '608ddf128996210f18bd95d3' );
 			return sprintf(
-				/* translators: %d: Number of images */
-				__( 'optimized %d images.', 'ewww-image-optimizer' ),
-				$quota['consumed']
+				/* translators: 1: Number of images optimized, 2: image quota */
+				__( 'optimized %1$d (of %2$s) images.', 'ewww-image-optimizer' ),
+				$consumed,
+				$soft_cap
 			);
 		} elseif ( ! $quota['licensed'] && $quota['consumed'] > 0 ) {
 			return sprintf(
@@ -10793,48 +10785,6 @@ function ewww_image_optimizer_intro_wizard() {
 		</div>
 		<div id='ewwwio-wizard-body'>
 	<?php if ( 1 === $wizard_step ) : ?>
-		<?php if ( $display_exec_notice ) : ?>
-			<div id='ewww-image-optimizer-warning-exec' class='ewwwio-notice notice-warning'>
-				<?php esc_html_e( 'Sites where the exec() function is disabled require cloud-based optimization, because free server-based optimization will not work.', 'ewww-image-optimizer' ); ?>
-				<br>
-				<strong>
-					<?php esc_html_e( 'You may ask your system administrator to enable exec() for free server-based optimization. Otherwise, choose between free cloud-based JPG-only compression and premium optimization below.', 'ewww-image-optimizer' ); ?>
-					<?php ewwwio_help_link( 'https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it', '592dd12d0428634b4a338c39' ); ?>
-				</strong>
-			</div>
-		<?php elseif ( $tools_missing_notice && $tools_available ) : ?>
-			<div id='ewww-image-optimizer-warning-opt-missing' class='ewwwio-notice notice-warning'>
-				<?php
-				printf(
-					/* translators: %s: comma-separated list of missing tools */
-					esc_html__( 'EWWW Image Optimizer uses open-source tools to enable free mode, but your server is missing these: %s.', 'ewww-image-optimizer' ),
-					esc_html( $tools_missing_message )
-				);
-				echo '<br><br>';
-				printf(
-					/* translators: %s: Installation Instructions (link) */
-					esc_html__( 'You may install missing tools via the %s or continue with reduced functionality.', 'ewww-image-optimizer' ),
-					"<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something' data-beacon-article='585371e3c697912ffd6c0ba1' target='_blank'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>'
-				);
-				?>
-			</div>
-		<?php elseif ( $tools_missing_notice ) : ?>
-			<div id='ewww-image-optimizer-warning-opt-missing' class='ewwwio-notice notice-warning'>
-				<?php
-				printf(
-					/* translators: %s: comma-separated list of missing tools */
-					esc_html__( 'EWWW Image Optimizer uses open-source tools to enable free mode, but your server is missing these: %s.', 'ewww-image-optimizer' ),
-					esc_html( $tools_missing_message )
-				);
-				echo '<br><br>';
-				printf(
-					/* translators: %s: Installation Instructions (link) */
-					esc_html__( 'You may install missing tools via the %s. Otherwise, choose between free cloud-based JPG-only compression and premium optimization below.', 'ewww-image-optimizer' ),
-					"<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something' data-beacon-article='585371e3c697912ffd6c0ba1' target='_blank'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>'
-				);
-				?>
-			</div>
-		<?php endif; ?>
 			<form id='ewwwio-wizard-step-1' class='ewwwio-wizard-form' method='post' action=''>
 				<input type='hidden' name='ewwwio_wizard_step' value='2' />
 				<?php wp_nonce_field( 'ewww_image_optimizer_wizard' ); ?>
@@ -10847,9 +10797,10 @@ function ewww_image_optimizer_intro_wizard() {
 				</div>
 				<div class='ewwwio-wizard-form-group'>
 					<input type='radio' id='ewww_image_optimizer_budget_pay' name='ewww_image_optimizer_budget' value='pay' required <?php checked( $show_premium ); ?>/>
-					<label for='ewww_image_optimizer_budget_pay'><?php esc_html_e( 'Get 5x more optimization and priority support', 'ewww-image-optimizer' ); ?></label><br>
+					<label for='ewww_image_optimizer_budget_pay'><?php esc_html_e( 'Activate 5x more optimization and priority support', 'ewww-image-optimizer' ); ?></label><br>
 					<div class="ewwwio-wizard-form-group ewwwio-premium-setup" <?php echo ( $show_premium ? "style='display:block'" : '' ); ?>>
-						<p><strong><a href='https://ewww.io/plans/' target='_blank'>&gt;&gt;<?php esc_html_e( 'Start your free trial', 'ewww-image-optimizer' ); ?></a></strong></p>
+						<?php /* translators: %s: free trial (link) */ ?>
+						<p><strong>&gt;&gt;<?php printf( esc_html__( 'Start your %s or activate your service below', 'ewww-image-optimizer' ), "<a href='https://ewww.io/plans/' target='_blank'>" . esc_html__( 'free trial', 'ewww-image-optimizer' ) . '</a>' ); ?></strong></p>
 						<div id='ewwwio-api-activation-result'></div>
 						<p id='ewww_image_optimizer_cloud_key_container'>
 							<label for='ewww_image_optimizer_cloud_key'><?php esc_html_e( 'Compress API Key', 'ewww-image-optimizer' ); ?></label><br>
@@ -10876,9 +10827,9 @@ function ewww_image_optimizer_intro_wizard() {
 								?>
 							</span>
 		<?php if ( empty( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) ) : ?>
-							<br>
+							<br><br>
 							<a href="<?php echo esc_url( add_query_arg( 'site_url', trim( $easyio_site_url ), 'https://ewww.io/manage-sites/' ) ); ?>" target="_blank">
-								<?php esc_html_e( 'Add your Site URL to your account:', 'easy-image-optimizer' ); ?>
+								<?php esc_html_e( 'First, add your Site URL to your account:', 'easy-image-optimizer' ); ?>
 							</a>
 							<input type='text' id='exactdn_site_url' name='exactdn_site_url' value='<?php echo esc_url( trim( $easyio_site_url ) ); ?>' readonly />
 							<span id='exactdn-site-url-copy'><?php esc_html_e( 'Click to Copy', 'ewww-image-optimizer' ); ?></span>
@@ -10893,6 +10844,48 @@ function ewww_image_optimizer_intro_wizard() {
 					</div>
 					<input type='radio' id='ewww_image_optimizer_budget_free' name='ewww_image_optimizer_budget' value='free' required />
 					<label for='ewww_image_optimizer_budget_free'><?php esc_html_e( 'Stick with free mode for now', 'ewww-image-optimizer' ); ?></label>
+		<?php if ( $display_exec_notice ) : ?>
+					<div id='ewww-image-optimizer-warning-exec' class='ewwwio-notice notice-warning' style='display:none;'>
+						<?php esc_html_e( 'Sites where the exec() function is disabled require cloud-based optimization, because free server-based optimization will not work.', 'ewww-image-optimizer' ); ?>
+						<br>
+						<strong>
+							<?php esc_html_e( 'You may ask your system administrator to enable exec() for free server-based optimization. Otherwise, continue with free cloud-based JPG-only compression or select premium optimization above.', 'ewww-image-optimizer' ); ?>
+							<?php ewwwio_help_link( 'https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it', '592dd12d0428634b4a338c39' ); ?>
+						</strong>
+					</div>
+		<?php elseif ( $tools_missing_notice && $tools_available ) : ?>
+					<div id='ewww-image-optimizer-warning-opt-missing' class='ewwwio-notice notice-warning' style='display:none;'>
+						<?php
+						printf(
+							/* translators: %s: comma-separated list of missing tools */
+							esc_html__( 'EWWW Image Optimizer uses open-source tools to enable free mode, but your server is missing these: %s.', 'ewww-image-optimizer' ),
+							esc_html( $tools_missing_message )
+						);
+						echo '<br><br>';
+						printf(
+							/* translators: %s: Installation Instructions (link) */
+							esc_html__( 'You may install missing tools via the %s or continue with reduced functionality.', 'ewww-image-optimizer' ),
+							"<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something' data-beacon-article='585371e3c697912ffd6c0ba1' target='_blank'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>'
+						);
+						?>
+					</div>
+		<?php elseif ( $tools_missing_notice ) : ?>
+					<div id='ewww-image-optimizer-warning-opt-missing' class='ewwwio-notice notice-warning' style='display:none;'>
+						<?php
+						printf(
+							/* translators: %s: comma-separated list of missing tools */
+							esc_html__( 'EWWW Image Optimizer uses open-source tools to enable free mode, but your server is missing these: %s.', 'ewww-image-optimizer' ),
+							esc_html( $tools_missing_message )
+						);
+						echo '<br><br>';
+						printf(
+							/* translators: %s: Installation Instructions (link) */
+							esc_html__( 'You may install missing tools via the %s. Otherwise, continue with free cloud-based JPG-only compression or select premium optimization above.', 'ewww-image-optimizer' ),
+							"<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something' data-beacon-article='585371e3c697912ffd6c0ba1' target='_blank'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>'
+						);
+						?>
+					</div>
+		<?php endif; ?>
 				</div>
 				<div class='ewwwio-flex-space-between'>
 					<p><input type='submit' class='button-primary' value='<?php esc_attr_e( 'Next', 'ewww-image-optimizer' ); ?>' /></p>
@@ -11849,7 +11842,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<input type='hidden' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='<?php echo esc_attr( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ); ?>' />
 						<p>
 		<?php if ( false !== strpos( $verify_cloud, 'great' ) ) : ?>
-							<span style="color: #3eadc9; font-weight: bolder"><?php esc_html_e( 'Verified,', 'ewww-image-optimizer' ); ?> </span><?php echo esc_html( ewww_image_optimizer_cloud_quota() ); ?>
+							<span style="color: #3eadc9; font-weight: bolder"><?php esc_html_e( 'Verified,', 'ewww-image-optimizer' ); ?> </span><?php echo wp_kses_post( ewww_image_optimizer_cloud_quota() ); ?>
 		<?php elseif ( 'exceeded quota' === $verify_cloud ) : ?>
 							<span style="color: orange; font-weight: bolder"><a href="https://docs.ewww.io/article/101-soft-quotas-on-unlimited-plans" data-beacon-article="608ddf128996210f18bd95d3" target="_blank"><?php esc_html_e( 'Soft quota reached, contact us for more', 'ewww-image-optimizer' ); ?></a></span>
 		<?php elseif ( 'exceeded' === $verify_cloud ) : ?>
@@ -12165,14 +12158,16 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<?php endif; ?>
 	<?php endif; ?>
 	<?php if ( $free_exec ) : ?>
-				<tr>
-					<th>&nbsp;</th>
+				<tr id='ewww_image_optimizer_webp_container'>
+					<th scope='row'>
+						<label for='ewww_image_optimizer_webp'><?php esc_html_e( 'WebP Conversion', 'ewww-image-optimizer' ); ?></label>
+					</th>
 					<td>
-						<p class='description'><?php esc_html_e( 'WebP conversion requires an API key or Easy IO subscription.', 'ewww-image-optimizer' ); ?></p>
+						<p class='description'><?php esc_html_e( 'Your site needs an API key or Easy IO subscription for WebP conversion.', 'ewww-image-optimizer' ); ?></p>
 					</td>
 				</tr>
 	<?php elseif ( ! ewww_image_optimizer_easy_active() || ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) : ?>
-				<tr>
+				<tr id='ewww_image_optimizer_webp_container'>
 					<th scope='row'>
 						<label for='ewww_image_optimizer_webp'><?php esc_html_e( 'WebP Conversion', 'ewww-image-optimizer' ); ?></label>
 						<span><?php ewwwio_help_link( 'https://docs.ewww.io/article/16-ewww-io-and-webp-images', '5854745ac697912ffd6c1c89' ); ?></span>
@@ -12425,17 +12420,30 @@ AddType image/webp .webp</pre>
 							?>
 						</p>
 					</td>
+				</tr>
 		<?php endif; ?>
+				<tr id='ewww_image_optimizer_webp_easyio_container' style='display:none;'>
+					<th scope='row'>
+						<label for='ewww_image_optimizer_webp'><?php esc_html_e( 'WebP Conversion', 'ewww-image-optimizer' ); ?></label>
+					</th>
+					<td>
+						<p class='description'><?php esc_html_e( 'WebP images are served automatically by Easy IO.', 'ewww-image-optimizer' ); ?></p>
+					</td>
+				</tr>
 	<?php elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) : ?>
-				<tr>
-					<th>&nbsp;</th>
+				<tr id='ewww_image_optimizer_webp_easyio_container'>
+					<th scope='row'>
+						<label for='ewww_image_optimizer_webp'><?php esc_html_e( 'WebP Conversion', 'ewww-image-optimizer' ); ?></label>
+					</th>
 					<td>
 						<p class='description'><?php esc_html_e( 'WebP images are served automatically by Easy IO.', 'ewww-image-optimizer' ); ?></p>
 					</td>
 				</tr>
 	<?php elseif ( get_option( 'easyio_exactdn' ) ) : ?>
 				<tr>
-					<th>&nbsp;</th>
+					<th scope='row'>
+						<label for='ewww_image_optimizer_webp'><?php esc_html_e( 'WebP Conversion', 'ewww-image-optimizer' ); ?></label>
+					</th>
 					<td>
 						<p class='description'><?php esc_html_e( 'WebP images are served automatically by Easy Image Optimizer.', 'ewww-image-optimizer' ); ?></p>
 					</td>

@@ -51,7 +51,9 @@ function ewww_image_optimizer_exec_init() {
 	if ( EWWW_IMAGE_OPTIMIZER_CLOUD ) {
 		ewwwio_debug_message( 'cloud options enabled, shutting off binaries' );
 		ewww_image_optimizer_disable_tools();
-	} elseif (
+		return;
+	}
+	if (
 		defined( 'WPCOMSH_VERSION' ) ||
 		! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ||
 		defined( 'WPE_PLUGIN_VERSION' ) ||
@@ -61,7 +63,8 @@ function ewww_image_optimizer_exec_init() {
 	) {
 		if (
 			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
-			( ! is_object( $exactdn ) || ! $exactdn->get_exactdn_domain() )
+			( ! is_object( $exactdn ) || ! $exactdn->get_exactdn_domain() ) &&
+			ewww_image_optimizer_get_option( 'ewww_image_optimizer_wizard_complete' )
 		) {
 			add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_hosting_requires_api' );
 			add_action( 'admin_notices', 'ewww_image_optimizer_notice_hosting_requires_api' );
@@ -71,23 +74,46 @@ function ewww_image_optimizer_exec_init() {
 		}
 		ewwwio_debug_message( 'WPE/wp.com/pantheon/flywheel site, disabling tools' );
 		ewww_image_optimizer_disable_tools();
-		// Check if this is an unsupported OS (not Linux or Mac OSX or FreeBSD or Windows or SunOS).
-	} elseif ( 'Linux' !== PHP_OS && 'Darwin' !== PHP_OS && 'FreeBSD' !== PHP_OS && 'WINNT' !== PHP_OS && 'SunOS' !== PHP_OS ) {
+		return;
+	}
+	// Check if this is an unsupported OS (not Linux or Mac OSX or FreeBSD or Windows or SunOS).
+	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_wizard_complete' ) ) {
+		if (
+			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
+			( ! is_object( $exactdn ) || ! $exactdn->get_exactdn_domain() ) &&
+			ewww_image_optimizer_os_supported()
+		) {
+			add_action( 'load-media_page_ewww-image-optimizer-bulk', 'ewww_image_optimizer_tool_init' );
+		}
+		return;
+	}
+	if ( ! ewww_image_optimizer_os_supported() ) {
 		// Call the function to display a notice.
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_os' );
 		add_action( 'admin_notices', 'ewww_image_optimizer_notice_os' );
 		// Turn off all the tools.
 		ewwwio_debug_message( 'unsupported OS, disabling tools: ' . PHP_OS );
 		ewww_image_optimizer_disable_tools();
-	} else {
-		add_action( 'load-upload.php', 'ewww_image_optimizer_tool_init', 9 );
-		add_action( 'load-media-new.php', 'ewww_image_optimizer_tool_init' );
-		add_action( 'load-media_page_ewww-image-optimizer-bulk', 'ewww_image_optimizer_tool_init' );
-		add_action( 'load-settings_page_ewww-image-optimizer-options', 'ewww_image_optimizer_tool_init' );
-		add_action( 'load-plugins.php', 'ewww_image_optimizer_tool_init' );
-		add_action( 'load-ims_gallery_page_ewww-ims-optimize', 'ewww_image_optimizer_tool_init' );
+		return;
 	}
-	ewwwio_memory( __FUNCTION__ );
+	add_action( 'load-upload.php', 'ewww_image_optimizer_tool_init', 9 );
+	add_action( 'load-media-new.php', 'ewww_image_optimizer_tool_init' );
+	add_action( 'load-media_page_ewww-image-optimizer-bulk', 'ewww_image_optimizer_tool_init' );
+	add_action( 'load-settings_page_ewww-image-optimizer-options', 'ewww_image_optimizer_tool_init' );
+	add_action( 'load-plugins.php', 'ewww_image_optimizer_tool_init' );
+	add_action( 'load-ims_gallery_page_ewww-ims-optimize', 'ewww_image_optimizer_tool_init' );
+}
+
+/**
+ * Check if free mode is supported on this operating system.
+ *
+ * @return bool True if the PHP_OS is supported, false otherwise.
+ */
+function ewww_image_optimizer_os_supported() {
+	if ( 'Linux' !== PHP_OS && 'Darwin' !== PHP_OS && 'FreeBSD' !== PHP_OS && 'WINNT' !== PHP_OS && 'SunOS' !== PHP_OS ) {
+		return false;
+	}
+	return true;
 }
 
 /**
@@ -590,7 +616,7 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 			ob_start();
 			// Display a warning if exec() is disabled, can't run local tools without it.
 			echo "<div id='ewww-image-optimizer-warning-exec' class='notice notice-warning is-dismissible'><p>" .
-				esc_html__( 'Sites where the exec() function is banned require cloud-based optimization, because free server-based optimization will not work. Those who upgrade to our premium service receive much higher compression, PNG/GIF/PDF compression, WebP conversion, and image backups.', 'ewww-image-optimizer' ) . '<br>' .
+				esc_html__( 'Sites where the exec() function is disabled require cloud-based optimization, because free server-based optimization will not work. Those who upgrade to our premium service receive much higher compression, PNG/GIF/PDF compression, WebP conversion, and image backups.', 'ewww-image-optimizer' ) . '<br>' .
 				'<strong>' .
 				( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) || get_option( 'easyio_exactdn' ) ?
 				esc_html__( 'Sites that use Easy IO already have built-in image optimization and may dismiss this notice to disable local compression.', 'ewww-image-optimizer' )

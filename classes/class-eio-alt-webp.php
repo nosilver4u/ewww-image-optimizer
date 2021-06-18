@@ -422,7 +422,7 @@ class EIO_Alt_Webp extends EIO_Page_Parser {
 						$buffer = str_replace( $image, $new_image, $buffer );
 					}
 				} elseif ( ! empty( $file ) && strpos( $image, 'data-src=' ) && ( strpos( $image, 'data-lazy-type="image' ) || strpos( $image, 'lazyload' ) ) ) {
-					// a3 Lazy Load.
+					// a3 or EWWW IO Lazy Load.
 					$new_image = $image;
 					$real_file = $this->get_attribute( $new_image, 'data-src' );
 					ewwwio_debug_message( "checking webp for Lazy Load data-src: $real_file" );
