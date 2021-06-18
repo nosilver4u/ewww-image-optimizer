@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '616.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '617.0' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -1119,7 +1119,7 @@ function ewww_image_optimizer_admin_init() {
 		add_action( 'admin_notices', 'ewww_image_optimizer_svgcleaner_installed' );
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_svgcleaner_installed' );
 	}
-	if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
+	if ( ! defined( 'EIO_PHPUNIT' ) && ( ! defined( 'WP_CLI' ) || ! WP_CLI ) ) {
 		ewww_image_optimizer_privacy_policy_content();
 		ewww_image_optimizer_ajax_compat_check();
 	}

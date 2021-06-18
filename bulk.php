@@ -339,18 +339,19 @@ function ewww_image_optimizer_bulk_resize_warning_message() {
 				/* translators: 1: width in pixels, 2: height in pixels */
 				esc_html__( 'All images will be scaled to %1$d x %2$d.', 'ewww-image-optimizer' ),
 				(int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' ),
-				(int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' ),
+				(int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' )
 			);
 		} else {
 			printf(
 				/* translators: 1: width in pixels, 2: height in pixels */
 				esc_html__( 'All images in the Media Library will be scaled to %1$d x %2$d.', 'ewww-image-optimizer' ),
 				(int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' ),
-				(int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' ),
+				(int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' )
 			);
 		}
 	}
 }
+
 /**
  * Outputs the status area and delay/force controls for the Bulk optimize page.
  */

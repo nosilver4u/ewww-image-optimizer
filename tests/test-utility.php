@@ -141,4 +141,12 @@ class EWWWIO_Utility_Tests extends WP_UnitTestCase {
 			$this->assertEquals( $range, $cf_ips[ $key ] );
 		}
 	}
+
+	/**
+	 * Run syntax checks for requires in WP-Admin.
+	 */
+	function test_admin_init() {
+		ewww_image_optimizer_admin_init();
+		$this->assertTrue( true );
+	}
 }

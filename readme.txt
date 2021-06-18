@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.4
 Tested up to: 5.7
 Requires PHP: 7.1
-Stable tag: 6.1.6
+Stable tag: 6.1.7
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -131,6 +131,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
+
+= 6.1.7 =
+* fixed: syntax error due to trailing comma after last parameter in function call(s).
 
 = 6.1.6 =
 * added: support for BuddyPress uploads via Vikinger theme.
