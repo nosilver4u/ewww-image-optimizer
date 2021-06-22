@@ -78,7 +78,7 @@ function constrainSrc(url,objectWidth,objectHeight,objectType){
 			}
 			if('bg-cover'===objectType || 'img-crop'===objectType){
 				console.log('for ' + objectType);
-				return url + '?resize=' + objectWidth + ',' + objectHeight;
+				return url + '&resize=' + objectWidth + ',' + objectHeight;
 			}
 			if(objectHeight>objectWidth){
 				console.log('fallback height>width, using h param');
