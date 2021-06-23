@@ -696,7 +696,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 
 			// NOTE: $this->uploads_path is not currently in use, so we'll see if anyone needs it.
 			$uploads_info = wp_get_upload_dir();
-			if ( ! empty( $uploads_info['baseurl'] ) && false === strpos( $uploads_info['baseurl'], $wp_content_path ) ) {
+			if ( ! empty( $uploads_info['baseurl'] ) && ! empty( $wp_content_path ) && false === strpos( $uploads_info['baseurl'], $wp_content_path ) ) {
 				$uploads_path = trim( $this->parse_url( $uploads_info['baseurl'], PHP_URL_PATH ), '/' );
 				$this->debug_message( "wp uploads path: $uploads_path" );
 				$this->uploads_path = basename( $uploads_path );
