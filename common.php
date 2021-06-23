@@ -8067,11 +8067,10 @@ function ewww_image_optimizer_lr_sync_update( $id ) {
 		return;
 	}
 	$meta = wp_get_attachment_metadata( $id );
-	update_option( 'ewww_image_optimizer_lr_sync', true, false );
+
 	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
 	if ( ewww_image_optimizer_stream_wrapped( $file_path ) || ! ewwwio_is_file( $file_path ) ) {
 		return;
-		return $meta;
 	}
 	ewwwio_debug_message( "retrieved file path for lr sync image: $file_path" );
 	$type            = ewww_image_optimizer_mimetype( $file_path, 'i' );
@@ -8085,7 +8084,6 @@ function ewww_image_optimizer_lr_sync_update( $id ) {
 	if ( ! in_array( $type, $supported_types, true ) ) {
 		ewwwio_debug_message( "mimetype not supported: $id" );
 		return;
-		return $meta;
 	}
 
 	// Get a list of all the image files optimized for this attachment.
@@ -8093,7 +8091,6 @@ function ewww_image_optimizer_lr_sync_update( $id ) {
 	$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT id,path,image_size FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
 	if ( ! ewww_image_optimizer_iterable( $optimized_images ) ) {
 		return;
-		return $meta;
 	}
 	foreach ( $optimized_images as $optimized_image ) {
 		$image_path = ewww_image_optimizer_absolutize_path( $optimized_image['path'] );
@@ -8118,9 +8115,9 @@ function ewww_image_optimizer_lr_sync_update( $id ) {
 	}
 	if ( defined( 'EWWWIO_WPLR_AUTO' ) && EWWWIO_WPLR_AUTO ) {
 		$meta = ewww_image_optimizer_resize_from_meta_data( $meta, $id );
+		return;
 	}
-	return;
-	return $meta;
+	update_option( 'ewww_image_optimizer_lr_sync', true, false );
 }
 
 /**
