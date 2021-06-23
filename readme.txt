@@ -134,6 +134,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.1.8 =
 * fixed: Lazy Load fails to auto-scale with img-crop class for Easy IO
+* fixed: WebP files sometimes fail to be re-generated after Photo Engine (WP/LR) sync
 
 = 6.1.7 =
 * fixed: syntax error due to trailing comma after last parameter in function call(s).
