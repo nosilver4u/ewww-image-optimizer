@@ -974,7 +974,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			}
 			$threshold = defined( 'EIO_LL_THRESHOLD' ) && EIO_LL_THRESHOLD ? EIO_LL_THRESHOLD : 0;
 			wp_add_inline_script(
-				'eio-lazy-load',
+				'eio-lazy-load-pre',
 				'var eio_lazy_vars = ' .
 					wp_json_encode(
 						array(

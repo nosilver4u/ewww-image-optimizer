@@ -1,3 +1,8 @@
+= 6.1.8 =
+* fixed: Lazy Load fails to auto-scale with img-crop class for Easy IO
+* fixed: WebP files sometimes fail to be re-generated after Photo Engine (WP/LR) sync
+* fixed: Lazy Load throws JS error in SCRIPT_DEBUG mode
+
 = 6.1.7 =
 * fixed: syntax error due to trailing comma after last parameter in function call(s).
 

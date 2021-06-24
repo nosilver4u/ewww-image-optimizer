@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.4
 Tested up to: 5.7
 Requires PHP: 7.1
-Stable tag: 6.1.7
+Stable tag: 6.1.8
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -135,6 +135,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 6.1.8 =
 * fixed: Lazy Load fails to auto-scale with img-crop class for Easy IO
 * fixed: WebP files sometimes fail to be re-generated after Photo Engine (WP/LR) sync
+* fixed: Lazy Load throws JS error in SCRIPT_DEBUG mode
 
 = 6.1.7 =
 * fixed: syntax error due to trailing comma after last parameter in function call(s).
