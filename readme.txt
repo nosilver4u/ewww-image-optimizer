@@ -133,7 +133,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.1.9 =
-* fixed: Easy IO's Include All Resources compat with Oxygen Builder.
+* fixed: Easy IO's Include All Resources compat with Oxygen Builder and Beaver Builder
+* fixed: regex to detect SVG images in use elements caused excessive backtracking
 
 = 6.1.8 =
 * fixed: Lazy Load fails to auto-scale with img-crop class for Easy IO

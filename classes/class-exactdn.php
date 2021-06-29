@@ -1517,7 +1517,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				}
 				if ( strpos( $content, '<use ' ) ) {
 					// Pre-empt rewriting of files within <use> tags, particularly to prevent security errors for SVGs.
-					$content = preg_replace( '#(<use.+?href=["\'])(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)/' . $this->content_path . '/#is', '$1$2//' . $this->upload_domain . '$3/?wpcontent-bypass?/', $content );
+					$this->debug_message( 'searching for use tags: #(<use.+?href=["\'])(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)/' . $this->content_path . '/#is' );
+					$content = preg_replace( '#(<use\s+?(?>xlink:)?href=["\'])(https?:)?//(?>www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/' . $this->content_path . '/#is', '$1$2//' . $this->upload_domain . '$3/?wpcontent-bypass?/', $content );
 				}
 				// Pre-empt rewriting of wp-includes and wp-content if the extension is not allowed by using a temporary placeholder.
 				$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/' . $this->content_path . '/([^"\'?>]+?)\.(htm|html|php|ashx|m4v|mov|wvm|qt|webm|ogv|mp4|m4p|mpg|mpeg|mpv)#i', '$1//' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
@@ -2655,6 +2656,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 */
 		function skip_page( $skip = false, $uri = '' ) {
 			if ( false !== strpos( $uri, 'ct_builder=' ) ) {
+				return true;
+			}
+			if ( false !== strpos( $uri, '?fl_builder' ) ) {
 				return true;
 			}
 			return $skip;
