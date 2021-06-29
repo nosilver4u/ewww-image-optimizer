@@ -205,7 +205,7 @@ function ewww_image_optimizer_aux_images_table() {
 			}
 			$output['table'] .= '</td>';
 			$output['table'] .= "<td>$type</td>";
-			$output['table'] .= "<td>$last_updated</td>";
+			$output['table'] .= "<td>$last_updated ({$optimized_image['updated']})</td>";
 			$output['table'] .= "<td>$savings<br>$size_string<br>" .
 				'<a class="ewww-remove-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Remove from history', 'ewww-image-optimizer' ) . '</a>' .
 				( $optimized_image['backup'] ? '<br><a class="ewww-restore-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Restore original', 'ewww-image-optimizer' ) . '</a>' : '' ) .
@@ -244,6 +244,7 @@ function ewww_image_optimizer_aux_images_table() {
 			$output['table'] .= '</td>';
 			$output['table'] .= "<td>$type</td>";
 			$output['table'] .= "<td>$last_updated</td>";
+			$output['table'] .= "<td>$last_updated ({$optimized_image['updated']})</td>";
 			// Determine filepath for webp.
 			$webpfile  = $file . '.webp';
 			$webp_size = ewww_image_optimizer_filesize( $webpfile );
@@ -297,6 +298,7 @@ function ewww_image_optimizer_aux_images_table() {
 			$output['table'] .= '</td>';
 			$output['table'] .= "<td>$type</td>";
 			$output['table'] .= "<td>$last_updated</td>";
+			$output['table'] .= "<td>$last_updated ({$optimized_image['updated']})</td>";
 			$output['table'] .= "<td>$savings<br>$size_string<br>" .
 				'<a class="ewww-remove-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Remove from history', 'ewww-image-optimizer' ) . '</a>' .
 				'</td>';

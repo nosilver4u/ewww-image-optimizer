@@ -145,6 +145,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( '/robots.txt' === $uri || '/sitemap.xml' === $uri ) {
 				return;
 			}
+
+			add_filter( 'exactdn_skip_page', array( $this, 'skip_page' ), 10, 2 );
+
 			/**
 			 * Allow pre-empting the parsers by page.
 			 *
@@ -2639,6 +2642,22 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				return array();
 			}
 			return $args;
+		}
+
+		/**
+		 * Exclude pages from being processed for things like page builders.
+		 *
+		 * @since 6.1.9
+		 *
+		 * @param boolean $skip Whether ExactDN should skip processing.
+		 * @param string  $uri The URI of the page (no domain or scheme included).
+		 * @return boolean True to skip the page, unchanged otherwise.
+		 */
+		function skip_page( $skip = false, $uri = '' ) {
+			if ( false !== strpos( $uri, 'ct_builder=' ) ) {
+				return true;
+			}
+			return $skip;
 		}
 
 		/**
