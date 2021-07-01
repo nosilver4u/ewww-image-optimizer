@@ -1,3 +1,9 @@
+= 6.1.9 =
+* fixed: Easy IO's Include All Resources compat with Oxygen Builder and Beaver Builder
+* fixed: regex to detect SVG images in use elements caused excessive backtracking
+* fixed: WebP version of full-size image not removed when attachment deleted due to undefined variable
+* fixed: Easy IO adds invalid zoom parameter of 1920 to srcset URL
+
 = 6.1.8 =
 * fixed: Lazy Load fails to auto-scale with img-crop class for Easy IO
 * fixed: WebP files sometimes fail to be re-generated after Photo Engine (WP/LR) sync

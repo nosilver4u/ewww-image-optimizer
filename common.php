@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '618.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '619.0' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -4122,7 +4122,7 @@ function ewww_image_optimizer_delete( $id ) {
 	}
 	if ( ewwwio_is_file( $file_path . '.webp' ) ) {
 		ewwwio_debug_message( 'removing: ' . $file_path . '.webp' );
-		ewwwio_delete_file( $image['path'] . '.webp' );
+		ewwwio_delete_file( $file_path . '.webp' );
 	}
 	$webpfileold = preg_replace( '/\.\w+$/', '.webp', $file_path );
 	if ( ewwwio_is_file( $webpfileold ) ) {

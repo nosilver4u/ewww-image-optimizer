@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.4
 Tested up to: 5.7
 Requires PHP: 7.1
-Stable tag: 6.1.8
+Stable tag: 6.1.9
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -135,6 +135,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 6.1.9 =
 * fixed: Easy IO's Include All Resources compat with Oxygen Builder and Beaver Builder
 * fixed: regex to detect SVG images in use elements caused excessive backtracking
+* fixed: WebP version of full-size image not removed when attachment deleted due to undefined variable
+* fixed: Easy IO adds invalid zoom parameter of 1920 to srcset URL
 
 = 6.1.8 =
 * fixed: Lazy Load fails to auto-scale with img-crop class for Easy IO

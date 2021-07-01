@@ -2056,7 +2056,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					$newwidth = intval( $base * $multiplier );
 					if ( 1920 === (int) $multiplier ) {
 						$newwidth = 1920;
-						if ( ! $w_descriptor ) {
+						if ( ! $w_descriptor || 1920 >= $reqwidth || 'soft' !== $crop ) {
 							continue;
 						}
 					}
@@ -2184,6 +2184,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				foreach ( $multipliers as $multiplier ) {
 					$newwidth = intval( $width * $multiplier );
 					if ( 1920 === (int) $multiplier ) {
+						if ( $multiplier >= $width ) {
+							continue;
+						}
 						$newwidth = 1920;
 					}
 					if ( $newwidth < 50 ) {
@@ -2201,7 +2204,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 
 					if ( 1 === $multiplier ) {
 						$args = array();
-					} elseif ( $zoom ) {
+					} elseif ( $zoom && $multiplier <= 10 ) {
 						$args = array(
 							'zoom' => $multiplier,
 						);
