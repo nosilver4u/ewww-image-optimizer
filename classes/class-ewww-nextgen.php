@@ -229,6 +229,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 * @param object $size The name of the size generated.
 		 */
 		function ewww_ngg_generated_image( $image, $size ) {
+			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			global $ewww_image;
 			// Creating the 'registry' object for working with nextgen.
 			$registry = C_Component_Registry::get_instance();
@@ -250,6 +251,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 * Manually process an image from the NextGEN Gallery.
 		 */
 		function ewww_ngg_manual() {
+			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			// Check permission of current user.
 			$permissions = apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
 			if ( false === current_user_can( $permissions ) ) {
@@ -319,6 +321,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 * Restore an image from the NextGEN Gallery.
 		 */
 		function ewww_ngg_cloud_restore() {
+			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			// Check permission of current user.
 			$permissions = apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
 			if ( false === current_user_can( $permissions ) ) {
@@ -653,7 +656,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				<?php
 				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 					ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) );
-					echo '<a id="ewww-bulk-credits-available" target="_blank" class="page-title-action" style="float:right;" href="https://ewww.io/my-account/">' . esc_html__( 'Image credits available:', 'ewww-image-optimizer' ) . ' ' . esc_html( ewww_image_optimizer_cloud_quota() ) . '</a>';
+					echo '<span id="ewww-bulk-credits-available">' . esc_html__( 'Image credits available:', 'ewww-image-optimizer' ) . ' ' . wp_kses_post( ewww_image_optimizer_cloud_quota() ) . '</span>';
 				}
 				echo '<div id="ewww-bulk-warning" class="ewww-bulk-info notice notice-warning"><p>' . esc_html__( 'Bulk Optimization will alter your original images and cannot be undone. Please be sure you have a backup of your images before proceeding.', 'ewww-image-optimizer' ) . '</p></div>';
 				// Retrieve the value of the 'bulk resume' option and set the button text for the form to use.

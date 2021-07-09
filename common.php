@@ -765,7 +765,7 @@ function ewww_image_optimizer_init() {
 	}
 	// Resizes and auto-rotates images.
 	add_filter( 'wp_handle_upload', 'ewww_image_optimizer_handle_upload' );
-	if ( class_exists( 'S3_Uploads' ) ) {
+	if ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_Uploads\Plugin' ) ) {
 		ewwwio_debug_message( 's3-uploads detected, deferring resize_upload' );
 		add_filter( 'ewww_image_optimizer_defer_resizing', '__return_true' );
 	}
@@ -1870,6 +1870,9 @@ function ewww_image_optimizer_cloud_based_media() {
 	if ( class_exists( 'S3_Uploads' ) && function_exists( 's3_uploads_enabled' ) && s3_uploads_enabled() ) {
 		return true;
 	}
+	if ( class_exists( 'S3_Uploads\Plugin' ) && function_exists( 'S3_Uploads\enabled' ) && \S3_Uploads\enabled() ) {
+		return true;
+	}
 	if ( class_exists( 'wpCloud\StatelessMedia\EWWW' ) && function_exists( 'ud_get_stateless_media' ) ) {
 		$sm = ud_get_stateless_media();
 		if ( method_exists( $sm, 'get' ) ) {
@@ -2246,7 +2249,7 @@ function ewww_image_optimizer_notice_reoptimization() {
  */
 function ewww_image_optimizer_load_editor( $editors ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( class_exists( 'S3_Uploads_Image_Editor_Imagick' ) ) {
+	if ( class_exists( 'S3_Uploads\Image_Editor_Imagick' ) ) {
 		return $editors;
 	}
 	if ( ! class_exists( 'EWWWIO_GD_Editor' ) && ! class_exists( 'EWWWIO_Imagick_Editor' ) ) {
@@ -3849,7 +3852,7 @@ function ewww_image_optimizer_cloud_restore_from_meta_data( $id, $gallery = 'med
 			}
 		}
 	}
-	if ( class_exists( 'S3_Uploads' ) ) {
+	if ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_uploads\Plugin' ) ) {
 		ewww_image_optimizer_remote_push( $meta, $id );
 		ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
 	}
@@ -4024,7 +4027,7 @@ function ewww_image_optimizer_delete( $id ) {
 	}
 	$s3_path = false;
 	$s3_dir  = false;
-	if ( class_exists( 'S3_Uploads' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
+	if ( ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_Uploads\Plugin' ) ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
 		$s3_path = get_attached_file( $id );
 		if ( 0 === strpos( $s3_path, 's3://' ) ) {
 			ewwwio_debug_message( 'removing: ' . $s3_path . '.webp' );
@@ -4464,7 +4467,7 @@ function ewww_image_optimizer_cloud_key_verify_ajax() {
 			wp_json_encode(
 				array(
 					'error' => sprintf(
-						/* translators: %s: an error message from the WebP self-test */
+						/* translators: %s: an HTTP error message */
 						esc_html__( 'Could not validate API key, HTTP error: %s', 'ewww-image-optimizer' ),
 						$error_message
 					),
@@ -6111,7 +6114,7 @@ function ewww_image_optimizer_stream_wrapped( $filename ) {
  */
 function ewww_image_optimizer_remote_push( $meta, $id ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( class_exists( 'S3_Uploads' ) && ! empty( $meta['file'] ) ) {
+	if ( ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_Uploads\Plugin' ) ) && ! empty( $meta['file'] ) ) {
 		$s3_upload_dir = wp_get_upload_dir();
 		$s3_upload_dir = trailingslashit( $s3_upload_dir['basedir'] );
 		$s3_path       = get_attached_file( $id );
@@ -6202,7 +6205,8 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 	if ( ! function_exists( 'download_url' ) ) {
 		require_once( ABSPATH . '/wp-admin/includes/file.php' );
 	}
-	if ( class_exists( 'S3_Uploads' ) && ! empty( $meta['file'] ) ) {
+	$filename = false;
+	if ( ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_Uploads\Plugin' ) ) && ! empty( $meta['file'] ) ) {
 		$s3_upload_dir = wp_get_upload_dir();
 		$s3_upload_dir = trailingslashit( $s3_upload_dir['basedir'] );
 		$s3_path       = get_attached_file( $id );
@@ -6523,10 +6527,10 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 	if ( ! empty( $filename ) && ewwwio_is_file( $filename ) ) {
 		ewwwio_debug_message( "$filename found, success!" );
 		return $filename;
-	} else {
+	} elseif ( ! empty( $filename ) ) {
 		ewwwio_debug_message( "$filename not found, boo..." );
-		return false;
 	}
+	return false;
 }
 
 /**
@@ -8003,7 +8007,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 			ewwwio_debug_message( 'uploading to Amazon S3' );
 		}
 	}
-	if ( class_exists( 'S3_Uploads' ) ) {
+	if ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_Uploads\Plugin' ) ) {
 		ewww_image_optimizer_remote_push( $meta, $id );
 		ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
 	}
@@ -8806,6 +8810,10 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 			$ewww_cdn = true;
 		}
 		if ( is_array( $meta ) && class_exists( 'S3_Uploads' ) && preg_match( '/^(http|s3|gs)\w*:/', get_attached_file( $id ) ) ) {
+			echo '<div>' . esc_html__( 'Amazon S3 image', 'ewww-image-optimizer' ) . '</div>';
+			$ewww_cdn = true;
+		}
+		if ( is_array( $meta ) && class_exists( 'S3_Uploads\Plugin' ) && preg_match( '/^(http|s3|gs)\w*:/', get_attached_file( $id ) ) ) {
 			echo '<div>' . esc_html__( 'Amazon S3 image', 'ewww-image-optimizer' ) . '</div>';
 			$ewww_cdn = true;
 		}
@@ -11829,9 +11837,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				</tr>
 			</table>
 			<input type='hidden' id='ewww_image_optimizer_allow_multisite_override_active' name='ewww_image_optimizer_allow_multisite_override_active' value='0'>
-		<?php if ( get_site_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
-			<input type='hidden' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='<?php echo esc_attr( get_site_option( 'ewww_image_optimizer_cloud_key' ) ); ?>' />
-		<?php endif; ?>
 		</div><!-- end container general settings -->
 		<p class='submit'><input type='submit' class='button-primary' value='<?php esc_attr_e( 'Save Changes', 'ewww-image-optimizer' ); ?>' /></p>
 	</form>
@@ -11854,7 +11859,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<a class='button-secondary' href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_remove_cloud_key' ) ); ?>'>
 							<?php esc_html_e( 'Remove API key', 'ewww-image-optimizer' ); ?>
 						</a>
-						<input type='hidden' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='<?php echo esc_attr( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ); ?>' />
 						<p>
 		<?php if ( false !== strpos( $verify_cloud, 'great' ) ) : ?>
 							<span style="color: #3eadc9; font-weight: bolder"><?php esc_html_e( 'Verified,', 'ewww-image-optimizer' ); ?> </span><?php echo wp_kses_post( ewww_image_optimizer_cloud_quota() ); ?>
@@ -13062,6 +13066,7 @@ AddType image/webp .webp</pre>
 		<p class='submit'><input type='submit' class='button-primary' value='<?php esc_attr_e( 'Save Changes', 'ewww-image-optimizer' ); ?>' /></p>
 	</form>
 
+	<?php if ( ! ewww_image_optimizer_easy_active() && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
 	<hr style='clear:both;'>
 	<h2><?php esc_html_e( "Shane's Recommendations", 'ewww-image-optimizer' ); ?></h2>
 	<p><?php esc_html_e( 'These are products I have personally used. An * indicates an affiliate link so you can support future development of EWWW IO.', 'ewww-image-optimizer' ); ?></p>
@@ -13090,6 +13095,7 @@ AddType image/webp .webp</pre>
 		<a href="https://nodeping.com?rid=201407082225W862K">NodePing</a>* -
 		<?php esc_html_e( 'Monitor all the things, and make sure they stay online. They have a fantastic array of monitors and notifications that you can setup, they are cheap, simple, and have great support.', 'ewww-image-optimizer' ); ?>
 	</p>
+	<?php endif; ?>
 </div><!-- end container wrap -->
 	<?php
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {

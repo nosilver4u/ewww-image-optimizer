@@ -703,6 +703,20 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 				$this->s3_active = $s3_domain;
 			}
 
+			if (
+				class_exists( 'S3_Uploads\Plugin' ) &&
+				function_exists( 's3_uploads_enabled' ) && s3_uploads_enabled() &&
+				method_exists( 'S3_Uploads\Plugin', 'get_instance' ) && method_exists( 'S3_Uploads', 'get_s3_url\Plugin' )
+			) {
+				$s3_uploads_instance  = \S3_Uploads\Plugin::get_instance();
+				$s3_uploads_url       = $s3_uploads_instance->get_s3_url();
+				$this->allowed_urls[] = $s3_uploads_url;
+				$this->debug_message( "found S3 URL from S3_Uploads: $s3_uploads_url" );
+				$s3_domain       = $this->parse_url( $s3_uploads_url, PHP_URL_HOST );
+				$s3_scheme       = $this->parse_url( $s3_uploads_url, PHP_URL_SCHEME );
+				$this->s3_active = $s3_domain;
+			}
+
 			if ( class_exists( 'wpCloud\StatelessMedia\EWWW' ) && function_exists( 'ud_get_stateless_media' ) ) {
 				$sm = ud_get_stateless_media();
 				if ( method_exists( $sm, 'get' ) && method_exists( $sm, 'get_gs_host' ) ) {
