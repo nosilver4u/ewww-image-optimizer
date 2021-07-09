@@ -3050,7 +3050,7 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 		ewwwio_debug_message( 'webp file was too big, deleting' );
 		ewwwio_delete_file( $webpfile );
 		return esc_html__( 'WebP image was larger than original.', 'ewww-image-optimizer' );
-	} elseif ( ewwwio_is_file( $webpfile ) ) {
+	} elseif ( ewwwio_is_file( $webpfile ) && 'image/webp' === ewww_image_optimizer_mimetype( $webpfile, 'i' ) ) {
 		// Set correct file permissions.
 		$stat  = stat( dirname( $webpfile ) );
 		$perms = $stat['mode'] & 0000666; // Same permissions as parent folder, strip off the executable bits.
@@ -3059,6 +3059,10 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 			return esc_html__( 'WebP image larger than original, saved anyway with Force WebP option.', 'ewww-image-optimizer' );
 		}
 		return 'WebP: ' . ewww_image_optimizer_image_results( $orig_size, $webp_size );
+	} elseif ( ewwwio_is_file( $webpfile ) ) {
+		ewwwio_debug_message( 'webp file mimetype did not validate, deleting' );
+		ewwwio_delete_file( $webpfile );
+		return esc_html__( 'WebP conversion error.', 'ewww-image-optimizer' );
 	}
 	return esc_html__( 'Image could not be converted to WebP.', 'ewww-image-optimizer' );
 }
