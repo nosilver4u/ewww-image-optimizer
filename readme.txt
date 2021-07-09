@@ -134,6 +134,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.2.0 =
 * added: compatibility with S3 Uploads 3.x
+* added: enable -sharp_yuv option for WebP conversion with the EIO_WEBP_SHARP_YUV override
 * fixed: empty .webp images sometimes produced when cwebp encounters an error
 
 = 6.1.9 =

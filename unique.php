@@ -3017,26 +3017,20 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 			}
 		}
 		// Check to see if we are supposed to strip metadata.
-		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
-			// Don't copy metadata.
-			$copy_opt = 'none';
-		} else {
-			// Copy all the metadata.
-			$copy_opt = 'all';
-		}
-		$quality = (int) apply_filters( 'webp_quality', 75, 'image/webp' );
-		if ( $quality < 50 ) {
+		$copy_opt = ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ? 'icc' : 'all';
+		$quality  = (int) apply_filters( 'webp_quality', 75, 'image/webp' );
+		if ( $quality < 50 || $quality > 100 ) {
 			$quality = 75;
 		}
+		$sharp_yuv = defined( 'EIO_WEBP_SHARP_YUV' ) && EIO_WEBP_SHARP_YUV ? '-sharp_yuv' : '';
+		$lossless  = '-lossless';
 		if ( defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) && EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) {
-			$lossless = "-q $quality";
-		} else {
-			$lossless = '-lossless';
+			$lossless = "-q $quality $sharp_yuv";
 		}
 		switch ( $type ) {
 			case 'image/jpeg':
-				ewwwio_debug_message( "$nice " . $tool . " -q $quality -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1' );
-				exec( "$nice " . $tool . " -q $quality -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1', $cli_output );
+				ewwwio_debug_message( "$nice " . $tool . " -q $quality $sharp_yuv -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1' );
+				exec( "$nice " . $tool . " -q $quality $sharp_yuv -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1', $cli_output );
 				break;
 			case 'image/png':
 				ewwwio_debug_message( "$nice " . $tool . " $lossless -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1' );

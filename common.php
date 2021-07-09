@@ -4840,6 +4840,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		$lossy      = 0;
 		$lossy_fast = 0;
 	}
+	$sharp_yuv = defined( 'EIO_WEBP_SHARP_YUV' ) && EIO_WEBP_SHARP_YUV ? 1 : 0;
 	if ( 'image/webp' === $newtype ) {
 		$webp        = 1;
 		$jpg_quality = apply_filters( 'webp_quality', 75, 'image/webp' );
@@ -4894,6 +4895,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	ewwwio_debug_message( "newfile: $newfile" );
 	ewwwio_debug_message( "newtype: $newtype" );
 	ewwwio_debug_message( "webp: $webp" );
+	ewwwio_debug_message( "sharp_yuv: $sharp_yuv" );
 	ewwwio_debug_message( "jpg fill: $jpg_fill" );
 	ewwwio_debug_message( "jpg quality: $jpg_quality" );
 	$free_exec = EWWW_IMAGE_OPTIMIZER_NOEXEC && 'image/jpeg' === $type;
@@ -4933,6 +4935,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		'lossy'      => $lossy,
 		'lossy_fast' => $lossy_fast,
 		'webp'       => $webp,
+		'sharp_yuv'  => $sharp_yuv,
 		'backup'     => $hash,
 		'domain'     => $domain,
 	);
@@ -11624,7 +11627,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 									sprintf(
 										/* translators: %s: S3 Image Optimizer (link) */
 										esc_html__( 'Optimize unlimited Amazon S3 buckets with our %s.' ),
-										'<a href="https://ewww.io/downloads/s3-image-optimizer/">' . esc_html__( 'S3 Image Optimizer', 'ewww-image-optimizer' ) . '</a>'
+										'<a href="https://wordpress.org/plugins/s3-image-optimizer/">' . esc_html__( 'S3 Image Optimizer', 'ewww-image-optimizer' ) . '</a>'
 									) : '' );
 								?>
 							</p>
