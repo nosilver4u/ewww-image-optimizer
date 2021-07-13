@@ -3162,7 +3162,13 @@ function ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile ) {
 			$color = $image->getImageColorspace();
 			ewwwio_debug_message( "color space is $color" );
 			if ( Imagick::COLORSPACE_CMYK === $color ) {
+				if ( ewwwio_is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/icc/sRGB2014.icc' ) ) {
+					$icc_profile = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/icc/sRGB2014.icc' );
+					$image->profileImage( 'icc', $icc_profile );
+				}
 				$image->transformImageColorspace( Imagick::COLORSPACE_SRGB );
+				$image->setImageProfile( 'icc', null );
+				$profiles = array();
 			}
 			$image->setImageFormat( 'WEBP' );
 			if ( $sharp_yuv ) {

@@ -2662,6 +2662,15 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 * @return boolean True to skip the page, unchanged otherwise.
 		 */
 		function skip_page( $skip = false, $uri = '' ) {
+			if ( false !== strpos( $uri, 'cornerstone=' ) || false !== strpos( $uri, 'cornerstone-endpoint' ) ) {
+				return true;
+			}
+			if ( false !== strpos( $uri, 'et_fb=' ) ) {
+				return true;
+			}
+			if ( false !== strpos( $uri, 'tatsu=' ) ) {
+				return true;
+			}
 			if ( false !== strpos( $uri, 'ct_builder=' ) ) {
 				return true;
 			}

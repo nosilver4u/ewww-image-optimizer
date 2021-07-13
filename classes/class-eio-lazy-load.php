@@ -360,8 +360,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 								$lazy_source = $source;
 								$this->set_attribute( $lazy_source, 'data-srcset', $srcset );
 								$this->remove_attribute( $lazy_source, 'srcset' );
-								// TODO: remove this after testing.
-								/* $this->set_attribute( $lazy_source, 'srcset', $this->placeholder_src, true ); */
 								$picture = str_replace( $source, $lazy_source, $picture );
 							}
 						}
@@ -372,21 +370,23 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 					}
 				}
 			}
-			// Video elements, looking for poster attributes that are images.
-			/* $videos = $this->get_elements_from_html( $buffer, 'video' ); */
-			$videos = '';
-			if ( $this->is_iterable( $videos ) ) {
-				foreach ( $videos as $index => $video ) {
-					$this->debug_message( 'parsing a video element' );
-					$file = $this->get_attribute( $video, 'poster' );
-					if ( $file ) {
-						$this->debug_message( "checking webp for video poster: $file" );
-						if ( $this->validate_image_tag( $file ) ) {
-							$this->set_attribute( $video, 'data-poster-webp', $this->placeholder_src );
-							$this->set_attribute( $video, 'data-poster-image', $file );
-							$this->remove_attribute( $video, 'poster' );
-							$this->debug_message( "found webp for video poster: $file" );
-							$buffer = str_replace( $videos[ $index ], $video, $buffer );
+			// Iframe elements, looking for stuff like YouTube embeds.
+			if ( in_array( 'iframe', $this->user_element_exclusions, true ) ) {
+				$frames = '';
+			} else {
+				$frames = $this->get_elements_from_html( $buffer, 'iframe' );
+			}
+			if ( $this->is_iterable( $frames ) ) {
+				foreach ( $frames as $index => $frame ) {
+					$this->debug_message( 'parsing an iframe element' );
+					$url = $this->get_attribute( $frame, 'src' );
+					if ( $url && $this->validate_iframe_tag( $frame ) ) {
+						$this->debug_message( "lazifying iframe for: $url" );
+						$this->set_attribute( $frame, 'data-src', $url );
+						$this->remove_attribute( $frame, 'src' );
+						$this->set_attribute( $frame, 'class', trim( $this->get_attribute( $frame, 'class' ) . ' lazyload' ), true );
+						if ( $frame !== $frames[ $index ] ) {
+							$buffer = str_replace( $frames[ $index ], $frame, $buffer );
 						}
 					}
 				}
@@ -448,11 +448,8 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 					$insert_dimensions = true;
 				}
 			}
-			// Check for native lazy loading images.
-			$loading_attr = $this->get_attribute( $image, 'loading' );
-			if ( defined( 'EIO_ENABLE_NATIVE_LAZY' ) && EIO_ENABLE_NATIVE_LAZY && ! $loading_attr && is_numeric( $width_attr ) && is_numeric( $height_attr ) ) {
-				$this->set_attribute( $image, 'loading', 'lazy' );
-			}
+
+			$use_native_lazy = false;
 
 			$placeholder_types = array();
 			if ( $this->parsing_exactdn && $this->allow_lqip && apply_filters( 'eio_use_lqip', $this->get_option( $this->prefix . 'use_lqip' ), $file ) ) {
@@ -485,6 +482,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						$this->debug_message( 'using lqip, maybe' );
 						if ( false === strpos( $file, 'nggid' ) && ! preg_match( '#\.svg(\?|$)#', $file ) && strpos( $file, $this->exactdn_domain ) ) {
 							$placeholder_src = add_query_arg( array( 'lazy' => 1 ), $file );
+							$use_native_lazy = true;
 							break 2;
 						}
 						break;
@@ -513,9 +511,11 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 
 							if ( $filename_width && $filename_height ) {
 								$placeholder_src = $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $filename_width . 'x' . $filename_height . '.png' );
+								$use_native_lazy = true;
 								break 2;
 							} else {
 								$placeholder_src = add_query_arg( array( 'lazy' => 2 ), $file );
+								$use_native_lazy = true;
 								break 2;
 							}
 						}
@@ -536,6 +536,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 							$png_placeholder_src = $this->create_piip( $filename_width, $filename_height );
 							if ( $png_placeholder_src ) {
 								$placeholder_src = $png_placeholder_src;
+								$use_native_lazy = true;
 								break 2;
 							}
 						}
@@ -547,6 +548,13 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			$this->debug_message( "current placeholder is $placeholder_src" );
 
 			$placeholder_src = apply_filters( 'eio_lazy_placeholder', $placeholder_src, $image );
+
+			// Check for native lazy loading images.
+			$loading_attr = $this->get_attribute( $image, 'loading' );
+			if ( ( ! defined( 'EIO_DISABLE_NATIVE_LAZY' ) || ! EIO_DISABLE_NATIVE_LAZY ) && ! $loading_attr && $use_native_lazy ) {
+				$this->set_attribute( $image, 'loading', 'lazy' );
+			}
+
 			if ( $srcset ) {
 				if ( strpos( $placeholder_src, '64,R0lGOD' ) ) {
 					$this->set_attribute( $image, 'srcset', $placeholder_src, true );
@@ -814,6 +822,34 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						'lazyload',
 						'skip-lazy',
 						'avia-bg-style-fixed',
+					),
+					$this->user_exclusions
+				),
+				$tag
+			);
+			foreach ( $exclusions as $exclusion ) {
+				if ( false !== strpos( $tag, $exclusion ) ) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		/**
+		 * Checks if an iframe tag is allowed to be lazy loaded.
+		 *
+		 * @param string $tag The tag.
+		 * @return bool True if the tag is allowed, false otherwise.
+		 */
+		function validate_iframe_tag( $tag ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			$exclusions = apply_filters(
+				'eio_lazy_iframe_exclusions',
+				array_merge(
+					array(
+						'data-no-lazy=',
+						'lazyload',
+						'skip-lazy',
 					),
 					$this->user_exclusions
 				),

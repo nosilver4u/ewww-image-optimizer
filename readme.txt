@@ -135,7 +135,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 6.2.0 =
 * added: PHP-based WebP Conversion via GD/Imagick in free mode when exec() is disabled
 * added: enable -sharp_yuv option for WebP conversion with the EIO_WEBP_SHARP_YUV override
+* added: WebP Conversion for CMYK images
+* added: Lazy Load for iframes, add 'iframe' in exclusions to disable
 * added: compatibility with S3 Uploads 3.x
+* changed: native lazy loading is now enabled for right-sized PNG placeholders, override with EIO_DISABLE_NATIVE_LAZY constant
 * fixed: empty .webp images sometimes produced when cwebp encounters an error
 
 = 6.1.9 =
