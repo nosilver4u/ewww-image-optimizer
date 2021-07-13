@@ -1627,6 +1627,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$started = microtime( true );
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 
+			if ( is_array( $attachment_id ) || is_object( $attachment_id ) ) {
+				return $image;
+			}
+
 			// Don't foul up the admin side of things, unless a plugin wants to.
 			if ( is_admin() &&
 				/**

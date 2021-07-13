@@ -212,7 +212,7 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 if ( 'done' !== get_option( 'ewww_image_optimizer_relative_migration_status' ) ) {
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-relative-migration.php' );
 }
-require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-alt-webp-weglot-alt.php' );
+/* require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-alt-webp-weglot-alt.php' ); */
 
 /**
  * Setup page parsing classes after theme functions.php is loaded and plugins have run init routines.
@@ -264,10 +264,17 @@ function ewww_image_optimizer_parser_init() {
 		 * Page Parsing class for working with HTML content.
 		 */
 		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-page-parser.php' );
-		/**
-		 * Alt WebP class for parsing image urls and rewriting them for WebP support.
-		 */
-		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-alt-webp.php' );
+		if ( defined( 'EWWW_IMAGE_OPTIMIZER_ALT_WEBP' ) && EWWW_IMAGE_OPTIMIZER_ALT_WEBP ) {
+			/**
+			 * Alt WebP class for parsing image urls and rewriting them for WebP support.
+			 */
+			require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-alt-webp.php' );
+		} else {
+			/**
+			 * JS WebP class for parsing image urls and rewriting them for WebP support.
+			 */
+			require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-js-webp.php' );
+		}
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		$buffer_start = true;
@@ -3004,7 +3011,7 @@ function ewww_image_optimizer_settings_link( $links ) {
 /**
  * Check for GD support of both PNG and JPG.
  *
- * @return bool True if full GD support is detected.
+ * @return string The version of GD if full support is detected.
  */
 function ewww_image_optimizer_gd_support() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
@@ -3017,11 +3024,79 @@ function ewww_image_optimizer_gd_support() {
 			}
 			ewwwio_memory( __FUNCTION__ );
 			if ( ( ! empty( $gd_support['JPEG Support'] ) || ! empty( $gd_support['JPG Support'] ) ) && ! empty( $gd_support['PNG Support'] ) ) {
+				return ! empty( $gd_support['GD Version'] ) ? $gd_support['GD Version'] : '1';
+			}
+		}
+	}
+	return false;
+}
+
+/**
+ * Check for GD support of WebP format.
+ *
+ * @return bool True if proper WebP support is detected.
+ */
+function ewww_image_optimizer_gd_supports_webp() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$gd_version = ewww_image_optimizer_gd_support();
+	if ( $gd_version ) {
+		if (
+			function_exists( 'imagewebp' ) &&
+			function_exists( 'imagepalettetotruecolor' ) &&
+			function_exists( 'imageistruecolor' ) &&
+			function_exists( 'imagealphablending' ) &&
+			function_exists( 'imagesavealpha' )
+		) {
+			if ( version_compare( $gd_version, '2.2.5', '>=' ) ) {
 				return true;
 			}
 		}
 	}
 	return false;
+}
+
+/**
+ * Use GD to convert an image to WebP.
+ *
+ * @param string $file The original source image path.
+ * @param string $type The mime-type of the original image.
+ * @param string $webpfile The location to store the new WebP image.
+ */
+function ewww_image_optimizer_gd_create_webp( $file, $type, $webpfile ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$quality = (int) apply_filters( 'webp_quality', 75, 'image/webp' );
+	if ( $quality < 50 || $quality > 100 ) {
+		$quality = 75;
+	}
+	switch ( $type ) {
+		case 'image/jpeg':
+			$image = imagecreatefromjpeg( $file );
+			if ( false === $image ) {
+				return;
+			}
+			break;
+		case 'image/png':
+			$image = imagecreatefrompng( $file );
+			if ( false === $image ) {
+				return;
+			}
+			if ( ! imageistruecolor( $image ) ) {
+				imagepalettetotruecolor( $image );
+			}
+			if ( ewww_image_optimizer_png_alpha( $file ) ) {
+				imagealphablending( $image, false );
+				imagesavealpha( $image, true );
+			}
+			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) || ! EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) {
+				$quality = 100;
+			}
+			break;
+		default:
+			return;
+	}
+	$result = imagewebp( $image, $webpfile, $quality );
+	// Make sure to cleanup--if $webpfile is borked, that will be handled elsewhere.
+	imagedestroy( $image );
 }
 
 /**
@@ -3041,6 +3116,88 @@ function ewww_image_optimizer_imagick_support() {
 		ewwwio_debug_message( 'imagick found, but PNG or JPG not supported' );
 	}
 	return false;
+}
+
+/**
+ * Check for IMagick support of WebP.
+ *
+ * @return bool True if WebP support is detected.
+ */
+function ewww_image_optimizer_imagick_supports_webp() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( ewww_image_optimizer_imagick_support() ) {
+		$imagick = new Imagick();
+		$formats = $imagick->queryFormats();
+		if ( in_array( 'WEBP', $formats, true ) ) {
+			return true;
+		}
+	}
+}
+
+/**
+ * Use IMagick to convert an image to WebP.
+ *
+ * @param string $file The original source image path.
+ * @param string $type The mime-type of the original image.
+ * @param string $webpfile The location to store the new WebP image.
+ */
+function ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$sharp_yuv = defined( 'EIO_WEBP_SHARP_YUV' ) && EIO_WEBP_SHARP_YUV ? true : false;
+	$quality   = (int) apply_filters( 'webp_quality', 75, 'image/webp' );
+	if ( $quality < 50 || $quality > 100 ) {
+		$quality = 75;
+	}
+	$profiles = array();
+	switch ( $type ) {
+		case 'image/jpeg':
+			$image = new Imagick( $file );
+			if ( false === $image ) {
+				return;
+			}
+			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
+				// Getting possible color profiles.
+				$profiles = $image->getImageProfiles( 'icc', true );
+			}
+			$color = $image->getImageColorspace();
+			ewwwio_debug_message( "color space is $color" );
+			if ( Imagick::COLORSPACE_CMYK === $color ) {
+				$image->transformImageColorspace( Imagick::COLORSPACE_SRGB );
+			}
+			$image->setImageFormat( 'WEBP' );
+			if ( $sharp_yuv ) {
+				$image->setOption( 'webp:use-sharp-yuv', 'true' );
+			}
+			$image->setImageCompressionQuality( $quality );
+			break;
+		case 'image/png':
+			$image = new Imagick( $file );
+			if ( false === $image ) {
+				return;
+			}
+			$image->setImageFormat( 'WEBP' );
+			if ( defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) && EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) {
+				if ( $sharp_yuv ) {
+					$image->setOption( 'webp:use-sharp-yuv', 'true' );
+				}
+				$image->setImageCompressionQuality( $quality );
+			} else {
+				$image->setOption( 'webp:lossless', true );
+				$image->setOption( 'webp:alpha-quality', 100 );
+			}
+			break;
+		default:
+			return;
+	}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
+		$image->stripImage();
+		if ( ! empty( $profiles ) ) {
+			ewwwio_debug_message( 'adding color profile to WebP' );
+			$image->profileImage( 'icc', $profiles['icc'] );
+		}
+	}
+	$image_blob = $image->getImageBlob();
+	file_put_contents( $webpfile, $image_blob );
 }
 
 /**
@@ -8704,6 +8861,34 @@ function ewww_image_optimizer_is_animated_png( $filename ) {
 	}
 	fclose( $fh );
 	return $apng;
+}
+
+/**
+ * Check a JPG to see if it uses the CMYK color space.
+ *
+ * @param string $filename Name of the JPG to test.
+ * @return bool True if CMYK, false otherwise.
+ */
+function ewww_image_optimizer_is_cmyk( $filename ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( ewww_image_optimizer_imagick_support() ) {
+		$image = new Imagick( $filename );
+		$color = $image->getImageColorspace();
+		ewwwio_debug_message( "color space is $color" );
+		$image->destroy();
+		if ( Imagick::COLORSPACE_CMYK === $color ) {
+			return true;
+		}
+	} elseif ( ewww_image_optimizer_gd_support() ) {
+		$info = getimagesize( $filename );
+		if ( ! empty( $info['channels'] ) ) {
+			ewwwio_debug_message( "channel count is {$info['channels']}" );
+			if ( 4 === (int) $info['channels'] ) {
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 /**

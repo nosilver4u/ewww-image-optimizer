@@ -133,8 +133,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.2.0 =
-* added: compatibility with S3 Uploads 3.x
+* added: PHP-based WebP Conversion via GD/Imagick in free mode when exec() is disabled
 * added: enable -sharp_yuv option for WebP conversion with the EIO_WEBP_SHARP_YUV override
+* added: compatibility with S3 Uploads 3.x
 * fixed: empty .webp images sometimes produced when cwebp encounters an error
 
 = 6.1.9 =

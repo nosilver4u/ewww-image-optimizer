@@ -2107,6 +2107,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			// For exec-deprived servers.
 			if ( 10 === (int) $compression_level && EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
 				list( $file, $converted, $result, $new_size, $backup_hash ) = ewww_image_optimizer_cloud_optimizer( $file, $type );
+				$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, $type, null, $orig_size !== $new_size );
 				break;
 			}
 			if ( $convert ) {
@@ -2399,6 +2400,11 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				} else {
 					$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, $type, null, $orig_size !== $new_size );
 				}
+				break;
+			}
+			// For exec-deprived servers.
+			if ( 10 >= (int) $compression_level && EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
+				$webp_result = ewww_image_optimizer_webp_create( $file, $orig_size, $type, null, $orig_size !== $new_size );
 				break;
 			}
 			if ( $convert ) {
@@ -3006,7 +3012,13 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 		return esc_html__( 'Image dimensions too large for WebP conversion.', 'ewww-image-optimizer' );
 	}
 	if ( empty( $tool ) || 'image/gif' === $type ) {
-		ewww_image_optimizer_cloud_optimizer( $file, $type, false, $webpfile, 'image/webp' );
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+			ewww_image_optimizer_cloud_optimizer( $file, $type, false, $webpfile, 'image/webp' );
+		} elseif ( ewww_image_optimizer_imagick_supports_webp() ) {
+			ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile );
+		} elseif ( ewww_image_optimizer_gd_supports_webp() ) {
+			ewww_image_optimizer_gd_create_webp( $file, $type, $webpfile );
+		}
 	} else {
 		$nice = '';
 		if ( ! EWWW_IMAGE_OPTIMIZER_CLOUD ) {
@@ -3031,6 +3043,12 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 			case 'image/jpeg':
 				ewwwio_debug_message( "$nice " . $tool . " -q $quality $sharp_yuv -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1' );
 				exec( "$nice " . $tool . " -q $quality $sharp_yuv -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1', $cli_output );
+				if ( ! ewwwio_is_file( $webpfile ) && ewww_image_optimizer_imagick_supports_webp() && ewww_image_optimizer_is_cmyk( $file ) ) {
+					ewwwio_debug_message( 'cmyk image skipped, trying imagick' );
+					ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile );
+				} elseif ( ewwwio_is_file( $webpfile ) && 'image/webp' !== ewww_image_optimizer_mimetype( $webpfile, 'i' ) ) {
+					ewwwio_debug_message( 'non-webp file produced' );
+				}
 				break;
 			case 'image/png':
 				ewwwio_debug_message( "$nice " . $tool . " $lossless -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1' );

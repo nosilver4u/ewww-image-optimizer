@@ -232,7 +232,7 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			$this->debug_message( "getting dimensions for $url" );
 
-			list( $width, $height ) = $this->get_dimensions_from_filename( $url );
+			list( $width, $height ) = $this->get_dimensions_from_filename( $url, ! empty( $this->parsing_exactdn ) );
 			if ( empty( $width ) || empty( $height ) ) {
 				// Couldn't get it from the URL directly, see if we can get the actual filename.
 				$file = false;
