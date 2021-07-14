@@ -1888,7 +1888,9 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		$ewww_force_smart = false;
 		delete_transient( 'ewww_image_optimizer_smart_reopt' );
 	}
-	$ewww_webp_only = false;
+	if ( ! isset( $ewww_webp_only ) ) {
+		$ewww_webp_only = false;
+	}
 	if ( ! empty( $_REQUEST['ewww_webp_only'] ) ) {
 		$ewww_webp_only = true;
 	}
@@ -2019,11 +2021,14 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			WP_CLI::line( __( 'Optimized', 'ewww-image-optimizer' ) . ' ' . $image->file );
-			WP_CLI::line( str_replace( '&nbsp;', '', $msg ) );
+			WP_CLI::line( str_replace( array( '&nbsp;', '<br>' ), array( '', "\n" ), $msg ) );
 		}
 		$output['results'] .= sprintf( '<p>' . esc_html__( 'Optimized', 'ewww-image-optimizer' ) . ' <strong>%s</strong><br>', esc_html( $image->file ) );
 		if ( ! empty( $ewwwio_resize_status ) ) {
 			$output['results'] .= esc_html( $ewwwio_resize_status ) . '<br>';
+			if ( defined( 'WP_CLI' ) && WP_CLI ) {
+				WP_CLI::line( $ewwwio_resize_status );
+			}
 		}
 		$output['results'] .= "$msg</p>";
 

@@ -32,17 +32,21 @@ class EWWWIO_CLI extends WP_CLI_Command {
 	 *
 	 * <force>
 	 * : optional, should the plugin re-optimize images that have already been processed.
-	 * * <reset>
+	 *
+	 * <reset>
 	 * : optional, start the optimizer back at the beginning instead of resuming from last position
+	 *
+	 * <webp-only>
+	 * : optional, only do WebP Conversion, skip all other operations
 	 *
 	 * <noprompt>
 	 * : do not prompt, just start optimizing
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp-cli ewwwio optimize media 5 --force --reset --noprompt
+	 *     wp-cli ewwwio optimize media 5 --force --reset --webp-only --noprompt
 	 *
-	 * @synopsis <library> [<delay>] [--force] [--reset] [--noprompt]
+	 * @synopsis <library> [<delay>] [--force] [--reset] [--webp-only] [--noprompt]
 	 *
 	 * @global bool $ewww_defer Gets set to false to make sure optimization happens inline.
 	 *
@@ -52,6 +56,8 @@ class EWWWIO_CLI extends WP_CLI_Command {
 	function optimize( $args, $assoc_args ) {
 		global $ewww_defer;
 		$ewww_defer = false;
+		global $ewww_webp_only;
+		$ewww_webp_only = false;
 		// because NextGEN hasn't flushed it's buffers...
 		while ( @ob_end_flush() ) {
 		}
@@ -70,6 +76,13 @@ class EWWWIO_CLI extends WP_CLI_Command {
 			$_REQUEST['ewww_force'] = true;
 			global $ewww_force;
 			$ewww_force = 1;
+		}
+		if ( ! empty( $assoc_args['webp-only'] ) ) {
+			if ( empty( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) ) {
+				WP_CLI::error( __( 'WebP Conversion is not enabled.', 'ewww-image-optimizer' ) );
+			}
+			WP_CLI::line( __( 'Running WebP conversion only.', 'ewww-image-optimizer' ) );
+			$ewww_webp_only = true;
 		}
 		/* translators: 1: type of images, like media, or nextgen 2: number of seconds */
 		WP_CLI::line( sprintf( _x( 'Optimizing %1$s with a %2$d second pause between images.', 'string will be something like "media" or "nextgen"', 'ewww-image-optimizer' ), $library, $delay ) );
