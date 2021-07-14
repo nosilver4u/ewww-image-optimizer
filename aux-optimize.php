@@ -662,6 +662,10 @@ function ewww_image_optimizer_ajax_delete_original() {
 		ewwwio_ob_clean();
 		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
 	}
+	if ( ! empty( $_POST['delete_originals_done'] ) ) {
+		delete_option( 'ewww_image_optimizer_delete_originals_resume' );
+		die( wp_json_encode( array( 'done' => 1 ) ) );
+	}
 	if ( empty( $_POST['attachment_id'] ) ) {
 		die( wp_json_encode( array( 'error' => esc_html__( 'Missing attachment ID number.', 'ewww-image-optimizer' ) ) ) );
 	}
@@ -675,6 +679,7 @@ function ewww_image_optimizer_ajax_delete_original() {
 	if ( ewww_image_optimizer_iterable( $new_meta ) ) {
 		wp_update_attachment_metadata( $id, $new_meta );
 	}
+	update_option( 'ewww_image_optimizer_delete_originals_resume', $id, false );
 	die( wp_json_encode( array( 'completed' => 1 ) ) );
 }
 
@@ -936,9 +941,18 @@ function ewww_image_optimizer_get_all_attachments() {
 		ewwwio_ob_clean();
 		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
 	}
+	$start_id = get_option( 'ewww_image_optimizer_delete_originals_resume', 0 );
 	global $wpdb;
-	$attachments = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%') ORDER BY ID DESC" );
+	$attachments = $wpdb->get_col(
+		$wpdb->prepare(
+			"SELECT ID FROM $wpdb->posts WHERE ID > %d AND (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE %s OR post_mime_type LIKE %s) ORDER BY ID DESC",
+			(int) $start_id,
+			'%image%',
+			'%pdf%'
+		)
+	);
 	if ( empty( $attachments ) || ! is_countable( $attachments ) || 0 === count( $attachments ) ) {
+		delete_option( 'ewww_image_optimizer_delete_originals_resume' );
 		die( wp_json_encode( array( 'error' => esc_html__( 'No media uploads found.', 'ewww-image-optimizer' ) ) ) );
 	}
 	ewwwio_debug_message( gettype( $attachments ) );
@@ -1575,4 +1589,3 @@ add_action( 'wp_ajax_bulk_aux_images_webp_clean', 'ewww_image_optimizer_aux_imag
 add_action( 'wp_ajax_bulk_aux_images_delete_webp', 'ewww_image_optimizer_delete_webp' );
 add_action( 'wp_ajax_bulk_aux_images_delete_original', 'ewww_image_optimizer_ajax_delete_original' );
 add_action( 'wp_ajax_ewwwio_get_all_attachments', 'ewww_image_optimizer_get_all_attachments' );
-?>

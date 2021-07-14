@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '619.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '619.11' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -3081,9 +3081,11 @@ function ewww_image_optimizer_gd_create_webp( $file, $type, $webpfile ) {
 				return;
 			}
 			if ( ! imageistruecolor( $image ) ) {
+				ewwwio_debug_message( 'converting to true color' );
 				imagepalettetotruecolor( $image );
 			}
 			if ( ewww_image_optimizer_png_alpha( $file ) ) {
+				ewwwio_debug_message( 'saving alpha and disabling alpha blending' );
 				imagealphablending( $image, false );
 				imagesavealpha( $image, true );
 			}
@@ -3094,6 +3096,7 @@ function ewww_image_optimizer_gd_create_webp( $file, $type, $webpfile ) {
 		default:
 			return;
 	}
+	ewwwio_debug_message( "creating $webpfile with quality $quality" );
 	$result = imagewebp( $image, $webpfile, $quality );
 	// Make sure to cleanup--if $webpfile is borked, that will be handled elsewhere.
 	imagedestroy( $image );
@@ -3162,18 +3165,24 @@ function ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile ) {
 			$color = $image->getImageColorspace();
 			ewwwio_debug_message( "color space is $color" );
 			if ( Imagick::COLORSPACE_CMYK === $color ) {
+				ewwwio_debug_message( 'found CMYK image' );
 				if ( ewwwio_is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/icc/sRGB2014.icc' ) ) {
+					ewwwio_debug_message( 'adding icc profile' );
 					$icc_profile = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/icc/sRGB2014.icc' );
 					$image->profileImage( 'icc', $icc_profile );
 				}
+				ewwwio_debug_message( 'attempting SRGB transform' );
 				$image->transformImageColorspace( Imagick::COLORSPACE_SRGB );
+				ewwwio_debug_message( 'removing icc profile' );
 				$image->setImageProfile( 'icc', null );
 				$profiles = array();
 			}
 			$image->setImageFormat( 'WEBP' );
 			if ( $sharp_yuv ) {
+				ewwwio_debug_message( 'enabling sharp_yuv' );
 				$image->setOption( 'webp:use-sharp-yuv', 'true' );
 			}
+			ewwwio_debug_message( "setting quality to $quality" );
 			$image->setImageCompressionQuality( $quality );
 			break;
 		case 'image/png':
@@ -3183,11 +3192,15 @@ function ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile ) {
 			}
 			$image->setImageFormat( 'WEBP' );
 			if ( defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) && EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) {
+				ewwwio_debug_message( 'doing lossy conversion' );
 				if ( $sharp_yuv ) {
+					ewwwio_debug_message( 'enabling sharp_yuv' );
 					$image->setOption( 'webp:use-sharp-yuv', 'true' );
 				}
+				ewwwio_debug_message( "setting quality to $quality" );
 				$image->setImageCompressionQuality( $quality );
 			} else {
+				ewwwio_debug_message( 'sticking to lossless' );
 				$image->setOption( 'webp:lossless', true );
 				$image->setOption( 'webp:alpha-quality', 100 );
 			}
@@ -3196,13 +3209,16 @@ function ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile ) {
 			return;
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
+		ewwwio_debug_message( 'removing meta' );
 		$image->stripImage();
 		if ( ! empty( $profiles ) ) {
 			ewwwio_debug_message( 'adding color profile to WebP' );
 			$image->profileImage( 'icc', $profiles['icc'] );
 		}
 	}
+	ewwwio_debug_message( 'getting blob' );
 	$image_blob = $image->getImageBlob();
+	ewwwio_debug_message( 'writing file' );
 	file_put_contents( $webpfile, $image_blob );
 }
 

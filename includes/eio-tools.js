@@ -279,9 +279,21 @@ jQuery(document).ready(function($) {
 			try {
 				ewww_original_attachments = JSON.parse(response);
 			} catch (err) {
+				$('.ewww-tool-info').hide();
+				$('.ewww-tool-form').hide();
+				$('.ewww-tool-divider').hide();
 				$('#ewww-clean-originals-progress').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
+				$('#ewww-clean-originals-progress').show();
 				console.log(err);
 				console.log(response);
+				return false;
+			}
+			if ( ewww_original_attachments.error ) {
+				$('.ewww-tool-info').hide();
+				$('.ewww-tool-form').hide();
+				$('.ewww-tool-divider').hide();
+				$('#ewww-clean-originals-progress').html(ewww_original_attachments.error);
+				$('#ewww-clean-originals-progress').show();
 				return false;
 			}
 			ewww_total_originals = ewww_original_attachments.length;
@@ -319,6 +331,12 @@ jQuery(document).ready(function($) {
 				return false;
 			}
 			if(!ewww_original_attachments.length) {
+				var ewww_originals_data = {
+					action: 'bulk_aux_images_delete_original',
+					ewww_wpnonce: ewww_vars._wpnonce,
+					delete_originals_done: 1,
+				};
+				$.post(ajaxurl, ewww_originals_data);
 				$('#ewww-clean-originals-progress').html(ewww_vars.finished);
 				return false;
 			}
