@@ -967,13 +967,11 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 	if ( 'ewww-image-optimizer-cli' !== $hook && empty( $_REQUEST['ewww_scan'] ) ) {
 		ewwwio_debug_message( 'bailing no cli' );
-		ewww_image_optimizer_debug_log();
 		ewwwio_ob_clean();
 		die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
 	}
 	if ( ! empty( $_REQUEST['ewww_scan'] ) && ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) ) {
 		ewwwio_debug_message( 'bailing no nonce' );
-		ewww_image_optimizer_debug_log();
 		ewwwio_ob_clean();
 		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
 	}

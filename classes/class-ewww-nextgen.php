@@ -632,8 +632,15 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 */
 		function ewww_ngg_bulk_preview() {
 			if ( ! empty( $_REQUEST['doaction'] ) ) {
-				if ( empty( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ngg_bulkgallery' ) ) {
-					return;
+				if (
+					empty( $_REQUEST['_wpnonce'] ) ||
+					(
+						! wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ngg_bulkgallery' ) &&
+						! wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ngg_updategallery' )
+					)
+				) {
+						ewwwio_debug_message( 'nonce verify failed' );
+						return;
 				}
 				// If there is no requested bulk action, do nothing.
 				if ( empty( $_REQUEST['bulkaction'] ) ) {
@@ -827,7 +834,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			// Store the image IDs to process in the db.
 			update_option( 'ewww_image_optimizer_bulk_ngg_attachments', $images, false );
 			// Add the EWWW IO script.
-			wp_enqueue_script( 'ewwwbulkscript', plugins_url( '/includes/eio.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array( 'jquery', 'jquery-ui-progressbar', 'jquery-ui-slider', 'postbox', 'dashboard' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+			wp_enqueue_script( 'ewwwbulkscript', plugins_url( '/includes/eio-bulk.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array( 'jquery', 'jquery-ui-progressbar', 'jquery-ui-slider', 'postbox', 'dashboard' ), EWWW_IMAGE_OPTIMIZER_VERSION );
 			// Replacing the built-in nextgen styling rules for progressbar, partially because the bulk optimize page doesn't work without them.
 			wp_deregister_style( 'ngg-jqueryui' );
 			wp_deregister_style( 'ngg-jquery-ui' );
@@ -1040,7 +1047,14 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 */
 		function ewww_ngg_bulk_action_handler() {
 			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-			if ( empty( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ngg_bulkgallery' ) ) {
+			if (
+				empty( $_REQUEST['_wpnonce'] ) ||
+				(
+					! wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ngg_bulkgallery' ) &&
+					! wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ngg_updategallery' )
+				)
+			) {
+				ewwwio_debug_message( 'nonce verify failed' );
 				return;
 			}
 			// If the requested page is blank, or not a bulk_optimize, do nothing.
@@ -1067,7 +1081,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 						'_wpnonce'   => sanitize_key( $_REQUEST['_wpnonce'] ),
 						'bulk_type'  => $type,
 						'bulkaction' => 'bulk_optimize',
-						'doaction'   => sanitize_key( $_REQUEST['doaction'] ),
+						'doaction'   => array_map( 'intval', wp_unslash( $_REQUEST['doaction'] ) ), // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 					),
 					admin_url( 'admin.php' )
 				)

@@ -3,7 +3,7 @@ Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization, lossless, lossy, seo, scale
 Requires at least: 5.4
-Tested up to: 5.7
+Tested up to: 5.8
 Requires PHP: 7.1
 Stable tag: 6.1.9
 License: GPLv3
@@ -142,6 +142,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * changed: native lazy loading is now enabled for right-sized PNG placeholders, override with EIO_DISABLE_NATIVE_LAZY constant
 * changed: add resume ability to Delete Originals tool
 * fixed: empty .webp images sometimes produced when cwebp encounters an error
+* fixed: Bulk Optimizer for NextGEN loading incorrect script
+* fixed: Bulk Optimizer for NextGEN fails to verify nonce for selective optimization
+* fixed: Last Optimized times for Optimized Images table were incorrect
 
 = 6.1.9 =
 * fixed: Easy IO's Include All Resources compat with Oxygen Builder and Beaver Builder

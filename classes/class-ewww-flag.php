@@ -299,7 +299,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			// Store the IDs to optimize in the options table of the db.
 			update_option( 'ewww_image_optimizer_bulk_flag_attachments', $ids );
 			// Add the EWWW IO javascript.
-			wp_enqueue_script( 'ewwwbulkscript', plugins_url( '/includes/eio.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array( 'jquery', 'jquery-ui-progressbar', 'jquery-ui-slider', 'postbox', 'dashboard' ), EWWW_IMAGE_OPTIMIZER_VERSION );
+			wp_enqueue_script( 'ewwwbulkscript', plugins_url( '/includes/eio-bulk.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array( 'jquery', 'jquery-ui-progressbar', 'jquery-ui-slider', 'postbox', 'dashboard' ), EWWW_IMAGE_OPTIMIZER_VERSION );
 			// Add the styling for the progressbar.
 			wp_enqueue_style( 'jquery-ui-progressbar', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ) );
 			// Prepare a few variables to be used by the javascript code.

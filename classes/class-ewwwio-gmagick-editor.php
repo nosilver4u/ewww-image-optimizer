@@ -79,7 +79,6 @@ if ( class_exists( 'WP_Image_Editor_Gmagick' ) ) {
 					}
 					*/
 				}
-				ewww_image_optimizer_debug_log();
 			}
 			ewwwio_memory( __FUNCTION__ );
 			return $saved;

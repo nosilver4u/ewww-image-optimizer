@@ -205,7 +205,7 @@ function ewww_image_optimizer_aux_images_table() {
 			}
 			$output['table'] .= '</td>';
 			$output['table'] .= "<td>$type</td>";
-			$output['table'] .= "<td>$last_updated ({$optimized_image['updated']})</td>";
+			$output['table'] .= "<td>$last_updated</td>";
 			$output['table'] .= "<td>$savings<br>$size_string<br>" .
 				'<a class="ewww-remove-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Remove from history', 'ewww-image-optimizer' ) . '</a>' .
 				( $optimized_image['backup'] ? '<br><a class="ewww-restore-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Restore original', 'ewww-image-optimizer' ) . '</a>' : '' ) .
@@ -244,7 +244,6 @@ function ewww_image_optimizer_aux_images_table() {
 			$output['table'] .= '</td>';
 			$output['table'] .= "<td>$type</td>";
 			$output['table'] .= "<td>$last_updated</td>";
-			$output['table'] .= "<td>$last_updated ({$optimized_image['updated']})</td>";
 			// Determine filepath for webp.
 			$webpfile  = $file . '.webp';
 			$webp_size = ewww_image_optimizer_filesize( $webpfile );
@@ -298,7 +297,6 @@ function ewww_image_optimizer_aux_images_table() {
 			$output['table'] .= '</td>';
 			$output['table'] .= "<td>$type</td>";
 			$output['table'] .= "<td>$last_updated</td>";
-			$output['table'] .= "<td>$last_updated ({$optimized_image['updated']})</td>";
 			$output['table'] .= "<td>$savings<br>$size_string<br>" .
 				'<a class="ewww-remove-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Remove from history', 'ewww-image-optimizer' ) . '</a>' .
 				'</td>';
@@ -1150,7 +1148,6 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			set_transient( 'ewww_image_optimizer_aux_iterator', $file_counter - 20, 300 ); // Keep track of where we left off, minus 20 to be safe.
 			$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
 			ewwwio_ob_clean();
-			ewww_image_optimizer_debug_log();
 			die(
 				wp_json_encode(
 					array(
@@ -1171,7 +1168,6 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 				ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, array( '%s', '%d', '%d' ) );
 			}
 			set_transient( 'ewww_image_optimizer_aux_iterator', $file_counter - 20, 300 ); // Keep track of where we left off, minus 20 to be safe.
-			ewww_image_optimizer_debug_log();
 			global $ewwwio_scan_async;
 			$ewwwio_scan_async->data(
 				array(
@@ -1182,7 +1178,6 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 		} elseif ( 'scheduled' === $ewww_scan && get_option( 'ewwwio_stop_scheduled_scan' ) ) {
 			ewwwio_debug_message( 'ending current scan iteration because of stop_scan' );
 			delete_option( 'ewwwio_stop_scheduled_scan' );
-			ewww_image_optimizer_debug_log();
 			die();
 		}
 		if ( $ewww_scan && 0 === $file_counter % 100 && ! ewwwio_check_memory_available( 2097000 ) ) {
@@ -1204,7 +1199,6 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			set_transient( 'ewww_image_optimizer_aux_iterator', $file_counter - 20, 300 ); // Keep track of where we left off, minus 20 to be safe.
 			$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
 			ewwwio_ob_clean();
-			ewww_image_optimizer_debug_log();
 			die(
 				wp_json_encode(
 					array(
@@ -1313,7 +1307,6 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	ewwwio_memory( __FUNCTION__ );
 	$folders_completed[] = $dir;
 	update_option( 'ewww_image_optimizer_aux_folders_completed', $folders_completed, false );
-	ewww_image_optimizer_debug_log();
 }
 
 /**
@@ -1500,7 +1493,6 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 	update_option( 'ewww_image_optimizer_aux_folders_completed', array(), false );
 	update_option( 'ewww_image_optimizer_aux_resume', '' );
 	update_option( 'ewww_image_optimizer_bulk_resume', '' );
-	ewww_image_optimizer_debug_log();
 	if ( wp_doing_ajax() && 'ewww-image-optimizer-auto' !== $hook && ( ! defined( 'WP_CLI' ) || ! WP_CLI ) ) {
 		$verify_cloud = ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), false );
 		$usage        = false;
@@ -1548,7 +1540,6 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 		$ewwwio_image_background->dispatch();
 		update_option( 'ewww_image_optimizer_aux_resume', '', false );
 	}
-	ewww_image_optimizer_debug_log();
 	ewwwio_memory( __FUNCTION__ );
 	return $image_count;
 }

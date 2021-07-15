@@ -214,7 +214,6 @@ function ewww_image_optimizer_webp_loop() {
 	ewwwio_debug_message( "took $elapsed seconds this time around" );
 	// Store the updated list of images back in the database.
 	update_option( 'ewww_image_optimizer_webp_images', $images );
-	ewww_image_optimizer_debug_log();
 	die();
 }
 

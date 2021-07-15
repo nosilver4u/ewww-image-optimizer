@@ -181,7 +181,6 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 					$image_size = ewww_image_optimizer_filesize( $filename );
 					ewwwio_debug_message( "image editor size: $image_size" );
 				}
-				ewww_image_optimizer_debug_log();
 			}
 			ewwwio_memory( __FUNCTION__ );
 			return $saved;
