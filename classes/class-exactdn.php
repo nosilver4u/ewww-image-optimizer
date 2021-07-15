@@ -1180,8 +1180,26 @@ if ( ! class_exists( 'ExactDN' ) ) {
 							$new_tag = $tag;
 
 							// If present, replace the link href with an ExactDN URL for the full-size image.
-							if ( ! empty( $images['link_url'][ $index ] ) && $this->validate_image_url( $images['link_url'][ $index ] ) ) {
-								$new_tag = preg_replace( '#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i', '\1' . $this->generate_url( $images['link_url'][ $index ] ) . '\2', $new_tag, 1 );
+							if ( defined( 'EIO_PRESERVE_LINKED_IMAGES' ) && EIO_PRESERVE_LINKED_IMAGES && ! empty( $images['link_url'][ $index ] ) && $this->validate_image_url( $images['link_url'][ $index ] ) ) {
+								$new_tag = preg_replace(
+									'#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i',
+									'\1' . $this->generate_url(
+										$images['link_url'][ $index ],
+										array(
+											'lossy' => 0,
+											'strip' => 'none',
+										)
+									) . '\2',
+									$new_tag,
+									1
+								);
+							} elseif ( ! empty( $images['link_url'][ $index ] ) && $this->validate_image_url( $images['link_url'][ $index ] ) ) {
+								$new_tag = preg_replace(
+									'#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i',
+									'\1' . $this->generate_url( $images['link_url'][ $index ] ) . '\2',
+									$new_tag,
+									1
+								);
 							}
 
 							// Insert new image src into the srcset as well, if we have a width.
@@ -2672,6 +2690,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				return true;
 			}
 			if ( false !== strpos( $uri, 'ct_builder=' ) ) {
+				return true;
+			}
+			if ( false !== strpos( $uri, 'ct_render_shortcode=' ) || false !== strpos( $uri, 'action=oxy_render' ) ) {
 				return true;
 			}
 			if ( false !== strpos( $uri, '?fl_builder' ) ) {

@@ -139,6 +139,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: WP-CLI command can be run with --webp-only option
 * added: Lazy Load for iframes, add 'iframe' in exclusions to disable
 * added: compatibility with S3 Uploads 3.x
+* added: preserve metadata and apply lossless compression to linked versions of images via Easy IO with EIO_PRESERVE_LINKED_IMAGES constant
 * changed: native lazy loading is now enabled for right-sized PNG placeholders, override with EIO_DISABLE_NATIVE_LAZY constant
 * changed: add resume ability to Delete Originals tool
 * fixed: empty .webp images sometimes produced when cwebp encounters an error
