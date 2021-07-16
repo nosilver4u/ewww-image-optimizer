@@ -146,6 +146,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: Bulk Optimizer for NextGEN loading incorrect script
 * fixed: Bulk Optimizer for NextGEN fails to verify nonce for selective optimization
 * fixed: Last Optimized times for Optimized Images table were incorrect
+* fixed: Add Missing Dimensions overwrites smaller width/height attribute if only one is set
 
 = 6.1.9 =
 * fixed: Easy IO's Include All Resources compat with Oxygen Builder and Beaver Builder

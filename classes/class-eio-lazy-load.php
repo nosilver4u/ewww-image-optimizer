@@ -440,11 +440,22 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			$insert_dimensions = false;
 			if ( apply_filters( 'eio_add_missing_width_height_attrs', $this->get_option( $this->prefix . 'add_missing_dims' ) ) && ( empty( $width_attr ) || empty( $height_attr ) ) ) {
 				$this->debug_message( 'missing width attr or height attr' );
-				list( $width_attr, $height_attr ) = $this->get_image_dimensions_by_url( $file );
-				if ( $width_attr && is_numeric( $width_attr ) && $height_attr && is_numeric( $height_attr ) ) {
-					$this->debug_message( "found $width_attr and $height_attr to insert" );
-					$physical_width    = $width_attr;
-					$physical_height   = $height_attr;
+				list( $new_width_attr, $new_height_attr ) = $this->get_image_dimensions_by_url( $file );
+				if ( $new_width_attr && is_numeric( $new_width_attr ) && $new_height_attr && is_numeric( $new_height_attr ) ) {
+					$this->debug_message( "found $width_attr and $height_attr to insert (maybe)" );
+					if ( $width_attr && is_numeric( $width_attr ) && $width_attr < $new_width_attr ) { // Then $height_attr is empty...
+						$height_attr = round( ( $new_height_attr / $new_width_attr ) * $width_attr );
+						$this->debug_message( "width was set to $width_attr, height was empty, but now $height_attr" );
+					} elseif ( $height_attr && is_numeric( $height_attr ) && $height_attr < $new_height_attr ) { // Or $width_attr is empty...
+						$width_attr = round( ( $new_width_attr / $new_height_attr ) * $height_attr );
+						$this->debug_message( "height was set to $height_attr, width was empty, but now $width_attr" );
+					} else {
+						$width_attr  = $new_width_attr;
+						$height_attr = $new_height_attr;
+						$this->debug_message( 'both width and height were empty, filling for sure' );
+					}
+					$physical_width    = $new_width_attr;
+					$physical_height   = $new_height_attr;
 					$insert_dimensions = true;
 				}
 			}
@@ -579,9 +590,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				$this->set_attribute( $image, 'src', $placeholder_src, true );
 			}
 
-			$existing_class = trim( $this->get_attribute( $image, 'class' ) );
+			$existing_class = $this->get_attribute( $image, 'class' );
 			if ( ! empty( $existing_class ) ) {
-				$this->set_attribute( $image, 'class', $existing_class . ' lazyload', true );
+				$this->set_attribute( $image, 'class', trim( $existing_class . ' lazyload' ), true );
 			} else {
 				$this->set_attribute( $image, 'class', 'lazyload', true );
 			}
