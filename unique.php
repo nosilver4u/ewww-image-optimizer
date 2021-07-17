@@ -720,8 +720,10 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 				break;
 			case 'CWEBP':
 				if ( ! $skip['webp'] && empty( $req ) ) {
-					$missing[] = 'webp';
-					$req       = false;
+					if ( ! ewww_image_optimizer_imagick_supports_webp() && ! ewww_image_optimizer_gd_supports_webp() ) {
+						$missing[] = 'webp';
+					}
+					$req = false;
 				}
 				if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_' . $key ) ) {
 					ewwwio_debug_message( "defining EWWW_IMAGE_OPTIMIZER_$key" );

@@ -3052,10 +3052,12 @@ function ewww_image_optimizer_gd_supports_webp() {
 			function_exists( 'imagesavealpha' )
 		) {
 			if ( version_compare( $gd_version, '2.2.5', '>=' ) ) {
+				ewwwio_debug_message( 'yes it does' );
 				return true;
 			}
 		}
 	}
+	ewwwio_debug_message( 'sorry nope' );
 	return false;
 }
 
@@ -3136,9 +3138,12 @@ function ewww_image_optimizer_imagick_supports_webp() {
 		$imagick = new Imagick();
 		$formats = $imagick->queryFormats();
 		if ( in_array( 'WEBP', $formats, true ) ) {
+			ewwwio_debug_message( 'yes it does' );
 			return true;
 		}
 	}
+	ewwwio_debug_message( 'sorry nope' );
+	return false;
 }
 
 /**

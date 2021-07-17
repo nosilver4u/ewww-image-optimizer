@@ -83,15 +83,15 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		$this->debug_message( 'checking any images matching these URLs/patterns for webp: ' . implode( ',', $this->allowed_urls ) );
 		$this->debug_message( 'rewriting any images matching these domains to webp: ' . implode( ',', $this->allowed_domains ) );
 
-		// Load the appropriate JS.
+		// Load the appropriate JS, in the footer, but as early as possible.
 		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
 			// Load the non-minified, non-inline version of the webp rewrite script.
-			add_action( 'wp_enqueue_scripts', array( $this, 'debug_script' ) );
+			add_action( 'wp_enqueue_scripts', array( $this, 'debug_script' ), -99 );
 		} elseif ( defined( 'EWWW_IMAGE_OPTIMIZER_WEBP_EXTERNAL_SCRIPT' ) && EWWW_IMAGE_OPTIMIZER_WEBP_EXTERNAL_SCRIPT ) {
 			// Load the minified, non-inline version of the webp rewrite script.
-			add_action( 'wp_enqueue_scripts', array( $this, 'min_external_script' ) );
+			add_action( 'wp_enqueue_scripts', array( $this, 'min_external_script' ), -99 );
 		} else {
-			add_action( 'wp_head', array( $this, 'inline_script' ) );
+			add_action( 'wp_footer', array( $this, 'inline_script' ), -99 );
 		}
 		$this->validate_user_exclusions();
 	}
@@ -886,31 +886,31 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 	}
 
 	/**
-	 * Load full webp script when SCRIPT_DEBUG is enabled.
+	 * Load full WebP script when SCRIPT_DEBUG is enabled.
 	 */
 	function debug_script() {
 		if ( $this->is_amp() ) {
 			return;
 		}
 		if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
-			wp_enqueue_script( 'ewww-webp-load-script', plugins_url( '/includes/load-webp.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+			wp_enqueue_script( 'ewww-webp-load-script', plugins_url( '/includes/load-webp.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION, true );
 		}
 	}
 
 	/**
-	 * Load minified webp script when EWWW_IMAGE_OPTIMIZER_WEBP_EXTERNAL_SCRIPT is set.
+	 * Load minified WebP script when EWWW_IMAGE_OPTIMIZER_WEBP_EXTERNAL_SCRIPT is set.
 	 */
 	function min_external_script() {
 		if ( $this->is_amp() ) {
 			return;
 		}
 		if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
-			wp_enqueue_script( 'ewww-webp-load-script', plugins_url( '/includes/load-webp.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+			wp_enqueue_script( 'ewww-webp-load-script', plugins_url( '/includes/load-webp.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION, true );
 		}
 	}
 
 	/**
-	 * Load minified (jscompress.com) inline version of webp script.
+	 * Load minified inline version of WebP script.
 	 */
 	function inline_script() {
 		if ( defined( 'EWWW_IMAGE_OPTIMIZER_NO_JS' ) && EWWW_IMAGE_OPTIMIZER_NO_JS ) {
