@@ -1352,9 +1352,13 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					}
 				} // End foreach().
 			} // End if();
+
+			// Process <picture> elements in the page.
+			$content = $this->filter_picture_images( $content );
+
+			// Process background images on HTML elements.
 			$element_types = apply_filters( 'eio_allowed_background_image_elements', array( 'div', 'li', 'span', 'section', 'a' ) );
 			foreach ( $element_types as $element_type ) {
-				// Process background images on HTML elements.
 				$content = $this->filter_bg_images( $content, $element_type );
 			}
 			if ( $this->filtering_the_page ) {
@@ -1381,6 +1385,83 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$content .= '<!-- Easy IO processing time: ' . $this->elapsed_time . ' seconds -->';
 			}
 			return $content;
+		}
+
+		/**
+		 * Parse page content for picture elements to rewrite.
+		 *
+		 * @param string $content The HTML content to parse.
+		 * @return string The filtered HTML content.
+		 */
+		function filter_picture_images( $content ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			if ( false === strpos( $content, '<picture' ) ) {
+				$this->debug_message( 'no picture elements, done' );
+				return $content;
+			}
+			// Images listed as picture/source elements.
+			$pictures = $this->get_picture_tags_from_html( $content );
+			if ( $this->is_iterable( $pictures ) ) {
+				foreach ( $pictures as $index => $picture ) {
+					$sources = $this->get_elements_from_html( $picture, 'source' );
+					if ( $this->is_iterable( $sources ) ) {
+						foreach ( $sources as $source ) {
+							$this->debug_message( "parsing a picture source: $source" );
+							$srcset = $this->get_attribute( $source, 'srcset' );
+							if ( $srcset ) {
+								$new_srcset = $this->srcset_replace( $srcset );
+								if ( $new_srcset ) {
+									$new_source = str_replace( $srcset, $new_srcset, $source );
+									$picture    = str_replace( $source, $new_source, $picture );
+								}
+							}
+						}
+						if ( $picture !== $pictures[ $index ] ) {
+							$this->debug_message( 'rewrote source for picture element' );
+							$content = str_replace( $pictures[ $index ], $picture, $content );
+						}
+					}
+				}
+			}
+			return $content;
+		}
+
+		/**
+		 * Replaces images within a srcset attribute with their ExactDN derivatives.
+		 *
+		 * @param string $srcset A valid srcset attribute from an img element.
+		 * @return bool|string False if no changes were made, or the new srcset if any ExactDN images replaced the originals.
+		 */
+		function srcset_replace( $srcset ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			$srcset_urls = explode( ' ', $srcset );
+			$modified    = false;
+			if ( $this->is_iterable( $srcset_urls ) && count( $srcset_urls ) > 1 ) {
+				$this->debug_message( 'parsing srcset urls' );
+				foreach ( $srcset_urls as $srcurl ) {
+					if ( is_numeric( substr( $srcurl, 0, 1 ) ) ) {
+						continue;
+					}
+					$trailing = ' ';
+					if ( ',' === substr( $srcurl, -1 ) ) {
+						$trailing = ',';
+						$srcurl   = rtrim( $srcurl, ',' );
+					}
+					$this->debug_message( "looking for $srcurl from srcset" );
+					if ( $this->validate_image_url( $srcurl ) ) {
+						$srcset = str_replace( $srcurl . $trailing, $this->generate_url( $srcurl ) . $trailing, $srcset );
+						$this->debug_message( "replaced $srcurl in srcset" );
+						$modified = true;
+					}
+				}
+			} elseif ( $this->validate_image_url( $srcset ) ) {
+				return $this->generate_url( $srcset );
+			}
+			if ( $modified ) {
+				return $srcset;
+			} else {
+				return false;
+			}
 		}
 
 		/**
