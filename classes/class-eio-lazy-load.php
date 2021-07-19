@@ -597,6 +597,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				$this->set_attribute( $image, 'class', 'lazyload', true );
 			}
 			if ( $insert_dimensions ) {
+				$this->debug_message( "setting width=$width_attr and height=$height_attr" );
 				$this->set_attribute( $image, 'width', $width_attr, true );
 				$this->set_attribute( $image, 'height', $height_attr, true );
 			}
@@ -604,6 +605,8 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				$this->set_attribute( $image, 'data-eio-rwidth', $physical_width, true );
 				$this->set_attribute( $image, 'data-eio-rheight', $physical_height, true );
 			}
+			$this->debug_message( 'lazified img element:' );
+			$this->debug_message( trim( $image ) );
 			return $image;
 		}
 

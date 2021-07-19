@@ -426,8 +426,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					array(
 						'timeout' => 10,
 						'body'    => array(
-							'alias' => $domain,
-							'url'   => $test_url,
+							'alias'  => $domain,
+							'url'    => $test_url,
+							'origin' => $this->content_url(),
 						),
 					)
 				);
@@ -472,7 +473,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				array(
 					'timeout' => 10,
 					'body'    => array(
-						'alias' => $domain,
+						'alias'  => $domain,
+						'origin' => $this->content_url(),
 					),
 				)
 			);
