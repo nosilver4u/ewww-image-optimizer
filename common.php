@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '619.14' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '619.15' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -13456,6 +13456,8 @@ function ewww_image_optimizer_remove_easyio() {
 	delete_site_option( 'ewww_image_optimizer_exactdn_verified' );
 	delete_site_option( 'ewww_image_optimizer_exactdn_validation' );
 	delete_site_option( 'ewww_image_optimizer_exactdn_suspended' );
+	global $exactdn;
+	$exactdn->cron_setup( false );
 	$sendback = wp_get_referer();
 	wp_safe_redirect( $sendback );
 	exit;

@@ -33,7 +33,7 @@ function ewww_image_optimizer_display_tools() {
 		update_option( 'ewwwio_stop_scheduled_scan', true, false );
 	}
 	echo "<div class='wrap'>\n";
-	echo "<h1>EWWW Image Optimizer</h1>\n";
+	echo "<h1 id='ewwwio-tools-header'>EWWW Image Optimizer</h1>\n";
 
 	// Find out if the auxiliary image table has anything in it.
 	$already_optimized = ewww_image_optimizer_aux_images_table_count();

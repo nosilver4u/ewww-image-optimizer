@@ -162,6 +162,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( ! $this->setup() ) {
 				return;
 			}
+			// Enables scheduled health checks via wp-cron.
+			add_action( 'easyio_verification_checkin', array( $this, 'health_check' ) );
 
 			// Images in post content and galleries.
 			add_filter( 'the_content', array( $this, 'filter_the_content' ), 999999 );
@@ -274,9 +276,11 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			// If we don't have a domain yet, go grab one.
 			$this->plan_id = $this->get_exactdn_option( 'plan_id' );
+			$new_site      = false;
 			if ( ! $this->get_exactdn_domain() ) {
 				$this->debug_message( 'attempting to activate exactDN' );
 				$exactdn_domain = $this->activate_site();
+				$new_site       = true;
 			} else {
 				$this->debug_message( 'grabbing existing exactDN domain' );
 				$exactdn_domain = $this->get_exactdn_domain();
@@ -284,11 +288,19 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( ! $exactdn_domain ) {
 				delete_option( $this->prefix . 'exactdn' );
 				delete_site_option( $this->prefix . 'exactdn' );
+				$this->cron_setup( false );
 				return false;
 			}
+			$verified = true;
 			// If we have a domain, verify it.
-			if ( $this->verify_domain( $exactdn_domain ) ) {
-				$this->debug_message( 'verified existing exactDN domain' );
+			if ( $new_site ) {
+				$verified = $this->verify_domain( $exactdn_domain );
+				if ( $verified ) {
+					// When this is a new site that is verified, setup health check.
+					$this->cron_setup();
+				}
+			}
+			if ( $verified ) {
 				$this->exactdn_domain = $exactdn_domain;
 				$this->debug_message( 'exactdn_domain: ' . $exactdn_domain );
 				$this->debug_message( 'exactdn_plan_id: ' . $this->plan_id );
@@ -298,7 +310,45 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			delete_option( $this->prefix . 'exactdn_verified' );
 			delete_site_option( $this->prefix . 'exactdn_domain' );
 			delete_site_option( $this->prefix . 'exactdn_verified' );
+			$this->cron_setup( false );
 			return false;
+		}
+
+		/**
+		 * Setup wp_cron tasks for scheduled verification.
+		 *
+		 * @global object $wpdb
+		 *
+		 * @param bool $schedule True to add event, false to remove/unschedule it.
+		 */
+		function cron_setup( $schedule = true ) {
+			$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+			$event = 'easyio_verification_checkin';
+			// Setup scheduled optimization if the user has enabled it, and it isn't already scheduled.
+			if ( $schedule && ! wp_next_scheduled( $event ) ) {
+				$this->debug_message( "scheduling $event" );
+				wp_schedule_event( time() + DAY_IN_SECONDS, apply_filters( 'easyio_verification_schedule', 'daily', $event ), $event );
+			} elseif ( $schedule ) {
+				$this->debug_message( "$event already scheduled: " . wp_next_scheduled( $event ) );
+			} elseif ( wp_next_scheduled( $event ) ) {
+				$this->debug_message( "un-scheduling $event" );
+				wp_clear_scheduled_hook( $event );
+				if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
+					// Need to include the plugin library for the is_plugin_active function.
+					require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+				}
+				if ( is_multisite() && is_plugin_active_for_network( constant( strtoupper( $this->prefix ) . 'PLUGIN_FILE_REL' ) ) ) {
+					global $wpdb;
+					$blogs = $wpdb->get_results( $wpdb->prepare( "SELECT blog_id FROM $wpdb->blogs WHERE site_id = %d", $wpdb->siteid ), ARRAY_A );
+					if ( ewww_image_optimizer_iterable( $blogs ) ) {
+						foreach ( $blogs as $blog ) {
+							switch_to_blog( $blog['blog_id'] );
+							wp_clear_scheduled_hook( $event );
+							restore_current_blog();
+						}
+					}
+				}
+			}
 		}
 
 		/**
@@ -385,6 +435,15 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		}
 
 		/**
+		 * Do a health check to verify the Easy IO domain is still good.
+		 */
+		function health_check() {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			$this->verify_domain( $this->exactdn_domain );
+			$this->set_exactdn_option( 'checkin', time() - 60 );
+		}
+
+		/**
 		 * Verify the ExactDN domain.
 		 *
 		 * @param string $domain The ExactDN domain to verify.
@@ -403,7 +462,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 
 			$this->check_verify_method();
-			$this->set_exactdn_option( 'checkin', time() + DAY_IN_SECONDS );
+			$this->set_exactdn_option( 'checkin', time() + HOUR_IN_SECONDS );
 
 			// Set a default error.
 			global $exactdn_activate_error;

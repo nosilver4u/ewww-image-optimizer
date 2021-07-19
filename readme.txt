@@ -144,6 +144,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * changed: JS WebP scripts moved to beginning of page footer
 * changed: native lazy loading is now enabled for right-sized PNG placeholders, override with EIO_DISABLE_NATIVE_LAZY constant
 * changed: add resume ability to Delete Originals tool
+* changed: move Easy IO check-in to wp_cron
 * fixed: empty .webp images sometimes produced when cwebp encounters an error
 * fixed: Bulk Optimizer for NextGEN loading incorrect script
 * fixed: Bulk Optimizer for NextGEN fails to verify nonce for selective optimization
