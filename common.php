@@ -418,6 +418,39 @@ function ewww_image_optimizer_ce_webp_enabled() {
 }
 
 /**
+ * Checks to see if the WebP option from the SWIS Performance plugin is enabled.
+ *
+ * @return bool True if the WebP option for SWIS is enabled.
+ */
+function ewww_image_optimizer_swis_webp_enabled() {
+	if ( function_exists( 'swis' ) && class_exists( '\SWIS\Cache' ) ) {
+		$cache_settings = swis()->cache->get_settings();
+		if ( swis()->settings->get_option( 'cache' ) && ! empty( $cache_settings['webp'] ) ) {
+			ewwwio_debug_message( 'SWIS WebP option enabled' );
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Checks to see if there is a method available for WebP conversion.
+ *
+ * @return bool True if a WebP Convertor is available.
+ */
+function ewww_image_optimizer_webp_available() {
+	if (
+		defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) && EWWW_IMAGE_OPTIMIZER_NOEXEC &&
+		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
+		! ewww_image_optimizer_imagick_supports_webp() &&
+		! ewww_image_optimizer_gd_supports_webp()
+	) {
+		return true;
+	}
+	return true;
+}
+
+/**
  * Checks to see if the WebP rules from WPFC are enabled.
  *
  * @return bool True if the WebP rules from WPFC are found.
@@ -10848,6 +10881,7 @@ function ewwwio_debug_info() {
 		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) &&
 		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) &&
 		! ewww_image_optimizer_ce_webp_enabled() &&
+		! ewww_image_optimizer_swis_webp_enabled() &&
 		! ewww_image_optimizer_easy_active()
 	) {
 		if ( defined( 'PHP_SAPI' ) ) {
@@ -10890,7 +10924,7 @@ function ewww_image_optimizer_intro_wizard() {
 	$eio_base             = new EIO_Base();
 	$easyio_site_url      = $eio_base->content_url();
 	$no_tracking          = false;
-	$webp_available       = true;
+	$webp_available       = ewww_image_optimizer_webp_available();
 	$bulk_available       = false;
 	$tools_available      = true;
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
@@ -10941,12 +10975,6 @@ function ewww_image_optimizer_intro_wizard() {
 		$tools_missing_message = implode( ', ', $tools_missing );
 	}
 	if (
-		defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) && EWWW_IMAGE_OPTIMIZER_NOEXEC &&
-		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' )
-	) {
-		$webp_available = false;
-	}
-	if (
 		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ||
 		ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ||
 		! ewww_image_optimizer_exec_check()
@@ -10987,7 +11015,6 @@ function ewww_image_optimizer_intro_wizard() {
 			}
 			if ( $tools_missing_notice && ! $tools_available ) {
 				ewww_image_optimizer_enable_free_exec();
-				$webp_available = false;
 			}
 		}
 		if ( 3 === $wizard_step ) {
@@ -11968,6 +11995,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	if ( ewww_image_optimizer_easy_active() || $cf_host ) {
 		ewww_image_optimizer_webp_rewrite_verify();
 	}
+	$webp_available  = ewww_image_optimizer_webp_available();
 	$test_webp_image = plugins_url( '/images/test.png.webp', __FILE__ );
 	$test_png_image  = plugins_url( '/images/test.png', __FILE__ );
 	?>
@@ -12398,7 +12426,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				</tr>
 		<?php endif; ?>
 	<?php endif; ?>
-	<?php if ( $free_exec ) : ?>
+	<?php if ( ! $webp_available ) : ?>
 				<tr id='ewww_image_optimizer_webp_container'>
 					<th scope='row'>
 						<label for='ewww_image_optimizer_webp'><?php esc_html_e( 'WebP Conversion', 'ewww-image-optimizer' ); ?></label>
@@ -12445,7 +12473,42 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				</tr>
 				<tr>
 	<?php endif; ?>
-	<?php if ( ! $free_exec && ! ewww_image_optimizer_ce_webp_enabled() && ! ewww_image_optimizer_easy_active() ) : ?>
+	<?php if ( ewww_image_optimizer_easy_active() ) : ?>
+				<tr id='ewww_image_optimizer_webp_easyio_container'>
+					<th scope='row'>
+						<label for='ewww_image_optimizer_webp'><?php esc_html_e( 'WebP Conversion', 'ewww-image-optimizer' ); ?></label>
+					</th>
+					<td>
+						<p class='description'><?php esc_html_e( 'WebP images are served automatically by Easy IO.', 'ewww-image-optimizer' ); ?></p>
+					</td>
+				</tr>
+	<?php elseif ( ewww_image_optimizer_ce_webp_enabled() ) : ?>
+				<tr id='ewww_image_optimizer_webp_setting_container'>
+					<th scope='row'>
+						<?php esc_html_e( 'WebP Delivery Method', 'ewww-image-optimizer' ); ?>
+					</th>
+					<td>
+						<p class='description'><?php esc_html_e( 'WebP images are delivered by Cache Enabler.', 'ewww-image-optimizer' ); ?></p>
+					</td>
+				</tr>
+	<?php elseif ( ewww_image_optimizer_swis_webp_enabled() ) : ?>
+				<tr id='ewww_image_optimizer_webp_setting_container'>
+					<th scope='row'>
+						<?php esc_html_e( 'WebP Delivery Method', 'ewww-image-optimizer' ); ?>
+					</th>
+					<td>
+						<p class='description'><?php esc_html_e( 'WebP images are delivered by SWIS Performance.', 'ewww-image-optimizer' ); ?></p>
+					</td>
+				</tr>
+	<?php elseif ( $webp_available ) : ?>
+				<tr id='ewww_image_optimizer_webp_easyio_container' style='display:none;'>
+					<th scope='row'>
+						<label for='ewww_image_optimizer_webp'><?php esc_html_e( 'WebP Conversion', 'ewww-image-optimizer' ); ?></label>
+					</th>
+					<td>
+						<p class='description'><?php esc_html_e( 'WebP images are served automatically by Easy IO.', 'ewww-image-optimizer' ); ?></p>
+					</td>
+				</tr>
 				<tr class='ewww_image_optimizer_webp_setting_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? '' : ' style="display:none"'; ?>>
 					<th scope='row'>
 						<?php esc_html_e( 'WebP Delivery Method', 'ewww-image-optimizer' ); ?>
@@ -12663,32 +12726,6 @@ AddType image/webp .webp</pre>
 					</td>
 				</tr>
 		<?php endif; ?>
-				<tr id='ewww_image_optimizer_webp_easyio_container' style='display:none;'>
-					<th scope='row'>
-						<label for='ewww_image_optimizer_webp'><?php esc_html_e( 'WebP Conversion', 'ewww-image-optimizer' ); ?></label>
-					</th>
-					<td>
-						<p class='description'><?php esc_html_e( 'WebP images are served automatically by Easy IO.', 'ewww-image-optimizer' ); ?></p>
-					</td>
-				</tr>
-	<?php elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) : ?>
-				<tr id='ewww_image_optimizer_webp_easyio_container'>
-					<th scope='row'>
-						<label for='ewww_image_optimizer_webp'><?php esc_html_e( 'WebP Conversion', 'ewww-image-optimizer' ); ?></label>
-					</th>
-					<td>
-						<p class='description'><?php esc_html_e( 'WebP images are served automatically by Easy IO.', 'ewww-image-optimizer' ); ?></p>
-					</td>
-				</tr>
-	<?php elseif ( get_option( 'easyio_exactdn' ) ) : ?>
-				<tr>
-					<th scope='row'>
-						<label for='ewww_image_optimizer_webp'><?php esc_html_e( 'WebP Conversion', 'ewww-image-optimizer' ); ?></label>
-					</th>
-					<td>
-						<p class='description'><?php esc_html_e( 'WebP images are served automatically by Easy Image Optimizer.', 'ewww-image-optimizer' ); ?></p>
-					</td>
-				</tr>
 	<?php endif; ?>
 
 	<?php if ( class_exists( 'Cloudinary' ) && Cloudinary::config_get( 'api_secret' ) ) : ?>
