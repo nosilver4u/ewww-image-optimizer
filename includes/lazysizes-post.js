@@ -1,4 +1,4 @@
-lazysizesWebP('alpha', lazySizes.init);
+lazySizes.init();
 function shouldAutoScale(target){
 	if (eio_lazy_vars.skip_autoscale == 1) {
 		console.log('autoscale disabled globally');

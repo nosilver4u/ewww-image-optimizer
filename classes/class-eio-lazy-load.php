@@ -285,6 +285,16 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				return $buffer;
 			}
 
+			// If JS WebP isn't running, set ewww_webp_supported to false so we have something defined.
+			if ( ! class_exists( 'EIO_JS_Webp' ) ) {
+				$body_tags = $this->get_elements_from_html( $buffer, 'body' );
+				if ( $this->is_iterable( $body_tags ) && ! empty( $body_tags[0] ) && false !== strpos( $body_tags[0], '<body' ) ) {
+					$body_webp_script = '<script>var ewww_webp_supported=false;</script>';
+					// Add the WebP script right after the opening tag.
+					$buffer = str_replace( $body_tags[0], $body_tags[0] . "\n" . $body_webp_script, $buffer );
+				}
+			}
+
 			$above_the_fold   = apply_filters( 'eio_lazy_fold', 0 );
 			$images_processed = 0;
 

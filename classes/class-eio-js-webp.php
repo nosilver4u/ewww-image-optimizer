@@ -40,12 +40,20 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 	protected $placeholder_src = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 
 	/**
-	 * The JS WebP inline script contents. Current length 11704.
+	 * The 'check webp' script contents.
 	 *
 	 * @access private
-	 * @var string $inline_script
+	 * @var string $check_webp_script
 	 */
-	private $inline_script = '';
+	private $check_webp_script = '';
+
+	/**
+	 * The 'load webp' script contents.
+	 *
+	 * @access private
+	 * @var string $load_webp_script
+	 */
+	private $load_webp_script = '';
 
 	/**
 	 * Register (once) actions and filters for JS WebP.
@@ -60,16 +68,18 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		}
 		parent::__construct();
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		// Start an output buffer before any output starts.
-		/* add_action( 'template_redirect', array( $this, 'buffer_start' ), 0 ); */
+
+		// Hook into the output buffer callback function.
 		add_filter( 'ewww_image_optimizer_filter_page_output', array( $this, 'filter_page_output' ), 20 );
 		// Filter for NextGEN image urls within JSON.
 		add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ), 11 );
 		// Filter for WooCommerce product variations JSON.
 		add_filter( 'woocommerce_pre_json_available_variations', array( $this, 'woocommerce_pre_json_available_variations' ) );
 
+		// Load up the minified check script.
+		$this->check_webp_script = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'includes/check-webp.min.js' );
 		// Load up the minified script so we can inline it.
-		$this->inline_script = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'includes/load-webp.min.js' );
+		$this->load_webp_script = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'includes/load-webp.min.js' );
 
 		$allowed_urls = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' );
 		if ( $this->is_iterable( $allowed_urls ) ) {
@@ -91,7 +101,8 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 			// Load the minified, non-inline version of the webp rewrite script.
 			add_action( 'wp_enqueue_scripts', array( $this, 'min_external_script' ), -99 );
 		} else {
-			add_action( 'wp_footer', array( $this, 'inline_script' ), -99 );
+			add_action( 'wp_head', array( $this, 'inline_check_script' ), -99 );
+			add_action( 'wp_footer', array( $this, 'inline_load_script' ), -99 );
 		}
 		$this->validate_user_exclusions();
 	}
@@ -253,6 +264,12 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 			return $buffer;
 		}
 
+		$body_tags = $this->get_elements_from_html( $buffer, 'body' );
+		if ( $this->is_iterable( $body_tags ) && ! empty( $body_tags[0] ) && false !== strpos( $body_tags[0], '<body' ) ) {
+			$body_webp_script = '<script>if(ewww_webp_supported){document.body.classList.add("webp-support");}</script>';
+			// Add the WebP script right after the opening tag.
+			$buffer = str_replace( $body_tags[0], $body_tags[0] . "\n" . $body_webp_script, $buffer );
+		}
 		$images = $this->get_images_from_html( preg_replace( '/<(picture|noscript).*?\/\1>/s', '', $buffer ), false );
 		if ( ! empty( $images[0] ) && $this->is_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
@@ -910,17 +927,31 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 	}
 
 	/**
-	 * Load minified inline version of WebP script.
+	 * Load minified inline version of check WebP script.
 	 */
-	function inline_script() {
+	function inline_check_script() {
 		if ( defined( 'EWWW_IMAGE_OPTIMIZER_NO_JS' ) && EWWW_IMAGE_OPTIMIZER_NO_JS ) {
 			return;
 		}
 		if ( $this->is_amp() ) {
 			return;
 		}
-		ewwwio_debug_message( 'loading webp script without wp_add_inline_script' );
-		echo '<script data-cfasync="false" type="text/javascript">' . $this->inline_script . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		$this->debug_message( 'inlining check webp script' );
+		echo '<script data-cfasync="false" type="text/javascript">' . $this->check_webp_script . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	/**
+	 * Load minified inline version of load WebP script.
+	 */
+	function inline_load_script() {
+		if ( defined( 'EWWW_IMAGE_OPTIMIZER_NO_JS' ) && EWWW_IMAGE_OPTIMIZER_NO_JS ) {
+			return;
+		}
+		if ( $this->is_amp() ) {
+			return;
+		}
+		$this->debug_message( 'inlining load webp script' );
+		echo '<script data-cfasync="false" type="text/javascript">' . $this->load_webp_script . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }
 

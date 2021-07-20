@@ -1,4 +1,4 @@
-var ewww_webp_supported = false;
+/*var ewww_webp_supported = false;
 function lazysizesWebP(feature, callback) {
         var kTestImages = {
                 alpha: "UklGRkoAAABXRUJQVlA4WAoAAAAQAAAAAAAAAAAAQUxQSAwAAAARBxAR/Q9ERP8DAABWUDggGAAAABQBAJ0BKgEAAQAAAP4AAA3AAP7mtQAAAA==",
@@ -13,7 +13,7 @@ function lazysizesWebP(feature, callback) {
                 callback();
         };
         img.src = "data:image/webp;base64," + kTestImages[feature];
-}
+}*/
 window.lazySizesConfig = window.lazySizesConfig || {};
 window.lazySizesConfig.init = false;
 window.lazySizesConfig.expand = document.documentElement.clientHeight > 500 && document.documentElement.clientWidth > 500 ? 1000 : 740;
