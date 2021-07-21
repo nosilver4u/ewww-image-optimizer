@@ -240,7 +240,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 
 			$resized = $this->_resize( $max_w, $max_h, $crop );
 
-			if ( is_resource( $resized ) ) {
+			if ( is_resource( $resized ) || ( is_object( $resized ) && $resized instanceof GdImage ) ) {
 				imagedestroy( $this->image );
 				$this->image = $resized;
 				return true;
@@ -359,7 +359,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				$duplicate = ( (int) $orig_size['width'] === (int) $size_data['width'] && (int) $orig_size['height'] === (int) $size_data['height'] );
 
 				if ( ! is_wp_error( $image ) && ! $duplicate ) {
-					if ( is_resource( $image ) ) {
+					if ( is_resource( $image ) || ( is_object( $image ) && $image instanceof GdImage ) ) {
 						$resized = $this->_save( $image );
 						imagedestroy( $image );
 					} elseif ( is_string( $image ) ) {
