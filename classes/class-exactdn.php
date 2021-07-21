@@ -3157,7 +3157,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 
 			// Clear out args for some files (like videos) that might go through image_downsize.
-			if ( ! empty( $extension ) && in_array( $extension, array( 'mp4', 'm4p', 'm4v', 'mov', 'wvm', 'qt', 'webp', 'ogv', 'mpg', 'mpeg', 'mpv' ), true ) ) {
+			if ( ! empty( $extension ) && in_array( $extension, array( 'mp4', 'm4p', 'm4v', 'mov', 'wvm', 'qt', 'ogv', 'mpg', 'mpeg', 'mpv' ), true ) ) {
 				$args = array();
 			}
 

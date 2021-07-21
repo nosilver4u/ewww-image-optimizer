@@ -1,3 +1,24 @@
+= 6.2.0 =
+* added: PHP-based WebP Conversion via GD/Imagick in free mode when exec() is disabled
+* added: enable -sharp_yuv option for WebP conversion with the EIO_WEBP_SHARP_YUV override
+* added: WebP Conversion for CMYK images
+* added: webp-supported conditional class added to body tag when JS WebP is active
+* added: WP-CLI command can be run with --webp-only option
+* added: Lazy Load for iframes, add 'iframe' in exclusions to disable
+* added: compatibility with S3 Uploads 3.x
+* added: preserve metadata and apply lossless compression to linked versions of images via Easy IO with EIO_PRESERVE_LINKED_IMAGES constant
+* added: Easy IO rewrites URLs in existing picture elements
+* changed: JS WebP scripts moved to beginning of page footer
+* changed: native lazy loading is now enabled for right-sized PNG placeholders, override with EIO_DISABLE_NATIVE_LAZY constant
+* changed: add resume ability to Delete Originals tool
+* changed: move Easy IO check-in to wp_cron
+* fixed: empty .webp images sometimes produced when cwebp encounters an error
+* fixed: Bulk Optimizer for NextGEN loading incorrect script
+* fixed: Bulk Optimizer for NextGEN fails to verify nonce for selective optimization
+* fixed: Last Optimized times for Optimized Images table were incorrect
+* fixed: Add Missing Dimensions overwrites smaller width/height attribute if only one is set
+* fixed: replacing an existing attribute (like width) with a numeric value is broken
+
 = 6.1.9 =
 * fixed: Easy IO's Include All Resources compat with Oxygen Builder and Beaver Builder
 * fixed: regex to detect SVG images in use elements caused excessive backtracking
