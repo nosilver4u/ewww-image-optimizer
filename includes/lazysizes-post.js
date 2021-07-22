@@ -1,4 +1,3 @@
-lazySizes.init();
 function shouldAutoScale(target){
 	if (eio_lazy_vars.skip_autoscale == 1) {
 		console.log('autoscale disabled globally');
@@ -191,3 +190,4 @@ document.addEventListener('lazybeforeunveil', function(e){
 		target.setAttribute('data-src', webpsrc);
         }
 });
+lazySizes.init();

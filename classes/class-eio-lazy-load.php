@@ -417,6 +417,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( ! $file ) {
 				$file = $this->get_attribute( $image, 'src' );
 			}
+			$file = str_replace( '&#038;', '&', esc_url( $file ) );
 			$this->set_attribute( $image, 'data-src', $file, true );
 			$srcset = $this->get_attribute( $image, 'srcset' );
 
