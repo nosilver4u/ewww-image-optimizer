@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '620.1' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '620.2' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -3216,7 +3216,7 @@ function ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile ) {
 				ewwwio_debug_message( 'attempting SRGB transform' );
 				$image->transformImageColorspace( Imagick::COLORSPACE_SRGB );
 				ewwwio_debug_message( 'removing icc profile' );
-				$image->setImageProfile( 'icc', null );
+				$image->setImageProfile( '*', null );
 				$profiles = array();
 			}
 			$image->setImageFormat( 'WEBP' );

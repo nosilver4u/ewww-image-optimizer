@@ -190,4 +190,4 @@ document.addEventListener('lazybeforeunveil', function(e){
 		target.setAttribute('data-src', webpsrc);
         }
 });
-lazySizes.init();
+/* lazySizes.init(); */

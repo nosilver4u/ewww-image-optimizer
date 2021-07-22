@@ -15,7 +15,7 @@ function lazysizesWebP(feature, callback) {
         img.src = "data:image/webp;base64," + kTestImages[feature];
 }*/
 window.lazySizesConfig = window.lazySizesConfig || {};
-window.lazySizesConfig.init = false;
+/* window.lazySizesConfig.init = false; */
 window.lazySizesConfig.expand = document.documentElement.clientHeight > 500 && document.documentElement.clientWidth > 500 ? 1000 : 740;
 if (eio_lazy_vars.threshold > 50) {
 	window.lazySizesConfig.expand = eio_lazy_vars.threshold;
