@@ -1,3 +1,7 @@
+= 6.2.1 =
+* fixed: Lazy Load regression prevents above-the-fold CSS background images from loading
+* fixed: WebP Conversion for CMYK images leaves empty color profile attached
+
 = 6.2.0 =
 * added: PHP-based WebP Conversion via GD/Imagick in free mode when exec() is disabled
 * added: enable -sharp_yuv option for WebP conversion with the EIO_WEBP_SHARP_YUV override

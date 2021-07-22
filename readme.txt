@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.4
 Tested up to: 5.8
 Requires PHP: 7.1
-Stable tag: 6.2.0
+Stable tag: 6.2.1
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -131,6 +131,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
+
+= 6.2.1 =
+* fixed: Lazy Load regression prevents above-the-fold CSS background images from loading
+* fixed: WebP Conversion for CMYK images leaves empty color profile attached
 
 = 6.2.0 =
 * added: PHP-based WebP Conversion via GD/Imagick in free mode when exec() is disabled
