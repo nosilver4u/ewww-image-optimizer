@@ -132,6 +132,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 6.2.2 =
+* fixed: Lazy Load throws error when ewww_webp_supported not defined in edge cases.
+
 = 6.2.1 =
 * fixed: Lazy Load regression prevents above-the-fold CSS background images from loading
 * fixed: WebP Conversion for CMYK images leaves empty color profile attached
