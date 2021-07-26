@@ -171,7 +171,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			add_filter( $this->prefix . 'filter_page_output', array( $this, 'filter_page_output' ), 5 );
 
 			// Core image retrieval.
-			if ( ! function_exists( 'aq_resize' ) ) {
+			if ( defined( 'EIO_DISABLE_DEEP_INTEGRATION' ) && EIO_DISABLE_DEEP_INTEGRATION ) {
+				$this->debug_message( 'deep (image_downsize) integration disabled' );
+			} elseif ( ! function_exists( 'aq_resize' ) ) {
 				add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), 10, 3 );
 			} else {
 				$this->debug_message( 'aq_resize detected, image_downsize filter disabled' );

@@ -244,10 +244,12 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 			is_admin() ||
 			strpos( $uri, 'cornerstone=' ) !== false ||
 			strpos( $uri, 'cornerstone-endpoint' ) !== false ||
+			strpos( $uri, 'ct_builder=' ) !== false ||
 			did_action( 'cornerstone_boot_app' ) || did_action( 'cs_before_preview_frame' ) ||
 			'/print/' === substr( $uri, -7 ) ||
 			strpos( $uri, 'elementor-preview=' ) !== false ||
 			strpos( $uri, 'et_fb=' ) !== false ||
+			strpos( $uri, '?fl_builder' ) !== false ||
 			strpos( $uri, 'tatsu=' ) !== false ||
 			( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === sanitize_text_field( wp_unslash( $_POST['action'] ) ) ) || // phpcs:ignore WordPress.Security.NonceVerification
 			is_embed() ||
@@ -910,6 +912,7 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 			return;
 		}
 		if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
+			wp_enqueue_script( 'ewww-webp-check-script', plugins_url( '/includes/check-webp.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 			wp_enqueue_script( 'ewww-webp-load-script', plugins_url( '/includes/load-webp.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION, true );
 		}
 	}
@@ -922,6 +925,7 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 			return;
 		}
 		if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
+			wp_enqueue_script( 'ewww-webp-check-script', plugins_url( '/includes/check-webp.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 			wp_enqueue_script( 'ewww-webp-load-script', plugins_url( '/includes/load-webp.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION, true );
 		}
 	}
