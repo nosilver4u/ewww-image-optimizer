@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '621' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '621.01' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -8293,6 +8293,12 @@ function ewww_image_optimizer_lr_sync_update( $id ) {
 
 	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
 	if ( ewww_image_optimizer_stream_wrapped( $file_path ) || ! ewwwio_is_file( $file_path ) ) {
+		ewwwio_debug_message( "bailing early since no local file or stream wrapped $file_path" );
+		// Still want to fire off the optimization.
+		if ( defined( 'EWWWIO_WPLR_AUTO' ) && EWWWIO_WPLR_AUTO ) {
+			ewwwio_debug_message( "auto optimizing $file_path" );
+			$meta = ewww_image_optimizer_resize_from_meta_data( $meta, $id );
+		}
 		return;
 	}
 	ewwwio_debug_message( "retrieved file path for lr sync image: $file_path" );
@@ -8312,34 +8318,35 @@ function ewww_image_optimizer_lr_sync_update( $id ) {
 	// Get a list of all the image files optimized for this attachment.
 	global $wpdb;
 	$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT id,path,image_size FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
-	if ( ! ewww_image_optimizer_iterable( $optimized_images ) ) {
-		return;
-	}
-	foreach ( $optimized_images as $optimized_image ) {
-		$image_path = ewww_image_optimizer_absolutize_path( $optimized_image['path'] );
-		$file_size  = ewww_image_optimizer_filesize( $image_path );
-		if ( $file_size === (int) $optimized_image['image_size'] ) {
-			ewwwio_debug_message( "not resetting $image_path for lr sync" );
-			continue;
+	if ( ewww_image_optimizer_iterable( $optimized_images ) ) {
+		foreach ( $optimized_images as $optimized_image ) {
+			$image_path = ewww_image_optimizer_absolutize_path( $optimized_image['path'] );
+			$file_size  = ewww_image_optimizer_filesize( $image_path );
+			if ( $file_size === (int) $optimized_image['image_size'] ) {
+				ewwwio_debug_message( "not resetting $image_path for lr sync" );
+				continue;
+			}
+			if ( ewwwio_is_file( $image_path . '.webp' ) ) {
+				ewwwio_debug_message( "removing WebP version of $image_path for lr sync" );
+				ewwwio_delete_file( $image_path . '.webp' );
+			}
+			$wpdb->update(
+				$wpdb->ewwwio_images,
+				array(
+					'image_size' => 0,
+				),
+				array(
+					'id' => $optimized_image['id'],
+				)
+			);
 		}
-		if ( ewwwio_is_file( $image_path . '.webp' ) ) {
-			ewwwio_debug_message( "removing WebP version of $image_path for lr sync" );
-			ewwwio_delete_file( $image_path . '.webp' );
-		}
-		$wpdb->update(
-			$wpdb->ewwwio_images,
-			array(
-				'image_size' => 0,
-			),
-			array(
-				'id' => $optimized_image['id'],
-			)
-		);
 	}
 	if ( defined( 'EWWWIO_WPLR_AUTO' ) && EWWWIO_WPLR_AUTO ) {
+		ewwwio_debug_message( "auto optimizing $file_path" );
 		$meta = ewww_image_optimizer_resize_from_meta_data( $meta, $id );
 		return;
 	}
+	ewwwio_debug_message( 'no auto-opt, will show notice' );
 	update_option( 'ewww_image_optimizer_lr_sync', true, false );
 }
 

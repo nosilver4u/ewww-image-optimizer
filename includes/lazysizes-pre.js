@@ -14,6 +14,9 @@ function lazysizesWebP(feature, callback) {
         };
         img.src = "data:image/webp;base64," + kTestImages[feature];
 }*/
+if (typeof ewww_webp_supported === 'undefined') {
+	var ewww_webp_supported = false;
+}
 window.lazySizesConfig = window.lazySizesConfig || {};
 /* window.lazySizesConfig.init = false; */
 window.lazySizesConfig.expand = document.documentElement.clientHeight > 500 && document.documentElement.clientWidth > 500 ? 1000 : 740;

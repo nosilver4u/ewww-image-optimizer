@@ -134,6 +134,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.2.2 =
 * fixed: Lazy Load throws error when ewww_webp_supported not defined in edge cases.
+* fixed: when using WP/LR Sync, EWWWIO_WPLR_AUTO does not trigger optimization for new images
 
 = 6.2.1 =
 * fixed: Lazy Load regression prevents above-the-fold CSS background images from loading
