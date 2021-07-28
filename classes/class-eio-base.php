@@ -251,9 +251,28 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 						$this->debug_message( "$supports: $supported" );
 					}
 					if ( ( ! empty( $gd_support['JPEG Support'] ) || ! empty( $gd_support['JPG Support'] ) ) && ! empty( $gd_support['PNG Support'] ) ) {
-						return true;
+						return ! empty( $gd_support['GD Version'] ) ? $gd_support['GD Version'] : '1';
 					}
 				}
+			}
+			return false;
+		}
+
+		/**
+		 * Check for IMagick support of both PNG and JPG.
+		 *
+		 * @return bool True if full Imagick support is detected.
+		 */
+		function imagick_support() {
+			$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+			if ( extension_loaded( 'imagick' ) && class_exists( 'Imagick' ) ) {
+				$imagick = new Imagick();
+				$formats = $imagick->queryFormats();
+				$this->debug_message( implode( ',', $formats ) );
+				if ( in_array( 'PNG', $formats, true ) && in_array( 'JPG', $formats, true ) ) {
+					return true;
+				}
+				$this->debug_message( 'imagick found, but PNG or JPG not supported' );
 			}
 			return false;
 		}
@@ -424,6 +443,26 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 */
 		function is_iterable( $var ) {
 			return ! empty( $var ) && ( is_array( $var ) || $var instanceof Traversable );
+		}
+
+		/**
+		 * Checks if there is enough memory still available.
+		 *
+		 * Looks to see if the current usage + padding will fit within the memory_limit defined by PHP.
+		 *
+		 * @param int $padding Optional. The amount of memory needed to continue. Default 1050000.
+		 * @return True to proceed, false if there is not enough memory.
+		 */
+		function check_memory_available( $padding = 1050000 ) {
+			$memory_limit = $this->memory_limit();
+
+			$current_memory = memory_get_usage( true ) + $padding;
+			if ( $current_memory >= $memory_limit ) {
+				$this->debug_message( "detected memory limit is not enough: $memory_limit" );
+				return false;
+			}
+			$this->debug_message( "detected memory limit is: $memory_limit" );
+			return true;
 		}
 
 		/**

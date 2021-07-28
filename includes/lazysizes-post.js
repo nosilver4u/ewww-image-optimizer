@@ -124,7 +124,8 @@ document.addEventListener('lazybeforeunveil', function(e){
 	console.log('loading an image');
 	console.log(target);
 	var wrongSize = false;
-	var srcset = target.getAttribute('data-srcset');
+	var srcset  = target.getAttribute('data-srcset');
+	console.log('natural width of ' + target.getAttribute('src') + ' is ' + target.naturalWidth);
         if (target.naturalWidth && ! srcset) {
 		console.log('we have an image with no srcset');
         	if ((target.naturalWidth > 1) && (target.naturalHeight > 1)) {

@@ -133,7 +133,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.2.2 =
-* fixed: Lazy Load throws error when ewww_webp_supported not defined in edge cases.
+* changed: PNG placeholders are now inlined for less HTTP requests and better auto-scaling
+* fixed: Lazy Load throws error when ewww_webp_supported not defined in edge cases
+* fixed: front-end scripts loading for page builders when they shouldn't be
 * fixed: when using WP/LR Sync, EWWWIO_WPLR_AUTO does not trigger optimization for new images
 
 = 6.2.1 =

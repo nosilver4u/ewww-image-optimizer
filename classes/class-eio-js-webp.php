@@ -63,11 +63,23 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		if ( is_object( $eio_js_webp ) ) {
 			return 'you are doing it wrong';
 		}
-		if ( ewww_image_optimizer_ce_webp_enabled() ) {
-			return false;
-		}
 		parent::__construct();
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+
+		$uri = add_query_arg( null, null );
+		$this->debug_message( "request uri is $uri" );
+
+		add_filter( 'eio_do_js_webp', array( $this, 'should_process_page' ), 10, 2 );
+
+		/**
+		 * Allow pre-empting JS WebP by page.
+		 *
+		 * @param bool Whether to parse the page for images to rewrite for WebP, default true.
+		 * @param string $uri The URL of the page.
+		 */
+		if ( ! apply_filters( 'eio_do_js_webp', true, $uri ) ) {
+			return;
+		}
 
 		// Hook into the output buffer callback function.
 		add_filter( 'ewww_image_optimizer_filter_page_output', array( $this, 'filter_page_output' ), 20 );
@@ -108,19 +120,106 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 	}
 
 	/**
+	 * Check if pages should be processed, especially for things like page builders.
+	 *
+	 * @since 6.2.2
+	 *
+	 * @param boolean $should_process Whether JS WebP should process the page.
+	 * @param string  $uri The URI of the page (no domain or scheme included).
+	 * @return boolean True to process the page, false to skip.
+	 */
+	function should_process_page( $should_process = true, $uri = '' ) {
+		// Don't foul up the admin side of things, unless a plugin needs to.
+		if ( is_admin() &&
+			/**
+			 * Provide plugins a way of running JS WebP for images in the WordPress Admin, usually for admin-ajax.php.
+			 *
+			 * @param bool false Allow JS WebP to run on the Dashboard. Defaults to false.
+			 */
+			false === apply_filters( 'eio_allow_admin_js_webp', false )
+		) {
+			$this->debug_message( 'is_admin' );
+			return false;
+		}
+		if ( $this->is_amp() ) {
+			return false;
+		}
+		if ( ewww_image_optimizer_ce_webp_enabled() ) {
+			return false;
+		}
+		if ( empty( $uri ) ) {
+			$uri = add_query_arg( null, null );
+		}
+		if ( false !== strpos( $uri, '?brizy-edit' ) ) {
+			return false;
+		}
+		if ( false !== strpos( $uri, 'cornerstone=' ) || false !== strpos( $uri, 'cornerstone-endpoint' ) ) {
+			return false;
+		}
+		if ( false !== strpos( $uri, 'ct_builder=' ) ) {
+			return false;
+		}
+		if ( false !== strpos( $uri, 'ct_render_shortcode=' ) || false !== strpos( $uri, 'action=oxy_render' ) ) {
+			return false;
+		}
+		if ( did_action( 'cornerstone_boot_app' ) || did_action( 'cs_before_preview_frame' ) ) {
+			return false;
+		}
+		if ( false !== strpos( $uri, 'elementor-preview=' ) ) {
+			return false;
+		}
+		if ( false !== strpos( $uri, 'et_fb=' ) ) {
+			return false;
+		}
+		if ( false !== strpos( $uri, '?fl_builder' ) ) {
+			return false;
+		}
+		if ( '/print/' === substr( $uri, -7 ) ) {
+			return false;
+		}
+		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+			return false;
+		}
+		if ( false !== strpos( $uri, 'tatsu=' ) ) {
+			return false;
+		}
+		if ( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === sanitize_text_field( wp_unslash( $_POST['action'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			return false;
+		}
+		global $wp_query;
+		if ( ! isset( $wp_query ) ) {
+			return $should_process;
+		}
+		if ( is_embed() ) {
+			$this->debug_message( 'is_embed' );
+			return false;
+		}
+		if ( is_feed() ) {
+			$this->debug_message( 'is_feed' );
+			return false;
+		}
+		if ( is_customize_preview() ) {
+			$this->debug_message( 'is_customize_preview' );
+			return false;
+		}
+		if ( is_preview() ) {
+			$this->debug_message( 'is_preview' );
+			return false;
+		}
+		if ( wp_script_is( 'twentytwenty-twentytwenty', 'enqueued' ) ) {
+			$this->debug_message( 'twentytwenty enqueued' );
+			return false;
+		}
+		return $should_process;
+	}
+
+	/**
 	 * Grant read-only access to allowed WebP domains.
 	 *
 	 * @return array A list of WebP domains.
 	 */
 	function get_webp_domains() {
 		return $this->allowed_domains;
-	}
-
-	/**
-	 * Starts an output buffer and registers the callback function to do WebP replacement.
-	 */
-	function buffer_start() {
-		ob_start( array( $this, 'filter_page_output' ) );
 	}
 
 	/**
@@ -235,34 +334,17 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 	 * @return string The altered buffer containing the full page with WebP images inserted.
 	 */
 	function filter_page_output( $buffer ) {
-		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-		// If any of this is true, don't filter the page.
-		$uri = add_query_arg( null, null );
-		$this->debug_message( "request uri is $uri" );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if (
 			empty( $buffer ) ||
-			is_admin() ||
-			strpos( $uri, 'cornerstone=' ) !== false ||
-			strpos( $uri, 'cornerstone-endpoint' ) !== false ||
-			strpos( $uri, 'ct_builder=' ) !== false ||
-			did_action( 'cornerstone_boot_app' ) || did_action( 'cs_before_preview_frame' ) ||
-			'/print/' === substr( $uri, -7 ) ||
-			strpos( $uri, 'elementor-preview=' ) !== false ||
-			strpos( $uri, 'et_fb=' ) !== false ||
-			strpos( $uri, '?fl_builder' ) !== false ||
-			strpos( $uri, 'tatsu=' ) !== false ||
-			( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === sanitize_text_field( wp_unslash( $_POST['action'] ) ) ) || // phpcs:ignore WordPress.Security.NonceVerification
-			is_embed() ||
-			is_feed() ||
-			is_preview() ||
-			is_customize_preview() ||
-			( defined( 'REST_REQUEST' ) && REST_REQUEST ) ||
 			preg_match( '/^<\?xml/', $buffer ) ||
-			strpos( $buffer, 'amp-boilerplate' ) ||
-			$this->is_amp() ||
-			ewww_image_optimizer_ce_webp_enabled()
+			strpos( $buffer, 'amp-boilerplate' )
 		) {
-			ewwwio_debug_message( 'JS WebP disabled' );
+			$this->debug_message( 'JS WebP disabled' );
+			return $buffer;
+		}
+		if ( ! $this->should_process_page() ) {
+			$this->debug_message( 'JS WebP should not process page' );
 			return $buffer;
 		}
 
@@ -908,7 +990,7 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 	 * Load full WebP script when SCRIPT_DEBUG is enabled.
 	 */
 	function debug_script() {
-		if ( $this->is_amp() ) {
+		if ( ! $this->should_process_page() ) {
 			return;
 		}
 		if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
@@ -921,7 +1003,7 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 	 * Load minified WebP script when EWWW_IMAGE_OPTIMIZER_WEBP_EXTERNAL_SCRIPT is set.
 	 */
 	function min_external_script() {
-		if ( $this->is_amp() ) {
+		if ( ! $this->should_process_page() ) {
 			return;
 		}
 		if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
@@ -934,10 +1016,10 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 	 * Load minified inline version of check WebP script.
 	 */
 	function inline_check_script() {
-		if ( defined( 'EWWW_IMAGE_OPTIMIZER_NO_JS' ) && EWWW_IMAGE_OPTIMIZER_NO_JS ) {
+		if ( ! $this->should_process_page() ) {
 			return;
 		}
-		if ( $this->is_amp() ) {
+		if ( defined( 'EWWW_IMAGE_OPTIMIZER_NO_JS' ) && EWWW_IMAGE_OPTIMIZER_NO_JS ) {
 			return;
 		}
 		$this->debug_message( 'inlining check webp script' );
@@ -951,7 +1033,7 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		if ( defined( 'EWWW_IMAGE_OPTIMIZER_NO_JS' ) && EWWW_IMAGE_OPTIMIZER_NO_JS ) {
 			return;
 		}
-		if ( $this->is_amp() ) {
+		if ( ! $this->should_process_page() ) {
 			return;
 		}
 		$this->debug_message( 'inlining load webp script' );

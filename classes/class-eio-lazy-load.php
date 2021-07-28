@@ -82,6 +82,8 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			$uri = add_query_arg( null, null );
 			$this->debug_message( "request uri is $uri" );
 
+			add_filter( 'eio_do_lazyload', array( $this, 'should_process_page' ), 10, 2 );
+
 			/**
 			 * Allow pre-empting Lazy Load by page.
 			 *
@@ -160,13 +162,94 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		}
 
 		/**
-		 * Replaces images within a srcset attribute, just a placeholder at the moment.
+		 * Check if pages should be processed, especially for things like page builders.
 		 *
-		 * @param string $srcset A valid srcset attribute from an img element.
-		 * @return bool|string False if no changes were made, or the new srcset if any WebP images replaced the originals.
+		 * @since 6.2.2
+		 *
+		 * @param boolean $should_process Whether LL should process the page.
+		 * @param string  $uri The URI of the page (no domain or scheme included).
+		 * @return boolean True to process the page, false to skip.
 		 */
-		function srcset_replace( $srcset ) {
-			return $srcset;
+		function should_process_page( $should_process = true, $uri = '' ) {
+			// Don't foul up the admin side of things, unless a plugin needs to.
+			if ( is_admin() &&
+				/**
+				 * Provide plugins a way of running Lazy Load for images in the WordPress Admin, usually for admin-ajax.php.
+				 *
+				 * @param bool false Allow Lazy Load to run on the Dashboard. Default to false.
+				 */
+				false === apply_filters( 'eio_allow_admin_lazyload', false )
+			) {
+				$this->debug_message( 'is_admin' );
+				return false;
+			}
+			if ( $this->is_amp() ) {
+				return false;
+			}
+			if ( empty( $uri ) ) {
+				$uri = add_query_arg( null, null );
+			}
+			if ( false !== strpos( $uri, '?brizy-edit' ) ) {
+				return false;
+			}
+			if ( false !== strpos( $uri, 'cornerstone=' ) || false !== strpos( $uri, 'cornerstone-endpoint' ) ) {
+				return false;
+			}
+			if ( false !== strpos( $uri, 'ct_builder=' ) ) {
+				return false;
+			}
+			if ( false !== strpos( $uri, 'ct_render_shortcode=' ) || false !== strpos( $uri, 'action=oxy_render' ) ) {
+				return false;
+			}
+			if ( did_action( 'cornerstone_boot_app' ) || did_action( 'cs_before_preview_frame' ) ) {
+				return false;
+			}
+			if ( false !== strpos( $uri, 'elementor-preview=' ) ) {
+				return false;
+			}
+			if ( false !== strpos( $uri, 'et_fb=' ) ) {
+				return false;
+			}
+			if ( false !== strpos( $uri, '?fl_builder' ) ) {
+				return false;
+			}
+			if ( '/print/' === substr( $uri, -7 ) ) {
+				return false;
+			}
+			if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+				return false;
+			}
+			if ( false !== strpos( $uri, 'tatsu=' ) ) {
+				return false;
+			}
+			if ( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === sanitize_text_field( wp_unslash( $_POST['action'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+				return false;
+			}
+			global $wp_query;
+			if ( ! isset( $wp_query ) ) {
+				return $should_process;
+			}
+			if ( is_embed() ) {
+				$this->debug_message( 'is_embed' );
+				return false;
+			}
+			if ( is_feed() ) {
+				$this->debug_message( 'is_feed' );
+				return false;
+			}
+			if ( is_customize_preview() ) {
+				$this->debug_message( 'is_customize_preview' );
+				return false;
+			}
+			if ( is_preview() ) {
+				$this->debug_message( 'is_preview' );
+				return false;
+			}
+			if ( wp_script_is( 'twentytwenty-twentytwenty', 'enqueued' ) ) {
+				$this->debug_message( 'twentytwenty enqueued' );
+				return false;
+			}
+			return $should_process;
 		}
 
 		/**
@@ -194,94 +277,18 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 */
 		function filter_page_output( $buffer ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-			// Don't foul up the admin side of things, unless a plugin needs to.
-			if ( is_admin() &&
-				/**
-				 * Provide plugins a way of running Lazy Load for images in the WordPress Dashboard (wp-admin).
-				 *
-				 * @param bool false Allow Lazy Load to run on the Dashboard. Default to false.
-				 */
-				false === apply_filters( 'eio_allow_admin_lazyload', false )
-			) {
-				$this->debug_message( 'is_admin' );
+			if ( empty( $buffer ) ) {
 				return $buffer;
 			}
-			// Don't lazy load in these cases...
-			$uri = add_query_arg( null, null );
-			$this->debug_message( "request uri is $uri" );
-			if (
-				empty( $buffer ) ||
-				strpos( $uri, 'cornerstone=' ) !== false ||
-				strpos( $uri, 'cornerstone-endpoint' ) !== false ||
-				strpos( $uri, 'ct_builder=' ) !== false ||
-				did_action( 'cornerstone_boot_app' ) || did_action( 'cs_before_preview_frame' ) ||
-				'/print/' === substr( $uri, -7 ) ||
-				strpos( $uri, 'elementor-preview=' ) !== false ||
-				strpos( $uri, 'et_fb=' ) !== false ||
-				strpos( $uri, '?fl_builder' ) !== false ||
-				strpos( $uri, 'tatsu=' ) !== false ||
-				( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === sanitize_text_field( wp_unslash( $_POST['action'] ) ) ) || // phpcs:ignore WordPress.Security.NonceVerification
-				is_embed() ||
-				is_feed() ||
-				is_preview() ||
-				is_customize_preview() ||
-				( defined( 'REST_REQUEST' ) && REST_REQUEST ) ||
-				wp_script_is( 'twentytwenty-twentytwenty', 'enqueued' ) ||
-				preg_match( '/^<\?xml/', $buffer ) ||
-				strpos( $buffer, 'amp-boilerplate' ) ||
-				$this->is_amp()
-			) {
-				if ( empty( $buffer ) ) {
-					$this->debug_message( 'empty buffer' );
-				}
-				if ( strpos( $uri, 'cornerstone=' ) !== false || strpos( $uri, 'cornerstone-endpoint' ) !== false ) {
-					$this->debug_message( 'cornerstone editor' );
-				}
-				if ( strpos( $uri, 'ct_builder=' ) !== false ) {
-					$this->debug_message( 'oxygen builder' );
-				}
-				if ( did_action( 'cornerstone_boot_app' ) || did_action( 'cs_before_preview_frame' ) ) {
-					$this->debug_message( 'cornerstone app/preview' );
-				}
-				if ( '/print/' === substr( $uri, -7 ) ) {
-					$this->debug_message( 'print page template' );
-				}
-				if ( strpos( $uri, 'elementor-preview=' ) !== false ) {
-					$this->debug_message( 'elementor preview' );
-				}
-				if ( strpos( $uri, 'et_fb=' ) !== false ) {
-					$this->debug_message( 'et_fb' );
-				}
-				if ( strpos( $uri, '?fl_builder' ) !== false ) {
-					$this->debug_message( 'beaver builder' );
-				}
-				if ( strpos( $uri, 'tatsu=' ) !== false || ( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === $_POST['action'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-					$this->debug_message( 'tatsu' );
-				}
-				if ( is_embed() ) {
-					$this->debug_message( 'is_embed' );
-				}
-				if ( is_feed() ) {
-					$this->debug_message( 'is_feed' );
-				}
-				if ( is_preview() ) {
-					$this->debug_message( 'is_preview' );
-				}
-				if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
-					$this->debug_message( 'rest request' );
-				}
-				if ( wp_script_is( 'twentytwenty-twentytwenty', 'enqueued' ) ) {
-					$this->debug_message( 'twentytwenty enqueued' );
-				}
-				if ( preg_match( '/^<\?xml/', $buffer ) ) {
-					$this->debug_message( 'not html, xml tag found' );
-				}
-				if ( strpos( $buffer, 'amp-boilerplate' ) ) {
-					$this->debug_message( 'AMP page processing' );
-				}
-				if ( $this->is_amp() ) {
-					$this->debug_message( 'AMP page processing (is_amp)' );
-				}
+			if ( preg_match( '/^<\?xml/', $buffer ) ) {
+				$this->debug_message( 'not html, xml tag found' );
+				return $buffer;
+			}
+			if ( strpos( $buffer, 'amp-boilerplate' ) ) {
+				$this->debug_message( 'AMP page processing' );
+				return $buffer;
+			}
+			if ( ! $this->should_process_page() ) {
 				return $buffer;
 			}
 
@@ -534,7 +541,8 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 							}
 
 							if ( $filename_width && $filename_height ) {
-								$placeholder_src = $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $filename_width . 'x' . $filename_height . '.png' );
+								$placeholder_src = $this->create_piip( $filename_width, $filename_height );
+								/* $placeholder_src = $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $filename_width . 'x' . $filename_height . '.png' ); */
 								$use_native_lazy = true;
 								break 2;
 							} else {
@@ -921,19 +929,41 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			}
 
 			$piip_path = $this->piip_folder . 'placeholder-' . $width . 'x' . $height . '.png';
-			if ( $this->parsing_exactdn ) {
+			// Keep this in case folks really want external Easy IO CDN placeholders.
+			if ( defined( 'EIO_USE_EXTERNAL_PLACEHOLDERS' ) && EIO_USE_EXTERNAL_PLACEHOLDERS && $this->parsing_exactdn ) {
 				global $exactdn;
 				return $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $width . 'x' . $height . '.png' );
 			} elseif ( ! is_file( $piip_path ) ) {
-				if ( $this->get_option( 'ewww_image_optimizer_cloud_key' ) && ! defined( 'EWWW_IMAGE_OPTIMIZER_DISABLE_API_PIP' ) ) {
+				// First try PIP generation via Imagick, as it is pretty efficient.
+				if ( $this->imagick_support() ) {
+					$placeholder = new Imagick();
+					$placeholder->newimage( $width, $height, 'transparent' );
+					$placeholder->setimageformat( 'PNG' );
+					$placeholder->stripimage();
+					$placeholder->writeimage( $piip_path );
+					$placeholder->clear();
+				}
+				// If that didn't work, and we have a premium service, use the API to generate the slimmest PIP available.
+				/* if ( $this->get_option( 'ewww_image_optimizer_cloud_key' ) && ! defined( 'EWWW_IMAGE_OPTIMIZER_DISABLE_API_PIP' ) ) { */
+				if (
+					! is_file( $piip_path ) &&
+					( $this->parsing_exactdn || $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) &&
+					! defined( 'EWWW_IMAGE_OPTIMIZER_DISABLE_API_PIP' )
+				) {
 					$piip_location = "http://optimize.exactlywww.com/resize/lazy.php?width=$width&height=$height";
 					$piip_response = wp_remote_get( $piip_location );
 					if ( ! is_wp_error( $piip_response ) && is_array( $piip_response ) && ! empty( $piip_response['body'] ) ) {
+						$this->debug_message( "retrieved PIP from API, storing to $piip_path" );
 						file_put_contents( $piip_path, $piip_response['body'] );
 						clearstatcache();
 					}
 				}
-				if ( ! is_file( $piip_path ) && function_exists( 'ewwwio_check_memory_available' ) && ewwwio_check_memory_available( $memory_required + 500000 ) ) {
+				// Last shot, use GD and then optimize it with optipng/pngout if available.
+				if (
+					! is_file( $piip_path ) &&
+					$this->gd_support() &&
+					$this->check_memory_available( $width * $height * 4.8 ) // 4.8 = 24-bit or 3 bytes per pixel multiplied by a factor of 1.6 for extra wiggle room.
+				) {
 					$img   = imagecreatetruecolor( $width, $height );
 					$color = imagecolorallocatealpha( $img, 0, 0, 0, 127 );
 					imagefill( $img, 0, 0, $color );
@@ -948,6 +978,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			}
 			clearstatcache();
 			if ( is_file( $piip_path ) ) {
+				return 'data:image/png;base64,' . base64_encode( file_get_contents( $piip_path ) );
 				return $this->content_url . 'lazy/placeholder-' . $width . 'x' . $height . '.png';
 			}
 			return $this->placeholder_src;
@@ -1011,6 +1042,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 * Adds a small CSS block to hide lazyload elements for no-JS browsers.
 		 */
 		function no_js_css() {
+			if ( ! $this->should_process_page() ) {
+				return;
+			}
 			echo '<noscript><style>.lazyload[data-src]{display:none !important;}</style></noscript>';
 			// And this allows us to lazy load external/internal CSS background images.
 			echo '<style>.lazyload{background-image:none !important;}.lazyload:before{background-image:none !important;}</style>';
@@ -1021,7 +1055,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 */
 		function debug_script() {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-			if ( $this->is_amp() ) {
+			if ( ! $this->should_process_page() ) {
 				return;
 			}
 			if ( ! defined( 'EIO_LL_FOOTER' ) ) {
@@ -1057,7 +1091,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 */
 		function min_script() {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-			if ( $this->is_amp() ) {
+			if ( ! $this->should_process_page() ) {
 				return;
 			}
 			if ( ! defined( 'EIO_LL_FOOTER' ) ) {
