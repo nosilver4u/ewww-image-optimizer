@@ -663,6 +663,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$this->exactdn_domain = $domain;
 			}
 		}
+
 		/**
 		 * Get the ExactDN option.
 		 *
@@ -1361,7 +1362,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					if ( ! empty( $exactdn_url ) ) {
 						$src = $exactdn_url;
 					}
-					if ( ! is_feed() && $srcset_fill && ( ! defined( 'EXACTDN_PREVENT_SRCSET_FILL' ) || ! EXACTDN_PREVENT_SRCSET_FILL ) && false !== strpos( $src, $this->exactdn_domain ) ) {
+					// This is just completely disabled now, no reason to do this with the lazy loader auto-scaling, and I don't know when it ever kicks in anymore...
+					if ( false && ! is_feed() && $srcset_fill && ( ! defined( 'EXACTDN_PREVENT_SRCSET_FILL' ) || ! EXACTDN_PREVENT_SRCSET_FILL ) && false !== strpos( $src, $this->exactdn_domain ) ) {
 						if ( ! $this->get_attribute( $images['img_tag'][ $index ], $this->srcset_attr ) && ! $this->get_attribute( $images['img_tag'][ $index ], 'sizes' ) ) {
 							$this->debug_message( "srcset filling with $src" );
 							$zoom = false;
@@ -1416,6 +1418,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				} // End foreach().
 			} // End if();
 
+			// Process <a> elements in the page for image URLs.
+			$content = $this->filter_image_links( $content );
+
 			// Process <picture> elements in the page.
 			$content = $this->filter_picture_images( $content );
 
@@ -1446,6 +1451,60 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 			if ( $this->filtering_the_page && $this->get_option( $this->prefix . 'debug' ) && 0 !== strpos( $content, '{' ) && false === strpos( '$content', '<loc>' ) ) {
 				$content .= '<!-- Easy IO processing time: ' . $this->elapsed_time . ' seconds -->';
+			}
+			return $content;
+		}
+
+		/**
+		 * Parse the HTML for a/link elements to rewrite.
+		 *
+		 * @param string $content The HTML content to parse.
+		 * @return string The filtered HTML content.
+		 */
+		function filter_image_links( $content ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			$elements = $this->get_elements_from_html( $content, 'a' );
+			if ( $this->is_iterable( $elements ) ) {
+				$args = array();
+				if ( defined( 'EIO_PRESERVE_LINKED_IMAGES' ) && EIO_PRESERVE_LINKED_IMAGES ) {
+					$args = array(
+						'lossy' => 0,
+						'strip' => 'none',
+					);
+				}
+				foreach ( $elements as $index => $element ) {
+					if ( false === strpos( $element, 'href' ) ) {
+						continue;
+					}
+					$this->debug_message( 'parsing a link for hrefs' );
+					$link_url = $this->get_attribute( $element, 'href' );
+					if ( empty( $link_url ) ) {
+						continue;
+					}
+					/** This filter is already documented in class-exactdn.php */
+					if ( apply_filters( 'exactdn_skip_image', false, $link_url, $element ) ) {
+						continue;
+					}
+					$full_link_url = $link_url;
+					// Check for relative urls that start with a slash.
+					if (
+						'/' === substr( $link_url, 0, 1 ) &&
+						'/' !== substr( $link_url, 1, 1 )
+					) {
+						$full_link_url = '//' . $this->upload_domain . $link_url;
+					}
+					if ( $this->validate_image_url( $full_link_url ) ) {
+						$exactdn_url = $this->generate_url( $full_link_url, $args );
+						if ( $exactdn_url && $exactdn_url !== $link_url && false !== strpos( $exactdn_url, $this->exactdn_domain ) ) {
+							$this->debug_message( 'updating link URL in element' );
+							$element = str_replace( $link_url, $exactdn_url, $element );
+							if ( $element && $element !== $elements[ $index ] ) {
+								$this->debug_message( 'updating link element in content' );
+								$content = str_replace( $elements[ $index ], $element, $content );
+							}
+						}
+					}
+				}
 			}
 			return $content;
 		}
