@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '621.02' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '621.03' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -13533,7 +13533,11 @@ function ewww_image_optimizer_resize_detection_script() {
 		return;
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' ) ) {
-		$resize_detection_script = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'includes/resize_detection.js' );
+		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
+			$resize_detection_script = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'includes/resize-detection.js' );
+		} else {
+			$resize_detection_script = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'includes/resize-detection.min.js' );
+		}
 		echo "<style>\n" .
 			"img.scaled-image {\n" .
 			"\tborder: 3px #3eadc9 dotted;\n" .

@@ -348,11 +348,13 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 			return $buffer;
 		}
 
-		$body_tags = $this->get_elements_from_html( $buffer, 'body' );
+		$body_tags        = $this->get_elements_from_html( $buffer, 'body' );
+		$body_webp_script = '<script>if(ewww_webp_supported){document.body.classList.add("webp-support");}</script>';
 		if ( $this->is_iterable( $body_tags ) && ! empty( $body_tags[0] ) && false !== strpos( $body_tags[0], '<body' ) ) {
-			$body_webp_script = '<script>if(ewww_webp_supported){document.body.classList.add("webp-support");}</script>';
 			// Add the WebP script right after the opening tag.
 			$buffer = str_replace( $body_tags[0], $body_tags[0] . "\n" . $body_webp_script, $buffer );
+		} else {
+			$buffer = str_replace( '<body>', "<body>\n$body_webp_script", $buffer );
 		}
 		$images = $this->get_images_from_html( preg_replace( '/<(picture|noscript).*?\/\1>/s', '', $buffer ), false );
 		if ( ! empty( $images[0] ) && $this->is_iterable( $images[0] ) ) {

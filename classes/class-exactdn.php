@@ -202,6 +202,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 
 			/* add_filter( 'fl_builder_render_assets_inline', '__return_true' ); */
 
+			// Filter for FacetWP JSON responses.
+			add_filter( 'facetwp_render_output', array( $this, 'filter_facetwp_json_output' ) );
+
 			// Filter for NextGEN image URLs within JS.
 			add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ) );
 			add_filter( 'ngg_get_image_url', array( $this, 'plugin_get_image_url' ) );
@@ -2780,6 +2783,29 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				}
 			}
 			return $image;
+		}
+
+		/**
+		 * Parse template data from FacetWP that will be included in JSON response.
+		 * https://facetwp.com/documentation/developers/output/facetwp_render_output/
+		 *
+		 * @param array $output The full array of FacetWP data.
+		 * @return array The FacetWP data with Easy IO URLs.
+		 */
+		function filter_facetwp_json_output( $output ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			if ( empty( $output['template'] ) || ! is_string( $output['template'] ) ) {
+				return $output;
+			}
+			$this->filtering_the_content = false;
+			$this->filtering_the_page    = false;
+
+			$template = $this->filter_the_content( $output['template'] );
+			if ( $template ) {
+				$output['template'] = $template;
+			}
+
+			return $output;
 		}
 
 		/**
