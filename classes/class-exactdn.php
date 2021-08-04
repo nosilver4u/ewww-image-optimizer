@@ -2795,13 +2795,14 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		function filter_facetwp_json_output( $output ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			if ( empty( $output['template'] ) || ! is_string( $output['template'] ) ) {
+				$this->debug_message( 'no template data available' );
 				return $output;
 			}
-			$this->filtering_the_content = false;
-			$this->filtering_the_page    = false;
+			$this->filtering_the_page = true;
 
 			$template = $this->filter_the_content( $output['template'] );
 			if ( $template ) {
+				$this->debug_message( 'template data modified' );
 				$output['template'] = $template;
 			}
 
