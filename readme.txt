@@ -142,6 +142,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: Lazy Load throws error when ewww_webp_supported not defined in edge cases
 * fixed: front-end scripts loading for page builders when they shouldn't be
 * fixed: when using WP/LR Sync, EWWWIO_WPLR_AUTO does not trigger optimization for new images
+* fixed: img element search parsing JSON incorrectly
 
 = 6.2.1 =
 * fixed: Lazy Load regression prevents above-the-fold CSS background images from loading

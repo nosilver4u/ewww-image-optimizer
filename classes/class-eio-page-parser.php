@@ -50,15 +50,15 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 			$unquoted_images = array();
 
 			$unquoted_pattern = '';
-			$search_pattern   = '#(?P<img_tag><img\s[^>]*?>)#is';
+			$search_pattern   = '#(?P<img_tag><img\s[^\\\\>]*?>)#is';
 			if ( $hyperlinks ) {
 				$this->debug_message( 'using figure+hyperlink(a) patterns with src required' );
-				$search_pattern   = '#(?:<figure[^>]*?\s+?class\s*=\s*["\'](?P<figure_class>[\w\s-]+?)["\'][^>]*?>\s*)?(?:<a[^>]*?\s+?href\s*=\s*["\'](?P<link_url>[^\s]+?)["\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*("|\')(?P<img_url>(?!\4).+?)\4[^>]*?>){1}(?:\s*</a>)?#is';
-				$unquoted_pattern = '#(?:<figure[^>]*?\s+?class\s*=\s*(?P<figure_class>[\w-]+)[^>]*?>\s*)?(?:<a[^>]*?\s+?href\s*=\s*(?P<link_url>[^"\'\\\\<>][^\s<>]+)[^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*(?P<img_url>[^"\'\\\\<>][^\s<>]+)[^>]*?>){1}(?:\s*</a>)?#is';
+				$search_pattern   = '#(?:<figure[^>]*?\s+?class\s*=\s*["\'](?P<figure_class>[\w\s-]+?)["\'][^>]*?>\s*)?(?:<a[^>]*?\s+?href\s*=\s*["\'](?P<link_url>[^\s]+?)["\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*("|\')(?P<img_url>(?!\4)[^\\\\]+?)\4[^>]*?>){1}(?:\s*</a>)?#is';
+				$unquoted_pattern = '#(?:<figure[^>]*?\s+?class\s*=\s*(?P<figure_class>[\w-]+)[^>]*?>\s*)?(?:<a[^>]*?\s+?href\s*=\s*(?P<link_url>[^"\'\\\\<>][^\s<>]+)[^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*(?P<img_url>[^"\'\\\\<>][^\s\\\\<>]+)(?:\s[^>]*?)?>){1}(?:\s*</a>)?#is';
 			} elseif ( $src_required ) {
 				$this->debug_message( 'using plain img pattern, src still required' );
-				$search_pattern   = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*("|\')(?P<img_url>(?!\2).+?)\2[^>]*?>)#is';
-				$unquoted_pattern = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*(?P<img_url>[^"\'\\\\<>][^\s<>]+)[^>]*?>)#is';
+				$search_pattern   = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*("|\')(?P<img_url>(?!\2)[^\\\\]+?)\2[^>]*?>)#is';
+				$unquoted_pattern = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*(?P<img_url>[^"\'\\\\<>][^\s\\\\<>]+)(?:\s[^>]*?)?>)#is';
 			}
 			if ( preg_match_all( $search_pattern, $content, $images ) ) {
 				$this->debug_message( 'found ' . count( $images[0] ) . ' image elements with quoted pattern' );
