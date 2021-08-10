@@ -981,8 +981,10 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			}
 			clearstatcache();
 			if ( is_file( $piip_path ) ) {
+				if ( defined( 'EIO_USE_EXTERNAL_PLACEHOLDERS' ) && EIO_USE_EXTERNAL_PLACEHOLDERS ) {
+					return $this->content_url . 'lazy/placeholder-' . $width . 'x' . $height . '.png';
+				}
 				return 'data:image/png;base64,' . base64_encode( file_get_contents( $piip_path ) );
-				return $this->content_url . 'lazy/placeholder-' . $width . 'x' . $height . '.png';
 			}
 			return $this->placeholder_src;
 		}
