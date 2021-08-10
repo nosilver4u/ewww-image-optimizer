@@ -10627,7 +10627,7 @@ function ewwwio_ip_in_range( $ip, $range ) {
 }
 
 /**
- * Test if the site is hosted by Cloudflare.
+ * Test if the site is protected by Cloudflare.
  *
  * @return bool True if it is, false if it ain't.
  */
@@ -11997,6 +11997,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		),
 		'ewww_image_optimizer_options-options'
 	);
+
+	$cloudways_host = false;
+	if ( isset( $_SERVER['cw_allowed_ip'] ) ) {
+		$cloudways_host = true;
+	}
 	// Make sure .htaccess rules are terminated when ExactDN is enabled or if Cloudflare is detected.
 	$cf_host = ewwwio_is_cf_host();
 	if ( ewww_image_optimizer_easy_active() || $cf_host ) {
@@ -12095,7 +12100,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		</div><!-- end container general settings -->
 		<p class='submit'><input type='submit' class='button-primary' value='<?php esc_attr_e( 'Save Changes', 'ewww-image-optimizer' ); ?>' /></p>
 	</form>
-</div><!-- end container wrap -->
+</div><!-- end container .wrap -->
 		<?php
 		return;
 	endif;
@@ -12521,7 +12526,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<?php esc_html_e( 'WebP Delivery Method', 'ewww-image-optimizer' ); ?>
 					</th>
 					<td>
-		<?php if ( ! $cf_host && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) : ?>
+						<!-- This will be handled further down now, with fully-functional rule inserter. -->
+		<?php if ( false && ! $cf_host && ! $cloudways_host && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) : ?>
 						<?php
 						printf(
 							/* translators: %s: documentation */
@@ -12534,36 +12540,41 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<?php
 		if (
 			! $cf_host &&
-			ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) &&
+			! $cloudways_host &&
 			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) &&
 			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' )
 		) :
-			if ( defined( 'PHP_SAPI' ) && false === strpos( PHP_SAPI, 'apache' ) && false === strpos( PHP_SAPI, 'litespeed' ) ) {
-				$false_positive_headers = esc_html( 'This may be a false positive. If so, the warning should go away once you implement the rewrite rules.' );
-			}
-			$header_error = '';
-			if ( ! apache_mod_loaded( 'mod_rewrite' ) ) {
-				/* translators: %s: mod_rewrite or mod_headers */
-				$header_error = '<p><strong>' . sprintf( esc_html__( 'Your site appears to be missing %s, please contact your webhost or system administrator to enable this Apache module.', 'ewww-image-optimizer' ), 'mod_rewrite' ) . "</strong><br>$false_positive_headers</p>\n";
-			}
-			if ( ! apache_mod_loaded( 'mod_headers' ) ) {
-				/* translators: %s: mod_rewrite or mod_headers */
-				$header_error = '<p><strong>' . sprintf( esc_html__( 'Your site appears to be missing %s, please contact your webhost or system administrator to enable this Apache module.', 'ewww-image-optimizer' ), 'mod_headers' ) . "</strong><br>$false_positive_headers</p>\n";
-			}
+			$webp_mime_error     = false;
+			$webp_rewrite_verify = false;
+			// Only check the rules for problems if WebP is enabled, otherwise this is a blank slate.
+			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) :
+				if ( defined( 'PHP_SAPI' ) && false === strpos( PHP_SAPI, 'apache' ) && false === strpos( PHP_SAPI, 'litespeed' ) ) {
+					$false_positive_headers = esc_html( 'This may be a false positive. If so, the warning should go away once you implement the rewrite rules.' );
+				}
+				$header_error = '';
+				if ( ! apache_mod_loaded( 'mod_rewrite' ) ) {
+					/* translators: %s: mod_rewrite or mod_headers */
+					$header_error = '<p class="ewww-webp-rewrite-info"><strong>' . sprintf( esc_html__( 'Your site appears to be missing %s, please contact your webhost or system administrator to enable this Apache module.', 'ewww-image-optimizer' ), 'mod_rewrite' ) . "</strong><br>$false_positive_headers</p>\n";
+				}
+				if ( ! apache_mod_loaded( 'mod_headers' ) ) {
+					/* translators: %s: mod_rewrite or mod_headers */
+					$header_error = '<p class="ewww-webp-rewrite-info"><strong>' . sprintf( esc_html__( 'Your site appears to be missing %s, please contact your webhost or system administrator to enable this Apache module.', 'ewww-image-optimizer' ), 'mod_headers' ) . "</strong><br>$false_positive_headers</p>\n";
+				}
 
-			$webp_mime_error = ewww_image_optimizer_test_webp_mime_error();
-			if ( $webp_mime_error ) {
-				echo wp_kses_post( $header_error );
-			}
+				$webp_mime_error = ewww_image_optimizer_test_webp_mime_error();
+				if ( $webp_mime_error ) {
+					echo wp_kses_post( $header_error );
+				}
 
-			$webp_rewrite_verify = ! (bool) ewww_image_optimizer_webp_rewrite_verify();
+				$webp_rewrite_verify = ! (bool) ewww_image_optimizer_webp_rewrite_verify();
+			endif;
 			if ( $webp_mime_error && $webp_rewrite_verify ) :
 				printf(
 					/* translators: %s: an error message from the WebP self-test */
-					'<p>' . esc_html__( 'WebP rules verified, but self-test failed: %s', 'ewww-image-optimizer' ) . '</p>',
+					'<p class="ewww-webp-rewrite-info">' . esc_html__( 'WebP rules verified, but self-test failed: %s', 'ewww-image-optimizer' ) . '</p>',
 					esc_html( $webp_mime_error )
 				);
-			elseif ( ! $webp_mime_error || $webp_rewrite_verify ) :
+			elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) && ( ! $webp_mime_error || $webp_rewrite_verify ) ) :
 				?>
 						<div id='ewww-webp-rewrite'>
 							<img id='ewww-webp-image' src='<?php echo esc_url( $test_png_image . '?m=' . time() ); ?>'>
@@ -12578,7 +12589,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				<?php endif; ?>
 						</div>
 			<?php else : ?>
-						<p>
+						<p class='ewww-webp-rewrite-info'>
 							<?php
 							printf(
 								/* translators: %s: documentation */
@@ -12594,7 +12605,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	RewriteCond %{REQUEST_FILENAME} (.*)\.(jpe?g|png|gif)$
 	RewriteCond %{REQUEST_FILENAME}\.webp -f
 	RewriteCond %{QUERY_STRING} !type=original
-	RewriteRule (.+)\.(jpe?g|png|gif)$ %{REQUEST_FILENAME}.webp [T=image/webp,L]
+	RewriteRule (.+)\.(jpe?g|png|gif)$ %{REQUEST_URI}.webp [T=image/webp,L]
 &lt;/IfModule&gt;
 &lt;IfModule mod_headers.c&gt;
 	&lt;FilesMatch "\.(jpe?g|png|gif)$"&gt;
@@ -12611,7 +12622,9 @@ AddType image/webp .webp</pre>
 						</div>
 			<?php endif; ?>
 		<?php elseif ( $cf_host && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) : ?>
-			<p><?php esc_html_e( 'Your site is using Cloudflare, please use JS WebP or <picture> WebP rewriting.', 'ewww-image-optimizer' ); ?></p>
+			<p><?php esc_html_e( 'Your site is using Cloudflare, please use JS WebP or <picture> WebP rewriting to prevent broken images on older browsers.', 'ewww-image-optimizer' ); ?></p>
+		<?php elseif ( $cloudways_host && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) : ?>
+			<p><?php esc_html_e( 'Cloudways sites should use JS WebP or <picture> WebP rewriting to prevent broken images on older browsers.', 'ewww-image-optimizer' ); ?></p>
 		<?php endif; ?>
 					</td>
 				</tr>
@@ -13135,7 +13148,7 @@ AddType image/webp .webp</pre>
 	<?php if ( 'network-singlesite' === $network ) : ?>
 		<p class='submit'><input type='submit' class='button-primary' value='<?php esc_attr_e( 'Save Changes', 'ewww-image-optimizer' ); ?>' /></p>
 	</form>
-</div><!-- end container wrap -->
+</div><!-- end container .wrap -->
 		<?php
 		return;
 	endif;
@@ -13331,38 +13344,7 @@ AddType image/webp .webp</pre>
 		</div>
 		<p class='submit'><input type='submit' class='button-primary' value='<?php esc_attr_e( 'Save Changes', 'ewww-image-optimizer' ); ?>' /></p>
 	</form>
-
-	<?php if ( ! ewww_image_optimizer_easy_active() && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
-	<hr style='clear:both;'>
-	<h2><?php esc_html_e( "Shane's Recommendations", 'ewww-image-optimizer' ); ?></h2>
-	<p><?php esc_html_e( 'These are products I have personally used. An * indicates an affiliate link so you can support future development of EWWW IO.', 'ewww-image-optimizer' ); ?></p>
-	<h3><?php esc_html_e( 'Hosting', 'ewww-image-optimizer' ); ?></h3>
-	<p>
-		<a href='http://shareasale.com/r.cfm?b=917225&amp;u=1481701&amp;m=41388&amp;urllink=&amp;afftrack='>WP Engine</a>* -
-		<?php esc_html_e( 'ewww.io is powered by WP Engine, and their performance is worth every penny. This is "managed WordPress hosting" at it\'s finest. 20% discount off your first payment with our link.', 'ewww-image-optimizer' ); ?>
-		<br>
-		<a href="https://www.cloudways.com/en/?id=48939">Cloudways</a>* -
-		<?php esc_html_e( 'Simple, yet powerful, managed VPS hosting. I use their hosting for a few client sites and performance is crazy fast. Support has been great any time I\'ve needed their assistance.', 'ewww-image-optimizer' ); ?>
-	</p>
-	<h3><?php esc_html_e( 'Plugins and Services', 'ewww-image-optimizer' ); ?></h3>
-	<p>
-		<a href="https://easydigitaldownloads.com/?ref=4735">Easy Digital Downloads</a>* -
-		<?php esc_html_e( 'Sell digital products with a huge number of extensions for amazing flexibility. Naturally, this is how we sell our services and plugins.', 'ewww-image-optimizer' ); ?>
-		<br>
-		<a href="https://www.helpscout.net/referral/?code=SVhaTmZDSSt2WG4xYS9FRmZrNllUa3RSR25VTStXcGhmaStQQ21QQjBDVmdZdz09OnoyVTFIUzBnbldtM21VMEM.">Helpscout</a>* -
-		<?php esc_html_e( 'Treat your customers like people, not numbers, and keep them satisfied. Personal favorite feature is Traffic Cop that keeps you from sending a message if you receive another message from the customer while you are typing.', 'ewww-image-optimizer' ); ?>
-		<br>
-		<a href="http://eepurl.com/cLPIeD">MailChimp</a>* -
-		<?php esc_html_e( 'Mailing lists that just work plus automation features that work even when you\'re not.', 'ewww-image-optimizer' ); ?>
-		<br>
-		<a href="https://malcare.com?src=C600E7">MalCare</a>* -
-		<?php esc_html_e( 'Secure your site with a firewall, advanced heuristic scanning, and brute force login protection. Securing your site is not an option, it\'s a necessity.', 'ewww-image-optimizer' ); ?>
-		<br>
-		<a href="https://nodeping.com?rid=201407082225W862K">NodePing</a>* -
-		<?php esc_html_e( 'Monitor all the things, and make sure they stay online. They have a fantastic array of monitors and notifications that you can setup, they are cheap, simple, and have great support.', 'ewww-image-optimizer' ); ?>
-	</p>
-	<?php endif; ?>
-</div><!-- end container wrap -->
+</div><!-- end container .wrap -->
 	<?php
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
 		$current_user = wp_get_current_user();

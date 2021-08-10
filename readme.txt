@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.4
 Tested up to: 5.8
 Requires PHP: 7.1
-Stable tag: 6.2.1
+Stable tag: 6.2.2
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -114,7 +114,7 @@ See [https://docs.ewww.io/article/39-bulk-optimizer-failure](https://docs.ewww.i
 
 = What are the supported operating systems? =
 
-I've tested it on Windows (with Apache), Linux, Mac OSX, FreeBSD, and Solaris. The cloud API will work on any OS.
+I've tested it on Windows (with Apache), Linux, Mac OSX, FreeBSD, and Solaris. The Compress API and Easy IO CDN will work on any OS.
 
 = I want to know more about image optimization, and why you chose these options/tools. =
 
@@ -134,6 +134,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.2.2 =
 * added: disable "deep" integration with image_downsize filter via EIO_DISABLE_DEEP_INTEGRATION override
+* added: integration with JSON/AJAX respones from Spotlight Social Media Feeds plugin
 * changed: PNG placeholders are now inlined for less HTTP requests and better auto-scaling
 * changed: Bulk Optimizer processes images from oldest to newest for the Media Library
 * changed: Resize Detection uses minified JS and console logging suppressed unless using SCRIPT_DEBUG

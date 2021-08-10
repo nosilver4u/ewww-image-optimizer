@@ -726,6 +726,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						if (
 							'a' === $exclusion ||
 							'div' === $exclusion ||
+							'iframe' === $exclusion ||
 							'img' === $exclusion ||
 							'li' === $exclusion ||
 							'picture' === $exclusion ||
