@@ -12004,7 +12004,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	}
 	// Make sure .htaccess rules are terminated when ExactDN is enabled or if Cloudflare is detected.
 	$cf_host = ewwwio_is_cf_host();
-	if ( ewww_image_optimizer_easy_active() || $cf_host ) {
+	if ( ewww_image_optimizer_easy_active() || $cf_host || $cloudways_host ) {
 		ewww_image_optimizer_webp_rewrite_verify();
 	}
 	$webp_available  = ewww_image_optimizer_webp_available();
