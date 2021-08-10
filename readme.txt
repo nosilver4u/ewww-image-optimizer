@@ -134,7 +134,6 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.2.2 =
 * added: disable "deep" integration with image_downsize filter via EIO_DISABLE_DEEP_INTEGRATION override
-* added: Easy IO URL rewriting for FacetWP
 * changed: PNG placeholders are now inlined for less HTTP requests and better auto-scaling
 * changed: Bulk Optimizer processes images from oldest to newest for the Media Library
 * changed: Resize Detection uses minified JS and console logging suppressed unless using SCRIPT_DEBUG
@@ -143,6 +142,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: front-end scripts loading for page builders when they shouldn't be
 * fixed: when using WP/LR Sync, EWWWIO_WPLR_AUTO does not trigger optimization for new images
 * fixed: img element search parsing JSON incorrectly
+* fixed: WebP uploads not resized to max dimensions
 
 = 6.2.1 =
 * fixed: Lazy Load regression prevents above-the-fold CSS background images from loading

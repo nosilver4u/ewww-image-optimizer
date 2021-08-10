@@ -205,13 +205,16 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			// Filter for FacetWP JSON responses.
 			add_filter( 'facetwp_render_output', array( $this, 'filter_facetwp_json_output' ) );
 
+			// Filter for Envira image URLs.
+			add_filter( 'envira_gallery_output_item_data', array( $this, 'envira_gallery_output_item_data' ) );
+			add_filter( 'envira_gallery_image_src', array( $this, 'plugin_get_image_url' ) );
+
 			// Filter for NextGEN image URLs within JS.
 			add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ) );
 			add_filter( 'ngg_get_image_url', array( $this, 'plugin_get_image_url' ) );
 
-			// Filter for Envira image URLs.
-			add_filter( 'envira_gallery_output_item_data', array( $this, 'envira_gallery_output_item_data' ) );
-			add_filter( 'envira_gallery_image_src', array( $this, 'plugin_get_image_url' ) );
+			// Filter for Spotlight Social Media Feeds.
+			add_filter( 'spotlight/instagram/server/transform_item', array( $this, 'spotlight_instagram_response' ) );
 
 			// Filter for legacy WooCommerce API endpoints.
 			add_filter( 'woocommerce_api_product_response', array( $this, 'woocommerce_api_product_response' ) );
@@ -2838,6 +2841,26 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				return $this->generate_url( $image );
 			}
 			return $image;
+		}
+
+		/**
+		 * Handle images in Spotlight's Instagram response/endpoint.
+		 *
+		 * @param array $data The Instagram item data.
+		 * @return array The Instagram data with ExactDNified image urls.
+		 */
+		function spotlight_instagram_response( $data ) {
+			if ( is_array( $data ) && ! empty( $data['thumbnails']['s'] ) ) {
+				if ( $this->validate_image_url( $data['thumbnails']['s'] ) ) {
+					$data['thumbnails']['s'] = $this->generate_url( $data['thumbnails']['s'] );
+				}
+			}
+			if ( is_array( $data ) && ! empty( $data['thumbnails']['m'] ) ) {
+				if ( $this->validate_image_url( $data['thumbnails']['m'] ) ) {
+					$data['thumbnails']['m'] = $this->generate_url( $data['thumbnails']['m'] );
+				}
+			}
+			return $data;
 		}
 
 		/**

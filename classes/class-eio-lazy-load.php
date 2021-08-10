@@ -154,6 +154,8 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				add_action( 'wp_enqueue_scripts', array( $this, 'debug_script' ), 1 );
 			} else {
 				// Load the minified, combined version of the lazy load script.
+				// add_action( 'wp_head', array( $this, 'inline_script' ), 1 );
+				// Load the minified, combined version of the lazy load script.
 				add_action( 'wp_enqueue_scripts', array( $this, 'min_script' ), 1 );
 			}
 			$this->validate_user_exclusions();
@@ -1117,6 +1119,40 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				'before'
 			);
 			return;
+		}
+		/**
+		 * Load minified inline version of lazysizes script.
+		 */
+		function inline_script() {
+			if ( ! $this->should_process_page() ) {
+				return;
+			}
+			$this->debug_message( 'inlining lazysizes script' );
+			// Load up the minified script.
+			$lazysizes_file = constant( strtoupper( $this->prefix ) . 'PLUGIN_PATH' ) . 'includes/lazysizes.min.js';
+			if ( ! $this->is_file( $lazysizes_file ) ) {
+				return;
+			}
+			$threshold        = defined( 'EIO_LL_THRESHOLD' ) && EIO_LL_THRESHOLD ? EIO_LL_THRESHOLD : 0;
+			$lazysizes_script = 'var eio_lazy_vars = ' .
+					wp_json_encode(
+						array(
+							'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
+							'skip_autoscale' => ( defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
+							'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
+						)
+					)
+					. ';';
+
+			$lazysizes_script .= file_get_contents( $lazysizes_file );
+			echo '<script data-cfasync="false" type="text/javascript" id="eio-lazy-load">' . $lazysizes_script . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			if ( defined( strtoupper( $this->prefix ) . 'LAZY_PRINT' ) && constant( strtoupper( $this->prefix ) . 'LAZY_PRINT' ) ) {
+				$lsprint_file = constant( strtoupper( $this->prefix ) . 'PLUGIN_PATH' ) . 'includes/ls.print.min.js';
+				if ( $this->is_file( $lsprint_file ) ) {
+					$lsprint_script = file_get_contents( $lsprint_file );
+					echo '<script data-cfasync="false" id="eio-lazy-load-print">' . $lsprint_script . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				}
+			}
 		}
 	}
 }

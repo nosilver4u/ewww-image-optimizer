@@ -53,6 +53,8 @@
 							console.log('also has-parallax with data-bg');
 							targetWidth  = Math.round(window.screen.width * dPR);
 							targetHeight = Math.round(window.screen.height * dPR);
+						} else if (targetHeight<300) {
+							targetHeight = 430;
 						}
 						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
 					} else if (window.lazySizes.hC(e.target,'elementor-bg')){

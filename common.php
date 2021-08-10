@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '621.03' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '621.04' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -72,6 +72,8 @@ if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
 		// Enables direct integration to the editor's save function.
 		add_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
 	}
+	// Resizes and auto-rotates images.
+	add_filter( 'wp_handle_upload', 'ewww_image_optimizer_handle_upload' );
 	// Processes an image via the metadata after upload.
 	add_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
 	// Add hook for PTE confirmation to make sure new resizes are optimized.
@@ -805,8 +807,6 @@ function ewww_image_optimizer_init() {
 	if ( ! empty( $_GET['uncomplete_wizard'] ) && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
 		update_option( 'ewww_image_optimizer_wizard_complete', false, false );
 	}
-	// Resizes and auto-rotates images.
-	add_filter( 'wp_handle_upload', 'ewww_image_optimizer_handle_upload' );
 	if ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_Uploads\Plugin' ) ) {
 		ewwwio_debug_message( 's3-uploads detected, deferring resize_upload' );
 		add_filter( 'ewww_image_optimizer_defer_resizing', '__return_true' );
@@ -2611,7 +2611,7 @@ function ewww_image_optimizer_handle_upload( $params ) {
 		} else {
 			$mime_type = $params['type'];
 		}
-		if ( ( ! is_wp_error( $params ) ) && ewwwio_is_file( $file_path ) && in_array( $mime_type, array( 'image/png', 'image/gif', 'image/jpeg' ), true ) ) {
+		if ( ( ! is_wp_error( $params ) ) && ewwwio_is_file( $file_path ) && in_array( $mime_type, array( 'image/png', 'image/gif', 'image/jpeg', 'image/webp' ), true ) ) {
 			ewww_image_optimizer_resize_upload( $file_path );
 		}
 	}
