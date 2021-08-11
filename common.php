@@ -1642,8 +1642,10 @@ function ewww_image_optimizer_install_table() {
 		}
 		// Make sure there are valid dates in updated column.
 		$wpdb->query( "UPDATE $wpdb->ewwwio_images SET updated = '1971-01-01 00:00:00' WHERE updated < '1001-01-01 00:00:01'" );
-		if ( get_option( 'ewww_image_optimizer_version' ) < 620 ) {
-			$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images ALTER updated TIMESTAMP SET DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" );
+		if ( get_option( 'ewww_image_optimizer_version' ) < 620 && false !== strpos( $mysql_version, '5.7' ) ) {
+			$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images MODIFY updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" );
+		} else {
+			$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images ALTER updated SET DEFAULT CURRENT_TIMESTAMP" );
 		}
 		// Check the current collation and adjust it if necessary.
 		$column_collate = $wpdb->get_col_charset( $wpdb->ewwwio_images, 'path' );
