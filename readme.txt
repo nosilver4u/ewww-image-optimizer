@@ -133,7 +133,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.2.2 =
-* added: disable "deep" integration with image_downsize filter via EIO_DISABLE_DEEP_INTEGRATION override
+* added: disable Easy IO's "deep" integration with image_downsize filter via EIO_DISABLE_DEEP_INTEGRATION override
 * added: integration with JSON/AJAX respones from Spotlight Social Media Feeds plugin
 * changed: PNG placeholders are now inlined for less HTTP requests and better auto-scaling
 * changed: Bulk Optimizer processes images from oldest to newest for the Media Library
