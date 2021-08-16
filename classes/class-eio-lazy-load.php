@@ -183,9 +183,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				$this->debug_message( 'is_admin' );
 				return false;
 			}
-			if ( $this->is_amp() ) {
-				return false;
-			}
 			if ( empty( $uri ) ) {
 				$uri = add_query_arg( null, null );
 			}
@@ -228,6 +225,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			global $wp_query;
 			if ( ! isset( $wp_query ) ) {
 				return $should_process;
+			}
+			if ( $this->is_amp() ) {
+				return false;
 			}
 			if ( is_embed() ) {
 				$this->debug_message( 'is_embed' );

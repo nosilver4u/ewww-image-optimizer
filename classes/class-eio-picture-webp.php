@@ -105,9 +105,6 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 			$this->debug_message( 'is_admin' );
 			return false;
 		}
-		if ( $this->is_amp() ) {
-			return false;
-		}
 		if ( ewww_image_optimizer_ce_webp_enabled() ) {
 			return false;
 		}
@@ -153,6 +150,9 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 		global $wp_query;
 		if ( ! isset( $wp_query ) ) {
 			return $should_process;
+		}
+		if ( $this->is_amp() ) {
+			return false;
 		}
 		if ( is_embed() ) {
 			$this->debug_message( 'is_embed' );
