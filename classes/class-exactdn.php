@@ -1893,7 +1893,13 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 
 			if ( function_exists( 'aq_resize' ) ) {
-				$this->debug_message( 'aq_resize detected, image_downsize filter disabled' );
+				$this->debug_message( 'aq_resize detected, image_downsize filter bypassed' );
+				return $image;
+			}
+
+			// BFI Thumb integration, usually Elementor, possibly others.
+			if ( is_array( $size ) && ! empty( $size['bfi_thumb'] ) ) {
+				$this->debug_message( 'bfi_thumb detected, image_downsize filter bypassed' );
 				return $image;
 			}
 

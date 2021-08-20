@@ -114,7 +114,11 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 			add_action( 'wp_enqueue_scripts', array( $this, 'min_external_script' ), -99 );
 		} else {
 			add_action( 'wp_head', array( $this, 'inline_check_script' ), -99 );
-			add_action( 'wp_footer', array( $this, 'inline_load_script' ), -99 );
+			if ( defined( 'EWWW_IMAGE_OPTIMIZER_WEBP_FOOTER_SCRIPT' ) && EWWW_IMAGE_OPTIMIZER_WEBP_FOOTER_SCRIPT ) {
+				add_action( 'wp_footer', array( $this, 'inline_load_script' ), -99 );
+			} else {
+				add_action( 'wp_head', array( $this, 'inline_load_script' ), -90 );
+			}
 		}
 		$this->validate_user_exclusions();
 	}
