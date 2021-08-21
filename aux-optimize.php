@@ -970,7 +970,7 @@ function ewww_image_optimizer_get_all_attachments() {
 function ewww_image_optimizer_get_queued_attachments( $gallery, $limit = 100 ) {
 	global $wpdb;
 	// Retrieve the attachment IDs that were pre-loaded in the database.
-	$selected_ids = $wpdb->get_col( $wpdb->prepare( "SELECT attachment_id FROM $wpdb->ewwwio_queue WHERE gallery = %s AND scanned = 1 LIMIT %d ORDER BY attachment_id DESC", $gallery, $limit ) );
+	$selected_ids = $wpdb->get_col( $wpdb->prepare( "SELECT attachment_id FROM $wpdb->ewwwio_queue WHERE gallery = %s AND scanned = 1 ORDER BY attachment_id DESC LIMIT %d", $gallery, $limit ) );
 	if ( empty( $selected_ids ) ) {
 		ewwwio_debug_message( 'no attachments found in queue' );
 		return array( 0 );
