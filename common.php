@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '623.42' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '623.43' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -1155,7 +1155,6 @@ function ewww_image_optimizer_admin_init() {
 	// Let the admin know a db upgrade is needed.
 	if ( is_super_admin() && get_transient( 'ewww_image_optimizer_620_upgrade_needed' ) ) {
 		add_action( 'admin_notices', 'ewww_image_optimizer_620_upgrade_needed' );
-		// $wpdb->query( "ALTER TABLE $wpdb->ewwwio_images MODIFY updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" );
 	}
 	if (
 		is_super_admin() &&
@@ -1682,7 +1681,13 @@ function ewww_image_optimizer_install_table() {
 			( false !== strpos( $mysql_version, '5.7.' ) || false !== strpos( $mysql_version, '10.1.' ) ) &&
 			$timestamp_upgrade_needed
 		) {
-			set_transient( 'ewww_image_optimizer_620_upgrade_needed', true );
+			if ( is_multisite() ) {
+				// Just do the upgrade.
+				$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images MODIFY updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" );
+			} else {
+				// Do it later via user interaction.
+				set_transient( 'ewww_image_optimizer_620_upgrade_needed', true );
+			}
 		} elseif ( $timestamp_upgrade_needed ) {
 			$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images ALTER updated SET DEFAULT CURRENT_TIMESTAMP" );
 		}
