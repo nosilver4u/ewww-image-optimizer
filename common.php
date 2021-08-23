@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '623.1' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '623.41' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -198,6 +198,8 @@ add_action( 'admin_action_ewww_image_optimizer_retest_background_optimization', 
 add_action( 'admin_action_ewww_image_optimizer_view_debug_log', 'ewww_image_optimizer_view_debug_log' );
 // Non-AJAX handler to delete the debug log, and reroute back to the settings page.
 add_action( 'admin_action_ewww_image_optimizer_delete_debug_log', 'ewww_image_optimizer_delete_debug_log' );
+// Non-AJAX handler to apply 6.2 current_timestamp db upgrade.
+add_action( 'admin_action_ewww_image_optimizer_620_upgrade', 'ewww_image_optimizer_620_upgrade' );
 // Check if WebP option was turned off and is now enabled.
 add_filter( 'pre_update_option_ewww_image_optimizer_webp', 'ewww_image_optimizer_webp_maybe_enabled', 10, 2 );
 // Check Scheduled Opt option has just been disabled and clear the queues/stop the process.
@@ -999,6 +1001,22 @@ function ewww_image_optimizer_retest_background_optimization() {
 }
 
 /**
+ * Apply 6.2.0+ current_timestamp db upgrade.
+ */
+function ewww_image_optimizer_620_upgrade() {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
+	}
+	delete_transient( 'ewww_image_optimizer_620_upgrade_needed' );
+	global $wpdb;
+	$suppress = $wpdb->suppress_errors();
+	$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images MODIFY updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" );
+	$wpdb->suppress_errors( $suppress );
+	wp_safe_redirect( wp_get_referer() );
+	exit;
+}
+
+/**
  * Plugin initialization for admin area.
  *
  * Saves settings when run network-wide, registers all 'common' settings, schedules wp-cron tasks,
@@ -1133,6 +1151,11 @@ function ewww_image_optimizer_admin_init() {
 	if ( ! defined( 'EWWWIO_DISABLE_REOPT_NOTICE' ) ) {
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
 		add_action( 'admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
+	}
+	// Let the admin know a db upgrade is needed.
+	if ( is_super_admin() && get_transient( 'ewww_image_optimizer_620_upgrade_needed' ) ) {
+		add_action( 'admin_notices', 'ewww_image_optimizer_620_upgrade_needed' );
+		// $wpdb->query( "ALTER TABLE $wpdb->ewwwio_images MODIFY updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" );
 	}
 	if (
 		is_super_admin() &&
@@ -1642,14 +1665,25 @@ function ewww_image_optimizer_install_table() {
 		}
 		// Make sure there are valid dates in updated column.
 		$wpdb->query( "UPDATE $wpdb->ewwwio_images SET updated = '1971-01-01 00:00:00' WHERE updated < '1001-01-01 00:00:01'" );
-		if (
-			false !== strpos( $mysql_version, '5.7.' ) ||
-			false !== strpos( $mysql_version, '10.1.' )
-		) {
-			if ( get_option( 'ewww_image_optimizer_version' ) < 620 ) {
-				$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images MODIFY updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" );
+		// Get the current table layout.
+		$suppress    = $wpdb->suppress_errors();
+		$tablefields = $wpdb->get_results( "DESCRIBE {$wpdb->ewwwio_images};" );
+		$wpdb->suppress_errors( $suppress );
+		$timestamp_upgrade_needed = false;
+		if ( ewww_image_optimizer_iterable( $tablefields ) ) {
+			foreach ( $tablefields as $tablefield ) {
+				if ( 'updated' === $tablefield->Field && false === strpos( $tablefield->Default, 'current_timestamp' ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					$timestamp_upgrade_needed = true;
+					ewwwio_debug_message( 'updated timestamp upgrade needed' );
+				}
 			}
-		} else {
+		}
+		if (
+			( false !== strpos( $mysql_version, '5.7.' ) || false !== strpos( $mysql_version, '10.1.' ) ) &&
+			$timestamp_upgrade_needed
+		) {
+			set_transient( 'ewww_image_optimizer_620_upgrade_needed', true );
+		} elseif ( $timestamp_upgrade_needed ) {
 			$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images ALTER updated SET DEFAULT CURRENT_TIMESTAMP" );
 		}
 		// Check the current collation and adjust it if necessary.
@@ -2210,6 +2244,18 @@ function ewww_image_optimizer_notice_media_listmode() {
 		</div>
 		<?php
 	}
+}
+
+/**
+ * Instruct the user to run the db upgrade.
+ */
+function ewww_image_optimizer_620_upgrade_needed() {
+	// $wpdb->query( "ALTER TABLE $wpdb->ewwwio_images MODIFY updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" );
+	echo "<div id='ewww-image-optimizer-upgrade-notice' class='notice notice-info'><p>" .
+		esc_html__( 'EWWW Image Optimizer needs to upgrade the image log table.', 'ewww-image-optimizer' ) . '<br>' .
+		'<a href="' . esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_620_upgrade' ) ) . '" class="button-secondary">' .
+		esc_html__( 'Upgrade', 'ewww-image-optimizer' ) . '</a>' .
+		'</p></div>';
 }
 
 /**
@@ -13462,8 +13508,7 @@ function ewww_image_optimizer_remove_cloud_key( $redirect = true ) {
 	delete_transient( 'ewww_image_optimizer_cloud_status' );
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_backup_files', '' );
 	if ( 'none' !== $redirect ) {
-		$sendback = wp_get_referer();
-		wp_safe_redirect( $sendback );
+		wp_safe_redirect( wp_get_referer() );
 		exit;
 	}
 }
@@ -13493,8 +13538,7 @@ function ewww_image_optimizer_remove_easyio() {
 	delete_site_option( 'ewww_image_optimizer_exactdn_suspended' );
 	global $exactdn;
 	$exactdn->cron_setup( false );
-	$sendback = wp_get_referer();
-	wp_safe_redirect( $sendback );
+	wp_safe_redirect( wp_get_referer() );
 	exit;
 }
 

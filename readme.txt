@@ -133,7 +133,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.2.4 =
+* changed: improved db upgrade routine for updated column
 * fixed: is_amp() called too early
+* fixed: SQL error when running "wp-cli ewwwio optimize media" - props @komsitr
 
 = 6.2.3 =
 * fixed: db error when MariaDB 10.1 does not permit ALTER for setting default column value
