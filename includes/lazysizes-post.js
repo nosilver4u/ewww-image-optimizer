@@ -161,6 +161,9 @@ document.addEventListener('lazybeforeunveil', function(e){
 				} else if ( window.lazySizes.hC(target,'et_pb_jt_filterable_grid_item_image') || window.lazySizes.hC(target,'ss-foreground-image') || window.lazySizes.hC(target,'img-crop') ) {
 					console.log('img that needs a hard crop');
 					var newSrc = constrainSrc(src,targetWidth,targetHeight,'img-crop');
+				} else if ( window.lazySizes.hC(target,'ct-image') && window.lazySizes.hC(target,'object-cover') ) {
+					console.log('Oxygen cover img that needs a hard crop');
+					var newSrc = constrainSrc(src,targetWidth,targetHeight,'img-crop');
 				} else {
 					console.log('plain old img, constraining');
 					var newSrc = constrainSrc(src,targetWidth,targetHeight,'img');
