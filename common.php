@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '623.41' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '623.42' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -1672,7 +1672,7 @@ function ewww_image_optimizer_install_table() {
 		$timestamp_upgrade_needed = false;
 		if ( ewww_image_optimizer_iterable( $tablefields ) ) {
 			foreach ( $tablefields as $tablefield ) {
-				if ( 'updated' === $tablefield->Field && false === strpos( $tablefield->Default, 'current_timestamp' ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				if ( 'updated' === $tablefield->Field && false === stripos( $tablefield->Default, 'current_timestamp' ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					$timestamp_upgrade_needed = true;
 					ewwwio_debug_message( 'updated timestamp upgrade needed' );
 				}
