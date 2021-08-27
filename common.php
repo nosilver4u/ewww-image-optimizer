@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '623.459' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '623.465' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -2110,11 +2110,19 @@ function ewww_image_optimizer_notice_exactdn_activation_success() {
  * Remind network admin to activate Easy IO on the new site.
  */
 function ewww_image_optimizer_easyio_site_initialized() {
-	?>
-	<div id="ewww-image-optimizer-notice-exactdn-success" class="notice notice-info"><p>
-		<?php esc_html_e( 'Easy IO registration is complete. Visit the plugin settings to activate the new site.', 'ewww-image-optimizer' ); ?>
-	</div>
-	<?php
+	if ( defined( 'EASYIO_NEW_SITE_AUTOREG' ) && EASYIO_NEW_SITE_AUTOREG ) {
+		?>
+		<div id="ewww-image-optimizer-notice-exactdn-success" class="notice notice-info"><p>
+			<?php esc_html_e( 'Easy IO registration is complete. Visit the plugin settings to activate your new site.', 'ewww-image-optimizer' ); ?>
+		</div>
+		<?php
+	} else {
+		?>
+		<div id="ewww-image-optimizer-notice-exactdn-success" class="notice notice-info"><p>
+			<?php esc_html_e( 'Please visit the EWWW Image Optimizer plugin settings to activate Easy IO on your new site.', 'ewww-image-optimizer' ); ?>
+		</div>
+		<?php
+	}
 }
 
 /**
@@ -10473,6 +10481,7 @@ function ewww_image_optimizer_settings_script( $hook ) {
 			'_wpnonce'                => wp_create_nonce( 'ewww-image-optimizer-settings' ),
 			'invalid_response'        => esc_html__( 'Received an invalid response from your website, please check for errors in the Developer Tools console of your browser.', 'ewww-image-optimizer' ),
 			'loading_image_url'       => plugins_url( '/images/spinner.gif', __FILE__ ),
+			'operation_stopped'       => esc_html__( 'Operation stopped.', 'ewww-image-optimizer' ),
 			'easyio_register_warning' => esc_html__( 'This will register all your sites with the Easy IO CDN and will take some time to complete. Do you wish to proceed?', 'ewww-image-optimizer' ),
 			'easyio_register_success' => esc_html__( 'Easy IO registration complete. Please wait 5-10 minutes and then activate your sites.', 'ewww-image-optimizer' ),
 			'exactdn_network_warning' => esc_html__( 'This will attempt to activate Easy IO on all sites within the multi-site network. Please be sure you have registered all your site URLs before continuing.', 'ewww-image-optimizer' ),
@@ -12505,22 +12514,24 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<?php esc_html_e( 'Enter your API key above to enable automatic Easy IO site registration.', 'ewww-image-optimizer' ); ?><br>
 				<?php endif; ?>
 				<?php if ( -1 === $exactdn_network_enabled ) : ?>
-							<span style="color: orange; font-weight: bolder"><?php esc_html_e( 'Partially Active', 'ewww-image-optimizer' ); ?></span><br>
+							<span style="color: orange; font-weight: bolder"><?php esc_html_e( 'Partially Active', 'ewww-image-optimizer' ); ?></span> - <a href="https://ewww.io/manage-sites/"><?php esc_html_e( 'Manage Sites', 'ewww-image-optimizer' ); ?></a><br>
 							<span><?php esc_html_e( 'Easy IO is not active on some sites. You may activate individual sites via the plugin settings in each site dashboard, or activate all remaining sites below.', 'ewww-image-optimizer' ); ?></span><br>
 				<?php else : ?>
 							<strong><a href="https://ewww.io/plans/" target="_blank">
 								<?php esc_html_e( 'Purchase a subscription for your sites', 'ewww-image-optimizer' ); ?>
 							</a></strong><br>
-							<a href="https://ewww.io/manage-sites/" target="_blank"><?php esc_html_e( 'Then, add your Site URLs to your account', 'easy-image-optimizer' ); ?></a><br>
+							<a href="https://ewww.io/manage-sites/" target="_blank"><?php esc_html_e( 'Then, add your Site URLs to your account', 'easy-image-optimizer' ); ?></a>
 				<?php endif; ?>
+						</p>
+						<p>
 				<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
 							<a id='ewwwio-easy-register-network' href='#' class='button-secondary'><?php esc_html_e( 'Register All Sites', 'ewww-image-optimizer' ); ?></a>
 				<?php endif; ?>
 							<a id='ewwwio-easy-activate-network' href='#' class='button-secondary'><?php esc_html_e( 'Activate All Sites', 'ewww-image-optimizer' ); ?></a>
-							<a id='ewwwio-easy-cancel-network-operation' style='display:none;' href='#' class='button-secondary'><?php esc_html_e( 'Cancel', 'ewww-image-optimizer' ); ?></a>
 						</p>
 						<span id='ewwwio-easy-activation-processing'><img src='<?php echo esc_url( $loading_image_url ); ?>' alt='loading'/></span>
 						<div id='ewwwio-easy-activation-progressbar' style='display:none;'></div>
+						<a id='ewwwio-easy-cancel-network-operation' style='display:none;' href='#' class='button-secondary'><?php esc_html_e( 'Cancel', 'ewww-image-optimizer' ); ?></a>
 						<div id='ewwwio-easy-activation-errors' style='display:none;'>
 							<p>
 								<?php
@@ -12534,7 +12545,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						</div>
 			<?php endif; ?>
 			<?php if ( 1 === $exactdn_network_enabled ) : ?>
-						<span style="color: #3eadc9; font-weight: bolder"><?php esc_html_e( 'Verified', 'ewww-image-optimizer' ); ?></span><br>
+						<span style="color: #3eadc9; font-weight: bolder"><?php esc_html_e( 'Verified', 'ewww-image-optimizer' ); ?></span> - <a href="https://ewww.io/manage-sites/"><?php esc_html_e( 'Manage Sites', 'ewww-image-optimizer' ); ?></a><br>
 			<?php endif; ?>
 			<?php if ( 0 !== $exactdn_network_enabled ) : ?>
 						<a id='ewwwio-easy-deactivate' class='button-secondary' href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_network_remove_easyio' ) ); ?>'>

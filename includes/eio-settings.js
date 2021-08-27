@@ -186,15 +186,17 @@ jQuery(document).ready(function($) {
 	});
 	var exactdn_blog_ids   = [];
 	var exactdn_blog_count = 0;
+	var exactdn_cancelled  = false;
 	$('#ewwwio-easy-activate-network').on( 'click', function() {
 		if (!confirm(ewww_vars.exactdn_network_warning)) {
 			return false;
 		}
 		exactdn_blog_ids   = Array.from(ewww_vars.network_blog_ids);
 		exactdn_blog_count = exactdn_blog_ids.length;
-		$('#ewwwio-easy-activate-network').hide();
-		$('#ewwwio-easy-deactivate').hide();
-		$('#ewwwio-easy-register-network').hide();
+		$('#ewww_image_optimizer_exactdn_container .button-secondary').hide();
+		//$('#ewwwio-easy-activate-network').hide();
+		//$('#ewwwio-easy-deactivate').hide();
+		//$('#ewwwio-easy-register-network').hide();
 		$('#ewwwio-easy-cancel-network-operation').show();
 		$('#ewwwio-easy-activation-result').hide();
 		$('#ewwwio-easy-activation-processing').show();
@@ -246,7 +248,11 @@ jQuery(document).ready(function($) {
 				activateExactDNSite();
 			} else {
 				$('#ewwwio-easy-cancel-network-operation').hide();
-				$('#ewwwio-easy-activation-result').html(ewww_vars.exactdn_network_success);
+				if (exactdn_cancelled) {
+					$('#ewwwio-easy-activation-result').html(ewww_vars.operation_stopped);
+				} else {
+					$('#ewwwio-easy-activation-result').html(ewww_vars.exactdn_network_success);
+				}
 				$('#ewwwio-easy-activation-result').removeClass('error');
 				$('#ewwwio-easy-activation-result').show();
 				$('.ewwwio-exactdn-options input').prop('disabled', false);
@@ -266,9 +272,10 @@ jQuery(document).ready(function($) {
 		}
 		exactdn_blog_ids   = Array.from(ewww_vars.network_blog_ids);
 		exactdn_blog_count = exactdn_blog_ids.length;
-		$('#ewwwio-easy-activate-network').hide();
-		$('#ewwwio-easy-register-network').hide();
-		$('#ewwwio-easy-deactivate').hide();
+		$('#ewww_image_optimizer_exactdn_container .button-secondary').hide();
+		//$('#ewwwio-easy-activate-network').hide();
+		//$('#ewwwio-easy-register-network').hide();
+		//$('#ewwwio-easy-deactivate').hide();
 		$('#ewwwio-easy-cancel-network-operation').show();
 		$('#ewwwio-easy-activation-result').hide();
 		$('#ewwwio-easy-activation-processing').show();
@@ -321,20 +328,24 @@ jQuery(document).ready(function($) {
 			if ( exactdn_blog_ids.length ) {
 				registerExactDNSite();
 			} else {
-				$('#ewwwio-easy-activation-result').html(ewww_vars.easyio_register_success);
+				if (exactdn_cancelled) {
+					$('#ewwwio-easy-activation-result').html(ewww_vars.operation_stopped);
+				} else {
+					$('#ewwwio-easy-activation-result').html(ewww_vars.easyio_register_success);
+				}
 				$('#ewwwio-easy-activation-result').removeClass('error');
 				$('#ewwwio-easy-activation-result').show();
+				$('#ewwwio-easy-cancel-network-operation').hide();
 				$('#ewwwio-easy-activation-progressbar').hide();
-				$('p.ewwwio-easy-setup-instructions').show();
-				$('p.ewwwio-easy-setup-instructions span').hide();
-				$('p.ewwwio-easy-setup-instructions a').hide();
 				$('#ewwwio-easy-activate-network').show();
 			}
 		});
 		return false;
 	}
 	$('#ewwwio-easy-cancel-network-operation').on('click', function() {
-		exactdn_blog_ids = [];
+		exactdn_blog_ids  = [];
+		exactdn_cancelled = true;
+		$('#ewwwio-easy-cancel-network-operation').hide();
 		return false;
 	})
 	$('#ewww_image_optimizer_webp').on(
