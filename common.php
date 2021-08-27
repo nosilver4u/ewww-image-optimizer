@@ -1112,7 +1112,7 @@ function ewww_image_optimizer_admin_init() {
 	ewww_image_optimizer_cron_setup( 'ewww_image_optimizer_auto' );
 	// Queue the function that contains custom styling for our progressbars.
 	add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_progressbar_style' );
-	if ( defined( 'EASYIO_NEW_SITE_AUTOREG' ) && EASYIO_NEW_SITE_AUTOREG ) {
+	if ( false !== strpos( add_query_arg( null, null ), 'site-new.php' ) ) {
 		if ( is_multisite() && is_network_admin() && isset( $_GET['update'] ) && 'added' === $_GET['update'] && ! empty( $_GET['id'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			add_action( 'network_admin_notices', 'ewww_image_optimizer_easyio_site_initialized' );
 			add_action( 'admin_notices', 'ewww_image_optimizer_easyio_site_initialized' );
@@ -12468,7 +12468,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 								/* translators: 1: the string 'Start your free trial' with a link to the signup page 2: 'enter an existing key' linked to the account/key page */
 								esc_html__( '%1$s or %2$s.', 'ewww-image-optimizer' ),
 								"<a href='https://ewww.io/plans/' target='_blank'>" . esc_html__( 'Start your free trial', 'ewww-image-optimizer' ) . '</a>',
-								"<a href='https://ewww.io/manage-keys/' target='_blank'>" . esc_html__( 'enter an existing key', 'ewww-image-optimizer' ) . '</a>',
+								"<a href='https://ewww.io/manage-keys/' target='_blank'>" . esc_html__( 'enter an existing key', 'ewww-image-optimizer' ) . '</a>'
 							);
 							?>
 						</p>
