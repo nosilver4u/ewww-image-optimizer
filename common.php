@@ -10502,21 +10502,20 @@ function ewww_image_optimizer_settings_script( $hook ) {
 /**
  * Get a total of how much space we have saved so far.
  *
- * @param bool $network_admin True if this is called from the network admin dashboard, false otherwise.
  * @global object $wpdb
  *
  * @return int The total savings found, in bytes.
  */
-function ewww_image_optimizer_savings( $network_admin = false ) {
+function ewww_image_optimizer_savings() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
 	$total_orig    = 0;
 	$total_opt     = 0;
 	$total_savings = 0;
 	$started       = microtime( true );
-	if ( is_multisite() && $network_admin ) {
+	if ( is_multisite() && is_network_admin() ) {
 		$cache_savings = get_site_transient( 'ewww_image_optimizer_savings' );
-		if ( ! empty( $cache_savings ) && is_array( $cache_savings ) && 2 === count( $cache_savings ) ) {
+		if ( ! empty( $cache_savings ) && is_array( $cache_savings ) && 2 === count( $cache_savings ) && ! empty( $cache_savings[0] ) ) {
 			ewwwio_debug_message( 'savings query avoided via (multi-site) cache' );
 			return $cache_savings;
 		}
@@ -11756,7 +11755,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	global $eio_alt_webp;
 	$total_savings = 0;
 	if ( 'network-multisite' === $network ) {
-		$total_sizes   = ewww_image_optimizer_savings( true );
+		$total_sizes   = ewww_image_optimizer_savings();
 		$total_savings = $total_sizes[1] - $total_sizes[0];
 	} else {
 		$total_sizes   = ewww_image_optimizer_savings();
@@ -11893,7 +11892,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		delete_site_option( 'ewww_image_optimizer_exactdn_validation' );
 		delete_site_option( 'ewww_image_optimizer_exactdn_suspended' );
 	}
-	$exactdn_network_enabled = false;
+	$exactdn_network_enabled = 0;
 	if ( $exactdn_enabled && is_multisite() && is_network_admin() && defined( 'SUBDOMAIN_INSTALL' ) && SUBDOMAIN_INSTALL ) {
 		$exactdn_network_enabled = ewww_image_optimizer_easyio_network_activated();
 	}
@@ -12580,15 +12579,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<br><i><?php esc_html_e( 'Plugins that remove query strings are unnecessary with Easy IO. You may remove them at your convenience.', 'ewww-image-optimizer' ); ?></i><?php ewwwio_help_link( 'https://docs.ewww.io/article/50-exactdn-and-query-strings', '5a3d278a2c7d3a1943677b52' ); ?>
 				<?php endif; ?>
 							<br>
-				<?php if ( 'network-multisite' === $network && defined( 'SUBDOMAIN_INSTALL' ) && SUBDOMAIN_INSTALL ) : ?>
-							<a id='ewwwio-easy-deactivate' class='button-secondary' href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_network_remove_easyio' ) ); ?>'>
-								<?php esc_html_e( 'De-activate All Sites', 'ewww-image-optimizer' ); ?>
-							</a>
-				<?php else : ?>
 							<a id='ewwwio-easy-deactivate' class='button-secondary' href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_remove_easyio' ) ); ?>'>
 								<?php esc_html_e( 'De-activate', 'ewww-image-optimizer' ); ?>
 							</a>
-				<?php endif; ?>
 						</p>
 		<?php endif; ?>
 					</td>

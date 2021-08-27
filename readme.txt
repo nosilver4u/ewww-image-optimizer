@@ -141,6 +141,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: Multi-site domain-based installs can activate/register sites en masse, and directly upon site creation
 * changed: improved db upgrade routine for updated column
 * changed: JS WebP script moved back to page head
+* fixed: WebP Rewriters not detecting upload URL correctly for CDN support
+* fixed: iframe lazy loading breaks Gravity Forms and FacetWP when parsing JSON
 * fixed: is_amp() called too early
 * fixed: SQL error when running "wp-cli ewwwio optimize media" - props @komsitr
 

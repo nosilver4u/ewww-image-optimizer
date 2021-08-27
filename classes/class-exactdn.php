@@ -878,6 +878,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 * @return string The content with ExactDN image urls.
 		 */
 		function filter_the_content( $content ) {
+			if ( $this->is_json( $content ) ) {
+				return $content;
+			}
+
 			$started = microtime( true );
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			$images = $this->get_images_from_html( $content, true );

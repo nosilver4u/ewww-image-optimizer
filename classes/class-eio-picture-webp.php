@@ -244,6 +244,9 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 			$this->debug_message( 'picture WebP disabled' );
 			return $buffer;
 		}
+		if ( $this->is_json( $buffer ) ) {
+			return $buffer;
+		}
 		if ( ! $this->should_process_page() ) {
 			$this->debug_message( 'picture WebP should not process page' );
 			return $buffer;

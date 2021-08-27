@@ -288,6 +288,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				$this->debug_message( 'AMP page processing' );
 				return $buffer;
 			}
+			if ( $this->is_json( $buffer ) ) {
+				return $buffer;
+			}
 			if ( ! $this->should_process_page() ) {
 				return $buffer;
 			}
@@ -399,7 +402,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				foreach ( $frames as $index => $frame ) {
 					$this->debug_message( 'parsing an iframe element' );
 					$url = $this->get_attribute( $frame, 'src' );
-					if ( $url && $this->validate_iframe_tag( $frame ) ) {
+					if ( $url && 0 === strpos( $url, 'http' ) && $this->validate_iframe_tag( $frame ) ) {
 						$this->debug_message( "lazifying iframe for: $url" );
 						$this->set_attribute( $frame, 'data-src', $url );
 						$this->remove_attribute( $frame, 'src' );
@@ -886,6 +889,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						'data-no-lazy=',
 						'lazyload',
 						'skip-lazy',
+						'about:blank',
 					),
 					$this->user_exclusions
 				),

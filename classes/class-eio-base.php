@@ -365,6 +365,25 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		}
 
 		/**
+		 * Checks to see if the current buffer/output is a JSON-encoded string.
+		 *
+		 * Specifically, we are looking for JSON objects/strings, not just ANY JSON value.
+		 * Thus, the check is rather "loose", only looking for {} or [] at the start/end.
+		 *
+		 * @param string $buffer The content to check for JSON.
+		 * @return bool True for JSON, false for everything else.
+		 */
+		function is_json( $buffer ) {
+			if ( '{' === substr( $buffer, 0, 1 ) && '}' === substr( $buffer, -1 ) ) {
+				return true;
+			}
+			if ( '[' === substr( $buffer, 0, 1 ) && ']' === substr( $buffer, -1 ) ) {
+				return true;
+			}
+			return false;
+		}
+
+		/**
 		 * Make sure this is really and truly a "front-end request", excluding page builders and such.
 		 *
 		 * @return bool True for front-end requests, false for admin/builder requests.
@@ -778,13 +797,13 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 				$this->allowed_domains[] = $this->parse_url( swis()->settings->get_option( 'cdn_domain' ), PHP_URL_HOST );
 			}
 
+			$upload_dir = wp_get_upload_dir();
 			if ( $this->s3_active ) {
 				$this->site_url = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : $s3_scheme . '://' . $s3_domain;
 			} else {
 				// Normally, we use this one, as it will be shorter for sub-directory installs.
 				$home_url    = get_home_url();
 				$site_url    = get_site_url();
-				$upload_dir  = wp_get_upload_dir();
 				$home_domain = $this->parse_url( $home_url, PHP_URL_HOST );
 				$site_domain = $this->parse_url( $site_url, PHP_URL_HOST );
 				// If the home domain does not match the upload url, and the site domain does match...
@@ -794,7 +813,11 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 				}
 				$this->site_url = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : $home_url;
 			}
-			$this->upload_url        = $this->site_url;
+			// This is used by the WebP parsers, and by the Lazy Load via get_image_dimensions_by_url().
+			$this->upload_url = trailingslashit( ! empty( $upload_dir['baseurl'] ) ? $upload_dir['baseurl'] : content_url( 'uploads' ) );
+			$this->debug_message( "upload_url: $this->upload_url" );
+
+			// But this is used by Easy IO, so it should be derived from the above logic instead, which already matches the site/home URLs against the upload URL.
 			$this->upload_domain     = $this->parse_url( $this->site_url, PHP_URL_HOST );
 			$this->allowed_domains[] = $this->upload_domain;
 			// Grab domain aliases that might point to the same place as the upload_domain.
