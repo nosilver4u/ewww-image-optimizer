@@ -712,7 +712,7 @@ div#ewww-webp-rewrite-status {
 p#ewww-webp-rewrite-status {
 	font-style: italic;
 }
-#ewwwio-easy-activate, #ewwwio-easy-deactivate {
+#ewwwio-easy-activate, #ewwwio-easy-deactivate, #ewwwio-easy-activate-network, #ewwwio-easy-register-network {
 	margin-top: 10px;
 }
 .ewwwio-notice {
@@ -742,6 +742,9 @@ p#ewww-webp-rewrite-status {
 }
 #ewwwio-api-activation-result.error, #ewwwio-easy-activation-result.error, #ewww-webp-rewrite-result.error {
 	border-left-color: #dc3232;
+}
+#ewwwio-easy-activation-progressbar {
+	margin: 10px 0;
 }
 #ewww-webp-rewrite-result p {
 	/* margin: 0.5em 0; */

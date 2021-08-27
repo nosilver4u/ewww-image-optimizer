@@ -88,6 +88,11 @@ To find out if your webhost works with the EWWW Image Optimizer, you can check t
 
 == Frequently Asked Questions ==
 
+= Does the plugin remove EXIF and/or IPTC metadata?
+
+EWWW IO will remove metadata by default, but if you need to keep the EXIF/IPTC data for copyright purposes, you can disable the Remove Metadata option.
+EXIF data does not impact SEO, and it is recommended by Google (and just about everyone else) to remove EXIF data.
+
 = Google Pagespeed says my images need compressing or resizing, but I already optimized all my images. What do I do? =
 
 Try this for starters: [https://docs.ewww.io/article/5-pagespeed-says-my-images-need-more-work](https://docs.ewww.io/article/5-pagespeed-says-my-images-need-more-work)
@@ -133,7 +138,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.2.4 =
+* added: Multi-site domain-based installs can activate/register sites en masse, and directly upon site creation
 * changed: improved db upgrade routine for updated column
+* changed: JS WebP script moved back to page head
 * fixed: is_amp() called too early
 * fixed: SQL error when running "wp-cli ewwwio optimize media" - props @komsitr
 

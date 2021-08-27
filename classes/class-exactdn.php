@@ -248,8 +248,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$this->debug_message( "could not break down URL: $this->site_url" );
 				return;
 			}
-			if ( ! $this->get_option( $this->prefix . 'exactdn_local_domain' ) ) {
-				$this->set_option( $this->prefix . 'exactdn_local_domain', $this->upload_domain );
+			if ( ! $this->get_exactdn_option( 'local_domain' ) ) {
+				$this->set_exactdn_option( 'local_domain', $this->upload_domain );
 			}
 			$this->debug_message( "allowing images from here: $this->upload_domain" );
 			if (
@@ -264,8 +264,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				$this->debug_message( "removing this from urls: $this->remove_path" );
 			}
 			if (
-				$this->get_option( $this->prefix . 'exactdn_local_domain' ) !== $this->upload_domain &&
-				! $this->allow_image_domain( $this->get_option( $this->prefix . 'exactdn_local_domain' ) ) &&
+				$this->get_exactdn_option( 'local_domain' ) !== $this->upload_domain &&
+				! $this->allow_image_domain( $this->get_exactdn_option( 'local_domain' ) ) &&
 				is_admin()
 			) {
 				add_action( 'admin_notices', $this->prefix . 'notice_exactdn_domain_mismatch' );
@@ -283,7 +283,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		function setup() {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			// If we don't have a domain yet, go grab one.
-			$this->plan_id = $this->get_exactdn_option( 'plan_id' );
+			$this->plan_id = (int) $this->get_exactdn_option( 'plan_id' );
 			$new_site      = false;
 			if ( ! $this->get_exactdn_domain() ) {
 				$this->debug_message( 'attempting to activate exactDN' );
@@ -481,7 +481,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( $ssl ) {
 				$api_url = set_url_scheme( $api_url, 'https' );
 			}
-			if ( ! defined( 'EXACTDN_LOCAL_DOMAIN' ) && $this->get_exactdn_option( 'verify_method' ) > 0 ) {
+			if ( ! defined( 'EXACTDN_LOCAL_DOMAIN' ) && (int) $this->get_exactdn_option( 'verify_method' ) > 0 ) {
 				// Test with an image file that should be available on the ExactDN zone.
 				$test_url     = plugins_url( '/images/test.png', constant( strtoupper( $this->prefix ) . 'PLUGIN_FILE' ) );
 				$local_domain = $this->parse_url( $test_url, PHP_URL_HOST );
@@ -678,14 +678,14 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 */
 		function get_exactdn_option( $option_name ) {
 			if ( defined( 'EXACTDN_DOMAIN' ) && EXACTDN_DOMAIN ) {
-				return (int) get_option( $this->prefix . 'exactdn_' . $option_name );
+				return get_option( $this->prefix . 'exactdn_' . $option_name );
 			}
 			if ( is_multisite() ) {
 				if ( ! SUBDOMAIN_INSTALL ) {
-					return (int) get_site_option( $this->prefix . 'exactdn_' . $option_name );
+					return get_site_option( $this->prefix . 'exactdn_' . $option_name );
 				}
 			}
-			return (int) get_option( $this->prefix . 'exactdn_' . $option_name );
+			return get_option( $this->prefix . 'exactdn_' . $option_name );
 		}
 
 		/**
