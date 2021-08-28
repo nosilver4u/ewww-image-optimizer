@@ -10543,8 +10543,9 @@ function ewww_image_optimizer_savings() {
 				}
 				switch_to_blog( $blog_id );
 				ewwwio_debug_message( "getting savings for site: $blog_id" );
-				$table_name = $wpdb->prefix . 'ewwwio_images';
-				ewwwio_debug_message( "table name is $table_name" );
+				$table_name          = $wpdb->prefix . 'ewwwio_images';
+				$wpdb->ewwwio_images = $table_name;
+				ewwwio_debug_message( "table name is $table_name ({$wpdb->ewwwio_images})" );
 				if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) !== $table_name ) {
 					ewww_image_optimizer_install_table();
 				}
@@ -10559,6 +10560,7 @@ function ewww_image_optimizer_savings() {
 				}
 				restore_current_blog();
 			}
+			$wpdb->ewwwio_images = $wpdb->prefix . 'ewwwio_images';
 		}
 		set_site_transient( 'ewww_image_optimizer_savings', array( $total_opt, $total_orig ), DAY_IN_SECONDS );
 	} else {
@@ -13967,13 +13969,29 @@ function ewww_image_optimizer_resize_detection_script() {
 		} else {
 			$resize_detection_script = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'includes/resize-detection.min.js' );
 		}
-		echo "<style>\n" .
-			"img.scaled-image {\n" .
-			"\tborder: 3px #3eadc9 dotted;\n" .
-			"\tmargin: -3px;\n" .
-			"}\n" .
-			"</style>\n";
-		echo '<script type="text/javascript">' . $resize_detection_script . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		?>
+		<style>
+			#wp-admin-bar-resize-detection div.ab-empty-item {
+				cursor: pointer;
+			}
+			#wp-admin-bar-resize-detection {
+				opacity: 1;
+				-webkit-transition: opacity 0.3s ease-in-out;
+				-moz-transition: opacity 0.3s ease-in-out;
+				-ms-transition: opacity 0.3s ease-in-out;
+				-o-transition: opacity 0.3s ease-in-out;
+				transition: opacity 0.3 ease-in-out;
+			}
+			#wp-admin-bar-resize-detection.ewww-fade {
+				opacity: 0;
+			}
+			img.scaled-image {
+				border: 3px #3eadc9 dotted;
+				margin: -3px;
+			}
+		</style>
+		<script><?php echo $resize_detection_script; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></script>
+		<?php
 	}
 }
 

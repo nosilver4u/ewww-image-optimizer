@@ -145,6 +145,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: iframe lazy loading breaks Gravity Forms and FacetWP when parsing JSON
 * fixed: is_amp() called too early
 * fixed: SQL error when running "wp-cli ewwwio optimize media" - props @komsitr
+* fixed: local savings query sometimes returns no results
 
 = 6.2.3 =
 * fixed: db error when MariaDB 10.1 does not permit ALTER for setting default column value

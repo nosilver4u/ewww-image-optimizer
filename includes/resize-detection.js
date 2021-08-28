@@ -3,13 +3,17 @@ window.onload = function() {
 	var adminBarButton = document.getElementById('wp-admin-bar-resize-detection');
 	if (adminBarButton) {
 		adminBarButton.onclick = function() {
+			adminBarButton.classList.toggle('ewww-fade');
 			clearScaledImages();
 			checkImageSizes();
+			setTimeout(function() {
+				adminBarButton.classList.toggle('ewww-fade');
+			}, 500);
 		};
 	}
 }
 function checkImageSizes() {
-	// Find images which have width or height different than their natural
+	// Find images which have width or height greater than their natural
 	// width or height, and give them a stark and ugly marker, as well
 	// as a useful title.
 	var imgs = document.getElementsByTagName("img");
