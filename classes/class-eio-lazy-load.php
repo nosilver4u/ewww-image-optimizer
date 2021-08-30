@@ -543,7 +543,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 								$filename_height = $height_attr;
 							}
 
-							if ( $filename_width && $filename_height ) {
+							if ( $filename_width && $filename_height && $this->allow_piip ) {
 								$placeholder_src = $this->create_piip( $filename_width, $filename_height );
 								/* $placeholder_src = $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $filename_width . 'x' . $filename_height . '.png' ); */
 								$use_native_lazy = true;

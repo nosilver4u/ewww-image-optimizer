@@ -3880,10 +3880,12 @@ function ewwwio_is_file( $file ) {
 		$upload_dir = $content_dir;
 	}
 	$plugin_dir = realpath( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH );
-	$tool_dir   = $content_dir;
 	if ( defined( 'EWWW_IMAGE_OPTIMIZER_TOOL_PATH' ) ) {
 		$tool_dir = realpath( EWWW_IMAGE_OPTIMIZER_TOOL_PATH );
 		$tool_dir = dirname( $tool_dir );
+	}
+	if ( empty( $tool_dir ) ) {
+		$tool_dir = $content_dir;
 	}
 	if (
 		false === strpos( $file, $upload_dir ) &&
