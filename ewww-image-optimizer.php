@@ -1,6 +1,6 @@
 <?php
 /**
- * Loader for Standard EWWW I.O. plugin.
+ * Loader for Standard EWWW IO plugin.
  *
  * This file bootstraps the rest of the EWWW IO plugin after some basic checks.
  *
@@ -13,8 +13,8 @@ Plugin Name: EWWW Image Optimizer
 Plugin URI: https://wordpress.org/plugins/ewww-image-optimizer/
 Description: Reduce file sizes for images within WordPress including NextGEN Gallery and GRAND FlAGallery. Uses jpegtran, optipng/pngout, and gifsicle.
 Author: Exactly WWW
-Version: 6.2.3.4
-Requires at least: 5.4
+Version: 6.2.4
+Requires at least: 5.5
 Requires PHP: 7.1
 Author URI: https://ewww.io/
 License: GPLv3

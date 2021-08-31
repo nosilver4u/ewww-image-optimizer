@@ -2,10 +2,10 @@
 Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization, lossless, lossy, seo, scale
-Requires at least: 5.4
+Requires at least: 5.5
 Tested up to: 5.8
 Requires PHP: 7.1
-Stable tag: 6.2.3
+Stable tag: 6.2.4
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -190,76 +190,6 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: Last Optimized times for Optimized Images table were incorrect
 * fixed: Add Missing Dimensions overwrites smaller width/height attribute if only one is set
 * fixed: replacing an existing attribute (like width) with a numeric value is broken
-
-= 6.1.9 =
-* fixed: Easy IO's Include All Resources compat with Oxygen Builder and Beaver Builder
-* fixed: regex to detect SVG images in use elements caused excessive backtracking
-* fixed: WebP version of full-size image not removed when attachment deleted due to undefined variable
-* fixed: Easy IO adds invalid zoom parameter of 1920 to srcset URL
-
-= 6.1.8 =
-* fixed: Lazy Load fails to auto-scale with img-crop class for Easy IO
-* fixed: WebP files sometimes fail to be re-generated after Photo Engine (WP/LR) sync
-* fixed: Lazy Load throws JS error in SCRIPT_DEBUG mode
-
-= 6.1.7 =
-* fixed: syntax error due to trailing comma after last parameter in function call(s).
-
-= 6.1.6 =
-* added: support for BuddyPress uploads via Vikinger theme.
-* added: compatibility with Weglot.
-* added: use 'img-crop' id/class, or data-img-crop attribute to force cropping with Easy IO + Lazy Load.
-* changed: Resize Existing enabled by default for new installs.
-* changed: Lazy Load JS moved to footer
-* fixed: prevent Resize Detection from flagging SVG files.
-
-= 6.1.5 =
-* changed: use core wp_getimagesize() for proper error handling
-* fixed: prevent erasing title attributes for admin users when Lazy Load and Resize Detection are enabled
-* fixed: creates empty file when image is too large for WebP conversion
-
-= 6.1.4 =
-* changed: better handling for API quotas
-* fixed: picture elements not parsed when using JS WebP with Lazy Load
-* fixed: bundled tools don't work if the binary/tool directory is mounted on a filesystem separate from wp-content/
-* fixed: bulk optimizer not finding images from cloud storage (like S3) when local versions are removed
-
-= 6.1.3 =
-* changed: bulk optimizer no longer skips image types set to "no compression" in WebP-only mode
-* fixed: CNAME setting from WP Offload Media triggers "unknown" error in Easy IO
-* fixed: missing EIO_LL_THRESHOLD variable for minified JS
-
-= 6.1.2 =
-* fixed: bug from bypass/exclusion code for bulk scanner in 6.1.1
-* fixed: running is_file on system binaries may trigger open_basedir warnings, use EWWWIO_OPEN_BASEDIR to override PHP's open_basedir restriction
-
-= 6.1.1 =
-* change: added setting to enable adding of missing width/height dimensions, disabled by default
-* fixed: warning from plugins using core wp_lazy_load filter without second parameter/argument
-
-= 6.1.0 =
-* added: ability to use SVG placeholders for more efficient lazy load
-* added: Easy IO and Lazy Load add missing width and height to image elements
-* added: Lazy Load - right-sized placeholders can be generated for full-sized images
-* added: configure Lazy Load pre-load threshold via EIO_LL_THRESHOLD constant
-* changed: Lazy Load for external (non-inline) CSS images must be configured for specific elements
-* changed: Easy IO's Include All Resources unlocked for all plans
-* changed: native lazy loading is now disabled when using EWWW IO lazy load, override with EIO_ENABLE_NATIVE_LAZY constant
-* changed: Lazy Load pre-load threshold increased from 500px to 1000px
-* changed: Lazy Load picture elements use right-sized img placeholder instead of 1x1 inline GIF
-* changed: system-installed binary detection improved
-* fixed: native iframe lazy load disabled in WP 5.7+
-* fixed: detection for Shield Security plugin lock to location
-* fixed: relative path migration showing errors in site tools
-* fixed: WebP rewriters not handling relative image urls
-* fixed: existing <picture> elements ignored by <picture> WebP Rewriting
-* fixed: <img> elements inside <picture> elements incorrectly handled by JS WebP Rewriting
-* fixed: removing metadata clobbers APNG animations
-* fixed: some JSON elements still being altered by Lazy Load
-* fixed: Easy IO throws warnings when WP content is not in a sub-directory
-* updated: jpegtran to version 9d
-* updated: cwebp to version 1.2.0
-* updated: pngquant to version 2.13.1
 
 = Earlier versions =
 Please refer to the separate changelog.txt file.
