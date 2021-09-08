@@ -123,6 +123,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			$this->content_url();
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			$this->debug_message( "plugin (resource) content_url: $this->content_url" );
+			$this->debug_message( "plugin (resource) content_dir: $this->content_dir" );
 			$this->debug_message( "home url: $this->home_url" );
 			$this->debug_message( "relative home url: $this->relative_home_url" );
 			$this->debug_message( "home domain: $this->home_domain" );
@@ -146,6 +147,8 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 				$upload_dir = wp_get_upload_dir();
 				if ( false === strpos( $upload_dir['basedir'], '://' ) && is_writable( $upload_dir['basedir'] ) ) {
 					$content_dir = $upload_dir['basedir'] . $sub_folder;
+					// Also need to update the corresponding URL.
+					$this->content_url = $upload_dir['baseurl'] . $sub_folder;
 				}
 			}
 			return $content_dir;
