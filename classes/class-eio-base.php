@@ -99,11 +99,11 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			$this->home_domain       = $this->parse_url( $this->home_url, PHP_URL_HOST );
 			if ( strpos( $child_class_path, 'plugins/ewww' ) ) {
 				$this->content_url = content_url( 'ewww/' );
-				$this->content_dir = WP_CONTENT_DIR . '/ewww/';
+				$this->content_dir = $this->set_content_dir( '/ewww/' );
 				$this->version     = EWWW_IMAGE_OPTIMIZER_VERSION;
 			} elseif ( strpos( $child_class_path, 'plugins/easy' ) ) {
 				$this->content_url = content_url( 'easyio/' );
-				$this->content_dir = WP_CONTENT_DIR . '/easyio/';
+				$this->content_dir = $this->set_content_dir( '/easyio/' );
 				$this->version     = EASYIO_VERSION;
 				$this->prefix      = 'easyio_';
 			} else {
@@ -122,12 +122,33 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			 */
 			$this->content_url();
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-			$this->debug_message( "plugin content_url: $this->content_url" );
+			$this->debug_message( "plugin (resource) content_url: $this->content_url" );
 			$this->debug_message( "home url: $this->home_url" );
 			$this->debug_message( "relative home url: $this->relative_home_url" );
 			$this->debug_message( "home domain: $this->home_domain" );
 			$this->debug_message( "site/upload url: $this->site_url" );
 			$this->debug_message( "site/upload domain: $this->upload_domain" );
+		}
+
+		/**
+		 * Finds a writable location to store plugin resources.
+		 *
+		 * Checks to see if the wp-content/ directory is writable, and uses the upload dir
+		 * as fall-back. If neither location works, the original wp-content/ folder will be
+		 * used, and other functions will need to make sure the resource folder is writable.
+		 *
+		 * @param string $sub_folder The sub-folder to use for plugin resources, with slashes on both ends.
+		 * @return string The full path to a writable plugin resource folder.
+		 */
+		function set_content_dir( $sub_folder ) {
+			$content_dir = WP_CONTENT_DIR . $sub_folder;
+			if ( ! is_writable( WP_CONTENT_DIR ) || ! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {
+				$upload_dir = wp_get_upload_dir();
+				if ( false === strpos( $upload_dir['basedir'], '://' ) && is_writable( $upload_dir['basedir'] ) ) {
+					$content_dir = $upload_dir['basedir'] . $sub_folder;
+				}
+			}
+			return $content_dir;
 		}
 
 		/**

@@ -137,6 +137,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 6.2.5 =
+* changed: use 'bg-image-crop' class on elements with CSS background images that need to be cropped by auto-scaling
+* fixed: Lazy Load PNG placeholders cannot be cached if the WP_CONTENT_DIR location is read-only
+
 = 6.2.4 =
 * added: Multi-site domain-based installs can activate/register sites en masse, and directly upon site creation
 * changed: improved db upgrade routine for updated column

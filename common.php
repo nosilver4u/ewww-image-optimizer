@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '624' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '624.1' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -3416,6 +3416,7 @@ function ewww_image_optimizer_add_file_exclusion( $file_path ) {
 	$ignore_folders[] = $file_path;
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_exclude_paths', $ignore_folders );
 }
+
 /**
  * Sanitize the list of disabled resizes.
  *
@@ -6729,6 +6730,11 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 		}
 		ewwwio_debug_message( "S3 Uploads fullsize path: $s3_path" );
 		ewwwio_debug_message( "unfiltered fullsize path: $filename" );
+		if ( is_dir( $upload_path ) && ! is_writable( $upload_path ) ) {
+			return false;
+		} elseif ( ! is_dir( $upload_path ) && ! is_writable( WP_CONTENT_DIR ) ) {
+			return false;
+		}
 		if ( ! is_dir( dirname( $filename ) ) ) {
 			wp_mkdir_p( dirname( $filename ) );
 		}
