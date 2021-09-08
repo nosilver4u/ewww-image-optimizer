@@ -222,8 +222,15 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === sanitize_text_field( wp_unslash( $_POST['action'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 				return false;
 			}
+			if ( is_customize_preview() ) {
+				$this->debug_message( 'is_customize_preview' );
+				return false;
+			}
 			global $wp_query;
-			if ( ! isset( $wp_query ) ) {
+			if ( ! isset( $wp_query ) || ! ( $wp_query instanceof WP_Query ) ) {
+				return $should_process;
+			}
+			if ( ! did_action( 'parse_query' ) ) {
 				return $should_process;
 			}
 			if ( $this->is_amp() ) {
@@ -235,10 +242,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			}
 			if ( is_feed() ) {
 				$this->debug_message( 'is_feed' );
-				return false;
-			}
-			if ( is_customize_preview() ) {
-				$this->debug_message( 'is_customize_preview' );
 				return false;
 			}
 			if ( is_preview() ) {

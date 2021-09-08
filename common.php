@@ -14025,6 +14025,12 @@ function ewww_image_optimizer_autoptimize_js_exclude( $jsexcludes = '', $content
  * @return bool True for an AMP endpoint, false otherwise.
  */
 function ewww_image_optimizer_is_amp() {
+	if ( ! did_action( 'parse_query' ) ) {
+		return false;
+	}
+	if ( function_exists( 'amp_is_request' ) && amp_is_request() ) {
+		return true;
+	}
 	if ( function_exists( 'is_amp_endpoint' ) && is_amp_endpoint() ) {
 		return true;
 	}

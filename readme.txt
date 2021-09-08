@@ -139,7 +139,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.2.5 =
 * changed: use 'bg-image-crop' class on elements with CSS background images that need to be cropped by auto-scaling
-* fixed: Lazy Load PNG placeholders cannot be cached if the WP_CONTENT_DIR location is read-only
+* fixed: Lazy Load PNG placeholders cannot be cached if the WP_CONTENT_DIR location is read-only (notably on Pantheon servers)
+* fixed: is_amp() called too early
 
 = 6.2.4 =
 * added: Multi-site domain-based installs can activate/register sites en masse, and directly upon site creation
@@ -148,7 +149,6 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: local PNG placeholders enabled with Easy IO when placeholder folder is not writable
 * fixed: WebP Rewriters not detecting upload URL correctly for CDN support
 * fixed: iframe lazy loading breaks Gravity Forms and FacetWP when parsing JSON
-* fixed: is_amp() called too early
 * fixed: SQL error when running "wp-cli ewwwio optimize media" - props @komsitr
 * fixed: local savings query sometimes returns no results
 * fixed: PHP warnings when local tools are disabled
