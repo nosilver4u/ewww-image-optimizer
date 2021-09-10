@@ -736,17 +736,6 @@ function ewww_image_optimizer_save_network_settings() {
 			$ewww_image_optimizer_allow_tracking = empty( $_POST['ewww_image_optimizer_allow_tracking'] ) ? false : $ewwwio_tracking->check_for_settings_optin( (bool) $_POST['ewww_image_optimizer_allow_tracking'] );
 			update_site_option( 'ewww_image_optimizer_allow_tracking', $ewww_image_optimizer_allow_tracking );
 			add_action( 'network_admin_notices', 'ewww_image_optimizer_network_settings_saved' );
-			// TODO: we probably don't need this bit anymore with the new multi-site activation.
-			if ( ! empty( $_POST['ewww_image_optimizer_exactdn'] ) && ! class_exists( 'ExactDN' ) ) {
-				/**
-				 * Page Parsing class for working with HTML content.
-				 */
-				require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-page-parser.php' );
-				/**
-				 * ExactDN class for parsing image urls and rewriting them.
-				 */
-				require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-exactdn.php' );
-			}
 		} elseif (
 			isset( $_POST['ewww_image_optimizer_allow_multisite_override_active'] ) &&
 			current_user_can( 'manage_network_options' ) &&
@@ -4703,10 +4692,12 @@ function ewww_image_optimizer_exactdn_activate_ajax() {
 	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' ) ) {
 		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
 	}
-	if ( is_multisite() && defined( 'SUBDOMAIN_INSTALL' ) && SUBDOMAIN_INSTALL ) {
-		update_option( 'ewww_image_optimizer_exactdn', true );
+	if ( is_multisite() && get_site_option( 'exactdn_sub_folder' ) ) {
+		update_site_option( 'ewww_image_optimizer_exactdn', true );
+	} elseif ( is_multisite() && defined( 'EXACTDN_SUB_FOLDER' ) && EXACTDN_SUB_FOLDER ) {
+		update_site_option( 'ewww_image_optimizer_exactdn', true );
 	} else {
-		ewww_image_optimizer_set_option( 'ewww_image_optimizer_exactdn', true );
+		update_option( 'ewww_image_optimizer_exactdn', true );
 	}
 	if ( ! class_exists( 'ExactDN' ) ) {
 		/**
@@ -11764,6 +11755,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	global $eio_hs_beacon;
 	global $exactdn;
 	global $eio_alt_webp;
+	global $wpdb;
 	$total_savings = 0;
 	if ( 'network-multisite' === $network ) {
 		$total_sizes   = ewww_image_optimizer_savings();
@@ -11776,6 +11768,43 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewwwio_debug_info();
 	$debug_info = $eio_debug;
 	ewww_image_optimizer_temp_debug_clear();
+
+	$exactdn_sub_folder = false;
+	if ( is_multisite() && is_network_admin() ) {
+		if ( defined( 'SUBDOMAIN_INSTALL' ) && SUBDOMAIN_INSTALL ) {
+			update_site_option( 'exactdn_sub_folder', false );
+		} else {
+			$network_site_url = network_site_url();
+			$sub_folder       = true;
+			ewwwio_debug_message( "network site url: $network_site_url" );
+			$blogs = $wpdb->get_results( $wpdb->prepare( "SELECT blog_id FROM $wpdb->blogs WHERE site_id = %d LIMIT 500", $wpdb->siteid ), ARRAY_A );
+			if ( ewww_image_optimizer_iterable( $blogs ) ) {
+				$indices = array( 0, 1, 2 );
+				if ( function_exists( 'array_key_last' ) ) {
+					$indices[] = array_key_last( $blogs );
+				} else {
+					$indices[] = 3;
+				}
+				foreach ( $indices as $index ) {
+					if ( ! empty( $blogs[ $index ]['blog_id'] ) ) {
+						$sample_blog_id  = $blogs[ $index ]['blog_id'];
+						$sample_site_url = get_site_url( $sample_blog_id );
+						ewwwio_debug_message( "blog $sample_blog_id url: $sample_site_url" );
+						$sample_domain = wp_parse_url( $sample_site_url, PHP_URL_HOST );
+						$site_domain   = wp_parse_url( $network_site_url, PHP_URL_HOST );
+						if ( $sample_domain && $site_domain && $site_domain !== $sample_domain ) {
+							$sub_folder = false;
+						}
+					}
+				}
+			}
+			update_site_option( 'exactdn_sub_folder', $sub_folder );
+		}
+	}
+	$exactdn_sub_folder = (bool) get_site_option( 'exactdn_sub_folder' );
+	if ( defined( 'EXACTDN_SUB_FOLDER' ) && EXACTDN_SUB_FOLDER ) {
+		$exactdn_sub_folder = true;
+	}
 
 	if ( empty( $network ) ) {
 		$network = 'singlesite';
@@ -11878,7 +11907,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				$speed_score += 20;
 			}
 			$exactdn_enabled = true;
-			if ( is_multisite() && is_network_admin() && defined( 'SUBDOMAIN_INSTALL' ) && SUBDOMAIN_INSTALL ) {
+			if ( is_multisite() && is_network_admin() && empty( $exactdn->sub_folder ) ) {
 				$exactdn_savings = 0;
 			} else {
 				$exactdn_savings = $exactdn->savings();
@@ -11904,7 +11933,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		delete_site_option( 'ewww_image_optimizer_exactdn_suspended' );
 	}
 	$exactdn_network_enabled = 0;
-	if ( $exactdn_enabled && is_multisite() && is_network_admin() && defined( 'SUBDOMAIN_INSTALL' ) && SUBDOMAIN_INSTALL ) {
+	if ( $exactdn_enabled && is_multisite() && is_network_admin() && empty( $exactdn_sub_folder ) ) {
 		$exactdn_network_enabled = ewww_image_optimizer_easyio_network_activated();
 	}
 	$easymode = false;
@@ -12517,7 +12546,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<p style='color: red'><?php esc_html_e( 'Inactive, please disable the Image Accelerator option on the Jetpack Dashboard.', 'ewww-image-optimizer' ); ?></p>
 		<?php elseif ( false !== strpos( $easyio_site_url, 'localhost' ) ) : ?>
 						<p class="description" style="font-weight: bolder"><?php esc_html_e( 'Easy IO cannot be activated on localhost installs.', 'ewww-image-optimizer' ); ?></p>
-		<?php elseif ( 'network-multisite' === $network && defined( 'SUBDOMAIN_INSTALL' ) && SUBDOMAIN_INSTALL ) : ?>
+		<?php elseif ( 'network-multisite' === $network && empty( $exactdn_sub_folder ) ) : ?>
 			<?php if ( 1 > $exactdn_network_enabled ) : ?>
 						<p class="ewwwio-easy-setup-instructions">
 				<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
@@ -13441,7 +13470,7 @@ AddType image/webp .webp</pre>
 			<?php ob_end_clean(); ?>
 		<div id='ewww-resize-settings'>
 			<table class='form-table'>
-			<?php echo ( defined( 'SUBDOMAIN_INSTALL' ) && SUBDOMAIN_INSTALL ? wp_kses_post( $exactdn_settings_row ) : '' ); ?>
+			<?php echo ( empty( $exactdn_sub_folder ) ? wp_kses_post( $exactdn_settings_row ) : '' ); ?>
 		<?php endif; ?>
 				<!-- RIGHT HERE is where we begin/clear buffer for network-singlesite (non-override version). -->
 				<!-- Though the buffer will need to be started right the form begins. -->
