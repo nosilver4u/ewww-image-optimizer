@@ -141,6 +141,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * changed: use 'bg-image-crop' class on elements with CSS background images that need to be cropped by auto-scaling
 * fixed: Lazy Load PNG placeholders cannot be cached if the WP_CONTENT_DIR location is read-only (notably on Pantheon servers)
 * fixed: is_amp() called too early
+* fixed: Fusion Builder (Avada) does not load when Lazy Load, WebP, or Easy IO options are enabled
 
 = 6.2.4 =
 * added: Multi-site domain-based installs can activate/register sites en masse, and directly upon site creation

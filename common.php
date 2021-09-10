@@ -9120,6 +9120,7 @@ function ewww_image_optimizer_png_alpha( $filename ) {
 	$file_contents = $eio_filesystem->get_contents( $filename );
 	// Determine what color type is stored in the file.
 	$color_type = ord( substr( $file_contents, 25, 1 ) );
+	unset( $file_contents );
 	ewwwio_debug_message( "color type: $color_type" );
 	// If we do not have GD and the PNG color type is RGB alpha or Grayscale alpha.
 	if ( ! ewww_image_optimizer_gd_support() && ( 4 === $color_type || 6 === $color_type ) ) {

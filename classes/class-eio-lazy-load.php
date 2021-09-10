@@ -189,6 +189,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( false !== strpos( $uri, '?brizy-edit' ) ) {
 				return false;
 			}
+			if ( false !== strpos( $uri, '&builder=true' ) ) {
+				return false;
+			}
 			if ( false !== strpos( $uri, 'cornerstone=' ) || false !== strpos( $uri, 'cornerstone-endpoint' ) ) {
 				return false;
 			}
@@ -205,6 +208,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				return false;
 			}
 			if ( false !== strpos( $uri, 'et_fb=' ) ) {
+				return false;
+			}
+			if ( false !== strpos( $uri, 'fb-edit=' ) ) {
 				return false;
 			}
 			if ( false !== strpos( $uri, '?fl_builder' ) ) {

@@ -114,6 +114,9 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 		if ( false !== strpos( $uri, '?brizy-edit' ) ) {
 			return false;
 		}
+		if ( false !== strpos( $uri, '&builder=true' ) ) {
+			return false;
+		}
 		if ( false !== strpos( $uri, 'cornerstone=' ) || false !== strpos( $uri, 'cornerstone-endpoint' ) ) {
 			return false;
 		}
@@ -130,6 +133,9 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 			return false;
 		}
 		if ( false !== strpos( $uri, 'et_fb=' ) ) {
+			return false;
+		}
+		if ( false !== strpos( $uri, 'fb-edit=' ) ) {
 			return false;
 		}
 		if ( false !== strpos( $uri, '?fl_builder' ) ) {

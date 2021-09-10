@@ -2946,13 +2946,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( false !== strpos( $uri, '?brizy-edit' ) ) {
 				return true;
 			}
+			if ( false !== strpos( $uri, '&builder=true' ) ) {
+				return true;
+			}
 			if ( false !== strpos( $uri, 'cornerstone=' ) || false !== strpos( $uri, 'cornerstone-endpoint' ) ) {
-				return true;
-			}
-			if ( false !== strpos( $uri, 'et_fb=' ) ) {
-				return true;
-			}
-			if ( false !== strpos( $uri, 'tatsu=' ) ) {
 				return true;
 			}
 			if ( false !== strpos( $uri, 'ct_builder=' ) ) {
@@ -2961,7 +2958,16 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( false !== strpos( $uri, 'ct_render_shortcode=' ) || false !== strpos( $uri, 'action=oxy_render' ) ) {
 				return true;
 			}
+			if ( false !== strpos( $uri, 'et_fb=' ) ) {
+				return true;
+			}
+			if ( false !== strpos( $uri, 'fb-edit=' ) ) {
+				return true;
+			}
 			if ( false !== strpos( $uri, '?fl_builder' ) ) {
+				return true;
+			}
+			if ( false !== strpos( $uri, 'tatsu=' ) ) {
 				return true;
 			}
 			return $skip;
