@@ -139,11 +139,11 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.2.5 =
 * changed: use 'bg-image-crop' class on elements with CSS background images that need to be cropped by auto-scaling
-* changed: sub-folder multi-site installs can use EXACTDN_SUB_FOLDER constant to allow per-site Easy IO activation
 * fixed: sub-folder multi-site installs which use separate domains could not activate Easy IO
 * fixed: Lazy Load PNG placeholders cannot be cached if the WP_CONTENT_DIR location is read-only (notably on Pantheon servers)
 * fixed: is_amp() called too early
 * fixed: Fusion Builder (Avada) does not load when Lazy Load, WebP, or Easy IO options are enabled
+* fixed: png_alpha() check uses more memory than is available, causing some uploads to fail
 
 = 6.2.4 =
 * added: Multi-site domain-based installs can activate/register sites en masse, and directly upon site creation
