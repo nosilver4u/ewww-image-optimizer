@@ -898,6 +898,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						'data-no-lazy=',
 						'lazyload',
 						'skip-lazy',
+						'vimeo',
 						'about:blank',
 					),
 					$this->user_exclusions
