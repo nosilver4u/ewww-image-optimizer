@@ -111,6 +111,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 
 			add_filter( 'vc_get_vc_grid_data_response', array( $this, 'filter_page_output' ) );
 
+			// Filter for FacetWP JSON responses.
+			add_filter( 'facetwp_render_output', array( $this, 'filter_facetwp_json_output' ) );
+
 			if ( class_exists( 'ExactDN' ) && $this->get_option( $this->prefix . 'exactdn' ) ) {
 				global $exactdn;
 				$this->exactdn_domain = $exactdn->get_exactdn_domain();
@@ -717,6 +720,32 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				}
 			}
 			return $element;
+		}
+
+		/**
+		 * Parse template data from FacetWP that will be included in JSON response.
+		 * https://facetwp.com/documentation/developers/output/facetwp_render_output/
+		 *
+		 * @param array $output The full array of FacetWP data.
+		 * @return array The FacetWP data with lazy loaded images.
+		 */
+		function filter_facetwp_json_output( $output ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			if ( empty( $output['template'] ) || ! is_string( $output['template'] ) ) {
+				$this->debug_message( 'no template data available' );
+				if ( $this->function_exists( 'print_r' ) ) {
+					$this->debug_message( print_r( $output, true ) );
+				}
+				return $output;
+			}
+
+			$template = $this->filter_page_output( $output['template'] );
+			if ( $template ) {
+				$this->debug_message( 'template data modified' );
+				$output['template'] = $template;
+			}
+
+			return $output;
 		}
 
 		/**
