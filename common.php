@@ -4693,9 +4693,11 @@ function ewww_image_optimizer_exactdn_activate_ajax() {
 	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' ) ) {
 		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
 	}
-	if ( is_multisite() && get_site_option( 'exactdn_sub_folder' ) ) {
+	if ( is_multisite() && defined( 'EXACTDN_SUB_FOLDER' ) && EXACTDN_SUB_FOLDER ) {
 		update_site_option( 'ewww_image_optimizer_exactdn', true );
-	} elseif ( is_multisite() && defined( 'EXACTDN_SUB_FOLDER' ) && EXACTDN_SUB_FOLDER ) {
+	} elseif ( defined( 'EXACTDN_SUB_FOLDER' ) ) {
+		update_option( 'ewww_image_optimizer_exactdn', true );
+	} elseif ( is_multisite() && get_site_option( 'exactdn_sub_folder' ) ) {
 		update_site_option( 'ewww_image_optimizer_exactdn', true );
 	} else {
 		update_option( 'ewww_image_optimizer_exactdn', true );
@@ -11806,6 +11808,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$exactdn_sub_folder = (bool) get_site_option( 'exactdn_sub_folder' );
 	if ( defined( 'EXACTDN_SUB_FOLDER' ) && EXACTDN_SUB_FOLDER ) {
 		$exactdn_sub_folder = true;
+	} elseif ( defined( 'EXACTDN_SUB_FOLDER' ) ) {
+		$exactdn_sub_folder = false;
 	}
 
 	if ( empty( $network ) ) {
@@ -13845,7 +13849,8 @@ function ewww_image_optimizer_easyio_network_activated() {
 	if ( ewww_image_optimizer_iterable( $blogs ) ) {
 		foreach ( $blogs as $blog ) {
 			$total++;
-			switch_to_blog( $blog['blog_id'] );
+			$blog_id = $blog['blog_id'];
+			switch_to_blog( $blog_id );
 			if ( get_option( 'ewww_image_optimizer_exactdn' ) && get_option( 'ewww_image_optimizer_exactdn_verified' ) ) {
 				ewwwio_debug_message( "blog $blog_id active" );
 				$active++;

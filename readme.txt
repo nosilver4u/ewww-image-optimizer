@@ -138,9 +138,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.2.5 =
+* added: Easy IO and Lazy Load support for AJAX responses from FacetWP
 * changed: Vimeo videos excluded from iframe lazy load
 * changed: use 'bg-image-crop' class on elements with CSS background images that need to be cropped by auto-scaling
-* fixed: sub-folder multi-site installs which use separate domains could not activate Easy IO
+* fixed: sub-folder multi-site installs which use separate domains could not activate Easy IO, define EXACTDN_SUB_FOLDER to override
 * fixed: Lazy Load PNG placeholders cannot be cached if the WP_CONTENT_DIR location is read-only (notably on Pantheon servers)
 * fixed: is_amp() called too early
 * fixed: Fusion Builder (Avada) does not load when Lazy Load, WebP, or Easy IO options are enabled

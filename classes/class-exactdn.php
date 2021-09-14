@@ -172,6 +172,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				if ( defined( 'EXACTDN_SUB_FOLDER' ) && EXACTDN_SUB_FOLDER ) {
 					$this->sub_folder = true;
 					$this->debug_message( 'working in sub-folder mode due to constant override' );
+				} elseif ( defined( 'EXACTDN_SUB_FOLDER' ) ) {
+					$this->debug_message( 'working in sub-domain mode due to constant override' );
 				} elseif ( get_site_option( 'exactdn_sub_folder' ) ) {
 					$this->sub_folder = true;
 					$this->debug_message( 'working in sub-folder mode due to global option' );
