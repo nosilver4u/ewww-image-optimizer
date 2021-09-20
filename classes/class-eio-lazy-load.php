@@ -437,6 +437,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 * @return string The modified tag.
 		 */
 		function parse_img_tag( $image, $file = '' ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			global $exactdn;
 			if ( ! $file ) {
 				$file = $this->get_attribute( $image, 'src' );
@@ -473,6 +474,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			$placeholder_src = $this->placeholder_src;
 
 			$insert_dimensions = false;
+			$this->debug_message( "width attr: $width_attr and height attr: $height_attr" );
 			if ( apply_filters( 'eio_add_missing_width_height_attrs', $this->get_option( $this->prefix . 'add_missing_dims' ) ) && ( empty( $width_attr ) || empty( $height_attr ) ) ) {
 				$this->debug_message( 'missing width attr or height attr' );
 				list( $new_width_attr, $new_height_attr ) = $this->get_image_dimensions_by_url( $file );
@@ -519,8 +521,8 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				( ! $physical_width || ! $physical_height ) &&
 				$width_attr && is_numeric( $width_attr ) && $height_attr && is_numeric( $height_attr )
 			) {
-					$physical_width  = $width_attr;
-					$physical_height = $height_attr;
+				$physical_width  = $width_attr;
+				$physical_height = $height_attr;
 			}
 			foreach ( $placeholder_types as $placeholder_type ) {
 				switch ( $placeholder_type ) {
@@ -817,6 +819,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if (
 				strpos( $image, 'base64,R0lGOD' ) ||
 				strpos( $image, 'lazy-load/images/1x1' ) ||
+				strpos( $image, '/default/blank.gif' ) ||
 				strpos( $image, '/assets/images/' )
 			) {
 				$this->debug_message( 'lazy load placeholder detected' );
