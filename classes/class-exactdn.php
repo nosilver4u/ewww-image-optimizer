@@ -920,6 +920,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					$this->filtering_the_content = true;
 					$this->debug_message( 'filtering the content' );
 					$content_width = $this->get_content_width();
+					$this->debug_message( "configured content_width: $content_width" );
 				}
 				$resize_existing = defined( 'EXACTDN_RESIZE_EXISTING' ) && EXACTDN_RESIZE_EXISTING;
 
@@ -2983,6 +2984,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				return true;
 			}
 			if ( false !== strpos( $uri, 'ct_render_shortcode=' ) || false !== strpos( $uri, 'action=oxy_render' ) ) {
+				return true;
+			}
+			if ( false !== strpos( $uri, 'elementor-preview=' ) ) {
 				return true;
 			}
 			if ( false !== strpos( $uri, 'et_fb=' ) ) {

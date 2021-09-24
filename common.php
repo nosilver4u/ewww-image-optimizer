@@ -2134,13 +2134,13 @@ function ewww_image_optimizer_notice_exactdn_domain_mismatch() {
 			);
 	?>
 			<br>
-		<?php
-		printf(
-			/* translators: %s: settings page */
-			esc_html__( 'Please visit the %s to refresh the Easy IO settings and verify activation status.', 'ewww-image-optimizer' ),
-			'<a href="' . esc_url( ewww_image_optimizer_get_settings_link() ) . '">' . esc_html__( 'settings page', 'ewww-image-optimizer' ) . '</a>'
-		);
-		?>
+	<?php
+			printf(
+				/* translators: %s: settings page */
+				esc_html__( 'Please visit the %s to refresh the Easy IO settings and verify activation status.', 'ewww-image-optimizer' ),
+				'<a href="' . esc_url( ewww_image_optimizer_get_settings_link() ) . '">' . esc_html__( 'settings page', 'ewww-image-optimizer' ) . '</a>'
+			);
+	?>
 		</p>
 	</div>
 	<?php
@@ -4908,6 +4908,7 @@ function ewww_image_optimizer_register_site_post() {
 	if ( empty( $key ) ) {
 		return new WP_Error( 'missing_key', __( 'No API key for Easy IO registration', 'ewww-image-optimizer' ) );
 	}
+	ewwwio_debug_message( "registering $site_url on Easy IO" );
 	$url = 'https://optimize.exactlywww.com/exactdn/create.php';
 	add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 	$result = wp_remote_post(

@@ -831,7 +831,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			if ( $this->s3_active ) {
 				$this->site_url = defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : $s3_scheme . '://' . $s3_domain;
 			} else {
-				// Normally, we use this one, as it will be shorter for sub-directory installs.
+				// Normally, we use this one, as it will be shorter for sub-directory (not multi-site) installs.
 				$home_url    = get_home_url();
 				$site_url    = get_site_url();
 				$home_domain = $this->parse_url( $home_url, PHP_URL_HOST );
