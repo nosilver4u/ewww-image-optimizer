@@ -447,6 +447,28 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		}
 
 		/**
+		 * Checks if the image URL points to a lazy load placeholder.
+		 *
+		 * @param string $image The image URL (or an image element).
+		 * @return bool True if it matches a known placeholder pattern, false otherwise.
+		 */
+		function is_lazy_placeholder( $image ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			if (
+				strpos( $image, 'base64,R0lGOD' ) ||
+				strpos( $image, 'lazy-load/images/1x1' ) ||
+				strpos( $image, '/assets/images/lazy' ) ||
+				strpos( $image, '/assets/images/dummy.png' ) ||
+				strpos( $image, '/assets/images/transparent.png' ) ||
+				strpos( $image, '/lazy/placeholder' )
+			) {
+				$this->debug_message( 'lazy load placeholder' );
+				return true;
+			}
+			return false;
+		}
+
+		/**
 		 * Check if file exists, and that it is local rather than using a protocol like http:// or phar://
 		 *
 		 * @param string $file The path of the file to check.

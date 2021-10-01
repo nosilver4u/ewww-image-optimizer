@@ -460,13 +460,8 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 	 * @return bool True if the file exists or matches a forced path, false otherwise.
 	 */
 	function validate_image_url( $image ) {
-		ewwwio_debug_message( __METHOD__ . "() webp validation for $image" );
-		if (
-			strpos( $image, 'base64,R0lGOD' ) ||
-			strpos( $image, 'lazy-load/images/1x1' ) ||
-			strpos( $image, '/assets/images/' )
-		) {
-			ewwwio_debug_message( 'lazy load placeholder' );
+		$this->debug_message( __METHOD__ . "() webp validation for $image" );
+		if ( $this->is_lazy_placeholder( $image ) ) {
 			return false;
 		}
 		$extension  = '';

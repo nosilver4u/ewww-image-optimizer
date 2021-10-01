@@ -949,13 +949,7 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 	 */
 	function validate_image_url( $image ) {
 		$this->debug_message( "webp validation for $image" );
-		if (
-			strpos( $image, 'base64,R0lGOD' ) ||
-			strpos( $image, 'lazy-load/images/1x1' ) ||
-			strpos( $image, '/assets/images/' ) ||
-			strpos( $image, '/lazy/placeholder' )
-		) {
-			$this->debug_message( 'lazy load placeholder' );
+		if ( $this->is_lazy_placeholder( $image ) ) {
 			return false;
 		}
 		$extension  = '';

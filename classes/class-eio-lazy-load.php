@@ -142,6 +142,8 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				define( 'EIO_LL_AUTOSCALE', false );
 			}
 
+			// Override for number of images to consider "above the fold".
+			add_filter( 'eio_lazy_fold', array( $this, 'override_lazy_fold' ), 9 );
 			// Filter early, so that others at the default priority take precendence.
 			add_filter( 'eio_use_piip', array( $this, 'maybe_piip' ), 9 );
 			add_filter( 'eio_use_siip', array( $this, 'maybe_siip' ), 9 );
@@ -319,7 +321,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				}
 			}
 
-			$above_the_fold   = apply_filters( 'eio_lazy_fold', 0 );
+			$above_the_fold   = apply_filters( 'eio_lazy_fold', 1 );
 			$images_processed = 0;
 
 			// Clean the buffer of incompatible sections.
@@ -816,13 +818,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 */
 		function validate_image_tag( $image ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-			if (
-				strpos( $image, 'base64,R0lGOD' ) ||
-				strpos( $image, 'lazy-load/images/1x1' ) ||
-				strpos( $image, '/default/blank.gif' ) ||
-				strpos( $image, '/assets/images/' )
-			) {
-				$this->debug_message( 'lazy load placeholder detected' );
+			if ( $this->is_lazy_placeholder( $image ) ) {
 				return false;
 			}
 
@@ -1032,6 +1028,23 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			}
 			return $this->placeholder_src;
 		}
+
+		/**
+		 * Allow the user to override the number of images to consider "above the fold".
+		 *
+		 * Any images that are encountered before the above the fold threshold is reached
+		 * will be skipped by the lazy loader. Only applies to img elements, not CSS backgrounds.
+		 *
+		 * @param int $images The number of images that are above the fold.
+		 * @return int The (potentially overriden) number of images.
+		 */
+		function override_lazy_fold( $images ) {
+			if ( defined( 'EIO_LAZY_FOLD' ) ) {
+				return (int) constant( 'EIO_LAZY_FOLD' );
+			}
+			return $images;
+		}
+
 		/**
 		 * Allow lazy loading of images for some admin-ajax requests.
 		 *

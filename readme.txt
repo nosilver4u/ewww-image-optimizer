@@ -137,6 +137,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 6.2.6 =
+* fixed: WebP and Lazy Load function skip images dynamically created by Brizy builder
+
 = 6.2.5 =
 * added: Easy IO and Lazy Load support for AJAX responses from FacetWP
 * changed: Vimeo videos excluded from iframe lazy load
