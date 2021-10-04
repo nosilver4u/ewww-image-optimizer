@@ -379,7 +379,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 * @return bool True for an AMP endpoint, false otherwise.
 		 */
 		function is_amp() {
-			if ( ! did_action( 'parse_query' ) ) {
+			if ( ! did_action( 'wp' ) ) {
 				return false;
 			}
 			if ( function_exists( 'amp_is_request' ) && amp_is_request() ) {

@@ -161,9 +161,6 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 		if ( ! isset( $wp_query ) || ! ( $wp_query instanceof WP_Query ) ) {
 			return $should_process;
 		}
-		if ( ! did_action( 'parse_query' ) ) {
-			return $should_process;
-		}
 		if ( $this->is_amp() ) {
 			return false;
 		}

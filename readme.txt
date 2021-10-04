@@ -139,6 +139,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.2.6 =
 * fixed: WebP and Lazy Load function skip images dynamically created by Brizy builder
+* fixed: Easy IO conflict on Elementor preview pages 
 
 = 6.2.5 =
 * added: Easy IO and Lazy Load support for AJAX responses from FacetWP

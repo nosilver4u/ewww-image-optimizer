@@ -445,13 +445,6 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						$this->set_option( 'exactdn_all_the_things', true );
 						delete_option( 'exactdn_never_been_active' );
 					}
-					if ( 'external' === get_option( 'elementor_css_print_method' ) ) {
-						update_option( 'elementor_css_print_method', 'internal' );
-					}
-					if ( function_exists( 'et_get_option' ) && function_exists( 'et_update_option' ) && 'on' === et_get_option( 'et_pb_static_css_file', 'on' ) ) {
-						et_update_option( 'et_pb_static_css_file', 'off' );
-						et_update_option( 'et_pb_css_in_footer', 'off' );
-					}
 					if ( function_exists( 'envira_flush_all_cache' ) ) {
 						envira_flush_all_cache();
 					}
