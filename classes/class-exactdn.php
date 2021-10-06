@@ -1035,7 +1035,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					}
 
 					$is_relative = false;
-					// Check for relative urls that start with a slash. Unlikely that we'll attempt relative urls beyond that.
+					// Check for relative URLs that start with a slash.
 					if (
 						'/' === substr( $src, 0, 1 ) &&
 						'/' !== substr( $src, 1, 1 ) &&
@@ -1294,14 +1294,21 @@ if ( ! class_exists( 'ExactDN' ) ) {
 								);
 							}
 
+							$srcset_url = false;
 							// Insert new image src into the srcset as well, if we have a width.
 							if ( false !== $width && false === strpos( $width, '%' ) && $width ) {
-								$this->debug_message( 'checking to see if srcset width already exists' );
-								$srcset_url      = $exactdn_url . ' ' . (int) $width . 'w, ';
-								$new_srcset_attr = $this->get_attribute( $new_tag, $this->srcset_attr );
-								if ( $new_srcset_attr && false === strpos( $new_srcset_attr, ' ' . (int) $width . 'w' ) && ! preg_match( '/\s(1|2|3)x/', $new_srcset_attr ) ) {
+								$srcset_url = $exactdn_url . ' ' . (int) $width . 'w, ';
+							}
+							$srcset_attr = $this->get_attribute( $new_tag, $this->srcset_attr );
+							if ( $srcset_attr ) {
+								$new_srcset_attr = $srcset_attr;
+								if ( $srcset_url && false === strpos( $srcset_attr, ' ' . (int) $width . 'w' ) && ! preg_match( '/\s(1|2|3)x/', $srcset_attr ) ) {
 									$this->debug_message( 'src not in srcset, adding' );
-									$this->set_attribute( $new_tag, $this->srcset_attr, $srcset_url . $new_srcset_attr, true );
+									$new_srcset_attr = $srcset_url . $new_srcset_attr;
+								}
+								$new_srcset_attr = $this->srcset_replace( $new_srcset_attr );
+								if ( $new_srcset_attr && $new_srcset_attr !== $srcset_attr ) {
+									$this->set_attribute( $new_tag, $this->srcset_attr, $new_srcset_attr, true );
 								}
 							}
 
@@ -1347,7 +1354,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					} elseif ( ! $lazy && $this->validate_image_url( $src, true ) ) {
 						$this->debug_message( "found a potential exactdn src url to insert into srcset: $src" );
 						// Find the width attribute.
-						$width = $this->get_attribute( $images['img_tag'][ $index ], 'width' );
+						$srcset_url = false;
+						$width      = $this->get_attribute( $images['img_tag'][ $index ], 'width' );
+						$new_tag    = $tag;
 						if ( $width ) {
 							$this->debug_message( 'found the width' );
 							// Insert new image src into the srcset as well, if we have a width.
@@ -1357,19 +1366,26 @@ if ( ! class_exists( 'ExactDN' ) ) {
 								false !== strpos( $src, $width ) &&
 								false !== strpos( $src, $this->exactdn_domain )
 							) {
-								$new_tag     = $tag;
 								$exactdn_url = $src;
 
-								$this->debug_message( 'checking to see if srcset width already exists' );
-								$srcset_url      = $exactdn_url . ' ' . (int) $width . 'w, ';
-								$new_srcset_attr = $this->get_attribute( $new_tag, $this->srcset_attr );
-								if ( $new_srcset_attr && false === strpos( $new_srcset_attr, ' ' . (int) $width . 'w' ) && ! preg_match( '/\s(1|2|3)x/', $new_srcset_attr ) ) {
-									$this->debug_message( 'src not in srcset, adding' );
-									$this->set_attribute( $new_tag, $this->srcset_attr, $srcset_url . $new_srcset_attr, true );
-									// Replace original tag with modified version.
-									$content = str_replace( $tag, $new_tag, $content );
-								}
+								$srcset_url = $exactdn_url . ' ' . (int) $width . 'w, ';
 							}
+						}
+						$srcset_attr = $this->get_attribute( $new_tag, $this->srcset_attr );
+						if ( $srcset_attr ) {
+							$new_srcset_attr = $srcset_attr;
+							if ( $srcset_url && false === strpos( $srcset_attr, ' ' . (int) $width . 'w' ) && ! preg_match( '/\s(1|2|3)x/', $srcset_attr ) ) {
+								$this->debug_message( 'src not in srcset, adding' );
+								$new_srcset_attr = $srcset_url . $new_srcset_attr;
+							}
+							$new_srcset_attr = $this->srcset_replace( $new_srcset_attr );
+							if ( $new_srcset_attr && $new_srcset_attr !== $srcset_attr ) {
+								$this->set_attribute( $new_tag, $this->srcset_attr, $new_srcset_attr, true );
+							}
+						}
+						if ( $new_tag && $new_tag !== $tag ) {
+							// Replace original tag with modified version.
+							$content = str_replace( $tag, $new_tag, $content );
 						}
 					} elseif ( $lazy && ! empty( $placeholder_src ) && $this->validate_image_url( $placeholder_src ) ) {
 						$this->debug_message( "parsing $placeholder_src for $src" );
@@ -1390,8 +1406,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					if ( ! empty( $exactdn_url ) ) {
 						$src = $exactdn_url;
 					}
-					// This is just completely disabled now, no reason to do this with the lazy loader auto-scaling, and I don't know when it ever kicks in anymore...
-					if ( false && ! is_feed() && $srcset_fill && ( ! defined( 'EXACTDN_PREVENT_SRCSET_FILL' ) || ! EXACTDN_PREVENT_SRCSET_FILL ) && false !== strpos( $src, $this->exactdn_domain ) ) {
+					// This is disabled by default, not much reason to do this with the lazy loader auto-scaling.
+					if ( ! is_feed() && $srcset_fill && defined( 'EIO_SRCSET_FILL' ) && EIO_SRCSET_FILL && false !== strpos( $src, $this->exactdn_domain ) ) {
 						if ( ! $this->get_attribute( $images['img_tag'][ $index ], $this->srcset_attr ) && ! $this->get_attribute( $images['img_tag'][ $index ], 'sizes' ) ) {
 							$this->debug_message( "srcset filling with $src" );
 							$zoom = false;
@@ -1514,10 +1530,13 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						continue;
 					}
 					$full_link_url = $link_url;
-					// Check for relative urls that start with a slash.
+					// Check for relative URLs that start with a slash.
 					if (
 						'/' === substr( $link_url, 0, 1 ) &&
-						'/' !== substr( $link_url, 1, 1 )
+						'/' !== substr( $link_url, 1, 1 ) &&
+						false === strpos( $this->upload_domain, 'amazonaws.com' ) &&
+						false === strpos( $this->upload_domain, 'digitaloceanspaces.com' ) &&
+						false === strpos( $this->upload_domain, 'storage.googleapis.com' )
 					) {
 						$full_link_url = '//' . $this->upload_domain . $link_url;
 					}
@@ -1560,7 +1579,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 							$srcset = $this->get_attribute( $source, 'srcset' );
 							if ( $srcset ) {
 								$new_srcset = $this->srcset_replace( $srcset );
-								if ( $new_srcset ) {
+								if ( $new_srcset && $new_srcset !== $srcset ) {
 									$new_source = str_replace( $srcset, $new_srcset, $source );
 									$picture    = str_replace( $source, $new_source, $picture );
 								}
@@ -1574,44 +1593,6 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				}
 			}
 			return $content;
-		}
-
-		/**
-		 * Replaces images within a srcset attribute with their ExactDN derivatives.
-		 *
-		 * @param string $srcset A valid srcset attribute from an img element.
-		 * @return bool|string False if no changes were made, or the new srcset if any ExactDN images replaced the originals.
-		 */
-		function srcset_replace( $srcset ) {
-			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-			$srcset_urls = explode( ' ', $srcset );
-			$modified    = false;
-			if ( $this->is_iterable( $srcset_urls ) && count( $srcset_urls ) > 1 ) {
-				$this->debug_message( 'parsing srcset urls' );
-				foreach ( $srcset_urls as $srcurl ) {
-					if ( is_numeric( substr( $srcurl, 0, 1 ) ) ) {
-						continue;
-					}
-					$trailing = ' ';
-					if ( ',' === substr( $srcurl, -1 ) ) {
-						$trailing = ',';
-						$srcurl   = rtrim( $srcurl, ',' );
-					}
-					$this->debug_message( "looking for $srcurl from srcset" );
-					if ( $this->validate_image_url( $srcurl ) ) {
-						$srcset = str_replace( $srcurl . $trailing, $this->generate_url( $srcurl ) . $trailing, $srcset );
-						$this->debug_message( "replaced $srcurl in srcset" );
-						$modified = true;
-					}
-				}
-			} elseif ( $this->validate_image_url( $srcset ) ) {
-				return $this->generate_url( $srcset );
-			}
-			if ( $modified ) {
-				return $srcset;
-			} else {
-				return false;
-			}
 		}
 
 		/**
@@ -1642,6 +1623,19 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					}
 					$this->debug_message( "checking style attr for background-image: $style" );
 					$bg_image_url = $this->get_background_image_url( $style );
+					$orig_bg_url  = $bg_image_url;
+
+					// Check for relative URLs that start with a slash.
+					if (
+						'/' === substr( $bg_image_url, 0, 1 ) &&
+						'/' !== substr( $bg_image_url, 1, 1 ) &&
+						false === strpos( $this->upload_domain, 'amazonaws.com' ) &&
+						false === strpos( $this->upload_domain, 'digitaloceanspaces.com' ) &&
+						false === strpos( $this->upload_domain, 'storage.googleapis.com' )
+					) {
+						$bg_image_url = '//' . $this->upload_domain . $bg_image_url;
+					}
+
 					if ( $this->validate_image_url( $bg_image_url ) ) {
 						/** This filter is already documented in class-exactdn.php */
 						if ( apply_filters( 'exactdn_skip_image', false, $bg_image_url, $element ) ) {
@@ -1665,7 +1659,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						}
 						$exactdn_bg_image_url = $this->generate_url( $bg_image_url, $args );
 						if ( $bg_image_url !== $exactdn_bg_image_url ) {
-							$new_style = str_replace( $bg_image_url, $exactdn_bg_image_url, $style );
+							$new_style = str_replace( $orig_bg_url, $exactdn_bg_image_url, $style );
 							$element   = str_replace( $style, $new_style, $element );
 						}
 					}
@@ -2155,6 +2149,49 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$this->debug_message( "parsing image_downsize took $elapsed_time seconds" );
 			$this->elapsed_time += microtime( true ) - $started;
 			return $image;
+		}
+
+		/**
+		 * Replaces images within a srcset attribute with Easy IO URLs.
+		 *
+		 * @param string $srcset A valid srcset attribute from an img element.
+		 * @return string The srcset attribute with Easy IO URLs.
+		 */
+		function srcset_replace( $srcset ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			$srcset_urls = explode( ' ', $srcset );
+			if ( $this->is_iterable( $srcset_urls ) && count( $srcset_urls ) > 1 ) {
+				$this->debug_message( 'parsing srcset urls' );
+				foreach ( $srcset_urls as $srcurl ) {
+					if ( is_numeric( substr( $srcurl, 0, 1 ) ) ) {
+						continue;
+					}
+					$trailing = ' ';
+					if ( ',' === substr( $srcurl, -1 ) ) {
+						$trailing = ',';
+						$srcurl   = rtrim( $srcurl, ',' );
+					}
+					$this->debug_message( "looking for $srcurl from srcset" );
+					$new_srcurl = $srcurl;
+					// Check for relative URLs that start with a slash.
+					if (
+						'/' === substr( $srcurl, 0, 1 ) &&
+						'/' !== substr( $srcurl, 1, 1 ) &&
+						false === strpos( $this->upload_domain, 'amazonaws.com' ) &&
+						false === strpos( $this->upload_domain, 'digitaloceanspaces.com' ) &&
+						false === strpos( $this->upload_domain, 'storage.googleapis.com' )
+					) {
+						$new_srcurl = '//' . $this->upload_domain . $new_srcurl;
+					}
+					if ( $this->validate_image_url( $new_srcurl ) ) {
+						$srcset = str_replace( $srcurl . $trailing, $this->generate_url( $new_srcurl ) . $trailing, $srcset );
+						$this->debug_message( "replaced $srcurl in srcset" );
+					}
+				}
+			} elseif ( $this->validate_image_url( $srcset ) ) {
+				return $this->generate_url( $srcset );
+			}
+			return $srcset;
 		}
 
 		/**
@@ -2992,6 +3029,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				return true;
 			}
 			if ( false !== strpos( $uri, 'tatsu=' ) ) {
+				return true;
+			}
+			if ( false !== strpos( $uri, 'tve=true' ) ) {
 				return true;
 			}
 			return $skip;

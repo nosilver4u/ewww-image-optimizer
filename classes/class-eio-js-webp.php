@@ -190,6 +190,9 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		if ( false !== strpos( $uri, 'tatsu=' ) ) {
 			return false;
 		}
+		if ( false !== strpos( $uri, 'tve=true' ) ) {
+			return false;
+		}
 		if ( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === sanitize_text_field( wp_unslash( $_POST['action'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return false;
 		}
@@ -199,9 +202,6 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		}
 		global $wp_query;
 		if ( ! isset( $wp_query ) || ! ( $wp_query instanceof WP_Query ) ) {
-			return $should_process;
-		}
-		if ( ! did_action( 'parse_query' ) ) {
 			return $should_process;
 		}
 		if ( $this->is_amp() ) {

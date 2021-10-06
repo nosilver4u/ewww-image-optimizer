@@ -230,6 +230,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( false !== strpos( $uri, 'tatsu=' ) ) {
 				return false;
 			}
+			if ( false !== strpos( $uri, 'tve=true' ) ) {
+				return false;
+			}
 			if ( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === sanitize_text_field( wp_unslash( $_POST['action'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 				return false;
 			}
@@ -473,28 +476,28 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				$width_attr  = false;
 				$height_attr = false;
 			}
+			list( $physical_width, $physical_height ) = $this->get_image_dimensions_by_url( $file );
+
+			// Initialize the placeholder for this image.
 			$placeholder_src = $this->placeholder_src;
 
 			$insert_dimensions = false;
 			$this->debug_message( "width attr: $width_attr and height attr: $height_attr" );
 			if ( apply_filters( 'eio_add_missing_width_height_attrs', $this->get_option( $this->prefix . 'add_missing_dims' ) ) && ( empty( $width_attr ) || empty( $height_attr ) ) ) {
 				$this->debug_message( 'missing width attr or height attr' );
-				list( $new_width_attr, $new_height_attr ) = $this->get_image_dimensions_by_url( $file );
-				if ( $new_width_attr && is_numeric( $new_width_attr ) && $new_height_attr && is_numeric( $new_height_attr ) ) {
-					$this->debug_message( "found $width_attr and $height_attr to insert (maybe)" );
-					if ( $width_attr && is_numeric( $width_attr ) && $width_attr < $new_width_attr ) { // Then $height_attr is empty...
-						$height_attr = round( ( $new_height_attr / $new_width_attr ) * $width_attr );
-						$this->debug_message( "width was set to $width_attr, height was empty, but now $height_attr" );
-					} elseif ( $height_attr && is_numeric( $height_attr ) && $height_attr < $new_height_attr ) { // Or $width_attr is empty...
-						$width_attr = round( ( $new_width_attr / $new_height_attr ) * $height_attr );
-						$this->debug_message( "height was set to $height_attr, width was empty, but now $width_attr" );
+				if ( $physical_width && is_numeric( $physical_width ) && $physical_height && is_numeric( $physical_height ) ) {
+					$this->debug_message( "found $physical_width and/or $physical_height to insert (maybe)" );
+					if ( $width_attr && is_numeric( $width_attr ) && $width_attr < $physical_width ) { // Then $height_attr is empty...
+						$height_attr = round( ( $physical_height / $physical_width ) * $width_attr );
+						$this->debug_message( "width was already $width_attr, height was empty, but now $height_attr" );
+					} elseif ( $height_attr && is_numeric( $height_attr ) && $height_attr < $physical_height ) { // Or $width_attr is empty...
+						$width_attr = round( ( $physical_width / $physical_height ) * $height_attr );
+						$this->debug_message( "height was already $height_attr, width was empty, but now $width_attr" );
 					} else {
-						$width_attr  = $new_width_attr;
-						$height_attr = $new_height_attr;
-						$this->debug_message( 'both width and height were empty, filling for sure' );
+						$width_attr  = $physical_width;
+						$height_attr = $physical_height;
+						$this->debug_message( 'both width and height were empty' );
 					}
-					$physical_width    = $new_width_attr;
-					$physical_height   = $new_height_attr;
 					$insert_dimensions = true;
 				}
 			}
@@ -515,12 +518,8 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				$placeholder_types[] = 'piip';
 			}
 
-			list( $filename_width, $filename_height ) = $this->get_dimensions_from_filename( $file, $this->parsing_exactdn );
-			if ( $filename_width && is_numeric( $filename_width ) && $filename_height && is_numeric( $filename_height ) ) {
-				$physical_width  = $filename_width;
-				$physical_height = $filename_height;
-			} elseif (
-				( ! $physical_width || ! $physical_height ) &&
+			if ( // This isn't super helpful. It makes PIIPs that don't help with auto-scaling.
+				false && ( ! $physical_width || ! $physical_height ) &&
 				$width_attr && is_numeric( $width_attr ) && $height_attr && is_numeric( $height_attr )
 			) {
 				$physical_width  = $width_attr;
@@ -554,14 +553,8 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 					case 'epip':
 						$this->debug_message( 'using epip, maybe' );
 						if ( false === strpos( $file, 'nggid' ) && ! preg_match( '#\.svg(\?|$)#', $file ) && strpos( $file, $this->exactdn_domain ) ) {
-							if ( false === $filename_width || false === $filename_height ) {
-								$filename_width  = $width_attr;
-								$filename_height = $height_attr;
-							}
-
-							if ( $filename_width && $filename_height && $this->allow_piip ) {
-								$placeholder_src = $this->create_piip( $filename_width, $filename_height );
-								/* $placeholder_src = $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $filename_width . 'x' . $filename_height . '.png' ); */
+							if ( $physical_width && $physical_height && $this->allow_piip ) {
+								$placeholder_src = $this->create_piip( $physical_width, $physical_height );
 								$use_native_lazy = true;
 								break 2;
 							} else {
@@ -574,17 +567,17 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 					case 'piip':
 						$this->debug_message( 'trying piip' );
 
-						if ( false === $filename_width || false === $filename_height ) {
-							$filename_width  = $width_attr;
-							$filename_height = $height_attr;
+						if ( false === $physical_width || false === $physical_height ) {
+							$physical_width  = $width_attr;
+							$physical_height = $height_attr;
 						}
 
 						// Falsify them if empty.
-						$filename_width  = (int) $filename_width ? (int) $filename_width : false;
-						$filename_height = (int) $filename_height ? (int) $filename_height : false;
-						if ( $filename_width && $filename_height ) {
-							$this->debug_message( "creating piip of $filename_width x $filename_height" );
-							$png_placeholder_src = $this->create_piip( $filename_width, $filename_height );
+						$physical_width  = (int) $physical_width ? (int) $physical_width : false;
+						$physical_height = (int) $physical_height ? (int) $physical_height : false;
+						if ( $physical_width && $physical_height ) {
+							$this->debug_message( "creating piip of $physical_width x $physical_height" );
+							$png_placeholder_src = $this->create_piip( $physical_width, $physical_height );
 							if ( $png_placeholder_src ) {
 								$placeholder_src = $png_placeholder_src;
 								$use_native_lazy = true;

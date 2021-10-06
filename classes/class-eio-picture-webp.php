@@ -150,6 +150,9 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 		if ( false !== strpos( $uri, 'tatsu=' ) ) {
 			return false;
 		}
+		if ( false !== strpos( $uri, 'tve=true' ) ) {
+			return false;
+		}
 		if ( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === sanitize_text_field( wp_unslash( $_POST['action'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return false;
 		}
