@@ -143,6 +143,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: Easy IO scaling not working on full-size images without srcset/responsive markup
 * fixed: WebP and Lazy Load function skip images dynamically created by Brizy builder
 * fixed: Easy IO conflict on Elementor preview pages
+* fixed: EXACTDN_CONTENT_WIDTH not effective at overriding $content_width during image_downsize filter
 
 = 6.2.5 =
 * added: Easy IO and Lazy Load support for AJAX responses from FacetWP

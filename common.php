@@ -4753,6 +4753,7 @@ function ewww_image_optimizer_exactdn_activate_site_ajax() {
 	if ( get_current_blog_id() !== $blog_id ) {
 		switch_to_blog( $blog_id );
 	}
+	ewwwio_debug_message( "activating site $blog_id" );
 	if ( get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		die( wp_json_encode( array( 'success' => esc_html__( 'Easy IO setup and verification is complete.', 'ewww-image-optimizer' ) ) ) );
 	}
@@ -4772,6 +4773,7 @@ function ewww_image_optimizer_exactdn_activate_site_ajax() {
 		$exactdn = new ExactDN();
 	}
 	if ( $exactdn->get_exactdn_domain() ) {
+		ewwwio_debug_message( 'activated site ' . $exactdn->content_url() . ' got domain ' . $exactdn->get_exactdn_domain() );
 		die( wp_json_encode( array( 'success' => esc_html__( 'Easy IO setup and verification is complete.', 'ewww-image-optimizer' ) ) ) );
 	}
 	restore_current_blog();
@@ -4813,6 +4815,7 @@ function ewww_image_optimizer_exactdn_register_site_ajax() {
 		$switch = true;
 		switch_to_blog( $blog_id );
 	}
+	ewwwio_debug_message( "registering site $blog_id" );
 	if ( get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		if ( ! empty( $switch ) ) {
 			restore_current_blog();

@@ -1990,8 +1990,16 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						$image_args['width']  = $image_meta['width'];
 						$image_args['height'] = $image_meta['height'];
 
+						global $content_width;
+						if ( defined( 'EXACTDN_CONTENT_WIDTH' ) && ! empty( $content_width ) ) {
+							$real_content_width = $content_width;
+							$content_width      = EXACTDN_CONTENT_WIDTH;
+						}
 						// NOTE: it will constrain an image to $content_width which is expected behavior in core, so far as I can see.
 						list( $image_args['width'], $image_args['height'] ) = image_constrain_size_for_editor( $image_args['width'], $image_args['height'], $size, 'display' );
+						if ( defined( 'EXACTDN_CONTENT_WIDTH' ) && ! empty( $real_content_width ) ) {
+							$content_width = $real_content_width;
+						}
 
 						$has_size_meta = true;
 						$this->debug_message( 'image args constrained: ' . $this->implode( ',', $image_args ) );
@@ -2107,8 +2115,16 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						$has_size_meta = true;
 					}
 
+					global $content_width;
+					if ( defined( 'EXACTDN_CONTENT_WIDTH' ) && ! empty( $content_width ) ) {
+						$real_content_width = $content_width;
+						$content_width      = EXACTDN_CONTENT_WIDTH;
+					}
 					list( $width, $height ) = image_constrain_size_for_editor( $width, $height, $size );
 					$this->debug_message( "constrained to w$width by h$height" );
+					if ( defined( 'EXACTDN_CONTENT_WIDTH' ) && ! empty( $real_content_width ) ) {
+						$content_width = $real_content_width;
+					}
 
 					// Expose arguments to a filter before passing to ExactDN.
 					$exactdn_args = array(
