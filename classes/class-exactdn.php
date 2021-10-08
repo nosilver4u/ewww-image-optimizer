@@ -1353,10 +1353,48 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						}
 					} elseif ( ! $lazy && $this->validate_image_url( $src, true ) ) {
 						$this->debug_message( "found a potential exactdn src url to insert into srcset: $src" );
-						// Find the width attribute.
+
+						$args    = array();
+						$new_tag = $tag;
+						$width   = $this->get_attribute( $images['img_tag'][ $index ], 'width' );
+						$height  = $this->get_attribute( $images['img_tag'][ $index ], 'height' );
+						// Making sure the width/height are numeric.
+						if ( strpos( $src, '?' ) && (int) $width > 2 && (int) $height > 2 ) {
+							$url_params = urldecode( $this->parse_url( $src, PHP_URL_QUERY ) );
+							// TODO: make an experimental override to increase the dimensions based on height/width.
+							// OR can just look and see if content_width matches and the width attr is larger.
+							if ( $url_params && false !== strpos( $url_params, 'resize=' ) ) {
+								preg_match( '/resize=(\d+),(\d+)/', $url_params, $resize_matches );
+								if ( is_array( $resize_matches ) && ! empty( $resize_matches[1] ) && ! empty( $resize_matches[2] ) ) {
+									$width_param  = (int) $resize_matches[1];
+									$height_param = (int) $resize_matches[2];
+								}
+							} elseif ( $url_params && false !== strpos( $url_params, 'fit=' ) ) {
+								preg_match( '/fit=(\d+),(\d+)/', $url_params, $fit_matches );
+								if ( is_array( $fit_matches ) && ! empty( $fit_matches[1] ) && ! empty( $fit_matches[2] ) ) {
+									$width_param  = (int) $fit_matches[1];
+									$height_param = (int) $fit_matches[2];
+								}
+							} elseif ( $url_params && false === strpos( $url_params, 'w=' ) && false === strpos( $url_params, 'h=' ) && false === strpos( $url_params, 'crop=' ) ) {
+								// No size params, so add the width/height as 'fit'.
+								$args      = array();
+								$transform = 'fit';
+								// Or optionally as crop/resize.
+								if ( strpos( $new_tag, 'img-crop' ) ) {
+									$transform = 'resize';
+								}
+								$args[ $transform ] = $width . ',' . $height;
+							}
+						}
+						if ( $args ) {
+							$args    = apply_filters( 'exactdn_post_image_args', $args, compact( 'new_tag', 'src', 'src', 'width', 'height' ) );
+							$new_src = $this->generate_url( $src, $args );
+							if ( $new_src && $src !== $new_src ) {
+								$new_tag = str_replace( $src, $new_src, $new_tag );
+							}
+						}
+
 						$srcset_url = false;
-						$width      = $this->get_attribute( $images['img_tag'][ $index ], 'width' );
-						$new_tag    = $tag;
 						if ( $width ) {
 							$this->debug_message( 'found the width' );
 							// Insert new image src into the srcset as well, if we have a width.
@@ -2247,6 +2285,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				return $sources;
 			}
 
+			$this->debug_message( "image_src = $image_src" );
 			$upload_dir      = wp_get_upload_dir();
 			$resize_existing = defined( 'EXACTDN_RESIZE_EXISTING' ) && EXACTDN_RESIZE_EXISTING;
 			$w_descriptor    = true;
@@ -2319,7 +2358,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			 * @param array|bool $multipliers Array of multipliers to use or false to bypass.
 			 */
 			$multipliers = apply_filters( 'exactdn_srcset_multipliers', array( .2, .4, .6, .8, 1, 2, 3, 1920 ) );
-			$url         = trailingslashit( $upload_dir['baseurl'] ) . $image_meta['file'];
+
+			$this->debug_message( "building url from {$upload_dir['baseurl']} and {$image_meta['file']}" );
+			$url = trailingslashit( $upload_dir['baseurl'] ) . $image_meta['file'];
+
 			if ( ! $w_descriptor ) {
 				$this->debug_message( 'using x descriptors instead of w' );
 				$multipliers = array_filter( $multipliers, 'is_int' );

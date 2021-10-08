@@ -4903,6 +4903,7 @@ function ewww_image_optimizer_initialize_site( $new_site ) {
  * @return array The results of the http POST request.
  */
 function ewww_image_optimizer_register_site_post() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Get the site URL for a given blog.
 	$eio_base = new EIO_Base();
 	$site_url = $eio_base->content_url();
@@ -12120,6 +12121,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	if ( PHP_OS !== 'WINNT' && ! ewww_image_optimizer_full_cloud() && ! EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
 		ewww_image_optimizer_find_nix_binary( 'nice', 'n' );
 	}
+
 	$allow_help_html = array(
 		'a'   => array(
 			'class'                => array(),
@@ -12132,6 +12134,15 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			'title' => array(),
 			'src'   => array(),
 		),
+	);
+
+	$allow_settings_html          = wp_kses_allowed_html( 'post' );
+	$allow_settings_html['input'] = array(
+		'type'     => true,
+		'id'       => true,
+		'name'     => true,
+		'value'    => true,
+		'readonly' => true,
 	);
 
 	if ( 'network-multisite-over' === $network ) {
@@ -13480,7 +13491,7 @@ AddType image/webp .webp</pre>
 			<?php ob_end_clean(); ?>
 		<div id='ewww-resize-settings'>
 			<table class='form-table'>
-			<?php echo ( empty( $exactdn_sub_folder ) ? wp_kses_post( $exactdn_settings_row ) : '' ); ?>
+			<?php echo ( empty( $exactdn_sub_folder ) ? wp_kses( $exactdn_settings_row, $allow_settings_html ) : '' ); ?>
 		<?php endif; ?>
 				<!-- RIGHT HERE is where we begin/clear buffer for network-singlesite (non-override version). -->
 				<!-- Though the buffer will need to be started right the form begins. -->
