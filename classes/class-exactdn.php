@@ -1352,31 +1352,21 @@ if ( ! class_exists( 'ExactDN' ) ) {
 							$content = str_replace( $tag, $new_tag, $content );
 						}
 					} elseif ( ! $lazy && $this->validate_image_url( $src, true ) ) {
-						$this->debug_message( "found a potential exactdn src url to insert into srcset: $src" );
+						$this->debug_message( "found a potential exactdn src url to wrangle, and maybe insert into srcset: $src" );
 
 						$args    = array();
 						$new_tag = $tag;
 						$width   = $this->get_attribute( $images['img_tag'][ $index ], 'width' );
 						$height  = $this->get_attribute( $images['img_tag'][ $index ], 'height' );
 						// Making sure the width/height are numeric.
-						if ( strpos( $src, '?' ) && (int) $width > 2 && (int) $height > 2 ) {
+						if ( false === strpos( $new_tag, 'srcset' ) && strpos( $src, '?' ) && (int) $width > 2 && (int) $height > 2 ) {
 							$url_params = urldecode( $this->parse_url( $src, PHP_URL_QUERY ) );
-							// TODO: make an experimental override to increase the dimensions based on height/width.
-							// OR can just look and see if content_width matches and the width attr is larger.
 							if ( $url_params && false !== strpos( $url_params, 'resize=' ) ) {
-								preg_match( '/resize=(\d+),(\d+)/', $url_params, $resize_matches );
-								if ( is_array( $resize_matches ) && ! empty( $resize_matches[1] ) && ! empty( $resize_matches[2] ) ) {
-									$width_param  = (int) $resize_matches[1];
-									$height_param = (int) $resize_matches[2];
-								}
+								$this->debug_message( 'existing resize param' );
 							} elseif ( $url_params && false !== strpos( $url_params, 'fit=' ) ) {
-								preg_match( '/fit=(\d+),(\d+)/', $url_params, $fit_matches );
-								if ( is_array( $fit_matches ) && ! empty( $fit_matches[1] ) && ! empty( $fit_matches[2] ) ) {
-									$width_param  = (int) $fit_matches[1];
-									$height_param = (int) $fit_matches[2];
-								}
+								$this->debug_message( 'existing fit param' );
 							} elseif ( $url_params && false === strpos( $url_params, 'w=' ) && false === strpos( $url_params, 'h=' ) && false === strpos( $url_params, 'crop=' ) ) {
-								// No size params, so add the width/height as 'fit'.
+								$this->debug_message( 'no size params, so add the width/height' );
 								$args      = array();
 								$transform = 'fit';
 								// Or optionally as crop/resize.
@@ -3371,6 +3361,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( $this->exactdn_domain === $image_url_parts['host'] ) {
 				$this->debug_message( 'url already has exactdn domain' );
 				$exactdn_url = add_query_arg( $args, $image_url );
+				$exactdn_url = str_replace( '&#038;', '&', $exactdn_url );
+				$exactdn_url = str_replace( '#038;', '&', $exactdn_url );
 				return $this->url_scheme( $exactdn_url, $scheme );
 			}
 
@@ -3416,6 +3408,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( $args ) {
 				if ( is_array( $args ) ) {
 					$exactdn_url = add_query_arg( $args, $exactdn_url );
+					$exactdn_url = str_replace( '&#038;', '&', $exactdn_url );
+					$exactdn_url = str_replace( '#038;', '&', $exactdn_url );
 				} else {
 					// You can pass a query string for complicated requests, although this should have been converted to an array already.
 					$exactdn_url .= '?' . $args;
