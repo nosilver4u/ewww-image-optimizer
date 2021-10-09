@@ -326,6 +326,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 
 			$above_the_fold   = apply_filters( 'eio_lazy_fold', 1 );
 			$images_processed = 0;
+			$replacements     = array();
 
 			// Clean the buffer of incompatible sections.
 			$search_buffer = preg_replace( '/<div id="footer_photostream".*?\/div>/s', '', $buffer );
@@ -334,10 +335,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			$images = $this->get_images_from_html( $search_buffer, false );
 			if ( ! empty( $images[0] ) && $this->is_iterable( $images[0] ) ) {
 				foreach ( $images[0] as $index => $image ) {
-					$images_processed++;
-					if ( $images_processed <= $above_the_fold ) {
-						continue;
-					}
 					$file = $images['img_url'][ $index ];
 					$this->debug_message( "parsing an image: $file" );
 					if ( $this->validate_image_tag( $image ) ) {
@@ -348,14 +345,28 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						$image    = $this->parse_img_tag( $image, $file );
 						$this->set_attribute( $ns_img, 'data-eio', 'l', true );
 						$noscript = '<noscript>' . $ns_img . '</noscript>';
-						$buffer   = str_replace( $orig_img, $image . $noscript, $buffer );
+						$position = strpos( $buffer, $orig_img );
+						if ( $position && $orig_img !== $image ) {
+							$replacements[ $position ] = array(
+								'orig' => $orig_img,
+								'lazy' => $image . $noscript,
+							);
+						}
+						/* $buffer   = str_replace( $orig_img, $image . $noscript, $buffer ); */
 					}
 				} // End foreach().
 			} // End if().
 			$element_types = apply_filters( 'eio_allowed_background_image_elements', array( 'div', 'li', 'span', 'section', 'a' ) );
 			foreach ( $element_types as $element_type ) {
 				// Process background images on HTML elements.
-				$buffer = $this->parse_background_images( $buffer, $element_type );
+				$css_replacements = $this->parse_background_images( $element_type, $buffer );
+				if ( $this->is_iterable( $css_replacements ) ) {
+					foreach ( $css_replacements as $position => $css_replacement ) {
+						if ( $position ) {
+							$replacements[ $position ] = $css_replacement;
+						}
+					}
+				}
 			}
 			if ( in_array( 'picture', $this->user_element_exclusions, true ) ) {
 				$pictures = '';
@@ -402,9 +413,14 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 								$picture = str_replace( $source, $lazy_source, $picture );
 							}
 						}
-						if ( $picture !== $pictures[ $index ] ) {
+						$position = strpos( $buffer, $pictures[ $index ] );
+						if ( $position && $picture !== $pictures[ $index ] ) {
 							$this->debug_message( 'lazified sources for picture element' );
-							$buffer = str_replace( $pictures[ $index ], $picture, $buffer );
+							$replacements[ $position ] = array(
+								'orig' => $pictures[ $index ],
+								'lazy' => $picture,
+							);
+							/* $buffer = str_replace( $pictures[ $index ], $picture, $buffer ); */
 						}
 					}
 				}
@@ -428,6 +444,24 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 							$buffer = str_replace( $frames[ $index ], $frame, $buffer );
 						}
 					}
+				}
+			}
+			if ( $this->is_iterable( $replacements ) ) {
+				ksort( $replacements );
+				foreach ( $replacements as $position => $replacement ) {
+					$this->debug_message( "possible replacement at $position" );
+					$images_processed++;
+					if ( $images_processed <= $above_the_fold ) {
+						continue;
+					}
+					if ( empty( $replacement['orig'] ) || empty( $replacement['lazy'] ) ) {
+						continue;
+					}
+					if ( $replacement['orig'] === $replacement['lazy'] ) {
+						continue;
+					}
+					$this->debug_message( "replacing {$replacement['orig']} with {$replacement['lazy']}" );
+					$buffer = str_replace( $replacement['orig'], $replacement['lazy'], $buffer );
 				}
 			}
 			$this->debug_message( 'all done parsing page for lazy' );
@@ -646,14 +680,15 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		/**
 		 * Parse elements of a given type for inline CSS background images.
 		 *
-		 * @param string $buffer The HTML content to parse.
 		 * @param string $tag_type The type of HTML tag to look for.
-		 * @return string The modified content with LL markup.
+		 * @param string $buffer The HTML content to parse (and possibly modify).
+		 * @return array A list of replacements to make in $buffer.
 		 */
-		function parse_background_images( $buffer, $tag_type ) {
+		function parse_background_images( $tag_type, &$buffer ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			$replacements = array();
 			if ( in_array( $tag_type, $this->user_element_exclusions, true ) ) {
-				return $buffer;
+				return $replacements;
 			}
 			$elements = $this->get_elements_from_html( preg_replace( '/<(noscript|script).*?\/\1>/s', '', $buffer ), $tag_type );
 			if ( $this->is_iterable( $elements ) ) {
@@ -688,13 +723,18 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 							$element = str_replace( $style, $new_style, $element );
 						}
 					}
-					if ( $element !== $elements[ $index ] ) {
+					$position = strpos( $buffer, $elements[ $index ] );
+					if ( $position && $element !== $elements[ $index ] ) {
 						$this->debug_message( "$tag_type modified, replacing in html source" );
-						$buffer = str_replace( $elements[ $index ], $element, $buffer );
+						$replacements[ $position ] = array(
+							'orig' => $elements[ $index ],
+							'lazy' => $element,
+						);
+						/* $buffer = str_replace( $elements[ $index ], $element, $buffer ); */
 					}
 				}
 			}
-			return $buffer;
+			return $replacements;
 		}
 
 		/**
