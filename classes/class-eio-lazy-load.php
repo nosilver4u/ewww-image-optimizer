@@ -1004,6 +1004,10 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				return $this->placeholder_src;
 			}
 
+			if ( empty( $width ) || empty( $height ) ) {
+				return $this->placeholder_src;
+			}
+
 			$piip_path = $this->piip_folder . 'placeholder-' . $width . 'x' . $height . '.png';
 			// Keep this in case folks really want external Easy IO CDN placeholders.
 			if ( defined( 'EIO_USE_EXTERNAL_PLACEHOLDERS' ) && EIO_USE_EXTERNAL_PLACEHOLDERS && $this->parsing_exactdn ) {
