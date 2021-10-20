@@ -8208,11 +8208,8 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		// Run the optimization and store the results.
 		list( $file, $msg, $conv, $original ) = ewww_image_optimizer( $file_path, $gallery_type, false, $new_image, true );
 
-		if ( false === $file ) {
-			return $meta;
-		}
 		// If the file was converted.
-		if ( false !== $conv ) {
+		if ( false !== $conv && $file ) {
 			if ( $conv ) {
 				$ewww_image->increment = $conv;
 			}
@@ -8483,13 +8480,8 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 					}
 				}
 				$meta['processing'] = 1;
-				if ( $log ) {
-					ewww_image_optimizer_debug_log();
-				}
+				ewwwio_debug_message( "$timer_max is up ($timer), will come back later" );
 				return $meta;
-			}
-			if ( $log ) {
-				ewww_image_optimizer_debug_log();
 			}
 		} // End while().
 	} // End if().

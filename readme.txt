@@ -137,6 +137,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 6.3.1 =
+* fixed: PNG thumbnails skipped from WebP conversion when using exec-free mode
+
 = 6.3.0 =
 * added: EIO_LAZY_FOLD override to configure number of images above-the-fold that will be skipped by Lazy Load
 * added: Easy IO URLs for custom (non-WP) srcset markup
