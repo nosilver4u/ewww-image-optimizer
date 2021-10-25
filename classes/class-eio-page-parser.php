@@ -359,16 +359,21 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 			if ( 'class' === $name ) {
 				$element = preg_replace( "#\s$name\s+([^=])#", ' $1', $element );
 			}
+			// Remove empty attributes first.
 			$element = preg_replace( "#\s$name=\"\"#", ' ', $element );
-			$value   = trim( $value );
+			// Remove/escape double-quotes with the encoded version, so that we can safely enclose the value in double-quotes.
+			$value = str_replace( '"', '&#34;', $value );
+			$value = trim( $value );
 			if ( $replace ) {
 				// Don't forget, back references cannot be used in character classes.
-				$new_element = preg_replace( '#\s' . $name . '\s*=\s*("|\')(?!\1).*?\1#is', ' ' . $name . '=${1}' . $value . '${1}', $element );
+				$new_element = preg_replace( '#\s' . $name . '\s*=\s*("|\')(?!\1).*?\1#is', ' ' . $name . '="' . $value . '"', $element );
 				if ( strpos( $new_element, "$name=" ) && $new_element !== $element ) {
 					$element = $new_element;
 					return;
 				}
+				// Purge un-quoted attribute patterns, so the new value can be inserted further down.
 				$new_element = preg_replace( '#\s' . $name . '\s*=\s*[^"\'][^\s>]+#is', ' ', $element );
+				// But if we couldn't purge the attribute, then bail out.
 				if ( preg_match( '#\s' . $name . '\s*=\s*#', $new_element ) && $new_element === $element ) {
 					$this->debug_message( "$name replacement failed, still exists in $element" );
 					return;
@@ -379,10 +384,11 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 			if ( false === strpos( $element, '/>' ) ) {
 				$closing = '>';
 			}
-			if ( false === strpos( $value, '"' ) ) {
+			if ( false === strpos( $value, '"' ) ) { // This should always be true, since we escape double-quotes above.
 				$element = rtrim( $element, $closing ) . " $name=\"$value\"$closing";
 				return;
 			}
+			// If we get here, something is kind of weird, since double-quotes were supposed to be escaped.
 			$element = rtrim( $element, $closing ) . " $name='$value'$closing";
 		}
 

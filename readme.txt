@@ -139,6 +139,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.3.1 =
 * fixed: PNG thumbnails skipped from WebP conversion when using exec-free mode
+* fixed: SVG placeholders broken when existing img src is single-quoted
 
 = 6.3.0 =
 * added: EIO_LAZY_FOLD override to configure number of images above-the-fold that will be skipped by Lazy Load
