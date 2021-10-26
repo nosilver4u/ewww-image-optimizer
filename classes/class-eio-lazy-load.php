@@ -429,7 +429,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( in_array( 'iframe', $this->user_element_exclusions, true ) ) {
 				$frames = '';
 			} else {
-				$frames = $this->get_elements_from_html( $buffer, 'iframe' );
+				$frames = $this->get_elements_from_html( $search_buffer, 'iframe' );
 			}
 			if ( $this->is_iterable( $frames ) ) {
 				foreach ( $frames as $index => $frame ) {
@@ -961,6 +961,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						'skip-lazy',
 						'vimeo',
 						'about:blank',
+						'googletagmanager',
 					),
 					$this->user_exclusions
 				),
