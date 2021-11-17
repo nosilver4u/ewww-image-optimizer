@@ -111,6 +111,7 @@ jQuery(document).ready(function($) {
 				$('#ewwwio-api-activation-result').html(ewww_response.success);
 				$('#ewwwio-api-activation-result').removeClass('error');
 				$('#ewwwio-api-activation-result').show();
+				$('#ewww_image_optimizer_cloud_key').attr('type', 'password');
 				ewwwCloudEnable();
 			}
 		});

@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '630' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '630.10' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -11369,6 +11369,7 @@ function ewww_image_optimizer_intro_wizard() {
 			'ewww_vars.site_speed = ' . ( ! empty( $_POST['ewww_image_optimizer_goal_site_speed'] ) ? 1 : 0 ) . ";\n"
 		);
 	}
+	$cloud_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
 	?>
 <div id='ewww-settings-wrap' class='wrap'>
 	<div id='ewwwio-wizard'>
@@ -11391,23 +11392,24 @@ function ewww_image_optimizer_intro_wizard() {
 					<input type='radio' id='ewww_image_optimizer_budget_pay' name='ewww_image_optimizer_budget' value='pay' required <?php checked( $show_premium ); ?>/>
 					<label for='ewww_image_optimizer_budget_pay'><?php esc_html_e( 'Activate 5x more optimization and priority support', 'ewww-image-optimizer' ); ?></label><br>
 					<div class="ewwwio-wizard-form-group ewwwio-premium-setup" <?php echo ( $show_premium ? "style='display:block'" : '' ); ?>>
-						<?php /* translators: %s: free trial (link) */ ?>
-						<p><strong>&gt;&gt;<?php printf( esc_html__( 'Start your %s or activate your service below', 'ewww-image-optimizer' ), "<a href='https://ewww.io/plans/' target='_blank'>" . esc_html__( 'free trial', 'ewww-image-optimizer' ) . '</a>' ); ?></strong></p>
+						<?php /* translators: 1: free trial (link) 2: service (link to account) */ ?>
+						<p><strong>&gt;&gt;<?php printf( esc_html__( 'Start your %1$s or activate your %2$s below', 'ewww-image-optimizer' ), "<a href='https://ewww.io/plans/' target='_blank'>" . esc_html__( 'free trial', 'ewww-image-optimizer' ) . '</a>', "<a href='https://ewww.io/manage-keys/' target='_blank'>" . esc_html__( 'service', 'ewww-image-optimizer' ) . '</a>' ); ?></strong></p>
 						<div id='ewwwio-api-activation-result'></div>
 						<p id='ewww_image_optimizer_cloud_key_container'>
 							<label for='ewww_image_optimizer_cloud_key'><?php esc_html_e( 'Compress API Key', 'ewww-image-optimizer' ); ?></label><br>
-							<input type='text' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='<?php echo esc_attr( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ); ?>' />
 		<?php if ( empty( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) ) : ?>
+							<input type='text' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='' />
 							<span id='ewwwio-api-activate'><a href='#' class='button-secondary'><?php esc_html_e( 'Activate', 'ewww-image-optimizer' ); ?></a></span>
 							<span id='ewwwio-api-activation-processing'><img src='<?php echo esc_url( $loading_image_url ); ?>' alt='loading'/></span>
 		<?php else : ?>
+							<input type='text' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='****************<?php echo esc_attr( substr( $cloud_key, 28 ) ); ?>' />
 							<span class="dashicons dashicons-yes"></span>
 		<?php endif; ?>
 							<br>
 							<span class="description"><?php esc_html_e( 'Premium compression for your local images.', 'ewww-image-optimizer' ); ?></span>
 						</p>
 						<div id='ewwwio-easy-activation-result'></div>
-						<p>
+						<p class='ewwwio-easy-setup-instructions'>
 							<label><?php esc_html_e( 'Easy IO', 'ewww-image-optimizer' ); ?></label><br>
 							<span class="description">
 								<?php
