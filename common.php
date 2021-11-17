@@ -406,9 +406,16 @@ function ewwwio_other_lazy_detected() {
 			}
 		}
 	}
-	if ( class_exists( '\Automattic\Jetpack\Jetpack_Lazy_Images' ) && class_exists( '\Jetpack' ) && Jetpack::is_module_active( 'lazy-images' ) ) {
+	if ( class_exists( 'Jetpack' ) && method_exists( 'Jetpack', 'is_module_active' ) && Jetpack::is_module_active( 'lazy-images' ) ) {
 		ewwwio_debug_message( 'Jetpack lazy detected' );
 		return true;
+	}
+	if ( class_exists( '\Automattic\Jetpack_Boost\Jetpack_Boost' ) ) {
+		$jetpack_boost_config = get_option( 'jetpack_boost_config' );
+		if ( ! empty( $jetpack_boost_config['lazy-images']['enabled'] ) ) {
+			ewwwio_debug_message( 'Jetpack Boost lazy detected' );
+			return true;
+		}
 	}
 	return false;
 }
@@ -451,13 +458,14 @@ function ewww_image_optimizer_swis_webp_enabled() {
  * @return bool True if a WebP Convertor is available.
  */
 function ewww_image_optimizer_webp_available() {
+	return true; // Because API mode is the fallback and is free for everyone.
 	if (
 		defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) && EWWW_IMAGE_OPTIMIZER_NOEXEC &&
 		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
 		! ewww_image_optimizer_imagick_supports_webp() &&
 		! ewww_image_optimizer_gd_supports_webp()
 	) {
-		return true;
+		return false;
 	}
 	return true;
 }
@@ -5411,6 +5419,9 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) && ! EWWW_IMAGE_OPTIMIZER_JPEGTRAN &&
 		'image/jpeg' === $type
 	) {
+		$free_exec = true;
+	}
+	if ( ! $free_exec && $webp ) {
 		$free_exec = true;
 	}
 	if ( empty( $api_key ) && ! $free_exec ) {
@@ -12556,7 +12567,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							?>
 						</p>
 		<?php if ( class_exists( 'Jetpack' ) && Jetpack::is_module_active( 'photon' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) : ?>
-						<p style='color: red'><?php esc_html_e( 'Inactive, please disable the Image Accelerator option on the Jetpack Dashboard.', 'ewww-image-optimizer' ); ?></p>
+						<p style='color: red'><?php esc_html_e( 'Inactive, please disable the Site Accelerator option in the Jetpack settings.', 'ewww-image-optimizer' ); ?></p>
 		<?php elseif ( false !== strpos( $easyio_site_url, 'localhost' ) ) : ?>
 						<p class="description" style="font-weight: bolder"><?php esc_html_e( 'Easy IO cannot be activated on localhost installs.', 'ewww-image-optimizer' ); ?></p>
 		<?php elseif ( 'network-multisite' === $network && empty( $exactdn_sub_folder ) ) : ?>
@@ -13942,7 +13953,9 @@ function ewww_image_optimizer_remove_easyio() {
 	delete_site_option( 'ewww_image_optimizer_exactdn_validation' );
 	delete_site_option( 'ewww_image_optimizer_exactdn_suspended' );
 	global $exactdn;
-	$exactdn->cron_setup( false );
+	if ( isset( $exactdn ) && is_object( $exactdn ) ) {
+		$exactdn->cron_setup( false );
+	}
 	wp_safe_redirect( wp_get_referer() );
 	exit;
 }

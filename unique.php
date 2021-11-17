@@ -744,10 +744,8 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 				break;
 		} // End switch().
 	} // End foreach().
-	// Expand the missing utilities list for use in the error message.
-	$msg = implode( ', ', $missing );
 	// If there is a message, display the warning.
-	if ( ! empty( $msg ) && 'quiet' !== $quiet ) {
+	if ( ! empty( $missing ) && 'quiet' !== $quiet ) {
 		if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
 			// Need to include the plugin library for the is_plugin_active function.
 			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
@@ -764,9 +762,13 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 		} elseif ( ! is_executable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) && PHP_OS !== 'WINNT' ) {
 			ewww_image_optimizer_tool_folder_permissions_notice();
 		}
-		if ( 'pngout' === $msg ) {
+		if ( in_array( 'pngout', $missing, true ) ) {
+			$key = array_search( 'pngout', $missing, true );
+			if ( false !== $key ) {
+				unset( $missing[ $key ] );
+			}
 			$pngout_install_url = admin_url( 'admin.php?action=ewww_image_optimizer_install_pngout' );
-			echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-error'><p>" .
+			echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-warning'><p>" .
 			sprintf(
 				/* translators: 1: automatically (link) 2: manually (link) */
 				esc_html__( 'You are missing pngout. Install %1$s or %2$s.', 'ewww-image-optimizer' ),
@@ -774,9 +776,14 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 				'<a href="https://docs.ewww.io/article/13-installing-pngout" data-beacon-article="5854531bc697912ffd6c1afa">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>'
 			) .
 			'</p></div>';
-		} elseif ( 'svgcleaner' === $msg ) {
+		}
+		if ( in_array( 'svgcleaner', $missing, true ) ) {
+			$key = array_search( 'svgcleaner', $missing, true );
+			if ( false !== $key ) {
+				unset( $missing[ $key ] );
+			}
 			$svgcleaner_install_url = admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' );
-			echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-error'><p>" .
+			echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-warning'><p>" .
 			sprintf(
 				/* translators: 1: automatically (link) 2: manually (link) */
 				esc_html__( 'You are missing svgleaner. Install %1$s or %2$s.', 'ewww-image-optimizer' ),
@@ -784,7 +791,8 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 				'<a href="https://docs.ewww.io/article/95-installing-svgcleaner" data-beacon-article="5f7921c9cff47e001a58adbc">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>'
 			) .
 			'</p></div>';
-		} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_exec_notice' ) ) {
+		}
+		if ( ! empty( $missing ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_exec_notice' ) ) {
 			$dismissible = false;
 			if (
 				in_array( 'jpegtran', $missing, true ) &&
@@ -793,18 +801,16 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 			) {
 				$dismissible = true;
 			}
-			echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-error" . ( $dismissible ? ' is-dismissible' : '' ) . "'><p>" .
+			if ( ! in_array( 'jpegtran', $missing, true ) ) {
+				$dismissible = true;
+			}
+			// Expand the missing utilities list for use in the error message.
+			$msg = implode( ', ', $missing );
+			echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-warning" . ( $dismissible ? ' is-dismissible' : '' ) . "'><p>" .
 			sprintf(
 				/* translators: 1-6: jpegtran, optipng, pngout, pngquant, gifsicle, and cwebp (links) 7: comma-separated list of missing tools 8: Settings Page (link) 9: Installation Instructions (link) */
-				esc_html__( 'EWWW Image Optimizer uses %1$s, %2$s, %3$s, %4$s, %5$s, and %6$s. You are missing: %7$s. Please install via the %8$s or the %9$s.', 'ewww-image-optimizer' ),
-				"<a href='http://jpegclub.org/jpegtran/'>jpegtran</a>",
-				"<a href='http://optipng.sourceforge.net/'>optipng</a>",
-				"<a href='http://advsys.net/ken/utils.htm'>pngout</a>",
-				"<a href='http://pngquant.org/'>pngquant</a>",
-				"<a href='http://www.lcdf.org/gifsicle/'>gifsicle</a>",
-				"<a href='https://developers.google.com/speed/webp/'>cwebp</a>",
+				esc_html__( 'EWWW Image Optimizer uses command-line tools for local server-based optimization. You are missing: %1$s. Please install via the %2$s to continue in free mode.', 'ewww-image-optimizer' ),
 				esc_html( $msg ),
-				"<a href='" . esc_url( $settings_page ) . "'>" . esc_html__( 'Settings Page', 'ewww-image-optimizer' ) . '</a>',
 				"<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something' data-beacon-article='585371e3c697912ffd6c0ba1' target='_blank'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>'
 			) .
 			'</p></div>';
@@ -3022,6 +3028,8 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 			ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile );
 		} elseif ( ewww_image_optimizer_gd_supports_webp() ) {
 			ewww_image_optimizer_gd_create_webp( $file, $type, $webpfile );
+		} else {
+			ewww_image_optimizer_cloud_optimizer( $file, $type, false, $webpfile, 'image/webp' );
 		}
 	} else {
 		$nice = '';

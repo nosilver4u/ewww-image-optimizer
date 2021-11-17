@@ -138,14 +138,18 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.3.1 =
+* added: free API-based WebP generation for servers that cannot generate WebP images locally
 * fixed: PNG thumbnails skipped from WebP conversion when using exec-free mode
 * fixed: SVG placeholders broken when existing img src is single-quoted
 * fixed: Lazy Loader incorrectly parses fall-back iframe from Google Tag Manager, triggering 403 errors in some WAF systems
+* fixed: error when disabling Easy IO
+* added: detection for Jetpack Boost lazy load function
 
 = 6.3.0 =
 * added: EIO_LAZY_FOLD override to configure number of images above-the-fold that will be skipped by Lazy Load
 * added: Easy IO URLs for custom (non-WP) srcset markup
 * added: Easy IO support for CSS background images with relative URLs
+* changed: Lazy Load excludes first image in a page as above-the-fold
 * fixed: Easy IO scaling not working on full-size images without srcset/responsive markup
 * fixed: WebP and Lazy Load function skip images dynamically created by Brizy builder
 * fixed: Easy IO conflict on Elementor preview pages

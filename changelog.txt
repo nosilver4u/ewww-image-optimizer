@@ -2,6 +2,7 @@
 * added: EIO_LAZY_FOLD override to configure number of images above-the-fold that will be skipped by Lazy Load
 * added: Easy IO URLs for custom (non-WP) srcset markup
 * added: Easy IO support for CSS background images with relative URLs
+* changed: Lazy Load excludes first image in a page as above-the-fold
 * fixed: Easy IO scaling not working on full-size images without srcset/responsive markup
 * fixed: WebP and Lazy Load function skip images dynamically created by Brizy builder
 * fixed: Easy IO conflict on Elementor preview pages
