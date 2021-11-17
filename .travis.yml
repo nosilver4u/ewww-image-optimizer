@@ -42,7 +42,7 @@ before_script:
       composer global require phpunit/phpunit ^7
     fi
   - |
-  - composer global require squizlabs/php_codesniffer:3.5.0 wp-coding-standards/wpcs dealerdirect/phpcodesniffer-composer-installer phpcompatibility/phpcompatibility-wp
+  - composer global require squizlabs/php_codesniffer:3.5.0 wp-coding-standards/wpcs dealerdirect/phpcodesniffer-composer-installer phpcompatibility/phpcompatibility-wp yoast/phpunit-polyfills
 
 script:
   - if [[ "$WPSNIFF" == "1" ]]; then phpcs --standard=phpcs.ruleset.xml --extensions=php .; fi
