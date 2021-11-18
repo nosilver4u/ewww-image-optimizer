@@ -139,11 +139,12 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.3.1 =
 * added: free API-based WebP generation for servers that cannot generate WebP images locally
+* added: detection for Jetpack Boost lazy load function
 * fixed: PNG thumbnails skipped from WebP conversion when using exec-free mode
 * fixed: SVG placeholders broken when existing img src is single-quoted
 * fixed: Lazy Loader incorrectly parses fall-back iframe from Google Tag Manager, triggering 403 errors in some WAF systems
 * fixed: error when disabling Easy IO
-* added: detection for Jetpack Boost lazy load function
+* fixed: Easy IO misses some image URLs on multi-site when using domain-mapping
 
 = 6.3.0 =
 * added: EIO_LAZY_FOLD override to configure number of images above-the-fold that will be skipped by Lazy Load

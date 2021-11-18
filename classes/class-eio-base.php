@@ -872,6 +872,14 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			// But this is used by Easy IO, so it should be derived from the above logic instead, which already matches the site/home URLs against the upload URL.
 			$this->upload_domain     = $this->parse_url( $this->site_url, PHP_URL_HOST );
 			$this->allowed_domains[] = $this->upload_domain;
+			// For when plugins don't do a very good job of updating URLs for mapped multi-site domains.
+			if ( is_multisite() && false === strpos( $upload_dir['baseurl'], $this->upload_domain ) ) {
+				$this->debug_message( 'upload domain does not match the home URL' );
+				$origin_upload_domain = $this->parse_url( $upload_dir['baseurl'], PHP_URL_HOST );
+				if ( $origin_upload_domain ) {
+					$this->allowed_domains[] = $origin_upload_domain;
+				}
+			}
 			// Grab domain aliases that might point to the same place as the upload_domain.
 			if ( ! $this->s3_active && 0 !== strpos( $this->upload_domain, 'www' ) ) {
 				$this->allowed_domains[] = 'www.' . $this->upload_domain;

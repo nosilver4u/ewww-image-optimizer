@@ -11402,7 +11402,7 @@ function ewww_image_optimizer_intro_wizard() {
 							<span id='ewwwio-api-activate'><a href='#' class='button-secondary'><?php esc_html_e( 'Activate', 'ewww-image-optimizer' ); ?></a></span>
 							<span id='ewwwio-api-activation-processing'><img src='<?php echo esc_url( $loading_image_url ); ?>' alt='loading'/></span>
 		<?php else : ?>
-							<input type='text' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='****************<?php echo esc_attr( substr( $cloud_key, 28 ) ); ?>' />
+							<input type='text' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='****************<?php echo esc_attr( substr( $cloud_key, 28 ) ); ?>' readonly />
 							<span class="dashicons dashicons-yes"></span>
 		<?php endif; ?>
 							<br>
@@ -11442,25 +11442,22 @@ function ewww_image_optimizer_intro_wizard() {
 					<label for='ewww_image_optimizer_budget_free'><?php esc_html_e( 'Stick with free mode for now', 'ewww-image-optimizer' ); ?></label>
 		<?php if ( $display_exec_notice ) : ?>
 					<div id='ewww-image-optimizer-warning-exec' class='ewwwio-notice notice-warning' style='display:none;'>
-						<?php esc_html_e( 'Sites where the exec() function is disabled require cloud-based optimization, because free server-based optimization will not work.', 'ewww-image-optimizer' ); ?>
-						<br>
-						<strong>
-							<?php esc_html_e( 'You may ask your system administrator to enable exec() for free server-based optimization. Otherwise, continue with free cloud-based JPG-only compression or select premium optimization above.', 'ewww-image-optimizer' ); ?>
-							<?php ewwwio_help_link( 'https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it', '592dd12d0428634b4a338c39' ); ?>
-						</strong>
+						<?php
+						printf(
+							/* translators: %s: link to 'start your premium trial' */
+							esc_html__( 'Your web server does not meet the requirements for free server-based compression. You may %s for 5x more compression, PNG/GIF/PDF compression, and more. Otherwise, continue with free cloud-based JPG compression.', 'ewww-image-optimizer' ),
+							"<a href='https://ewww.io/plans/'>" . esc_html__( 'start your premium trial', 'ewww-image-optimizer' ) . '</a>'
+						);
+						ewwwio_help_link( 'https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it', '592dd12d0428634b4a338c39' );
+						?>
 					</div>
 		<?php elseif ( $tools_missing_notice && $tools_available ) : ?>
 					<div id='ewww-image-optimizer-warning-opt-missing' class='ewwwio-notice notice-warning' style='display:none;'>
 						<?php
 						printf(
-							/* translators: %s: comma-separated list of missing tools */
-							esc_html__( 'EWWW Image Optimizer uses open-source tools to enable free mode, but your server is missing these: %s.', 'ewww-image-optimizer' ),
-							esc_html( $tools_missing_message )
-						);
-						echo '<br><br>';
-						printf(
-							/* translators: %s: Installation Instructions (link) */
-							esc_html__( 'You may install missing tools via the %s or continue with reduced functionality.', 'ewww-image-optimizer' ),
+							/* translators: 1: comma-separated list of missing tools 2: Installation Instructions (link) */
+							esc_html__( 'EWWW Image Optimizer uses open-source tools to enable free mode, but your server is missing these: %1$s. Please install via the %2$s to get the most out of free mode.', 'ewww-image-optimizer' ),
+							esc_html( $tools_missing_message ),
 							"<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something' data-beacon-article='585371e3c697912ffd6c0ba1' target='_blank'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>'
 						);
 						?>
@@ -11476,7 +11473,7 @@ function ewww_image_optimizer_intro_wizard() {
 						echo '<br><br>';
 						printf(
 							/* translators: %s: Installation Instructions (link) */
-							esc_html__( 'You may install missing tools via the %s. Otherwise, continue with free cloud-based JPG-only compression or select premium optimization above.', 'ewww-image-optimizer' ),
+							esc_html__( 'You may install missing tools via the %s. Otherwise, continue with free cloud-based JPG-only compression.', 'ewww-image-optimizer' ),
 							"<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something' data-beacon-article='585371e3c697912ffd6c0ba1' target='_blank'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>'
 						);
 						?>
@@ -12492,7 +12489,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<label for='ewww_image_optimizer_cloud_notkey'><?php esc_html_e( 'Compress API Key', 'ewww-image-optimizer' ); ?></label>
 					</th>
 					<td>
-						<input type='text' id='ewww_image_optimizer_cloud_notkey' name='ewww_image_optimizer_cloud_notkey' readonly='readonly' value='****************************<?php	echo esc_attr( substr( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), 28 ) ); ?>' size='32' />
+						<input type='text' id='ewww_image_optimizer_cloud_notkey' name='ewww_image_optimizer_cloud_notkey' readonly='readonly' value='****************<?php echo esc_attr( substr( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), 28 ) ); ?>' size='32' />
 						<a class='button-secondary' href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_remove_cloud_key' ) ); ?>'>
 							<?php esc_html_e( 'Remove API key', 'ewww-image-optimizer' ); ?>
 						</a>
