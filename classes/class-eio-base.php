@@ -207,6 +207,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			if ( ! is_string( $message ) && ! is_int( $message ) && ! is_float( $message ) ) {
 				return;
 			}
+			$message = "$message";
 			if ( defined( 'WP_CLI' ) && WP_CLI ) {
 				WP_CLI::debug( $message );
 				return;
@@ -379,9 +380,18 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 * @return bool True for an AMP endpoint, false otherwise.
 		 */
 		function is_amp() {
+			// Just return false if we can't properly check yet.
+			if ( ! did_action( 'parse_request' ) ) {
+				return false;
+			}
 			if ( ! did_action( 'wp' ) ) {
 				return false;
 			}
+			global $wp_query;
+			if ( ! isset( $wp_query ) || ! ( $wp_query instanceof WP_Query ) ) {
+				return false;
+			}
+
 			if ( function_exists( 'amp_is_request' ) && amp_is_request() ) {
 				return true;
 			}

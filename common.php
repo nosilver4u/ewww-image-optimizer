@@ -3182,6 +3182,19 @@ function ewww_image_optimizer_gd_supports_webp() {
 			}
 		}
 	}
+	if ( ! function_exists( 'imagewebp' ) ) {
+		ewwwio_debug_message( 'imagewebp() missing' );
+	} elseif ( ! function_exists( 'imagepalettetotruecolor' ) ) {
+		ewwwio_debug_message( 'imagepalettetotruecolor() missing' );
+	} elseif ( function_exists( 'imageistruecolor' ) ) {
+		ewwwio_debug_message( 'imageistruecolor() missing' );
+	} elseif ( function_exists( 'imagealphablending' ) ) {
+		ewwwio_debug_message( 'imagealphablending() missing' );
+	} elseif ( function_exists( 'imagesavealpha' ) ) {
+		ewwwio_debug_message( 'imagesavealpha() missing' );
+	} elseif ( $gd_version ) {
+		ewwwio_debug_message( "version: $gd_version" );
+	}
 	ewwwio_debug_message( 'sorry nope' );
 	return false;
 }
@@ -10641,7 +10654,7 @@ function ewww_image_optimizer_test_webp_mime_error() {
 		$positive_test = true;
 	} else {
 		ewwwio_debug_message( 'webp mime check failed: ' . bin2hex( substr( $test_result['body'], 0, 3 ) ) );
-		return __( 'WebP response failed mime-type test', 'ewww-image-optimizer' );
+		return __( 'WebP response failed mime-type test. Purge all caches and try again.', 'ewww-image-optimizer' );
 	}
 
 	// Run the "negative" test, which should receive the original PNG image.
@@ -14139,6 +14152,7 @@ function ewwwio_debug_message( $message ) {
 	if ( ! is_string( $message ) && ! is_int( $message ) && ! is_float( $message ) ) {
 		return;
 	}
+	$message = "$message";
 	if ( defined( 'WP_CLI' ) && WP_CLI ) {
 		WP_CLI::debug( $message );
 		return;
