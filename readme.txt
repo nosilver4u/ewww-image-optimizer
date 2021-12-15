@@ -145,6 +145,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: Lazy Loader incorrectly parses fall-back iframe from Google Tag Manager, triggering 403 errors in some WAF systems
 * fixed: error when disabling Easy IO
 * fixed: Easy IO misses some image URLs on multi-site when using domain-mapping
+* fixed: SVG level cannot be set when using API if svgcleaner was not installed previously
 
 = 6.3.0 =
 * added: EIO_LAZY_FOLD override to configure number of images above-the-fold that will be skipped by Lazy Load
