@@ -869,7 +869,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 				$home_domain = $this->parse_url( $home_url, PHP_URL_HOST );
 				$site_domain = $this->parse_url( $site_url, PHP_URL_HOST );
 				// If the home domain does not match the upload url, and the site domain does match...
-				if ( false === strpos( $upload_dir['baseurl'], $home_domain ) && false !== strpos( $upload_dir['baseurl'], $site_domain ) ) {
+				if ( $home_domain && false === strpos( $upload_dir['baseurl'], $home_domain ) && $site_domain && false !== strpos( $upload_dir['baseurl'], $site_domain ) ) {
 					$this->debug_message( "using WP URL (via get_site_url) with $site_domain rather than $home_domain" );
 					$home_url = $site_url;
 				}

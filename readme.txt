@@ -140,6 +140,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 6.3.1 =
 * added: free API-based WebP generation for servers that cannot generate WebP images locally
 * added: detection for Jetpack Boost lazy load function
+* changed: SVG placeholder setting removed from UI as PNG placeholders can now provide the same benefits (and better).
+* changed: Lazy Load no longer excludes first image in a page due to potential CLS issues and auto-scaling suppression
 * fixed: PNG thumbnails skipped from WebP conversion when using exec-free mode
 * fixed: SVG placeholders broken when existing img src is single-quoted
 * fixed: Lazy Loader incorrectly parses fall-back iframe from Google Tag Manager, triggering 403 errors in some WAF systems

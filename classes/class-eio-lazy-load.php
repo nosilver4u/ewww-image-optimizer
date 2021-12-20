@@ -324,7 +324,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				}
 			}
 
-			$above_the_fold   = apply_filters( 'eio_lazy_fold', 1 );
+			$above_the_fold   = apply_filters( 'eio_lazy_fold', 0 );
 			$images_processed = 0;
 			$replacements     = array();
 

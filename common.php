@@ -704,8 +704,6 @@ function ewww_image_optimizer_save_network_settings() {
 			update_site_option( 'ewww_image_optimizer_ll_autoscale', $ewww_image_optimizer_ll_autoscale );
 			$ewww_image_optimizer_use_lqip = ( empty( $_POST['ewww_image_optimizer_use_lqip'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_use_lqip', $ewww_image_optimizer_use_lqip );
-			$ewww_image_optimizer_use_siip = ( empty( $_POST['ewww_image_optimizer_use_siip'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_use_siip', $ewww_image_optimizer_use_siip );
 			$ewww_image_optimizer_ll_all_things = empty( $_POST['ewww_image_optimizer_ll_all_things'] ) ? '' : sanitize_textarea_field( wp_unslash( $_POST['ewww_image_optimizer_ll_all_things'] ) );
 			update_site_option( 'ewww_image_optimizer_ll_all_things', ewww_image_optimizer_exclude_paths_sanitize( $ewww_image_optimizer_ll_all_things ) );
 			$ewww_image_optimizer_ll_exclude = empty( $_POST['ewww_image_optimizer_ll_exclude'] ) ? '' : sanitize_textarea_field( wp_unslash( $_POST['ewww_image_optimizer_ll_exclude'] ) );
@@ -1083,7 +1081,6 @@ function ewww_image_optimizer_admin_init() {
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_lazy_load', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_ll_autoscale', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_use_lqip', 'boolval' );
-	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_use_siip', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_ll_all_things', 'sanitize_text_field' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_ll_exclude', 'ewww_image_optimizer_exclude_paths_sanitize' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_resize_detection', 'boolval' );
@@ -12816,7 +12813,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						</p>
 					</td>
 				</tr>
-				<tr id='ewww_image_optimizer_siip_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? '' : ' style="display:none"'; ?>>
+				<!-- <tr id='ewww_image_optimizer_siip_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? '' : ' style="display:none"'; ?>>
 					<td>&nbsp;</td>
 					<td>
 						<input type='checkbox' name='ewww_image_optimizer_use_siip' value='true' id='ewww_image_optimizer_use_siip' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_siip' ) ); ?> />
@@ -12826,7 +12823,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<?php esc_html_e( 'Inline SVG placeholders use fewer HTTP requests than right-sized PNG placeholders, but may not work with some themes.', 'ewww-image-optimizer' ); ?>
 						</p>
 					</td>
-				</tr>
+				</tr> -->
 				<tr id='ewww_image_optimizer_lqip_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? '' : ' style="display:none"'; ?>>
 					<td>&nbsp;</td>
 					<td>
