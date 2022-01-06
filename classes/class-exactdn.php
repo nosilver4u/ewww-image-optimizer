@@ -1805,8 +1805,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					$this->debug_message( 'searching for #(https?:)?//(?:www\.)?' . $escaped_upload_domain . $this->remove_path . '/#i and replacing with $1//' . $this->exactdn_domain . '/' );
 					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . $this->remove_path . '/#i', '$1//' . $this->exactdn_domain . '/', $content );
 				} else {
-					$this->debug_message( 'searching for #(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/([^"\'?&>]+?)?(nextgen-image|' . $this->include_path . '|' . $this->content_path . ')/#i and replacing with $1//' . $this->exactdn_domain . '/$2$3/' );
-					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/([^"\'?>]+?)?(nextgen-image|' . $this->include_path . '|' . $this->content_path . ')/#i', '$1//' . $this->exactdn_domain . '/$2$3/', $content );
+					$this->debug_message( 'searching for #(https?:)?//(?:www\.)?' . $escaped_upload_domain . '(/[^"\'?&>:/]+?)*?/(nextgen-image|' . $this->include_path . '|' . $this->content_path . ')/#i and replacing with $1//' . $this->exactdn_domain . '$2/$3/' );
+					$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '(/[^"\'?&>:/]+?)*?/(nextgen-image|' . $this->include_path . '|' . $this->content_path . ')/#i', '$1//' . $this->exactdn_domain . '$2/$3/', $content );
 				}
 				$content = str_replace( '?wpcontent-bypass?', $this->content_path, $content );
 			}
