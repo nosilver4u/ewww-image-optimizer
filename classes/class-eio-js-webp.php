@@ -85,8 +85,8 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		add_filter( 'ewww_image_optimizer_filter_page_output', array( $this, 'filter_page_output' ), 20 );
 		// Filter for NextGEN image urls within JSON.
 		add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ), 11 );
-		// Filter for WooCommerce product variations JSON.
-		add_filter( 'woocommerce_pre_json_available_variations', array( $this, 'woocommerce_pre_json_available_variations' ) );
+		// Filter for WooCommerce product variations (individual items).
+		add_filter( 'woocommerce_available_variation', array( $this, 'woocommerce_available_variation' ) );
 
 		// Load up the minified check script.
 		$this->check_webp_script = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'includes/check-webp.min.js' );
@@ -818,41 +818,37 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 	}
 
 	/**
-	 * Adds WebP URLs to the product variations data before it is JSON-encoded.
+	 * Adds WebP URLs to the product variation data before it is JSON-encoded.
 	 *
-	 * @param array $variations The product variations with all the associated data.
-	 * @return array The product variations with WebP image URLs added.
+	 * @param array $variation The product variation with all associated data.
+	 * @return array The product variation with WebP image URLs added.
 	 */
-	function woocommerce_pre_json_available_variations( $variations ) {
+	function woocommerce_available_variation( $variation ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		if ( $this->is_iterable( $variations ) ) {
-			foreach ( $variations as $index => $variation ) {
-				if ( $this->is_iterable( $variation['image'] ) ) {
-					if ( ! empty( $variation['image']['src'] ) && $this->validate_image_url( $variation['image']['src'] ) ) {
-						$variations[ $index ]['image']['src_webp'] = $this->generate_url( $variation['image']['src'] );
-					}
-					if ( ! empty( $variation['image']['full_src'] ) && $this->validate_image_url( $variation['image']['full_src'] ) ) {
-						$variations[ $index ]['image']['full_src_webp'] = $this->generate_url( $variation['image']['full_src'] );
-					}
-					if ( ! empty( $variation['image']['gallery_thumbnail_src'] ) && $this->validate_image_url( $variation['image']['gallery_thumbnail_src'] ) ) {
-						$variations[ $index ]['image']['gallery_thumbnail_src_webp'] = $this->generate_url( $variation['image']['gallery_thumbnail_src'] );
-					}
-					if ( ! empty( $variation['image']['thumb_src'] ) && $this->validate_image_url( $variation['image']['thumb_src'] ) ) {
-						$variations[ $index ]['image']['thumb_src_webp'] = $this->generate_url( $variation['image']['thumb_src'] );
-					}
-					if ( ! empty( $variation['image']['srcset'] ) ) {
-						$webp_srcset = $this->srcset_replace( $variation['image']['srcset'] );
-						if ( $webp_srcset ) {
-							$variations[ $index ]['image']['srcset_webp'] = $webp_srcset;
-						}
-					}
+		if ( $this->is_iterable( $variation ) && $this->is_iterable( $variation['image'] ) ) {
+			if ( ! empty( $variation['image']['src'] ) && $this->validate_image_url( $variation['image']['src'] ) ) {
+				$variation['image']['src_webp'] = $this->generate_url( $variation['image']['src'] );
+			}
+			if ( ! empty( $variation['image']['full_src'] ) && $this->validate_image_url( $variation['image']['full_src'] ) ) {
+				$variation['image']['full_src_webp'] = $this->generate_url( $variation['image']['full_src'] );
+			}
+			if ( ! empty( $variation['image']['gallery_thumbnail_src'] ) && $this->validate_image_url( $variation['image']['gallery_thumbnail_src'] ) ) {
+				$variation['image']['gallery_thumbnail_src_webp'] = $this->generate_url( $variation['image']['gallery_thumbnail_src'] );
+			}
+			if ( ! empty( $variation['image']['thumb_src'] ) && $this->validate_image_url( $variation['image']['thumb_src'] ) ) {
+				$variation['image']['thumb_src_webp'] = $this->generate_url( $variation['image']['thumb_src'] );
+			}
+			if ( ! empty( $variation['image']['srcset'] ) ) {
+				$webp_srcset = $this->srcset_replace( $variation['image']['srcset'] );
+				if ( $webp_srcset ) {
+					$variation['image']['srcset_webp'] = $webp_srcset;
 				}
 			}
 			if ( $this->function_exists( 'print_r' ) ) {
-				$this->debug_message( print_r( $variations, true ) );
+				$this->debug_message( print_r( $variation, true ) );
 			}
 		}
-		return $variations;
+		return $variation;
 	}
 
 	/**
