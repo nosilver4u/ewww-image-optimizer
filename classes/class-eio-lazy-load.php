@@ -110,6 +110,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			}
 
 			add_filter( 'vc_get_vc_grid_data_response', array( $this, 'filter_page_output' ) );
+			add_filter( 'woocommerce_prl_ajax_response_html', array( $this, 'filter_page_output' ) );
 
 			// Filter for FacetWP JSON responses.
 			add_filter( 'facetwp_render_output', array( $this, 'filter_facetwp_json_output' ) );
