@@ -2,9 +2,9 @@
 Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization, lossless, lossy, seo, scale
-Requires at least: 5.5
-Tested up to: 5.8
-Requires PHP: 7.1
+Requires at least: 5.6
+Tested up to: 5.9
+Requires PHP: 7.2
 Stable tag: 6.3.0
 License: GPLv3
 
@@ -149,6 +149,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: Easy IO misses some image URLs on multi-site when using domain-mapping
 * fixed: SVG level cannot be set when using API if svgcleaner was not installed previously
 * fixed: Easy IO URL rewriter changing links if they matched a custom upload folder
+* removed: PHP 7.1 is no longer supported
 
 = 6.3.0 =
 * added: EIO_LAZY_FOLD override to configure number of images above-the-fold that will be skipped by Lazy Load

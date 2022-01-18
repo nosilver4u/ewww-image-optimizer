@@ -1206,9 +1206,9 @@ function ewww_image_optimizer_admin_init() {
 		add_action( 'admin_footer', 'ewww_image_optimizer_lr_sync_script' );
 	}
 	// Increase the version when the next bump is coming.
-	if ( defined( 'PHP_VERSION_ID' ) && PHP_VERSION_ID < 50600 ) {
-		add_action( 'network_admin_notices', 'ewww_image_optimizer_php55_warning' );
-		add_action( 'admin_notices', 'ewww_image_optimizer_php55_warning' );
+	if ( defined( 'PHP_VERSION_ID' ) && PHP_VERSION_ID < 70200 ) {
+		add_action( 'network_admin_notices', 'ewww_image_optimizer_php72_warning' );
+		add_action( 'admin_notices', 'ewww_image_optimizer_php72_warning' );
 	}
 	ewwwio_memory( __FUNCTION__ );
 }
@@ -2172,10 +2172,10 @@ function ewww_image_optimizer_notice_exactdn_sp_conflict() {
 }
 
 /**
- * Display a notice that PHP version 5.5 support is going away.
+ * Display a notice that PHP version 7.2 will be required in a future version.
  */
-function ewww_image_optimizer_php55_warning() {
-	echo '<div id="ewww-image-optimizer-notice-php55" class="notice notice-info"><p><a href="https://docs.ewww.io/article/55-upgrading-php" target="_blank" data-beacon-article="5ab2baa6042863478ea7c2ae">' . esc_html__( 'The next major release of EWWW Image Optimizer will require PHP 5.6 or greater. Newer versions of PHP, like 7.1 and 7.2, are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</a></p></div>';
+function ewww_image_optimizer_php72_warning() {
+	echo '<div id="ewww-image-optimizer-notice-php72" class="notice notice-info"><p><a href="https://docs.ewww.io/article/55-upgrading-php" target="_blank" data-beacon-article="5ab2baa6042863478ea7c2ae">' . esc_html__( 'The next release of EWWW Image Optimizer will require PHP 7.2 or greater. Newer versions of PHP are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</a></p></div>';
 }
 
 /**
