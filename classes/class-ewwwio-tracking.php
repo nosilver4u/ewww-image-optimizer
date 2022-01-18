@@ -108,9 +108,15 @@ class EWWWIO_Tracking {
 		$data['memory_limit']     = ewwwio_memory_limit();
 		$data['time_limit']       = (int) ini_get( 'max_execution_time' );
 		$data['operating_system'] = ewww_image_optimizer_function_exists( 'php_uname' ) ? php_uname( 's' ) : '';
-		$data['image_library']    = ewww_image_optimizer_gd_support() ? 'gd' : '';
-		$data['image_library']    = ewww_image_optimizer_imagick_support() ? 'imagick' : '';
-		$data['image_library']    = ewww_image_optimizer_gmagick_support() ? 'gmagick' : '';
+
+		$data['image_library'] = '';
+		if ( ewww_image_optimizer_gmagick_support() ) {
+			$data['image_library'] = 'gmagick';
+		} elseif ( ewww_image_optimizer_imagick_support() ) {
+			$data['image_library'] = 'imagick';
+		} elseif ( ewww_image_optimizer_gd_support() ) {
+			$data['image_library'] = 'gd';
+		}
 
 		$data['cloud_api']     = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? true : false;
 		$data['keep_metadata'] = ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ? false : true;

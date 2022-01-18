@@ -150,6 +150,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: Easy IO misses some image URLs on multi-site when using domain-mapping
 * fixed: SVG level cannot be set when using API if svgcleaner was not installed previously
 * fixed: Easy IO URL rewriter changing links if they matched a custom upload folder
+* fixed: Easy IO incompatible with Toolset Blocks
 * fixed: Easy IO incorrectly sizing wide/full width cover blocks
 * fixed: SWIS CDN compat called too early in some cases
 * removed: PHP 7.1 is no longer supported
