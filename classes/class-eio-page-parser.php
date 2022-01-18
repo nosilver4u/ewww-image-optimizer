@@ -52,9 +52,9 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 			$unquoted_pattern = '';
 			$search_pattern   = '#(?P<img_tag><img\s[^\\\\>]*?>)#is';
 			if ( $hyperlinks ) {
-				$this->debug_message( 'using figure+hyperlink(a) patterns with src required' );
-				$search_pattern   = '#(?:<figure[^>]*?\s+?class\s*=\s*["\'](?P<figure_class>[\w\s-]+?)["\'][^>]*?>\s*)?(?:<a[^>]*?\s+?href\s*=\s*["\'](?P<link_url>[^\s]+?)["\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*("|\')(?P<img_url>(?!\4)[^\\\\]+?)\4[^>]*?>){1}(?:\s*</a>)?#is';
-				$unquoted_pattern = '#(?:<figure[^>]*?\s+?class\s*=\s*(?P<figure_class>[\w-]+)[^>]*?>\s*)?(?:<a[^>]*?\s+?href\s*=\s*(?P<link_url>[^"\'\\\\<>][^\s<>]+)[^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*(?P<img_url>[^"\'\\\\<>][^\s\\\\<>]+)(?:\s[^>]*?)?>){1}(?:\s*</a>)?#is';
+				$this->debug_message( 'using div/figure+hyperlink(a) patterns with src required' );
+				$search_pattern   = '#(?:<div[^>]*?\s+?class\s*=\s*["\'](?P<div_class>[\w\s-]+?)["\'][^>]*?>\s*(?:<span[^>]*?></span>)?)?(?:<figure[^>]*?\s+?class\s*=\s*["\'](?P<figure_class>[\w\s-]+?)["\'][^>]*?>\s*)?(?:<a[^>]*?\s+?href\s*=\s*["\'](?P<link_url>[^\s]+?)["\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*("|\')(?P<img_url>(?!\5)[^\\\\]+?)\5[^>]*?>){1}(?:\s*</a>)?#is';
+				$unquoted_pattern = '#(?:<div[^>]*?\s+?class\s*=\s*(?P<div_class>[\w-]+?)[^>]*?>\s*(?:<span[^>]*?></span>)?)?(?:<figure[^>]*?\s+?class\s*=\s*(?P<figure_class>[\w-]+?)[^>]*?>\s*)?(?:<a[^>]*?\s+?href\s*=\s*(?P<link_url>[^"\'\\\\<>][^\s<>]+)[^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*(?P<img_url>[^"\'\\\\<>][^\s\\\\<>]+)(?:\s[^>]*?)?>){1}(?:\s*</a>)?#is';
 			} elseif ( $src_required ) {
 				$this->debug_message( 'using plain img pattern, src still required' );
 				$search_pattern   = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*("|\')(?P<img_url>(?!\2)[^\\\\]+?)\2[^>]*?>)#is';
