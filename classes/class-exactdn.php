@@ -1187,6 +1187,11 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						} elseif ( ! empty( $images['figure_class'][ $index ] ) && false !== strpos( $images['figure_class'][ $index ], 'alignwide' ) && current_theme_supports( 'align-wide' ) ) {
 							$constrain_width = (int) apply_filters( 'exactdn_wide_align_image_width', max( 1500, $content_width ) );
 						}
+						if ( ! empty( $images['div_class'][ $index ] ) && false !== strpos( $images['div_class'][ $index ], 'alignfull' ) && current_theme_supports( 'align-wide' ) ) {
+							$constrain_width = (int) apply_filters( 'exactdn_full_align_image_width', max( 1920, $content_width ) );
+						} elseif ( ! empty( $images['div_class'][ $index ] ) && false !== strpos( $images['div_class'][ $index ], 'alignwide' ) && current_theme_supports( 'align-wide' ) ) {
+							$constrain_width = (int) apply_filters( 'exactdn_wide_align_image_width', max( 1500, $content_width ) );
+						}
 						// If width is available, constrain to $content_width.
 						if ( false !== $width && false === strpos( $width, '%' ) && is_numeric( $constrain_width ) ) {
 							if ( $width > $constrain_width && false !== $height && false === strpos( $height, '%' ) ) {
