@@ -854,7 +854,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 
 			// NOTE: we don't want this for Easy IO as they might be using SWIS to deliver
 			// JS/CSS from a different CDN domain, and that will break with Easy IO!
-			if ( 'ExactDN' !== get_class( $this ) && 'EIO_Base' !== get_class( $this ) && function_exists( 'swis' ) && swis()->settings->get_option( 'cdn_domain' ) ) {
+			if ( 'ExactDN' !== get_class( $this ) && 'EIO_Base' !== get_class( $this ) && function_exists( 'swis' ) && is_object( swis()->settings ) && swis()->settings->get_option( 'cdn_domain' ) ) {
 				$this->allowed_urls[]    = swis()->settings->get_option( 'cdn_domain' );
 				$this->allowed_domains[] = $this->parse_url( swis()->settings->get_option( 'cdn_domain' ), PHP_URL_HOST );
 			}
