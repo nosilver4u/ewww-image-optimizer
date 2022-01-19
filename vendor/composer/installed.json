@@ -1,0 +1,68 @@
+{
+    "packages": [
+        {
+            "name": "lsolesen/pel",
+            "version": "0.9.9",
+            "version_normalized": "0.9.9.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pel/pel.git",
+                "reference": "95dd3c16161c588f0ac66662c1870a073159e5ec"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pel/pel/zipball/95dd3c16161c588f0ac66662c1870a073159e5ec",
+                "reference": "95dd3c16161c588f0ac66662c1870a073159e5ec",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4.0"
+            },
+            "require-dev": {
+                "ext-gd": "*",
+                "phpunit/phpunit": ">=4.8.36 <8",
+                "satooshi/php-coveralls": "1.0.*",
+                "squizlabs/php_codesniffer": "^3.0.0"
+            },
+            "time": "2020-11-07T06:04:18+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "lsolesen\\pel\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Lars Olesen",
+                    "email": "lars@intraface.dk",
+                    "homepage": "http://intraface.dk",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Martin Geisler",
+                    "email": "martin@geisler.net",
+                    "homepage": "http://geisler.net",
+                    "role": "Developer"
+                }
+            ],
+            "description": "PHP Exif Library. A library for reading and writing Exif headers in JPEG and TIFF images using PHP.",
+            "homepage": "http://pel.github.com/pel/",
+            "keywords": [
+                "exif",
+                "image"
+            ],
+            "support": {
+                "issues": "https://github.com/pel/pel/issues",
+                "source": "https://github.com/pel/pel/tree/0.9.9"
+            },
+            "install-path": "../lsolesen/pel"
+        }
+    ],
+    "dev": true,
+    "dev-package-names": []
+}
