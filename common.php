@@ -38,7 +38,9 @@ if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_RELATIVE' ) ) {
 }
 
 // Used for manipulating exif info.
-require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/pel/autoload.php' );
+if ( ! class_exists( '\lsolesen\pel\PelJpeg' ) ) {
+	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/autoload.php' );
+}
 use lsolesen\pel\PelJpeg;
 use lsolesen\pel\PelTag;
 
