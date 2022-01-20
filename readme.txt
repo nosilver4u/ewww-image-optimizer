@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.6
 Tested up to: 5.9
 Requires PHP: 7.2
-Stable tag: 6.3.0
+Stable tag: 6.4.0
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -137,7 +137,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
-= 6.3.1 =
+= 6.4.0 =
 * added: free API-based WebP generation for servers that cannot generate WebP images locally
 * added: detection for Jetpack Boost lazy load function
 * added: JS WebP handling for WooCommerce product variations
@@ -153,6 +153,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: Easy IO incompatible with Toolset Blocks
 * fixed: Easy IO incorrectly sizing wide/full width cover blocks
 * fixed: SWIS CDN compat called too early in some cases
+* updated: PHP EXIF library dependency updated to 0.9.9
 * removed: PHP 7.1 is no longer supported
 
 = 6.3.0 =
