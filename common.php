@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '640.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '640.03' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -1689,11 +1689,16 @@ function ewww_image_optimizer_install_table() {
 			}
 		}
 		if (
-			( false !== strpos( $mysql_version, '5.7.' ) || false !== strpos( $mysql_version, '10.1.' ) ) &&
+			(
+				false !== strpos( $mysql_version, '5.7.' ) ||
+				false !== strpos( $mysql_version, '8.0.' ) ||
+				false !== strpos( $mysql_version, '10.1.' )
+			) &&
 			$timestamp_upgrade_needed
 		) {
-			if ( is_multisite() ) {
-				// Just do the upgrade.
+			$count = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->ewwwio_images" );
+			if ( is_multisite() || $count < 10000 ) {
+				// Do the upgrade in real-time for multi-site and sites with less than 10k image records.
 				$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images MODIFY updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" );
 			} else {
 				// Do it later via user interaction.
@@ -2285,7 +2290,6 @@ function ewww_image_optimizer_notice_media_listmode() {
  * Instruct the user to run the db upgrade.
  */
 function ewww_image_optimizer_620_upgrade_needed() {
-	// $wpdb->query( "ALTER TABLE $wpdb->ewwwio_images MODIFY updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" );
 	echo "<div id='ewww-image-optimizer-upgrade-notice' class='notice notice-info'><p>" .
 		esc_html__( 'EWWW Image Optimizer needs to upgrade the image log table.', 'ewww-image-optimizer' ) . '<br>' .
 		'<a href="' . esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_620_upgrade' ) ) . '" class="button-secondary">' .
