@@ -139,6 +139,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.4.1 =
 * fixed: database upgrade fails on MySQL 8.0.x
+* fixed: Auto-scale incorrectly handles Divi parallax background images
 
 = 6.4.0 =
 * added: free API-based WebP generation for servers that cannot generate WebP images locally

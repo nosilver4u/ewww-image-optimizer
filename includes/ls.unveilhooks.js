@@ -60,6 +60,9 @@
 					} else if (window.lazySizes.hC(e.target,'elementor-bg')){
 						console.log('found elementor-bg with data-bg');
 						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
+					} else if (window.lazySizes.hC(e.target,'et_parallax_bg')){
+						console.log('found et_parallax_bg with data-bg');
+						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
 					} else if (window.lazySizes.hC(e.target,'bg-image-crop')){
 						console.log('found bg-image-crop with data-bg');
 						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
