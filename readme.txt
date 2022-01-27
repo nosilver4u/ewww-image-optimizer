@@ -138,8 +138,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.4.1 =
+* added: use decoding=async to prevent images from blocking text render
 * fixed: database upgrade fails on MySQL 8.0.x
 * fixed: Auto-scale incorrectly handles Divi parallax background images
+* fixed: native lazy loading used on inline PNG placeholders
 
 = 6.4.0 =
 * added: free API-based WebP generation for servers that cannot generate WebP images locally

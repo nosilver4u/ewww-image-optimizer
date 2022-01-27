@@ -543,14 +543,14 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( $this->parsing_exactdn && $this->allow_lqip && apply_filters( 'eio_use_lqip', $this->get_option( $this->prefix . 'use_lqip' ), $file ) ) {
 				$placeholder_types[] = 'lqip';
 			}
-			if ( apply_filters( 'eio_use_siip', $this->get_option( $this->prefix . 'use_siip' ), $file ) ) {
-				$placeholder_types[] = 'siip';
-			}
 			if ( $this->parsing_exactdn && apply_filters( 'eio_use_piip', true, $file ) ) {
 				$placeholder_types[] = 'epip';
 			}
 			if ( $this->allow_piip && apply_filters( 'eio_use_piip', true, $file ) ) {
 				$placeholder_types[] = 'piip';
+			}
+			if ( apply_filters( 'eio_use_siip', $this->get_option( $this->prefix . 'use_siip' ), $file ) ) {
+				$placeholder_types[] = 'siip';
 			}
 
 			if ( // This isn't super helpful. It makes PIIPs that don't help with auto-scaling.
@@ -590,7 +590,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						if ( false === strpos( $file, 'nggid' ) && ! preg_match( '#\.svg(\?|$)#', $file ) && strpos( $file, $this->exactdn_domain ) ) {
 							if ( $physical_width && $physical_height && $this->allow_piip ) {
 								$placeholder_src = $this->create_piip( $physical_width, $physical_height );
-								$use_native_lazy = true;
+								if ( false === strpos( $placeholder_src, 'data:image' ) ) {
+									$use_native_lazy = true;
+								}
 								break 2;
 							} else {
 								$placeholder_src = add_query_arg( array( 'lazy' => 2 ), $file );
@@ -615,7 +617,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 							$png_placeholder_src = $this->create_piip( $physical_width, $physical_height );
 							if ( $png_placeholder_src ) {
 								$placeholder_src = $png_placeholder_src;
-								$use_native_lazy = true;
+								if ( false === strpos( $placeholder_src, 'data:image' ) ) {
+									$use_native_lazy = true;
+								}
 								break 2;
 							}
 						}
@@ -632,6 +636,11 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			$loading_attr = $this->get_attribute( $image, 'loading' );
 			if ( ( ! defined( 'EIO_DISABLE_NATIVE_LAZY' ) || ! EIO_DISABLE_NATIVE_LAZY ) && ! $loading_attr && $use_native_lazy ) {
 				$this->set_attribute( $image, 'loading', 'lazy' );
+			}
+			// Check for the decoding attribute.
+			$decoding_attr = $this->get_attribute( $image, 'decoding' );
+			if ( ( ! defined( 'EIO_DISABLE_DECODING_ATTR' ) || ! EIO_DISABLE_DECODING_ATTR ) && ! $decoding_attr ) {
+				$this->set_attribute( $image, 'decoding', 'async' );
 			}
 
 			if ( $srcset ) {
