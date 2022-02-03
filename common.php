@@ -8977,8 +8977,8 @@ function ewww_image_optimizer_relativize_path( $file ) {
 	if ( defined( 'EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER' ) && EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER && strpos( $file, EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER ) === 0 ) {
 		return str_replace( EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER, 'EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER', $file );
 	}
-	if ( strpos( $file, ABSPATH ) === 0 ) {
-		return str_replace( ABSPATH, 'ABSPATH', $file );
+	if ( strpos( $file, trailingslashit( ABSPATH ) ) === 0 ) {
+		return str_replace( trailingslashit( ABSPATH ), 'ABSPATH', $file );
 	}
 	if ( defined( 'WP_CONTENT_DIR' ) && WP_CONTENT_DIR && strpos( $file, WP_CONTENT_DIR ) === 0 ) {
 		return str_replace( WP_CONTENT_DIR, 'WP_CONTENT_DIR', $file );
@@ -9004,7 +9004,7 @@ function ewww_image_optimizer_absolutize_path( $file ) {
 		return str_replace( 'EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER', EWWW_IMAGE_OPTIMIZER_RELATIVE_FOLDER, $file );
 	}
 	if ( strpos( $file, 'ABSPATH' ) === 0 ) {
-		return str_replace( 'ABSPATH', ABSPATH, $file );
+		return str_replace( 'ABSPATH', trailingslashit( ABSPATH ), $file );
 	}
 	if ( defined( 'WP_CONTENT_DIR' ) && WP_CONTENT_DIR && strpos( $file, 'WP_CONTENT_DIR' ) === 0 ) {
 		return str_replace( 'WP_CONTENT_DIR', WP_CONTENT_DIR, $file );
