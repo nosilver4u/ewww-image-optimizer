@@ -792,6 +792,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 					$this->allowed_urls[] = $s3_scheme . '://' . $s3_domain . '/';
 					if ( $as3cf->get_setting( 'enable-delivery-domain' ) && $as3cf->get_setting( 'delivery-domain' ) ) {
 						$delivery_domain         = $as3cf->get_setting( 'delivery-domain' );
+						$this->s3_active         = $delivery_domain;
 						$this->allowed_urls[]    = $s3_scheme . '://' . $delivery_domain . '/';
 						$this->allowed_domains[] = $delivery_domain;
 						$this->debug_message( "found WOM delivery domain of $delivery_domain" );
