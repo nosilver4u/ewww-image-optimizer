@@ -651,6 +651,9 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 					continue;
 				}
 				$this->debug_message( "looking for path $allowed_url in $url" );
+				if ( ! empty( $this->s3_active ) && ! empty( $this->s3_object_prefix ) ) {
+					$this->debug_message( "checking first for $this->s3_active and $allowed_url" . $this->s3_object_prefix );
+				}
 				if (
 					! empty( $this->s3_active ) && // We've got an S3 configuration, and...
 					false !== strpos( $url, $this->s3_active ) && // the S3 domain is present in the URL, and...
@@ -800,7 +803,8 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 					$this->allowed_urls[] = $s3_scheme . '://' . $s3_domain . '/';
 					if ( $as3cf->get_setting( 'enable-delivery-domain' ) && $as3cf->get_setting( 'delivery-domain' ) ) {
 						$delivery_domain         = $as3cf->get_setting( 'delivery-domain' );
-						$this->allowed_urls[]    = $s3_scheme . '://' . $delivery_domain . '/' . $this->s3_object_prefix;
+						$this->s3_active         = $delivery_domain;
+						$this->allowed_urls[]    = $s3_scheme . '://' . $delivery_domain . '/';
 						$this->allowed_domains[] = $delivery_domain;
 						$this->debug_message( "found WOM delivery domain of $delivery_domain" );
 					}
