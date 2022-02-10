@@ -1,3 +1,10 @@
+= 6.4.1 =
+* added: use decoding=async to prevent images from blocking text render
+* fixed: database upgrade fails on MySQL 8.0.x
+* fixed: Auto-scale incorrectly handles Divi parallax background images
+* fixed: native lazy loading used on inline PNG placeholders
+* fixed: WebP rewriters not recognizing WP Offload Media Path (object prefix) setting
+
 = 6.4.0 =
 * added: free API-based WebP generation for servers that cannot generate WebP images locally
 * added: detection for Jetpack Boost lazy load function

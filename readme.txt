@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.6
 Tested up to: 5.9
 Requires PHP: 7.2
-Stable tag: 6.4.0
+Stable tag: 6.4.1
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -142,6 +142,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: database upgrade fails on MySQL 8.0.x
 * fixed: Auto-scale incorrectly handles Divi parallax background images
 * fixed: native lazy loading used on inline PNG placeholders
+* fixed: WebP rewriters not recognizing WP Offload Media Path (object prefix) setting
 
 = 6.4.0 =
 * added: free API-based WebP generation for servers that cannot generate WebP images locally
