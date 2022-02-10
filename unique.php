@@ -3127,7 +3127,7 @@ function ewww_image_optimizer_install_pngout() {
 	$tool_path = trailingslashit( EWWW_IMAGE_OPTIMIZER_TOOL_PATH );
 	if ( empty( $pngout_error ) ) {
 		if ( PHP_OS === 'Linux' || PHP_OS === 'FreeBSD' ) {
-			$download_result = download_url( 'http://www.jonof.id.au/static/kenutils/pngout-' . $latest . '-' . $os_string . '-static.tar.gz' );
+			$download_result = download_url( 'http://www.jonof.id.au/files/kenutils/pngout-' . $latest . '-' . $os_string . '-static.tar.gz' );
 			if ( is_wp_error( $download_result ) ) {
 				$pngout_error = $download_result->get_error_message();
 			} else {
@@ -3177,7 +3177,7 @@ function ewww_image_optimizer_install_pngout() {
 			$latest          = '20200115';
 			$os_ext          = 'tar.gz';
 			$os_ext          = 'zip';
-			$download_result = download_url( 'http://static.jonof.id.au/dl/kenutils/pngout-' . $latest . '-macos.' . $os_ext );
+			$download_result = download_url( 'http://www.jonof.id.au/files/kenutils/pngout-' . $latest . '-macos.' . $os_ext );
 			if ( is_wp_error( $download_result ) ) {
 				$pngout_error = $download_result->get_error_message();
 			} else {
