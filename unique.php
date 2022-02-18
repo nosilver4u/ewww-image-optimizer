@@ -1981,11 +1981,19 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	$file_group = 'unknown';
 	if ( function_exists( 'posix_getpwuid' ) ) {
 		$file_owner = posix_getpwuid( fileowner( $file ) );
-		$file_owner = 'xxxxxxxx' . substr( $file_owner['name'], -4 );
+		if ( $file_owner ) {
+			$file_owner = 'xxxxxxxx' . substr( $file_owner['name'], -4 );
+		} else {
+			$file_owner = 'unknown';
+		}
 	}
 	if ( function_exists( 'posix_getgrgid' ) ) {
 		$file_group = posix_getgrgid( filegroup( $file ) );
-		$file_group = 'xxxxx' . substr( $file_group['name'], -5 );
+		if ( $file_group ) {
+			$file_group = 'xxxxx' . substr( $file_group['name'], -5 );
+		} else {
+			$file_group = 'unknown';
+		}
 	}
 	ewwwio_debug_message( "permissions: $file_perms, owner: $file_owner, group: $file_group" );
 	$type = ewww_image_optimizer_mimetype( $file, 'i' );
