@@ -2928,10 +2928,6 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		function filter_facetwp_json_output( $output ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			if ( empty( $output['template'] ) || ! is_string( $output['template'] ) ) {
-				$this->debug_message( 'no template data available' );
-				if ( $this->function_exists( 'print_r' ) ) {
-					$this->debug_message( print_r( $output, true ) );
-				}
 				return $output;
 			}
 			$this->filtering_the_page = true;

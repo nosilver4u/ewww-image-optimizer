@@ -68,6 +68,8 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 		} else {
 			add_filter( 'ewww_image_optimizer_filter_page_output', array( $this, 'filter_page_output' ), 10 );
 		}
+		// Filter for FacetWP JSON responses.
+		add_filter( 'facetwp_render_output', array( $this, 'filter_facetwp_json_output' ) );
 
 		$allowed_urls = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' );
 		if ( $this->is_iterable( $allowed_urls ) ) {
@@ -336,6 +338,28 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 		}
 		$this->debug_message( 'all done parsing page for picture webp' );
 		return $buffer;
+	}
+
+	/**
+	 * Parse template data from FacetWP that will be included in JSON response.
+	 * https://facetwp.com/documentation/developers/output/facetwp_render_output/
+	 *
+	 * @param array $output The full array of FacetWP data.
+	 * @return array The FacetWP data with WebP images.
+	 */
+	function filter_facetwp_json_output( $output ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( empty( $output['template'] ) || ! is_string( $output['template'] ) ) {
+			return $output;
+		}
+
+		$template = $this->filter_page_output( $output['template'] );
+		if ( $template ) {
+			$this->debug_message( 'template data modified' );
+			$output['template'] = $template;
+		}
+
+		return $output;
 	}
 
 	/**

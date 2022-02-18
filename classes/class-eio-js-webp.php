@@ -87,6 +87,8 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ), 11 );
 		// Filter for WooCommerce product variations (individual items).
 		add_filter( 'woocommerce_available_variation', array( $this, 'woocommerce_available_variation' ) );
+		// Filter for FacetWP JSON responses.
+		add_filter( 'facetwp_render_output', array( $this, 'filter_facetwp_json_output' ) );
 
 		// Load up the minified check script.
 		$this->check_webp_script = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'includes/check-webp.min.js' );
@@ -844,11 +846,30 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 					$variation['image']['srcset_webp'] = $webp_srcset;
 				}
 			}
-			if ( $this->function_exists( 'print_r' ) ) {
-				$this->debug_message( print_r( $variation, true ) );
-			}
 		}
 		return $variation;
+	}
+
+	/**
+	 * Parse template data from FacetWP that will be included in JSON response.
+	 * https://facetwp.com/documentation/developers/output/facetwp_render_output/
+	 *
+	 * @param array $output The full array of FacetWP data.
+	 * @return array The FacetWP data with WebP images.
+	 */
+	function filter_facetwp_json_output( $output ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( empty( $output['template'] ) || ! is_string( $output['template'] ) ) {
+			return $output;
+		}
+
+		$template = $this->filter_page_output( $output['template'] );
+		if ( $template ) {
+			$this->debug_message( 'template data modified' );
+			$output['template'] = $template;
+		}
+
+		return $output;
 	}
 
 	/**

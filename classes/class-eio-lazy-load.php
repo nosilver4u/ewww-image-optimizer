@@ -779,10 +779,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		function filter_facetwp_json_output( $output ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			if ( empty( $output['template'] ) || ! is_string( $output['template'] ) ) {
-				$this->debug_message( 'no template data available' );
-				if ( $this->function_exists( 'print_r' ) ) {
-					$this->debug_message( print_r( $output, true ) );
-				}
 				return $output;
 			}
 
@@ -1228,6 +1224,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			);
 			return;
 		}
+
 		/**
 		 * Load minified inline version of lazysizes script.
 		 */
