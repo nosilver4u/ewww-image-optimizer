@@ -11708,7 +11708,7 @@ function ewww_image_optimizer_rescue_mode() {
 	<?php endif; ?>
 	<?php if ( in_array( 'jswebp', $frontend_functions, true ) ) : ?>
 				<li>
-					<?php esc_html_e( 'Enabling Lazy Load alongside JS WebP enables better compatibility with some themes/plugins. Alternatively, you may try <picture> WebP Rewriting for a JavaScript-free delivery method.', 'ewww-image-optimizer' ); ?>
+					<?php esc_html_e( 'Enabling Lazy Load alongside JS WebP enables better compatibility with some themes/plugins. Alternatively, you may try Picture WebP Rewriting for a JavaScript-free delivery method.', 'ewww-image-optimizer' ); ?>
 				</li>
 	<?php endif; ?>
 	<?php if ( in_array( 'picturewebp', $frontend_functions, true ) ) : ?>
@@ -12329,7 +12329,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$frontend_functions[] = __( 'JS WebP Rewriting', 'ewww-image-optimizer' );
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) ) {
-		$frontend_functions[] = __( '<picture> WebP Rewriting', 'ewww-image-optimizer' );
+		$frontend_functions[] = __( 'Picture WebP Rewriting', 'ewww-image-optimizer' );
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		$frontend_functions[] = __( 'Easy IO', 'ewww-image-optimizer' );
@@ -13067,9 +13067,9 @@ AddType image/webp .webp</pre>
 						</div>
 			<?php endif; ?>
 		<?php elseif ( $cf_host && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) : ?>
-			<p><?php esc_html_e( 'Your site is using Cloudflare, please use JS WebP or <picture> WebP rewriting to prevent broken images on older browsers.', 'ewww-image-optimizer' ); ?></p>
+			<p><?php esc_html_e( 'Your site is using Cloudflare, please use JS WebP or Picture WebP rewriting to prevent broken images on older browsers.', 'ewww-image-optimizer' ); ?></p>
 		<?php elseif ( $cloudways_host && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) : ?>
-			<p><?php esc_html_e( 'Cloudways sites should use JS WebP or <picture> WebP rewriting to prevent broken images on older browsers.', 'ewww-image-optimizer' ); ?></p>
+			<p><?php esc_html_e( 'Cloudways sites should use JS WebP or Picture WebP rewriting to prevent broken images on older browsers.', 'ewww-image-optimizer' ); ?></p>
 		<?php endif; ?>
 					</td>
 				</tr>
@@ -13089,7 +13089,7 @@ AddType image/webp .webp</pre>
 					<th>&nbsp;</th>
 					<td>
 						<input type='checkbox' id='ewww_image_optimizer_picture_webp' name='ewww_image_optimizer_picture_webp' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) ); ?> />
-						<label for='ewww_image_optimizer_picture_webp'><strong><?php esc_html_e( '<picture> WebP Rewriting', 'ewww-image-optimizer' ); ?></strong></label>
+						<label for='ewww_image_optimizer_picture_webp'><strong><?php esc_html_e( 'Picture WebP Rewriting', 'ewww-image-optimizer' ); ?></strong></label>
 						<span><?php ewwwio_help_link( 'https://docs.ewww.io/article/16-ewww-io-and-webp-images', '5854745ac697912ffd6c1c89,59443d162c7d3a0747cdf9f0' ); ?></span><br>
 						<p class='description'>
 							<?php esc_html_e( 'A JavaScript-free rewriting method using picture tags.', 'ewww-image-optimizer' ); ?>
@@ -13101,7 +13101,7 @@ AddType image/webp .webp</pre>
 				<tr class='ewww_image_optimizer_webp_rewrite_setting_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) && $webp_php_rewriting ? '' : ' style="display:none"'; ?>>
 					<td>&nbsp;</td>
 					<td>
-						<label for='ewww_image_optimizer_webp_rewrite_exclude'><strong><?php esc_html_e( 'JS WebP and <picture> Web Exclusions', 'ewww-image-optimizer' ); ?></strong></label><br>
+						<label for='ewww_image_optimizer_webp_rewrite_exclude'><strong><?php esc_html_e( 'JS WebP and Picture Web Exclusions', 'ewww-image-optimizer' ); ?></strong></label><br>
 						<textarea id='ewww_image_optimizer_webp_rewrite_exclude' name='ewww_image_optimizer_webp_rewrite_exclude' rows='3' cols='60'><?php echo esc_html( $webp_exclude_paths ); ?></textarea>
 						<p class='description'><?php esc_html_e( 'One exclusion per line, no wildcards (*) needed. Use any string that matches the desired element(s) or exclude entire element types like "div", "span", etc.', 'ewww-image-optimizer' ); ?></p>
 					</td>
@@ -13150,7 +13150,7 @@ AddType image/webp .webp</pre>
 					</th>
 					<td>
 						<input type='checkbox' id='ewww_image_optimizer_webp_force' name='ewww_image_optimizer_webp_force' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ); ?> />
-						<span><?php esc_html_e( 'WebP images will be generated and saved for all images regardless of their size. JS and <picture> WebP rewriters will not check if a file exists, only that the domain matches the home url, or one of the provided WebP URLs.', 'ewww-image-optimizer' ); ?></span>
+						<span><?php esc_html_e( 'WebP images will be generated and saved for all images regardless of their size. JS and Picture WebP rewriters will not check if a file exists, only that the domain matches the home url, or one of the provided WebP URLs.', 'ewww-image-optimizer' ); ?></span>
 			<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_force_gif2webp' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
 						<p>
 							<a href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_enable_force_gif2webp' ) ); ?>'>
