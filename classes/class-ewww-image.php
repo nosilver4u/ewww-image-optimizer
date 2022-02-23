@@ -170,7 +170,7 @@ class EWWW_Image {
 			ewwwio_debug_message( 'failed to find a pending image with the parameters supplied' );
 			return;
 		}
-		if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && ewww_image_optimizer_function_exists( 'print_r' ) ) {
 			ewwwio_debug_message( print_r( $new_image, true ) );
 		}
 		$this->id            = $new_image['id'];
@@ -194,7 +194,7 @@ class EWWW_Image {
 	public function update_converted_attachment( $meta ) {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->url = wp_get_attachment_url( $this->attachment_id );
-		if ( ewww_image_optimizer_function_exists( 'print_r' ) ) {
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && ewww_image_optimizer_function_exists( 'print_r' ) ) {
 			ewwwio_debug_message( print_r( $this, true ) );
 		}
 		// Update the file location in the post metadata based on the new path stored in the attachment metadata.

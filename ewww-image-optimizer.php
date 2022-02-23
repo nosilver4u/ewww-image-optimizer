@@ -28,14 +28,6 @@ if ( ! defined( 'EWWW_IO_CLOUD_PLUGIN' ) ) {
 	define( 'EWWW_IO_CLOUD_PLUGIN', false );
 }
 
-if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_TOOL_PATH' ) ) {
-	/**
-	 * The folder where we install optimization tools - MUST have a trailing slash.
-	 *
-	 * @var string EWWW_IMAGE_OPTIMIZER_TOOL_PATH
-	 */
-	define( 'EWWW_IMAGE_OPTIMIZER_TOOL_PATH', WP_CONTENT_DIR . '/ewww/' );
-}
 
 // Check the PHP version.
 if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70200 ) {
@@ -80,6 +72,31 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70200 ) {
 	 * @var string EWWW_IMAGE_OPTIMIZER_IMAGES_PATH
 	 */
 	define( 'EWWW_IMAGE_OPTIMIZER_IMAGES_PATH', plugin_dir_path( __FILE__ ) . 'images/' );
+	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_TOOL_PATH' ) ) {
+		if ( ! defined( 'EWWWIO_CONTENT_DIR' ) ) {
+			$ewwwio_content_dir = trailingslashit( WP_CONTENT_DIR ) . trailingslashit( 'ewww' );
+			if ( ! is_writable( WP_CONTENT_DIR ) || ! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {
+				$upload_dir = wp_get_upload_dir();
+				if ( false === strpos( $upload_dir['basedir'], '://' ) && is_writable( $upload_dir['basedir'] ) ) {
+					$ewwwio_content_dir = trailingslashit( $upload_dir['basedir'] ) . trailingslashit( 'ewww' );
+				}
+			}
+			/**
+			 * The folder where we store debug logs (among other things) - MUST have a trailing slash.
+			 *
+			 * @var string EWWW_IMAGE_OPTIMIZER_TOOL_PATH
+			 */
+			define( 'EWWWIO_CONTENT_DIR', $ewwwio_content_dir );
+		}
+		/**
+		 * The folder where we install optimization tools - MUST have a trailing slash.
+		 *
+		 * @var string EWWW_IMAGE_OPTIMIZER_TOOL_PATH
+		 */
+		define( 'EWWW_IMAGE_OPTIMIZER_TOOL_PATH', EWWWIO_CONTENT_DIR );
+	} elseif ( ! defined( 'EWWWIO_CONTENT_DIR' ) ) {
+		define( 'EWWWIO_CONTENT_DIR', EWWW_IMAGE_OPTIMIZER_TOOL_PATH );
+	}
 
 	/**
 	 * All the 'unique' functions for the core EWWW IO plugin.

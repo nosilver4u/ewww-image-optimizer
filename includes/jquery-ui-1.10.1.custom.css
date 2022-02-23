@@ -690,6 +690,7 @@ p.debug-actions {
 	overflow: auto;
 	height: 300px;
 	width: 800px;
+	margin-top: 5px;
 }
 #ewww-webp-rewrite #webp-rewrite-rules {
 	background-color: white;

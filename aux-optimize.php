@@ -29,14 +29,18 @@ function ewww_image_optimizer_aux_images() {
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 		ewwwio_debug_info();
 		echo '<div style="clear:both;"></div>';
-		echo '<p><b>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</b> <button id="ewww-copy-debug" class="button button-secondary" type="button">' . esc_html__( 'Copy', 'ewww-image-optimizer' ) . '</button>';
-		if ( ewwwio_is_file( WP_CONTENT_DIR . '/ewww/debug.log' ) ) {
-			echo "&emsp;<a href='" . esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_view_debug_log' ) ) . "'>" .
-				esc_html( 'View Debug Log', 'ewww-image-optimizer' ) . "</a> - <a href='" .
-				esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_delete_debug_log' ) ) . "'>" .
-				esc_html( 'Remove Debug Log', 'ewww-image-optimizer' ) . '</a>';
+		if ( ewwwio_is_file( EWWWIO_CONTENT_DIR . 'debug.log' ) ) {
+			?>
+			<h2><?php esc_html_e( 'Debug Log', 'ewww-image-optimizer' ); ?></h2>
+			<p>
+				<a target='_blank' href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_view_debug_log' ) ); ?>'><?php esc_html_e( 'View Log', 'ewww-image-optimizer' ); ?></a> -
+				<a href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_delete_debug_log' ) ); ?>'><?php esc_html_e( 'Clear Log', 'ewww-image-optimizer' ); ?></a>
+			</p>
+			<p><a class='button button-secondary' target='_blank' href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_download_debug_log' ) ); ?>'><?php esc_html_e( 'Download Log', 'ewww-image-optimizer' ); ?></a></p>
+			<?php
 		}
-		echo '</p>';
+		echo '<h2>' . esc_html__( 'System Info', 'ewww-image-optimizer' ) . '</h2>';
+		echo '<p><button id="ewww-copy-debug" class="button button-secondary" type="button">' . esc_html__( 'Copy', 'ewww-image-optimizer' ) . '</button></p>';
 		echo '<div id="ewww-debug-info" contenteditable="true">' .
 			wp_kses(
 				$eio_debug,

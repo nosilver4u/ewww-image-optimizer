@@ -131,7 +131,9 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				ewwwio_debug_message( 'failed verification' );
 				return;
 			}
-			ewwwio_debug_message( print_r( $_REQUEST, true ) );
+			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && ewww_image_optimizer_function_exists( 'print_r' ) ) {
+				ewwwio_debug_message( print_r( $_REQUEST, true ) );
+			}
 			if ( file_exists( $filename ) ) {
 				if ( ! empty( $_POST['id'] ) ) {
 					$id = (int) $_POST['id'];
