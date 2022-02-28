@@ -80,7 +80,11 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 
 			$uri = add_query_arg( null, null );
-			$this->debug_message( "request uri is $uri" );
+			if ( false === strpos( $uri, 'page=ewww-image-optimizer-options' ) ) {
+				$this->debug_message( "request uri is $uri" );
+			} else {
+				$this->debug_message( 'request uri is EWWW IO settings' );
+			}
 
 			add_filter( 'eio_do_lazyload', array( $this, 'should_process_page' ), 10, 2 );
 

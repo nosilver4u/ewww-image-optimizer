@@ -130,7 +130,11 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 
 			$uri = add_query_arg( null, null );
-			$this->debug_message( "request uri is $uri" );
+			if ( false === strpos( $uri, 'page=ewww-image-optimizer-options' ) ) {
+				$this->debug_message( "request uri is $uri" );
+			} else {
+				$this->debug_message( 'request uri is EWWW IO settings' );
+			}
 
 			if ( '/robots.txt' === $uri || '/sitemap.xml' === $uri ) {
 				return;
