@@ -204,6 +204,8 @@ add_action( 'admin_action_ewww_image_optimizer_network_remove_easyio', 'ewww_ima
 add_action( 'admin_action_ewww_image_optimizer_enable_force_gif2webp', 'ewww_image_optimizer_enable_force_gif2webp' );
 // Non-AJAX handler to retest async/background mode.
 add_action( 'admin_action_ewww_image_optimizer_retest_background_optimization', 'ewww_image_optimizer_retest_background_optimization' );
+// Non-AJAX handler to disable debugging mode.
+add_action( 'admin_action_ewww_image_optimizer_disable_debugging', 'ewww_image_optimizer_disable_debugging' );
 // Non-AJAX handler to view the debug log, and display it.
 add_action( 'admin_action_ewww_image_optimizer_view_debug_log', 'ewww_image_optimizer_view_debug_log' );
 // Non-AJAX handler to delete the debug log, and reroute back to the settings page.
@@ -2026,6 +2028,9 @@ function ewww_image_optimizer_scheduled_optimizaton_changed( $new_value, $old_va
  * Display a notice that the user should run the bulk optimizer after WebP activation.
  */
 function ewww_image_optimizer_notice_webp_bulk() {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		return;
+	}
 	$already_done = ewww_image_optimizer_aux_images_table_count();
 	if ( $already_done > 50 ) {
 		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-info'><p><a href='" .
@@ -2139,6 +2144,9 @@ function ewww_image_optimizer_easyio_site_initialized() {
  * Let the user know the local domain appears to have changed from what Easy IO has recorded in the db.
  */
 function ewww_image_optimizer_notice_exactdn_domain_mismatch() {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		return;
+	}
 	global $exactdn;
 	if ( ! isset( $exactdn->upload_domain ) ) {
 		return;
@@ -2171,6 +2179,9 @@ function ewww_image_optimizer_notice_exactdn_domain_mismatch() {
  * Let the user know they need to disable the WP Offload Media CNAME.
  */
 function ewww_image_optimizer_notice_exactdn_as3cf_cname_active() {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		return;
+	}
 	?>
 	<div id="ewww-image-optimizer-notice-exactdn-as3cf-cname-active" class="notice notice-error">
 		<p>
@@ -2184,6 +2195,9 @@ function ewww_image_optimizer_notice_exactdn_as3cf_cname_active() {
  * Inform the user that we disabled SP AIO to prevent conflicts with ExactDN.
  */
 function ewww_image_optimizer_notice_exactdn_sp_conflict() {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		return;
+	}
 	echo "<div id='ewww-image-optimizer-exactdn-sp' class='notice notice-warning'><p>" . esc_html__( 'ShortPixel image optimization has been disabled to prevent conflicts with Easy IO (EWWW Image Optimizer).', 'ewww-image-optimizer' ) . '</p></div>';
 }
 
@@ -2191,6 +2205,9 @@ function ewww_image_optimizer_notice_exactdn_sp_conflict() {
  * Display a notice that PHP version 7.2 will be required in a future version.
  */
 function ewww_image_optimizer_php72_warning() {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		return;
+	}
 	echo '<div id="ewww-image-optimizer-notice-php72" class="notice notice-info"><p><a href="https://docs.ewww.io/article/55-upgrading-php" target="_blank" data-beacon-article="5ab2baa6042863478ea7c2ae">' . esc_html__( 'The next release of EWWW Image Optimizer will require PHP 7.2 or greater. Newer versions of PHP are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</a></p></div>';
 }
 
@@ -2198,7 +2215,19 @@ function ewww_image_optimizer_php72_warning() {
  * Display a notice that debugging mode is enabled.
  */
 function ewww_image_optimizer_debug_enabled_notice() {
-	echo '<div id="ewww-image-optimizer-notice-debug" class="notice notice-info"><p>' . esc_html__( 'Debug mode is enabled in the EWWW Image Optimizer settings. Please be sure to turn Debugging off when you are done troubleshooting.', 'ewww-image-optimizer' ) . '</a></p></div>';
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		return;
+	}
+	?>
+	<div id="ewww-image-optimizer-notice-debug" class="notice notice-info">
+		<p>
+			<?php esc_html_e( 'Debug mode is enabled in the EWWW Image Optimizer settings. Please be sure to turn Debugging off when you are done troubleshooting.', 'ewww-image-optimizer' ); ?>
+			<a class='button button-secondary' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_disable_debugging' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
+				<?php esc_html_e( 'Disable Debugging', 'ewww-image-optimizer' ); ?>
+			</a>
+		</p>
+	</div>
+	<?php
 }
 
 /**
@@ -2212,6 +2241,9 @@ function ewww_image_optimizer_network_settings_saved() {
  * Warn the user that scheduled optimization will no longer work without background/async mode.
  */
 function ewww_image_optimizer_notice_schedule_noasync() {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		return;
+	}
 	global $ewwwio_upgrading;
 	if ( $ewwwio_upgrading ) {
 		return;
@@ -2231,6 +2263,9 @@ function ewww_image_optimizer_thumbnail_regen_notice() {
  * Lets the user know WooCommerce has regenerated thumbnails and that they need to take action.
  */
 function ewww_image_optimizer_notice_wc_regen() {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		return;
+	}
 	echo "<div id='ewww-image-optimizer-wc-regen' class='notice notice-info is-dismissible'><p>" . esc_html__( 'EWWW Image Optimizer has detected a WooCommerce thumbnail regeneration. To optimize new thumbnails, you may run the Bulk Optimizer from the Media menu. This notice may be dismissed after the regeneration is complete.', 'ewww-image-optimizer' ) . '</p></div>';
 }
 
@@ -2257,6 +2292,9 @@ function ewww_image_optimizer_wc_regen_script() {
  * Lets the user know LR Sync has regenerated thumbnails and that they need to take action.
  */
 function ewww_image_optimizer_notice_lr_sync() {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		return;
+	}
 	echo "<div id='ewww-image-optimizer-lr-sync' class='notice notice-info is-dismissible'><p>" . esc_html__( 'EWWW Image Optimizer has detected a WP/LR Sync process. To optimize new thumbnails, you may run the Bulk Optimizer from the Media menu. This notice may be dismissed after the Sync process is complete.', 'ewww-image-optimizer' ) . '</p></div>';
 }
 
@@ -2306,6 +2344,9 @@ function ewww_image_optimizer_notice_media_listmode() {
  * Instruct the user to run the db upgrade.
  */
 function ewww_image_optimizer_620_upgrade_needed() {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		return;
+	}
 	echo "<div id='ewww-image-optimizer-upgrade-notice' class='notice notice-info'><p>" .
 		esc_html__( 'EWWW Image Optimizer needs to upgrade the image log table.', 'ewww-image-optimizer' ) . '<br>' .
 		'<a href="' . esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_620_upgrade' ) ) . '" class="button-secondary">' .
@@ -2317,6 +2358,9 @@ function ewww_image_optimizer_620_upgrade_needed() {
  * Ask the user to leave a review for the plugin on wp.org.
  */
 function ewww_image_optimizer_notice_review() {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		return;
+	}
 	echo "<div id='ewww-image-optimizer-review' class='notice notice-info is-dismissible'><p>" .
 		esc_html__( "Hi, you've been using the EWWW Image Optimizer for a while, and we hope it has been a big help for you.", 'ewww-image-optimizer' ) . '<br>' .
 		esc_html__( 'If you could take a few moments to rate it on WordPress.org, we would really appreciate your help making the plugin better. Thanks!', 'ewww-image-optimizer' ) .
@@ -2347,6 +2391,9 @@ function ewww_image_optimizer_notice_review_script() {
  * Inform the user of our beacon function so that they can opt-in.
  */
 function ewww_image_optimizer_notice_beacon() {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		return;
+	}
 	$optin_url  = admin_url( 'admin.php?action=eio_opt_into_hs_beacon' );
 	$optout_url = admin_url( 'admin.php?action=eio_opt_out_of_hs_beacon' );
 	echo '<div id="ewww-image-optimizer-hs-beacon" class="notice notice-info"><p>' .
@@ -2362,6 +2409,9 @@ function ewww_image_optimizer_notice_beacon() {
  * @global object $wpdb
  */
 function ewww_image_optimizer_notice_reoptimization() {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		return;
+	}
 	// Allows the user to reset all images back to 1 optimization, which clears the alert.
 	if ( ! empty( $_GET['ewww_reset_reopt_nonce'] ) && wp_verify_nonce( sanitize_key( $_GET['ewww_reset_reopt_nonce'] ), 'reset_reoptimization_counters' ) ) {
 		global $wpdb;
@@ -14201,6 +14251,22 @@ function ewww_image_optimizer_admin_bar_menu( $wp_admin_bar ) {
 }
 
 /**
+ * Disables the debugging option.
+ */
+function ewww_image_optimizer_disable_debugging() {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
+	}
+	if ( empty( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
+		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
+	}
+	ewww_image_optimizer_set_option( 'ewww_image_optimizer_debug', false );
+	$sendback = wp_get_referer();
+	wp_safe_redirect( $sendback );
+	exit;
+}
+
+/**
  * Adds information to the in-memory debug log.
  *
  * @global string $eio_debug The in-memory debug log.
@@ -14541,4 +14607,3 @@ function ewwwio_preserve_strings() {
 	$string3 = __( 'Maximum Lossless Compression', 'ewww-image-optimizer' );
 	$string4 = __( 'Maximum Lossy Compression', 'ewww-image-optimizer' );
 }
-?>
