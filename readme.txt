@@ -140,6 +140,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 6.4.2 =
 * added: JS/Picture WebP rewriters support FacetWP AJAX responses
 * fixed: errors from posix_getpwuid() and posix_getgrgid() not handled correctly
+* fixed: PNGOUT download URLs were moved, causing auto-install to fail
+* fixed: Easy IO was adding srcset markup for SVG images
 
 = 6.4.1 =
 * added: use decoding=async to prevent images from blocking text render

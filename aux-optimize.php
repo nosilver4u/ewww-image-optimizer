@@ -485,7 +485,7 @@ function ewww_image_optimizer_aux_images_webp_clean() {
 		$completed++;
 		$file = ewww_image_optimizer_absolutize_path( $optimized_image['path'] );
 		ewwwio_debug_message( "looking for $file.webp" );
-		if ( ! ewww_image_optimizer_stream_wrapped( $file ) && ewwwio_is_file( $file . '.webp' ) ) {
+		if ( ! ewww_image_optimizer_stream_wrapped( $file ) && ewwwio_is_file( $file ) && ewwwio_is_file( $file . '.webp' ) ) {
 			ewwwio_debug_message( "removing: $file.webp" );
 			if ( ewwwio_delete_file( $file . '.webp' ) ) {
 				ewwwio_debug_message( "removed $file.webp" );
@@ -497,7 +497,7 @@ function ewww_image_optimizer_aux_images_webp_clean() {
 		if ( ! empty( $optimized_image['converted'] ) ) {
 			$file = ewww_image_optimizer_absolutize_path( $optimized_image['converted'] );
 			ewwwio_debug_message( "$file was converted, checking if webp version exists" );
-			if ( ! ewww_image_optimizer_stream_wrapped( $file ) && ewwwio_is_file( $file . '.webp' ) ) {
+			if ( ! ewww_image_optimizer_stream_wrapped( $file ) && ewwwio_is_file( $file ) && ewwwio_is_file( $file . '.webp' ) ) {
 				ewwwio_debug_message( "removing: $file.webp" );
 				if ( ewwwio_delete_file( $file . '.webp' ) ) {
 					ewwwio_debug_message( "removed $file.webp" );
@@ -549,17 +549,21 @@ function ewww_image_optimizer_delete_webp() {
 					$image['path'] = ewww_image_optimizer_absolutize_path( $image['path'] );
 				}
 				if ( ! empty( $image['path'] ) ) {
-					if ( ewwwio_is_file( $image['path'] . '.webp' ) ) {
+					if ( ewwwio_is_file( $image['path'] ) && ewwwio_is_file( $image['path'] . '.webp' ) ) {
 						ewwwio_debug_message( 'removing: ' . $image['path'] . '.webp' );
 						ewwwio_delete_file( $image['path'] . '.webp' );
 					}
 					$webpfileold = preg_replace( '/\.\w+$/', '.webp', $image['path'] );
-					if ( ewwwio_is_file( $webpfileold ) ) {
+					if (
+						! preg_match( '/\.webp$/', $image['path'] ) &&
+						ewwwio_is_file( $image['path'] ) &&
+						ewwwio_is_file( $webpfileold )
+					) {
 						ewwwio_debug_message( 'removing: ' . $webpfileold );
 						ewwwio_delete_file( $webpfileold );
 					}
 				}
-				if ( ! empty( $image['converted'] ) && ewwwio_is_file( $image['converted'] . '.webp' ) ) {
+				if ( ! empty( $image['converted'] ) && ewwwio_is_file( $image['converted'] ) && ewwwio_is_file( $image['converted'] . '.webp' ) ) {
 					ewwwio_debug_message( 'removing: ' . $image['converted'] . '.webp' );
 					ewwwio_delete_file( $image['converted'] . '.webp' );
 				}
@@ -587,11 +591,15 @@ function ewww_image_optimizer_delete_webp() {
 		// Delete any residual webp versions.
 		$webpfile    = $file_path . '.webp';
 		$webpfileold = preg_replace( '/\.\w+$/', '.webp', $file_path );
-		if ( ewwwio_is_file( $webpfile ) ) {
+		if ( ewwwio_is_file( $file_path ) && ewwwio_is_file( $webpfile ) ) {
 			ewwwio_debug_message( 'removing: ' . $webpfile );
 			ewwwio_delete_file( $webpfile );
 		}
-		if ( ewwwio_is_file( $webpfileold ) ) {
+		if (
+			! preg_match( '/\.webp$/', $file_path ) &&
+			ewwwio_is_file( $file_path ) &&
+			ewwwio_is_file( $webpfileold )
+		) {
 			ewwwio_debug_message( 'removing: ' . $webpfileold );
 			ewwwio_delete_file( $webpfileold );
 		}
@@ -605,7 +613,7 @@ function ewww_image_optimizer_delete_webp() {
 		$orig_path = $base_dir . wp_basename( $meta['original_image'] );
 		// Delete any residual webp versions.
 		$webpfile = $orig_path . '.webp';
-		if ( ewwwio_is_file( $webpfile ) ) {
+		if ( ewwwio_is_file( $orig_path ) && ewwwio_is_file( $webpfile ) ) {
 			ewwwio_debug_message( 'removing: ' . $webpfile );
 			ewwwio_delete_file( $webpfile );
 		}
@@ -622,11 +630,15 @@ function ewww_image_optimizer_delete_webp() {
 			// Delete any residual webp versions.
 			$webpfile    = $base_dir . wp_basename( $data['file'] ) . '.webp';
 			$webpfileold = preg_replace( '/\.\w+$/', '.webp', $base_dir . wp_basename( $data['file'] ) );
-			if ( ewwwio_is_file( $webpfile ) ) {
+			if ( ewwwio_is_file( $base_dir . wp_basename( $data['file'] ) ) && ewwwio_is_file( $webpfile ) ) {
 				ewwwio_debug_message( 'removing: ' . $webpfile );
 				ewwwio_delete_file( $webpfile );
 			}
-			if ( ewwwio_is_file( $webpfileold ) ) {
+			if (
+				! preg_match( '/\.webp$/', $base_dir . wp_basename( $data['file'] ) ) &&
+				ewwwio_is_file( $base_dir . wp_basename( $data['file'] ) ) &&
+				ewwwio_is_file( $webpfileold )
+			) {
 				ewwwio_debug_message( 'removing: ' . $webpfileold );
 				ewwwio_delete_file( $webpfileold );
 			}
@@ -635,18 +647,26 @@ function ewww_image_optimizer_delete_webp() {
 				unlink( $s3_dir . wp_basename( $data['file'] ) . '.webp' );
 			}
 			// If the original resize is set, and still exists.
-			if ( ! empty( $data['orig_file'] ) && ewwwio_is_file( $base_dir . $data['orig_file'] ) . '.webp' ) {
+			if (
+				! empty( $data['orig_file'] ) &&
+				ewwwio_is_file( $base_dir . $data['orig_file'] ) &&
+				ewwwio_is_file( $base_dir . $data['orig_file'] . '.webp' )
+			) {
 				ewwwio_debug_message( 'removing: ' . $base_dir . $data['orig_file'] . '.webp' );
 				ewwwio_delete_file( $base_dir . $data['orig_file'] . '.webp' );
 			}
 		}
 	}
-	if ( ewwwio_is_file( $file_path . '.webp' ) ) {
+	if ( ewwwio_is_file( $file_path ) && ewwwio_is_file( $file_path . '.webp' ) ) {
 		ewwwio_debug_message( 'removing: ' . $file_path . '.webp' );
 		ewwwio_delete_file( $image['path'] . '.webp' );
 	}
 	$webpfileold = preg_replace( '/\.\w+$/', '.webp', $file_path );
-	if ( ewwwio_is_file( $webpfileold ) ) {
+	if (
+		! preg_match( '/\.webp$/', $file_path ) &&
+		ewwwio_is_file( $file_path ) &&
+		ewwwio_is_file( $webpfileold )
+	) {
 		ewwwio_debug_message( 'removing: ' . $webpfileold );
 		ewwwio_delete_file( $webpfileold );
 	}
