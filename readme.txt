@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.6
 Tested up to: 5.9
 Requires PHP: 7.2
-Stable tag: 6.4.1
+Stable tag: 6.4.2
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
