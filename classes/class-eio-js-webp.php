@@ -413,7 +413,10 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 						$this->set_attribute( $new_image, 'class', $this->get_attribute( $new_image, 'class' ) . ' ewww_webp_lazy_load', true );
 						$buffer = str_replace( $image, $new_image, $buffer );
 					}
-				} elseif ( $this->validate_image_url( $file ) && false === strpos( $image, 'lazyload' ) ) {
+				} elseif (
+					$this->validate_image_url( $file ) &&
+					( false === strpos( $image, 'lazyload' ) || false !== strpos( $image, 'lazyloaded' ) )
+				) {
 					// If a CDN path match was found, or .webp image existence is confirmed, and this is not a lazy-load 'dummy' image.
 					$this->debug_message( 'found a webp image or forced path' );
 					$new_image = $image;
