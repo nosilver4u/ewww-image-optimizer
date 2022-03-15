@@ -3295,17 +3295,15 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				unset( $args['lossy'] );
 			} elseif ( isset( $args['lossy'] ) && false !== strpos( $image_url, 'lossy=0' ) ) {
 				unset( $args['lossy'] );
-			} elseif ( $this->plan_id > 1 && false === strpos( $image_url, 'lossy=' ) && ! $this->get_option( 'exactdn_lossy' ) ) {
+			} elseif ( false === strpos( $image_url, 'lossy=' ) && ! $this->get_option( 'exactdn_lossy' ) ) {
 				$more_args['lossy'] = 0;
-			} elseif ( false === strpos( $image_url, 'lossy=' ) && 1 === $this->plan_id ) {
-				$more_args['lossy'] = 1;
 			} elseif ( false === strpos( $image_url, 'lossy=' ) && $this->get_option( 'exactdn_lossy' ) ) {
 				$more_args['lossy'] = is_numeric( $this->get_option( 'exactdn_lossy' ) ) ? (int) $this->get_option( 'exactdn_lossy' ) : 80;
 			}
-			if ( $this->plan_id > 1 && false === strpos( $image_url, 'quality=' ) && ! is_null( $jpg_quality ) && 82 !== (int) $jpg_quality ) {
+			if ( false === strpos( $image_url, 'quality=' ) && ! is_null( $jpg_quality ) && 82 !== (int) $jpg_quality ) {
 				$more_args['quality'] = $jpg_quality;
 			}
-			if ( $this->plan_id > 1 && false === strpos( $image_url, 'quality=' ) && 75 !== (int) $webp_quality && $webp_quality < $jpg_quality ) {
+			if ( false === strpos( $image_url, 'quality=' ) && 75 !== (int) $webp_quality && $webp_quality < $jpg_quality ) {
 				$more_args['quality'] = $webp_quality;
 			}
 			if ( defined( 'EIO_WEBP_SHARP_YUV' ) && EIO_WEBP_SHARP_YUV ) {

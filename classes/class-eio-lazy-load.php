@@ -129,10 +129,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 					$this->allowed_urls[] = 'http://' . $this->exactdn_domain;
 					$this->allowed_urls[] = '//' . $this->exactdn_domain;
 				}
-				$this->allow_lqip = false;
-				if ( $exactdn->get_plan_id() > 1 ) {
-					$this->allow_lqip = true;
-				}
 			}
 
 			if ( ! is_dir( $this->piip_folder ) ) {
@@ -544,7 +540,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			$use_native_lazy = false;
 
 			$placeholder_types = array();
-			if ( $this->parsing_exactdn && $this->allow_lqip && apply_filters( 'eio_use_lqip', $this->get_option( $this->prefix . 'use_lqip' ), $file ) ) {
+			if ( $this->parsing_exactdn && apply_filters( 'eio_use_lqip', $this->get_option( $this->prefix . 'use_lqip' ), $file ) ) {
 				$placeholder_types[] = 'lqip';
 			}
 			if ( $this->parsing_exactdn && apply_filters( 'eio_use_piip', true, $file ) ) {

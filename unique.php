@@ -159,7 +159,8 @@ function ewww_image_optimizer_set_defaults() {
 	add_option( 'exactdn_exclude', '' );
 	add_option( 'exactdn_sub_folder', false );
 	add_option( 'ewww_image_optimizer_lazy_load', false );
-	add_option( 'ewww_image_optimizer_ll_autoscale', true );
+	add_option( 'ewww_image_optimizer_use_siip', false );
+	add_option( 'ewww_image_optimizer_use_lqip', false );
 	add_option( 'ewww_image_optimizer_ll_exclude', '' );
 	add_option( 'ewww_image_optimizer_ll_all_things', '' );
 	add_option( 'ewww_image_optimizer_disable_pngout', true );
