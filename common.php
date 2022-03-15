@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '642.1' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '642.2' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -1701,6 +1701,7 @@ function ewww_image_optimizer_install_table() {
 		}
 		if (
 			(
+				false !== strpos( $mysql_version, '5.6.' ) ||
 				false !== strpos( $mysql_version, '5.7.' ) ||
 				false !== strpos( $mysql_version, '8.0.' ) ||
 				false !== strpos( $mysql_version, '10.1.' )
