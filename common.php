@@ -1165,7 +1165,7 @@ function ewww_image_optimizer_admin_init() {
 	}
 
 	// Alert user if multiple re-optimizations detected.
-	if ( ! defined( 'EWWWIO_DISABLE_REOPT_NOTICE' ) ) {
+	if ( false && ! defined( 'EWWWIO_DISABLE_REOPT_NOTICE' ) ) {
 		add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
 		add_action( 'admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
 	}
@@ -2410,6 +2410,7 @@ function ewww_image_optimizer_notice_beacon() {
  * @global object $wpdb
  */
 function ewww_image_optimizer_notice_reoptimization() {
+	return; // This is already disabled at the admin_notice hook registration above, but just to be sure.
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		return;
 	}
@@ -12277,12 +12278,14 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<p>
 								<?php esc_html_e( 'Get performance tips, exclusive discounts, and the latest news when you signup for our newsletter!', 'ewww-image-optimizer' ); ?>
 							</p>
+	<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_review_notice' ) ) : ?>
 							<p id='ewww-review'>
 								<a target="_blank" href="https://wordpress.org/support/plugin/ewww-image-optimizer/reviews/#new-post"><?php esc_html_e( 'Write a Review', 'ewww-image-optimizer' ); ?></a>
 								<a target="_blank" href="https://wordpress.org/support/plugin/ewww-image-optimizer/reviews/#new-post">
 									<span class="dashicons dashicons-star-filled"></span><span class="dashicons dashicons-star-filled"></span><span class="dashicons dashicons-star-filled"></span><span class="dashicons dashicons-star-filled"></span><span class="dashicons dashicons-star-filled"></span>
 								</a>
 							</p>
+	<?php endif; ?>
 						</div>
 						<p id='ewww-news-button'>
 							<a href="https://eepurl.com/gKyU6L?TB_iframe=true&width=600&height=610" class="thickbox button-secondary"><?php esc_html_e( 'Subscribe now!', 'ewww-image-optimizer' ); ?></a>
