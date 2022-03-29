@@ -412,10 +412,22 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 		 */
 		function remove_background_image( $attribute ) {
 			if ( false !== strpos( $attribute, 'background:' ) && false !== strpos( $attribute, 'url(' ) ) {
-				$attribute = preg_replace( '#\s?url\([^)]+\)#', '', $attribute );
+				$new_attribute = preg_replace( '#\s?url\([^)]+\)#', '', $attribute );
+				if ( $new_attribute !== $attribute ) {
+					return $new_attribute;
+				}
 			}
 			if ( false !== strpos( $attribute, 'background-image:' ) && false !== strpos( $attribute, 'url(' ) ) {
-				$attribute = preg_replace( '#background-image:\s*url\([^)]+\);?#', '', $attribute );
+				$new_attribute = preg_replace( '#background-image:\s*url\([^)]+\);?#', '', $attribute );
+				if ( $new_attribute !== $attribute ) {
+					return $new_attribute;
+				}
+			}
+			if ( false !== strpos( $attribute, 'background-image:' ) && false !== strpos( $attribute, 'url(' ) ) {
+				$new_attribute = preg_replace( '#,?\s*url\([^)]+\)#', '', $attribute );
+				if ( $new_attribute !== $attribute ) {
+					return $new_attribute;
+				}
 			}
 			return $attribute;
 		}

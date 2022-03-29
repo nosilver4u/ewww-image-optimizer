@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '642.2' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '642.3' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -788,7 +788,7 @@ function ewww_image_optimizer_save_network_settings() {
  * Runs on 'plugins_loaded' to make make sure the language files are loaded early.
  */
 function ewww_image_optimizer_preinit() {
-	load_plugin_textdomain( 'ewww-image-optimizer', false, EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'languages/' );
+	load_plugin_textdomain( 'ewww-image-optimizer', false, dirname( plugin_basename( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ) ) . 'languages/' );
 }
 
 /**

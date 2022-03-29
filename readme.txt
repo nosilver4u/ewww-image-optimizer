@@ -139,7 +139,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.4.3 =
 * changed: all Easy IO settings available to all plan levels
+* fixed: database upgrade fails on MySQL 5.6
 * fixed: LQIP and SVG placeholder options not auto-loaded correctly
+* fixed: Lazy Load misses more complex CSS background image syntax
+* fixed: regression in legacy translation loader
 
 = 6.4.2 =
 * added: JS/Picture WebP rewriters support FacetWP AJAX responses
