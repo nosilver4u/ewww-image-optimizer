@@ -158,6 +158,7 @@ function ewww_image_optimizer_set_defaults() {
 	add_option( 'exactdn_lossy', true );
 	add_option( 'exactdn_exclude', '' );
 	add_option( 'exactdn_sub_folder', false );
+	add_option( 'exactdn_prevent_db_queries', true );
 	add_option( 'ewww_image_optimizer_lazy_load', false );
 	add_option( 'ewww_image_optimizer_use_siip', false );
 	add_option( 'ewww_image_optimizer_use_lqip', false );
@@ -189,6 +190,7 @@ function ewww_image_optimizer_set_defaults() {
 	add_site_option( 'exactdn_all_the_things', true );
 	add_site_option( 'exactdn_lossy', true );
 	add_site_option( 'exactdn_sub_folder', false );
+	add_site_option( 'exactdn_prevent_db_queries', true );
 	add_site_option( 'ewww_image_optimizer_ll_autoscale', true );
 }
 

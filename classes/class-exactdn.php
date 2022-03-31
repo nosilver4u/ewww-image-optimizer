@@ -258,7 +258,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				add_filter( 'style_loader_src', array( $this, 'parse_enqueue' ), 9999 );
 				add_filter( 'script_loader_src', array( $this, 'parse_enqueue' ), 9999 );
 			}
-			$this->set_option( 'exactdn_prevent_db_queries', true );
+			if ( ! $this->get_option( 'exactdn_prevent_db_queries' ) ) {
+				$this->set_option( 'exactdn_prevent_db_queries', true );
+			}
 
 			// Improve the default content_width for Twenty Nineteen.
 			global $content_width;
