@@ -138,6 +138,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.4.3 =
+* added: Lazy Load supports mixing background images with gradients
 * changed: all Easy IO settings available to all plan levels
 * fixed: database upgrade fails on MySQL 5.6
 * fixed: LQIP and SVG placeholder options not auto-loaded correctly

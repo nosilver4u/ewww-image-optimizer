@@ -70,8 +70,13 @@
 						console.log('found other data-bg');
 						bg = constrainSrc(bg,targetWidth,targetHeight,'bg');
 					}
-					console.log('setting .backgroundImage: ' + 'url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')');
-					e.target.style.backgroundImage = 'url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')';
+					if ( e.target.style.backgroundImage ) {
+						console.log( 'appending bg url: ' + e.target.style.backgroundImage + ', url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')' );
+						e.target.style.backgroundImage = e.target.style.backgroundImage + ', url("' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + '")';
+					} else {
+						console.log('setting .backgroundImage: ' + 'url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')');
+						e.target.style.backgroundImage = 'url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')';
+					}
 				}
 			}
 		}, false);
