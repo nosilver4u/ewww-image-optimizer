@@ -318,15 +318,36 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 		}
 
 		/**
-		 * Get a CSS background-image URL.
+		 * Get CSS background-image URLs.
 		 *
 		 * @param string $attribute An element's style attribute. Do not pass a full HTML element.
-		 * @return string The URL from the background/background-image property.
+		 * @return array An array containing URL(s) from the background/background-image property.
+		 */
+		function get_background_image_urls( $attribute ) {
+			$urls = array();
+			if ( ( false !== strpos( $attribute, 'background:' ) || false !== strpos( $attribute, 'background-image:' ) ) && false !== strpos( $attribute, 'url(' ) ) {
+				if ( preg_match_all( '#url\((?P<bg_url>[^)]+)\)#', $attribute, $prop_matches ) ) {
+					if ( $this->is_iterable( $prop_matches['bg_url'] ) ) {
+						foreach ( $prop_matches['bg_url'] as $url ) {
+							$urls[] = trim( html_entity_decode( $url, ENT_QUOTES | ENT_HTML401 ), "'\"\t\n\r " );
+						}
+					}
+				}
+			}
+			return $urls;
+		}
+
+		/**
+		 * Get a single CSS background-image URL. For backwords compat.
+		 *
+		 * @param string $attribute An element's style attribute. Do not pass a full HTML element.
+		 * @return array An array containing URL(s) from the background/background-image property.
 		 */
 		function get_background_image_url( $attribute ) {
 			if ( ( false !== strpos( $attribute, 'background:' ) || false !== strpos( $attribute, 'background-image:' ) ) && false !== strpos( $attribute, 'url(' ) ) {
-				if ( preg_match( '#url\(([^)]+)\)#', $attribute, $prop_match ) ) {
-					return trim( html_entity_decode( $prop_match[1], ENT_QUOTES | ENT_HTML401 ), "'\"\t\n\r " );
+				$background_urls = $this->get_background_image_urls( $attribute );
+				if ( ! empty( $background_urls[0] ) ) {
+					return $background_urls[0];
 				}
 			}
 			return '';
@@ -418,14 +439,16 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 				}
 			}
 			if ( false !== strpos( $attribute, 'background-image:' ) && false !== strpos( $attribute, 'url(' ) ) {
-				$new_attribute = preg_replace( '#background-image:\s*url\([^)]+\);?#', '', $attribute );
+				$new_attribute = preg_replace( '#background-image:\s*(,?\s*url\([^)]+\))+;?\s*#', '', $attribute );
 				if ( $new_attribute !== $attribute ) {
+					$new_attribute = preg_replace( '#background-image:\s*;?\s*$#', '', $new_attribute );
 					return $new_attribute;
 				}
 			}
 			if ( false !== strpos( $attribute, 'background-image:' ) && false !== strpos( $attribute, 'url(' ) ) {
 				$new_attribute = preg_replace( '#,?\s*url\([^)]+\)#', '', $attribute );
 				if ( $new_attribute !== $attribute ) {
+					$new_attribute = preg_replace( '#background-image:\s*;?\s*$#', '', $new_attribute );
 					return $new_attribute;
 				}
 			}

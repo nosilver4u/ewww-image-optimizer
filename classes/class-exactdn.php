@@ -1660,47 +1660,56 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					if ( empty( $style ) ) {
 						continue;
 					}
+					$new_style = $style;
 					$this->debug_message( "checking style attr for background-image: $style" );
-					$bg_image_url = $this->get_background_image_url( $style );
-					$orig_bg_url  = $bg_image_url;
-
-					// Check for relative URLs that start with a slash.
-					if (
-						'/' === substr( $bg_image_url, 0, 1 ) &&
-						'/' !== substr( $bg_image_url, 1, 1 ) &&
-						false === strpos( $this->upload_domain, 'amazonaws.com' ) &&
-						false === strpos( $this->upload_domain, 'digitaloceanspaces.com' ) &&
-						false === strpos( $this->upload_domain, 'storage.googleapis.com' )
-					) {
-						$bg_image_url = '//' . $this->upload_domain . $bg_image_url;
+					$bg_image_urls = $this->get_background_image_urls( $style );
+					$bg_autoscale  = apply_filters( 'easyio_background_image_autoscale', true );
+					if ( count( $bg_image_urls ) > 1 ) {
+						$bg_autoscale = false;
 					}
+					foreach ( $bg_image_urls as $bg_image_url ) {
+						$orig_bg_url = $bg_image_url;
 
-					if ( $this->validate_image_url( $bg_image_url ) ) {
-						/** This filter is already documented in class-exactdn.php */
-						if ( apply_filters( 'exactdn_skip_image', false, $bg_image_url, $element ) ) {
-							continue;
+						// Check for relative URLs that start with a slash.
+						if (
+							'/' === substr( $bg_image_url, 0, 1 ) &&
+							'/' !== substr( $bg_image_url, 1, 1 ) &&
+							false === strpos( $this->upload_domain, 'amazonaws.com' ) &&
+							false === strpos( $this->upload_domain, 'digitaloceanspaces.com' ) &&
+							false === strpos( $this->upload_domain, 'storage.googleapis.com' )
+						) {
+							$bg_image_url = '//' . $this->upload_domain . $bg_image_url;
 						}
-						$args          = array();
-						$element_class = $this->get_attribute( $element, 'class' );
-						if ( false !== strpos( $element_class, 'alignfull' ) && current_theme_supports( 'align-wide' ) ) {
-							$args['w'] = apply_filters( 'exactdn_full_align_bgimage_width', 1920, $bg_image_url );
-						} elseif ( false !== strpos( $element_class, 'wp-block-cover' ) && false !== strpos( $element_class, 'has-parallax' ) ) {
-							$args['w'] = apply_filters( 'exactdn_wp_cover_parallax_bgimage_width', 1920, $bg_image_url );
-						} elseif ( false !== strpos( $element_class, 'alignwide' ) && current_theme_supports( 'align-wide' ) ) {
-							$args['w'] = apply_filters( 'exactdn_wide_align_bgimage_width', 1500, $bg_image_url );
-						} elseif ( false !== strpos( $element_class, 'et_parallax_bg' ) ) {
-							$args['w'] = apply_filters( 'exactdn_et_parallax_bgimage_width', 1920, $bg_image_url );
-						} elseif ( 'div' === $tag_type && $content_width ) {
-							$args['w'] = apply_filters( 'exactdn_content_bgimage_width', $content_width, $bg_image_url );
+
+						if ( $this->validate_image_url( $bg_image_url ) ) {
+							/** This filter is already documented in class-exactdn.php */
+							if ( apply_filters( 'exactdn_skip_image', false, $bg_image_url, $element ) ) {
+								continue;
+							}
+							$args          = array();
+							$element_class = $this->get_attribute( $element, 'class' );
+							if ( false !== strpos( $element_class, 'alignfull' ) && current_theme_supports( 'align-wide' ) ) {
+								$args['w'] = apply_filters( 'exactdn_full_align_bgimage_width', 1920, $bg_image_url );
+							} elseif ( false !== strpos( $element_class, 'wp-block-cover' ) && false !== strpos( $element_class, 'has-parallax' ) ) {
+								$args['w'] = apply_filters( 'exactdn_wp_cover_parallax_bgimage_width', 1920, $bg_image_url );
+							} elseif ( false !== strpos( $element_class, 'alignwide' ) && current_theme_supports( 'align-wide' ) ) {
+								$args['w'] = apply_filters( 'exactdn_wide_align_bgimage_width', 1500, $bg_image_url );
+							} elseif ( false !== strpos( $element_class, 'et_parallax_bg' ) ) {
+								$args['w'] = apply_filters( 'exactdn_et_parallax_bgimage_width', 1920, $bg_image_url );
+							} elseif ( 'div' === $tag_type && $content_width ) {
+								$args['w'] = apply_filters( 'exactdn_content_bgimage_width', $content_width, $bg_image_url );
+							}
+							if ( ( isset( $args['w'] ) && empty( $args['w'] ) ) || ! $bg_autoscale ) {
+								unset( $args['w'] );
+							}
+							$exactdn_bg_image_url = $this->generate_url( $bg_image_url, $args );
+							if ( $bg_image_url !== $exactdn_bg_image_url ) {
+								$new_style = str_replace( $orig_bg_url, $exactdn_bg_image_url, $new_style );
+							}
 						}
-						if ( isset( $args['w'] ) && empty( $args['w'] ) ) {
-							unset( $args['w'] );
-						}
-						$exactdn_bg_image_url = $this->generate_url( $bg_image_url, $args );
-						if ( $bg_image_url !== $exactdn_bg_image_url ) {
-							$new_style = str_replace( $orig_bg_url, $exactdn_bg_image_url, $style );
-							$element   = str_replace( $style, $new_style, $element );
-						}
+					}
+					if ( $style !== $new_style ) {
+						$element = str_replace( $style, $new_style, $element );
 					}
 					if ( $element !== $elements[ $index ] ) {
 						$content = str_replace( $elements[ $index ], $element, $content );

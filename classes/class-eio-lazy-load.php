@@ -722,14 +722,18 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						continue;
 					}
 					$this->debug_message( "checking style attr for background-image: $style" );
-					$bg_image_url = $this->get_background_image_url( $style );
-					if ( $bg_image_url ) {
-						$this->debug_message( 'bg-image url found' );
+					$bg_image_urls = $this->get_background_image_urls( $style );
+					if ( $this->is_iterable( $bg_image_urls ) ) {
+						$this->debug_message( 'bg-image urls found' );
 						$new_style = $this->remove_background_image( $style );
 						if ( $style !== $new_style ) {
 							$this->debug_message( 'style modified, continuing' );
 							$this->set_attribute( $element, 'class', $this->get_attribute( $element, 'class' ) . ' lazyload', true );
-							$this->set_attribute( $element, 'data-bg', $bg_image_url );
+							if ( count( $bg_image_urls ) > 1 ) {
+								$this->set_attribute( $element, 'data-bg', wp_json_encode( $bg_image_urls ) );
+							} elseif ( ! empty( $bg_image_urls[0] ) ) {
+								$this->set_attribute( $element, 'data-bg', $bg_image_urls[0] );
+							}
 							$element = str_replace( $style, $new_style, $element );
 						}
 					}

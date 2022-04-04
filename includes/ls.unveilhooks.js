@@ -46,7 +46,8 @@
 					var dPR = (window.devicePixelRatio || 1);
 					var targetWidth  = Math.round(e.target.offsetWidth * dPR);
 					var targetHeight = Math.round(e.target.offsetHeight * dPR);
-					if (!shouldAutoScale(e.target)||!shouldAutoScale(e.target.parentNode)){
+					if ( 0 === bg.search(/\[/) ) {
+					} else if (!shouldAutoScale(e.target)||!shouldAutoScale(e.target.parentNode)){
 					} else if (window.lazySizes.hC(e.target,'wp-block-cover')) {
 						console.log('found wp-block-cover with data-bg');
 						if (window.lazySizes.hC(e.target,'has-parallax')) {
@@ -70,12 +71,41 @@
 						console.log('found other data-bg');
 						bg = constrainSrc(bg,targetWidth,targetHeight,'bg');
 					}
-					if ( e.target.style.backgroundImage ) {
-						console.log( 'appending bg url: ' + e.target.style.backgroundImage + ', url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')' );
-						e.target.style.backgroundImage = e.target.style.backgroundImage + ', url("' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + '")';
+					if ( e.target.style.backgroundImage && -1 === e.target.style.backgroundImage.search(/^initial/) ) {
+						// Convert JSON for multiple URLs.
+						if ( 0 === bg.search(/\[/) ) {
+							console.log('multiple URLs to append');
+							bg = JSON.parse(bg);
+							bg.forEach(
+								function(bg_url){
+									bg_url = (regBgUrlEscape.test(bg_url) ? JSON.stringify(bg_url) : bg_url );
+								}
+							);
+							bg = 'url("' + bg.join('"), url("') + '"';
+							var new_bg = e.target.style.backgroundImage + ', ' + bg;
+							console.log('setting .backgroundImage: ' + new_bg );
+							e.target.style.backgroundImage = new_bg;
+						} else {
+							console.log( 'appending bg url: ' + e.target.style.backgroundImage + ', url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')' );
+							e.target.style.backgroundImage = e.target.style.backgroundImage + ', url("' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + '")';
+						}
 					} else {
-						console.log('setting .backgroundImage: ' + 'url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')');
-						e.target.style.backgroundImage = 'url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')';
+						// Convert JSON for multiple URLs.
+						if ( 0 === bg.search(/\[/) ) {
+							console.log('multiple URLs to insert');
+							bg = JSON.parse(bg);
+							bg.forEach(
+								function(bg_url){
+									bg_url = (regBgUrlEscape.test(bg_url) ? JSON.stringify(bg_url) : bg_url );
+								}
+							);
+							bg = 'url("' + bg.join('"), url("') + '"';
+							console.log('setting .backgroundImage: ' + bg );
+							e.target.style.backgroundImage = bg;
+						} else {
+							console.log('setting .backgroundImage: ' + 'url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')');
+							e.target.style.backgroundImage = 'url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')';
+						}
 					}
 				}
 			}
