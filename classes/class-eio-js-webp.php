@@ -100,6 +100,8 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		add_filter( 'woocommerce_available_variation', array( $this, 'woocommerce_available_variation' ) );
 		// Filter for FacetWP JSON responses.
 		add_filter( 'facetwp_render_output', array( $this, 'filter_facetwp_json_output' ) );
+		// Filter for LL when multiple background images are used--because it uses JSON, and the background image parser skips elements containing JSON.
+		add_filter( 'eio_ll_multiple_bg_images_for_webp', array( $this, 'filter_image_url_array' ) );
 
 		// Load up the minified check script.
 		$this->check_webp_script = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'includes/check-webp.min.js' );
@@ -887,6 +889,27 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		}
 
 		return $output;
+	}
+
+	/**
+	 * Parse an array of image URLs and replace them with their WebP counterparts.
+	 * Mostly for our Lazy Loader at this point, since it uses JSON when multiple
+	 * background images are used on a single element.
+	 *
+	 * @param array $image_urls An array of image URLs.
+	 * @return array An array with WebP image URLs.
+	 */
+	function filter_image_url_array( $image_urls ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( $this->is_iterable( $image_urls ) ) {
+			foreach ( $image_urls as $index => $image_url ) {
+				$this->debug_message( "checking $image_url for a WebP variant" );
+				if ( ! empty( $image_url ) && $this->validate_image_url( $image_url ) ) {
+					$image_urls[ $index ] = $this->generate_url( $image_url );
+				}
+			}
+		}
+		return $image_urls;
 	}
 
 	/**
