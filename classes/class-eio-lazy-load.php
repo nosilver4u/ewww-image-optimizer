@@ -73,15 +73,22 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		public $allow_piip = true;
 
 		/**
+		 * Request URI.
+		 *
+		 * @var string $request_uri
+		 */
+		public $request_uri = '';
+
+		/**
 		 * Register (once) actions and filters for Lazy Load.
 		 */
 		function __construct() {
 			parent::__construct( __FILE__ );
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 
-			$uri = add_query_arg( null, null );
-			if ( false === strpos( $uri, 'page=ewww-image-optimizer-options' ) ) {
-				$this->debug_message( "request uri is $uri" );
+			$this->request_uri = add_query_arg( null, null );
+			if ( false === strpos( $this->request_uri, 'page=ewww-image-optimizer-options' ) ) {
+				$this->debug_message( "request uri is {$this->request_uri}" );
 			} else {
 				$this->debug_message( 'request uri is EWWW IO settings' );
 			}
@@ -92,9 +99,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			 * Allow pre-empting Lazy Load by page.
 			 *
 			 * @param bool Whether to parse the page for images to lazy load, default true.
-			 * @param string $uri The URL of the page.
+			 * @param string The URL of the page.
 			 */
-			if ( ! apply_filters( 'eio_do_lazyload', true, $uri ) ) {
+			if ( ! apply_filters( 'eio_do_lazyload', true, $this->request_uri ) ) {
 				return;
 			}
 
@@ -190,7 +197,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				return false;
 			}
 			if ( empty( $uri ) ) {
-				$uri = add_query_arg( null, null );
+				$uri = $this->request_uri;
 			}
 			if ( false !== strpos( $uri, '?brizy-edit' ) ) {
 				return false;
@@ -310,6 +317,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				return $buffer;
 			}
 			if ( ! $this->should_process_page() ) {
+				return $buffer;
+			}
+			if ( ! apply_filters( 'eio_do_lazyload', true, $this->request_uri ) ) {
 				return $buffer;
 			}
 
@@ -1155,6 +1165,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( ! $this->should_process_page() ) {
 				return;
 			}
+			if ( ! apply_filters( 'eio_do_lazyload', true, $this->request_uri ) ) {
+				return;
+			}
 			echo '<noscript><style>.lazyload[data-src]{display:none !important;}</style></noscript>';
 			// And this allows us to lazy load external/internal CSS background images.
 			echo '<style>.lazyload{background-image:none !important;}.lazyload:before{background-image:none !important;}</style>';
@@ -1166,6 +1179,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		function debug_script() {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			if ( ! $this->should_process_page() ) {
+				return;
+			}
+			if ( ! apply_filters( 'eio_do_lazyload', true, $this->request_uri ) ) {
 				return;
 			}
 			if ( ! defined( 'EIO_LL_FOOTER' ) ) {
@@ -1204,6 +1220,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( ! $this->should_process_page() ) {
 				return;
 			}
+			if ( ! apply_filters( 'eio_do_lazyload', true, $this->request_uri ) ) {
+				return;
+			}
 			if ( ! defined( 'EIO_LL_FOOTER' ) ) {
 				define( 'EIO_LL_FOOTER', true );
 			}
@@ -1234,6 +1253,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		 */
 		function inline_script() {
 			if ( ! $this->should_process_page() ) {
+				return;
+			}
+			if ( ! apply_filters( 'eio_do_lazyload', true, $this->request_uri ) ) {
 				return;
 			}
 			$this->debug_message( 'inlining lazysizes script' );

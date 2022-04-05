@@ -56,6 +56,13 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 	private $load_webp_script = '';
 
 	/**
+	 * Request URI.
+	 *
+	 * @var string $request_uri
+	 */
+	public $request_uri = '';
+
+	/**
 	 * Register (once) actions and filters for JS WebP.
 	 */
 	function __construct() {
@@ -66,9 +73,9 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		parent::__construct();
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 
-		$uri = add_query_arg( null, null );
-		if ( false === strpos( $uri, 'page=ewww-image-optimizer-options' ) ) {
-			$this->debug_message( "request uri is $uri" );
+		$this->request_uri = add_query_arg( null, null );
+		if ( false === strpos( $this->request_uri, 'page=ewww-image-optimizer-options' ) ) {
+			$this->debug_message( "request uri is {$this->request_uri}" );
 		} else {
 			$this->debug_message( 'request uri is EWWW IO settings' );
 		}
@@ -79,9 +86,9 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		 * Allow pre-empting JS WebP by page.
 		 *
 		 * @param bool Whether to parse the page for images to rewrite for WebP, default true.
-		 * @param string $uri The URL of the page.
+		 * @param string The URI/path of the page.
 		 */
-		if ( ! apply_filters( 'eio_do_js_webp', true, $uri ) ) {
+		if ( ! apply_filters( 'eio_do_js_webp', true, $this->request_uri ) ) {
 			return;
 		}
 
@@ -155,7 +162,7 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 			return false;
 		}
 		if ( empty( $uri ) ) {
-			$uri = add_query_arg( null, null );
+			$uri = $this->request_uri;
 		}
 		if ( false !== strpos( $uri, '?brizy-edit' ) ) {
 			return false;
@@ -367,6 +374,9 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		}
 		if ( ! $this->should_process_page() ) {
 			$this->debug_message( 'JS WebP should not process page' );
+			return $buffer;
+		}
+		if ( ! apply_filters( 'eio_do_js_webp', true, $this->request_uri ) ) {
 			return $buffer;
 		}
 
@@ -1031,6 +1041,9 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		if ( ! $this->should_process_page() ) {
 			return;
 		}
+		if ( ! apply_filters( 'eio_do_js_webp', true, $this->request_uri ) ) {
+			return;
+		}
 		if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
 			wp_enqueue_script( 'ewww-webp-check-script', plugins_url( '/includes/check-webp.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 			wp_enqueue_script( 'ewww-webp-load-script', plugins_url( '/includes/load-webp.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION, true );
@@ -1044,6 +1057,9 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		if ( ! $this->should_process_page() ) {
 			return;
 		}
+		if ( ! apply_filters( 'eio_do_js_webp', true, $this->request_uri ) ) {
+			return;
+		}
 		if ( ! ewww_image_optimizer_ce_webp_enabled() ) {
 			wp_enqueue_script( 'ewww-webp-check-script', plugins_url( '/includes/check-webp.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 			wp_enqueue_script( 'ewww-webp-load-script', plugins_url( '/includes/load-webp.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), EWWW_IMAGE_OPTIMIZER_VERSION, true );
@@ -1055,6 +1071,9 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 	 */
 	function inline_check_script() {
 		if ( ! $this->should_process_page() ) {
+			return;
+		}
+		if ( ! apply_filters( 'eio_do_js_webp', true, $this->request_uri ) ) {
 			return;
 		}
 		if ( defined( 'EWWW_IMAGE_OPTIMIZER_NO_JS' ) && EWWW_IMAGE_OPTIMIZER_NO_JS ) {
@@ -1072,6 +1091,9 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 			return;
 		}
 		if ( ! $this->should_process_page() ) {
+			return;
+		}
+		if ( ! apply_filters( 'eio_do_js_webp', true, $this->request_uri ) ) {
 			return;
 		}
 		$this->debug_message( 'inlining load webp script' );

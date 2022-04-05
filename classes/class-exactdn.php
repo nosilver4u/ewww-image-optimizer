@@ -113,6 +113,13 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		private $srcset_attr = 'srcset';
 
 		/**
+		 * Request URI.
+		 *
+		 * @var string $request_uri
+		 */
+		public $request_uri = '';
+
+		/**
 		 * Register (once) actions and filters for ExactDN. If you want to use this class, use the global.
 		 */
 		function __construct() {
@@ -129,14 +136,14 @@ if ( ! class_exists( 'ExactDN' ) ) {
 				return;
 			}
 
-			$uri = add_query_arg( null, null );
-			if ( false === strpos( $uri, 'page=ewww-image-optimizer-options' ) ) {
-				$this->debug_message( "request uri is $uri" );
+			$this->request_uri = add_query_arg( null, null );
+			if ( false === strpos( $this->request_uri, 'page=ewww-image-optimizer-options' ) ) {
+				$this->debug_message( "request uri is {$this->request_uri}" );
 			} else {
 				$this->debug_message( 'request uri is EWWW IO settings' );
 			}
 
-			if ( '/robots.txt' === $uri || '/sitemap.xml' === $uri ) {
+			if ( '/robots.txt' === $this->request_uri || '/sitemap.xml' === $this->request_uri ) {
 				return;
 			}
 
@@ -146,9 +153,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			 * Allow pre-empting the parsers by page.
 			 *
 			 * @param bool Whether to skip parsing the page.
-			 * @param string $uri The URL of the page.
+			 * @param string The URI/path of the page.
 			 */
-			if ( apply_filters( 'exactdn_skip_page', false, $uri ) ) {
+			if ( apply_filters( 'exactdn_skip_page', false, $this->request_uri ) ) {
 				return;
 			}
 
@@ -905,6 +912,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 */
 		function filter_the_content( $content ) {
 			if ( $this->is_json( $content ) ) {
+				return $content;
+			}
+			if ( apply_filters( 'exactdn_skip_page', false, $this->request_uri ) ) {
 				return $content;
 			}
 
@@ -1958,6 +1968,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( apply_filters( 'exactdn_override_image_downsize', false, compact( 'image', 'attachment_id', 'size' ) ) ) {
 				return $image;
 			}
+			// Make it easier to skip all images by URI.
+			if ( apply_filters( 'exactdn_skip_page', false, $this->request_uri ) ) {
+				return $image;
+			}
 
 			if ( function_exists( 'aq_resize' ) ) {
 				$this->debug_message( 'aq_resize detected, image_downsize filter bypassed' );
@@ -2290,6 +2304,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			) {
 				return $sources;
 			}
+			if ( apply_filters( 'exactdn_skip_page', false, $this->request_uri ) ) {
+				return $sources;
+			}
 
 			if ( ! is_array( $sources ) ) {
 				return $sources;
@@ -2483,6 +2500,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$started = microtime( true );
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			if ( ! doing_filter( 'the_content' ) ) {
+				return $sizes;
+			}
+			if ( apply_filters( 'exactdn_skip_page', false, $this->request_uri ) ) {
 				return $sizes;
 			}
 			$content_width = $this->get_content_width();
@@ -2959,10 +2979,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		}
 
 		/**
-		 * Handle direct image urls within Plugins.
+		 * Handle direct image URLs within Plugins.
 		 *
-		 * @param string $image A url for an image.
-		 * @return string The ExactDNified image url.
+		 * @param string $image A URL for an image.
+		 * @return string The ExactDNified image URL.
 		 */
 		function plugin_get_image_url( $image ) {
 			// Don't foul up the admin side of things, unless a plugin wants to.
@@ -3144,6 +3164,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 */
 		function parse_enqueue( $url ) {
 			if ( is_admin() ) {
+				return $url;
+			}
+			if ( apply_filters( 'exactdn_skip_page', false, $this->request_uri ) ) {
 				return $url;
 			}
 			if ( did_action( 'cornerstone_boot_app' ) || did_action( 'cs_before_preview_frame' ) ) {

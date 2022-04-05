@@ -156,6 +156,6 @@ if ( ! function_exists( 'ewww_image_optimizer_unsupported_php' ) ) {
 	 * Runs on 'plugins_loaded' to load the language files when EWWW is not loading.
 	 */
 	function ewww_image_optimizer_false_init() {
-		load_plugin_textdomain( 'ewww-image-optimizer', false, plugin_dir_path( __FILE__ ) . 'languages/' );
+		load_plugin_textdomain( 'ewww-image-optimizer' );
 	}
 }
