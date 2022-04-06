@@ -436,7 +436,7 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 				if ( 'image/jpeg' === $this->mime_type ) {
 					if ( apply_filters( 'eio_use_adaptive_sharpen', false ) && is_callable( array( $this->image, 'adaptiveSharpenImage' ) ) ) {
 						$radius = apply_filters( 'eio_adaptive_sharpen_radius', 0 );
-						$sigma  = apply_filters( 'eio_adaptive_sharpen_sigma', 0.25 );
+						$sigma  = apply_filters( 'eio_adaptive_sharpen_sigma', 1 );
 						ewwwio_debug_message( "running adaptiveSharpenImage( $radius, $sigma )" );
 						$this->image->adaptiveSharpenImage( $radius, $sigma );
 					} elseif ( is_callable( array( $this->image, 'unsharpMaskImage' ) ) ) {
