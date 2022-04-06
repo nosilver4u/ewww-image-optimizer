@@ -1506,10 +1506,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 								// Replace original tag with modified version.
 								$content = str_replace( $images['img_tag'][ $index ], $new_tag, $content );
 							}
-						}
-					}
-				} // End foreach().
-			} // End if();
+						} // End if() -- no srcset or sizes attributes found.
+					} // End if() -- not a feed and EIO_SRCSET_FILL enabled.
+				} // End foreach() -- of all images found in the page.
+			} // End if() -- we found images in the page at all.
 
 			// Process <a> elements in the page for image URLs.
 			$content = $this->filter_image_links( $content );
