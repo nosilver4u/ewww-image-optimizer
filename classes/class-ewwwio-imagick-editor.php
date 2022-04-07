@@ -378,7 +378,7 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 				'FILTER_SINC',
 			);
 
-			$filter_name = apply_filters( 'eio_image_resize_filter', $filter_name );
+			$filter_name = apply_filters( 'eio_image_resize_filter', $filter_name, $dst_w, $dst_h );
 			ewwwio_debug_message( "using resize filter $filter_name" );
 			/**
 			 * Set the filter value if '$filter_name' name is in the allowed list and the related
@@ -434,16 +434,16 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 
 				// Set appropriate quality settings after resizing.
 				if ( 'image/jpeg' === $this->mime_type ) {
-					if ( apply_filters( 'eio_use_adaptive_sharpen', false ) && is_callable( array( $this->image, 'adaptiveSharpenImage' ) ) ) {
-						$radius = apply_filters( 'eio_adaptive_sharpen_radius', 0 );
-						$sigma  = apply_filters( 'eio_adaptive_sharpen_sigma', 1 );
+					if ( apply_filters( 'eio_use_adaptive_sharpen', false, $dst_w, $dst_h ) && is_callable( array( $this->image, 'adaptiveSharpenImage' ) ) ) {
+						$radius = apply_filters( 'eio_adaptive_sharpen_radius', 0, $dst_w, $dst_h );
+						$sigma  = apply_filters( 'eio_adaptive_sharpen_sigma', 1, $dst_w, $dst_h );
 						ewwwio_debug_message( "running adaptiveSharpenImage( $radius, $sigma )" );
 						$this->image->adaptiveSharpenImage( $radius, $sigma );
 					} elseif ( is_callable( array( $this->image, 'unsharpMaskImage' ) ) ) {
-						$radius    = apply_filters( 'eio_sharpen_radius', 0.25 );
-						$sigma     = apply_filters( 'eio_sharpen_sigma', 0.25 );
-						$amount    = apply_filters( 'eio_sharpen_amount', 8 );
-						$threshold = apply_filters( 'eio_sharpen_threshold', 0.065 );
+						$radius    = apply_filters( 'eio_sharpen_radius', 0.25, $dst_w, $dst_h );
+						$sigma     = apply_filters( 'eio_sharpen_sigma', 0.25, $dst_w, $dst_h );
+						$amount    = apply_filters( 'eio_sharpen_amount', 8, $dst_w, $dst_h );
+						$threshold = apply_filters( 'eio_sharpen_threshold', 0.065, $dst_w, $dst_h );
 						ewwwio_debug_message( "running unsharpMaskImage( $radius, $sigma, $amount, $threshold )" );
 						$this->image->unsharpMaskImage( $radius, $sigma, $amount, $threshold );
 						// $this->image->unsharpMaskImage( 0.25, 0.25, 8, 0.065 ); // core WP defaults.
