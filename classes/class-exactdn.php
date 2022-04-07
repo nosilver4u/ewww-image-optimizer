@@ -1309,7 +1309,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 							} elseif ( ! empty( $images['link_url'][ $index ] ) && $this->validate_image_url( $images['link_url'][ $index ] ) ) {
 								$new_tag = preg_replace(
 									'#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i',
-									'\1' . $this->generate_url( $images['link_url'][ $index ] ) . '\2',
+									'\1' . $this->generate_url( $images['link_url'][ $index ], array( 'w' => 2560 ) ) . '\2',
 									$new_tag,
 									1
 								);
@@ -1558,7 +1558,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			$elements = $this->get_elements_from_html( $content, 'a' );
 			if ( $this->is_iterable( $elements ) ) {
-				$args = array();
+				$args = array( 'w' => 2560 );
 				if ( defined( 'EIO_PRESERVE_LINKED_IMAGES' ) && EIO_PRESERVE_LINKED_IMAGES ) {
 					$args = array(
 						'lossy' => 0,

@@ -13,7 +13,7 @@ Plugin Name: EWWW Image Optimizer
 Plugin URI: https://wordpress.org/plugins/ewww-image-optimizer/
 Description: Reduce file sizes for images within WordPress including NextGEN Gallery and GRAND FlAGallery. Uses jpegtran, optipng/pngout, and gifsicle.
 Author: Exactly WWW
-Version: 6.4.2.4
+Version: 6.5.0
 Requires at least: 5.6
 Requires PHP: 7.2
 Author URI: https://ewww.io/
@@ -33,14 +33,10 @@ if ( ! defined( 'EWWW_IO_CLOUD_PLUGIN' ) ) {
 if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70200 ) {
 	add_action( 'network_admin_notices', 'ewww_image_optimizer_unsupported_php' );
 	add_action( 'admin_notices', 'ewww_image_optimizer_unsupported_php' );
-	// Loads the plugin translations.
-	add_action( 'plugins_loaded', 'ewww_image_optimizer_false_init' );
 } elseif ( defined( 'EWWW_IMAGE_OPTIMIZER_VERSION' ) ) {
 	// Prevent loading both EWWW IO plugins.
 	add_action( 'network_admin_notices', 'ewww_image_optimizer_dual_plugin' );
 	add_action( 'admin_notices', 'ewww_image_optimizer_dual_plugin' );
-	// Loads the plugin translations.
-	add_action( 'plugins_loaded', 'ewww_image_optimizer_false_init' );
 } elseif ( false === strpos( add_query_arg( null, null ), 'ewwwio_disable=1' ) ) {
 	/**
 	 * The full path of the plugin file (this file).
@@ -150,12 +146,5 @@ if ( ! function_exists( 'ewww_image_optimizer_unsupported_php' ) ) {
 	 */
 	function ewww_image_optimizer_dual_plugin() {
 		echo "<div id='ewww-image-optimizer-warning-double-plugin' class='error'><p><strong>" . esc_html__( 'Only one version of the EWWW Image Optimizer can be active at a time. Please deactivate other copies of the plugin.', 'ewww-image-optimizer' ) . '</strong></p></div>';
-	}
-
-	/**
-	 * Runs on 'plugins_loaded' to load the language files when EWWW is not loading.
-	 */
-	function ewww_image_optimizer_false_init() {
-		load_plugin_textdomain( 'ewww-image-optimizer' );
 	}
 }

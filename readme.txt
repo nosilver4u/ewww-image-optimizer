@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.6
 Tested up to: 5.9
 Requires PHP: 7.2
-Stable tag: 6.4.2
+Stable tag: 6.5.0
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -137,9 +137,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
-= 6.4.3 =
+= 6.5.0 =
 * added: Lazy Load and Easy IO support for multiple background images and mixing with gradients
 * changed: all Easy IO settings available to all plan levels
+* changed: Easy IO CDN image links constrained to 2560px, use EIO_PRESERVE_LINKED_IMAGES to override
 * fixed: database upgrade fails on MySQL 5.6
 * fixed: LQIP and SVG placeholder options not auto-loaded correctly
 * fixed: regression in legacy translation loader

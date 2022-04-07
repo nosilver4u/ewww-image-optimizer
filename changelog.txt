@@ -1,3 +1,11 @@
+= 6.5.0 =
+* added: Lazy Load and Easy IO support for multiple background images and mixing with gradients
+* changed: all Easy IO settings available to all plan levels
+* changed: Easy IO CDN image links constrained to 2560px, use EIO_PRESERVE_LINKED_IMAGES to override
+* fixed: database upgrade fails on MySQL 5.6
+* fixed: LQIP and SVG placeholder options not auto-loaded correctly
+* fixed: regression in legacy translation loader
+
 = 6.4.2 =
 * added: JS/Picture WebP rewriters support FacetWP AJAX responses
 * fixed: errors from posix_getpwuid() and posix_getgrgid() not handled correctly

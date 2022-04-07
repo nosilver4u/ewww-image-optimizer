@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '642.426' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '650' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -48,8 +48,6 @@ use lsolesen\pel\PelTag;
  * Hooks
  */
 
-// Loads the plugin translations.
-add_action( 'plugins_loaded', 'ewww_image_optimizer_preinit' );
 // Runs any checks that need to run everywhere and early.
 add_action( 'init', 'ewww_image_optimizer_init', 9 );
 // Load our front-end parsers for ExactDN, Lazy Load and WebP.
@@ -782,13 +780,6 @@ function ewww_image_optimizer_save_network_settings() {
 		update_option( 'ewww_image_optimizer_gif_level', '10' );
 		update_option( 'ewww_image_optimizer_svg_level', 0 );
 	}
-}
-
-/**
- * Runs on 'plugins_loaded' to make make sure the language files are loaded early.
- */
-function ewww_image_optimizer_preinit() {
-	load_plugin_textdomain( 'ewww-image-optimizer', false, dirname( plugin_basename( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ) ) . 'languages/' );
 }
 
 /**
