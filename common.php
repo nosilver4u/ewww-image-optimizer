@@ -5310,6 +5310,9 @@ function ewww_image_optimizer_cloud_quota( $raw = false ) {
 		if ( ! is_array( $quota ) ) {
 			return '';
 		}
+		if ( ! empty( $quota['status'] ) && 'expired' === $quota['status'] ) {
+			return '';
+		}
 		ewwwio_memory( __FUNCTION__ );
 		if ( $raw ) {
 			return $quota;
