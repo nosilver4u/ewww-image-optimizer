@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '650' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '651' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -4817,10 +4817,10 @@ function ewww_image_optimizer_exactdn_activate_ajax() {
 		 * ExactDN class for parsing image urls and rewriting them.
 		 */
 		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-exactdn.php' );
-		global $exactdn;
-		if ( $exactdn->get_exactdn_domain() ) {
-			die( wp_json_encode( array( 'success' => esc_html__( 'Easy IO setup and verification is complete.', 'ewww-image-optimizer' ) ) ) );
-		}
+	}
+	global $exactdn;
+	if ( $exactdn->get_exactdn_domain() ) {
+		die( wp_json_encode( array( 'success' => esc_html__( 'Easy IO setup and verification is complete.', 'ewww-image-optimizer' ) ) ) );
 	}
 	global $exactdn_activate_error;
 	if ( empty( $exactdn_activate_error ) ) {

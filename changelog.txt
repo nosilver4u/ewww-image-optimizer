@@ -1,3 +1,7 @@
+= 6.5.1 =
+* fixed: LQIP option not available on sub-domain multisite install unless Easy IO is active on site 1
+* fixed: API quota function doesn't handle expired status correctly
+
 = 6.5.0 =
 * added: Lazy Load and Easy IO support for multiple background images and mixing with gradients
 * changed: all Easy IO settings available to all plan levels
