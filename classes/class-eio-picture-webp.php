@@ -180,10 +180,6 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 		if ( $this->is_amp() ) {
 			return false;
 		}
-		if ( is_embed() ) {
-			$this->debug_message( 'is_embed' );
-			return false;
-		}
 		if ( is_feed() ) {
 			$this->debug_message( 'is_feed' );
 			return false;

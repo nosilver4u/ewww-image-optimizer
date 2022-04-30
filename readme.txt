@@ -137,6 +137,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 6.5.2 =
+* fixed: Picture WebP rewriting disabled on embeds
+
 = 6.5.1 =
 * fixed: LQIP option not available on sub-domain multisite install unless Easy IO is active on site 1
 * fixed: API quota function doesn't handle expired status correctly
