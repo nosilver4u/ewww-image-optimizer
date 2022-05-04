@@ -138,7 +138,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.5.2 =
+* added: automatic optimization for Crop Thumbnails plugin
 * fixed: Picture WebP rewriting disabled on embeds
+* fixed: Lazy Load integration with WooCommerce Product Recommendations handling AJAX output incorrectly
 
 = 6.5.1 =
 * fixed: LQIP option not available on sub-domain multisite install unless Easy IO is active on site 1

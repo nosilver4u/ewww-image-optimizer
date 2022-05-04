@@ -121,7 +121,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			}
 
 			add_filter( 'vc_get_vc_grid_data_response', array( $this, 'filter_page_output' ) );
-			add_filter( 'woocommerce_prl_ajax_response_html', array( $this, 'filter_page_output' ) );
+			add_filter( 'woocommerce_prl_ajax_response_html', array( $this, 'filter_html_array' ) );
 
 			// Filter for FacetWP JSON responses.
 			add_filter( 'facetwp_render_output', array( $this, 'filter_facetwp_json_output' ) );
@@ -787,6 +787,40 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				}
 			}
 			return $element;
+		}
+
+		/**
+		 * Parse an array of potential HTML strings.
+		 *
+		 * @param array $output An array of HTML strings.
+		 * @return array The output data with lazy loaded images.
+		 */
+		function filter_html_array( $output ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			if ( $this->is_iterable( $output ) ) {
+				foreach ( $output as $index => $html ) {
+					if ( is_array( $html ) ) {
+						$output[ $index ] = $this->filter_html_array( $html );
+					}
+					if ( ! is_string( $html ) ) {
+						$this->debug_message( "skipped $index, not a string" );
+						continue;
+					}
+					if ( strlen( $html ) < 100 ) {
+						$this->debug_message( "skipped $index, too short? $html" );
+						continue;
+					}
+					if ( false === strpos( $html, '<img ' ) ) {
+						$this->debug_message( "skipped $index, no img tags found" );
+						continue;
+					}
+					$new_html = $this->filter_page_output( $html );
+					if ( $new_html !== $html ) {
+						$output[ $index ] = $new_html;
+					}
+				}
+			}
+			return $output;
 		}
 
 		/**

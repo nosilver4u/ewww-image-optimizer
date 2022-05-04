@@ -84,6 +84,8 @@ if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
 	add_filter( 'mpp_generate_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
 	// Processes an attachment after IRSC has done a thumb regen.
 	add_filter( 'sirsc_attachment_images_ready', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
+	// Processes an attachment after Crop Thumbnails plugin has modified the images.
+	add_filter( 'crop_thumbnails_before_update_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
 	// Process BuddyPress uploads from Vikinger theme.
 	add_action( 'vikinger_file_uploaded', 'ewww_image_optimizer' );
 }
