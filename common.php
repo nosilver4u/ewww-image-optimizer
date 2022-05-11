@@ -13082,6 +13082,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			$webp_rewrite_verify = false;
 			// Only check the rules for problems if WebP is enabled, otherwise this is a blank slate.
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) :
+				$false_positive_headers = '';
 				if ( defined( 'PHP_SAPI' ) && false === strpos( PHP_SAPI, 'apache' ) && false === strpos( PHP_SAPI, 'litespeed' ) ) {
 					$false_positive_headers = esc_html( 'This may be a false positive. If so, the warning should go away once you implement the rewrite rules.' );
 				}
