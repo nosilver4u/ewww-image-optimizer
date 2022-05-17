@@ -2033,6 +2033,10 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		// Do metadata update after full-size is processed, usually because of conversion or resizing.
 		if ( 'full' === $image->resize && $image->attachment_id ) {
 			if ( $meta && is_array( $meta ) ) {
+				clearstatcache();
+				if ( ! empty( $image->file ) && is_file( $image->file ) ) {
+					$meta['filesize'] = filesize( $image->file );
+				}
 				$meta_saved = wp_update_attachment_metadata( $image->attachment_id, $meta );
 				if ( ! $meta_saved ) {
 					ewwwio_debug_message( 'failed to save meta' );
@@ -2154,6 +2158,8 @@ function ewww_image_optimizer_bulk_update_meta() {
 	$attachment_id = (int) $_REQUEST['attachment_id'];
 	ewwwio_debug_message( "saving attachment meta for $attachment_id" );
 	$meta = wp_get_attachment_metadata( $attachment_id );
+	$meta = ewww_image_optimizer_update_filesize_metadata( $meta, $attachment_id );
+	remove_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_filesize_metadata', 9 );
 	if ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_Uploads\Plugin' ) ) {
 		ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
 		ewww_image_optimizer_remote_push( $meta, $attachment_id );

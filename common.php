@@ -89,6 +89,8 @@ if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
 	// Process BuddyPress uploads from Vikinger theme.
 	add_action( 'vikinger_file_uploaded', 'ewww_image_optimizer' );
 }
+// Ensures we update the filesize data in the meta.
+add_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_filesize_metadata', 9, 2 );
 // Skips resizing for images with 'noresize' in the filename.
 add_filter( 'ewww_image_optimizer_resize_dimensions', 'ewww_image_optimizer_noresize', 10, 2 );
 // Makes sure the optimizer never optimizes it's own testing images.
@@ -4231,7 +4233,8 @@ function ewww_image_optimizer_restore_from_meta_data( $meta, $id ) {
 		}
 	}
 	$ewww_image = new EWWW_Image( $id, 'media', ewww_image_optimizer_absolutize_path( $db_image['path'] ) );
-	return $ewww_image->restore_with_meta( $meta );
+	remove_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_filesize_metadata', 9 );
+	return ewww_image_optimizer_update_filesize_metadata( $ewww_image->restore_with_meta( $meta ), $id, $ewww_image->file );
 }
 
 /**
@@ -4268,6 +4271,8 @@ function ewww_image_optimizer_cloud_restore_from_meta_data( $id, $gallery = 'med
 			}
 		}
 	}
+	remove_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_filesize_metadata', 9 );
+	$meta = ewww_image_optimizer_update_filesize_metadata( $meta, $id );
 	if ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_uploads\Plugin' ) ) {
 		ewww_image_optimizer_remote_push( $meta, $id );
 		ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
@@ -8612,6 +8617,9 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 	}
 	$fullsize_opt_size = ewww_image_optimizer_filesize( $file );
 
+	remove_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_filesize_metadata', 9 );
+	$meta = ewww_image_optimizer_update_filesize_metadata( $meta, $id, $file );
+
 	// Done optimizing, do whatever you need with the attachment from here.
 	do_action( 'ewww_image_optimizer_after_optimize_attachment', $id, $meta );
 
@@ -8951,6 +8959,73 @@ function ewww_image_optimizer_update_attachment( $meta, $id ) {
 			'post_mime_type' => $mime,
 		)
 	);
+	return $meta;
+}
+
+/**
+ * Update file sizes for an attachment and all thumbs.
+ *
+ * @param array  $meta Attachment metadata.
+ * @param int    $id Attachment ID number.
+ * @param string $file_path Optional. The full path to the full-size image.
+ * @return array The updated attachment metadata.
+ */
+function ewww_image_optimizer_update_filesize_metadata( $meta, $id, $file_path = false ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	global $wpdb;
+	if ( ! $file_path || ! is_string( $file_path ) ) {
+		list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
+	}
+	if ( ! $file_path ) {
+		return $meta;
+	}
+	$use_db = false;
+	if ( ewww_image_optimizer_stream_wrapped( $file_path ) || ! ewwwio_is_file( $file_path ) ) {
+		$use_db = true;
+	}
+	if ( $use_db ) {
+		$full_filesize = $wpdb->get_var( $wpdb->prepare( "SELECT image_size FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND resize = %s", $id, 'full' ) );
+		if ( empty( $full_filesize ) ) {
+			return $meta;
+		}
+	} else {
+		$full_filesize = ewww_image_optimizer_filesize( $file_path );
+	}
+	if ( $full_filesize ) {
+		ewwwio_debug_message( "updating full to $full_filesize" );
+		$meta['filesize'] = (int) $full_filesize;
+	}
+	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
+		foreach ( $meta['sizes'] as $size => $data ) {
+			if ( $use_db && ! empty( $size ) ) {
+				$scaled_filesize = $wpdb->get_var( $wpdb->prepare( "SELECT image_size FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND resize = %s", $id, $size ) );
+				if ( ! $scaled_filesize ) {
+					ewwwio_debug_message( 'checking other thumbs for filesize' );
+					// Check through all the other sizes.
+					foreach ( $meta['sizes'] as $index => $item ) {
+						// If a different resize had identical dimensions.
+						if (
+							$item['height'] === $data['height'] &&
+							$item['width'] === $data['width'] &&
+							! empty( $item['filesize'] ) &&
+							( ! isset( $data['filesize'] ) || (int) $item['filesize'] !== (int) $data['filesize'] )
+						) {
+							ewwwio_debug_message( "using $index filesize for $size" );
+							$scaled_filesize = $item['filesize'];
+							break;
+						}
+					}
+				}
+			} else {
+				$resize_path     = path_join( dirname( $file_path ), $data['file'] );
+				$scaled_filesize = ewww_image_optimizer_filesize( $resize_path );
+			}
+			if ( $scaled_filesize ) {
+				ewwwio_debug_message( "updating $size to $full_filesize" );
+				$meta['sizes'][ $size ]['filesize'] = $scaled_filesize;
+			}
+		}
+	}
 	return $meta;
 }
 

@@ -192,6 +192,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: Easy IO URLs for custom (non-WP) srcset markup
 * added: Easy IO support for CSS background images with relative URLs
 * changed: Lazy Load excludes first image in a page as above-the-fold
+* changed: make sure file size metadata is updated for WP 6.0+
 * fixed: Easy IO scaling not working on full-size images without srcset/responsive markup
 * fixed: WebP and Lazy Load function skip images dynamically created by Brizy builder
 * fixed: Easy IO conflict on Elementor preview pages

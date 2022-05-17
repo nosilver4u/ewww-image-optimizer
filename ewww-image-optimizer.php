@@ -80,7 +80,7 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70200 ) {
 			/**
 			 * The folder where we store debug logs (among other things) - MUST have a trailing slash.
 			 *
-			 * @var string EWWW_IMAGE_OPTIMIZER_TOOL_PATH
+			 * @var string EWWWIO_CONTENT_DIR
 			 */
 			define( 'EWWWIO_CONTENT_DIR', $ewwwio_content_dir );
 		}
