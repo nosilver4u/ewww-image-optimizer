@@ -345,6 +345,153 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 		}
 
 		/**
+		 * Efficiently resize the current image
+		 *
+		 * This is a WordPress specific implementation of Imagick::thumbnailImage(),
+		 * which resizes an image to given dimensions and removes any associated profiles.
+		 *
+		 * @since 4.5.0
+		 *
+		 * @param int    $dst_w       The destination width.
+		 * @param int    $dst_h       The destination height.
+		 * @param string $filter_name Optional. The Imagick filter to use when resizing. Default 'FILTER_TRIANGLE'.
+		 * @param bool   $strip_meta  Optional. Strip all profiles, excluding color profiles, from the image. Default true.
+		 * @return void|WP_Error
+		 */
+		protected function thumbnail_image( $dst_w, $dst_h, $filter_name = 'FILTER_TRIANGLE', $strip_meta = true ) {
+			ewwwio_debug_message( '<b>wp_image_editor_imagick::' . __FUNCTION__ . '()</b>' );
+			$allowed_filters = array(
+				'FILTER_POINT',
+				'FILTER_BOX',
+				'FILTER_TRIANGLE',
+				'FILTER_HERMITE',
+				'FILTER_HANNING',
+				'FILTER_HAMMING',
+				'FILTER_BLACKMAN',
+				'FILTER_GAUSSIAN',
+				'FILTER_QUADRATIC',
+				'FILTER_CUBIC',
+				'FILTER_CATROM',
+				'FILTER_MITCHELL',
+				'FILTER_LANCZOS',
+				'FILTER_BESSEL',
+				'FILTER_SINC',
+			);
+
+			$filter_name = apply_filters( 'eio_image_resize_filter', $filter_name, $dst_w, $dst_h );
+			ewwwio_debug_message( "using resize filter $filter_name" );
+			/**
+			 * Set the filter value if '$filter_name' name is in the allowed list and the related
+			 * Imagick constant is defined or fall back to the default filter.
+			 */
+			if ( in_array( $filter_name, $allowed_filters, true ) && defined( 'Imagick::' . $filter_name ) ) {
+				$filter = constant( 'Imagick::' . $filter_name );
+			} else {
+				$filter = defined( 'Imagick::FILTER_TRIANGLE' ) ? Imagick::FILTER_TRIANGLE : false;
+			}
+
+			/**
+			 * Filters whether to strip metadata from images when they're resized.
+			 *
+			 * This filter only applies when resizing using the Imagick editor since GD
+			 * always strips profiles by default.
+			 *
+			 * @since 4.5.0
+			 *
+			 * @param bool $strip_meta Whether to strip image metadata during resizing. Default true.
+			 */
+			if ( apply_filters( 'image_strip_meta', $strip_meta ) ) {
+				$this->strip_meta(); // Fail silently if not supported.
+			}
+
+			try {
+				/*
+				 * To be more efficient, resample large images to 5x the destination size before resizing
+				 * whenever the output size is less that 1/3 of the original image size (1/3^2 ~= .111),
+				 * unless we would be resampling to a scale smaller than 128x128.
+				 */
+				if ( is_callable( array( $this->image, 'sampleImage' ) ) ) {
+					$resize_ratio  = ( $dst_w / $this->size['width'] ) * ( $dst_h / $this->size['height'] );
+					$sample_factor = 5;
+
+					if ( $resize_ratio < .111 && ( $dst_w * $sample_factor > 128 && $dst_h * $sample_factor > 128 ) ) {
+						$this->image->sampleImage( $dst_w * $sample_factor, $dst_h * $sample_factor );
+					}
+				}
+
+				/*
+				 * Use resizeImage() when it's available and a valid filter value is set.
+				 * Otherwise, fall back to the scaleImage() method for resizing, which
+				 * results in better image quality over resizeImage() with default filter
+				 * settings and retains backward compatibility with pre 4.5 functionality.
+				 */
+				if ( is_callable( array( $this->image, 'resizeImage' ) ) && $filter ) {
+					$this->image->setOption( 'filter:support', '2.0' );
+					$this->image->resizeImage( $dst_w, $dst_h, $filter, 1 );
+				} else {
+					$this->image->scaleImage( $dst_w, $dst_h );
+				}
+
+				// Set appropriate quality settings after resizing.
+				if ( 'image/jpeg' === $this->mime_type ) {
+					if ( apply_filters( 'eio_use_adaptive_sharpen', false, $dst_w, $dst_h ) && is_callable( array( $this->image, 'adaptiveSharpenImage' ) ) ) {
+						$radius = apply_filters( 'eio_adaptive_sharpen_radius', 0, $dst_w, $dst_h );
+						$sigma  = apply_filters( 'eio_adaptive_sharpen_sigma', 1, $dst_w, $dst_h );
+						ewwwio_debug_message( "running adaptiveSharpenImage( $radius, $sigma )" );
+						$this->image->adaptiveSharpenImage( $radius, $sigma );
+					} elseif ( is_callable( array( $this->image, 'unsharpMaskImage' ) ) ) {
+						$radius    = apply_filters( 'eio_sharpen_radius', 0.25, $dst_w, $dst_h );
+						$sigma     = apply_filters( 'eio_sharpen_sigma', 0.25, $dst_w, $dst_h );
+						$amount    = apply_filters( 'eio_sharpen_amount', 8, $dst_w, $dst_h );
+						$threshold = apply_filters( 'eio_sharpen_threshold', 0.065, $dst_w, $dst_h );
+						ewwwio_debug_message( "running unsharpMaskImage( $radius, $sigma, $amount, $threshold )" );
+						$this->image->unsharpMaskImage( $radius, $sigma, $amount, $threshold );
+						// $this->image->unsharpMaskImage( 0.25, 0.25, 8, 0.065 ); // core WP defaults.
+						// $this->image->unsharpMaskImage( 0, 0.4, 1.2, 0.01 ); // values from the Better Images plugin.
+					}
+
+					$this->image->setOption( 'jpeg:fancy-upsampling', 'off' );
+				}
+
+				if ( 'image/png' === $this->mime_type ) {
+					$this->image->setOption( 'png:compression-filter', '5' );
+					$this->image->setOption( 'png:compression-level', '9' );
+					$this->image->setOption( 'png:compression-strategy', '1' );
+					$this->image->setOption( 'png:exclude-chunk', 'all' );
+				}
+
+				/*
+				 * If alpha channel is not defined, set it opaque.
+				 *
+				 * Note that Imagick::getImageAlphaChannel() is only available if Imagick
+				 * has been compiled against ImageMagick version 6.4.0 or newer.
+				 */
+				if ( is_callable( array( $this->image, 'getImageAlphaChannel' ) )
+					&& is_callable( array( $this->image, 'setImageAlphaChannel' ) )
+					&& defined( 'Imagick::ALPHACHANNEL_UNDEFINED' )
+					&& defined( 'Imagick::ALPHACHANNEL_OPAQUE' )
+				) {
+					if ( $this->image->getImageAlphaChannel() === Imagick::ALPHACHANNEL_UNDEFINED ) {
+						$this->image->setImageAlphaChannel( Imagick::ALPHACHANNEL_OPAQUE );
+					}
+				}
+
+				// Limit the bit depth of resized images to 8 bits per channel.
+				if ( is_callable( array( $this->image, 'getImageDepth' ) ) && is_callable( array( $this->image, 'setImageDepth' ) ) ) {
+					if ( 8 < $this->image->getImageDepth() ) {
+						$this->image->setImageDepth( 8 );
+					}
+				}
+
+				if ( is_callable( array( $this->image, 'setInterlaceScheme' ) ) && defined( 'Imagick::INTERLACE_NO' ) ) {
+					$this->image->setInterlaceScheme( Imagick::INTERLACE_NO );
+				}
+			} catch ( Exception $e ) {
+				return new WP_Error( 'image_resize_error', $e->getMessage() );
+			}
+		}
+
+		/**
 		 * Resize multiple images from a single source.
 		 *
 		 * @since 4.6.0
