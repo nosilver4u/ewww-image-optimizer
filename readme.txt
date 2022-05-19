@@ -2,10 +2,10 @@
 Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization, lossless, lossy, seo, scale
-Requires at least: 5.6
-Tested up to: 5.9
+Requires at least: 5.7
+Tested up to: 6.0
 Requires PHP: 7.2
-Stable tag: 6.5.1
+Stable tag: 6.5.2
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -140,6 +140,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 6.5.2 =
 * added: automatic optimization for Crop Thumbnails plugin
 * added: filters to adjust sharpening parameters for core WP (ImageMagick) image resizing
+* changed: Easy IO WebP quality can be defined separately from the JPG quality used for resizing operations
 * fixed: Picture WebP rewriting disabled on embeds
 * fixed: Lazy Load integration with WooCommerce Product Recommendations handling AJAX output incorrectly
 * fixed: PHP notice when checking for presence of mod_rewrite/mod_headers
@@ -155,38 +156,6 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: database upgrade fails on MySQL 5.6
 * fixed: LQIP and SVG placeholder options not auto-loaded correctly
 * fixed: regression in legacy translation loader
-
-= 6.4.2 =
-* added: JS/Picture WebP rewriters support FacetWP AJAX responses
-* fixed: errors from posix_getpwuid() and posix_getgrgid() not handled correctly
-* fixed: PNGOUT download URLs were moved, causing auto-install to fail
-* fixed: Easy IO was adding srcset markup for SVG images
-
-= 6.4.1 =
-* added: use decoding=async to prevent images from blocking text render
-* fixed: database upgrade fails on MySQL 8.0.x
-* fixed: Auto-scale incorrectly handles Divi parallax background images
-* fixed: native lazy loading used on inline PNG placeholders
-* fixed: WebP rewriters not recognizing WP Offload Media Path (object prefix) setting
-
-= 6.4.0 =
-* added: free API-based WebP generation for servers that cannot generate WebP images locally
-* added: detection for Jetpack Boost lazy load function
-* added: JS WebP handling for WooCommerce product variations
-* changed: SVG placeholder setting removed from UI as PNG placeholders can now provide the same benefits (and better).
-* changed: Lazy Load no longer excludes first image in a page due to potential CLS issues and auto-scaling suppression
-* fixed: PNG thumbnails skipped from WebP conversion when using exec-free mode
-* fixed: SVG placeholders broken when existing img src is single-quoted
-* fixed: Lazy Loader incorrectly parses fall-back iframe from Google Tag Manager, triggering 403 errors in some WAF systems
-* fixed: error when disabling Easy IO
-* fixed: Easy IO misses some image URLs on multi-site when using domain-mapping
-* fixed: SVG level cannot be set when using API if svgcleaner was not installed previously
-* fixed: Easy IO URL rewriter changing links if they matched a custom upload folder
-* fixed: Easy IO incompatible with Toolset Blocks
-* fixed: Easy IO incorrectly sizing wide/full width cover blocks
-* fixed: SWIS CDN compat called too early in some cases
-* updated: PHP EXIF library dependency updated to 0.9.9
-* removed: PHP 7.1 is no longer supported
 
 = Earlier versions =
 Please refer to the separate changelog.txt file.

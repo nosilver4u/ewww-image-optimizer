@@ -1,3 +1,11 @@
+= 6.5.2 =
+* added: automatic optimization for Crop Thumbnails plugin
+* added: filters to adjust sharpening parameters for core WP (ImageMagick) image resizing
+* changed: Easy IO WebP quality can be defined separately from the JPG quality used for resizing operations
+* fixed: Picture WebP rewriting disabled on embeds
+* fixed: Lazy Load integration with WooCommerce Product Recommendations handling AJAX output incorrectly
+* fixed: PHP notice when checking for presence of mod_rewrite/mod_headers
+
 = 6.5.1 =
 * fixed: LQIP option not available on sub-domain multisite install unless Easy IO is active on site 1
 * fixed: API quota function doesn't handle expired status correctly
