@@ -13267,12 +13267,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				$false_positive_headers = '';
 				$header_error           = '';
 				if ( $cloudways_host ) :
-					?>
-					<p><?php esc_html_e( 'In order to use server-based delivery, Cloudways sites must have WebP Redirection enabled in their Application Settings.', 'ewww-image-optimizer' ); ?></p>
-					<?php
+					$header_error = '<p class="ewww-webp-rewrite-info"><strong>' . esc_html__( 'In order to use server-based delivery, Cloudways sites must have WebP Redirection enabled in their Application Settings.', 'ewww-image-optimizer' ) . "</strong></p>\n";
 				else :
 					if ( defined( 'PHP_SAPI' ) && false === strpos( PHP_SAPI, 'apache' ) && false === strpos( PHP_SAPI, 'litespeed' ) ) {
-						$false_positive_headers = esc_html( 'This may be a false positive. If so, the warning should go away once you implement the rewrite rules.' );
+						$false_positive_headers = esc_html__( 'This may be a false positive. If so, the warning should go away once you implement the rewrite rules.', 'ewww-image-optimizer' );
 					}
 					if ( ! apache_mod_loaded( 'mod_rewrite' ) ) {
 						/* translators: %s: mod_rewrite or mod_headers */
