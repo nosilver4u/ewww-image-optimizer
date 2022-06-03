@@ -141,8 +141,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: AVIF support via Easy IO, enable on site management at ewww.io
 * added: sharpening setting to improve WP resizing via ImageMagick and WebP conversion
 * added: AVIF quality setting on Advanced tab
+* added: ability for Easy IO to get full-size path when using offloaded media
 * changed: JPG quality and WebP quality moved to Advanced tab
 * fixed: front-end HTML parsers running within Bricks editor
+* fixed: Easy IO not finding scaled full-size for dynamic size generation
 
 = 6.5.2 =
 * added: automatic optimization for Crop Thumbnails plugin

@@ -2832,15 +2832,28 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			// Build URL, first removing WP's resized string so we pass the original image to ExactDN.
 			if ( preg_match( '#(-\d+x\d+)\.(' . implode( '|', $this->extensions ) . '){1}(?:\?.+)?$#i', $src, $src_parts ) ) {
 				$stripped_src = str_replace( $src_parts[1], '', $src );
-				$upload_dir   = wp_get_upload_dir();
+				$scaled_src   = str_replace( $src_parts[1], '-scaled', $src );
 
-				// Extracts the file path to the image minus the base url.
-				$file_path = substr( $stripped_src, strlen( $upload_dir['baseurl'] ) );
-
-				if ( is_file( $upload_dir['basedir'] . $file_path ) ) {
-					$src = $stripped_src;
+				$file = false;
+				if ( $this->allowed_urls && $this->allowed_domains ) {
+					$file = $this->cdn_to_local( $src );
 				}
-				$this->debug_message( 'stripped dims' );
+				if ( ! $file ) {
+					$file = $this->url_to_path_exists( $src );
+				}
+				if ( $file ) {
+					// Extracts the file path to the image minus the base url.
+					$file_path   = str_replace( $src_parts[1], '', $file );
+					$scaled_path = str_replace( $src_parts[1], '-scaled', $file );
+
+					if ( $this->is_file( $file_path ) ) {
+						$src = $stripped_src;
+						$this->debug_message( 'stripped dims to original' );
+					} elseif ( $this->is_file( $scaled_path ) ) {
+						$src = $scaled_src;
+						$this->debug_message( 'stripped dims to scaled' );
+					}
+				}
 			}
 			return $src;
 		}
