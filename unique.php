@@ -227,7 +227,7 @@ function ewww_image_optimizer_notice_hosting_requires_api() {
 	}
 	echo "<div id='ewww-image-optimizer-warning-exec' class='notice notice-warning is-dismissible'><p>" .
 		/* translators: %s: Name of a web host, like WordPress.com or Pantheon. */
-		sprintf( esc_html__( '%s sites require cloud-based optimization, because server-based optimization is disallowed. Those who upgrade to our premium service receive much higher compression, PNG/GIF/PDF compression, and image backups.', 'ewww-image-optimizer' ), esc_html( $webhost ) ) .
+		sprintf( esc_html__( 'EWWW Image Optimizer cannot use server-based optimization on %s sites. Activate our premium service for 5x more compression, PNG/GIF/PDF compression, and image backups.', 'ewww-image-optimizer' ), esc_html( $webhost ) ) .
 		'<br><strong>' .
 		/* translators: %s: link to 'start your free trial' */
 		sprintf( esc_html__( 'Dismiss this notice to continue with free cloud-based JPG compression or %s.', 'ewww-image-optimizer' ), "<a href='https://ewww.io/plans/'>" . esc_html__( 'start your premium trial', 'ewww-image-optimizer' ) . '</a>' );
@@ -627,7 +627,7 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 				echo "<div id='ewww-image-optimizer-warning-exec' class='notice notice-warning is-dismissible'><p>";
 				printf(
 					/* translators: %s: link to 'start your premium trial' */
-					esc_html__( 'Your web server does not meet the requirements for free server-based compression. You may %s for 5x more compression, PNG/GIF/PDF compression, and more. Otherwise, continue with free cloud-based JPG compression.', 'ewww-image-optimizer' ),
+					esc_html__( 'Your web server does not meet the requirements for free server-based compression with EWWW Image Optimizer. You may %s for 5x more compression, PNG/GIF/PDF compression, and more. Otherwise, continue with free cloud-based JPG compression.', 'ewww-image-optimizer' ),
 					"<a href='https://ewww.io/plans/'>" . esc_html__( 'start your premium trial', 'ewww-image-optimizer' ) . '</a>'
 				);
 			}
@@ -771,7 +771,7 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 			echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-warning'><p>" .
 			sprintf(
 				/* translators: 1: automatically (link) 2: manually (link) */
-				esc_html__( 'You are missing pngout. Install %1$s or %2$s.', 'ewww-image-optimizer' ),
+				esc_html__( 'EWWW Image Optimizer is missing pngout. Install %1$s or %2$s.', 'ewww-image-optimizer' ),
 				"<a href='" . esc_url( $pngout_install_url ) . "'>" . esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
 				'<a href="https://docs.ewww.io/article/13-installing-pngout" data-beacon-article="5854531bc697912ffd6c1afa">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>'
 			) .
@@ -786,7 +786,7 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 			echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-warning'><p>" .
 			sprintf(
 				/* translators: 1: automatically (link) 2: manually (link) */
-				esc_html__( 'You are missing svgleaner. Install %1$s or %2$s.', 'ewww-image-optimizer' ),
+				esc_html__( 'EWWW Image Optimizer is missing svgleaner. Install %1$s or %2$s.', 'ewww-image-optimizer' ),
 				"<a href='" . esc_url( $svgcleaner_install_url ) . "'>" . esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
 				'<a href="https://docs.ewww.io/article/95-installing-svgcleaner" data-beacon-article="5f7921c9cff47e001a58adbc">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>'
 			) .
@@ -3061,7 +3061,10 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 			$quality = 75;
 		}
 		$sharp_yuv = defined( 'EIO_WEBP_SHARP_YUV' ) && EIO_WEBP_SHARP_YUV ? '-sharp_yuv' : '';
-		$lossless  = '-lossless';
+		if ( empty( $sharp_yuv ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_sharpen' ) ) {
+			$sharp_yuv = '-sharp_yuv';
+		}
+		$lossless = '-lossless';
 		if ( defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) && EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) {
 			$lossless = "-q $quality $sharp_yuv";
 		}

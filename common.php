@@ -120,6 +120,8 @@ add_filter( 'load_image_to_edit_path', 'ewww_image_optimizer_editor_save_pre' );
 add_filter( 'jpeg_quality', 'ewww_image_optimizer_set_jpg_quality', PHP_INT_MAX - 1 );
 // Allows the user to override the default WebP quality used by EWWW IO.
 add_filter( 'webp_quality', 'ewww_image_optimizer_set_webp_quality' );
+// Allows the user to override the default AVIF quality used by EWWW IO.
+add_filter( 'avif_quality', 'ewww_image_optimizer_set_avif_quality' );
 // Prevent WP from over-riding EWWW IO's resize settings.
 add_filter( 'big_image_size_threshold', 'ewww_image_optimizer_adjust_big_image_threshold', 10, 3 );
 // Makes sure the plugin bypasses any files affected by the Folders to Ignore setting.
@@ -682,10 +684,14 @@ function ewww_image_optimizer_save_network_settings() {
 			update_site_option( 'ewww_image_optimizer_webp', $ewww_image_optimizer_webp );
 			$ewww_image_optimizer_jpg_background = empty( $_POST['ewww_image_optimizer_jpg_background'] ) ? '' : sanitize_text_field( wp_unslash( $_POST['ewww_image_optimizer_jpg_background'] ) );
 			update_site_option( 'ewww_image_optimizer_jpg_background', ewww_image_optimizer_jpg_background( $ewww_image_optimizer_jpg_background ) );
+			$ewww_image_optimizer_sharpen = empty( $_POST['ewww_image_optimizer_sharpen'] ) ? false : true;
+			update_site_option( 'ewww_image_optimizer_sharpen', $ewww_image_optimizer_sharpen );
 			$ewww_image_optimizer_jpg_quality = empty( $_POST['ewww_image_optimizer_jpg_quality'] ) ? '' : (int) $_POST['ewww_image_optimizer_jpg_quality'];
 			update_site_option( 'ewww_image_optimizer_jpg_quality', ewww_image_optimizer_jpg_quality( $ewww_image_optimizer_jpg_quality ) );
 			$ewww_image_optimizer_webp_quality = empty( $_POST['ewww_image_optimizer_webp_quality'] ) ? '' : (int) $_POST['ewww_image_optimizer_webp_quality'];
 			update_site_option( 'ewww_image_optimizer_webp_quality', ewww_image_optimizer_webp_quality( $ewww_image_optimizer_webp_quality ) );
+			$ewww_image_optimizer_avif_quality = empty( $_POST['ewww_image_optimizer_avif_quality'] ) ? '' : (int) $_POST['ewww_image_optimizer_avif_quality'];
+			update_site_option( 'ewww_image_optimizer_avif_quality', ewww_image_optimizer_avif_quality( $ewww_image_optimizer_avif_quality ) );
 			$ewww_image_optimizer_disable_convert_links = ( empty( $_POST['ewww_image_optimizer_disable_convert_links'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_disable_convert_links', $ewww_image_optimizer_disable_convert_links );
 			$ewww_image_optimizer_backup_files = ( empty( $_POST['ewww_image_optimizer_backup_files'] ) ? false : true );
@@ -1064,9 +1070,10 @@ function ewww_image_optimizer_admin_init() {
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_svg_level', 'intval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_backup_files', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_enable_cloudinary', 'boolval' );
+	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_sharpen', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_jpg_quality', 'ewww_image_optimizer_jpg_quality' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_quality', 'ewww_image_optimizer_webp_quality' );
-	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_parallel_optimization', 'boolval' );
+	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_avif_quality', 'ewww_image_optimizer_avif_quality' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_auto', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_include_media_paths', 'boolval' );
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_include_originals', 'boolval' );
@@ -2464,6 +2471,9 @@ function ewww_image_optimizer_load_editor( $editors ) {
 		if ( class_exists( 'WP_Image_Editor_Gmagick' ) ) {
 			require_once( plugin_dir_path( __FILE__ ) . '/classes/class-ewwwio-gmagick-editor.php' );
 		}
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_sharpen' ) ) {
+			ewww_image_optimizer_sharpen_filters();
+		}
 	}
 	if ( ! in_array( 'EWWWIO_GD_Editor', $editors, true ) ) {
 		array_unshift( $editors, 'EWWWIO_GD_Editor' );
@@ -2479,6 +2489,81 @@ function ewww_image_optimizer_load_editor( $editors ) {
 	}
 	ewwwio_memory( __FUNCTION__ );
 	return $editors;
+}
+
+/**
+ * Override the default resizing filter.
+ *
+ * @param string $filter_name The name of the constant for the specified filter.
+ * @param int    $dst_w The width (in pixels) to which an image is being resized.
+ * @param int    $dst_h The height (in pixels) to which an image is being resized.
+ * @return string The Lanczos filter by default, unless changed by the user.
+ */
+function eio_change_image_resize_filter( $filter_name, $dst_w, $dst_h ) {
+	/*
+	 * Valid options:
+	 * 'FILTER_POINT',
+	 * 'FILTER_BOX',
+	 * 'FILTER_TRIANGLE',
+	 * 'FILTER_HERMITE',
+	 * 'FILTER_HANNING',
+	 * 'FILTER_HAMMING',
+	 * 'FILTER_BLACKMAN',
+	 * 'FILTER_GAUSSIAN',
+	 * 'FILTER_QUADRATIC',
+	 * 'FILTER_CUBIC',
+	 * 'FILTER_CATROM',
+	 * 'FILTER_MITCHELL',
+	 * 'FILTER_LANCZOS',
+	 * 'FILTER_BESSEL',
+	 * 'FILTER_SINC'
+	 */
+	if ( $dst_w * $dst_h > 2000000 ) {
+		return $filter_name;
+	}
+	return 'FILTER_LANCZOS';
+}
+
+/**
+ * Enables the use of the adaptiveSharpenImage() function.
+ *
+ * @param bool $use_adaptive Whether to use the adaptiveSharpenImage() function, false by default.
+ * @param int  $dst_w The width (in pixels) to which an image is being resized.
+ * @param int  $dst_h The height (in pixels) to which an image is being resized.
+ * @return bool True if the new image will be under 1.5 MP, false otherwise.
+ */
+function eio_enable_adaptive_sharpen( $use_adaptive, $dst_w, $dst_h ) {
+	if ( $dst_w * $dst_h > 1500000 ) {
+		return false;
+	}
+	return true;
+}
+
+/**
+ * Adjusts the sigma value for the adaptiveSharpenImage() function.
+ *
+ * @param float $param The sigma value for adaptiveSharpenImage().
+ * @param int   $dst_w The width (in pixels) to which an image is being resized.
+ * @param int   $dst_h The height (in pixels) to which an image is being resized.
+ * @return float The new sigma value.
+ */
+function eio_adjust_adaptive_sharpen_sigma( $param, $dst_w, $dst_h ) {
+	if ( $dst_w * $dst_h > 250000 ) {
+		return 0.5;
+	}
+	return $param;
+}
+
+/**
+ * Add filters to improve image resizing with ImageMagick.
+ */
+function ewww_image_optimizer_sharpen_filters() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	add_filter( 'eio_image_resize_filter', 'eio_change_image_resize_filter', 9, 3 );
+
+	add_filter( 'eio_use_adaptive_sharpen', 'eio_enable_adaptive_sharpen', 9, 3 );
+
+	add_filter( 'eio_adaptive_sharpen_sigma', 'eio_adjust_adaptive_sharpen_sigma', 9, 3 );
 }
 
 /**
@@ -3360,7 +3445,10 @@ function ewww_image_optimizer_imagick_supports_webp() {
 function ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$sharp_yuv = defined( 'EIO_WEBP_SHARP_YUV' ) && EIO_WEBP_SHARP_YUV ? true : false;
-	$quality   = (int) apply_filters( 'webp_quality', 75, 'image/webp' );
+	if ( empty( $sharp_yuv ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_sharpen' ) ) {
+		$sharp_yuv = true;
+	}
+	$quality = (int) apply_filters( 'webp_quality', 75, 'image/webp' );
 	if ( $quality < 50 || $quality > 100 ) {
 		$quality = 75;
 	}
@@ -3709,7 +3797,7 @@ function ewww_image_optimizer_jpg_background( $background = null ) {
  * Retrieves/sanitizes the jpg quality setting for png2jpg conversion or returns null.
  *
  * @param int $quality The JPG quality level as set by the user.
- * @return int The sanitize JPG quality level.
+ * @return int The sanitized JPG quality level.
  */
 function ewww_image_optimizer_jpg_quality( $quality = null ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
@@ -3751,12 +3839,12 @@ function ewww_image_optimizer_set_jpg_quality( $quality ) {
  * Retrieves/sanitizes the WebP quality setting or returns null.
  *
  * @param int $quality The WebP quality level as set by the user.
- * @return int The sanitize WebP quality level.
+ * @return int The sanitized WebP quality level.
  */
 function ewww_image_optimizer_webp_quality( $quality = null ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( is_null( $quality ) ) {
-		// Retrieve the user-supplied value for jpg quality.
+		// Retrieve the user-supplied value for WebP quality.
 		$quality = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_quality' );
 	}
 	// Verify that the quality level is an integer, 1-100.
@@ -3781,6 +3869,46 @@ function ewww_image_optimizer_webp_quality( $quality = null ) {
  */
 function ewww_image_optimizer_set_webp_quality( $quality ) {
 	$new_quality = ewww_image_optimizer_webp_quality();
+	if ( ! empty( $new_quality ) ) {
+		return min( 92, $new_quality );
+	}
+	return min( 92, $quality );
+}
+
+/**
+ * Retrieves/sanitizes the AVIF quality setting or returns null.
+ *
+ * @param int $quality The AVIF quality level as set by the user.
+ * @return int The sanitized AVIF quality level.
+ */
+function ewww_image_optimizer_avif_quality( $quality = null ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( is_null( $quality ) ) {
+		// Retrieve the user-supplied value for AVIF quality.
+		$quality = ewww_image_optimizer_get_option( 'ewww_image_optimizer_avif_quality' );
+	}
+	// Verify that the quality level is an integer, 1-100.
+	if ( preg_match( '/^(100|[1-9][0-9]?)$/', $quality ) ) {
+		ewwwio_debug_message( "avif quality: $quality" );
+		// Send back the valid quality level.
+		return $quality;
+	} else {
+		if ( ! empty( $quality ) ) {
+			add_settings_error( 'ewww_image_optimizer_avif_quality', 'ewwwio-avif-quality', esc_html__( 'Could not save the AVIF quality, please enter an integer between 50 and 100.', 'ewww-image-optimizer' ) );
+		}
+		// Send back nothing.
+		return null;
+	}
+}
+
+/**
+ * Overrides the default AVIF quality (if a user-defined value is set).
+ *
+ * @param int $quality The default AVIF quality level.
+ * @return int The default quality, or the user configured level.
+ */
+function ewww_image_optimizer_set_avif_quality( $quality ) {
+	$new_quality = ewww_image_optimizer_avif_quality();
 	if ( ! empty( $new_quality ) ) {
 		return min( 92, $new_quality );
 	}
@@ -5464,6 +5592,9 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		$lossy_fast = 0;
 	}
 	$sharp_yuv = defined( 'EIO_WEBP_SHARP_YUV' ) && EIO_WEBP_SHARP_YUV ? 1 : 0;
+	if ( empty( $sharp_yuv ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_sharpen' ) ) {
+		$sharp_yuv = 1;
+	}
 	if ( 'image/webp' === $newtype ) {
 		$webp        = 1;
 		$jpg_quality = apply_filters( 'webp_quality', 75, 'image/webp' );
@@ -12851,7 +12982,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<label for='exactdn_lossy'><strong><?php esc_html_e( 'Premium Compression', 'ewww-image-optimizer' ); ?></strong></label>
 						<?php ewwwio_help_link( 'https://docs.ewww.io/article/47-getting-more-from-exactdn', '59de6631042863379ddc953c' ); ?>
 						<p class='description'>
-							<?php esc_html_e( 'Enable high quality premium compression for all images on Easy IO. Disable to use Pixel Perfect mode instead.', 'ewww-image-optimizer' ); ?>
+							<?php esc_html_e( 'Enable high quality compression and WebP/AVIF conversion for all images on Easy IO. Disable to use Pixel Perfect mode instead.', 'ewww-image-optimizer' ); ?><br>
+							<a href='https://ewww.io/manage-sites/' target='_blank'>
+								<?php esc_html_e( 'Manage WebP/AVIF in the site settings at ewww.io.', 'ewww-image-optimizer' ); ?>
+							</a>
 						</p>
 					</td>
 				</tr>
@@ -12890,21 +13024,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<p class ='description'><?php esc_html_e( 'Color profiles are preserved when using the API or Easy IO.', 'ewww-image-optimizer' ); ?></p>
 					</td>
 				</tr>
-	<?php if ( $current_jpeg_quality > 90 || $current_jpeg_quality < 50 || ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_quality' ) ) : ?>
-				<tr>
-					<th scope='row'>
-						<label for='ewww_image_optimizer_jpg_quality'><?php esc_html_e( 'JPG Quality Level', 'ewww-image-optimizer' ); ?></label>
-						<?php ewwwio_help_link( 'https://docs.ewww.io/article/11-advanced-configuration', '58542afac697912ffd6c18c0,58543c69c697912ffd6c19a7' ); ?>
-					</th>
-					<td>
-						<input type='text' id='ewww_image_optimizer_jpg_quality' name='ewww_image_optimizer_jpg_quality' class='small-text' value='<?php echo esc_attr( ewww_image_optimizer_jpg_quality() ); ?>' />
-						<?php esc_html_e( 'Valid values are 1-100.', 'ewww-image-optimizer' ); ?>
-						<p class='description'>
-							<?php esc_html_e( 'Use this to override the default WordPress quality level of 82. Applies to image editing, resizing, and PNG to JPG conversion. Does not affect the original uploaded image unless maximum dimensions are set and resizing occurs.', 'ewww-image-optimizer' ); ?>
-						</p>
-					</td>
-				</tr>
-	<?php endif; ?>
 				<tr>
 					<th scope='row'>
 						<?php esc_html_e( 'Resize Images', 'ewww-image-optimizer' ); ?>
@@ -13331,15 +13450,6 @@ AddType image/webp .webp</pre>
 			<?php endif; ?>
 					</td>
 				</tr>
-				<tr class='ewww_image_optimizer_webp_setting_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? '' : ' style="display:none"'; ?>>
-					<th scope='row'>
-						<label for='ewww_image_optimizer_webp_quality'><?php esc_html_e( 'WebP Quality Level', 'ewww-image-optimizer' ); ?></label>
-					</th>
-					<td>
-						<input type='text' id='ewww_image_optimizer_webp_quality' name='ewww_image_optimizer_webp_quality' class='small-text' value='<?php echo esc_attr( ewww_image_optimizer_webp_quality() ); ?>' />
-						<?php esc_html_e( 'Default is 75, allowed range is 50-100.', 'ewww-image-optimizer' ); ?>
-					</td>
-				</tr>
 		<?php elseif ( ewww_image_optimizer_cloud_based_media() ) : ?>
 				<tr class='ewww_image_optimizer_webp_setting_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? '' : ' style="display:none"'; ?>>
 					<th>&nbsp;</th>
@@ -13537,16 +13647,6 @@ AddType image/webp .webp</pre>
 			<table class='form-table'>
 				<tr>
 					<th scope='row'>
-						<label for='ewww_image_optimizer_parallel_optimization'><?php esc_html_e( 'Parallel Optimization', 'ewww-image-optimizer' ); ?></label>
-						<?php ewwwio_help_link( 'https://docs.ewww.io/article/11-advanced-configuration', '58542afac697912ffd6c18c0,598cb8be2c7d3a73488be237' ); ?>
-					</th>
-					<td>
-						<input type='checkbox' id='ewww_image_optimizer_parallel_optimization' name='ewww_image_optimizer_parallel_optimization' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_parallel_optimization' ) ); ?> />
-						<?php esc_html_e( 'All resizes generated from a single upload are optimized in parallel for faster optimization. If this is causing performance issues, disable parallel optimization to reduce the load on your server.', 'ewww-image-optimizer' ); ?>
-					</td>
-				</tr>
-				<tr>
-					<th scope='row'>
 						<label for='ewww_image_optimizer_auto'><?php esc_html_e( 'Scheduled Optimization', 'ewww-image-optimizer' ); ?></label>
 						<?php ewwwio_help_link( 'https://docs.ewww.io/article/11-advanced-configuration', '58542afac697912ffd6c18c0,5853713bc697912ffd6c0b98' ); ?>
 					</th>
@@ -13608,6 +13708,65 @@ AddType image/webp .webp</pre>
 						<textarea id='ewww_image_optimizer_exclude_paths' name='ewww_image_optimizer_exclude_paths' rows='3' cols='60'><?php echo esc_html( $exclude_paths ); ?></textarea>
 						<p class='description'>
 							<?php esc_html_e( 'A file that matches any pattern or path provided will not be optimized.', 'ewww-image-optimizer' ); ?>
+						</p>
+					</td>
+				</tr>
+				<tr>
+					<td colspan='2'>
+						<hr>
+					</td>
+				</tr>
+				<tr>
+					<th scope='row'>
+						<label for='ewww_image_optimizer_sharpen'><?php esc_html_e( 'Sharpen Images', 'ewww-image-optimizer' ); ?></label>
+						<?php ewwwio_help_link( 'https://docs.ewww.io/article/11-advanced-configuration', '58542afac697912ffd6c18c0' ); ?>
+					</th>
+					<td>
+						<input type='checkbox' id='ewww_image_optimizer_sharpen' name='ewww_image_optimizer_sharpen' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_sharpen' ) ); ?> />
+	<?php if ( ewww_image_optimizer_imagick_support() ) : ?>
+						<?php esc_html_e( 'Apply improved sharpening to resize operations in WordPress and WebP Conversion.', 'ewww-image-optimizer' ); ?><br>
+						<p class='description'>
+							<?php esc_html_e( 'Uses additional CPU resources and may cause thumbnail generation for large images to fail.', 'ewww-image-optimizer' ); ?>
+						</p>
+	<?php else : ?>
+						<?php esc_html_e( 'Apply improved sharpening during WebP Conversion.', 'ewww-image-optimizer' ); ?><br>
+						<p class='description'>
+							<?php esc_html_e( 'Improve thumbnail generation by enabling the ImageMagick module for PHP.', 'ewww-image-optimizer' ); ?>
+						</p>
+	<?php endif; ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope='row'>
+						<label for='ewww_image_optimizer_jpg_quality'><?php esc_html_e( 'JPG Quality Level', 'ewww-image-optimizer' ); ?></label>
+						<?php ewwwio_help_link( 'https://docs.ewww.io/article/11-advanced-configuration', '58542afac697912ffd6c18c0,58543c69c697912ffd6c19a7' ); ?>
+					</th>
+					<td>
+						<input type='text' id='ewww_image_optimizer_jpg_quality' name='ewww_image_optimizer_jpg_quality' class='small-text' value='<?php echo esc_attr( ewww_image_optimizer_jpg_quality() ); ?>' />
+						<?php esc_html_e( 'Valid values are 1-100.', 'ewww-image-optimizer' ); ?>
+						<p class='description'>
+							<?php esc_html_e( 'Use this to override the default WordPress quality level of 82. Applies to image editing, resizing, and PNG to JPG conversion. Does not affect the original uploaded image unless maximum dimensions are set and resizing occurs.', 'ewww-image-optimizer' ); ?>
+						</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope='row'>
+						<label for='ewww_image_optimizer_webp_quality'><?php esc_html_e( 'WebP Quality Level', 'ewww-image-optimizer' ); ?></label>
+					</th>
+					<td>
+						<input type='text' id='ewww_image_optimizer_webp_quality' name='ewww_image_optimizer_webp_quality' class='small-text' value='<?php echo esc_attr( ewww_image_optimizer_webp_quality() ); ?>' />
+						<?php esc_html_e( 'Default is 75, allowed range is 50-100.', 'ewww-image-optimizer' ); ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope='row'>
+						<label for='ewww_image_optimizer_avif_quality'><?php esc_html_e( 'AVIF Quality Level', 'ewww-image-optimizer' ); ?></label>
+					</th>
+					<td>
+						<input type='text' id='ewww_image_optimizer_avif_quality' name='ewww_image_optimizer_avif_quality' class='small-text' value='<?php echo esc_attr( ewww_image_optimizer_avif_quality() ); ?>' <?php disabled( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ); ?> />
+						<?php esc_html_e( 'Default is 45, recommended range is 30-60.', 'ewww-image-optimizer' ); ?>
+						<p class='description'>
+							<?php esc_html_e( 'AVIF conversion is enabled via the Easy IO CDN.', 'ewww-image-optimizer' ); ?>
 						</p>
 					</td>
 				</tr>

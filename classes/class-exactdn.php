@@ -3346,7 +3346,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 			if ( defined( 'EIO_WEBP_SHARP_YUV' ) && EIO_WEBP_SHARP_YUV ) {
 				$more_args['sharp'] = 1;
+			} elseif ( $this->get_option( $this->prefix . 'sharpen' ) ) {
+				$more_args['sharp'] = 1;
 			}
+
 			// Merge given args with the automatic (option-based) args, and also makes sure args is an array if it was previously a string.
 			$args = wp_parse_args( $args, $more_args );
 
