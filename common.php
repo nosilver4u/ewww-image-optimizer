@@ -13263,25 +13263,26 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			$webp_mime_error     = false;
 			$webp_rewrite_verify = false;
 			// Only check the rules for problems if WebP is enabled, otherwise this is a blank slate.
-			if ( $cloudways_host && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) :
-				?>
-				<p><?php esc_html_e( 'In order to use server-based delivery, Cloudways sites must have WebP Redirection enabled in their Application Settings.', 'ewww-image-optimizer' ); ?></p>
-				<?php
-			elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) :
+			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) :
 				$false_positive_headers = '';
-				if ( defined( 'PHP_SAPI' ) && false === strpos( PHP_SAPI, 'apache' ) && false === strpos( PHP_SAPI, 'litespeed' ) ) {
-					$false_positive_headers = esc_html( 'This may be a false positive. If so, the warning should go away once you implement the rewrite rules.' );
-				}
-				$header_error = '';
-				if ( ! apache_mod_loaded( 'mod_rewrite' ) ) {
-					/* translators: %s: mod_rewrite or mod_headers */
-					$header_error = '<p class="ewww-webp-rewrite-info"><strong>' . sprintf( esc_html__( 'Your site appears to be missing %s, please contact your webhost or system administrator to enable this Apache module.', 'ewww-image-optimizer' ), 'mod_rewrite' ) . "</strong><br>$false_positive_headers</p>\n";
-				}
-				if ( ! apache_mod_loaded( 'mod_headers' ) ) {
-					/* translators: %s: mod_rewrite or mod_headers */
-					$header_error = '<p class="ewww-webp-rewrite-info"><strong>' . sprintf( esc_html__( 'Your site appears to be missing %s, please contact your webhost or system administrator to enable this Apache module.', 'ewww-image-optimizer' ), 'mod_headers' ) . "</strong><br>$false_positive_headers</p>\n";
-				}
-
+				$header_error           = '';
+				if ( $cloudways_host ) :
+					?>
+					<p><?php esc_html_e( 'In order to use server-based delivery, Cloudways sites must have WebP Redirection enabled in their Application Settings.', 'ewww-image-optimizer' ); ?></p>
+					<?php
+				else :
+					if ( defined( 'PHP_SAPI' ) && false === strpos( PHP_SAPI, 'apache' ) && false === strpos( PHP_SAPI, 'litespeed' ) ) {
+						$false_positive_headers = esc_html( 'This may be a false positive. If so, the warning should go away once you implement the rewrite rules.' );
+					}
+					if ( ! apache_mod_loaded( 'mod_rewrite' ) ) {
+						/* translators: %s: mod_rewrite or mod_headers */
+						$header_error = '<p class="ewww-webp-rewrite-info"><strong>' . sprintf( esc_html__( 'Your site appears to be missing %s, please contact your webhost or system administrator to enable this Apache module.', 'ewww-image-optimizer' ), 'mod_rewrite' ) . "</strong><br>$false_positive_headers</p>\n";
+					}
+					if ( ! apache_mod_loaded( 'mod_headers' ) ) {
+						/* translators: %s: mod_rewrite or mod_headers */
+						$header_error = '<p class="ewww-webp-rewrite-info"><strong>' . sprintf( esc_html__( 'Your site appears to be missing %s, please contact your webhost or system administrator to enable this Apache module.', 'ewww-image-optimizer' ), 'mod_headers' ) . "</strong><br>$false_positive_headers</p>\n";
+					}
+				endif;
 				$webp_mime_error = ewww_image_optimizer_test_webp_mime_error();
 				if ( $webp_mime_error ) {
 					echo wp_kses_post( $header_error );
