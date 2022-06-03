@@ -2518,7 +2518,7 @@ function eio_change_image_resize_filter( $filter_name, $dst_w, $dst_h ) {
 	 * 'FILTER_BESSEL',
 	 * 'FILTER_SINC'
 	 */
-	if ( $dst_w * $dst_h > 2000000 ) {
+	if ( $dst_w * $dst_h > apply_filters( 'eio_image_resize_threshold', 2000000 ) ) {
 		return $filter_name;
 	}
 	return 'FILTER_LANCZOS';
@@ -2533,7 +2533,7 @@ function eio_change_image_resize_filter( $filter_name, $dst_w, $dst_h ) {
  * @return bool True if the new image will be under 1.5 MP, false otherwise.
  */
 function eio_enable_adaptive_sharpen( $use_adaptive, $dst_w, $dst_h ) {
-	if ( $dst_w * $dst_h > 1500000 ) {
+	if ( $dst_w * $dst_h > apply_filters( 'eio_adaptive_sharpen_threshold', 1500000 ) ) {
 		return false;
 	}
 	return true;
@@ -2548,7 +2548,7 @@ function eio_enable_adaptive_sharpen( $use_adaptive, $dst_w, $dst_h ) {
  * @return float The new sigma value.
  */
 function eio_adjust_adaptive_sharpen_sigma( $param, $dst_w, $dst_h ) {
-	if ( $dst_w * $dst_h > 250000 ) {
+	if ( $dst_w * $dst_h > apply_filters( 'eio_adaptive_sharpen_sigma_threshold', 250000 ) ) {
 		return 0.5;
 	}
 	return $param;
@@ -13689,26 +13689,24 @@ AddType image/webp .webp</pre>
 				</tr>
 				<tr>
 					<th scope='row'>
-						<label for='ewww_image_optimizer_exclude_paths'><?php esc_html_e( 'Folders to Ignore', 'ewww-image-optimizer' ); ?></label>
+						<label for='ewww_image_optimizer_exclude_paths'><?php esc_html_e( 'Exclude Images', 'ewww-image-optimizer' ); ?></label>
 						<?php ewwwio_help_link( 'https://docs.ewww.io/article/11-advanced-configuration', '58542afac697912ffd6c18c0,5853713bc697912ffd6c0b98' ); ?>
 					</th>
 					<td>
-						<?php esc_html_e( 'One path per line, partial paths allowed, but no urls.', 'ewww-image-optimizer' ); ?><br>
+						<?php esc_html_e( 'One exclusion per line, no wildcards (*) needed.', 'ewww-image-optimizer' ); ?><br>
 						<textarea id='ewww_image_optimizer_exclude_paths' name='ewww_image_optimizer_exclude_paths' rows='3' cols='60'><?php echo esc_html( $exclude_paths ); ?></textarea>
 						<p class='description'>
-							<?php esc_html_e( 'A file that matches any pattern or path provided will not be optimized.', 'ewww-image-optimizer' ); ?>
+							<?php esc_html_e( 'Applies to optimization of local files, rather than front-end operations like Lazy Load or Easy IO. Thus exclusions must match filesystem paths instead of URLs.', 'ewww-image-optimizer' ); ?>
 						</p>
 					</td>
 				</tr>
-				<tr>
-					<td colspan='2'>
-						<hr>
-					</td>
-				</tr>
+			</table>
+			<hr>
+			<table class='form-table'>
 				<tr>
 					<th scope='row'>
 						<label for='ewww_image_optimizer_sharpen'><?php esc_html_e( 'Sharpen Images', 'ewww-image-optimizer' ); ?></label>
-						<?php ewwwio_help_link( 'https://docs.ewww.io/article/11-advanced-configuration', '58542afac697912ffd6c18c0' ); ?>
+						<?php ewwwio_help_link( 'https://docs.ewww.io/article/124-sharpening-images', '629a6dfa92cb8c175b469bb3' ); ?>
 					</th>
 					<td>
 						<input type='checkbox' id='ewww_image_optimizer_sharpen' name='ewww_image_optimizer_sharpen' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_sharpen' ) ); ?> />
