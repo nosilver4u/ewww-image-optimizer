@@ -199,6 +199,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( empty( $uri ) ) {
 				$uri = $this->request_uri;
 			}
+			if ( false !== strpos( $uri, 'bricks=run' ) ) {
+				return false;
+			}
 			if ( false !== strpos( $uri, '?brizy-edit' ) ) {
 				return false;
 			}

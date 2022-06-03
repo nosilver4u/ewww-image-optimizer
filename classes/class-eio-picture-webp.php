@@ -124,6 +124,9 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 		if ( empty( $uri ) ) {
 			$uri = $this->request_uri;
 		}
+		if ( false !== strpos( $uri, 'bricks=run' ) ) {
+			return false;
+		}
 		if ( false !== strpos( $uri, '?brizy-edit' ) ) {
 			return false;
 		}

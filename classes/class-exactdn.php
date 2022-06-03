@@ -3099,6 +3099,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 * @return boolean True to skip the page, unchanged otherwise.
 		 */
 		function skip_page( $skip = false, $uri = '' ) {
+			if ( false !== strpos( $uri, 'bricks=run' ) ) {
+				return true;
+			}
 			if ( false !== strpos( $uri, '?brizy-edit' ) ) {
 				return true;
 			}
