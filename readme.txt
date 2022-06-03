@@ -146,6 +146,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * changed: allow .htaccess rules on Cloudways with notice about WebP Redirection toggle
 * fixed: front-end HTML parsers running within Bricks editor
 * fixed: Easy IO not finding scaled full-size for dynamic size generation
+* fixed: cover images not cropped properly by Easy IO
 
 = 6.5.2 =
 * added: automatic optimization for Crop Thumbnails plugin

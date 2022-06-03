@@ -58,6 +58,9 @@
 							targetHeight = 430;
 						}
 						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
+					} else if (window.lazySizes.hC(e.target,'cover-image')){
+						console.log('found .cover-image with data-bg');
+						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
 					} else if (window.lazySizes.hC(e.target,'elementor-bg')){
 						console.log('found elementor-bg with data-bg');
 						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');

@@ -1866,6 +1866,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( ! empty( $_POST['action'] ) && 'filter_listing' === $_POST['action'] && ! empty( $_POST['layout'] ) && ! empty( $_POST['paged'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 				return true;
 			}
+			if ( ! empty( $_POST['action'] ) && 'load_more_posts' === $_POST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification
+				return true;
+			}
 			if ( ! empty( $_POST['action'] ) && 'mabel-rpn-getnew-purchased-products' === $_POST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 				return true;
 			}

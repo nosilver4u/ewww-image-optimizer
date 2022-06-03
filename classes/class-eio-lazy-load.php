@@ -329,7 +329,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			// If JS WebP isn't running, set ewww_webp_supported to false so we have something defined.
 			if ( ! class_exists( 'EIO_JS_Webp' ) ) {
 				$body_tags        = $this->get_elements_from_html( $buffer, 'body' );
-				$body_webp_script = '<script data-cfasync="false">var ewww_webp_supported=false;</script>';
+				$body_webp_script = '<script data-cfasync="false" data-no-defer="1">var ewww_webp_supported=false;</script>';
 				if ( $this->is_iterable( $body_tags ) && ! empty( $body_tags[0] ) && false !== strpos( $body_tags[0], '<body' ) ) {
 					// Add the WebP script right after the opening tag.
 					$buffer = str_replace( $body_tags[0], $body_tags[0] . "\n" . $body_webp_script, $buffer );
@@ -1319,12 +1319,12 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 					. ';';
 
 			$lazysizes_script .= file_get_contents( $lazysizes_file );
-			echo '<script data-cfasync="false" type="text/javascript" id="eio-lazy-load">' . $lazysizes_script . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo '<script data-cfasync="false" data-no-defer="1" id="eio-lazy-load">' . $lazysizes_script . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			if ( defined( strtoupper( $this->prefix ) . 'LAZY_PRINT' ) && constant( strtoupper( $this->prefix ) . 'LAZY_PRINT' ) ) {
 				$lsprint_file = constant( strtoupper( $this->prefix ) . 'PLUGIN_PATH' ) . 'includes/ls.print.min.js';
 				if ( $this->is_file( $lsprint_file ) ) {
 					$lsprint_script = file_get_contents( $lsprint_file );
-					echo '<script data-cfasync="false" id="eio-lazy-load-print">' . $lsprint_script . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo '<script data-cfasync="false" data-no-defer="1" id="eio-lazy-load-print">' . $lsprint_script . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				}
 			}
 		}
