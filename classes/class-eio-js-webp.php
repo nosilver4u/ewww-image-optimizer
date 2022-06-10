@@ -387,6 +387,7 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 
 		$body_tags        = $this->get_elements_from_html( $buffer, 'body' );
 		$body_webp_script = '<script data-cfasync="false" data-no-defer="1">if(ewww_webp_supported){document.body.classList.add("webp-support");}</script>';
+		$body_webp_script = '<script data=cfasync="false" data-no-defer="1">if(typeof ewww_webp_supported==="undefined"){var ewww_webp_supported=!1}if(ewww_webp_supported){document.body.classList.add("webp-support")}</script>';
 		if ( $this->is_iterable( $body_tags ) && ! empty( $body_tags[0] ) && false !== strpos( $body_tags[0], '<body' ) ) {
 			// Add the WebP script right after the opening tag.
 			$buffer = str_replace( $body_tags[0], $body_tags[0] . "\n" . $body_webp_script, $buffer );

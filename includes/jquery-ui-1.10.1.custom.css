@@ -729,6 +729,9 @@ p#ewww-webp-rewrite-status {
 .ewwwio-notice.notice-success {
 	border-left-color: #46b450;
 }
+#ewwwio-easy-register-failed {
+	display: none;
+}
 #ewwwio-api-activation-result, #ewwwio-easy-activation-result, #ewww-webp-rewrite-result {
 	display: none;
 	background-color: white;

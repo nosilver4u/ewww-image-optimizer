@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '660.0' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '660.08' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -5185,6 +5185,50 @@ function ewww_image_optimizer_register_site_post() {
 		)
 	);
 	return $result;
+}
+
+/**
+ * Checks to see if a site is registered with Easy IO.
+ *
+ * @param string $site_url The site URL to check for an Easy IO record.
+ * @return bool True if the site is already registered, false otherwise.
+ */
+function ewww_image_optimizer_easy_site_registered( $site_url ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$cloud_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
+	if ( ! empty( $cloud_key ) ) {
+		ewwwio_debug_message( "checking $site_url with Easy IO" );
+		$url = 'https://optimize.exactlywww.com/exactdn/show.php';
+		add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
+		$result = wp_remote_post(
+			$url,
+			array(
+				'timeout'   => 30,
+				'sslverify' => false,
+				'body'      => array(
+					'key'      => $cloud_key,
+					'token'    => $cloud_key,
+					'site_url' => $site_url,
+				),
+			)
+		);
+		if ( is_wp_error( $result ) ) {
+			$error_message = $result->get_error_message();
+			ewwwio_debug_message( "register check via /show.php failed: $error_message" );
+		} else {
+			$easy_info = json_decode( $result['body'], true );
+			if (
+				is_array( $easy_info ) && ! empty( $easy_info['sites'][0]['site_url'] ) &&
+				trailingslashit( $site_url ) === $easy_info['sites'][0]['site_url']
+			) {
+				return true;
+			}
+			if ( is_array( $easy_info ) && ! empty( $easy_info['sites'][0]['site_url'] ) ) {
+				ewwwio_debug_message( 'found (maybe different) site 0: ' . $easy_info['sites'][0]['site_url'] );
+			}
+		}
+	}
+	return false;
 }
 
 /**
@@ -10841,6 +10885,8 @@ function ewww_image_optimizer_settings_script( $hook ) {
 			'exactdn_network_success' => esc_html__( 'Easy IO setup and verification is complete.', 'ewww-image-optimizer' ),
 			'webp_cloud_warning'      => esc_html__( 'If you have not run the Bulk Optimizer on existing images, you will likely encounter broken image URLs. Are you ready to continue?', 'ewww-image-optimizer' ),
 			'network_blog_ids'        => $blog_ids,
+			'blog_id'                 => (int) get_current_blog_id(),
+			'easy_autoreg'            => ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? true : false,
 		)
 	);
 	wp_add_inline_script(
@@ -11766,7 +11812,7 @@ function ewww_image_optimizer_intro_wizard() {
 							<span class="description"><?php esc_html_e( 'Premium compression for your local images.', 'ewww-image-optimizer' ); ?></span>
 						</p>
 						<div id='ewwwio-easy-activation-result'></div>
-						<p class='ewwwio-easy-setup-instructions'>
+						<div class='ewwwio-easy-setup-instructions'>
 							<label><?php esc_html_e( 'Easy IO', 'ewww-image-optimizer' ); ?></label><br>
 							<span class="description">
 								<?php
@@ -11793,7 +11839,7 @@ function ewww_image_optimizer_intro_wizard() {
 							<br><span style="color: #3eadc9; font-weight: bolder"><?php esc_html_e( 'Verified', 'ewww-image-optimizer' ); ?></span>
 							<span class="dashicons dashicons-yes"></span>
 		<?php endif; ?>
-						</p>
+						</div>
 					</div>
 					<input type='radio' id='ewww_image_optimizer_budget_free' name='ewww_image_optimizer_budget' value='free' required />
 					<label for='ewww_image_optimizer_budget_free'><?php esc_html_e( 'Stick with free mode for now', 'ewww-image-optimizer' ); ?></label>
@@ -12925,7 +12971,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<p class="description" style="font-weight: bolder"><?php esc_html_e( 'Easy IO cannot be activated on localhost installs.', 'ewww-image-optimizer' ); ?></p>
 		<?php elseif ( 'network-multisite' === $network && empty( $exactdn_sub_folder ) ) : ?>
 			<?php if ( 1 > $exactdn_network_enabled ) : ?>
-						<p class="ewwwio-easy-setup-instructions">
+						<div class="ewwwio-easy-setup-instructions">
 				<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
 							<?php esc_html_e( 'Enter your API key above to enable automatic Easy IO site registration.', 'ewww-image-optimizer' ); ?><br>
 				<?php endif; ?>
@@ -12938,7 +12984,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							</a></strong><br>
 							<a href="https://ewww.io/manage-sites/" target="_blank"><?php esc_html_e( 'Then, add your Site URLs to your account', 'easy-image-optimizer' ); ?></a>
 				<?php endif; ?>
-						</p>
+						</div>
 						<p>
 				<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
 							<a id='ewwwio-easy-register-network' href='#' class='button-secondary'><?php esc_html_e( 'Register All Sites', 'ewww-image-optimizer' ); ?></a>
@@ -12969,32 +13015,46 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						</a>
 			<?php endif; ?>
 		<?php elseif ( ! $exactdn_enabled ) : ?>
-						<p class="ewwwio-easy-setup-instructions">
-							<strong><a href="https://ewww.io/plans/" target="_blank">
+						<div class="ewwwio-easy-setup-instructions">
+			<?php if ( ! ewww_image_optimizer_easy_site_registered( $easyio_site_url ) ) : ?>
+				<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
+							<p class='easyio-manual-ui' style="font-weight: bold;display:none;"><a href="https://ewww.io/plans/" target="_blank">
 								<?php esc_html_e( 'Purchase a subscription for your site.', 'ewww-image-optimizer' ); ?>
-							</a></strong><br>
-							<a href="https://ewww.io/manage-sites/" target="_blank"><?php esc_html_e( 'Then, add your Site URL to your account:', 'easy-image-optimizer' ); ?></a>
+							</a></p>
+							<a class='easyio-cloud-key-ui' href="https://ewww.io/manage-sites/" target="_blank"><?php esc_html_e( 'Verify that this site is added to your account:', 'easy-image-optimizer' ); ?></a>
+							<a class='easyio-manual-ui' style='display:none;' href="https://ewww.io/manage-sites/" target="_blank"><?php esc_html_e( 'Then, add your Site URL to your account:', 'easy-image-optimizer' ); ?></a>
+				<?php else : ?>
+							<p class='easyio-manual-ui' style="font-weight: bold;"><a href="https://ewww.io/plans/" target="_blank">
+								<?php esc_html_e( 'Purchase a subscription for your site.', 'ewww-image-optimizer' ); ?>
+							</a></p>
+							<a class='easyio-cloud-key-ui' style='display:none;' href="https://ewww.io/manage-sites/" target="_blank"><?php esc_html_e( 'Verify that this site is added to your account:', 'easy-image-optimizer' ); ?></a>
+							<a class='easyio-manual-ui'href="https://ewww.io/manage-sites/" target="_blank"><?php esc_html_e( 'Then, add your Site URL to your account:', 'easy-image-optimizer' ); ?></a>
+				<?php endif; ?>
 							<input type='text' id='exactdn_site_url' name='exactdn_site_url' value='<?php echo esc_url( trim( $easyio_site_url ) ); ?>' readonly />
 							<span id='exactdn-site-url-copy'><?php esc_html_e( 'Click to Copy', 'ewww-image-optimizer' ); ?></span>
 							<span id='exactdn-site-url-copied'><?php esc_html_e( 'Copied', 'ewww-image-optimizer' ); ?></span><br>
+							<script>var exactdn_registered = false;</script>
+			<?php else : ?>
+							<script>var exactdn_registered = true;</script>
+			<?php endif; ?>
 							<a id='ewwwio-easy-activate' href='#' class='button-secondary'><?php esc_html_e( 'Activate', 'ewww-image-optimizer' ); ?></a>
 							<span id='ewwwio-easy-activation-processing'><img src='<?php echo esc_url( $loading_image_url ); ?>' alt='loading'/></span>
-						</p>
+						</div>
 		<?php elseif ( class_exists( 'ExactDN' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) : ?>
 						<p>
-				<?php if ( $exactdn->get_exactdn_domain() && $exactdn->verify_domain( $exactdn->get_exactdn_domain() ) ) : ?>
+			<?php if ( $exactdn->get_exactdn_domain() && $exactdn->verify_domain( $exactdn->get_exactdn_domain() ) ) : ?>
 							<span style="color: #3eadc9; font-weight: bolder"><?php esc_html_e( 'Verified', 'ewww-image-optimizer' ); ?></span>
 							<br><?php echo esc_html( $exactdn->get_exactdn_domain() ); ?>
-				<?php elseif ( $exactdn->get_exactdn_domain() && $exactdn->get_exactdn_option( 'verified' ) ) : ?>
+			<?php elseif ( $exactdn->get_exactdn_domain() && $exactdn->get_exactdn_option( 'verified' ) ) : ?>
 							<span style="color: orange; font-weight: bolder"><?php esc_html_e( 'Temporarily disabled.', 'ewww-image-optimizer' ); ?></span>
-				<?php elseif ( $exactdn->get_exactdn_domain() && $exactdn->get_exactdn_option( 'suspended' ) ) : ?>
+			<?php elseif ( $exactdn->get_exactdn_domain() && $exactdn->get_exactdn_option( 'suspended' ) ) : ?>
 							<span style="color: orange; font-weight: bolder"><?php esc_html_e( 'Active, not yet verified.', 'ewww-image-optimizer' ); ?></span>';
-				<?php else : ?>
+			<?php else : ?>
 							<span style="color: red; font-weight: bolder"><a href="https://ewww.io/manage-sites/" target="_blank"><?php esc_html_e( 'Not Verified', 'ewww-image-optimizer' ); ?></a></span>
-				<?php endif; ?>
-				<?php if ( function_exists( 'remove_query_strings_link' ) || function_exists( 'rmqrst_loader_src' ) || function_exists( 'qsr_remove_query_strings_1' ) ) : ?>
+			<?php endif; ?>
+			<?php if ( function_exists( 'remove_query_strings_link' ) || function_exists( 'rmqrst_loader_src' ) || function_exists( 'qsr_remove_query_strings_1' ) ) : ?>
 							<br><i><?php esc_html_e( 'Plugins that remove query strings are unnecessary with Easy IO. You may remove them at your convenience.', 'ewww-image-optimizer' ); ?></i><?php ewwwio_help_link( 'https://docs.ewww.io/article/50-exactdn-and-query-strings', '5a3d278a2c7d3a1943677b52' ); ?>
-				<?php endif; ?>
+			<?php endif; ?>
 							<br>
 							<a id='ewwwio-easy-deactivate' class='button-secondary' href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_remove_easyio' ) ); ?>'>
 								<?php esc_html_e( 'De-activate', 'ewww-image-optimizer' ); ?>

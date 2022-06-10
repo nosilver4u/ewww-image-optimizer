@@ -137,6 +137,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 6.6.1 =
+* added: API keys can be used to auto-register sites for Easy IO, including sub-keys
+* fixed: JS WebP body script throws error if wp_head script missing
+
 = 6.6.0 =
 * added: AVIF support via Easy IO, enable on site management at ewww.io
 * added: sharpening setting to improve WP resizing via ImageMagick and WebP conversion
