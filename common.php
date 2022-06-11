@@ -947,6 +947,14 @@ function ewww_image_optimizer_upgrade() {
 			ewwwio_debug_message( 'removing old version of pngout' );
 			ewwwio_delete_file( EWWW_IMAGE_OPTIMIZER_TOOL_PATH . '/pngout-static' );
 		}
+		if (
+			get_option( 'ewww_image_optimizer_version' ) < 661 &&
+			get_option( 'ewww_image_optimizer_exactdn' ) &&
+			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_local_mode' ) &&
+			! ewww_image_optimizer_get_option( 'exactdn_lossy' )
+		) {
+			ewww_image_optimizer_set_option( 'exactdn_lossy', true );
+		}
 		if ( get_option( 'ewww_image_optimizer_version' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_review_time' ) ) {
 			$review_time = rand( time(), time() + 51 * DAY_IN_SECONDS );
 			add_option( 'ewww_image_optimizer_review_time', $review_time, '', false );
@@ -12723,7 +12731,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	$easyio_site_url      = $eio_base->content_url();
 	$exactdn_los_che      = ewww_image_optimizer_get_option( 'exactdn_lossy' );
 	$exactdn_los_id       = $exactdn_enabled ? 'exactdn_lossy_disabled' : 'exactdn_lossy';
-	$exactdn_los_dis      = ! $exactdn_enabled;
+	$exactdn_los_dis      = false;
 	$eio_exclude_paths    = ewww_image_optimizer_get_option( 'exactdn_exclude' ) ? implode( "\n", ewww_image_optimizer_get_option( 'exactdn_exclude' ) ) : '';
 	$lqip_che             = ( ( is_multisite() && is_network_admin() ) || is_object( $exactdn ) ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_lqip' );
 	$lqip_id              = ! is_network_admin() && ! $exactdn_enabled ? 'ewww_image_optimizer_use_lqip_disabled' : 'ewww_image_optimizer_use_lqip';
@@ -13080,7 +13088,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				<tr class='ewwwio-exactdn-options' <?php echo $exactdn_enabled && ! $easymode ? '' : 'style="display:none;"'; ?>>
 					<td>&nbsp;</td>
 					<td>
-						<input type='checkbox' name='exactdn_lossy' value='true' id='<?php echo esc_attr( $exactdn_los_id ); ?>' <?php disabled( $exactdn_los_dis ); ?> <?php checked( $exactdn_los_che ); ?> />
+						<input type='checkbox' name='exactdn_lossy' value='true' id='<?php echo esc_attr( $exactdn_los_id ); ?>' <?php checked( $exactdn_los_che ); ?> />
 						<label for='exactdn_lossy'><strong><?php esc_html_e( 'Premium Compression', 'ewww-image-optimizer' ); ?></strong></label>
 						<?php ewwwio_help_link( 'https://docs.ewww.io/article/47-getting-more-from-exactdn', '59de6631042863379ddc953c' ); ?>
 						<p class='description'>
