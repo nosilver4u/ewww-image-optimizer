@@ -716,6 +716,11 @@ p#ewww-webp-rewrite-status {
 #ewwwio-easy-activate, #ewwwio-easy-deactivate, #ewwwio-easy-activate-network, #ewwwio-easy-register-network {
 	margin-top: 10px;
 }
+#ewwwio-easy-deregister {
+	vertical-align: bottom;
+	padding-left: 20px;
+	line-height: 2.15;
+}
 .ewwwio-notice {
 	background-color: white;
 	border: 1px solid #ccd0d4;

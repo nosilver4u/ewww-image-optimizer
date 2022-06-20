@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '660.08' );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', '660.11' );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -154,10 +154,6 @@ add_action( 'admin_menu', 'ewww_image_optimizer_admin_menu', 60 );
 add_action( 'network_admin_menu', 'ewww_image_optimizer_network_admin_menu' );
 // Handle the bulk actions from the media library.
 add_filter( 'handle_bulk_actions-upload', 'ewww_image_optimizer_bulk_action_handler', 10, 3 );
-// Adds scripts to ajaxify the one-click actions on the media library, and register tooltips for conversion links.
-add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_media_scripts' );
-// Adds scripts for the EWWW IO settings page.
-add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_settings_script' );
 // Enables scheduled optimization via wp-cron.
 add_action( 'ewww_image_optimizer_auto', 'ewww_image_optimizer_auto' );
 // Correct records for files renamed by MFR.
@@ -174,6 +170,8 @@ add_action( 'wp_ajax_ewww_exactdn_activate', 'ewww_image_optimizer_exactdn_activ
 add_action( 'wp_ajax_ewww_exactdn_activate_site', 'ewww_image_optimizer_exactdn_activate_site_ajax' );
 // AJAX action hook to register a specific site with Easy IO.
 add_action( 'wp_ajax_ewww_exactdn_register_site', 'ewww_image_optimizer_exactdn_register_site_ajax' );
+// AJAX action hook to remove a specific site from Easy IO.
+add_action( 'wp_ajax_ewww_exactdn_deregister_site', 'ewww_image_optimizer_exactdn_deregister_site_ajax' );
 // AJAX action hook for inserting WebP rewrite rules into .htaccess.
 add_action( 'wp_ajax_ewww_webp_rewrite', 'ewww_image_optimizer_webp_rewrite' );
 // AJAX action hook for removing WebP rewrite rules from .htaccess.
@@ -1124,6 +1122,10 @@ function ewww_image_optimizer_admin_init() {
 	register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_rewrite_exclude', 'ewww_image_optimizer_exclude_paths_sanitize' );
 	ewww_image_optimizer_exec_init();
 	ewww_image_optimizer_cron_setup( 'ewww_image_optimizer_auto' );
+	// Adds scripts to ajaxify the one-click actions on the media library, and register tooltips for conversion links.
+	add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_media_scripts' );
+	// Adds scripts for the EWWW IO settings page.
+	add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_settings_script' );
 	// Queue the function that contains custom styling for our progressbars.
 	add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_progressbar_style' );
 	if ( false !== strpos( add_query_arg( null, null ), 'site-new.php' ) ) {
@@ -5196,6 +5198,82 @@ function ewww_image_optimizer_register_site_post() {
 }
 
 /**
+ * Removes site from Easy IO via AJAX for a given site ID.
+ */
+function ewww_image_optimizer_exactdn_deregister_site_ajax() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' ) ) {
+		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
+	}
+	if ( empty( $_REQUEST['site_id'] ) ) {
+		die( wp_json_encode( array( 'error' => esc_html__( 'Site ID unknown.', 'ewww-image-optimizer' ) ) ) );
+	}
+	$site_id = (int) $_REQUEST['site_id'];
+	ewwwio_debug_message( "deregistering site $site_id" );
+
+	$result = ewww_image_optimizer_deregister_site_post( $site_id );
+	if ( is_wp_error( $result ) ) {
+		$error_message = $result->get_error_message();
+		ewwwio_debug_message( "de-registration failed: $error_message" );
+		die(
+			wp_json_encode(
+				array(
+					'error' => sprintf(
+						/* translators: %s: an HTTP error message */
+						esc_html__( 'Could not de-register site, HTTP error: %s', 'ewww-image-optimizer' ),
+						$error_message
+					),
+				)
+			)
+		);
+	} elseif ( ! empty( $result['body'] ) ) {
+		$response = json_decode( $result['body'], true );
+		if ( ! empty( $response['success'] ) ) {
+			$response['success'] = esc_html__( 'Successfully removed site from Easy IO.', 'ewww-image-optimizer' );
+		}
+		die( wp_json_encode( $response ) );
+	}
+	die(
+		wp_json_encode(
+			array(
+				'error' => esc_html__( 'Could not remove site from Easy IO: error unknown.', 'ewww-image-optimizer' ),
+			)
+		)
+	);
+}
+
+/**
+ * POSTs the site URL to the API for Easy IO registration.
+ *
+ * @param int $site_id The site ID for the Easy IO zone.
+ * @return array The results of the http POST request.
+ */
+function ewww_image_optimizer_deregister_site_post( $site_id ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+
+	$key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
+	if ( empty( $key ) ) {
+		return new WP_Error( 'missing_key', __( 'No API key for Easy IO removal', 'ewww-image-optimizer' ) );
+	}
+	ewwwio_debug_message( "removing site $site_id from Easy IO" );
+	$url = 'https://optimize.exactlywww.com/exactdn/remove.php';
+	add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
+	$result = wp_remote_post(
+		$url,
+		array(
+			'timeout'   => 60,
+			'sslverify' => false,
+			'body'      => array(
+				'key'     => $key,
+				'token'   => $key,
+				'site_id' => (int) $site_id,
+			),
+		)
+	);
+	return $result;
+}
+
+/**
  * Checks to see if a site is registered with Easy IO.
  *
  * @param string $site_url The site URL to check for an Easy IO record.
@@ -5203,6 +5281,14 @@ function ewww_image_optimizer_register_site_post() {
  */
 function ewww_image_optimizer_easy_site_registered( $site_url ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	global $easyio_site_registered;
+	global $easyio_site_id;
+	if ( isset( $easyio_site_registered ) ) {
+		return $easyio_site_registered;
+	}
+	$easyio_site_registered = false;
+	$easyio_site_id         = 0;
+
 	$cloud_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
 	if ( ! empty( $cloud_key ) ) {
 		ewwwio_debug_message( "checking $site_url with Easy IO" );
@@ -5229,6 +5315,8 @@ function ewww_image_optimizer_easy_site_registered( $site_url ) {
 				is_array( $easy_info ) && ! empty( $easy_info['sites'][0]['site_url'] ) &&
 				trailingslashit( $site_url ) === $easy_info['sites'][0]['site_url']
 			) {
+				$easyio_site_registered = true;
+				$easyio_site_id         = (int) $easy_info['sites'][0]['site_id'];
 				return true;
 			}
 			if ( is_array( $easy_info ) && ! empty( $easy_info['sites'][0]['site_url'] ) ) {
@@ -10842,6 +10930,9 @@ function ewww_image_optimizer_settings_script( $hook ) {
 	if ( 'settings_page_ewww-image-optimizer-options' !== $hook ) {
 		return;
 	}
+	global $easyio_site_registered;
+	global $easyio_site_id;
+
 	add_filter( 'admin_footer_text', 'ewww_image_optimizer_footer_review_text' );
 	if (
 		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_wizard_complete' ) &&
@@ -10873,6 +10964,9 @@ function ewww_image_optimizer_settings_script( $hook ) {
 		}
 		wp_enqueue_script( 'jquery-ui-progressbar' );
 	}
+	$eio_base        = new EIO_Base();
+	$easyio_site_url = $eio_base->content_url();
+	ewww_image_optimizer_easy_site_registered( $easyio_site_url );
 	add_thickbox();
 	wp_enqueue_script( 'ewww-beacon-script', plugins_url( '/includes/eio-beacon.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
 	wp_enqueue_script( 'ewww-settings-script', plugins_url( '/includes/eio-settings.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION, true );
@@ -10895,6 +10989,8 @@ function ewww_image_optimizer_settings_script( $hook ) {
 			'network_blog_ids'        => $blog_ids,
 			'blog_id'                 => (int) get_current_blog_id(),
 			'easy_autoreg'            => ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? true : false,
+			'easyio_site_id'          => (int) $easyio_site_id,
+			'easyio_site_registered'  => (bool) $easyio_site_registered,
 		)
 	);
 	wp_add_inline_script(
@@ -13063,6 +13159,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			<?php endif; ?>
 							<a id='ewwwio-easy-activate' href='#' class='button-secondary'><?php esc_html_e( 'Activate', 'ewww-image-optimizer' ); ?></a>
 							<span id='ewwwio-easy-activation-processing'><img src='<?php echo esc_url( $loading_image_url ); ?>' alt='loading'/></span>
+			<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && ewww_image_optimizer_easy_site_registered( $easyio_site_url ) ) : ?>
+							<a id='ewwwio-easy-deregister' href='#'><?php esc_html_e( 'De-register Site', 'ewww-image-optimizer' ); ?></a>
+			<?php endif; ?>
 						</div>
 		<?php elseif ( class_exists( 'ExactDN' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) : ?>
 						<p>
