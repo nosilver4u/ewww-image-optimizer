@@ -1439,7 +1439,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						continue;
 					} else {
 						if ( $smart_reopt ) {
-							ewwwio_debug_message( "smart re-opt found level mismatch for $file_path, db says " . $already_optimized['level'] . " vs. current $compression_level" );
+							ewwwio_debug_message( "smart re-opt found level mismatch (or needs resizing) for $file_path, db says " . $already_optimized['level'] . " vs. current $compression_level" );
 						} else {
 							ewwwio_debug_message( "mismatch found for $file_path, db says " . $already_optimized['image_size'] . " vs. current $image_size" );
 						}

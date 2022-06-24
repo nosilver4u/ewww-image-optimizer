@@ -27,7 +27,11 @@ function constrainSrc(url,objectWidth,objectHeight,objectType){
 	var regW      = /w=(\d+)/;
 	var regFit    = /fit=(\d+),(\d+)/;
 	var regResize = /resize=(\d+),(\d+)/;
+	var regSVG    = /\.svg(\?.+)?$/;
 	var decUrl = decodeURIComponent(url);
+	if (regSVG.exec(decUrl)){
+		return url;
+	}
 	if (typeof eio_lazy_vars === 'undefined'){
 		console.log('setting failsafe lazy vars');
 		eio_lazy_vars = {"exactdn_domain":".exactdn.com"};

@@ -466,6 +466,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 					$this->debug_message( "possible replacement at $position" );
 					$images_processed++;
 					if ( $images_processed <= $above_the_fold ) {
+						$this->debug_message( 'image above fold threshold' );
 						continue;
 					}
 					if ( empty( $replacement['orig'] ) || empty( $replacement['lazy'] ) ) {
