@@ -142,6 +142,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: Easy IO Premium/WebP compression disabled incorrectly when in Easy Mode
 * fixed: JS WebP body script throws error if wp_head script missing
 * fixed: Lazy Load Auto-scale adds query parameters to SVG images
+* removed: free binaries for SunOS, may use free cloud-based JPG compression instead
 
 = 6.6.0 =
 * added: AVIF support via Easy IO, enable on site management at ewww.io
