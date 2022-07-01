@@ -15,19 +15,19 @@ branches:
 
 php:
   - 7.2
-  - 7.4
+#  - 7.4
 
 services:
   - mysql
 
 env:
   - WP_VERSION=latest WP_MULTISITE=0
-  - WP_VERSION=5.6 WP_MULTISITE=0
+#  - WP_VERSION=5.6 WP_MULTISITE=0
 
 jobs:
   include:
-    - php: 7.2
-      env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
+ #   - php: 7.2
+ #     env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
     - php: 7.4
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
 
@@ -44,6 +44,7 @@ before_script:
   - |
   - composer global require wp-coding-standards/wpcs dealerdirect/phpcodesniffer-composer-installer phpcompatibility/phpcompatibility-wp yoast/phpunit-polyfills
   - composer config --no-plugins --no-interaction allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+  - composer run-script install-codestandards
 
 script:
   - if [[ "$WPSNIFF" == "1" ]]; then phpcs --standard=phpcs.ruleset.xml --extensions=php .; fi
