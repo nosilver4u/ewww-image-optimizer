@@ -2,8 +2,6 @@
     "require": {
         "lsolesen/pel": "0.9.9"
     }
-}
-{
     "scripts": {
         "install-codestandards": [
             "Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run"
