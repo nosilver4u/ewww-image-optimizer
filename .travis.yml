@@ -43,7 +43,7 @@ before_script:
     fi
   - |
   - composer global require wp-coding-standards/wpcs dealerdirect/phpcodesniffer-composer-installer phpcompatibility/phpcompatibility-wp yoast/phpunit-polyfills
-  - composer global config --no-interaction allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+  - composer config --no-plugins --no-interaction allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
 
 script:
   - if [[ "$WPSNIFF" == "1" ]]; then phpcs --standard=phpcs.ruleset.xml --extensions=php .; fi
