@@ -11637,7 +11637,7 @@ function ewwwio_debug_info() {
 						'ewwwio_test_verify' => '949c34123cf2a4e4ce2f985135830df4a1b2adc24905f53d2fd3f5df5b16293245',
 					),
 					'cookies'   => $_COOKIE,
-					'sslverify' => false,
+					'sslverify' => apply_filters( 'https_local_ssl_verify', false ),
 				);
 				// Don't lock up other requests while processing.
 				session_write_close();

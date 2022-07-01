@@ -672,7 +672,11 @@ class EWWWIO_Test_Async_Handler extends WP_Async_Request {
 			ewwwio_debug_message( 'wrong item received, not enabling background opt' );
 			return;
 		}
-		ewww_image_optimizer_set_option( 'ewww_image_optimizer_background_optimization', true );
+		ewwwio_debug_message( 'setting background option to true' );
+		$success = ewww_image_optimizer_set_option( 'ewww_image_optimizer_background_optimization', true );
+		if ( $success ) {
+			ewwwio_debug_message( 'hurrah, async enabled!' );
+		}
 	}
 }
 global $ewwwio_test_async;
