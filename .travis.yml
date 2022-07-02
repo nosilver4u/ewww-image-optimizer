@@ -15,35 +15,27 @@ branches:
 
 php:
   - 7.2
-#  - 7.4
+  - 7.4
 
 services:
   - mysql
 
 env:
   - WP_VERSION=latest WP_MULTISITE=0
-#  - WP_VERSION=5.6 WP_MULTISITE=0
+  - WP_VERSION=5.6 WP_MULTISITE=0
 
 jobs:
   include:
- #   - php: 7.2
- #     env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
+    - php: 7.2
+      env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
     - php: 7.4
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
 
-# export SNIFFS_DIR=$PWD/vendor/wp-coding-standards/wpcs,$PWD/vendor/phpcompatibility,$PWD/vendor/phpcompatibilityparagonie,; fi
-# phpcs --config-set installed_paths $SNIFFS_DIR
 before_script:
   - export PATH="$HOME/.config/composer/vendor/bin:$PATH"
   - phpenv config-rm xdebug.ini
   - bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
-  - |
-    if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then
-      composer global require phpunit/phpunit ^5 yoast/phpunit-polyfills
-    else
-      composer global require phpunit/phpunit ^7 yoast/phpunit-polyfills
-    fi
-  - |
+  - composer global require phpunit/phpunit ^7 yoast/phpunit-polyfills
   - |
     if [[ "$WPSNIFF" == "1" ]]; then
       composer global config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
