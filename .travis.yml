@@ -45,7 +45,7 @@ before_script:
     fi
   - |
   - |
-    if [[ "$SNIFF" == "1" ]]; then
+    if [[ "$WPSNIFF" == "1" ]]; then
       composer global config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
       composer global require wp-coding-standards/wpcs phpcompatibility/phpcompatibility-wp
       composer global require dealerdirect/phpcodesniffer-composer-installer
