@@ -31,20 +31,27 @@ jobs:
     - php: 7.4
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
 
+# export SNIFFS_DIR=$PWD/vendor/wp-coding-standards/wpcs,$PWD/vendor/phpcompatibility,$PWD/vendor/phpcompatibilityparagonie,; fi
+# phpcs --config-set installed_paths $SNIFFS_DIR
 before_script:
   - export PATH="$HOME/.config/composer/vendor/bin:$PATH"
   - phpenv config-rm xdebug.ini
   - bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
   - |
     if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then
-      composer global require phpunit/phpunit ^5
+      composer global require phpunit/phpunit ^5 yoast/phpunit-polyfills
     else
-      composer global require phpunit/phpunit ^7
+      composer global require phpunit/phpunit ^7 yoast/phpunit-polyfills
     fi
   - |
-  - composer global require wp-coding-standards/wpcs dealerdirect/phpcodesniffer-composer-installer phpcompatibility/phpcompatibility-wp yoast/phpunit-polyfills
-  - composer global config --no-plugins --no-interaction allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
-  - composer run-script install-codestandards
+  - |
+    if [[ "$SNIFF" == "1" ]]; then
+      composer config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+      composer require wp-coding-standards/wpcs phpcompatibility/phpcompatibility-wp
+      composer require dealerdirect/phpcodesniffer-composer-installer
+      phpcs -i
+    fi
+  - |
 
 script:
   - if [[ "$WPSNIFF" == "1" ]]; then phpcs --standard=phpcs.ruleset.xml --extensions=php .; fi
