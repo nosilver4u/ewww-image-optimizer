@@ -3108,6 +3108,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( strpos( $image_url, 'public/images/spacer.' ) ) {
 				return array();
 			}
+			if ( strpos( $image_url, '/images/default/blank.gif' ) ) {
+				return array();
+			}
 			if ( '.svg' === substr( $image_url, -4 ) ) {
 				return array();
 			}

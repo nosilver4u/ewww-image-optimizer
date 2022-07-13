@@ -12078,7 +12078,7 @@ function ewww_image_optimizer_intro_wizard() {
 				</p>
 		<?php endif; ?>
 				<p>
-					<input type='checkbox' id='ewww_image_optimizer_enable_help' name='ewww_image_optimizer_enable_help' value='true' checked />
+					<input type='checkbox' id='ewww_image_optimizer_enable_help' name='ewww_image_optimizer_enable_help' value='true' />
 					<label for='ewww_image_optimizer_enable_help'><?php esc_html_e( 'Embedded Help', 'ewww-image-optimizer' ); ?></label><br>
 					<span class='description'><?php esc_html_e( 'Access documentation and support from your WordPress dashboard. Uses resources from external servers.', 'ewww-image-optimizer' ); ?></span>
 				</p>
@@ -13943,14 +13943,14 @@ AddType image/webp .webp</pre>
 					<td>
 						<input type='checkbox' id='ewww_image_optimizer_sharpen' name='ewww_image_optimizer_sharpen' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_sharpen' ) ); ?> />
 	<?php if ( ewww_image_optimizer_imagick_support() ) : ?>
-						<?php esc_html_e( 'Apply improved sharpening to resize operations in WordPress and WebP Conversion.', 'ewww-image-optimizer' ); ?><br>
+						<?php esc_html_e( 'Apply improved sharpening to JPG resizing operations and WebP Conversion.', 'ewww-image-optimizer' ); ?><br>
 						<p class='description'>
 							<?php esc_html_e( 'Uses additional CPU resources and may cause thumbnail generation for large images to fail.', 'ewww-image-optimizer' ); ?>
 						</p>
 	<?php else : ?>
 						<?php esc_html_e( 'Apply improved sharpening during WebP Conversion.', 'ewww-image-optimizer' ); ?><br>
 						<p class='description'>
-							<?php esc_html_e( 'Improve thumbnail generation by enabling the ImageMagick module for PHP.', 'ewww-image-optimizer' ); ?>
+							<?php esc_html_e( 'Improve JPG thumbnail generation by enabling the ImageMagick module for PHP.', 'ewww-image-optimizer' ); ?>
 						</p>
 	<?php endif; ?>
 					</td>
