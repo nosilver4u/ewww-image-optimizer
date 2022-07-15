@@ -142,6 +142,14 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 * @return string The full path to a writable plugin resource folder.
 		 */
 		function set_content_dir( $sub_folder ) {
+			if (
+				defined( 'EWWWIO_CONTENT_DIR' ) &&
+				trailingslashit( WP_CONTENT_DIR ) . trailingslashit( 'ewww' ) !== EWWWIO_CONTENT_DIR
+			) {
+				$content_dir       = EWWWIO_CONTENT_DIR;
+				$this->content_url = str_replace( WP_CONTENT_DIR, WP_CONTENT_URL, $content_dir );
+				return $content_dir;
+			}
 			$content_dir = WP_CONTENT_DIR . $sub_folder;
 			if ( ! is_writable( WP_CONTENT_DIR ) || ! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {
 				$upload_dir = wp_get_upload_dir();
