@@ -232,6 +232,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( false !== strpos( $uri, '?fl_builder' ) ) {
 				return false;
 			}
+			if ( false !== strpos( $uri, '?giveDonationFormInIframe' ) ) {
+				return false;
+			}
 			if ( '/print/' === substr( $uri, -7 ) ) {
 				return false;
 			}

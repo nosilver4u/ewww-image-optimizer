@@ -199,6 +199,9 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		if ( false !== strpos( $uri, '?fl_builder' ) ) {
 			return false;
 		}
+		if ( false !== strpos( $uri, '?giveDonationFormInIframe' ) ) {
+			return false;
+		}
 		if ( '/print/' === substr( $uri, -7 ) ) {
 			return false;
 		}
