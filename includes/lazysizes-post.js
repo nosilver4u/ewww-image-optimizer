@@ -41,6 +41,10 @@ function constrainSrc(url,objectWidth,objectHeight,objectType){
 		console.log('domain matches URL with a ?');
 		var resultResize = regResize.exec(decUrl);
 		if(resultResize && objectWidth < resultResize[1]){
+			if('img-w'===objectType){
+				console.log('resize param found, replacing in ' + objectType);
+				return decUrl.replace(regResize, 'w=' + objectWidth );
+			}
 			console.log('resize param found, replacing');
 			return decUrl.replace(regResize, 'resize=' + objectWidth + ',' + objectHeight);
 		}
@@ -69,6 +73,10 @@ function constrainSrc(url,objectWidth,objectHeight,objectType){
 				}
 				console.log('fit param found, but only ' + wDiff + '/' + hDiff + ' pixels off, ignoring');
 				return url;
+			}
+			if('img-w'===objectType){
+				console.log('fit param found, replacing in ' + objectType);
+				return decUrl.replace(regFit, 'w=' + objectWidth );
 			}
 			console.log('fit param found, replacing');
 			return decUrl.replace(regFit, 'fit=' + objectWidth + ',' + objectHeight);
@@ -165,6 +173,9 @@ document.addEventListener('lazybeforeunveil', function(e){
 				} else if ( window.lazySizes.hC(target,'et_pb_jt_filterable_grid_item_image') || window.lazySizes.hC(target,'ss-foreground-image') || window.lazySizes.hC(target,'img-crop') ) {
 					console.log('img that needs a hard crop');
 					var newSrc = constrainSrc(src,targetWidth,targetHeight,'img-crop');
+				} else if ( window.lazySizes.hC(target,'ct-image') && window.lazySizes.hC(target,'object-cover') && window.lazySizes.hC(target,'object-top') ) {
+					console.log('Oxygen cover img that needs a width scale');
+					var newSrc = constrainSrc(src,targetWidth,targetHeight,'img-w');
 				} else if ( window.lazySizes.hC(target,'ct-image') && window.lazySizes.hC(target,'object-cover') ) {
 					console.log('Oxygen cover img that needs a hard crop');
 					var newSrc = constrainSrc(src,targetWidth,targetHeight,'img-crop');
