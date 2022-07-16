@@ -965,6 +965,7 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 						'owl-lazy',
 						'preload-me',
 						'skip-lazy',
+						'soliloquy-image',
 						'timthumb.php?',
 						'wpcf7_captcha/',
 					),
