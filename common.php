@@ -219,9 +219,12 @@ add_action( 'admin_action_ewww_image_optimizer_download_debug_log', 'ewww_image_
 // Non-AJAX handler to apply 6.2 current_timestamp db upgrade.
 add_action( 'admin_action_ewww_image_optimizer_620_upgrade', 'ewww_image_optimizer_620_upgrade' );
 // Check if WebP option was turned off and is now enabled.
-add_filter( 'pre_update_option_ewww_image_optimizer_webp', 'ewww_image_optimizer_webp_maybe_enabled', 10, 2 );
+add_action( 'update_option_ewww_image_optimizer_webp', 'ewww_image_optimizer_webp_maybe_enabled', 10, 2 );
 // Check Scheduled Opt option has just been disabled and clear the queues/stop the process.
-add_filter( 'pre_update_option_ewww_image_optimizer_auto', 'ewww_image_optimizer_scheduled_optimizaton_changed', 10, 2 );
+add_action( 'update_option_ewww_image_optimizer_auto', 'ewww_image_optimizer_scheduled_optimization_changed', 10, 2 );
+// Check if image resize dimensions have been changed.
+add_action( 'update_option_ewww_image_optimizer_maxmediawidth', 'ewww_image_optimizer_resize_dimensions_changed', 10, 2 );
+add_action( 'update_option_ewww_image_optimizer_maxmediaheight', 'ewww_image_optimizer_resize_dimensions_changed', 10, 2 );
 // Makes sure to flush out any scheduled jobs on deactivation.
 register_deactivation_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimizer_network_deactivate' );
 // add_action( 'shutdown', 'ewwwio_memory_output' );.
@@ -1979,55 +1982,22 @@ function ewww_image_optimizer_migrate_option_queue_to_table() {
 /**
  * Checks to see if the WebP conversion was just enabled.
  *
- * @param mixed $new_value The new value, in this case it will be boolean usually.
  * @param mixed $old_value The old value, also a boolean generally.
- * @return mixed The new value, unaltered.
+ * @param mixed $new_value The new value, in this case it will be boolean usually.
  */
-function ewww_image_optimizer_webp_maybe_enabled( $new_value, $old_value ) {
+function ewww_image_optimizer_webp_maybe_enabled( $old_value, $new_value ) {
 	if ( ! empty( $new_value ) && (bool) $new_value !== (bool) $old_value ) {
 		update_option( 'ewww_image_optimizer_webp_enabled', true );
 	}
-	return $new_value;
-}
-
-/**
- * Checks if a plugin is offloading media to cloud storage and removing local copies.
- *
- * @return bool True if a plugin is removing local files, false otherwise..
- */
-function ewww_image_optimizer_cloud_based_media() {
-	if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
-		global $as3cf;
-		if ( is_object( $as3cf ) && $as3cf->get_setting( 'serve-from-s3' ) && $as3cf->get_setting( 'remove-local-file' ) ) {
-			return true;
-		}
-	}
-	if ( class_exists( 'S3_Uploads' ) && function_exists( 's3_uploads_enabled' ) && s3_uploads_enabled() ) {
-		return true;
-	}
-	if ( class_exists( 'S3_Uploads\Plugin' ) && function_exists( 'S3_Uploads\enabled' ) && \S3_Uploads\enabled() ) {
-		return true;
-	}
-	if ( class_exists( 'wpCloud\StatelessMedia\EWWW' ) && function_exists( 'ud_get_stateless_media' ) ) {
-		$sm = ud_get_stateless_media();
-		if ( method_exists( $sm, 'get' ) ) {
-			$sm_mode = $sm->get( 'sm.mode' );
-			if ( 'disabled' !== $sm_mode ) {
-				return true;
-			}
-		}
-	}
-	return false;
 }
 
 /**
  * Checks to see if Scheduled Optimization was just disabled.
  *
- * @param mixed $new_value The new value, in this case it will be boolean usually.
  * @param mixed $old_value The old value, also a boolean generally.
- * @return mixed The new value, unaltered.
+ * @param mixed $new_value The new value, in this case it will be boolean usually.
  */
-function ewww_image_optimizer_scheduled_optimizaton_changed( $new_value, $old_value ) {
+function ewww_image_optimizer_scheduled_optimization_changed( $old_value, $new_value ) {
 	if ( empty( $new_value ) && (bool) $new_value !== (bool) $old_value ) {
 		global $ewwwio_image_background;
 		if ( ! class_exists( 'WP_Background_Process' ) ) {
@@ -2036,7 +2006,24 @@ function ewww_image_optimizer_scheduled_optimizaton_changed( $new_value, $old_va
 		$ewwwio_image_background->cancel_process();
 		update_option( 'ewwwio_stop_scheduled_scan', true, false );
 	}
-	return $new_value;
+}
+
+/**
+ * Checks to see if Resize Images dimensions have been modified.
+ *
+ * If resize dimensions are modified, then we clear out the legacy settings,
+ * as it is highly likely the admin wants something different now.
+ *
+ * @param mixed $old_value The old value, also a boolean generally.
+ * @param mixed $new_value The new value, in this case it will be boolean usually.
+ */
+function ewww_image_optimizer_resize_dimensions_changed( $old_value, $new_value ) {
+	if ( (int) $new_value !== (int) $old_value ) {
+		update_option( 'ewww_image_optimizer_maxotherwidth', 0 );
+		update_option( 'ewww_image_optimizer_maxotherheight', 0 );
+		update_site_option( 'ewww_image_optimizer_maxotherwidth', 0 );
+		update_site_option( 'ewww_image_optimizer_maxotherheight', 0 );
+	}
 }
 
 /**
@@ -2474,6 +2461,36 @@ function ewww_image_optimizer_notice_reoptimization() {
 				" <a href='" . esc_url( $reset_page ) . "'>" . esc_html__( 'Reset Counters' ) . '</a></p></div>';
 		}
 	}
+}
+
+/**
+ * Checks if a plugin is offloading media to cloud storage and removing local copies.
+ *
+ * @return bool True if a plugin is removing local files, false otherwise..
+ */
+function ewww_image_optimizer_cloud_based_media() {
+	if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
+		global $as3cf;
+		if ( is_object( $as3cf ) && $as3cf->get_setting( 'serve-from-s3' ) && $as3cf->get_setting( 'remove-local-file' ) ) {
+			return true;
+		}
+	}
+	if ( class_exists( 'S3_Uploads' ) && function_exists( 's3_uploads_enabled' ) && s3_uploads_enabled() ) {
+		return true;
+	}
+	if ( class_exists( 'S3_Uploads\Plugin' ) && function_exists( 'S3_Uploads\enabled' ) && \S3_Uploads\enabled() ) {
+		return true;
+	}
+	if ( class_exists( 'wpCloud\StatelessMedia\EWWW' ) && function_exists( 'ud_get_stateless_media' ) ) {
+		$sm = ud_get_stateless_media();
+		if ( method_exists( $sm, 'get' ) ) {
+			$sm_mode = $sm->get( 'sm.mode' );
+			if ( 'disabled' !== $sm_mode ) {
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 /**
@@ -13282,6 +13299,20 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							);
 							?>
 						</p>
+		<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherwidth' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherheight' ) ) : ?>
+						<p>
+							<?php
+							printf(
+								/* translators: 1: width in pixels 2: height in pixels */
+								esc_html__( '*Legacy resize options are in effect: %1$d x %2$d. These will be used for bulk operations and for images uploaded outside the post/page editor.', 'ewww-image-optimizer' ),
+								(int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherwidth' ),
+								(int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherheight' )
+							);
+							?>
+							<br>
+							<?php esc_html_e( 'The legacy settings will be removed if the above width/height settings are modified.', 'ewww-image-optimizer' ); ?>
+						</p>
+		<?php endif; ?>
 	<?php endif; ?>
 					</td>
 				</tr>

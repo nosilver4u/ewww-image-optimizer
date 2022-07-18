@@ -139,6 +139,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.6.1 =
 * added: API keys can be used to auto-register sites for Easy IO, including sub-keys
+* changed: expose legacy resize dimensions with removal option
 * fixed: Lazy Load not using EWWWIO_CONTENT_DIR
 * fixed: Easy IO Premium/WebP compression disabled incorrectly when in Easy Mode
 * fixed: JS WebP body script throws error if wp_head script missing
