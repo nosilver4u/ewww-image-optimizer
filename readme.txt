@@ -146,6 +146,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: Lazy Load Auto-scale adds query parameters to SVG images
 * fixed: JS WebP and Lazy Load prevent image loading in GiveWP iframe
 * fixed: Auto Scale crops too much for object-* images in Oxygen
+* fixed: trailing space on image URL handled incorrectly
 * removed: free binaries for SunOS, may use free cloud-based JPG compression instead
 
 = 6.6.0 =

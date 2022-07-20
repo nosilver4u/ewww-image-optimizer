@@ -950,8 +950,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					$fullsize_url = false;
 
 					// Identify image source.
-					$src      = $images['img_url'][ $index ];
-					$src_orig = $images['img_url'][ $index ];
+					$src      = trim( $images['img_url'][ $index ] );
+					$src_orig = $images['img_url'][ $index ]; // Don't trim, because we'll use it for search/replacement later.
 					if ( is_string( $src ) ) {
 						$this->debug_message( $src );
 					} else {
@@ -993,7 +993,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					}
 					// Support Lazy Load plugins.
 					// Don't modify $tag yet as we need unmodified version later.
-					$lazy_load_src = $this->get_attribute( $images['img_tag'][ $index ], 'data-lazy-src' );
+					$lazy_load_src = trim( $this->get_attribute( $images['img_tag'][ $index ], 'data-lazy-src' ) );
 					if ( $lazy_load_src ) {
 						$placeholder_src      = $src;
 						$placeholder_src_orig = $src;
@@ -1004,7 +1004,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						$srcset_fill          = true;
 					}
 					// Must be a legacy Jetpack thing as far as I can tell, no matches found in any currently installed plugins.
-					$lazy_load_src = $this->get_attribute( $images['img_tag'][ $index ], 'data-lazy-original' );
+					$lazy_load_src = trim( $this->get_attribute( $images['img_tag'][ $index ], 'data-lazy-original' ) );
 					if ( ! $lazy && $lazy_load_src ) {
 						$placeholder_src      = $src;
 						$placeholder_src_orig = $src;
@@ -1013,7 +1013,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						$lazy                 = true;
 					}
 					if ( ! $lazy && strpos( $images['img_tag'][ $index ], 'a3-lazy-load/assets/images/lazy_placeholder' ) ) {
-						$lazy_load_src = $this->get_attribute( $images['img_tag'][ $index ], 'data-src' );
+						$lazy_load_src = trim( $this->get_attribute( $images['img_tag'][ $index ], 'data-src' ) );
 					}
 					if (
 						! $lazy &&
@@ -1037,7 +1037,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 						$srcset_fill          = true;
 					}
 					if ( ! $lazy && strpos( $images['img_tag'][ $index ], 'revslider/admin/assets/images/dummy' ) ) {
-						$lazy_load_src = $this->get_attribute( $images['img_tag'][ $index ], 'data-lazyload' );
+						$lazy_load_src = trim( $this->get_attribute( $images['img_tag'][ $index ], 'data-lazyload' ) );
 					}
 					if ( ! $lazy && $lazy_load_src ) {
 						$placeholder_src      = $src;

@@ -496,12 +496,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		function parse_img_tag( $image, $file = '' ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			global $exactdn;
-			if ( ! $file ) {
-				$file = $this->get_attribute( $image, 'src' );
-			}
-			$file = str_replace( '&#038;', '&', esc_url( $file ) );
-			$this->set_attribute( $image, 'data-src', $file, true );
-			$srcset = $this->get_attribute( $image, 'srcset' );
 
 			if (
 				! empty( $_POST['action'] ) && // phpcs:ignore WordPress.Security.NonceVerification
@@ -518,6 +512,13 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( in_array( 'img', $this->user_element_exclusions, true ) ) {
 				return $image;
 			}
+
+			if ( ! $file ) {
+				$file = $this->get_attribute( $image, 'src' );
+			}
+			$file = str_replace( '&#038;', '&', esc_url( trim( $file ) ) );
+			$this->set_attribute( $image, 'data-src', $file, true );
+			$srcset = $this->get_attribute( $image, 'srcset' );
 
 			$physical_width  = false;
 			$physical_height = false;
@@ -570,13 +571,6 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 				$placeholder_types[] = 'siip';
 			}
 
-			if ( // This isn't super helpful. It makes PIIPs that don't help with auto-scaling.
-				false && ( ! $physical_width || ! $physical_height ) &&
-				$width_attr && is_numeric( $width_attr ) && $height_attr && is_numeric( $height_attr )
-			) {
-				$physical_width  = $width_attr;
-				$physical_height = $height_attr;
-			}
 			foreach ( $placeholder_types as $placeholder_type ) {
 				switch ( $placeholder_type ) {
 					case 'lqip':

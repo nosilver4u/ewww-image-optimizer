@@ -410,7 +410,7 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 				if ( ! $this->validate_tag( $image ) ) {
 					continue;
 				}
-				$file = $images['img_url'][ $index ];
+				$file = trim( $images['img_url'][ $index ] );
 				ewwwio_debug_message( "parsing an image: $file" );
 				if ( strpos( $image, 'jetpack-lazy-image' ) && $this->validate_image_url( $file ) ) {
 					$new_image = $image;
@@ -547,7 +547,7 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 				if ( strpos( $image, 'data-src=' ) && strpos( $image, 'data-srcset=' ) && strpos( $image, 'lazyload' ) ) {
 					// EWWW IO Lazy Load.
 					$new_image = $image;
-					$real_file = $this->get_attribute( $new_image, 'data-src' );
+					$real_file = trim( $this->get_attribute( $new_image, 'data-src' ) );
 					ewwwio_debug_message( "checking webp for Lazy Load data-src: $real_file" );
 					if ( $this->validate_image_url( $real_file ) ) {
 						ewwwio_debug_message( 'found webp for Lazy Load' );
@@ -575,7 +575,7 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 					if ( ! $this->validate_tag( $image ) ) {
 						continue;
 					}
-					$file = $this->get_attribute( $image, 'src' );
+					$file = trim( $this->get_attribute( $image, 'src' ) );
 					if ( ( empty( $file ) || strpos( $image, 'R0lGODlhAQABAIAAAAAAAP' ) ) && strpos( $image, ' data-srcset=' ) && strpos( $this->get_attribute( $image, 'class' ), 'lazyload' ) ) {
 						$new_image = $image;
 						$srcset    = $this->get_attribute( $new_image, 'data-srcset' );
