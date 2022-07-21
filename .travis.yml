@@ -22,7 +22,7 @@ services:
 
 env:
   - WP_VERSION=latest WP_MULTISITE=0
-  - WP_VERSION=5.6 WP_MULTISITE=0
+  - WP_VERSION=5.8 WP_MULTISITE=0
 
 jobs:
   include:

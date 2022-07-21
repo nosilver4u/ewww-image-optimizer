@@ -1,3 +1,16 @@
+= 6.7.0 =
+* added: API keys can be used to auto-register sites for Easy IO, including sub-keys
+* changed: expose legacy resize dimensions with removal option
+* fixed: Lazy Load not using EWWWIO_CONTENT_DIR
+* fixed: Easy IO Premium/WebP compression disabled incorrectly when in Easy Mode
+* fixed: JS WebP body script throws error if wp_head script missing
+* fixed: Lazy Load Auto-scale adds query parameters to SVG images
+* fixed: JS WebP and Lazy Load prevent image loading in GiveWP iframe
+* fixed: Auto Scale crops too much for object-* images in Oxygen
+* fixed: trailing space on image URL handled incorrectly
+* updated: Gifsicle to version 1.93 and Pngquant to 2.17
+* removed: free binaries for SunOS, may use free cloud-based JPG compression instead
+
 = 6.6.0 =
 * added: AVIF support via Easy IO, enable on site management at ewww.io
 * added: sharpening setting to improve WP resizing via ImageMagick and WebP conversion

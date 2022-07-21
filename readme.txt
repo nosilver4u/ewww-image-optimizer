@@ -2,10 +2,10 @@
 Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization, lossless, lossy, seo, scale
-Requires at least: 5.7
+Requires at least: 5.8
 Tested up to: 6.0
 Requires PHP: 7.2
-Stable tag: 6.6.0
+Stable tag: 6.7.0
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -137,7 +137,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
-= 6.6.1 =
+= 6.7.0 =
 * added: API keys can be used to auto-register sites for Easy IO, including sub-keys
 * changed: expose legacy resize dimensions with removal option
 * fixed: Lazy Load not using EWWWIO_CONTENT_DIR
@@ -147,6 +147,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: JS WebP and Lazy Load prevent image loading in GiveWP iframe
 * fixed: Auto Scale crops too much for object-* images in Oxygen
 * fixed: trailing space on image URL handled incorrectly
+* updated: Gifsicle to version 1.93 and Pngquant to 2.17
 * removed: free binaries for SunOS, may use free cloud-based JPG compression instead
 
 = 6.6.0 =
