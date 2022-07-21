@@ -5205,8 +5205,7 @@ function ewww_image_optimizer_register_site_post() {
 			'timeout'   => 60,
 			'sslverify' => false,
 			'body'      => array(
-				'key'      => $key,
-				'token'    => $key,
+				'api_key'  => $key,
 				'site_url' => $site_url,
 			),
 		)
@@ -5281,8 +5280,7 @@ function ewww_image_optimizer_deregister_site_post( $site_id ) {
 			'timeout'   => 60,
 			'sslverify' => false,
 			'body'      => array(
-				'key'     => $key,
-				'token'   => $key,
+				'api_key' => $key,
 				'site_id' => (int) $site_id,
 			),
 		)
@@ -5317,8 +5315,7 @@ function ewww_image_optimizer_easy_site_registered( $site_url ) {
 				'timeout'   => 30,
 				'sslverify' => false,
 				'body'      => array(
-					'key'      => $cloud_key,
-					'token'    => $cloud_key,
+					'api_key'  => $cloud_key,
 					'site_url' => $site_url,
 				),
 			)
