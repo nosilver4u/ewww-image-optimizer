@@ -3197,6 +3197,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( is_admin() ) {
 				return $url;
 			}
+			if ( function_exists( 'affwp_is_affiliate_portal' ) && affwp_is_affiliate_portal() ) {
+				return $url;
+			}
 			if ( apply_filters( 'exactdn_skip_page', false, $this->request_uri ) ) {
 				return $url;
 			}
