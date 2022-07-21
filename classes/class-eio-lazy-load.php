@@ -261,6 +261,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( ! did_action( 'parse_query' ) ) {
 				return $should_process;
 			}
+			if ( function_exists( 'affwp_is_affiliate_portal' ) && affwp_is_affiliate_portal() ) {
+				return false;
+			}
 			if ( $this->is_amp() ) {
 				return false;
 			}
