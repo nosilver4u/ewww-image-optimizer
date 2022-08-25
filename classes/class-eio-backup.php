@@ -307,7 +307,7 @@ class EIO_Backup extends EIO_Base {
 		$filesize = $this->filesize( $file );
 		$backsize = $this->filesize( $backup_file );
 		if ( $filesize && $filesize === $backsize ) {
-			$this->delete_file( $backup_file );
+			/* $this->delete_file( $backup_file ); */
 			return true; // Because restore not needed, already done!
 		}
 		$this->debug_message( "restoring $file from $backup_file" );
@@ -316,9 +316,9 @@ class EIO_Backup extends EIO_Base {
 			if ( $this->is_file( $file . '.webp' ) && is_writable( $file . '.webp' ) ) {
 				$this->delete_file( $file . '.webp' );
 			}
-			$this->delete_file( $backup_file );
-			// Set the results to nothing.
+			/* $this->delete_file( $backup_file ); */
 			global $wpdb;
+			// Reset the image record.
 			$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->ewwwio_images SET results = '', image_size = 0, updates = 0, updated=updated, level = 0 WHERE id = %d", $image['id'] ) );
 			return true;
 		}
