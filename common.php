@@ -184,9 +184,6 @@ add_action( 'wp_ajax_ewww_manual_optimize', 'ewww_image_optimizer_manual' );
 add_action( 'wp_ajax_ewww_manual_restore', 'ewww_image_optimizer_manual' );
 // AJAX action hook for manually restoring an attachment from local/cloud backups.
 add_action( 'wp_ajax_ewww_manual_image_restore', 'ewww_image_optimizer_manual' );
-// TODO: this hook and function probably belongs in the EIO_Backup class.
-// AJAX action hook for manually restoring a single image from local/cloud backups.
-// add_action( 'wp_ajax_ewww_manual_image_restore_single', 'ewww_image_optimizer_restore_single_image_handler' );.
 // AJAX action hook to dismiss the WooCommerce regen notice.
 add_action( 'wp_ajax_ewww_dismiss_wc_regen', 'ewww_image_optimizer_dismiss_wc_regen' );
 // AJAX action hook to dismiss the WP/LR Sync regen notice.
@@ -8039,7 +8036,6 @@ function ewww_image_optimizer_resize_upload( $file ) {
 			}
 			$new_jpeg->saveFile( $new_file );
 		}
-		// TODO: change to use the single image backup wrapper (class).
 		// Backup the file before we replace the original.
 		global $eio_backup;
 		$eio_backup->backup_file( $file );
@@ -8198,15 +8194,10 @@ function ewww_image_optimizer_attachment_check_variant_level( $id, $type, $meta 
 	$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
 	foreach ( $optimized_images as $optimized_image ) {
 		if ( 'full' === $optimized_image['resize'] && $compression_level < $optimized_image['level'] ) {
-			// TODO: change this to use the backup class, and move the time check into the cloud backup function(s).
 			global $eio_backup;
 			if ( $eio_backup->is_backup_available( $optimized_image['path'], $optimized_image ) ) {
 				return $eio_backup->restore_backup_from_meta_data( $id, 'media', $meta );
 			}
-			// $updated_time = strtotime( $optimized_image['updated'] );
-			// if ( DAY_IN_SECONDS * 30 + $updated_time > time() ) {
-			// return ewww_image_optimizer_cloud_restore_from_meta_data( $id, 'media', $meta );
-			// }.
 		}
 	}
 	return $meta;
@@ -10300,7 +10291,6 @@ function ewww_image_optimizer_restore_possible( $optimized_images, $compression_
 			if ( $compression_level < 30 && $compression_level < $optimized_image['level'] && $optimized_image['level'] > 20 ) {
 				global $eio_backup;
 				return $eio_backup->is_backup_available( $optimized_image['path'], $optimized_image );
-				// TODO: check with the backup class and move this logic.
 			}
 		}
 	}
@@ -10410,7 +10400,6 @@ function ewww_image_optimizer_custom_column_results( $id, $optimized_images ) {
 		$opt_size  += $optimized_image['image_size'];
 		if ( 'full' === $optimized_image['resize'] ) {
 			$updated_time = strtotime( $optimized_image['updated'] );
-			// TODO: check for local also here, using the class.
 			global $eio_backup;
 			$backup_available = $eio_backup->is_backup_available( $optimized_image['path'], $optimized_image );
 		}
@@ -11823,6 +11812,22 @@ function ewww_image_optimizer_intro_wizard() {
 	$webp_available       = ewww_image_optimizer_webp_available();
 	$bulk_available       = false;
 	$tools_available      = true;
+	$backup_mode          = 'local';
+	if (
+		ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
+		'local' !== ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' )
+	) {
+		$backup_mode = 'cloud';
+	}
+	if (
+		'local' === $backup_mode &&
+		(
+			! empty( $_POST['ewww_image_optimizer_goal_save_space'] ) ||
+			get_option( 'ewww_image_optimizer_goal_save_space' )
+		)
+	) {
+		$backup_mode = '';
+	}
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
 		if ( defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) && EWWW_IMAGE_OPTIMIZER_CLOUD ) {
 			ewww_image_optimizer_disable_tools();
@@ -11893,12 +11898,12 @@ function ewww_image_optimizer_intro_wizard() {
 		}
 		if ( ! empty( $_POST['ewww_image_optimizer_goal_save_space'] ) ) {
 			update_option( 'ewww_image_optimizer_goal_save_space', true, false );
-		} else {
+		} elseif ( isset( $_POST['ewww_image_optimizer_goal_save_space'] ) ) {
 			update_option( 'ewww_image_optimizer_goal_save_space', false, false );
 		}
 		if ( ! empty( $_POST['ewww_image_optimizer_goal_site_speed'] ) ) {
 			update_option( 'ewww_image_optimizer_goal_site_speed', true, false );
-		} else {
+		} elseif ( isset( $_POST['ewww_image_optimizer_goal_site_speed'] ) ) {
 			update_option( 'ewww_image_optimizer_goal_site_speed', false, false );
 		}
 		if ( ! empty( $_POST['ewww_image_optimizer_budget'] ) && 'free' === $_POST['ewww_image_optimizer_budget'] ) {
@@ -11930,6 +11935,11 @@ function ewww_image_optimizer_intro_wizard() {
 			}
 			ewww_image_optimizer_set_option( 'ewww_image_optimizer_enable_help', ! empty( $_POST['ewww_image_optimizer_enable_help'] ) );
 			ewww_image_optimizer_set_option( 'ewww_image_optimizer_allow_tracking', ! empty( $_POST['ewww_image_optimizer_allow_tracking'] ) );
+			if ( ! empty( $_POST['ewww_image_optimizer_backup_files'] ) && 'local' === $_POST['ewww_image_optimizer_backup_files'] ) {
+				ewww_image_optimizer_set_option( 'ewww_image_optimizer_backup_files', 'local' );
+			} elseif ( ! empty( $_POST['ewww_image_optimizer_backup_files'] ) && 'cloud' === $_POST['ewww_image_optimizer_backup_files'] ) {
+				ewww_image_optimizer_set_option( 'ewww_image_optimizer_backup_files', 'cloud' );
+			}
 			update_option( 'ewww_image_optimizer_wizard_complete', true, false );
 			global $eio_debug;
 			$debug_info = '';
@@ -12137,6 +12147,20 @@ function ewww_image_optimizer_intro_wizard() {
 					<span class='description'><?php esc_html_e( 'Resize uploaded images to these dimensions (in pixels).', 'ewww-image-optimizer' ); ?></span>
 				</p>
 		<?php endif; ?>
+				<p>
+					<select id='ewww_image_optimizer_backup_files' name='ewww_image_optimizer_backup_files'>
+						<option value=''>
+							<?php esc_html_e( 'Disabled', 'ewww-image-optimizer' ); ?>
+						</option>
+						<option value='local' <?php selected( $backup_mode, 'local' ); ?>>
+							<?php esc_html_e( 'Local', 'ewww-image-optimizer' ); ?>
+						</option>
+						<option <?php disabled( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ); ?> value='cloud' <?php selected( $backup_mode, 'cloud' ); ?>>
+							<?php esc_html_e( 'Cloud', 'ewww-image-optimizer' ); ?>
+						</option>
+					</select>
+					<span class='description'><?php esc_html_e( 'Image Backups', 'ewww-image-optimizer' ); ?></span>
+				</p>
 				<p>
 					<input type='checkbox' id='ewww_image_optimizer_enable_help' name='ewww_image_optimizer_enable_help' value='true' />
 					<label for='ewww_image_optimizer_enable_help'><?php esc_html_e( 'Embedded Help', 'ewww-image-optimizer' ); ?></label><br>
@@ -13919,7 +13943,6 @@ AddType image/webp .webp</pre>
 						<?php ewwwio_help_link( 'https://docs.ewww.io/article/102-local-compression-options', '60c24b24a6d12c2cd643e9fb' ); ?>
 					</th>
 					<td>
-						<!-- <input type='checkbox' id='ewww_image_optimizer_backup_files' name='ewww_image_optimizer_backup_files' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ); ?> <?php disabled( $disable_level ); ?>> -->
 						<select id='ewww_image_optimizer_backup_files' name='ewww_image_optimizer_backup_files'>
 							<option value='' <?php selected( (string) ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ), '' ); ?>>
 								<?php esc_html_e( 'Disabled', 'ewww-image-optimizer' ); ?>
