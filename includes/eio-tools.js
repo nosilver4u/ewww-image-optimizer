@@ -265,6 +265,63 @@ jQuery(document).ready(function($) {
 		}
 		return false;
 	});
+	var ewww_total_restored = 0;
+	$('#ewww-restore-originals').on( 'submit', function() {
+		if (!confirm(ewww_vars.tool_warning)) {
+			return false;
+		}
+		var header_label = $(this).find('input[type="submit"]').val();
+		if (header_label) {
+			$('#ewwwio-tools-header').html(header_label);
+		}
+		$('.ewww-tool-info').hide();
+		$('.ewww-tool-form').hide();
+		$('.ewww-tool-divider').hide();
+		$('#ewww-restore-originals-progressbar').progressbar({ max: ewww_vars.restorable_images });
+		$('#ewww-restore-originals-progress').html('<p> 0/' + ewww_vars.restorable_images + '</p>');
+		$('#ewww-restore-originals-progressbar').show();
+		$('#ewww-restore-originals-progress').show();
+		ewwwRestoreOriginals();
+		return false;
+	});
+	function ewwwRestoreOriginals(){
+		var ewww_originals_data = {
+			action: 'bulk_aux_images_restore_original',
+			ewww_wpnonce: ewww_vars._wpnonce,
+		};
+		$.post(ajaxurl, ewww_originals_data, function(response) {
+			try {
+				var ewww_response = JSON.parse(response);
+			} catch (err) {
+				$('#ewww-restore-originals-progressbar').hide();
+				$('#ewww-restore-originals-progress').html('<span style="color: red"><b>' + ewww_vars.invalid_response + '</b></span>');
+				console.log(err);
+				console.log(response);
+				return false;
+			}
+			if ( ewww_response.error ) {
+				$('#ewww-restore-originals-progressbar').hide();
+				$('#ewww-restore-originals-progress').html('<span style="color: red"><b>' + ewww_response.error + '</b></span>');
+				return false;
+			}
+			if(ewww_response.finished) {
+				$('#ewww-restore-originals-messages').append(ewww_vars.finished);
+				$('#ewww-restore-originals-messages').show();
+				return false;
+			}
+			if (ewww_response.messages) {
+				$('#ewww-restore-originals-messages').append(ewww_response.messages);
+				$('#ewww-restore-originals-messages').show();
+			}
+			ewww_total_restored += ewww_response.completed;
+			$('#ewww-restore-originals-progressbar').progressbar("option", "value", ewww_total_restored);
+			$('#ewww-restore-originals-progress').html('<p>' + ewww_total_restored + '/' + ewww_vars.restorable_images + '</p>');
+			if ( ewww_total_restored > ewww_vars.restorable_images + 100 ) {
+				$('#ewww-restore-originals-messages').append('<p><b>' + ewww_vars.too_far) + '</b></p>';
+			}
+			ewwwRestoreOriginals();
+		});
+	}
 	var ewww_total_originals = 0;
 	var ewww_original_attachments = false;
 	$('#ewww-clean-originals').on( 'submit', function() {

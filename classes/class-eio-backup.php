@@ -16,6 +16,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 class EIO_Backup extends EIO_Base {
 
 	/**
+	 * An error from a restore operation.
+	 *
+	 * @access protected
+	 * @var string $error_message
+	 */
+	protected $error_message = '';
+
+	/**
 	 * A list of exclusions.
 	 *
 	 * @access protected
@@ -77,6 +85,26 @@ class EIO_Backup extends EIO_Base {
 			'/dynamic/', // Nextgen dynamic images.
 		);
 		$this->exclusions = apply_filters( 'ewww_image_optimizer_backup_exclusions', $this->exclusions );
+	}
+
+	/**
+	 * Gets the error message from the most recent restore operation, if any.
+	 *
+	 * @return string An error message.
+	 */
+	public function get_error() {
+		return (string) $this->error_message;
+	}
+
+	/**
+	 * Sets the error message for restore operations.
+	 *
+	 * @param string $error An error message.
+	 */
+	public function throw_error( $error ) {
+		if ( is_string( $error ) ) {
+			$this->error_message = sanitize_text_field( $error );
+		}
 	}
 
 	/**
@@ -221,6 +249,7 @@ class EIO_Backup extends EIO_Base {
 		} else {
 			$ewwwdb = $wpdb;
 		}
+		$this->error_message = '';
 		if ( ! is_array( $image ) && ! empty( $image ) && is_numeric( $image ) ) {
 			$image = $ewwwdb->get_row( "SELECT id,path,backup FROM $ewwwdb->ewwwio_images WHERE id = $image", ARRAY_A );
 		}
@@ -249,18 +278,30 @@ class EIO_Backup extends EIO_Base {
 			return false;
 		}
 		$file = $image['path'];
-		if ( ! $this->is_file( $file ) || ! is_writable( $file ) ) {
+		if ( ! is_writable( dirname( $file ) ) ) {
+			$this->debug_message( "$file (or the parent dir) is not writable" );
+			/* translators: %s: An image filename */
+			$this->error_message = sprintf( __( '%s is not writable.', 'ewww-image-optimizer' ), $file );
 			return false;
 		}
 		$backup_file = $this->get_backup_location( $file );
 		if ( ! $backup_file || $backup_file === $file ) {
+			$this->debug_message( "$backup_file is not a valid backup location for $file" );
+			/* translators: %s: An image filename */
+			$this->error_message = sprintf( __( 'Could not determine backup location for %s.', 'ewww-image-optimizer' ), $file );
 			return false;
 		}
 		\clearstatcache();
 		if ( ! $this->is_file( $backup_file ) ) {
+			$this->debug_message( "$backup_file does not exist" );
+			/* translators: %s: An image filename */
+			$this->error_message = sprintf( __( 'No backup available for %s.', 'ewww-image-optimizer' ), $file );
 			return false;
 		}
 		if ( \ewww_image_optimizer_mimetype( $file, 'i' ) !== \ewww_image_optimizer_mimetype( $backup_file, 'i' ) ) {
+			$this->debug_message( "$backup_file is different type than $file " . \ewww_image_optimizer_mimetype( $backup_file, 'i' ) . ' vs. ' . \ewww_image_optimizer_mimetype( $file, 'i' ) );
+			/* translators: %s: An image filename */
+			$this->error_message = sprintf( __( 'Backup file for %s has the wrong mime type.', 'ewww-image-optimizer' ), $file );
 			return false;
 		}
 		$filesize = $this->filesize( $file );
@@ -281,6 +322,8 @@ class EIO_Backup extends EIO_Base {
 			$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->ewwwio_images SET results = '', image_size = 0, updates = 0, updated=updated, level = 0 WHERE id = %d", $image['id'] ) );
 			return true;
 		}
+		/* translators: %s: An image filename */
+		$this->error_message = sprintf( __( 'Restore attempted for %s, but could not be confirmed.', 'ewww-image-optimizer' ), $file );
 		return false;
 	}
 
@@ -368,7 +411,7 @@ class EIO_Backup extends EIO_Base {
 		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		// Check permissions of current user.
 		$permissions = apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
-		if ( false === \current_user_can( $permissions ) ) {
+		if ( ! \current_user_can( $permissions ) ) {
 			// Display error message if insufficient permissions.
 			$this->ob_clean();
 			\wp_die( \wp_json_encode( array( 'error' => \esc_html__( 'You do not have permission to optimize images.', 'ewww-image-optimizer' ) ) ) );
@@ -385,6 +428,7 @@ class EIO_Backup extends EIO_Base {
 		}
 		\session_write_close();
 		$image = (int) $_REQUEST['ewww_image_id'];
+		$this->debug_message( "attempting restore for $image" );
 		if ( $this->restore_file( $image ) ) {
 			$this->ob_clean();
 			\wp_die( \wp_json_encode( array( 'success' => 1 ) ) );
@@ -392,7 +436,6 @@ class EIO_Backup extends EIO_Base {
 		$this->ob_clean();
 		\wp_die( \wp_json_encode( array( 'error' => \esc_html__( 'Unable to restore image.', 'ewww-image-optimizer' ) ) ) );
 	}
-
 }
 
 global $eio_backup;

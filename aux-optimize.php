@@ -171,10 +171,6 @@ function ewww_image_optimizer_aux_images_table() {
 		}
 		$image_name = esc_html( $image_name );
 		$savings    = esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) );
-		// TODO: this can probably go...
-		if ( DAY_IN_SECONDS * 30 + $optimized_image['updated'] < time() ) {
-			// $optimized_image['backup'] = '';
-		}
 		if ( 946684800 > $optimized_image['updated'] ) {
 			$last_updated = '';
 		} else {
@@ -212,7 +208,6 @@ function ewww_image_optimizer_aux_images_table() {
 			$output['table'] .= '</td>';
 			$output['table'] .= "<td>$type</td>";
 			$output['table'] .= "<td>$last_updated</td>";
-			// TODO: make the restore link dependent on a check via the backup class.
 			$output['table'] .= "<td>$savings<br>$size_string<br>" .
 				'<a class="ewww-remove-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Remove from history', 'ewww-image-optimizer' ) . '</a>' .
 				( $eio_backup->is_backup_available( $optimized_image['path'], $optimized_image ) ? '<br><a class="ewww-restore-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Restore original', 'ewww-image-optimizer' ) . '</a>' : '' ) .
@@ -265,7 +260,6 @@ function ewww_image_optimizer_aux_images_table() {
 				$webpurl   = $image_url . '.webp';
 				$webp_info = "<br>WebP: <a href=\"$webpurl\">$webp_size</a>";
 			}
-			// TODO: make the restore link dependent on a check via the backup class.
 			$output['table'] .= "<td>$savings<br>$size_string<br>" .
 				'<a class="ewww-remove-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Remove from history', 'ewww-image-optimizer' ) . '</a>' .
 				$webp_info .
@@ -320,7 +314,7 @@ function ewww_image_optimizer_aux_images_table() {
 /**
  * Removes an image from the auxiliary images table.
  *
- * Called via AJAX, this function will remove the record in provided by the
+ * Called via AJAX, this function will remove the record provided by the
  * POST variable 'ewww_image_id' and return a '1' if successful.
  *
  * @global object $wpdb
@@ -372,6 +366,93 @@ function ewww_image_optimizer_aux_images_clear_all() {
 	}
 	ewwwio_memory( __FUNCTION__ );
 	die();
+}
+
+/**
+ * Reset the progress/position of the bulk restore routine.
+ */
+function ewww_image_optimizer_reset_bulk_restore() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
+	if ( ! current_user_can( $permissions ) ) {
+		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
+	}
+	delete_option( 'ewww_image_optimizer_bulk_restore_position' );
+	wp_safe_redirect( wp_get_referer() );
+	exit;
+}
+
+/**
+ * Restore backups for images using records from the ewwwio_images table.
+ *
+ * @global object $wpdb
+ * @global object $eio_backup
+ */
+function ewww_image_optimizer_bulk_restore_handler() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+
+	session_write_close();
+	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
+	if ( ! current_user_can( $permissions ) ) {
+		ewwwio_ob_clean();
+		wp_die( wp_json_encode( array( 'error' => esc_html__( 'You do not have permission to optimize images.', 'ewww-image-optimizer' ) ) ) );
+	}
+	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-tools' ) ) {
+		ewwwio_ob_clean();
+		wp_die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
+	}
+
+	global $eio_backup;
+	global $wpdb;
+	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+		ewww_image_optimizer_db_init();
+		global $ewwwdb;
+	} else {
+		$ewwwdb = $wpdb;
+	}
+
+	$completed = 0;
+	$position  = (int) get_option( 'ewww_image_optimizer_bulk_restore_position' );
+	$per_page  = (int) apply_filters( 'ewww_image_optimizer_bulk_restore_batch_size', 20 );
+	$started   = time();
+
+	ewwwio_debug_message( "searching for $per_page records starting at $position" );
+	$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->ewwwio_images WHERE id > %d AND pending = 0 AND image_size > 0 AND updates > 0 ORDER BY id LIMIT %d", $position, $per_page ), ARRAY_A );
+
+	if ( empty( $optimized_images ) || ! is_countable( $optimized_images ) || 0 === count( $optimized_images ) ) {
+		ewwwio_debug_message( 'no more images, all done!' );
+		delete_option( 'ewww_image_optimizer_bulk_restore_position' );
+		ewwwio_ob_clean();
+		wp_die( wp_json_encode( array( 'finished' => 1 ) ) );
+	}
+
+	// Because some plugins might have loose filters (looking at you WPML).
+	remove_all_filters( 'wp_delete_file' );
+
+	$messages = '';
+	foreach ( $optimized_images as $optimized_image ) {
+		$completed++;
+		ewwwio_debug_message( "submitting {$optimized_image['id']} to be restored" );
+		$eio_backup->restore_file( $optimized_image );
+		$error_message = $eio_backup->get_error();
+		if ( $error_message ) {
+			$messages .= esc_html( $error_message ) . '<br>';
+		}
+		update_option( 'ewww_image_optimizer_bulk_restore_position', $optimized_image['id'], false );
+		if ( time() > $started + 20 ) {
+			break;
+		}
+	} // End foreach().
+
+	ewwwio_ob_clean();
+	wp_die(
+		wp_json_encode(
+			array(
+				'completed' => $completed,
+				'messages'  => $messages,
+			)
+		)
+	);
 }
 
 /**
@@ -516,7 +597,7 @@ function ewww_image_optimizer_aux_images_webp_clean() {
 }
 
 /**
- * Cleans up WebP images via AJAX for a particular attachment.
+ * Cleanup WebP images via AJAX for a particular attachment.
  *
  * @global object $wpdb
  * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
@@ -1608,3 +1689,6 @@ add_action( 'wp_ajax_bulk_aux_images_webp_clean', 'ewww_image_optimizer_aux_imag
 add_action( 'wp_ajax_bulk_aux_images_delete_webp', 'ewww_image_optimizer_delete_webp' );
 add_action( 'wp_ajax_bulk_aux_images_delete_original', 'ewww_image_optimizer_ajax_delete_original' );
 add_action( 'wp_ajax_ewwwio_get_all_attachments', 'ewww_image_optimizer_get_all_attachments' );
+add_action( 'wp_ajax_bulk_aux_images_restore_original', 'ewww_image_optimizer_bulk_restore_handler' );
+// Non-AJAX handler(s) to reset tool resume option/placeholder.
+add_action( 'admin_action_ewww_image_optimizer_reset_bulk_restore', 'ewww_image_optimizer_reset_bulk_restore' );

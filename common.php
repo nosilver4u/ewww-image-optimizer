@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 670.14 );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 670.17 );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -4503,6 +4503,7 @@ function ewww_image_optimizer_cloud_restore_single_image_handler() {
  */
 function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	global $eio_backup;
 	global $wpdb;
 	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
 		ewww_image_optimizer_db_init();
@@ -4539,6 +4540,8 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 		$error_message = $result->get_error_message();
 		ewwwio_debug_message( "restore request failed: $error_message" );
 		ewwwio_memory( __FUNCTION__ );
+		/* translators: %s: An HTTP error message */
+		$eio_backup->throw_error( sprintf( __( 'Restore failed with HTTP error: %s', 'ewww-image-optimizer' ), $error_message ) );
 		return false;
 	} elseif ( ! empty( $result['body'] ) && strpos( $result['body'], 'missing' ) === false ) {
 		$enabled_types = array( 'image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'image/svg+xml' );
@@ -4552,10 +4555,13 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 			$old_type = ewww_image_optimizer_mimetype( $image['path'], 'i' );
 		}
 		if ( ! in_array( $new_type, $enabled_types, true ) ) {
+			/* translators: %s: An image filename */
+			$eio_backup->throw_error( sprintf( __( 'Backup file for %s has the wrong mime type.', 'ewww-image-optimizer' ), $image['path'] ) );
 			return false;
 		}
 		if ( empty( $old_type ) || $old_type === $new_type ) {
 			if ( ewwwio_rename( $image['path'] . '.tmp', $image['path'] ) ) {
+				ewwwio_debug_message( "{$image['path']} was restored, removing .webp version and resetting db record" );
 				if ( ewwwio_is_file( $image['path'] . '.webp' ) && is_writable( $image['path'] . '.webp' ) ) {
 					unlink( $image['path'] . '.webp' );
 				}
@@ -4565,6 +4571,8 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 			}
 		}
 	}
+	/* translators: %s: An image filename */
+	$eio_backup->throw_error( sprintf( __( 'Backup could not be retrieved for %s.', 'ewww-image-optimizer' ), $image['path'] ) );
 	return false;
 }
 

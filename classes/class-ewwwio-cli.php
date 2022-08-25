@@ -226,6 +226,71 @@ class EWWWIO_CLI extends WP_CLI_Command {
 				}
 		} // End switch().
 	}
+
+	/**
+	 * Restore images from cloud/local backups.
+	 *
+	 * ## OPTIONS
+	 *
+	 * <reset>
+	 * : optional, start the optimizer back at the beginning instead of resuming from last position
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp-cli ewwwio restore --reset
+	 *
+	 * @synopsis [--reset]
+	 *
+	 * @param array $args A numeric array of required arguments.
+	 * @param array $assoc_args An associative array of optional arguments.
+	 */
+	function restore( $args, $assoc_args ) {
+		if ( ! empty( $assoc_args['reset'] ) ) {
+			delete_option( 'ewww_image_optimizer_bulk_restore_position' );
+		}
+		global $eio_backup;
+		global $wpdb;
+		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+			ewww_image_optimizer_db_init();
+			global $ewwwdb;
+		} else {
+			$ewwwdb = $wpdb;
+		}
+
+		$completed = 0;
+		$position  = (int) get_option( 'ewww_image_optimizer_bulk_restore_position' );
+		$per_page  = 200;
+
+		ewwwio_debug_message( "searching for $per_page records starting at $position" );
+		$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->ewwwio_images WHERE id > %d AND pending = 0 AND image_size > 0 AND updates > 0 ORDER BY id LIMIT %d", $position, $per_page ), ARRAY_A );
+
+		$restorable_images = (int) $wpdb->get_var( $wpdb->prepare( "SELECT count(id) FROM $wpdb->ewwwio_images WHERE id > %d AND pending = 0 AND image_size > 0 AND updates > 0", $position ) );
+
+		/* translators: %d: number of images */
+		WP_CLI::confirm( sprintf( __( 'There are %d images that may be restored. You should take a site backup before performing a bulk action on your images. Do you wish to continue?', 'ewww-image-optimizer' ), $restorable_images ) );
+
+		// Because some plugins might have loose filters (looking at you WPML).
+		remove_all_filters( 'wp_delete_file' );
+
+		while ( ewww_image_optimizer_iterable( $optimized_images ) ) {
+			foreach ( $optimized_images as $optimized_image ) {
+				$completed++;
+				ewwwio_debug_message( "submitting {$optimized_image['id']} to be restored" );
+				$optimized_image['path'] = \ewww_image_optimizer_absolutize_path( $optimized_image['path'] );
+				$eio_backup->restore_file( $optimized_image );
+				$error_message = $eio_backup->get_error();
+				if ( $error_message ) {
+					WP_CLI::warning( "$completed/$restorable_images: $error_message" );
+				} else {
+					WP_CLI::success( "$completed/$restorable_images: {$optimized_image['path']}" );
+				}
+				update_option( 'ewww_image_optimizer_bulk_restore_position', $optimized_image['id'], false );
+			} // End foreach().
+			$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->ewwwio_images WHERE id > %d AND pending = 0 AND image_size > 0 AND updates > 0 ORDER BY id LIMIT %d", $optimized_image['id'], $per_page ), ARRAY_A );
+		}
+
+		delete_option( 'ewww_image_optimizer_bulk_restore_position' );
+	}
 }
 
 WP_CLI::add_command( 'ewwwio', 'EWWWIO_CLI' );

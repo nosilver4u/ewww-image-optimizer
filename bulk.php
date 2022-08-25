@@ -82,6 +82,7 @@ function ewww_image_optimizer_display_tools() {
 	} else {
 		echo esc_html__( 'There are no images in the queue currently.', 'ewww-image-optimizer' ) . "</p>\n";
 	}
+
 	echo '<hr class="ewww-tool-divider">';
 	echo "<div>\n<p id='ewww-clear-table-info' class='ewww-tool-info'>" .
 		esc_html__( 'The optimization history prevents the plugin from re-optimizing images, but you may erase the history to reduce database size or to force the plugin to re-optimize all images.', 'ewww-image-optimizer' );
@@ -89,6 +90,43 @@ function ewww_image_optimizer_display_tools() {
 	echo "<form id='ewww-clear-table' class='ewww-tool-form' method='post' action=''>\n" .
 		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Erase Optimization History', 'ewww-image-optimizer' ) . "' />\n" .
 		"</form>\n</div>\n";
+
+	$backup_mode = '';
+	if ( 'local' === ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
+		$backup_mode = __( 'local', 'ewww-image-optimizer' );
+	} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
+		$backup_mode = __( 'cloud', 'ewww-image-optimizer' );
+	}
+	echo '<hr class="ewww-tool-divider">';
+	echo "<div>\n<p id='ewww-restore-originals-info' class='ewww-tool-info'>";
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
+		/* translators: %s: 'cloud' or 'local', translated separately */
+		printf( esc_html__( 'Restore all your images from %s backups in case of image corruption or degraded quality.', 'ewww-image-optimizer' ), esc_html( $backup_mode ) );
+		if ( ! get_option( 'ewww_image_optimizer_bulk_restore_position' ) ) {
+			echo '<br>';
+			esc_html_e( '*As such things are quite rare, it is highly recommended to contact support first, as this may be due to a plugin conflict.', 'ewww-image-optimizer' );
+		}
+	} else {
+		esc_html_e( 'Backups are currently disabled in the Local settings.', 'ewww-image-optimizer' );
+	}
+	echo "</p>\n";
+	echo "<form id='ewww-restore-originals' class='ewww-tool-form' method='post' action=''>\n" .
+		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Restore Images', 'ewww-image-optimizer' ) . "' " . disabled( (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ), false, false ) . " />\n" .
+		"</form>\n";
+	if ( get_option( 'ewww_image_optimizer_bulk_restore_position' ) ) {
+		?>
+		<p class="description ewww-tool-info">
+			<i><?php esc_html_e( 'Will resume from previous position.', 'ewww-image-optimizer' ); ?></i> -
+			<a  href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_reset_bulk_restore' ) ); ?>'>
+				<?php esc_html_e( 'Reset position', 'ewww-image-optimizer' ); ?>
+			</a>
+		</p>
+		<?php
+	}
+	echo "</div>\n";
+	echo "<div id='ewww-restore-originals-progressbar' style='display:none;'></div>";
+	echo "<div id='ewww-restore-originals-progress' style='display:none;'></div>";
+	echo "<div id='ewww-restore-originals-messages' style='display:none;'></div>";
 
 	echo '<hr class="ewww-tool-divider">';
 	echo "<div>\n<p id='ewww-clean-originals-info' class='ewww-tool-info'>" .
@@ -204,7 +242,10 @@ function ewww_image_optimizer_tool_script( $hook ) {
 		$erase_warning = esc_html__( 'Warning: this cannot be undone. Re-optimizing images will use additional API credits.', 'ewww-image-optimizer' );
 	}
 	global $wpdb;
-	$attachment_count = $wpdb->get_var( "SELECT count(ID) FROM $wpdb->posts WHERE (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%') ORDER BY ID DESC" );
+	$attachment_count  = (int) $wpdb->get_var( "SELECT count(ID) FROM $wpdb->posts WHERE (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%') ORDER BY ID DESC" );
+	$restore_position  = (int) get_option( 'ewww_image_optimizer_bulk_restore_position' );
+	$restorable_images = (int) $wpdb->get_var( $wpdb->prepare( "SELECT count(id) FROM $wpdb->ewwwio_images WHERE id > %d AND pending = 0 AND image_size > 0 AND updates > 0", $restore_position ) );
+
 	wp_localize_script(
 		'ewww-tool-script',
 		'ewww_vars',
@@ -227,6 +268,8 @@ function ewww_image_optimizer_tool_script( $hook ) {
 			'batch'             => esc_html__( 'batch', 'ewww-image-optimizer' ),
 			'erase_warning'     => $erase_warning,
 			'tool_warning'      => esc_html__( 'Please be sure to backup your site before proceeding. Do you wish to continue?', 'ewww-image-optimizer' ),
+			'too_far'           => esc_html__( 'More images have been processed than expected. Unless you have added new images, you should refresh the page to stop the process and contact support.', 'ewww-image-optimizer' ),
+			'restorable_images' => $restorable_images,
 		)
 	);
 	// Load the stylesheet for the jquery progressbar.
