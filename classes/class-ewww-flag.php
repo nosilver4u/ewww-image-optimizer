@@ -42,7 +42,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			// To prevent webview from being prematurely optimized.
 			add_action( 'flag_thumbnail_created', array( $this, 'ewww_remove_image_editor' ) );
 			add_action( 'wp_ajax_ewww_flag_manual', array( $this, 'ewww_flag_manual' ) );
-			add_action( 'wp_ajax_ewww_flag_cloud_restore', array( $this, 'ewww_flag_cloud_restore' ) );
+			add_action( 'wp_ajax_ewww_flag_image_restore', array( $this, 'ewww_flag_image_restore' ) );
 			add_action( 'admin_action_ewww_flag_manual', array( $this, 'ewww_flag_manual' ) );
 			add_action( 'admin_menu', array( $this, 'ewww_flag_bulk_menu' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'ewww_flag_bulk_script' ), PHP_INT_MAX );
@@ -114,7 +114,9 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 				ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) );
 				echo '<a id="ewww-bulk-credits-available" target="_blank" class="page-title-action" style="float:right;" href="https://ewww.io/my-account/">' . esc_html__( 'Image credits available:', 'ewww-image-optimizer' ) . ' ' . esc_html( ewww_image_optimizer_cloud_quota() ) . '</a>';
 			}
-			echo '<div id="ewww-bulk-warning" class="ewww-bulk-info notice notice-warning"><p>' . esc_html__( 'Bulk Optimization will alter your original images and cannot be undone. Please be sure you have a backup of your images before proceeding.', 'ewww-image-optimizer' ) . '</p></div>';
+			if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
+				echo '<div id="ewww-bulk-warning" class="ewww-bulk-info notice notice-warning"><p>' . esc_html__( 'Bulk Optimization will alter your original images and cannot be undone. Please be sure you have a backup of your images before proceeding.', 'ewww-image-optimizer' ) . '</p></div>';
+			}
 			// Retrieve the value of the 'bulk resume' option and set the button text for the form to use.
 			$resume = get_option( 'ewww_image_optimizer_bulk_flag_resume' );
 			if ( empty( $resume ) ) {
@@ -481,7 +483,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		/**
 		 * Restore an image from the API.
 		 */
-		function ewww_flag_cloud_restore() {
+		function ewww_flag_image_restore() {
 			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			// Check permission of current user.
 			$permissions = apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
@@ -512,7 +514,8 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			if ( ! class_exists( 'flagMeta' ) ) {
 				require_once( FLAG_ABSPATH . 'lib/meta.php' );
 			}
-			ewww_image_optimizer_cloud_restore_from_meta_data( $id, 'flag' );
+			global $eio_backup;
+			$eio_backup->restore_backup_from_meta_data( $id, 'flag' );
 			$success = $this->ewww_manage_image_custom_column_capture( $id );
 			ewwwio_ob_clean();
 			wp_die( wp_json_encode( array( 'success' => $success ) ) );
@@ -802,7 +805,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			}
 			$backup_available = false;
 			global $wpdb;
-			$optimized_images  = $wpdb->get_results( $wpdb->prepare( "SELECT image_size,orig_size,resize,converted,level,backup,updated FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'flag' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
+			$optimized_images  = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'flag' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
 			$ewww_manual_nonce = wp_create_nonce( 'ewww-manual-' . $id );
 			if ( ! empty( $optimized_images ) ) {
 				list( $detail_output, $converted, $backup_available ) = ewww_image_optimizer_custom_column_results( $id, $optimized_images );
@@ -816,7 +819,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 					);
 					if ( $backup_available ) {
 						printf(
-							'<br><a class="ewww-manual-cloud-restore" data-id="%1$d" data-nonce="%2$s" href="' . esc_url( admin_url( 'admin.php?action=ewww_flag_cloud_restore' ) ) . '&amp;ewww_manual_nonce=%2$s&amp;ewww_attachment_ID=%1$d">%3$s</a>',
+							'<br><a class="ewww-manual-image-restore" data-id="%1$d" data-nonce="%2$s" href="' . esc_url( admin_url( 'admin.php?action=ewww_flag_image_restore' ) ) . '&amp;ewww_manual_nonce=%2$s&amp;ewww_attachment_ID=%1$d">%3$s</a>',
 							(int) $id,
 							esc_attr( $ewww_manual_nonce ),
 							esc_html__( 'Restore original', 'ewww-image-optimizer' )

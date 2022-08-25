@@ -131,13 +131,12 @@ jQuery(document).ready(function($) {
 			$('#ewww_image_optimizer_png_level option').prop('disabled', false);
 			$('#ewww_image_optimizer_pdf_level option').prop('disabled', false);
 			$('#ewww_image_optimizer_svg_level option').prop('disabled', false);
-			$('#ewww_image_optimizer_backup_files').prop('disabled', false);
+			$('#ewww_image_optimizer_backup_files option').prop('disabled', false);
 			$('#ewww_image_optimizer_jpg_level').val(30);
 			$('#ewww_image_optimizer_png_level').val(20);
 			$('#ewww_image_optimizer_gif_level').val(10);
 			$('#ewww_image_optimizer_pdf_level').val(10);
 			$('#ewww_image_optimizer_svg_level').val(10);
-			$('#ewww_image_optimizer_backup_files').prop('checked', true);
 		}
 	}
 	var easyio_registration_error = '';

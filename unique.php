@@ -154,6 +154,7 @@ function ewww_image_optimizer_set_defaults() {
 	add_option( 'ewww_image_optimizer_svg_level', '0' );
 	add_option( 'ewww_image_optimizer_jpg_quality', '' );
 	add_option( 'ewww_image_optimizer_webp_quality', '' );
+	add_option( 'ewww_image_optimizer_backup_files', '' );
 	add_option( 'ewww_image_optimizer_resize_existing', true );
 	add_option( 'ewww_image_optimizer_exactdn', false );
 	add_option( 'ewww_image_optimizer_exactdn_plan_id', 0 );
@@ -185,6 +186,7 @@ function ewww_image_optimizer_set_defaults() {
 	add_site_option( 'ewww_image_optimizer_svg_level', '0' );
 	add_site_option( 'ewww_image_optimizer_jpg_quality', '' );
 	add_site_option( 'ewww_image_optimizer_webp_quality', '' );
+	add_site_option( 'ewww_image_optimizer_backup_files', '' );
 	add_site_option( 'ewww_image_optimizer_resize_existing', true );
 	add_site_option( 'ewww_image_optimizer_disable_pngout', true );
 	add_site_option( 'ewww_image_optimizer_disable_svgcleaner', true );

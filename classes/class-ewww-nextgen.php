@@ -41,7 +41,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				ewwwio_debug_message( 'background mode NOT enabled for nextgen' );
 			}
 			add_action( 'wp_ajax_ewww_ngg_manual', array( $this, 'ewww_ngg_manual' ) );
-			add_action( 'wp_ajax_ewww_ngg_cloud_restore', array( $this, 'ewww_ngg_cloud_restore' ) );
+			add_action( 'wp_ajax_ewww_ngg_image_restore', array( $this, 'ewww_ngg_image_restore' ) );
 			add_action( 'admin_action_ewww_ngg_manual', array( $this, 'ewww_ngg_manual' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'ewww_ngg_manual_actions_script' ) );
 			add_action( 'admin_menu', array( $this, 'ewww_ngg_bulk_menu' ) );
@@ -320,7 +320,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		/**
 		 * Restore an image from the NextGEN Gallery.
 		 */
-		function ewww_ngg_cloud_restore() {
+		function ewww_ngg_image_restore() {
 			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			// Check permission of current user.
 			$permissions = apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
@@ -354,7 +354,8 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			$storage = $registry->get_utility( 'I_Gallery_Storage' );
 			// Get an image object.
 			$image = $storage->object->_image_mapper->find( $id );
-			ewww_image_optimizer_cloud_restore_from_meta_data( $image->pid, 'nextgen' );
+			global $eio_backup;
+			$eio_backup->restore_backup_from_meta_data( $image->pid, 'nextgen' );
 			$success = $this->ewww_manage_image_custom_column( '', $image );
 			ewwwio_ob_clean();
 			wp_die( wp_json_encode( array( 'success' => $success ) ) );
@@ -528,7 +529,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				}
 				$backup_available = false;
 				global $wpdb;
-				$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT image_size,orig_size,resize,converted,level,backup,updated FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'nextgen' AND image_size <> 0 ORDER BY orig_size DESC", $image->pid ), ARRAY_A );
+				$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'nextgen' AND image_size <> 0 ORDER BY orig_size DESC", $image->pid ), ARRAY_A );
 				if ( ! empty( $optimized_images ) ) {
 					list( $detail_output, $converted, $backup_available ) = ewww_image_optimizer_custom_column_results( $image->pid, $optimized_images );
 					echo wp_kses_post( $detail_output );
@@ -569,7 +570,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			if ( 'optimize' === $id && is_object( $image ) && ! empty( $image->pid ) ) {
 				$id = $image->pid;
 				global $wpdb;
-				$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT image_size,orig_size,resize,converted,level,backup,updated FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'nextgen' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
+				$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'nextgen' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
 				if ( ! empty( $optimized_images ) ) {
 					$optimized = true;
 				}
@@ -584,7 +585,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				);
 				if ( $restorable ) {
 					printf(
-						'<br><a class="ewww-manual-cloud-restore" data-id="%1$d" data-nonce="%2$s" href="' . esc_url( admin_url( 'admin.php?action=ewww_ngg_cloud_restore' ) ) . '&amp;ewww_manual_nonce=%2$s&amp;ewww_attachment_ID=%1$d">%3$s</a>',
+						'<br><a class="ewww-manual-image-restore" data-id="%1$d" data-nonce="%2$s" href="' . esc_url( admin_url( 'admin.php?action=ewww_ngg_image_restore' ) ) . '&amp;ewww_manual_nonce=%2$s&amp;ewww_attachment_ID=%1$d">%3$s</a>',
 						(int) $id,
 						esc_attr( $ewww_manual_nonce ),
 						esc_html__( 'Restore original', 'ewww-image-optimizer' )
@@ -665,7 +666,9 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 					ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) );
 					echo '<span id="ewww-bulk-credits-available">' . esc_html__( 'Image credits available:', 'ewww-image-optimizer' ) . ' ' . wp_kses_post( ewww_image_optimizer_cloud_quota() ) . '</span>';
 				}
-				echo '<div id="ewww-bulk-warning" class="ewww-bulk-info notice notice-warning"><p>' . esc_html__( 'Bulk Optimization will alter your original images and cannot be undone. Please be sure you have a backup of your images before proceeding.', 'ewww-image-optimizer' ) . '</p></div>';
+				if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
+					echo '<div id="ewww-bulk-warning" class="ewww-bulk-info notice notice-warning"><p>' . esc_html__( 'Bulk Optimization will alter your original images and cannot be undone. Please be sure you have a backup of your images before proceeding.', 'ewww-image-optimizer' ) . '</p></div>';
+				}
 				// Retrieve the value of the 'bulk resume' option and set the button text for the form to use.
 				$resume = get_option( 'ewww_image_optimizer_bulk_ngg_resume' );
 				if ( empty( $resume ) ) {

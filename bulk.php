@@ -264,7 +264,7 @@ function ewww_image_optimizer_bulk_preview() {
 			</p>
 		</div>
 		<?php
-	} else {
+	} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
 		?>
 		<div id="ewww-bulk-warning" class="ewww-bulk-info notice notice-warning">
 			<p>

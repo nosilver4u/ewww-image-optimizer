@@ -73,11 +73,11 @@ jQuery(document).on('click', '.ewww-manual-restore', function() {
 	});
 	return false;
 });
-jQuery(document).on('click', '.ewww-manual-cloud-restore', function() {
+jQuery(document).on('click', '.ewww-manual-image-restore', function() {
 	var post_id = jQuery(this).data('id');
 	var ewww_nonce = jQuery(this).data('nonce');
 	var ewww_manual_optimize_data = {
-		action: 'ewww_manual_cloud_restore',
+		action: 'ewww_manual_image_restore',
 		ewww_manual_nonce: ewww_nonce,
 		ewww_attachment_ID: post_id,
 	};

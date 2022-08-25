@@ -28,7 +28,6 @@ if ( ! defined( 'EWWW_IO_CLOUD_PLUGIN' ) ) {
 	define( 'EWWW_IO_CLOUD_PLUGIN', false );
 }
 
-
 // Check the PHP version.
 if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70200 ) {
 	add_action( 'network_admin_notices', 'ewww_image_optimizer_unsupported_php' );

@@ -631,7 +631,7 @@ jQuery(document).ready(function($) {
 	$('.ewww-aux-table').on( 'click', '.ewww-restore-image', function() {
 		var imageID = $(this).data('id');
 		var ewww_image_restore = {
-			action: 'ewww_manual_cloud_restore_single',
+			action: 'ewww_manual_image_restore_single',
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_image_id: imageID,
 		};
