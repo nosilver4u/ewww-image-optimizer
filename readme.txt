@@ -142,6 +142,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: tool to bulk restore images under Tools menu and WP-CLI
 * added: WebP cleanup tool can be resumed and run via WP-CLI
 * added: Delete Originals can be run via WP-CLI
+* added: remove originals after conversion (like PNG to JPG) via WP-CLI
 * added: exclude by page for Easy IO, Lazy Load, and WebP delivery methods
 * fixed: incorrect cfasync attribute used for JS WebP scripts
 

@@ -378,6 +378,72 @@ class EWWWIO_CLI extends WP_CLI_Command {
 	}
 
 	/**
+	 * Remove the original version of converted images.
+	 *
+	 * @param array $args A numeric array of required arguments.
+	 * @param array $assoc_args An associative array of optional arguments.
+	 */
+	function remove_converted_originals( $args, $assoc_args ) {
+		if ( ! empty( $assoc_args['reset'] ) ) {
+			delete_option( 'ewww_image_optimizer_delete_originals_resume' );
+		}
+		global $wpdb;
+		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+			ewww_image_optimizer_db_init();
+			global $ewwwdb;
+		} else {
+			$ewwwdb = $wpdb;
+		}
+
+		$per_page = 200;
+
+		$converted_count = (int) $wpdb->get_var( "SELECT count(id) FROM $wpdb->ewwwio_images WHERE converted != ''" );
+
+		/* translators: %d: number of converted images */
+		WP_CLI::line( sprintf( __( 'This process will remove the originals after you have converted images (PNG to JPG and friends). %d images will checked for originals to remove.', 'ewww-image-optimizer' ), $converted_count ) );
+		WP_CLI::confirm( __( 'You should take a site backup before performing a bulk action on your images. Do you wish to continue?', 'ewww-image-optimizer' ) );
+
+		$converted_images = $wpdb->get_results( $wpdb->prepare( "SELECT path,converted,id FROM $wpdb->ewwwio_images WHERE converted != '' ORDER BY id DESC LIMIT %d", $per_page ), ARRAY_A );
+
+		$progress = \WP_CLI\Utils\make_progress_bar( __( 'Deleting converted images', 'ewww-image-optimizer' ), $converted_count );
+
+		// Because some plugins might have loose filters (looking at you WPML).
+		\remove_all_filters( 'wp_delete_file' );
+
+		while ( \ewww_image_optimizer_iterable( $converted_images ) ) {
+			foreach ( $converted_images as $optimized_image ) {
+				$file = \ewww_image_optimizer_absolutize_path( $optimized_image['converted'] );
+				\ewwwio_debug_message( "$file was converted, checking if it still exists" );
+				if ( ! \ewww_image_optimizer_stream_wrapped( $file ) && \ewwwio_is_file( $file ) ) {
+					\ewwwio_debug_message( "removing original: $file" );
+					if ( \ewwwio_delete_file( $file ) ) {
+						\ewwwio_debug_message( "removed $file" );
+					} else {
+						/* translators: %s: file name */
+						WP_CLI::warning( sprintf( __( 'Could not delete %s, please remove manually or fix permissions and try again.', 'ewww-image-optimizer' ), $file ) );
+					}
+				}
+				$wpdb->update(
+					$wpdb->ewwwio_images,
+					array(
+						'converted' => '',
+					),
+					array(
+						'id' => $optimized_image['id'],
+					)
+				);
+				$progress->tick();
+			} // End foreach().
+			$converted_images = $wpdb->get_results( $wpdb->prepare( "SELECT path,converted,id FROM $wpdb->ewwwio_images WHERE converted != '' ORDER BY id DESC LIMIT %d", $per_page ), ARRAY_A );
+		}
+		$progress->finish();
+
+		WP_CLI::success( __( 'Finished', 'ewww-image-optimizer' ) );
+
+		\delete_option( 'ewww_image_optimizer_delete_originals_resume' );
+	}
+
+	/**
 	 * Remove all WebP images.
 	 *
 	 * ## OPTIONS
