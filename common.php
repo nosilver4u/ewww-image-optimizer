@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 670.22 );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 670.30 );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -13316,6 +13316,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<textarea id='exactdn_exclude' name='exactdn_exclude' rows='3' cols='60'><?php echo esc_html( $eio_exclude_paths ); ?></textarea>
 						<p class='description'>
 							<?php esc_html_e( 'One exclusion per line, no wildcards (*) needed. Any pattern or path provided will not be routed through Easy IO.', 'ewww-image-optimizer' ); ?>
+							<?php esc_html_e( 'Exclude entire pages with page:/xyz/ syntax.', 'ewww-image-optimizer' ); ?>
 						</p>
 					</td>
 				</tr>
@@ -13476,6 +13477,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<textarea id='ewww_image_optimizer_ll_exclude' name='ewww_image_optimizer_ll_exclude' rows='3' cols='60'><?php echo esc_html( $ll_exclude_paths ); ?></textarea>
 						<p class='description'>
 							<?php esc_html_e( 'One exclusion per line, no wildcards (*) needed. Use any string that matches the desired element(s) or exclude entire element types like "div", "span", etc. The class "skip-lazy" and attribute "data-skip-lazy" are excluded by default.', 'ewww-image-optimizer' ); ?>
+							<?php esc_html_e( 'Exclude entire pages with page:/xyz/ syntax.', 'ewww-image-optimizer' ); ?>
 						</p>
 					</td>
 				</tr>
@@ -13706,7 +13708,10 @@ AddType image/webp .webp</pre>
 					<td>
 						<label for='ewww_image_optimizer_webp_rewrite_exclude'><strong><?php esc_html_e( 'JS WebP and Picture Web Exclusions', 'ewww-image-optimizer' ); ?></strong></label><br>
 						<textarea id='ewww_image_optimizer_webp_rewrite_exclude' name='ewww_image_optimizer_webp_rewrite_exclude' rows='3' cols='60'><?php echo esc_html( $webp_exclude_paths ); ?></textarea>
-						<p class='description'><?php esc_html_e( 'One exclusion per line, no wildcards (*) needed. Use any string that matches the desired element(s) or exclude entire element types like "div", "span", etc.', 'ewww-image-optimizer' ); ?></p>
+						<p class='description'>
+							<?php esc_html_e( 'One exclusion per line, no wildcards (*) needed. Use any string that matches the desired element(s) or exclude entire element types like "div", "span", etc.', 'ewww-image-optimizer' ); ?>
+							<?php esc_html_e( 'Exclude entire pages with page:/xyz/ syntax.', 'ewww-image-optimizer' ); ?>
+						</p>
 					</td>
 				</tr>
 		<?php if ( ! $easymode ) : ?>

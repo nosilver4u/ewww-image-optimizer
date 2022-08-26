@@ -500,12 +500,9 @@ jQuery(document).ready(function($) {
 		return false;
 	});
 	function ewwwRemoveWebPByID(){
-		//var attachment_id = ewww_webp_attachments.pop();
-		//console.log('removing webp for attachment: ' + attachment_id);
 		var ewww_webp_data = {
 			action: 'bulk_aux_images_delete_webp',
 			ewww_wpnonce: ewww_vars._wpnonce,
-		//	attachment_id: attachment_id,
 		};
 		$.post(ajaxurl, ewww_webp_data, function(response) {
 			try {
@@ -522,7 +519,6 @@ jQuery(document).ready(function($) {
 				$('#ewww-clean-webp-progress').html('<span style="color: red"><b>' + ewww_response.error + '</b></span>');
 				return false;
 			}
-		//	if(!ewww_webp_attachments.length) {
 			if(ewww_response.finished) {
 				ewww_total_webp   = ewww_vars.webp_cleanable;
 				ewww_webp_cleaned = 0;
@@ -542,7 +538,6 @@ jQuery(document).ready(function($) {
 		var ewww_webp_data = {
 			action: 'bulk_aux_images_webp_clean',
 			ewww_wpnonce: ewww_vars._wpnonce,
-		//	ewww_offset: webp_offset,
 		};
 		$.post(ajaxurl, ewww_webp_data, function(response) {
 			try {

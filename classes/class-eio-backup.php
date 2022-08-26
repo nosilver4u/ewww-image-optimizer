@@ -67,12 +67,6 @@ class EIO_Backup extends EIO_Base {
 			$this->backup_mode = 'cloud';
 		}
 
-		// NOTE: these been updated elsewhere, since "cloud_restore" doesn't make sense anymore.
-		// Legacy (non-AJAX) action hook for manually restoring a backup from the API.
-		// add_action( 'admin_action_ewww_image_optimizer_manual_cloud_restore', 'ewww_image_optimizer_manual' );.
-		// AJAX action hook for manually restoring an attachment from backups on the API.
-		// add_action( 'wp_ajax_ewww_manual_cloud_restore', 'ewww_image_optimizer_manual' );.
-
 		// AJAX action hook for manually restoring a single image from cloud/local backups.
 		add_action( 'wp_ajax_ewww_manual_image_restore_single', array( $this, 'restore_single_image_handler' ) );
 		add_action( 'ewww_image_optimizer_pre_optimization', array( $this, 'store_local_backup' ) );
@@ -307,8 +301,8 @@ class EIO_Backup extends EIO_Base {
 		$filesize = $this->filesize( $file );
 		$backsize = $this->filesize( $backup_file );
 		if ( $filesize && $filesize === $backsize ) {
-			/* $this->delete_file( $backup_file ); */
-			return true; // Because restore not needed, already done!
+			// $this->delete_file( $backup_file );
+			// return true; // Because restore not needed, already done!
 		}
 		$this->debug_message( "restoring $file from $backup_file" );
 		copy( $backup_file, $file );

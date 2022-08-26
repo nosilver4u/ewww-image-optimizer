@@ -25,12 +25,12 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		protected $user_exclusions = array();
 
 		/**
-		 * A list of user-defined URL exclusions, populated by validate_user_exclusions().
+		 * A list of user-defined page/URL exclusions, populated by validate_user_exclusions().
 		 *
 		 * @access protected
-		 * @var array $user_url_exclusions
+		 * @var array $user_page_exclusions
 		 */
-		protected $user_url_exclusions = array();
+		protected $user_page_exclusions = array();
 
 		/**
 		 * A list of image sizes registered for attachments.
@@ -833,8 +833,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 							continue;
 						}
 						$exclusion = trim( $exclusion );
-						if ( 0 === strpos( $exclusion, 'url:' ) ) {
-							$this->user_url_exclusions[] = str_replace( 'url:', '', $exclusion );
+						if ( 0 === strpos( $exclusion, 'page:' ) ) {
+							$this->user_page_exclusions[] = str_replace( 'page:', '', $exclusion );
 							continue;
 						}
 						if ( $this->content_path && false !== strpos( $exclusion, $this->content_path ) ) {
@@ -3141,9 +3141,14 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 * @return boolean True to skip the page, unchanged otherwise.
 		 */
 		function skip_page( $skip = false, $uri = '' ) {
-			if ( $this->is_iterable( $this->user_url_exclusions ) ) {
-				foreach ( $this->user_url_exclusions as $url_exclusion ) {
-					if ( false !== strpos( $uri, $url_exclusion ) ) {
+			if ( $this->is_iterable( $this->user_page_exclusions ) ) {
+				foreach ( $this->user_page_exclusions as $page_exclusion ) {
+					if ( '/' === $page_exclusion && '/' === $uri ) {
+						return true;
+					} elseif ( '/' === $page_exclusion ) {
+						continue;
+					}
+					if ( false !== strpos( $uri, $page_exclusion ) ) {
 						return true;
 					}
 				}

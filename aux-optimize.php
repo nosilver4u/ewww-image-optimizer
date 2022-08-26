@@ -585,6 +585,7 @@ function ewww_image_optimizer_aux_images_webp_clean_handler() {
  * @param array $optimized_image The database record for an image from the optimization history.
  */
 function ewww_image_optimizer_aux_images_webp_clean( $optimized_image ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$file = ewww_image_optimizer_absolutize_path( $optimized_image['path'] );
 	ewwwio_debug_message( "looking for $file.webp" );
 	if ( ! ewww_image_optimizer_stream_wrapped( $file ) && ewwwio_is_file( $file ) && ewwwio_is_file( $file . '.webp' ) ) {
@@ -660,7 +661,7 @@ function ewww_image_optimizer_delete_webp_handler() {
 
 	$id = (int) $wpdb->get_var(
 		$wpdb->prepare(
-			"SELECT ID FROM $wpdb->posts WHERE ID > %d AND (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE %s OR post_mime_type LIKE %s) ORDER BY ID",
+			"SELECT ID FROM $wpdb->posts WHERE ID > %d AND (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE %s OR post_mime_type LIKE %s) ORDER BY ID LIMIT 1",
 			(int) $position,
 			'%image%',
 			'%pdf%'
@@ -689,6 +690,7 @@ function ewww_image_optimizer_delete_webp_handler() {
  * @param int $id Attachment ID number for an image.
  */
 function ewww_image_optimizer_delete_webp( $id ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
 	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
 		ewww_image_optimizer_db_init();
@@ -706,6 +708,7 @@ function ewww_image_optimizer_delete_webp( $id ) {
 					$image['path'] = ewww_image_optimizer_absolutize_path( $image['path'] );
 				}
 				if ( ! empty( $image['path'] ) ) {
+					ewwwio_debug_message( 'looking for: ' . $image['path'] . '.webp' );
 					if ( ewwwio_is_file( $image['path'] ) && ewwwio_is_file( $image['path'] . '.webp' ) ) {
 						ewwwio_debug_message( 'removing: ' . $image['path'] . '.webp' );
 						ewwwio_delete_file( $image['path'] . '.webp' );
@@ -814,6 +817,7 @@ function ewww_image_optimizer_delete_webp( $id ) {
 			}
 		}
 	}
+	ewwwio_debug_message( "looking for: $file_path.webp" );
 	if ( ewwwio_is_file( $file_path ) && ewwwio_is_file( $file_path . '.webp' ) ) {
 		ewwwio_debug_message( 'removing: ' . $file_path . '.webp' );
 		ewwwio_delete_file( $image['path'] . '.webp' );
