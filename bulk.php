@@ -152,7 +152,18 @@ function ewww_image_optimizer_display_tools() {
 		esc_html__( 'You may remove all the WebP images from your site if you no longer need them. For example, sites that use Easy IO do not need local WebP images.', 'ewww-image-optimizer' ) . "</p>\n";
 	echo "<form id='ewww-clean-webp' class='ewww-tool-form' method='post' action=''>\n" .
 		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Remove WebP Images', 'ewww-image-optimizer' ) . "' />\n" .
-		"</form>\n</div>\n";
+		"</form>\n";
+	if ( get_option( 'ewww_image_optimizer_webp_clean_position' ) ) {
+		?>
+		<p class="description ewww-tool-info">
+			<i><?php esc_html_e( 'Will resume from previous position.', 'ewww-image-optimizer' ); ?></i> -
+			<a  href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_reset_webp_clean' ) ); ?>'>
+				<?php esc_html_e( 'Reset position', 'ewww-image-optimizer' ); ?>
+			</a>
+		</p>
+		<?php
+	}
+	echo "</div>\n";
 	echo "<div id='ewww-clean-webp-progressbar' style='display:none;'></div>";
 	echo "<div id='ewww-clean-webp-progress' style='display:none;'></div>";
 
@@ -245,6 +256,9 @@ function ewww_image_optimizer_tool_script( $hook ) {
 	$attachment_count  = (int) $wpdb->get_var( "SELECT count(ID) FROM $wpdb->posts WHERE (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%') ORDER BY ID DESC" );
 	$restore_position  = (int) get_option( 'ewww_image_optimizer_bulk_restore_position' );
 	$restorable_images = (int) $wpdb->get_var( $wpdb->prepare( "SELECT count(id) FROM $wpdb->ewwwio_images WHERE id > %d AND pending = 0 AND image_size > 0 AND updates > 0", $restore_position ) );
+	$webp_clean_resume = get_option( 'ewww_image_optimizer_webp_clean_position' );
+	$webp_position     = is_array( $webp_clean_resume ) && ! empty( $webp_clean_resume['stage2'] ) ? (int) $webp_clean_resume['stage2'] : 0;
+	$webp_cleanable    = (int) $wpdb->get_var( $wpdb->prepare( "SELECT count(id) FROM $wpdb->ewwwio_images WHERE id > %d AND pending = 0 AND image_size > 0 AND updates > 0", $webp_position ) );
 
 	wp_localize_script(
 		'ewww-tool-script',
@@ -270,6 +284,7 @@ function ewww_image_optimizer_tool_script( $hook ) {
 			'tool_warning'      => esc_html__( 'Please be sure to backup your site before proceeding. Do you wish to continue?', 'ewww-image-optimizer' ),
 			'too_far'           => esc_html__( 'More images have been processed than expected. Unless you have added new images, you should refresh the page to stop the process and contact support.', 'ewww-image-optimizer' ),
 			'restorable_images' => $restorable_images,
+			'webp_cleanable'    => $webp_cleanable,
 		)
 	);
 	// Load the stylesheet for the jquery progressbar.
