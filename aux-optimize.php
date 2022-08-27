@@ -1301,9 +1301,6 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 		ewwwio_debug_message( "$dir already completed" );
 		return;
 	}
-	if ( ! class_exists( 'WP_Background_Process' ) ) {
-		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
-	}
 	global $wpdb;
 	global $optimized_list;
 	global $ewww_scan;

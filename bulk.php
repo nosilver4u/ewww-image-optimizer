@@ -18,9 +18,6 @@ function ewww_image_optimizer_display_tools() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $ewwwio_media_background;
 	global $ewwwio_image_background;
-	if ( ! class_exists( 'WP_Background_Process' ) ) {
-		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
-	}
 	if (
 		! empty( $_POST['ewww_nonce'] ) &&
 		wp_verify_nonce( sanitize_key( $_POST['ewww_nonce'] ), 'ewww_image_optimizer_clear_queue' ) &&

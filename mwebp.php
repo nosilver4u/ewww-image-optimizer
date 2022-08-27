@@ -242,4 +242,3 @@ add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_webp_script' );
 add_action( 'wp_ajax_webp_init', 'ewww_image_optimizer_webp_initialize' );
 add_action( 'wp_ajax_webp_loop', 'ewww_image_optimizer_webp_loop' );
 add_action( 'wp_ajax_webp_cleanup', 'ewww_image_optimizer_webp_cleanup' );
-?>

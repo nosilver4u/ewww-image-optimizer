@@ -153,9 +153,6 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				$image_id = $storage->object->_get_image_id( $image );
 			}
 			global $ewwwio_ngg2_background;
-			if ( ! class_exists( 'WP_Background_Process' ) ) {
-				require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
-			}
 			if ( ! is_object( $ewwwio_ngg2_background ) ) {
 				$ewwwio_ngg2_background = new EWWWIO_Ngg2_Background_Process();
 			}

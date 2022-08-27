@@ -2,9 +2,8 @@
 /**
  * Common functions for Standard and Cloud plugins
  *
- * This file contains functions that are shared by both the regular EWWW IO plugin, and the
- * Cloud version. Functions that differ between the two are stored in the main
- * ewww-image-optimizer(-cloud).php file.
+ * This file contains functions that are shared by both EWWW IO plugin(s), useful when we had a
+ * Cloud version. Functions that differed between the two are stored in unique.php.
  *
  * @link https://ewww.io
  * @package EWWW_Image_Optimizer
@@ -14,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 670.30 );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 670.31 );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -240,9 +239,6 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 if ( 'done' !== get_option( 'ewww_image_optimizer_relative_migration_status' ) ) {
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-relative-migration.php' );
 }
-if ( defined( 'EWWW_IMAGE_OPTIMIZER_ALT_WEBP' ) && EWWW_IMAGE_OPTIMIZER_ALT_WEBP ) {
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-alt-webp-weglot-alt.php' );
-}
 
 /**
  * Setup page parsing classes after theme functions.php is loaded and plugins have run init routines.
@@ -294,17 +290,10 @@ function ewww_image_optimizer_parser_init() {
 		 * Page Parsing class for working with HTML content.
 		 */
 		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-page-parser.php' );
-		if ( defined( 'EWWW_IMAGE_OPTIMIZER_ALT_WEBP' ) && EWWW_IMAGE_OPTIMIZER_ALT_WEBP ) {
-			/**
-			 * Alt WebP class for parsing image urls and rewriting them for WebP support.
-			 */
-			require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-alt-webp.php' );
-		} else {
-			/**
-			 * JS WebP class for parsing image urls and rewriting them for WebP support.
-			 */
-			require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-js-webp.php' );
-		}
+		/**
+		 * JS WebP class for parsing image urls and rewriting them for WebP support.
+		 */
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-js-webp.php' );
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		$buffer_start = true;
@@ -1004,9 +993,6 @@ function ewww_image_optimizer_enable_background_optimization() {
 		return;
 	}
 	global $ewwwio_test_async;
-	if ( ! class_exists( 'WP_Background_Process' ) ) {
-		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
-	}
 	if ( ! is_object( $ewwwio_test_async ) ) {
 		$ewwwio_test_async = new EWWWIO_Test_Async_Handler();
 	}
@@ -1947,9 +1933,6 @@ function ewww_image_optimizer_remove_obsolete_settings() {
 function ewww_image_optimizer_migrate_option_queue_to_table() {
 	global $wpdb;
 	global $ewwwio_media_background;
-	if ( ! class_exists( 'WP_Background_Process' ) ) {
-		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
-	}
 	if ( ! is_object( $ewwwio_media_background ) ) {
 		$ewwwio_media_background = new EWWWIO_Media_Background_Process();
 	}
@@ -2007,9 +1990,6 @@ function ewww_image_optimizer_webp_maybe_enabled( $old_value, $new_value ) {
 function ewww_image_optimizer_scheduled_optimization_changed( $old_value, $new_value ) {
 	if ( empty( $new_value ) && (bool) $new_value !== (bool) $old_value ) {
 		global $ewwwio_image_background;
-		if ( ! class_exists( 'WP_Background_Process' ) ) {
-			require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
-		}
 		$ewwwio_image_background->cancel_process();
 		update_option( 'ewwwio_stop_scheduled_scan', true, false );
 	}
@@ -3025,9 +3005,6 @@ function ewww_image_optimizer_auto() {
 	if ( get_transient( 'ewww_image_optimizer_no_scheduled_optimization' ) ) {
 		ewwwio_debug_message( 'detected bulk operation in progress, bailing' );
 		return;
-	}
-	if ( ! class_exists( 'WP_Background_Process' ) ) {
-		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
 	}
 	global $ewww_defer;
 	$ewww_defer = false;
@@ -5526,9 +5503,6 @@ function ewww_image_optimizer_cloud_verify( $api_key, $cache = true ) {
 	if ( ! ewww_image_optimizer_detect_wpsf_location_lock() && $cache && preg_match( '/great/', $ewww_cloud_status ) ) {
 		ewwwio_debug_message( 'using cached verification' );
 		global $ewwwio_async_key_verification;
-		if ( ! class_exists( 'WP_Background_Process' ) ) {
-			require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
-		}
 		if ( ! is_object( $ewwwio_async_key_verification ) ) {
 			$ewwwio_async_key_verification = new EWWWIO_Async_Key_Verification();
 		}
@@ -8613,9 +8587,6 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 			add_filter( 'as3cf_pre_update_attachment_metadata', '__return_true' );
 		}
 		global $ewwwio_media_background;
-		if ( ! class_exists( 'WP_Background_Process' ) ) {
-			require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
-		}
 		if ( ! is_object( $ewwwio_media_background ) ) {
 			$ewwwio_media_background = new EWWWIO_Media_Background_Process();
 		}
@@ -8662,9 +8633,6 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 		$parallel_sizes['full'] = $file_path;
 		global $ewwwio_async_optimize_media;
-		if ( ! class_exists( 'WP_Background_Process' ) ) {
-			require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
-		}
 		if ( ! is_object( $ewwwio_async_optimize_media ) ) {
 			$ewwwio_async_optimize_media = new EWWWIO_Async_Request();
 		}
@@ -8876,9 +8844,6 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		$timer_max        = (int) apply_filters( 'ewww_image_optimizer_background_timer_max', 20 );
 		$processing_sizes = array();
 		global $ewwwio_async_optimize_media;
-		if ( ! class_exists( 'WP_Background_Process' ) ) {
-			require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
-		}
 		if ( ! is_object( $ewwwio_async_optimize_media ) ) {
 			$ewwwio_async_optimize_media = new EWWWIO_Async_Request();
 		}

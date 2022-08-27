@@ -331,9 +331,6 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			$image_id = $image->pid;
 			global $ewwwio_flag_background;
-			if ( ! class_exists( 'WP_Background_Process' ) ) {
-				require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
-			}
 			if ( ! is_object( $ewwwio_flag_background ) ) {
 				$ewwwio_flag_background = new EWWWIO_Flag_Background_Process();
 			}

@@ -108,7 +108,7 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70200 ) {
 	/**
 	 * The various class extensions for parallel and background optimization.
 	 */
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
+	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-media-background-process.php' );
 	/**
 	 * EWWW_Image class for working with queued images and image records from the database.
 	 */

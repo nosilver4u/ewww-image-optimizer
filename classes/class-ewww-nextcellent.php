@@ -57,9 +57,6 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 */
 		function dispatch_new_images( $gallery, $images ) {
 			global $ewwwio_ngg_background;
-			if ( ! class_exists( 'WP_Background_Process' ) ) {
-				require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'background.php' );
-			}
 			if ( ! is_object( $ewwwio_ngg_background ) ) {
 				$ewwwio_ngg_background = new EWWWIO_Ngg_Background_Process();
 			}
