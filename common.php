@@ -11802,21 +11802,6 @@ function ewww_image_optimizer_intro_wizard() {
 	$bulk_available       = false;
 	$tools_available      = true;
 	$backup_mode          = 'local';
-	if (
-		ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
-		'local' !== ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' )
-	) {
-		$backup_mode = 'cloud';
-	}
-	if (
-		'local' === $backup_mode &&
-		(
-			! empty( $_POST['ewww_image_optimizer_goal_save_space'] ) ||
-			get_option( 'ewww_image_optimizer_goal_save_space' )
-		)
-	) {
-		$backup_mode = '';
-	}
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
 		if ( defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) && EWWW_IMAGE_OPTIMIZER_CLOUD ) {
 			ewww_image_optimizer_disable_tools();
@@ -11885,15 +11870,21 @@ function ewww_image_optimizer_intro_wizard() {
 		if ( ! empty( $_POST['ewwwio_wizard_step'] ) ) {
 			$wizard_step = (int) $_POST['ewwwio_wizard_step'];
 		}
-		if ( ! empty( $_POST['ewww_image_optimizer_goal_save_space'] ) ) {
-			update_option( 'ewww_image_optimizer_goal_save_space', true, false );
-		} elseif ( isset( $_POST['ewww_image_optimizer_goal_save_space'] ) ) {
-			update_option( 'ewww_image_optimizer_goal_save_space', false, false );
-		}
-		if ( ! empty( $_POST['ewww_image_optimizer_goal_site_speed'] ) ) {
-			update_option( 'ewww_image_optimizer_goal_site_speed', true, false );
-		} elseif ( isset( $_POST['ewww_image_optimizer_goal_site_speed'] ) ) {
-			update_option( 'ewww_image_optimizer_goal_site_speed', false, false );
+		if ( 2 === $wizard_step ) {
+			if ( ! empty( $_POST['ewww_image_optimizer_goal_save_space'] ) ) {
+				ewwwio_debug_message( 'wants to save space' );
+				update_option( 'ewww_image_optimizer_goal_save_space', true, false );
+			} else {
+				ewwwio_debug_message( 'storage space? who cares!' );
+				update_option( 'ewww_image_optimizer_goal_save_space', false, false );
+			}
+			if ( ! empty( $_POST['ewww_image_optimizer_goal_site_speed'] ) ) {
+				ewwwio_debug_message( 'hurray for speed!' );
+				update_option( 'ewww_image_optimizer_goal_site_speed', true, false );
+			} else {
+				ewwwio_debug_message( "I'm not slow, you're slow!" );
+				update_option( 'ewww_image_optimizer_goal_site_speed', false, false );
+			}
 		}
 		if ( ! empty( $_POST['ewww_image_optimizer_budget'] ) && 'free' === $_POST['ewww_image_optimizer_budget'] ) {
 			if ( $display_exec_notice ) {
@@ -11943,6 +11934,16 @@ function ewww_image_optimizer_intro_wizard() {
 		);
 	}
 	$cloud_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
+	if ( $cloud_key && 'local' !== ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
+		$backup_mode = 'cloud';
+	}
+	if (
+		'local' === $backup_mode &&
+		get_option( 'ewww_image_optimizer_goal_save_space' ) &&
+		'local' !== ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' )
+	) {
+		$backup_mode = '';
+	}
 	?>
 <div id='ewww-settings-wrap' class='wrap'>
 	<div id='ewwwio-wizard'>
