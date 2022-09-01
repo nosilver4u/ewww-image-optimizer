@@ -323,7 +323,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 			$wpdb->prepare(
 				"SELECT count(ID) FROM $wpdb->posts WHERE ID > %d AND (post_type = 'attachment' OR post_type = 'ims_image') AND post_mime_type LIKE %s",
 				(int) $position,
-				'%image%',
+				'%image%'
 			)
 		);
 
