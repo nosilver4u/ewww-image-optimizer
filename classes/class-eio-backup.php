@@ -111,7 +111,7 @@ class EIO_Backup extends EIO_Base {
 	 */
 	public function get_backup_location( $file ) {
 		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-		if ( \ewww_image_optimizer_stream_wrapped( $file ) ) {
+		if ( \ewww_image_optimizer_stream_wrapped( $file ) || 'local' !== $this->backup_mode ) {
 			return '';
 		}
 		$upload_dir = wp_get_upload_dir();
@@ -188,7 +188,7 @@ class EIO_Backup extends EIO_Base {
 	 */
 	public function store_local_backup( $file ) {
 		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-		if ( 'local' !== $this->get_option( 'ewww_image_optimizer_backup_files' ) ) {
+		if ( 'local' !== $this->backup_mode ) {
 			return;
 		}
 		if ( ! $this->is_file( $file ) || ! $this->is_readable( $file ) ) {
@@ -268,7 +268,7 @@ class EIO_Backup extends EIO_Base {
 	 */
 	protected function restore_from_local( $image ) {
 		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-		if ( 'local' !== $this->get_option( 'ewww_image_optimizer_backup_files' ) ) {
+		if ( 'local' !== $this->backup_mode ) {
 			return false;
 		}
 		$file = $image['path'];
@@ -340,6 +340,9 @@ class EIO_Backup extends EIO_Base {
 	public function delete_local_backup( $file ) {
 		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 		if ( ! $file ) {
+			return;
+		}
+		if ( 'local' !== $this->backup_mode ) {
 			return;
 		}
 		$backup_file = $this->get_backup_location( $file );
