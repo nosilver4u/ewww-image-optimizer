@@ -168,7 +168,10 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			add_filter( 'eio_allow_admin_lazyload', array( $this, 'allow_admin_lazyload' ) );
 
 			// Load the appropriate JS.
-			if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
+			if (
+				defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG
+				|| defined( strtoupper( $this->prefix ) . 'SCRIPT_DEBUG' ) && constant( strtoupper( $this->prefix ) . 'SCRIPT_DEBUG' )
+			) {
 				// Load the non-minified and separate versions of the lazy load scripts.
 				add_action( 'wp_enqueue_scripts', array( $this, 'debug_script' ), 1 );
 			} else {
