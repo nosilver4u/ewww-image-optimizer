@@ -13453,6 +13453,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<textarea id='ewww_image_optimizer_ll_all_things' name='ewww_image_optimizer_ll_all_things' rows='3' cols='60'><?php echo esc_html( ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_all_things' ) ); ?></textarea>
 						<p class='description'>
 							<?php esc_html_e( 'Specify class/id values of elements with CSS background images (comma-separated).', 'ewww-image-optimizer' ); ?>
+							<?php esc_html_e( 'Can match any text within the target element, like elementor-widget-container or et_pb_column.', 'ewww-image-optimizer' ); ?>
 							<br>*<?php esc_html_e( 'Background images directly attached via inline style attributes will be lazy loaded by default.', 'ewww-image-optimizer' ); ?>
 						</p>
 					</td>
