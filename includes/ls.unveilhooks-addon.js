@@ -8,6 +8,8 @@
 
 	if(typeof module == 'object' && module.exports){
 		factory(require('lazysizes'));
+	} else if (typeof define == 'function' && define.amd) {
+		define(['lazysizes'], factory);
 	} else if(window.lazySizes) {
 		globalInstall();
 	} else {
@@ -16,8 +18,7 @@
 }(window, function(window, document, lazySizes) {
 	/*jshint eqnull:true */
 	'use strict';
-	var bgLoad, regBgUrlEscape;
-	var uniqueUrls = {};
+	var regBgUrlEscape;
 
 	if(document.addEventListener){
 		regBgUrlEscape = /\(|\)|\s|'/;
@@ -25,7 +26,7 @@
 		addEventListener('lazybeforeunveil', function(e){
 			if(e.detail.instance != lazySizes){return;}
 
-			var load, bg, bgWebP, poster;
+			var bg, bgWebP;
 			if(!e.defaultPrevented) {
 
 				if(e.target.preload == 'none'){
