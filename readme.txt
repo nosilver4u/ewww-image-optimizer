@@ -139,6 +139,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.8.1 =
 * added: allow translation plugins to filter attachment IDs for retrieving Media Library results via ewwwio_primary_translated_media_id/ewwwio_translated_media_ids
+* changed: include upstream lazysizes unveilhooks for use by developers, props @saas786
 * fixed: Easy IO compatibility with S3 Uploads 3.x
 * fixed: better compatibility with S3 Uploads when using autoload
 * fixed: PHP notices when removing images and backups are disabled

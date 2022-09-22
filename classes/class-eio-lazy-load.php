@@ -770,12 +770,12 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 								$webp_image_urls = apply_filters( 'eio_ll_multiple_bg_images_for_webp', $bg_image_urls );
 								$bg_image_urls   = wp_json_encode( $bg_image_urls );
 								$webp_image_urls = wp_json_encode( $webp_image_urls );
-								$this->set_attribute( $element, 'data-bg', $bg_image_urls );
+								$this->set_attribute( $element, 'data-back', $bg_image_urls );
 								if ( $bg_image_urls !== $webp_image_urls ) {
-									$this->set_attribute( $element, 'data-bg-webp', $webp_image_urls );
+									$this->set_attribute( $element, 'data-back-webp', $webp_image_urls );
 								}
 							} elseif ( ! empty( $bg_image_urls[0] ) ) {
-								$this->set_attribute( $element, 'data-bg', $bg_image_urls[0] );
+								$this->set_attribute( $element, 'data-back', $bg_image_urls[0] );
 							}
 							$element = str_replace( $style, $new_style, $element );
 						}
