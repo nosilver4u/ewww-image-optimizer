@@ -10043,7 +10043,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 		$backup_available = false;
 		$file_parts       = pathinfo( $file_path );
 		$basename         = $file_parts['filename'];
-		$action_id        = ewww_image_optimizer_get_primary_wpml_id( $id );
+		$action_id        = ewww_image_optimizer_get_primary_translated_media_id( $id );
 		// If necessary, use get_post_meta( $post_id, '_wp_attachment_backup_sizes', true ); to only use basename for edited attachments, but that requires extra queries, so kiss for now.
 		if ( $ewww_cdn ) {
 			if ( ewww_image_optimizer_image_is_pending( $action_id, 'media-async' ) ) {
@@ -10060,7 +10060,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 					$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
 				}
 				if ( ! $optimized_images ) {
-					list( $possible_action_id, $optimized_images ) = ewww_image_optimizer_get_wpml_results( $id );
+					list( $possible_action_id, $optimized_images ) = ewww_image_optimizer_get_translated_media_results( $id );
 					if ( $optimized_images ) {
 						$action_id = $possible_action_id;
 					}
@@ -10138,7 +10138,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 				$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", $id ), ARRAY_A );
 			}
 			if ( ! $optimized_images ) {
-				list( $possible_action_id, $optimized_images ) = ewww_image_optimizer_get_wpml_results( $id );
+				list( $possible_action_id, $optimized_images ) = ewww_image_optimizer_get_translated_media_results( $id );
 				if ( $optimized_images ) {
 					$action_id = $possible_action_id;
 				}
@@ -10439,16 +10439,16 @@ function ewww_image_optimizer_custom_column_results( $id, $optimized_images ) {
 }
 
 /**
- * If attachment is translated by WPML, get the primary ID number.
+ * If attachment is translated (and duplicated), get the primary ID number.
  *
- * @param int $id The attachment ID number to search for in the WPML tables.
+ * Primarily for WPML, but if others duplicate media, the primary_translated_media_id
+ * filter may be used, or a pull request may be submitted to contribute the lookup code.
+ *
+ * @param int $id The attachment ID number to search for in the translation plugin table(s).
  * @return int The primary/original ID number.
  */
-function ewww_image_optimizer_get_primary_wpml_id( $id ) {
-	if ( ! defined( 'ICL_SITEPRESS_VERSION' ) ) {
-		return $id;
-	}
-	if ( get_post_meta( $id, 'wpml_media_processed', true ) ) {
+function ewww_image_optimizer_get_primary_translated_media_id( $id ) {
+	if ( defined( 'ICL_SITEPRESS_VERSION' ) && get_post_meta( $id, 'wpml_media_processed', true ) ) {
 		$trid = apply_filters( 'wpml_element_trid', null, $id, 'post_attachment' );
 		if ( ! empty( $trid ) ) {
 			$translations = apply_filters( 'wpml_get_element_translations', null, $trid, 'post_attachment' );
@@ -10466,40 +10466,45 @@ function ewww_image_optimizer_get_primary_wpml_id( $id ) {
 			}
 		}
 	}
-	return $id;
+	return apply_filters( 'ewwwio_primary_translated_media_id', $id );
 }
+
 /**
- * Gets results for WPML replicates.
+ * Gets results for translation (WPML) replicates.
  *
- * @param int $id The attachment ID number to search for in the WPML tables.
+ * @param int $id The attachment ID number to search for in the translation tables/data.
  * @return array The resultant attachment ID, and a list of image optimization results.
  */
-function ewww_image_optimizer_get_wpml_results( $id ) {
-	if ( ! defined( 'ICL_SITEPRESS_VERSION' ) ) {
-		return array( $id, array() );
-	}
+function ewww_image_optimizer_get_translated_media_results( $id ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	$trid = apply_filters( 'wpml_element_trid', null, $id, 'post_attachment' );
-	if ( empty( $trid ) ) {
-		return array( $id, array() );
-	}
-	$translations = apply_filters( 'wpml_get_element_translations', null, $trid, 'post_attachment' );
-	if ( empty( $translations ) ) {
-		return array( $id, array() );
-	}
-	global $wpdb;
-	foreach ( $translations as $translation ) {
-		if ( empty( $translation->element_id ) ) {
-			continue;
+	$translations = array();
+	if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
+		$trid = apply_filters( 'wpml_element_trid', null, $id, 'post_attachment' );
+		if ( empty( $trid ) ) {
+			return array( $id, array() );
 		}
-		ewwwio_debug_message( "checking {$translation->element_id} for results with WPML" );
-		$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", $translation->element_id ), ARRAY_A );
-		if ( ! empty( $optimized_images ) ) {
-			return array( (int) $translation->element_id, $optimized_images );
+		$translations = apply_filters( 'wpml_get_element_translations', null, $trid, 'post_attachment' );
+		if ( empty( $translations ) ) {
+			return array( $id, array() );
+		}
+	}
+	apply_filters( 'ewwwio_translated_media_ids', $translations );
+	if ( ewww_image_optimizer_iterable( $translations ) ) {
+		global $wpdb;
+		foreach ( $translations as $translation ) {
+			if ( empty( $translation->element_id ) ) {
+				continue;
+			}
+			ewwwio_debug_message( "checking {$translation->element_id} for results with WPML (or another translation plugin)" );
+			$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", $translation->element_id ), ARRAY_A );
+			if ( ! empty( $optimized_images ) ) {
+				return array( (int) $translation->element_id, $optimized_images );
+			}
 		}
 	}
 	return array( $id, array() );
 }
+
 /**
  * Removes optimization from metadata, because we store it all in the images table now.
  *
