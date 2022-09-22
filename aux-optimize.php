@@ -732,7 +732,7 @@ function ewww_image_optimizer_delete_webp( $id ) {
 	}
 	$s3_path = false;
 	$s3_dir  = false;
-	if ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_Uploads\Plugin' ) ) {
+	if ( ewww_image_optimizer_s3_uploads_enabled() ) {
 		$s3_path = get_attached_file( $id );
 		if ( 0 === strpos( $s3_path, 's3://' ) ) {
 			ewwwio_debug_message( 'removing: ' . $s3_path . '.webp' );

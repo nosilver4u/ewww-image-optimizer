@@ -311,6 +311,23 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		}
 
 		/**
+		 * Checks if the S3 Uploads plugin is installed and active.
+		 *
+		 * @return bool True if it is fully active and rewriting/offloading media, false otherwise.
+		 */
+		function s3_uploads_enabled() {
+			// For version 3.x.
+			if ( class_exists( 'S3_Uploads\Plugin', false ) && function_exists( 'S3_Uploads\enabled' ) && \S3_Uploads\enabled() ) {
+				return true;
+			}
+			// Pre version 3.
+			if ( class_exists( 'S3_Uploads', false ) && function_exists( 's3_uploads_enabled' ) && \s3_uploads_enabled() ) {
+				return true;
+			}
+			return false;
+		}
+
+		/**
 		 * Retrieve option: use 'site' setting if plugin is network activated, otherwise use 'blog' setting.
 		 *
 		 * Retrieves multi-site and single-site options as appropriate as well as allowing overrides with
@@ -907,32 +924,21 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 				}
 			}
 
-			if (
-				class_exists( 'S3_Uploads' ) &&
-				function_exists( 's3_uploads_enabled' ) && s3_uploads_enabled() &&
-				method_exists( 'S3_Uploads', 'get_instance' ) && method_exists( 'S3_Uploads', 'get_s3_url' )
-			) {
-				$s3_uploads_instance  = \S3_Uploads::get_instance();
-				$s3_uploads_url       = $s3_uploads_instance->get_s3_url();
-				$this->allowed_urls[] = $s3_uploads_url;
-				$this->debug_message( "found S3 URL from S3_Uploads: $s3_uploads_url" );
-				$s3_domain       = $this->parse_url( $s3_uploads_url, PHP_URL_HOST );
-				$s3_scheme       = $this->parse_url( $s3_uploads_url, PHP_URL_SCHEME );
-				$this->s3_active = $s3_domain;
-			}
-
-			if (
-				class_exists( 'S3_Uploads\Plugin' ) &&
-				function_exists( 's3_uploads_enabled' ) && s3_uploads_enabled() &&
-				method_exists( 'S3_Uploads\Plugin', 'get_instance' ) && method_exists( 'S3_Uploads', 'get_s3_url\Plugin' )
-			) {
-				$s3_uploads_instance  = \S3_Uploads\Plugin::get_instance();
-				$s3_uploads_url       = $s3_uploads_instance->get_s3_url();
-				$this->allowed_urls[] = $s3_uploads_url;
-				$this->debug_message( "found S3 URL from S3_Uploads: $s3_uploads_url" );
-				$s3_domain       = $this->parse_url( $s3_uploads_url, PHP_URL_HOST );
-				$s3_scheme       = $this->parse_url( $s3_uploads_url, PHP_URL_SCHEME );
-				$this->s3_active = $s3_domain;
+			if ( $this->s3_uploads_enabled() ) {
+				if ( method_exists( 'S3_Uploads\Plugin', 'get_instance' ) && method_exists( 'S3_Uploads\Plugin', 'get_s3_url' ) ) {
+					$s3_uploads_instance = \S3_Uploads\Plugin::get_instance();
+					$s3_uploads_url      = $s3_uploads_instance->get_s3_url();
+				} elseif ( method_exists( 'S3_Uploads', 'get_instance' ) && method_exists( 'S3_Uploads', 'get_s3_url' ) ) {
+					$s3_uploads_instance = \S3_Uploads::get_instance();
+					$s3_uploads_url      = $s3_uploads_instance->get_s3_url();
+				}
+				if ( ! empty( $s3_uploads_url ) ) {
+					$this->allowed_urls[] = $s3_uploads_url;
+					$this->debug_message( "found S3 URL from S3_Uploads: $s3_uploads_url" );
+					$s3_domain       = $this->parse_url( $s3_uploads_url, PHP_URL_HOST );
+					$s3_scheme       = $this->parse_url( $s3_uploads_url, PHP_URL_SCHEME );
+					$this->s3_active = $s3_domain;
+				}
 			}
 
 			if ( class_exists( 'wpCloud\StatelessMedia\EWWW' ) && function_exists( 'ud_get_stateless_media' ) ) {

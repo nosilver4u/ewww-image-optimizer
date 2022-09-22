@@ -820,7 +820,7 @@ function ewww_image_optimizer_init() {
 	if ( ! empty( $_GET['uncomplete_wizard'] ) && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
 		update_option( 'ewww_image_optimizer_wizard_complete', false, false );
 	}
-	if ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_Uploads\Plugin' ) ) {
+	if ( ewww_image_optimizer_s3_uploads_enabled() ) {
 		ewwwio_debug_message( 's3-uploads detected, deferring resize_upload' );
 		add_filter( 'ewww_image_optimizer_defer_resizing', '__return_true' );
 	}
@@ -1488,7 +1488,7 @@ if ( ! function_exists( 'wp_doing_ajax' ) ) {
 	/**
 	 * Checks to see if this is an AJAX request.
 	 *
-	 * For backwards compatiblity with WordPress < 4.7.0.
+	 * For backwards compatibility with WordPress < 4.7.0.
 	 *
 	 * @since 3.3.0
 	 *
@@ -2451,9 +2451,26 @@ function ewww_image_optimizer_notice_reoptimization() {
 }
 
 /**
+ * Checks if the S3 Uploads plugin is installed and active.
+ *
+ * @return bool True if it is fully active and rewriting/offloding media, false otherwise.
+ */
+function ewww_image_optimizer_s3_uploads_enabled() {
+	// For version 3.x.
+	if ( class_exists( 'S3_Uploads\Plugin', false ) && function_exists( 'S3_Uploads\enabled' ) && \S3_Uploads\enabled() ) {
+		return true;
+	}
+	// Pre version 3.
+	if ( class_exists( 'S3_Uploads', false ) && function_exists( 's3_uploads_enabled' ) && s3_uploads_enabled() ) {
+		return true;
+	}
+	return false;
+}
+
+/**
  * Checks if a plugin is offloading media to cloud storage and removing local copies.
  *
- * @return bool True if a plugin is removing local files, false otherwise..
+ * @return bool True if a plugin is removing local files, false otherwise.
  */
 function ewww_image_optimizer_cloud_based_media() {
 	if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
@@ -2462,10 +2479,7 @@ function ewww_image_optimizer_cloud_based_media() {
 			return true;
 		}
 	}
-	if ( class_exists( 'S3_Uploads' ) && function_exists( 's3_uploads_enabled' ) && s3_uploads_enabled() ) {
-		return true;
-	}
-	if ( class_exists( 'S3_Uploads\Plugin' ) && function_exists( 'S3_Uploads\enabled' ) && \S3_Uploads\enabled() ) {
+	if ( ewww_image_optimizer_s3_uploads_enabled() ) {
 		return true;
 	}
 	if ( class_exists( 'wpCloud\StatelessMedia\EWWW' ) && function_exists( 'ud_get_stateless_media' ) ) {
@@ -2488,7 +2502,7 @@ function ewww_image_optimizer_cloud_based_media() {
  */
 function ewww_image_optimizer_load_editor( $editors ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( class_exists( 'S3_Uploads\Image_Editor_Imagick' ) ) {
+	if ( class_exists( 'S3_Uploads\Image_Editor_Imagick', false ) ) {
 		return $editors;
 	}
 	if ( ! class_exists( 'EWWWIO_GD_Editor' ) && ! class_exists( 'EWWWIO_Imagick_Editor' ) ) {
@@ -4430,7 +4444,7 @@ function ewww_image_optimizer_cloud_restore_from_meta_data( $id, $gallery = 'med
 	}
 	remove_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_filesize_metadata', 9 );
 	$meta = ewww_image_optimizer_update_filesize_metadata( $meta, $id );
-	if ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_uploads\Plugin' ) ) {
+	if ( ewww_image_optimizer_s3_uploads_enabled() ) {
 		ewww_image_optimizer_remote_push( $meta, $id );
 		ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
 	}
@@ -4616,7 +4630,7 @@ function ewww_image_optimizer_delete( $id ) {
 	}
 	$s3_path = false;
 	$s3_dir  = false;
-	if ( ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_Uploads\Plugin' ) ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
+	if ( ewww_image_optimizer_s3_uploads_enabled() && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
 		$s3_path = get_attached_file( $id );
 		if ( 0 === strpos( $s3_path, 's3://' ) ) {
 			ewwwio_debug_message( 'removing: ' . $s3_path . '.webp' );
@@ -7056,7 +7070,7 @@ function ewww_image_optimizer_stream_wrapped( $filename ) {
  */
 function ewww_image_optimizer_remote_push( $meta, $id ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_Uploads\Plugin' ) ) && ! empty( $meta['file'] ) ) {
+	if ( ewww_image_optimizer_s3_uploads_enabled() && ! empty( $meta['file'] ) ) {
 		$s3_upload_dir = wp_get_upload_dir();
 		$s3_upload_dir = trailingslashit( $s3_upload_dir['basedir'] );
 		$s3_path       = get_attached_file( $id );
@@ -7148,7 +7162,7 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 		require_once( ABSPATH . '/wp-admin/includes/file.php' );
 	}
 	$filename = false;
-	if ( ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_Uploads\Plugin' ) ) && ! empty( $meta['file'] ) ) {
+	if ( ewww_image_optimizer_s3_uploads_enabled() && ! empty( $meta['file'] ) ) {
 		$s3_upload_dir = wp_get_upload_dir();
 		$s3_upload_dir = trailingslashit( $s3_upload_dir['basedir'] );
 		$s3_path       = get_attached_file( $id );
@@ -8942,7 +8956,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 			ewwwio_debug_message( 'uploading to Amazon S3' );
 		}
 	}
-	if ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_Uploads\Plugin' ) ) {
+	if ( ewww_image_optimizer_s3_uploads_enabled() ) {
 		ewww_image_optimizer_remote_push( $meta, $id );
 		ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
 	}
@@ -9867,11 +9881,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 			echo '<div>' . esc_html__( 'Offloaded Media', 'ewww-image-optimizer' ) . '</div>';
 			$ewww_cdn = true;
 		}
-		if ( is_array( $meta ) && class_exists( 'S3_Uploads' ) && preg_match( '/^(http|s3|gs)\w*:/', get_attached_file( $id ) ) ) {
-			echo '<div>' . esc_html__( 'Amazon S3 image', 'ewww-image-optimizer' ) . '</div>';
-			$ewww_cdn = true;
-		}
-		if ( is_array( $meta ) && class_exists( 'S3_Uploads\Plugin' ) && preg_match( '/^(http|s3|gs)\w*:/', get_attached_file( $id ) ) ) {
+		if ( is_array( $meta ) && ewww_image_optimizer_s3_uploads_enabled() && preg_match( '/^(http|s3|gs)\w*:/', get_attached_file( $id ) ) ) {
 			echo '<div>' . esc_html__( 'Amazon S3 image', 'ewww-image-optimizer' ) . '</div>';
 			$ewww_cdn = true;
 		}

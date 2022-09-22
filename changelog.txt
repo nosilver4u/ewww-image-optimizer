@@ -385,7 +385,7 @@
 = 5.3.1 =
 * added: defer JS with Easy IO via EXACTDN_DEFER_SCRIPTS override
 * fixed: warning related to user-defined exclusions in JS and picture WebP
-* fixed: AMP compatiblity for Lazy Load and WebP rewriters was broken
+* fixed: AMP compatibility for Lazy Load and WebP rewriters was broken
 * fixed: images not loading on WPURP/WPRM print recipe pages
 
 = 5.3.0 =
@@ -1720,12 +1720,12 @@ You can find more information about overriding options in the [Documentation](ht
 * fixed: attempt to convert PNGs with empty alpha channels after optimization on first pass, instead of on re-optimization
 
 = 1.7.6 =
-* fixed: color of progressbar for 4 more admin themes in WP 3.8
+* fixed: color of progress bar for 4 more admin themes in WP 3.8
 * changed: metadata stripping now applies to PNG images, but only if using optipng 0.7.x
 * added: ability to remove individual images from the Optimize More table
 * fixed: Optimize More was using case-insensitive queries for matching paths
 * fixed: Optimize More was unable to record image sizes over 8388607 bytes
-* removed: obsolete jquery 1.9.1 file used for maintaining backwards compatiblity with really old versions of WP
+* removed: obsolete jQuery 1.9.1 file used for maintaining backwards compatibility with really old versions of WP
 * fixed: weirdness with paths preventing Windows servers from activating, and cleanup of plugin path code
 
 = 1.7.5 =

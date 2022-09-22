@@ -171,7 +171,7 @@ function ewww_image_optimizer_display_tools() {
 			$as3cf_remove = true;
 		}
 	}
-	if ( ! class_exists( 'S3_Uploads' ) && ! class_exists( 'S3_Uploads\Plugin' ) && ! function_exists( 'ud_get_stateless_media' ) && ! $as3cf_remove ) {
+	if ( ! ewww_image_optimizer_s3_uploads_enabled() && ! function_exists( 'ud_get_stateless_media' ) && ! $as3cf_remove ) {
 		echo '<hr class="ewww-tool-divider">';
 		echo "<div>\n<p id='ewww-clean-table-info' class='ewww-tool-info'>" .
 			esc_html__( 'Older sites may have duplicate records or references to deleted files. Use the cleanup tool to remove such records.', 'ewww-image-optimizer' ) . '<br>' .
@@ -1241,29 +1241,28 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				(
 					class_exists( 'WindowsAzureStorageUtil' ) ||
 					class_exists( 'Amazon_S3_And_CloudFront' ) ||
-					class_exists( 'S3_Uploads' ) ||
-					class_exists( 'S3_Uploads\Plugin' ) ||
+					ewww_image_optimizer_s3_uploads_enabled() ||
 					class_exists( 'wpCloud\StatelessMedia\EWWW' )
 				)
 			) {
 				// Construct a $file_path and proceed IF a supported CDN plugin is installed.
 				ewwwio_debug_message( 'Azure or S3 detected and no local file found' );
 				$file_path = get_attached_file( $selected_id );
-				if ( class_exists( 'S3_Uploads' ) && method_exists( 'S3_Uploads', 'filter_upload_dir' ) ) {
+				if ( class_exists( 'S3_Uploads', false ) && method_exists( 'S3_Uploads', 'filter_upload_dir' ) ) {
 					$s3_uploads = S3_Uploads::get_instance();
 					remove_filter( 'upload_dir', array( $s3_uploads, 'filter_upload_dir' ) );
 				}
-				if ( class_exists( 'S3_Uploads\Plugin' ) && method_exists( 'S3_Uploads\Plugin', 'filter_upload_dir' ) ) {
+				if ( class_exists( 'S3_Uploads\Plugin', false ) && method_exists( 'S3_Uploads\Plugin', 'filter_upload_dir' ) ) {
 					$s3_uploads = \S3_Uploads\Plugin::get_instance();
 					remove_filter( 'upload_dir', array( $s3_uploads, 'filter_upload_dir' ) );
 				}
 				if ( ewww_image_optimizer_stream_wrapped( $file_path ) || 0 === strpos( $file_path, 'http' ) ) {
 					$file_path = get_attached_file( $selected_id, true );
 				}
-				if ( class_exists( 'S3_Uploads' ) && method_exists( 'S3_Uploads', 'filter_upload_dir' ) ) {
+				if ( class_exists( 'S3_Uploads', false ) && method_exists( 'S3_Uploads', 'filter_upload_dir' ) ) {
 					add_filter( 'upload_dir', array( $s3_uploads, 'filter_upload_dir' ) );
 				}
-				if ( class_exists( 'S3_Uploads\Plugin' ) && method_exists( 'S3_Uploads\Plugin', 'filter_upload_dir' ) ) {
+				if ( class_exists( 'S3_Uploads\Plugin', false ) && method_exists( 'S3_Uploads\Plugin', 'filter_upload_dir' ) ) {
 					add_filter( 'upload_dir', array( $s3_uploads, 'filter_upload_dir' ) );
 				}
 				ewwwio_debug_message( "remote file possible: $file_path" );
@@ -1958,7 +1957,7 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 			$output['new_nonce'] = '';
 		}
 	}
-	$batch_image_limit = ( empty( $_REQUEST['ewww_batch_limit'] ) && ! class_exists( 'S3_Uploads' ) && ! class_exists( 'S3_Uploads\Plugin' ) ? 999 : 1 );
+	$batch_image_limit = ( empty( $_REQUEST['ewww_batch_limit'] ) && ! ewww_image_optimizer_s3_uploads_enabled() ? 999 : 1 );
 	// Get the 'bulk attachments' with a list of IDs remaining.
 	$attachments = ewww_image_optimizer_get_queued_attachments( 'media', $batch_image_limit );
 	if ( ! empty( $attachments ) && is_array( $attachments ) ) {
@@ -2110,7 +2109,7 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 			if ( defined( 'WP_CLI' ) && WP_CLI ) {
 				ewwwio_debug_message( 'saving attachment meta' );
 				$meta = wp_get_attachment_metadata( $image->attachment_id );
-				if ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_Uploads\Plugin' ) ) {
+				if ( ewww_image_optimizer_s3_uploads_enabled() ) {
 					ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
 					ewww_image_optimizer_remote_push( $meta, $image->attachment_id );
 				}
@@ -2217,7 +2216,7 @@ function ewww_image_optimizer_bulk_update_meta() {
 	$meta = wp_get_attachment_metadata( $attachment_id );
 	$meta = ewww_image_optimizer_update_filesize_metadata( $meta, $attachment_id );
 	remove_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_filesize_metadata', 9 );
-	if ( class_exists( 'S3_Uploads' ) || class_exists( 'S3_Uploads\Plugin' ) ) {
+	if ( ewww_image_optimizer_s3_uploads_enabled() ) {
 		ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
 		ewww_image_optimizer_remote_push( $meta, $attachment_id );
 	}
