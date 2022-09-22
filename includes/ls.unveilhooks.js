@@ -1,3 +1,37 @@
+/*
+This plugin extends lazySizes to lazyLoad:
+background images, videos/posters and scripts
+
+Background-Image:
+For background images, use data-bg attribute:
+<div class="lazyload" data-bg="bg-img.jpg"></div>
+
+ Video:
+ For video/audio use data-poster and preload="none":
+ <video class="lazyload" preload="none" data-poster="poster.jpg" src="src.mp4">
+ <!-- sources -->
+ </video>
+
+ For video that plays automatically if in view:
+ <video
+	class="lazyload"
+	preload="none"
+	muted=""
+	data-autoplay=""
+	data-poster="poster.jpg"
+	src="src.mp4">
+</video>
+
+ Scripts:
+ For scripts use data-script:
+ <div class="lazyload" data-script="module-name.js"></div>
+
+
+ Script modules using require:
+ For modules using require use data-require:
+ <div class="lazyload" data-require="module-name"></div>
+*/
+
 (function(window, factory) {
 	var globalInstall = function(){
 		factory(window.lazySizes);
@@ -8,6 +42,8 @@
 
 	if(typeof module == 'object' && module.exports){
 		factory(require('lazysizes'));
+	} else if (typeof define == 'function' && define.amd) {
+		define(['lazysizes'], factory);
 	} else if(window.lazySizes) {
 		globalInstall();
 	} else {
@@ -22,96 +58,127 @@
 	if(document.addEventListener){
 		regBgUrlEscape = /\(|\)|\s|'/;
 
+		bgLoad = function (url, cb){
+			var img = document.createElement('img');
+			img.onload = function(){
+				img.onload = null;
+				img.onerror = null;
+				img = null;
+				cb();
+			};
+			img.onerror = img.onload;
+
+			img.src = url;
+
+			if(img && img.complete && img.onload){
+				img.onload();
+			}
+		};
+
 		addEventListener('lazybeforeunveil', function(e){
 			if(e.detail.instance != lazySizes){return;}
 
-			var load, bg, bgWebP, poster;
+			var tmp, load, bg, poster;
 			if(!e.defaultPrevented) {
 
-				if(e.target.preload == 'none'){
-					e.target.preload = 'auto';
+				var target = e.target;
+
+				if(target.preload == 'none'){
+					target.preload = target.getAttribute('data-preload') || 'auto';
+				}
+
+				if (target.getAttribute('data-autoplay') != null) {
+					if (target.getAttribute('data-expand') && !target.autoplay) {
+						try {
+							target.play();
+						} catch (er) {}
+					} else {
+						requestAnimationFrame(function () {
+							target.setAttribute('data-expand', '-10');
+							lazySizes.aC(target, lazySizes.cfg.lazyClass);
+						});
+					}
+				}
+
+				tmp = target.getAttribute('data-link');
+				if(tmp){
+					addStyleScript(tmp, true);
+				}
+
+				// handle data-script
+				tmp = target.getAttribute('data-script');
+				if(tmp){
+					e.detail.firesLoad = true;
+					load = function(){
+						e.detail.firesLoad = false;
+						lazySizes.fire(target, '_lazyloaded', {}, true, true);
+					};
+					addStyleScript(tmp, null, load);
+				}
+
+				// handle data-require
+				tmp = target.getAttribute('data-require');
+				if(tmp){
+					if(lazySizes.cfg.requireJs){
+						lazySizes.cfg.requireJs([tmp]);
+					} else {
+						addStyleScript(tmp);
+					}
 				}
 
 				// handle data-bg
-				bg = e.target.getAttribute('data-bg');
+				bg = target.getAttribute('data-bg');
 				if (bg) {
-        				if(ewww_webp_supported) {
-						console.log('checking for data-bg-webp');
-						bgWebP = e.target.getAttribute('data-bg-webp');
-						if (bgWebP) {
-							console.log('replacing data-bg with data-bg-webp');
-							bg = bgWebP;
-						}
-					}
-					var dPR = (window.devicePixelRatio || 1);
-					var targetWidth  = Math.round(e.target.offsetWidth * dPR);
-					var targetHeight = Math.round(e.target.offsetHeight * dPR);
-					if ( 0 === bg.search(/\[/) ) {
-					} else if (!shouldAutoScale(e.target)||!shouldAutoScale(e.target.parentNode)){
-					} else if (window.lazySizes.hC(e.target,'wp-block-cover')) {
-						console.log('found wp-block-cover with data-bg');
-						if (window.lazySizes.hC(e.target,'has-parallax')) {
-							console.log('also has-parallax with data-bg');
-							targetWidth  = Math.round(window.screen.width * dPR);
-							targetHeight = Math.round(window.screen.height * dPR);
-						} else if (targetHeight<300) {
-							targetHeight = 430;
-						}
-						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
-					} else if (window.lazySizes.hC(e.target,'cover-image')){
-						console.log('found .cover-image with data-bg');
-						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
-					} else if (window.lazySizes.hC(e.target,'elementor-bg')){
-						console.log('found elementor-bg with data-bg');
-						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
-					} else if (window.lazySizes.hC(e.target,'et_parallax_bg')){
-						console.log('found et_parallax_bg with data-bg');
-						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
-					} else if (window.lazySizes.hC(e.target,'bg-image-crop')){
-						console.log('found bg-image-crop with data-bg');
-						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
-					} else {
-						console.log('found other data-bg');
-						bg = constrainSrc(bg,targetWidth,targetHeight,'bg');
-					}
-					if ( e.target.style.backgroundImage && -1 === e.target.style.backgroundImage.search(/^initial/) ) {
-						// Convert JSON for multiple URLs.
-						if ( 0 === bg.search(/\[/) ) {
-							console.log('multiple URLs to append');
-							bg = JSON.parse(bg);
-							bg.forEach(
-								function(bg_url){
-									bg_url = (regBgUrlEscape.test(bg_url) ? JSON.stringify(bg_url) : bg_url );
-								}
-							);
-							bg = 'url("' + bg.join('"), url("') + '"';
-							var new_bg = e.target.style.backgroundImage + ', ' + bg;
-							console.log('setting .backgroundImage: ' + new_bg );
-							e.target.style.backgroundImage = new_bg;
-						} else {
-							console.log( 'appending bg url: ' + e.target.style.backgroundImage + ', url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')' );
-							e.target.style.backgroundImage = e.target.style.backgroundImage + ', url("' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + '")';
-						}
-					} else {
-						// Convert JSON for multiple URLs.
-						if ( 0 === bg.search(/\[/) ) {
-							console.log('multiple URLs to insert');
-							bg = JSON.parse(bg);
-							bg.forEach(
-								function(bg_url){
-									bg_url = (regBgUrlEscape.test(bg_url) ? JSON.stringify(bg_url) : bg_url );
-								}
-							);
-							bg = 'url("' + bg.join('"), url("') + '"';
-							console.log('setting .backgroundImage: ' + bg );
-							e.target.style.backgroundImage = bg;
-						} else {
-							console.log('setting .backgroundImage: ' + 'url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')');
-							e.target.style.backgroundImage = 'url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')';
-						}
-					}
+					e.detail.firesLoad = true;
+					load = function(){
+						target.style.backgroundImage = 'url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')';
+						e.detail.firesLoad = false;
+						lazySizes.fire(target, '_lazyloaded', {}, true, true);
+					};
+
+					bgLoad(bg, load);
+				}
+
+				// handle data-poster
+				poster = target.getAttribute('data-poster');
+				if(poster){
+					e.detail.firesLoad = true;
+					load = function(){
+						target.poster = poster;
+						e.detail.firesLoad = false;
+						lazySizes.fire(target, '_lazyloaded', {}, true, true);
+					};
+
+					bgLoad(poster, load);
+
 				}
 			}
 		}, false);
+
+	}
+
+	function addStyleScript(src, style, cb){
+		if(uniqueUrls[src]){
+			return;
+		}
+		var elem = document.createElement(style ? 'link' : 'script');
+		var insertElem = document.getElementsByTagName('script')[0];
+
+		if(style){
+			elem.rel = 'stylesheet';
+			elem.href = src;
+		} else {
+			elem.onload = function(){
+				elem.onerror = null;
+				elem.onload = null;
+				cb();
+			};
+			elem.onerror = elem.onload;
+
+			elem.src = src;
+		}
+		uniqueUrls[src] = true;
+		uniqueUrls[elem.src || elem.href] = true;
+		insertElem.parentNode.insertBefore(elem, insertElem);
 	}
 }));
