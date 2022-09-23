@@ -144,6 +144,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: better compatibility with S3 Uploads when using autoload
 * fixed: PHP notices when removing images and backups are disabled
 * fixed: trailing comma after parameters in WP-CLI remove_originals function
+* fixed: Easy IO srcset URL construction not accounting for object versioning with S3 (or other cloud storage)
 
 = 6.8.0 =
 * added: ability to store image backups on local storage

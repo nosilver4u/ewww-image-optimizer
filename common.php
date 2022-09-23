@@ -1,8 +1,8 @@
 <?php
 /**
- * Common functions for Standard and Cloud plugins
+ * Common functions for Standard plugin
  *
- * This file contains functions that are shared by both EWWW IO plugin(s), useful when we had a
+ * This file contains functions that are shared by both EWWW IO plugin(s), back when we had a
  * Cloud version. Functions that differed between the two are stored in unique.php.
  *
  * @link https://ewww.io
@@ -552,6 +552,30 @@ if ( ! function_exists( 'wp_getimagesize' ) ) {
 	function wp_getimagesize( $filename ) {
 		// phpcs:ignore WordPress.PHP.NoSilencedErrors
 		return @getimagesize( $filename );
+	}
+}
+
+if ( ! function_exists( 'str_ends_with' ) ) {
+	/**
+	 * Polyfill for `str_ends_with()` function added in WP 5.9 or PHP 8.0.
+	 *
+	 * Performs a case-sensitive check indicating if
+	 * the haystack ends with needle.
+	 *
+	 * @since 6.8.1
+	 *
+	 * @param string $haystack The string to search in.
+	 * @param string $needle   The substring to search for in the `$haystack`.
+	 * @return bool True if `$haystack` ends with `$needle`, otherwise false.
+	 */
+	function str_ends_with( $haystack, $needle ) {
+		if ( '' === $haystack && '' !== $needle ) {
+			return false;
+		}
+
+		$len = strlen( $needle );
+
+		return 0 === substr_compare( $haystack, $needle, -$len, $len );
 	}
 }
 
@@ -1482,21 +1506,6 @@ function ewww_image_optimizer_single_size_optimize( $id, $size ) {
 			ewww_image_optimizer_hidpi_optimize( $resize_path );
 		}
 	} // End if().
-}
-
-if ( ! function_exists( 'wp_doing_ajax' ) ) {
-	/**
-	 * Checks to see if this is an AJAX request.
-	 *
-	 * For backwards compatibility with WordPress < 4.7.0.
-	 *
-	 * @since 3.3.0
-	 *
-	 * @return bool True if this is an AJAX request.
-	 */
-	function wp_doing_ajax() {
-		return apply_filters( 'wp_doing_ajax', defined( 'DOING_AJAX' ) && DOING_AJAX );
-	}
 }
 
 /**
