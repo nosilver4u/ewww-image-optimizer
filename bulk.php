@@ -1186,7 +1186,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			$pending     = false;
 			$remote_file = false;
 			if ( ! empty( $attachment_meta[ $selected_id ]['wpml_media_processed'] ) ) {
-				$wpml_id = ewww_image_optimizer_get_primary_wpml_id( $selected_id );
+				$wpml_id = ewww_image_optimizer_get_primary_translated_media_id( $selected_id );
 				if ( (int) $wpml_id !== (int) $selected_id ) {
 					ewwwio_debug_message( "skipping WPML replica image $selected_id" );
 					$skipped_ids[] = $selected_id;

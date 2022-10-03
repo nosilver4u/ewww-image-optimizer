@@ -137,6 +137,11 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 6.9.1 =
+* fixed: bulk action parameter was not validated properly when selecting attachments for optimization
+* fixed: undefined function ewww_image_optimizer_get_primary_wpml_id
+* fixed: PHP notices when Easy IO filters srcset URLs
+
 = 6.9.0 =
 * added: allow translation plugins to filter attachment IDs for retrieving Media Library results via ewwwio_primary_translated_media_id/ewwwio_translated_media_ids
 * changed: include upstream lazysizes unveilhooks for use by developers, props @saas786

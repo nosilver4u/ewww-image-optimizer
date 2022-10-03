@@ -2411,6 +2411,11 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			 */
 			$multipliers = apply_filters( 'exactdn_srcset_multipliers', array( .2, .4, .6, .8, 1, 2, 3, 1920 ) );
 
+			if ( empty( $url ) || empty( $multipliers ) ) {
+				// No URL, or no multipliers, bail!
+				return $sources;
+			}
+
 			if ( ! empty( $full_url ) ) {
 				$this->debug_message( "already built url via db: $full_url" );
 				$url = $full_url;

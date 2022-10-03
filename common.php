@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 690 );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 690.1 );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -606,7 +606,7 @@ function ewwwio_json_encode( $value ) {
 }
 
 /**
- * Find out if set_time_limit() is allowed
+ * Find out if set_time_limit() is allowed.
  */
 function ewww_image_optimizer_stl_check() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
@@ -630,6 +630,7 @@ function ewww_image_optimizer_stl_check() {
  */
 function ewww_image_optimizer_function_exists( $function, $debug = false ) {
 	if ( function_exists( 'ini_get' ) ) {
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors
 		$disabled = @ini_get( 'disable_functions' );
 		if ( $debug ) {
 			ewwwio_debug_message( "disable_functions: $disabled" );
@@ -5002,6 +5003,12 @@ function ewww_image_optimizer_media_rename( $old_name, $new_name ) {
  */
 function ewww_image_optimizer_exactdn_activate_ajax() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( false === current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		// Display error message if insufficient permissions.
+		ewwwio_ob_clean();
+		wp_die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
+	}
+	// Make sure we didn't accidentally get to this page without an attachment to work on.
 	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' ) ) {
 		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
 	}
@@ -5055,6 +5062,11 @@ function ewww_image_optimizer_exactdn_activate_ajax() {
  */
 function ewww_image_optimizer_exactdn_activate_site_ajax() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( false === current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		// Display error message if insufficient permissions.
+		ewwwio_ob_clean();
+		wp_die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
+	}
 	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' ) ) {
 		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
 	}
@@ -5116,6 +5128,11 @@ function ewww_image_optimizer_exactdn_activate_site_ajax() {
  */
 function ewww_image_optimizer_exactdn_register_site_ajax() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( false === current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		// Display error message if insufficient permissions.
+		ewwwio_ob_clean();
+		wp_die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
+	}
 	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' ) ) {
 		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
 	}
@@ -5246,6 +5263,11 @@ function ewww_image_optimizer_register_site_post() {
  */
 function ewww_image_optimizer_exactdn_deregister_site_ajax() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( false === current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		// Display error message if insufficient permissions.
+		ewwwio_ob_clean();
+		wp_die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
+	}
 	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' ) ) {
 		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
 	}
@@ -5389,6 +5411,11 @@ function ewww_image_optimizer_cloud_key_sanitize( $key ) {
  */
 function ewww_image_optimizer_cloud_key_verify_ajax() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( false === current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		// Display error message if insufficient permissions.
+		ewwwio_ob_clean();
+		wp_die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
+	}
 	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' ) ) {
 		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
 	}
@@ -10790,7 +10817,7 @@ function ewww_image_optimizer_dismiss_newsletter_signup() {
  */
 function ewww_image_optimizer_add_bulk_media_actions( $bulk_actions ) {
 	if ( is_array( $bulk_actions ) ) {
-		$bulk_actions['bulk_optimze'] = __( 'Bulk Optimize', 'ewww-image-optimizer' );
+		$bulk_actions['bulk_optimize'] = __( 'Bulk Optimize', 'ewww-image-optimizer' );
 	}
 	return $bulk_actions;
 }
@@ -10805,7 +10832,7 @@ function ewww_image_optimizer_add_bulk_media_actions( $bulk_actions ) {
  */
 function ewww_image_optimizer_bulk_action_handler( $redirect_to, $doaction, $post_ids ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( empty( $doaction || 'bulk_optimize' !== $doaction ) ) {
+	if ( empty( $doaction ) || 'bulk_optimize' !== $doaction ) {
 		return $redirect_to;
 	}
 	// If there is no media to optimize, do nothing.
@@ -10815,16 +10842,13 @@ function ewww_image_optimizer_bulk_action_handler( $redirect_to, $doaction, $pos
 	check_admin_referer( 'bulk-media' );
 	// Prep the attachment IDs for optimization.
 	$ids = implode( ',', array_map( 'intval', $post_ids ) );
-	wp_safe_redirect(
-		add_query_arg(
-			array(
-				'page' => 'ewww-image-optimizer-bulk',
-				'ids'  => $ids,
-			),
-			admin_url( 'upload.php' )
-		)
+	return add_query_arg(
+		array(
+			'page' => 'ewww-image-optimizer-bulk',
+			'ids'  => $ids,
+		),
+		admin_url( 'upload.php' )
 	);
-	ewwwio_memory( __FUNCTION__ );
 }
 
 /**
