@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 690.1 );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 691 );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -1713,7 +1713,11 @@ function ewww_image_optimizer_install_table() {
 		$timestamp_upgrade_needed = false;
 		if ( ewww_image_optimizer_iterable( $tablefields ) ) {
 			foreach ( $tablefields as $tablefield ) {
-				if ( 'updated' === $tablefield->Field && false === stripos( $tablefield->Default, 'current_timestamp' ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				if (
+					'updated' === $tablefield->Field && // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					false === stripos( $tablefield->Default, 'current_timestamp' ) && // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					false === stripos( $tablefield->Default, 'now' ) // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				) {
 					$timestamp_upgrade_needed = true;
 					ewwwio_debug_message( 'updated timestamp upgrade needed' );
 				}
@@ -1723,7 +1727,6 @@ function ewww_image_optimizer_install_table() {
 			(
 				false !== strpos( $mysql_version, '5.6.' ) ||
 				false !== strpos( $mysql_version, '5.7.' ) ||
-				false !== strpos( $mysql_version, '8.0.' ) ||
 				false !== strpos( $mysql_version, '10.1.' )
 			) &&
 			$timestamp_upgrade_needed
@@ -1737,7 +1740,7 @@ function ewww_image_optimizer_install_table() {
 				set_transient( 'ewww_image_optimizer_620_upgrade_needed', true );
 			}
 		} elseif ( $timestamp_upgrade_needed ) {
-			$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images ALTER updated SET DEFAULT CURRENT_TIMESTAMP" );
+			$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images ALTER updated SET DEFAULT (CURRENT_TIMESTAMP)" );
 		}
 		// Check the current collation and adjust it if necessary.
 		$column_collate = $wpdb->get_col_charset( $wpdb->ewwwio_images, 'path' );

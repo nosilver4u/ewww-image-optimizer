@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.8
 Tested up to: 6.1
 Requires PHP: 7.2
-Stable tag: 6.9.0
+Stable tag: 6.9.1
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -138,6 +138,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.9.1 =
+* changed: default syntax for MySQL 8.x to use faster upgrade query
 * fixed: bulk action parameter was not validated properly when selecting attachments for optimization
 * fixed: undefined function ewww_image_optimizer_get_primary_wpml_id
 * fixed: PHP notices when Easy IO filters srcset URLs

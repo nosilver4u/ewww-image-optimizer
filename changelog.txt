@@ -1,3 +1,9 @@
+= 6.9.1 =
+* changed: default syntax for MySQL 8.x to use faster upgrade query
+* fixed: bulk action parameter was not validated properly when selecting attachments for optimization
+* fixed: undefined function ewww_image_optimizer_get_primary_wpml_id
+* fixed: PHP notices when Easy IO filters srcset URLs
+
 = 6.9.0 =
 * added: allow translation plugins to filter attachment IDs for retrieving Media Library results via ewwwio_primary_translated_media_id/ewwwio_translated_media_ids
 * changed: include upstream lazysizes unveilhooks for use by developers, props @saas786
