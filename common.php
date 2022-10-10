@@ -817,11 +817,6 @@ function ewww_image_optimizer_save_network_settings() {
  */
 function ewww_image_optimizer_init() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	/**
-	 * EIO_Backup class for managing image backups.
-	 */
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-backup.php' );
-
 	// Check to see if this is the settings page and enable debugging temporarily if it is.
 	global $ewwwio_temp_debug;
 	$ewwwio_temp_debug = ! empty( $ewwwio_temp_debug ) ? $ewwwio_temp_debug : false;

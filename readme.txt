@@ -137,6 +137,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 6.9.2 =
+* fixed: load backup class earlier to prevent issues with custom image uploaders
+
 = 6.9.1 =
 * changed: default syntax for MySQL 8.x to use faster upgrade query
 * fixed: bulk action parameter was not validated properly when selecting attachments for optimization

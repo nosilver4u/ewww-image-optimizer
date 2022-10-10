@@ -13,7 +13,7 @@ Plugin Name: EWWW Image Optimizer
 Plugin URI: https://wordpress.org/plugins/ewww-image-optimizer/
 Description: Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
 Author: Exactly WWW
-Version: 6.9.1
+Version: 6.9.1.1
 Requires at least: 5.8
 Requires PHP: 7.2
 Author URI: https://ewww.io/
@@ -113,6 +113,10 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70200 ) {
 	 * EWWW_Image class for working with queued images and image records from the database.
 	 */
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-image.php' );
+	/**
+	 * EIO_Backup class for managing image backups.
+	 */
+	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-backup.php' );
 	/**
 	 * EWWWIO_Tracking class for reporting anonymous site data.
 	 */
