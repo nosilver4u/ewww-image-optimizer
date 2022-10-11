@@ -138,6 +138,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.9.2 =
+* changed: improved Easy IO detection for site URL changes
 * fixed: load backup class earlier to prevent issues with custom image uploaders
 
 = 6.9.1 =

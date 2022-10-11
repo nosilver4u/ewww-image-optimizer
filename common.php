@@ -2148,6 +2148,13 @@ function ewww_image_optimizer_notice_exactdn_domain_mismatch() {
 	if ( ! isset( $exactdn->upload_domain ) ) {
 		return;
 	}
+	$stored_local_domain = $exactdn->get_exactdn_option( 'local_domain' );
+	if ( empty( $stored_local_domain ) ) {
+		return;
+	}
+	if ( false === strpos( $stored_local_domain, '.' ) ) {
+		$stored_local_domain = base64_decode( $stored_local_domain );
+	}
 	?>
 	<div id="ewww-image-optimizer-notice-exactdn-domain-mismatch" class="notice notice-warning">
 		<p>
@@ -2155,7 +2162,7 @@ function ewww_image_optimizer_notice_exactdn_domain_mismatch() {
 			printf(
 				/* translators: 1: old domain name, 2: current domain name */
 				esc_html__( 'Easy IO detected that the Site URL has changed since the initial activation (previously %1$s, currently %2$s).', 'ewww-image-optimizer' ),
-				'<strong>' . esc_html( $exactdn->get_exactdn_option( 'local_domain' ) ) . '</strong>',
+				'<strong>' . esc_html( $stored_local_domain ) . '</strong>',
 				'<strong>' . esc_html( $exactdn->upload_domain ) . '</strong>'
 			);
 	?>
