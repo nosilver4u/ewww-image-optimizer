@@ -10528,18 +10528,17 @@ function ewww_image_optimizer_get_translated_media_results( $id ) {
 		if ( empty( $translations ) ) {
 			return array( $id, array() );
 		}
+		$translations = wp_list_pluck( $translations, 'element_id' );
+		$translations = array_filter( $translations );
 	}
 	$translations = apply_filters( 'ewwwio_translated_media_ids', $translations, $id );
 	if ( ewww_image_optimizer_iterable( $translations ) ) {
 		global $wpdb;
 		foreach ( $translations as $translation ) {
-			if ( empty( $translation->element_id ) ) {
-				continue;
-			}
-			ewwwio_debug_message( "checking {$translation->element_id} for results with WPML (or another translation plugin)" );
-			$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", $translation->element_id ), ARRAY_A );
+			ewwwio_debug_message( "checking {$translation} for results with WPML (or another translation plugin)" );
+			$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", $translation ), ARRAY_A );
 			if ( ! empty( $optimized_images ) ) {
-				return array( (int) $translation->element_id, $optimized_images );
+				return array( (int) $translation, $optimized_images );
 			}
 		}
 	}
