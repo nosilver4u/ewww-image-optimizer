@@ -10529,7 +10529,7 @@ function ewww_image_optimizer_get_translated_media_results( $id ) {
 			return array( $id, array() );
 		}
 	}
-	apply_filters( 'ewwwio_translated_media_ids', $translations, $id );
+	$translations = apply_filters( 'ewwwio_translated_media_ids', $translations, $id );
 	if ( ewww_image_optimizer_iterable( $translations ) ) {
 		global $wpdb;
 		foreach ( $translations as $translation ) {
