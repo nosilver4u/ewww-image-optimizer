@@ -32,10 +32,6 @@ function constrainSrc(url,objectWidth,objectHeight,objectType){
 	if (regSVG.exec(decUrl)){
 		return url;
 	}
-	if (typeof eio_lazy_vars === 'undefined'){
-		console.log('setting failsafe lazy vars');
-		eio_lazy_vars = {"exactdn_domain":".exactdn.com"};
-	}
 	console.log('domain to test: ' + eio_lazy_vars.exactdn_domain);
 	if (url.search('\\?') > 0 && url.search(eio_lazy_vars.exactdn_domain) > 0){
 		console.log('domain matches URL with a ?');
@@ -123,7 +119,7 @@ function constrainSrc(url,objectWidth,objectHeight,objectType){
 		}
 		if('img-h'===objectType || objectHeight>objectWidth){
 			console.log('img-h or fallback height>width, using h param');
-			return url + '&h=' + objectHeight;
+			return url + '?h=' + objectHeight;
 		}
 		console.log('fallback using w param');
 		return url + '?w=' + objectWidth;
