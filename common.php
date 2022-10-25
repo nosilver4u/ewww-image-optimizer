@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 691.1 );
+define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 692.0 );
 
 // Initialize a couple globals.
 $eio_debug  = '';
@@ -14784,7 +14784,7 @@ function ewww_image_optimizer_resize_detection_script() {
 				margin: -3px;
 			}
 		</style>
-		<script><?php echo $resize_detection_script; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></script>
+		<script data-cfasync="false" data-no-optimize="1" data-no-defer="1" data-no-minify="1"><?php echo $resize_detection_script; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></script>
 		<?php
 	}
 }

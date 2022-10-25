@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.8
 Tested up to: 6.1
 Requires PHP: 7.2
-Stable tag: 6.9.1
+Stable tag: 6.9.2
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -139,8 +139,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.9.2 =
 * changed: improved Easy IO detection for site URL changes
+* changed: load backup class earlier to prevent issues with custom image uploaders
 * fixed: and improved the ewwwio_translated_media_ids filter, props @ocean90
-* fixed: load backup class earlier to prevent issues with custom image uploaders
 * fixed: Lazy Load JS throws error if inline script vars are missing
 * fixed: Easy IO + Lazy Load auto-scale produces invalid URL if an image with no query string is constrained by height
 
