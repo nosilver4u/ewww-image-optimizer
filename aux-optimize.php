@@ -1085,6 +1085,7 @@ function ewww_image_optimizer_count_unscanned_attachments( $gallery = 'media' ) 
  * @global object $wpdb
  */
 function ewww_image_optimizer_get_unscanned_attachments( $gallery, $limit = 1000 ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
 	// Retrieve the attachment IDs that were pre-loaded in the database.
 	$selected_ids = $wpdb->get_col( $wpdb->prepare( "SELECT attachment_id FROM $wpdb->ewwwio_queue WHERE gallery = %s AND scanned = 0 LIMIT %d", $gallery, $limit ) );
@@ -1179,6 +1180,7 @@ function ewww_image_optimizer_webp_attachment_count() {
  * @global object $wpdb
  */
 function ewww_image_optimizer_get_queued_attachments( $gallery, $limit = 100 ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
 	// Retrieve the attachment IDs that were pre-loaded in the database.
 	$selected_ids = $wpdb->get_col( $wpdb->prepare( "SELECT attachment_id FROM $wpdb->ewwwio_queue WHERE gallery = %s AND scanned = 1 ORDER BY attachment_id DESC LIMIT %d", $gallery, $limit ) );

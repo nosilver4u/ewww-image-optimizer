@@ -27,71 +27,83 @@ class EWWW_Image {
 	 * @var int $id
 	 */
 	public $id = 0;
+
 	/**
 	 * The id number of the related attachment.
 	 *
 	 * @var int $attachment_id
 	 */
 	public $attachment_id = null;
+
 	/**
 	 * The path to the image.
 	 *
 	 * @var string $file
 	 */
 	public $file = '';
+
 	/**
 	 * The name of the original file if the image was converted. False if not converted.
 	 *
 	 * @var string|bool $converted
 	 */
 	public $converted = false;
+
 	/**
 	 * The original size of the image.
 	 *
 	 * @var int $orig_size
 	 */
 	public $orig_size = 0;
+
 	/**
 	 * The optimized size of the image.
 	 *
 	 * @var int $opt_size
 	 */
 	public $opt_size = 0;
+
 	/**
 	 * The size/type of the image, like 'thumbnail', 'medium', 'large'.
 	 *
 	 * @var string $resize
 	 */
 	public $resize = null;
+
 	/**
 	 * The gallery of the image, if applicable. Accepts 'media', 'nextgen', etc.
 	 *
 	 * @var string $gallery
 	 */
+
 	public $gallery = '';
 	/**
 	 * To be appended to converted files if necessary.
 	 *
 	 * @var int|bool $increment
 	 */
+
 	public $increment = false;
 	/**
 	 * The url to the image.
 	 *
 	 * @var string $url
 	 */
+
 	public $url = '';
 	/**
 	 * Compression level as an integer.
 	 *
 	 * @var int $level
 	 */
+
 	public $level = 0;
 	/**
 	 * Raw db record.
 	 *
 	 * @var array $record
 	 */
+
 	public $record = array();
 
 	/**
