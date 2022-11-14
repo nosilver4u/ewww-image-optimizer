@@ -1212,14 +1212,30 @@ function ewww_image_optimizer_insert_unscanned( $ids, $gallery = 'media' ) {
 			'attachment_id' => (int) $id,
 			'gallery'       => $gallery,
 		);
-		if ( count( $images ) > 999 ) {
-			ewww_image_optimizer_mass_insert( $wpdb->ewwwio_queue, $images, array( '%d', '%s' ) );
+		if ( count( $images ) > 39999 ) {
+			$result = ewww_image_optimizer_mass_insert( $wpdb->ewwwio_queue, $images, array( '%d', '%s' ) );
+			if ( $result ) {
+				ewwwio_debug_message( "inserted $result rows" );
+			} else {
+				ewwwio_debug_message( 'error follows:' );
+				ewwwio_debug_message( $wpdb->last_error );
+				global $ewwwdb;
+				ewwwio_debug_message( $ewwwdb->last_error );
+			}
 			$images = array();
 		}
 		$id = array_shift( $ids );
 	}
 	if ( $images ) {
-		ewww_image_optimizer_mass_insert( $wpdb->ewwwio_queue, $images, array( '%d', '%s' ) );
+		$result = ewww_image_optimizer_mass_insert( $wpdb->ewwwio_queue, $images, array( '%d', '%s' ) );
+		if ( $result ) {
+			ewwwio_debug_message( "inserted $result rows" );
+		} else {
+			ewwwio_debug_message( 'error follows:' );
+			ewwwio_debug_message( 'wpdb: ' . $wpdb->last_error );
+			global $ewwwdb;
+			ewwwio_debug_message( 'ewwwdb' . $ewwwdb->last_error );
+		}
 	}
 }
 

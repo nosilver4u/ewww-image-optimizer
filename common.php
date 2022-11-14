@@ -6583,6 +6583,8 @@ function ewww_image_optimizer_mass_insert( $table, $data, $format ) {
 		$ewwwdb = $wpdb;
 	}
 
+	$record_count = count( $data );
+	ewwwio_debug_message( "inserting $record_count records" );
 	$multi_formats = array();
 	$values        = array();
 	foreach ( $data as $record ) {
@@ -12247,7 +12249,7 @@ function ewww_image_optimizer_intro_wizard() {
 				<?php
 				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_allow_tracking' ) ) {
 					printf(
-						/* translators: 1: link to https://ewww.io/plans/ 2: discount code (yes, you may use it) */
+						/* translators: 1: link to https://ewww.io/plans/ 2: discount code (yes, you as a translator may use it) */
 						esc_html__( 'Use this code at %1$s: %2$s', 'ewww-image-optimizer' ),
 						'<a href="https://ewww.io/plans/" target="_blank">https://ewww.io/</a>',
 						'<code>SPEEDER1012</code>'
@@ -13110,7 +13112,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<?php
 							if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_allow_tracking' ) ) {
 								printf(
-									/* translators: 1: link to https://ewww.io/plans/ 2: discount code (yes, you may use it) */
+									/* translators: 1: link to https://ewww.io/plans/ 2: discount code (yes, you as a translator may use it) */
 									esc_html__( 'Use this code at %1$s: %2$s', 'ewww-image-optimizer' ),
 									'<a href="https://ewww.io/plans/" target="_blank">https://ewww.io/</a>',
 									'<code>SPEEDER1012</code>'
