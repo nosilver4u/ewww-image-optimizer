@@ -450,6 +450,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 
 		/**
 		 * Make sure this is really and truly a "front-end request", excluding page builders and such.
+		 * Note this is not currently used anywhere, each module has it's own list.
 		 *
 		 * @return bool True for front-end requests, false for admin/builder requests.
 		 */
@@ -466,6 +467,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 				'/print/' === substr( $uri, -7 ) ||
 				strpos( $uri, 'elementor-preview=' ) !== false ||
 				strpos( $uri, 'et_fb=' ) !== false ||
+				strpos( $uri, 'is-editor-iframe=' ) !== false ||
 				strpos( $uri, 'vc_editable=' ) !== false ||
 				strpos( $uri, 'tatsu=' ) !== false ||
 				( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === sanitize_text_field( wp_unslash( $_POST['action'] ) ) ) || // phpcs:ignore WordPress.Security.NonceVerification

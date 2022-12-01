@@ -141,6 +141,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: Bulk Optimize encounters unrecoverable error when a GIF or PDF file takes too long to optimize
 * fixed: Easy IO fails to apply crop for custom size in some cases
 * fixed: Picture WebP rewriter uses mixed single/double quotes
+* changed: improved Brizy Builder compatibility
 
 = 6.9.2 =
 * changed: improved Easy IO detection for site URL changes

@@ -258,6 +258,9 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 			if ( false !== strpos( $uri, '?giveDonationFormInIframe' ) ) {
 				return false;
 			}
+			if ( false !== strpos( $uri, 'is-editor-iframe=' ) ) {
+				return false;
+			}
 			if ( '/print/' === substr( $uri, -7 ) ) {
 				return false;
 			}

@@ -177,6 +177,9 @@ class EIO_Picture_Webp extends EIO_Page_Parser {
 		if ( false !== strpos( $uri, '?fl_builder' ) ) {
 			return false;
 		}
+		if ( false !== strpos( $uri, 'is-editor-iframe=' ) ) {
+			return false;
+		}
 		if ( '/print/' === substr( $uri, -7 ) ) {
 			return false;
 		}

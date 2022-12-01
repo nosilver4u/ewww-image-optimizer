@@ -3250,6 +3250,9 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			if ( false !== strpos( $uri, '?fl_builder' ) ) {
 				return true;
 			}
+			if ( false !== strpos( $uri, 'is-editor-iframe=' ) ) {
+				return true;
+			}
 			if ( false !== strpos( $uri, 'tatsu=' ) ) {
 				return true;
 			}
