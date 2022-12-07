@@ -156,7 +156,6 @@ class EWWWIO_Tracking {
 		$data['disable_pngout']         = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_pngout' );
 		$data['pngout_level']           = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? 9 : (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pngout_level' );
 		$data['jpg_quality']            = (int) apply_filters( 'jpeg_quality', 82 );
-		$data['parallel_opt']           = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_parallel_optimization' );
 		$data['background_opt']         = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' );
 		$data['scheduled_opt']          = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' );
 		$data['include_media_folders']  = (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_media_paths' );
