@@ -8639,10 +8639,10 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 	}
 	if ( ewww_image_optimizer_test_background_opt( $type ) ) {
 		add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
-		if ( defined( 'EWWW_IMAGE_OPTIMIZER_DEFER_S3' ) && EWWW_IMAGE_OPTIMIZER_DEFER_S3 ) {
+		/* if ( defined( 'EWWW_IMAGE_OPTIMIZER_DEFER_S3' ) && EWWW_IMAGE_OPTIMIZER_DEFER_S3 ) { */
 			ewwwio_debug_message( 's3 upload deferred' );
 			add_filter( 'as3cf_pre_update_attachment_metadata', '__return_true' );
-		}
+		// }
 		global $ewwwio_media_background;
 		if ( ! is_object( $ewwwio_media_background ) ) {
 			$ewwwio_media_background = new EWWWIO_Media_Background_Process();
@@ -8990,7 +8990,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 	// Done optimizing, do whatever you need with the attachment from here.
 	do_action( 'ewww_image_optimizer_after_optimize_attachment', $id, $meta );
 
-	if ( $fullsize_opt_size && $fullsize_opt_size < $fullsize_size && class_exists( 'Amazon_S3_And_CloudFront' ) ) {
+	if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
 		global $as3cf;
 		if ( method_exists( $as3cf, 'wp_update_attachment_metadata' ) ) {
 			ewwwio_debug_message( 'deferring to normal S3 hook' );
@@ -9409,7 +9409,7 @@ function ewww_image_optimizer_update_filesize_metadata( $meta, $id, $file_path =
 				$scaled_filesize = ewww_image_optimizer_filesize( $resize_path );
 			}
 			if ( $scaled_filesize ) {
-				ewwwio_debug_message( "updating $size to $full_filesize" );
+				ewwwio_debug_message( "updating $size to $scaled_filesize" );
 				$meta['sizes'][ $size ]['filesize'] = $scaled_filesize;
 			}
 		}

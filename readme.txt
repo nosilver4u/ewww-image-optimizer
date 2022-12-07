@@ -138,10 +138,11 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.9.3 =
+* changed: improved Brizy Builder compatibility
+* changed: async optimization defers processing by WP Offload Media until after optimization is complete, fixes issues with WP Offload Media 3.1+
 * fixed: Bulk Optimize encounters unrecoverable error when a GIF or PDF file takes too long to optimize
 * fixed: Easy IO fails to apply crop for custom size in some cases
 * fixed: Picture WebP rewriter uses mixed single/double quotes
-* changed: improved Brizy Builder compatibility
 
 = 6.9.2 =
 * changed: improved Easy IO detection for site URL changes
