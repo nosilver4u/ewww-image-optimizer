@@ -753,8 +753,6 @@ function ewww_image_optimizer_save_network_settings() {
 			update_site_option( 'ewww_image_optimizer_resize_existing', $ewww_image_optimizer_resize_existing );
 			$ewww_image_optimizer_resize_other_existing = ( empty( $_POST['ewww_image_optimizer_resize_other_existing'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_resize_other_existing', $ewww_image_optimizer_resize_other_existing );
-			$ewww_image_optimizer_parallel_optimization = ( empty( $_POST['ewww_image_optimizer_parallel_optimization'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_parallel_optimization', $ewww_image_optimizer_parallel_optimization );
 			$ewww_image_optimizer_include_media_paths = ( empty( $_POST['ewww_image_optimizer_include_media_paths'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_include_media_paths', $ewww_image_optimizer_include_media_paths );
 			$ewww_image_optimizer_include_originals = ( empty( $_POST['ewww_image_optimizer_include_originals'] ) ? false : true );
@@ -8360,59 +8358,6 @@ function ewww_image_optimizer_test_background_opt( $type = '' ) {
 }
 
 /**
- * Checks to see if we should use parallel optimization for an image.
- *
- * Uses the mimetype and current configuration to determine if parallel mode should be used.
- *
- * @param string $type Optional. Mime type of image being processed. Default ''.
- * @param int    $id Optional. Attachment ID number. Default 0.
- * @return bool True if parallel mode should be used.
- */
-function ewww_image_optimizer_test_parallel_opt( $type = '', $id = 0 ) {
-	if ( defined( 'EWWW_DISABLE_ASYNC' ) && EWWW_DISABLE_ASYNC ) {
-		return false;
-	}
-	if ( ! ewww_image_optimizer_function_exists( 'sleep' ) ) {
-		return false;
-	}
-	if ( ewww_image_optimizer_detect_wpsf_location_lock() ) {
-		return false;
-	}
-	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_parallel_optimization' ) ) {
-		return false;
-	}
-	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ) {
-		return false;
-	}
-	if ( empty( $id ) ) {
-		return true;
-	}
-	global $ewww_convert;
-	if ( ! empty( $ewww_convert ) ) {
-		return false;
-	}
-	if ( empty( $type ) ) {
-		$type = get_post_mime_type( $id );
-	}
-	if ( 'image/jpeg' === $type && ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) ) {
-		return false;
-	}
-	if ( 'image/png' === $type && ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' ) ) {
-		return false;
-	}
-	if ( 'image/gif' === $type && ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_to_png' ) ) {
-		return false;
-	}
-	if ( 'application/pdf' === $type ) {
-		return false;
-	}
-	if ( 'image/svg+xml' === $type ) {
-		return false;
-	}
-	return true;
-}
-
-/**
  * Rebuilds metadata and regenerates thumbs for an attachment.
  *
  * @param int $attachment_id The ID number of the attachment.
@@ -8518,8 +8463,7 @@ function ewwwio_remove_original_image( $id, $meta = null ) {
  *
  * Called after `wp_generate_attachment_metadata` is completed, it also searches for retina images,
  * and a few custom theme resizes. When a new image is uploaded, it is added to the queue, if
- * possible, and then this same function is run in the background. Optionally, it will use parallel
- * (async) requests to speed up the process.
+ * possible, and then this same function is run in the background.
  *
  * @global object $wpdb
  * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
@@ -8673,46 +8617,25 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 			$meta['height'] = $new_dimensions[1];
 		}
 	}
-	// Run in parallel if it's enabled+safe (test_parallel_opt), and there are enough resizes to make it worthwhile or if the API is enabled.
-	if (
-		ewww_image_optimizer_test_parallel_opt( $type, $id ) &&
-		isset( $meta['sizes'] ) &&
-		( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) || count( $meta['sizes'] ) > 5 )
-	) {
-		ewwwio_debug_message( 'running in parallel' );
-		$parallel_opt = true;
-	} else {
-		ewwwio_debug_message( 'running in sequence' );
-		$parallel_opt = false;
-	}
-	$parallel_sizes = array();
-	if ( $parallel_opt ) {
-		add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
-		$parallel_sizes['full'] = $file_path;
-		global $ewwwio_async_optimize_media;
-		if ( ! is_object( $ewwwio_async_optimize_media ) ) {
-			$ewwwio_async_optimize_media = new EWWWIO_Async_Request();
-		}
-	} else {
-		// Run the optimization and store the results.
-		list( $file, $msg, $conv, $original ) = ewww_image_optimizer( $file_path, $gallery_type, false, $new_image, true );
+	ewwwio_debug_message( 'running in sequence' );
+	// Run the optimization and store the results.
+	list( $file, $msg, $conv, $original ) = ewww_image_optimizer( $file_path, $gallery_type, false, $new_image, true );
 
-		// If the file was converted.
-		if ( false !== $conv && $file ) {
-			if ( $conv ) {
-				$ewww_image->increment = $conv;
-			}
-			$ewww_image->file      = $file;
-			$ewww_image->converted = $original;
-			$meta['file']          = _wp_relative_upload_path( $file );
-			$ewww_image->update_converted_attachment( $meta );
-			$meta = $ewww_image->convert_sizes( $meta );
-			ewwwio_debug_message( 'image was converted' );
-		} else {
-			remove_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment', 10 );
+	// If the file was converted.
+	if ( false !== $conv && $file ) {
+		if ( $conv ) {
+			$ewww_image->increment = $conv;
 		}
-		ewww_image_optimizer_hidpi_optimize( $file );
+		$ewww_image->file      = $file;
+		$ewww_image->converted = $original;
+		$meta['file']          = _wp_relative_upload_path( $file );
+		$ewww_image->update_converted_attachment( $meta );
+		$meta = $ewww_image->convert_sizes( $meta );
+		ewwwio_debug_message( 'image was converted' );
+	} else {
+		remove_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment', 10 );
 	}
+	ewww_image_optimizer_hidpi_optimize( $file );
 
 	// See if we are forcing re-optimization per the user's request.
 	if ( ! empty( $ewww_force ) ) {
@@ -8799,14 +8722,12 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 			if ( $resize_path === $file_path ) {
 				continue;
 			}
-			if ( $parallel_opt && ewwwio_is_file( $resize_path ) ) {
-				$parallel_sizes[ $size ] = $resize_path;
-			} else {
-				$ewww_image         = new EWWW_Image( $id, 'media', $resize_path );
-				$ewww_image->resize = $size;
-				// Run the optimization and store the results.
-				ewww_image_optimizer( $resize_path );
-			}
+
+			$ewww_image         = new EWWW_Image( $id, 'media', $resize_path );
+			$ewww_image->resize = $size;
+			// Run the optimization and store the results.
+			ewww_image_optimizer( $resize_path );
+
 			// Optimize retina images, if they exist.
 			if ( function_exists( 'wr2x_get_retina' ) ) {
 				$retina_path = wr2x_get_retina( $resize_path );
@@ -8814,20 +8735,10 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 				$retina_path = false;
 			}
 			if ( $retina_path && ewwwio_is_file( $retina_path ) ) {
-				if ( $parallel_opt ) {
-					$ewwwio_async_optimize_media->data(
-						array(
-							'ewwwio_id'            => ewww_image_optimizer_single_insert( $retina_path, 'media', $id ),
-							'ewwwio_attachment_id' => $id,
-							'ewww_force'           => $force,
-						)
-					)->dispatch();
-				} else {
-					$ewww_image         = new EWWW_Image( $id, 'media', $retina_path );
-					$ewww_image->resize = $size . '-retina';
-					ewww_image_optimizer( $retina_path );
-				}
-			} elseif ( ! $parallel_opt ) {
+				$ewww_image         = new EWWW_Image( $id, 'media', $retina_path );
+				$ewww_image->resize = $size . '-retina';
+				ewww_image_optimizer( $retina_path );
+			} else {
 				ewww_image_optimizer_hidpi_optimize( $resize_path );
 			}
 			// Store info on the sizes we've processed, so we can check the list for duplicate sizes.
@@ -8841,14 +8752,12 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		ewwwio_debug_message( 'processing original_image' );
 		// Meta sizes don't contain a path, so we calculate one.
 		$resize_path = trailingslashit( dirname( $file_path ) ) . $meta['original_image'];
-		if ( $parallel_opt && ewwwio_is_file( $resize_path ) ) {
-			$parallel_sizes['original_image'] = $resize_path;
-		} else {
-			$ewww_image         = new EWWW_Image( $id, 'media', $resize_path );
-			$ewww_image->resize = 'original_image';
-			// Run the optimization and store the results (gallery type 5 and fullsize=true to obey lossy/metadata exclusions).
-			ewww_image_optimizer( $resize_path, 5, false, false, true );
-		}
+
+		$ewww_image         = new EWWW_Image( $id, 'media', $resize_path );
+		$ewww_image->resize = 'original_image';
+
+		// Run the optimization and store the results (gallery type 5 and fullsize=true to obey lossy/metadata exclusions).
+		ewww_image_optimizer( $resize_path, 5, false, false, true );
 	} // End if().
 
 	// Process size from a custom theme.
@@ -8857,18 +8766,9 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		$imagemeta_resize_path     = '';
 		foreach ( $meta['image_meta']['resized_images'] as $imagemeta_resize ) {
 			$imagemeta_resize_path = $imagemeta_resize_pathinfo['dirname'] . '/' . $imagemeta_resize_pathinfo['filename'] . '-' . $imagemeta_resize . '.' . $imagemeta_resize_pathinfo['extension'];
-			if ( $parallel_opt && ewwwio_is_file( $imagemeta_resize_path ) ) {
-				$ewwwio_async_optimize_media->data(
-					array(
-						'ewwwio_id'            => ewww_image_optimizer_single_insert( $imagemeta_resize_path, 'media', $id ),
-						'ewwwio_attachment_id' => $id,
-						'ewww_force'           => $force,
-					)
-				)->dispatch();
-			} else {
-				$ewww_image = new EWWW_Image( $id, 'media', $imagemeta_resize_path );
-				ewww_image_optimizer( $imagemeta_resize_path );
-			}
+
+			$ewww_image = new EWWW_Image( $id, 'media', $imagemeta_resize_path );
+			ewww_image_optimizer( $imagemeta_resize_path );
 		}
 	}
 
@@ -8878,111 +8778,16 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		$custom_size_path      = '';
 		foreach ( $meta['custom_sizes'] as $custom_size ) {
 			$custom_size_path = $custom_sizes_pathinfo['dirname'] . '/' . $custom_size['file'];
-			if ( $parallel_opt && file_exists( $custom_size_path ) ) {
-				$ewwwio_async_optimize_media->data(
-					array(
-						'ewwwio_id'            => ewww_image_optimizer_single_insert( $custom_size_path, 'media', $id ),
-						'ewwwio_attachment_id' => $id,
-						'ewww_force'           => $force,
-					)
-				)->dispatch();
-			} else {
-				$ewww_image = new EWWW_Image( $id, 'media', $custom_size_path );
-				ewww_image_optimizer( $custom_size_path );
-			}
+
+			$ewww_image = new EWWW_Image( $id, 'media', $custom_size_path );
+			ewww_image_optimizer( $custom_size_path );
 		}
 	}
-
-	if ( $parallel_opt && count( $parallel_sizes ) > 0 ) {
-		$max_threads      = (int) apply_filters( 'ewww_image_optimizer_max_parallel_threads', 5 );
-		$processing       = true;
-		$timer            = (int) apply_filters( 'ewww_image_optimizer_background_timer_init', 1 );
-		$increment        = (int) apply_filters( 'ewww_image_optimizer_background_timer_increment', 1 );
-		$timer_max        = (int) apply_filters( 'ewww_image_optimizer_background_timer_max', 20 );
-		$processing_sizes = array();
-		global $ewwwio_async_optimize_media;
-		if ( ! is_object( $ewwwio_async_optimize_media ) ) {
-			$ewwwio_async_optimize_media = new EWWWIO_Async_Request();
-		}
-		while ( $parallel_opt && count( $parallel_sizes ) > 0 ) {
-			$threads = $max_threads;
-			ewwwio_debug_message( 'sizes left to queue: ' . count( $parallel_sizes ) );
-			// Phase 1, add $max_threads items to the queue and dispatch.
-			foreach ( $parallel_sizes as $size => $filename ) {
-				if ( $threads < 1 ) {
-					continue;
-				}
-				if ( ! file_exists( $filename ) ) {
-					unset( $parallel_sizes[ $size ] );
-					continue;
-				}
-				ewwwio_debug_message( "queueing size $size - $filename" );
-				$processing_sizes[ $size ] = $filename;
-				unset( $parallel_sizes[ $size ] );
-				$eio_filesystem->touch( $filename . '.processing' );
-				ewwwio_debug_message( "sending off $filename via parallel/async" );
-				$ewwwio_async_optimize_media->data(
-					array(
-						'ewwwio_id'            => ewww_image_optimizer_single_insert( $filename, 'media', $id, $size ),
-						'ewwwio_attachment_id' => $id,
-						'ewwwio_size'          => $size,
-						'ewww_force'           => $force,
-					)
-				)->dispatch();
-				$threads--;
-				ewwwio_debug_message( 'sizes left to queue: ' . count( $parallel_sizes ) );
-				$processing = true;
-			}
-			// In phase 2, we start checking to see what sizes are done, until they all finish.
-			while ( $parallel_opt && $processing ) {
-				$processing = false;
-				foreach ( $processing_sizes as $size => $filename ) {
-					if ( ewwwio_is_file( $filename . '.processing' ) ) {
-						ewwwio_debug_message( "still processing $size" );
-						$processing = true;
-						continue;
-					}
-					$image = ewww_image_optimizer_find_already_optimized( $filename );
-					unset( $processing_sizes[ $size ] );
-					ewwwio_debug_message( "got results for $size size" );
-				}
-				if ( $processing ) {
-					ewwwio_debug_message( "sleeping for $timer seconds" );
-					sleep( $timer );
-					$timer += $increment;
-					clearstatcache();
-				}
-				if ( $timer > $timer_max ) {
-					break;
-				}
-				if ( $log ) {
-					ewww_image_optimizer_debug_log();
-				}
-			}
-			if ( $timer > $timer_max ) {
-				foreach ( $processing_sizes as $filename ) {
-					if ( ewwwio_is_file( $filename . '.processing' ) ) {
-						ewwwio_delete_file( $filename . '.processing' );
-					}
-				}
-				$meta['processing'] = 1;
-				ewwwio_debug_message( "$timer_max is up ($timer), will come back later" );
-				return $meta;
-			}
-		} // End while().
-	} // End if().
-	unset( $meta['processing'] );
 
 	global $ewww_attachment;
 	$ewww_attachment['id']   = $id;
 	$ewww_attachment['meta'] = $meta;
 	add_filter( 'w3tc_cdn_update_attachment_metadata', 'ewww_image_optimizer_w3tc_update_files' );
-
-	// In case we used parallel opt, $file might not be set.
-	if ( empty( $file ) ) {
-		$file = $file_path;
-	}
-	$fullsize_opt_size = ewww_image_optimizer_filesize( $file );
 
 	remove_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_filesize_metadata', 9 );
 	$meta = ewww_image_optimizer_update_filesize_metadata( $meta, $id, $file );
@@ -9565,7 +9370,7 @@ function ewww_image_optimizer_absolutize_path( $file ) {
 /**
  * Takes a file and upload folder, and makes sure that the file is within the folder.
  *
- * Used for path replacement with async/parallel processing, since security plugins can block
+ * Used for path replacement with async processing, since security plugins can block
  * POSTing of full paths.
  *
  * @param string $file Name of the file.
@@ -11703,7 +11508,6 @@ function ewwwio_debug_info() {
 	ewwwio_debug_message( 'configured quality: ' . ewww_image_optimizer_set_jpg_quality( 82 ) );
 	ewwwio_debug_message( 'effective quality: ' . apply_filters( 'jpeg_quality', 82, 'image_resize' ) );
 	ewwwio_debug_message( 'effective WebP quality: ' . ewww_image_optimizer_set_webp_quality( 75 ) );
-	ewwwio_debug_message( 'parallel optimization: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_parallel_optimization' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'background optimization: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ? 'on' : 'off' ) );
 	if ( ! $ewwwio_upgrading && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ) {
 		$admin_ajax_url = admin_url( 'admin-ajax.php' );
