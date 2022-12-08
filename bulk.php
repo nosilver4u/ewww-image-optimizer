@@ -2060,12 +2060,9 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 			);
 		}
 		// If this is a full size image and it was converted.
-		if ( 'full' === $image->resize && ( false !== $image->increment || false !== $converted ) ) {
+		if ( 'full' === $image->resize && false !== $converted ) {
 			if ( ! $meta || ! is_array( $meta ) ) {
 				$meta = wp_get_attachment_metadata( $image->attachment_id );
-			}
-			if ( $converted ) {
-				$image->increment = $converted;
 			}
 			$image->file      = $file;
 			$image->converted = $original;

@@ -7773,7 +7773,7 @@ function ewww_image_optimizer_autoconvert( $file ) {
 	}
 	$type = ewww_image_optimizer_mimetype( $file, 'i' );
 	if ( 'image/png' !== $type && 'image/gif' !== $type ) {
-		ewwwio_debug_message( 'not a PNG, no conversion needed' );
+		ewwwio_debug_message( 'not a PNG or GIF, no conversion needed' );
 		return;
 	}
 	$orig_size = ewww_image_optimizer_filesize( $file );
@@ -7789,9 +7789,14 @@ function ewww_image_optimizer_autoconvert( $file ) {
 		ewwwio_debug_message( 'animation detected, skipping' );
 		return;
 	}
+	if ( 'image/png' === $type ) {
+		$newfile = ewww_image_optimizer_unique_filename( $file, '.jpg' );
+	} elseif ( 'image/gif' === $type ) {
+		$newfile = ewww_image_optimizer_unique_filename( $file, '.png' );
+	}
 	$ewww_image = new EWWW_Image( 0, '', $file );
 	// Pass the filename, false for db search/replace, and true for filesize comparison.
-	return $ewww_image->convert( $file, false, true );
+	return $ewww_image->convert( $file, false, true, $newfile );
 }
 
 /**
@@ -8623,9 +8628,6 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 
 	// If the file was converted.
 	if ( false !== $conv && $file ) {
-		if ( $conv ) {
-			$ewww_image->increment = $conv;
-		}
 		$ewww_image->file      = $file;
 		$ewww_image->converted = $original;
 		$meta['file']          = _wp_relative_upload_path( $file );
@@ -9413,34 +9415,47 @@ function ewww_image_optimizer_size_unformat( $formatted ) {
  * Generate a unique filename for a converted image.
  *
  * @param string $file The filename to test for uniqueness.
- * @param string $fileext An iterator to append to the base filename, starts empty usually.
- * @return array {
- *     Filename information.
- *
- *     @type string A unique filename for converting an image.
- *     @type int|string The iterator used for uniqueness.
- * }
+ * @param string $fileext The extension to replace the existing file extension.
+ * @return string A unique filename.
  */
 function ewww_image_optimizer_unique_filename( $file, $fileext ) {
-	// Strip the file extension.
-	$filename = preg_replace( '/\.\w+$/', '', $file );
-	if ( ! ewwwio_is_file( $filename . $fileext ) ) {
-		return array( $filename . $fileext, '' );
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	// Change the file extension.
+	$fileinfo = pathinfo( $file );
+	if ( empty( $fileinfo['filename'] ) || empty( $fileinfo['dirname'] ) ) {
+		// NOTE: This should never happen, but if it does, we'll be prepared, sort of!
+		return preg_replace( '/\.\w+$/', '-' . uniqid() . $fileext, $file );
 	}
-	// Set the increment to 1 (but allow the user to override it).
-	$filenum = apply_filters( 'ewww_image_optimizer_converted_filename_suffix', 1 );
-	// But it must be only letters, numbers, or underscores.
-	$filenum = ( preg_match( '/^[\w\d]+$/', $filenum ) ? $filenum : 1 );
-	$suffix  = ( ! empty( $filenum ) ? '-' . $filenum : '' );
-	// While a file exists with the current increment.
-	while ( file_exists( $filename . $suffix . $fileext ) ) {
-		// Increment the increment...
-		$filenum++;
-		$suffix = '-' . $filenum;
+	$filename = $fileinfo['filename'] . $fileext;
+	$filenum  = '';
+	add_filter( 'wp_unique_filename', 'ewww_image_optimizer_get_unique_filename_iterator', 99, 6 );
+	$newname = wp_unique_filename( $fileinfo['dirname'], $filename );
+	remove_filter( 'wp_unique_filename', 'ewww_image_optimizer_get_unique_filename_iterator', 99 );
+	return trailingslashit( $fileinfo['dirname'] ) . $newname;
+}
+
+/**
+ * Retrieve the unique filename iterator/number from wp_unique_filename().
+ *
+ * @param string        $filename                 Unique file name.
+ * @param string        $ext                      File extension. Example: ".png".
+ * @param string        $dir                      Directory path.
+ * @param callable|null $unique_filename_callback Callback function that generates the unique file name.
+ * @param string[]      $alt_filenames            Array of alternate file names that were checked for collisions.
+ * @param int|string    $number                   The highest number that was used to make the file name unique
+ *                                                or an empty string if unused.
+ */
+function ewww_image_optimizer_get_unique_filename_iterator( $filename, $ext, $dir, $unique_filename_callback, $alt_filenames = array(), $number = '' ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( ! empty( $number ) ) {
+		ewwwio_debug_message( "collision avoidance iterator: $number" );
+		global $ewww_image;
+		if ( isset( $ewww_image ) && is_object( $ewww_image ) ) {
+			ewwwio_debug_message( 'storing in increment property' );
+			$ewww_image->increment = $number;
+		}
 	}
-	// All done, let's reconstruct the filename.
-	ewwwio_memory( __FUNCTION__ );
-	return array( $filename . $suffix . $fileext, $filenum );
+	return $filename;
 }
 
 /**

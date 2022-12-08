@@ -50,6 +50,13 @@ class EWWW_Image {
 	public $converted = false;
 
 	/**
+	 * The suffix added to the converted file, to be applied also to thumbs.
+	 *
+	 * @var string $suffix
+	 */
+	private $suffix = '';
+
+	/**
 	 * The original size of the image.
 	 *
 	 * @var int $orig_size
@@ -276,7 +283,7 @@ class EWWW_Image {
 
 				if ( ewww_image_optimizer_iterable( $meta['sizes'] ) && is_array( $meta['sizes'][ $size_queried['resize'] ] ) ) {
 					ewwwio_debug_message( 'updating regular size' );
-					$meta['sizes'][ $size_queried['resize'] ]['file']      = basename( $new_name );
+					$meta['sizes'][ $size_queried['resize'] ]['file']      = \wp_basename( $new_name );
 					$meta['sizes'][ $size_queried['resize'] ]['mime-type'] = ewww_image_optimizer_quick_mimetype( $new_name );
 					// Store height/width in $sizes to make sure we catch meta dups.
 					$sizes[ $size_queried['resize'] ]['width']  = $meta['sizes'][ $size_queried['resize'] ]['width'];
@@ -285,7 +292,7 @@ class EWWW_Image {
 					$dimensions = str_replace( 'custom-size-', '', $size_queried['resize'] );
 					if ( is_array( $meta['custom_sizes'][ $dimensions ] ) ) {
 						ewwwio_debug_message( 'updating custom size' );
-						$meta['custom_sizes'][ $dimensions ]['file'] = basename( $new_name );
+						$meta['custom_sizes'][ $dimensions ]['file'] = \wp_basename( $new_name );
 					}
 				}
 			}
@@ -331,7 +338,7 @@ class EWWW_Image {
 				if ( $new_name ) {
 					$this->convert_retina( $base_dir . $data['file'] );
 					$this->convert_db_path( $base_dir . $data['file'], $new_name );
-					$meta['sizes'][ $size ]['file']      = basename( $new_name );
+					$meta['sizes'][ $size ]['file']      = \wp_basename( $new_name );
 					$meta['sizes'][ $size ]['mime-type'] = ewww_image_optimizer_quick_mimetype( $new_name );
 				}
 				ewwwio_debug_message( "converted $size from meta" );
@@ -370,7 +377,7 @@ class EWWW_Image {
 				if ( $new_name ) {
 					$this->convert_retina( $custom_size_path );
 					$this->convert_db_path( $custom_size_path, $new_name );
-					$meta['custom_sizes'][ $dimensions ]['file'] = basename( $new_name );
+					$meta['custom_sizes'][ $dimensions ]['file'] = \wp_basename( $new_name );
 				}
 			}
 		}
@@ -399,7 +406,7 @@ class EWWW_Image {
 		ewwwio_delete_file( $this->file );
 		$this->file      = $this->converted;
 		$this->converted = $converted_path;
-		$meta['file']    = trailingslashit( dirname( $meta['file'] ) ) . basename( $this->file );
+		$meta['file']    = trailingslashit( dirname( $meta['file'] ) ) . \wp_basename( $this->file );
 		$this->update_converted_attachment( $meta );
 		$meta = $this->restore_sizes( $meta );
 		return $meta;
@@ -441,13 +448,13 @@ class EWWW_Image {
 				$this->replace_url( $new_name, $size_queried['path'] );
 				if ( ewww_image_optimizer_iterable( $meta['sizes'] ) && is_array( $meta['sizes'][ $size_queried['resize'] ] ) ) {
 					ewwwio_debug_message( 'updating regular size' );
-					$meta['sizes'][ $size_queried['resize'] ]['file']      = basename( $new_name );
+					$meta['sizes'][ $size_queried['resize'] ]['file']      = \wp_basename( $new_name );
 					$meta['sizes'][ $size_queried['resize'] ]['mime-type'] = ewww_image_optimizer_quick_mimetype( $new_name );
 				} elseif ( ewww_image_optimizer_iterable( $meta['custom_sizes'] ) ) {
 					$dimensions = str_replace( 'custom-size-', '', $size_queried['resize'] );
 					if ( is_array( $meta['custom_sizes'][ $dimensions ] ) ) {
 						ewwwio_debug_message( 'updating custom size' );
-						$meta['custom_sizes'][ $dimensions ]['file'] = basename( $new_name );
+						$meta['custom_sizes'][ $dimensions ]['file'] = \wp_basename( $new_name );
 					}
 				}
 				ewwwio_delete_file( $size_queried['path'] );
@@ -491,11 +498,12 @@ class EWWW_Image {
 	 * @access public
 	 *
 	 * @param string $file The name of the file to convert.
-	 * @param bool   $replace_url Default true. Run function to update database with new url.
-	 * @param bool   $check_size Default false. Whether the converted filesize be compared to the original.
+	 * @param bool   $replace_url Default true. Run function to update database with new URL.
+	 * @param bool   $check_size Default false. Whether the converted filesize should be compared to the original.
+	 * @param string $newfile The name to be used for the converted file. Optional.
 	 * @return string The name of the new file.
 	 */
-	public function convert( $file, $replace_url = true, $check_size = false ) {
+	public function convert( $file, $replace_url = true, $check_size = false, $newfile = '' ) {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( empty( $file ) ) {
 			ewwwio_debug_message( 'no file provided to convert' );
@@ -521,7 +529,7 @@ class EWWW_Image {
 		switch ( $type ) {
 			case 'image/jpeg':
 				$png_size = 0;
-				$newfile  = $this->unique_filename( $file, '.png' );
+				$newfile  = ! empty( $newfile ) && ! ewwwio_is_file( $newfile ) ? $newfile : $this->unique_filename( $file, '.png' );
 				ewwwio_debug_message( "attempting to convert JPG to PNG: $newfile" );
 				// Convert the JPG to PNG.
 				if ( ewww_image_optimizer_gmagick_support() ) {
@@ -577,7 +585,7 @@ class EWWW_Image {
 				break;
 			case 'image/png':
 				$jpg_size = 0;
-				$newfile  = $this->unique_filename( $file, '.jpg' );
+				$newfile  = ! empty( $newfile ) && ! ewwwio_is_file( $newfile ) ? $newfile : $this->unique_filename( $file, '.jpg' );
 				ewwwio_debug_message( "attempting to convert PNG to JPG: $newfile" );
 				// If the user set a fill background for transparency.
 				$background = ewww_image_optimizer_jpg_background();
@@ -682,7 +690,7 @@ class EWWW_Image {
 				break;
 			case 'image/gif':
 				$png_size = 0;
-				$newfile  = $this->unique_filename( $file, '.png' );
+				$newfile  = ! empty( $newfile ) && ! ewwwio_is_file( $newfile ) ? $newfile : $this->unique_filename( $file, '.png' );
 				ewwwio_debug_message( "attempting to convert GIF to PNG: $newfile" );
 				// Convert the GIF to PNG.
 				if ( ewww_image_optimizer_gmagick_support() ) {
@@ -753,19 +761,41 @@ class EWWW_Image {
 	 * @return string The new filename.
 	 */
 	public function unique_filename( $file, $fileext ) {
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		// Strip the file extension.
 		$filename = preg_replace( '/\.\w+$/', '', $file );
-		if ( ! ewwwio_is_file( $filename . $fileext ) ) {
+		if ( ! empty( $this->converted ) && empty( $this->suffix ) ) {
+			ewwwio_debug_message( "comparing original {$this->converted} and new {$this->file} to find suffix" );
+			$original_basename  = preg_replace( '/\.\w+$/', '', $this->converted );
+			$converted_basename = preg_replace( '/\.\w+$/', '', $this->file );
+			if ( 0 === strpos( $converted_basename, $original_basename ) ) {
+				$potential_suffix = str_replace( $original_basename, '', $converted_basename );
+				ewwwio_debug_message( "original and new basenames are aligned, diff is '$potential_suffix'" );
+				if ( strlen( $potential_suffix ) < 20 ) {
+					$this->suffix = $potential_suffix;
+				}
+			}
+		}
+		ewwwio_debug_message( "current basename is $filename" );
+		if ( empty( $this->suffix ) && ! ewwwio_is_file( $filename . $fileext ) ) {
 			return $filename . $fileext;
 		}
-		// Set the increment to 1 ( but allow the user to override it ).
+		ewwwio_debug_message( 'name collision or pre-existing suffix in play, taking evasive measures' );
+		// Set the suffix to 1 ( but allow the user to override it ).
 		$filenum = apply_filters( 'ewww_image_optimizer_converted_filename_suffix', $this->increment );
 		// But it must be only letters, numbers, or underscores.
-		$filenum              = ( preg_match( '/^[\w\d]+$/', $filenum ) ? $filenum : 1 );
-		$suffix               = ( ! empty( $filenum ) ? '-' . $filenum : '' );
+		$filenum = ( preg_match( '/^[\w\d]+$/', $filenum ) ? $filenum : 1 );
+		$suffix  = ( ! empty( $filenum ) ? '-' . $filenum : '' );
+		if ( ! empty( $this->suffix ) ) {
+			$suffix            = $this->suffix;
+			$potential_filenum = str_replace( '-', '', $suffix );
+			if ( is_numeric( $potential_filenum ) ) {
+				$filenum = $potential_filenum;
+			}
+		}
 		$dimensions           = '';
-		$default_hidpi_suffix = apply_filters( 'ewww_image_optimizer_hidpi_suffix', '@2x' );
 		$hidpi_suffix         = '';
+		$default_hidpi_suffix = apply_filters( 'ewww_image_optimizer_hidpi_suffix', '@2x' );
 		// See if this is a retina image, and strip the suffix.
 		if ( preg_match( "/$default_hidpi_suffix$/", $filename ) ) {
 			// Strip the dimensions.
@@ -778,25 +808,27 @@ class EWWW_Image {
 			$filename   = str_replace( $fileresize[0], '', $filename );
 			$dimensions = $fileresize[0];
 		}
-		// While a file exists with the current increment.
-		while ( file_exists( $filename . $suffix . $dimensions . $hidpi_suffix . $fileext ) ) {
-			// Increment the increment...
+		// While a file exists with the current iterator.
+		while ( \ewwwio_is_file( $filename . $suffix . $dimensions . $hidpi_suffix . $fileext ) ) {
+			ewwwio_debug_message( "$filenum is not good enough, bumping" );
+			// Bump the numerical appendage.
 			$filenum++;
 			$suffix = '-' . $filenum;
 		}
 		// All done, let's reconstruct the filename.
 		ewwwio_memory( __METHOD__ );
 		$this->increment = $filenum;
+		$this->suffix    = $suffix;
 		return $filename . $suffix . $dimensions . $hidpi_suffix . $fileext;
 	}
 
 	/**
-	 * Update urls in the WP database.
+	 * Update URLs in the WP database.
 	 *
 	 * @global object $wpdb
 	 *
-	 * @param string $new_path Optional. The url to the newly converted image.
-	 * @param string $old_path Optional. The url to the old version of the image.
+	 * @param string $new_path Optional. The URL to the newly converted image.
+	 * @param string $old_path Optional. The URL to the old version of the image.
 	 */
 	public function replace_url( $new_path = '', $old_path = '' ) {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
@@ -809,9 +841,9 @@ class EWWW_Image {
 		if ( empty( $new_path ) && empty( $old_path ) ) {
 			$old_guid = $this->url;
 		} else {
-			$old_guid = trailingslashit( dirname( $this->url ) ) . basename( $old );
+			$old_guid = trailingslashit( dirname( $this->url ) ) . \wp_basename( $old );
 		}
-		$guid = trailingslashit( dirname( $this->url ) ) . basename( $new );
+		$guid = trailingslashit( dirname( $this->url ) ) . \wp_basename( $new );
 		// Construct the new guid based on the filename from the attachment metadata.
 		ewwwio_debug_message( "old guid: $old_guid" );
 		ewwwio_debug_message( "new guid: $guid" );

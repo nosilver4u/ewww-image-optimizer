@@ -1963,7 +1963,7 @@ function ewww_image_optimizer_jpegtran_autorotate( $file, $type, $orientation ) 
  * @param int    $gallery_type 1=WordPress, 2=nextgen, 3=flagallery, 4=aux_images, 5=image editor,
  *                             6=imagestore.
  * @param bool   $converted True if this is a resize and the full image was converted to a
- *                          new format.
+ *                          new format. Deprecated, always false now.
  * @param bool   $new True if this is a new image, so it should attempt conversion regardless of
  *                    previous results.
  * @param bool   $fullsize True if this is a full size (original) image.
@@ -2124,7 +2124,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				} else {
 					// If this is a full size image.
 					// Get a unique filename for the png image.
-					list( $pngfile, $filenum ) = ewww_image_optimizer_unique_filename( $file, '.png' );
+					$pngfile = ewww_image_optimizer_unique_filename( $file, '.png' );
 				}
 			} else {
 				// Otherwise, turn conversion OFF.
@@ -2156,7 +2156,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 						// Delete the original JPG.
 						ewwwio_delete_file( $original );
 					}
-					$converted   = $filenum;
+					$converted   = true;
 					$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, 'image/png', null, $orig_size !== $new_size );
 				} else {
 					$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, $type, null, $orig_size !== $new_size );
@@ -2355,7 +2355,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					// Let webp know what we're dealing with now.
 					$type = 'image/png';
 					// Successful conversion and we store the increment.
-					$converted = $filenum;
+					$converted = true;
 				} else {
 					ewwwio_debug_message( 'converted PNG is no good' );
 					// Otherwise delete the PNG.
@@ -2408,7 +2408,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					// If this is a full version.
 				} else {
 					// Construct the filename for the new JPG.
-					list( $jpgfile, $filenum ) = ewww_image_optimizer_unique_filename( $file, '.jpg' );
+					$jpgfile = ewww_image_optimizer_unique_filename( $file, '.jpg' );
 				}
 			} else {
 				ewwwio_debug_message( 'PNG to JPG conversion turned off' );
@@ -2459,7 +2459,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 						// Delete the original JPG.
 						ewwwio_delete_file( $original );
 					}
-					$converted   = $filenum;
+					$converted   = true;
 					$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, 'image/jpeg', null, $orig_size !== $new_size );
 				} else {
 					$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, $type, null, $orig_size !== $new_size );
@@ -2702,7 +2702,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					// Let webp know what we're dealing with now.
 					$type = 'image/jpeg';
 					// Successful conversion, so we store the increment.
-					$converted = $filenum;
+					$converted = true;
 				} else {
 					$converted = false;
 					if ( ewwwio_is_file( $jpgfile ) ) {
@@ -2730,7 +2730,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				} else {
 					// If this is the full version...
 					// construct the filename for the new PNG.
-					list( $pngfile, $filenum ) = ewww_image_optimizer_unique_filename( $file, '.png' );
+					$pngfile = ewww_image_optimizer_unique_filename( $file, '.png' );
 				}
 			} else {
 				// Turn conversion OFF.
@@ -2762,7 +2762,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 						// Delete the original GIF.
 						ewwwio_delete_file( $original );
 					}
-					$converted   = $filenum;
+					$converted   = true;
 					$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, 'image/png', null, $orig_size !== $new_size );
 				} else {
 					$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, $type, null, $orig_size !== $new_size );
@@ -2881,7 +2881,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					// Normally this would be at the end of the section, but we only want to do webp if the image was successfully converted to a png.
 					$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, $type, $tools['CWEBP'], $orig_size !== $new_size );
 					// Successful conversion, so we store the increment.
-					$converted = $filenum;
+					$converted = true;
 				} else {
 					$converted = false;
 					if ( ewwwio_is_file( $pngfile ) ) {
