@@ -140,9 +140,12 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 6.9.3 =
 * changed: improved Brizy Builder compatibility
 * changed: async optimization defers processing by WP Offload Media until after optimization is complete, fixes issues with WP Offload Media 3.1+
+* fixed: converting an image with the same base name as a previous upload (image.png vs. image.jpg) could cause naming conflict when using WP Offload Media with Remove Local Media option
 * fixed: Bulk Optimize encounters unrecoverable error when a GIF or PDF file takes too long to optimize
 * fixed: Easy IO fails to apply crop for custom size in some cases
 * fixed: Picture WebP rewriter uses mixed single/double quotes
+* improved: ensure originals are removed from local storage after conversion when using WP Offload Media with Remove Local Media option
+* improved: ensure originals are removed from cloud storage after conversion and subsequent deletion when using WP Offload Media
 
 = 6.9.2 =
 * changed: improved Easy IO detection for site URL changes

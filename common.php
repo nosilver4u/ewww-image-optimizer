@@ -8982,8 +8982,12 @@ function ewww_image_optimizer_detect_wpsf_location_lock() {
  */
 function ewww_image_optimizer_as3cf_attachment_file_paths( $paths, $id ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$as3cf_action = 'unknown';
+	if ( ! empty( $_REQUEST['action'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		$as3cf_action = sanitize_text_field( wp_unslash( $_REQUEST['action'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
+	}
 	foreach ( $paths as $size => $path ) {
-		ewwwio_debug_message( "checking $path for WebP in as3cf queue" );
+		ewwwio_debug_message( "checking $path for WebP or converted images in as3cf $as3cf_action queue" );
 		if ( is_string( $path ) && ewwwio_is_file( $path . '.webp' ) ) {
 			$paths[ $size . '-webp' ] = $path . '.webp';
 			ewwwio_debug_message( "added $path.webp to as3cf queue" );
@@ -8995,13 +8999,22 @@ function ewww_image_optimizer_as3cf_attachment_file_paths( $paths, $id ) {
 			is_string( $path ) &&
 			! ewwwio_is_file( $path )
 		) {
-			if ( ! isset( $optimized ) ) {
-				global $wpdb;
-				$optimized = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 LIMIT 1", $id ) );
-			}
+			global $wpdb;
+			$optimized = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 LIMIT 1", $id ) );
 			if ( $optimized ) {
 				$paths[ $size . '-webp' ] = $path . '.webp';
 				ewwwio_debug_message( "added $path.webp to as3cf queue (for potential local copy)" );
+			}
+		}
+		global $ewww_image;
+		if ( is_string( $path ) && isset( $ewww_image ) && ! empty( $ewww_image->converted ) ) {
+			$opt_image = ewww_image_optimizer_find_already_optimized( $path );
+			if ( isset( $opt_image['path'] ) ) {
+				$local_path = ewww_image_optimizer_absolutize_path( $opt_image['path'] );
+				if ( $local_path === $path && ! empty( $opt_image['converted'] ) ) {
+					$paths[ $size . '-orig' ] = ewww_image_optimizer_absolutize_path( $opt_image['converted'] );
+					ewwwio_debug_message( "added {$opt_image['converted']} to as3cf queue" );
+				}
 			}
 		}
 	}
@@ -9023,6 +9036,23 @@ function ewww_image_optimizer_as3cf_remove_attachment_file_paths( $paths, $id ) 
 		if ( is_string( $path ) ) {
 			$paths[] = $path . '.webp';
 			ewwwio_debug_message( "added $path.webp to as3cf deletion queue" );
+		}
+		if (
+			is_string( $path ) &&
+			(
+				ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) ||
+				ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' ) ||
+				ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_to_png' )
+			)
+		) {
+			$ewww_image = ewww_image_optimizer_find_already_optimized( $path );
+			if ( isset( $ewww_image['path'] ) ) {
+				$local_path = ewww_image_optimizer_absolutize_path( $ewww_image['path'] );
+				if ( $local_path === $path && ! empty( $ewww_image['converted'] ) ) {
+					$paths[] = ewww_image_optimizer_absolutize_path( $ewww_image['converted'] );
+					ewwwio_debug_message( "added {$ewww_image['converted']} to as3cf deletion queue" );
+				}
+			}
 		}
 	}
 	return $paths;
