@@ -145,7 +145,7 @@ add_action( 'admin_action_ewww_image_optimizer_manual_restore', 'ewww_image_opti
 // Legacy (non-AJAX) action hook for manually restoring a backup from the API.
 add_action( 'admin_action_ewww_image_optimizer_manual_image_restore', 'ewww_image_optimizer_manual' );
 // Cleanup routine when an attachment is deleted.
-add_action( 'delete_attachment', 'ewww_image_optimizer_delete' );
+add_action( 'delete_attachment', 'ewww_image_optimizer_delete', 21 );
 // Cleanup db records when Enable Media Replace replaces a file.
 add_action( 'wp_handle_replace', 'ewww_image_optimizer_media_replace' );
 // Cleanup db records when Phoenix Media Rename is finished.
@@ -4639,6 +4639,7 @@ function ewww_image_optimizer_delete( $id ) {
 				}
 			}
 		}
+		ewwwio_debug_message( "removing all db records for attachment $id" );
 		$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'attachment_id' => $id ) );
 	}
 	$s3_path = false;
@@ -4678,6 +4679,7 @@ function ewww_image_optimizer_delete( $id ) {
 			ewwwio_debug_message( 'removing: ' . $file_path );
 			ewwwio_delete_file( $file_path );
 			$eio_backup->delete_local_backup( $file_path );
+			ewwwio_debug_message( "removing all db records for $file_path" );
 			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
 		}
 	}
@@ -4699,9 +4701,11 @@ function ewww_image_optimizer_delete( $id ) {
 			unlink( $s3_dir . wp_basename( $meta['original_image'] ) . '.webp' );
 		}
 		$eio_backup->delete_local_backup( $orig_path );
+		ewwwio_debug_message( "removing all db records for $orig_path" );
 		$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $orig_path ) ) );
 	}
 	// Remove the regular image from the ewwwio_images tables.
+	ewwwio_debug_message( "removing all db records for $file_path" );
 	$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
 	// Resized versions, so we can continue.
 	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
@@ -4724,6 +4728,7 @@ function ewww_image_optimizer_delete( $id ) {
 				unlink( $s3_dir . wp_basename( $data['file'] ) . '.webp' );
 			}
 			$eio_backup->delete_local_backup( $base_dir . wp_basename( $data['file'] ) );
+			ewwwio_debug_message( "removing all db records for {$data['file']}" );
 			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['file'] ) ) );
 			// If the original resize is set, and still exists.
 			if ( ! empty( $data['orig_file'] ) && ewwwio_is_file( $base_dir . $data['orig_file'] ) ) {
@@ -4738,6 +4743,7 @@ function ewww_image_optimizer_delete( $id ) {
 					ewwwio_debug_message( 'removing: ' . $base_dir . $data['orig_file'] );
 					ewwwio_delete_file( $base_dir . $data['orig_file'] );
 					$eio_backup->delete_local_backup( $base_dir . $data['orig_file'] );
+					ewwwio_debug_message( "removing all db records for {$data['orig_file']}" );
 					$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['orig_file'] ) ) );
 				}
 			}
@@ -4850,6 +4856,7 @@ function ewww_image_optimizer_media_replace( $attachment ) {
 				}
 			}
 		}
+		ewwwio_debug_message( "removing all db records for attachment $id" );
 		$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'attachment_id' => $id ) );
 	}
 	// Retrieve the image metadata.
@@ -8336,6 +8343,24 @@ function ewww_image_optimizer_background_mode_enabled() {
 }
 
 /**
+ * Checks to see if format conversion is enabled.
+ *
+ * @return bool Whether conversion is enabled (true) or not (false).
+ */
+function ewww_image_optimizer_format_conversion_enabled() {
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) ) {
+		return true;
+	}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' ) ) {
+		return true;
+	}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_to_png' ) ) {
+		return true;
+	}
+	return false;
+}
+
+/**
  * Checks to see if we should use background optimization for an image.
  *
  * Uses the mimetype and current configuration to determine if background mode should be used.
@@ -8987,16 +9012,17 @@ function ewww_image_optimizer_as3cf_attachment_file_paths( $paths, $id ) {
 		$as3cf_action = sanitize_text_field( wp_unslash( $_REQUEST['action'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
 	}
 	foreach ( $paths as $size => $path ) {
+		if ( ! is_string( $path ) ) {
+			continue;
+		}
 		ewwwio_debug_message( "checking $path for WebP or converted images in as3cf $as3cf_action queue" );
-		if ( is_string( $path ) && ewwwio_is_file( $path . '.webp' ) ) {
+		if ( ewwwio_is_file( $path . '.webp' ) ) {
 			$paths[ $size . '-webp' ] = $path . '.webp';
 			ewwwio_debug_message( "added $path.webp to as3cf queue" );
 		} elseif (
 			// WOM(pro) is downloading from bucket to server, WebP is enabled, and the local/server file does not exist.
-			! empty( $_REQUEST['action'] ) && // phpcs:ignore WordPress.Security.NonceVerification
-			'download' === $_REQUEST['action'] && // phpcs:ignore WordPress.Security.NonceVerification
+			'download' === $as3cf_action &&
 			ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) &&
-			is_string( $path ) &&
 			! ewwwio_is_file( $path )
 		) {
 			global $wpdb;
@@ -9007,13 +9033,19 @@ function ewww_image_optimizer_as3cf_attachment_file_paths( $paths, $id ) {
 			}
 		}
 		global $ewww_image;
-		if ( is_string( $path ) && isset( $ewww_image ) && ! empty( $ewww_image->converted ) ) {
+		if (
+			// If the $ewww_image global is set and indicates a successful conversion and we're not deleting originals, then they should be re-uploaded to S3.
+			( isset( $ewww_image ) && ! empty( $ewww_image->converted ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) ) ||
+			// OR WOM(pro) is downloading from bucket to server and conversion is enabled.
+			( 'download' === $as3cf_action && ewww_image_optimizer_format_conversion_enabled() )
+		) {
 			$opt_image = ewww_image_optimizer_find_already_optimized( $path );
-			if ( isset( $opt_image['path'] ) ) {
+			if ( ! empty( $opt_image['path'] ) && ! empty( $opt_image['converted'] ) ) {
 				$local_path = ewww_image_optimizer_absolutize_path( $opt_image['path'] );
-				if ( $local_path === $path && ! empty( $opt_image['converted'] ) ) {
-					$paths[ $size . '-orig' ] = ewww_image_optimizer_absolutize_path( $opt_image['converted'] );
-					ewwwio_debug_message( "added {$opt_image['converted']} to as3cf queue" );
+				$orig_path  = ewww_image_optimizer_absolutize_path( $opt_image['converted'] );
+				if ( $local_path === $path ) { // Double-checking, because sometimes we find optimized images where the filename matches, but the CaSe does not.
+					$paths[ $size . '-orig' ] = $orig_path;
+					ewwwio_debug_message( "added {$orig_path} to as3cf queue" );
 				}
 			}
 		}
@@ -9033,21 +9065,17 @@ function ewww_image_optimizer_as3cf_attachment_file_paths( $paths, $id ) {
 function ewww_image_optimizer_as3cf_remove_attachment_file_paths( $paths, $id ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	foreach ( $paths as $path ) {
-		if ( is_string( $path ) ) {
-			$paths[] = $path . '.webp';
-			ewwwio_debug_message( "added $path.webp to as3cf deletion queue" );
+		if ( ! is_string( $path ) ) {
+			continue;
 		}
-		if (
-			is_string( $path ) &&
-			(
-				ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) ||
-				ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' ) ||
-				ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_to_png' )
-			)
-		) {
+		$paths[] = $path . '.webp';
+		ewwwio_debug_message( "added $path.webp to as3cf deletion queue" );
+		if ( ewww_image_optimizer_format_conversion_enabled() ) {
+			ewwwio_debug_message( "conversion enabled, checking $path" );
 			$ewww_image = ewww_image_optimizer_find_already_optimized( $path );
 			if ( isset( $ewww_image['path'] ) ) {
 				$local_path = ewww_image_optimizer_absolutize_path( $ewww_image['path'] );
+				ewwwio_debug_message( "found optimized $local_path, validating and checking for pre-converted original" );
 				if ( $local_path === $path && ! empty( $ewww_image['converted'] ) ) {
 					$paths[] = ewww_image_optimizer_absolutize_path( $ewww_image['converted'] );
 					ewwwio_debug_message( "added {$ewww_image['converted']} to as3cf deletion queue" );
