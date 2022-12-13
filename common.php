@@ -133,7 +133,7 @@ add_filter( 'ewww_image_optimizer_bypass', 'ewww_image_optimizer_ignore_file', 1
 // Ensure we populate the queue with webp images for WP Offload S3.
 add_filter( 'as3cf_attachment_file_paths', 'ewww_image_optimizer_as3cf_attachment_file_paths', 10, 2 );
 // Make sure to remove webp images from remote storage when an attachment is deleted.
-add_filter( 'as3cf_remove_attachment_paths', 'ewww_image_optimizer_as3cf_remove_attachment_file_paths', 10, 2 );
+add_filter( 'as3cf_remove_source_files_from_provider', 'ewww_image_optimizer_as3cf_remove_source_files' );
 // Fix the ContentType for WP Offload S3 on WebP images.
 add_filter( 'as3cf_object_meta', 'ewww_image_optimizer_as3cf_object_meta' );
 // Get admin color scheme and save it for later.
@@ -8343,24 +8343,6 @@ function ewww_image_optimizer_background_mode_enabled() {
 }
 
 /**
- * Checks to see if format conversion is enabled.
- *
- * @return bool Whether conversion is enabled (true) or not (false).
- */
-function ewww_image_optimizer_format_conversion_enabled() {
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) ) {
-		return true;
-	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' ) ) {
-		return true;
-	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_to_png' ) ) {
-		return true;
-	}
-	return false;
-}
-
-/**
  * Checks to see if we should use background optimization for an image.
  *
  * Uses the mimetype and current configuration to determine if background mode should be used.
@@ -9032,18 +9014,17 @@ function ewww_image_optimizer_as3cf_attachment_file_paths( $paths, $id ) {
 				ewwwio_debug_message( "added $path.webp to as3cf queue (for potential local copy)" );
 			}
 		}
-		global $ewww_image;
-		if (
-			// If the $ewww_image global is set and indicates a successful conversion and we're not deleting originals, then they should be re-uploaded to S3.
-			( isset( $ewww_image ) && ! empty( $ewww_image->converted ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) ) ||
-			// OR WOM(pro) is downloading from bucket to server and conversion is enabled.
-			( 'download' === $as3cf_action && ewww_image_optimizer_format_conversion_enabled() )
-		) {
+		if ( ! is_admin() ) {
+			continue;
+		}
+		// If we're not deleting originals, then they should be re-uploaded to S3.
+		// We'd check if conversion options are enabled, but folks can convert via the Media Library without them enabled, so we need to account for that.
+		if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) ) {
 			$opt_image = ewww_image_optimizer_find_already_optimized( $path );
 			if ( ! empty( $opt_image['path'] ) && ! empty( $opt_image['converted'] ) ) {
-				$local_path = ewww_image_optimizer_absolutize_path( $opt_image['path'] );
-				$orig_path  = ewww_image_optimizer_absolutize_path( $opt_image['converted'] );
-				if ( $local_path === $path ) { // Double-checking, because sometimes we find optimized images where the filename matches, but the CaSe does not.
+				$orig_path = ewww_image_optimizer_absolutize_path( $opt_image['converted'] );
+				// If WOM(pro) is downloading from bucket to server or a local original exists.
+				if ( 'download' === $as3cf_action || ewwwio_is_file( $orig_path ) ) {
 					$paths[ $size . '-orig' ] = $orig_path;
 					ewwwio_debug_message( "added {$orig_path} to as3cf queue" );
 				}
@@ -9056,30 +9037,27 @@ function ewww_image_optimizer_as3cf_attachment_file_paths( $paths, $id ) {
 /**
  * Cleanup remote storage for WP Offload S3.
  *
- * Checks for WebP derivatives so that they can be removed.
+ * Checks for WebP derivatives and pre-converted originals so that they can be removed.
  *
  * @param array $paths The image paths currently queued for deletion.
- * @param int   $id The ID number of the image in the database.
  * @return array A list of paths to remove.
  */
-function ewww_image_optimizer_as3cf_remove_attachment_file_paths( $paths, $id ) {
+function ewww_image_optimizer_as3cf_remove_source_files( $paths ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	foreach ( $paths as $path ) {
+	foreach ( $paths as $size => $path ) {
 		if ( ! is_string( $path ) ) {
 			continue;
 		}
-		$paths[] = $path . '.webp';
+		$paths[ $size . '-webp' ] = $path . '.webp';
 		ewwwio_debug_message( "added $path.webp to as3cf deletion queue" );
-		if ( ewww_image_optimizer_format_conversion_enabled() ) {
-			ewwwio_debug_message( "conversion enabled, checking $path" );
-			$ewww_image = ewww_image_optimizer_find_already_optimized( $path );
-			if ( isset( $ewww_image['path'] ) ) {
-				$local_path = ewww_image_optimizer_absolutize_path( $ewww_image['path'] );
-				ewwwio_debug_message( "found optimized $local_path, validating and checking for pre-converted original" );
-				if ( $local_path === $path && ! empty( $ewww_image['converted'] ) ) {
-					$paths[] = ewww_image_optimizer_absolutize_path( $ewww_image['converted'] );
-					ewwwio_debug_message( "added {$ewww_image['converted']} to as3cf deletion queue" );
-				}
+		$ewww_image = ewww_image_optimizer_find_already_optimized( $path );
+		if ( ! empty( $ewww_image['path'] ) ) {
+			$local_path = ewww_image_optimizer_absolutize_path( $ewww_image['path'] );
+			ewwwio_debug_message( "found optimized $local_path, validating and checking for pre-converted original" );
+			if ( ! empty( $ewww_image['converted'] ) ) {
+				$orig_path                = ewww_image_optimizer_absolutize_path( $ewww_image['converted'] );
+				$paths[ $size . '-orig' ] = $orig_path;
+				ewwwio_debug_message( "added {$orig_path} to as3cf deletion queue" );
 			}
 		}
 	}
