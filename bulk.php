@@ -2006,7 +2006,7 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		global $ewww_image;
 		$ewww_image = $image;
 		if ( 'full' === $image->resize && ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) && ! function_exists( 'imsanity_get_max_width_height' ) ) {
-			if ( ! $meta || ! is_array( $meta ) ) {
+			if ( empty( $meta ) || ! is_array( $meta ) ) {
 				$meta = wp_get_attachment_metadata( $image->attachment_id );
 			}
 			$new_dimensions = ewww_image_optimizer_resize_upload( $image->file );
@@ -2061,7 +2061,7 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		}
 		// If this is a full size image and it was converted.
 		if ( 'full' === $image->resize && false !== $converted ) {
-			if ( ! $meta || ! is_array( $meta ) ) {
+			if ( empty( $meta ) || ! is_array( $meta ) ) {
 				$meta = wp_get_attachment_metadata( $image->attachment_id );
 			}
 			$image->file      = $file;
@@ -2086,7 +2086,7 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 
 		// Do metadata update after full-size is processed, usually because of conversion or resizing.
 		if ( 'full' === $image->resize && $image->attachment_id ) {
-			if ( $meta && is_array( $meta ) ) {
+			if ( ! empty( $meta ) && is_array( $meta ) ) {
 				clearstatcache();
 				if ( ! empty( $image->file ) && is_file( $image->file ) ) {
 					$meta['filesize'] = filesize( $image->file );
