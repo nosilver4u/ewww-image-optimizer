@@ -102,8 +102,10 @@ class EWWWIO_Media_Background_Process extends EWWWIO_Background_Process {
 			return $item;
 		}
 		if ( class_exists( 'wpCloud\StatelessMedia\EWWW' ) ) {
+			ewwwio_debug_message( 'async optimize complete, triggering wp_update_attachment_metadata filter with existing meta' );
 			$meta = apply_filters( 'wp_update_attachment_metadata', wp_get_attachment_metadata( $image->attachment_id ), $image->attachment_id );
 		} else {
+			ewwwio_debug_message( 'async optimize complete, running wp_update_attachment_metadata()' );
 			wp_update_attachment_metadata( $id, $meta );
 		}
 		return false;
