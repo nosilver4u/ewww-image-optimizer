@@ -8998,6 +8998,9 @@ function ewww_image_optimizer_as3cf_attachment_file_paths( $paths, $id ) {
 		if ( ! is_string( $path ) ) {
 			continue;
 		}
+		if ( false !== strpos( $size, '-webp' ) || str_ends_with( $path, '.webp' ) ) {
+			continue;
+		}
 		ewwwio_debug_message( "checking $path for WebP or converted images in as3cf $as3cf_action queue" );
 		if ( ewwwio_is_file( $path . '.webp' ) ) {
 			$paths[ $size . '-webp' ] = $path . '.webp';
@@ -9047,6 +9050,9 @@ function ewww_image_optimizer_as3cf_remove_source_files( $paths ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	foreach ( $paths as $size => $path ) {
 		if ( ! is_string( $path ) ) {
+			continue;
+		}
+		if ( false !== strpos( $size, '-webp' ) || str_ends_with( $path, '.webp' ) ) {
 			continue;
 		}
 		$paths[ $size . '-webp' ] = $path . '.webp';
