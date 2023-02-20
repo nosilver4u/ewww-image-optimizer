@@ -3182,7 +3182,7 @@ function ewww_image_optimizer_admin_menu() {
 		// Adds Bulk Optimize to the media library bulk actions.
 		add_filter( 'bulk_actions-upload', 'ewww_image_optimizer_add_bulk_media_actions' );
 	}
-	add_submenu_page( null, esc_html__( 'Migrate WebP Images', 'ewww-image-optimizer' ), esc_html__( 'Migrate WebP Images', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-webp-migrate', 'ewww_image_optimizer_webp_migrate_preview' );
+	add_media_page( esc_html__( 'Migrate WebP Images', 'ewww-image-optimizer' ), esc_html__( 'Migrate WebP Images', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-webp-migrate', 'ewww_image_optimizer_webp_migrate_preview' );
 
 	// Add tools page.
 	add_management_page(
