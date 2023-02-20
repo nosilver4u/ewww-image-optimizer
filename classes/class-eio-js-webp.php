@@ -81,7 +81,7 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		parent::__construct();
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 
-		$this->request_uri = add_query_arg( null, null );
+		$this->request_uri = add_query_arg( '', '' );
 		if ( false === strpos( $this->request_uri, 'page=ewww-image-optimizer-options' ) ) {
 			$this->debug_message( "request uri is {$this->request_uri}" );
 		} else {

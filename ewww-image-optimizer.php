@@ -36,7 +36,7 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70200 ) {
 	// Prevent loading both EWWW IO plugins.
 	add_action( 'network_admin_notices', 'ewww_image_optimizer_dual_plugin' );
 	add_action( 'admin_notices', 'ewww_image_optimizer_dual_plugin' );
-} elseif ( false === strpos( add_query_arg( null, null ), 'ewwwio_disable=1' ) ) {
+} elseif ( false === strpos( add_query_arg( '', '' ), 'ewwwio_disable=1' ) ) {
 	/**
 	 * The full path of the plugin file (this file).
 	 *

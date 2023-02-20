@@ -458,7 +458,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			if ( is_admin() ) {
 				return false;
 			}
-			$uri = add_query_arg( null, null );
+			$uri = add_query_arg( '', '' );
 			if (
 				strpos( $uri, 'cornerstone=' ) !== false ||
 				strpos( $uri, 'cornerstone-endpoint' ) !== false ||

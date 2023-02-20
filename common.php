@@ -246,7 +246,7 @@ if ( 'done' !== get_option( 'ewww_image_optimizer_relative_migration_status' ) )
 function ewww_image_optimizer_parser_init() {
 	$buffer_start = false;
 	// If ExactDN is enabled.
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && false === strpos( add_query_arg( null, null ), 'exactdn_disable=1' ) ) {
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && false === strpos( add_query_arg( '', '' ), 'exactdn_disable=1' ) ) {
 		if ( ! ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ) {
 			// Un-configure Autoptimize CDN domain.
 			if ( defined( 'AUTOPTIMIZE_PLUGIN_DIR' ) && strpos( ewww_image_optimizer_get_option( 'autoptimize_cdn_url' ), 'exactdn' ) ) {
@@ -1142,7 +1142,7 @@ function ewww_image_optimizer_admin_init() {
 	add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_settings_script' );
 	// Queue the function that contains custom styling for our progressbars.
 	add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_progressbar_style' );
-	if ( false !== strpos( add_query_arg( null, null ), 'site-new.php' ) ) {
+	if ( false !== strpos( add_query_arg( '', '' ), 'site-new.php' ) ) {
 		if ( is_multisite() && is_network_admin() && isset( $_GET['update'] ) && 'added' === $_GET['update'] && ! empty( $_GET['id'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			add_action( 'network_admin_notices', 'ewww_image_optimizer_easyio_site_initialized' );
 			add_action( 'admin_notices', 'ewww_image_optimizer_easyio_site_initialized' );
@@ -2450,7 +2450,7 @@ function ewww_image_optimizer_notice_reoptimization() {
 		// Do a check for 10+ optimizations on 5+ images.
 		if ( ! empty( $reoptimized ) && $reoptimized > 5 ) {
 			$debugging_page = admin_url( 'tools.php?page=ewww-image-optimizer-tools' );
-			$reset_page     = wp_nonce_url( add_query_arg( null, null ), 'reset_reoptimization_counters', 'ewww_reset_reopt_nonce' );
+			$reset_page     = wp_nonce_url( add_query_arg( '', '' ), 'reset_reoptimization_counters', 'ewww_reset_reopt_nonce' );
 			// Display an alert, and let the user reset the warning if they wish.
 			echo "<div id='ewww-image-optimizer-warning-reoptimizations' class='error'><p>" .
 				sprintf(
@@ -3182,7 +3182,7 @@ function ewww_image_optimizer_admin_menu() {
 		// Adds Bulk Optimize to the media library bulk actions.
 		add_filter( 'bulk_actions-upload', 'ewww_image_optimizer_add_bulk_media_actions' );
 	}
-	add_submenu_page( null, esc_html__( 'Migrate WebP Images', 'ewww-image-optimizer' ), esc_html__( 'Migrate WebP Images', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-webp-migrate', 'ewww_image_optimizer_webp_migrate_preview' );
+	add_submenu_page( '', esc_html__( 'Migrate WebP Images', 'ewww-image-optimizer' ), esc_html__( 'Migrate WebP Images', 'ewww-image-optimizer' ), $permissions, 'ewww-image-optimizer-webp-migrate', 'ewww_image_optimizer_webp_migrate_preview' );
 
 	// Add tools page.
 	add_management_page(
@@ -12862,7 +12862,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				'page'         => 'ewww-image-optimizer-options',
 				'enable-local' => 1,
 			),
-			null
+			''
 		),
 		'ewww_image_optimizer_options-options'
 	);
@@ -12872,7 +12872,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				'page'         => 'ewww-image-optimizer-options',
 				'enable-local' => 0,
 			),
-			null
+			''
 		),
 		'ewww_image_optimizer_options-options'
 	);
@@ -12882,7 +12882,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				'page'        => 'ewww-image-optimizer-options',
 				'rescue_mode' => 1,
 			),
-			null
+			''
 		),
 		'ewww_image_optimizer_options-options'
 	);
