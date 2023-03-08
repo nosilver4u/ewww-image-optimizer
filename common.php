@@ -14732,7 +14732,8 @@ function ewww_image_optimizer_disable_debugging() {
 	if ( empty( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
-	ewww_image_optimizer_set_option( 'ewww_image_optimizer_debug', false );
+	update_option( 'ewww_image_optimizer_debug', false );
+	update_site_option( 'ewww_image_optimizer_debug', false );
 	$sendback = wp_get_referer();
 	wp_safe_redirect( $sendback );
 	exit;
