@@ -138,9 +138,11 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.9.4 =
+* added: allow video files to go through Easy IO CDN (pass through)
 * fixed: WebP images are added to WP Offload Media queue multiple times
 * fixed: PHP 8.1 deprecation notices from usage of add_submenu_page and add_query_arg
 * fixed: debug notice cannot be dismissed on sub-sites for network-activated installs
+* fixed: PHP notice when cleaning attachment metadata
 
 = 6.9.3 =
 * changed: improved Brizy Builder compatibility

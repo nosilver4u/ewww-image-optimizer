@@ -10411,12 +10411,13 @@ function ewww_image_optimizer_get_translated_media_results( $id ) {
 }
 
 /**
- * Removes optimization from metadata, because we store it all in the images table now.
+ * Removes optimization data from metadata, because we store it all in the images table now.
  *
  * @param array $meta The attachment metadata.
+ * @param int   $id The attachment ID number.
  * @return array The attachment metadata after being cleaned.
  */
-function ewww_image_optimizer_clean_meta( $meta ) {
+function ewww_image_optimizer_clean_meta( $meta, $id ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$changed = false;
 	if ( is_array( $meta ) && ! empty( $meta['ewww_image_optimizer'] ) ) {
@@ -10525,11 +10526,11 @@ function ewww_image_optimizer_migrate_meta_to_db( $id, $meta, $bail_early = fals
 		$file_path = get_attached_file( $id );
 		if ( ! $file_path ) {
 			ewwwio_debug_message( 'no file found for remote attachment' );
-			return ewww_image_optimizer_clean_meta( $meta );
+			return ewww_image_optimizer_clean_meta( $meta, $id );
 		}
 	} elseif ( ! $file_path ) {
 		ewwwio_debug_message( 'no file found for attachment' );
-		return ewww_image_optimizer_clean_meta( $meta );
+		return ewww_image_optimizer_clean_meta( $meta, $id );
 	}
 	$converted        = ( is_array( $meta ) && ! empty( $meta['converted'] ) && ! empty( $meta['orig_file'] ) ? trailingslashit( dirname( $file_path ) ) . basename( $meta['orig_file'] ) : false );
 	$full_size_update = ewww_image_optimizer_update_file_from_meta( $file_path, 'media', $id, 'full', $converted );
@@ -10598,7 +10599,7 @@ function ewww_image_optimizer_migrate_meta_to_db( $id, $meta, $bail_early = fals
 			ewww_image_optimizer_update_file_from_meta( $custom_size_path, 'media', $id, 'custom-size-' . $dimensions );
 		}
 	}
-	$meta = ewww_image_optimizer_clean_meta( $meta );
+	$meta = ewww_image_optimizer_clean_meta( $meta, $id );
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && ewww_image_optimizer_function_exists( 'print_r' ) ) {
 		ewwwio_debug_message( print_r( $meta, true ) );
 	}

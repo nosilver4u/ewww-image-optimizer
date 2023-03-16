@@ -1845,7 +1845,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					$content = preg_replace( '#(<use\s+?(?>xlink:)?href=["\'])(https?:)?//(?>www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/' . $this->content_path . '/#is', '$1$2//' . $this->upload_domain . '$3/?wpcontent-bypass?/', $content );
 				}
 				// Pre-empt rewriting of wp-includes and wp-content if the extension is not allowed by using a temporary placeholder.
-				$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/' . $this->content_path . '/([^"\'?>]+?)\.(htm|html|php|ashx|m4v|mov|wvm|qt|webm|ogv|mp4|m4p|mpg|mpeg|mpv)#i', '$1//' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
+				$content = preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '([^"\'?>]+?)?/' . $this->content_path . '/([^"\'?>]+?)\.(htm|html|php|ashx|wvm|qt|ogv|mpg|mpeg|mpv)#i', '$1//' . $this->upload_domain . '$2/?wpcontent-bypass?/$3.$4', $content );
 				// Pre-empt partial paths that are used by JS to build other URLs.
 				$content = str_replace( $this->content_path . '/themes/jupiter"', '?wpcontent-bypass?/themes/jupiter"', $content );
 				$content = str_replace( $this->content_path . '/plugins/onesignal-free-web-push-notifications/sdk_files/"', '?wpcontent-bypass?/plugins/onesignal-free-web-push-notifications/sdk_files/"', $content );
@@ -3589,7 +3589,7 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 
 			// Clear out args for some files (like videos) that might go through image_downsize.
-			if ( ! empty( $extension ) && in_array( $extension, array( 'mp4', 'm4p', 'm4v', 'mov', 'wvm', 'qt', 'ogv', 'mpg', 'mpeg', 'mpv' ), true ) ) {
+			if ( ! empty( $extension ) && in_array( $extension, array( 'mp4', 'm4v', 'mov', 'mpg', 'mpeg', 'mpv', 'ogv', 'qt', 'webm', 'wmv', 'wvm' ), true ) ) {
 				$args = array();
 			}
 
