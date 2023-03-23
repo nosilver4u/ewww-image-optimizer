@@ -69,11 +69,11 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70200 ) {
 	define( 'EWWW_IMAGE_OPTIMIZER_IMAGES_PATH', plugin_dir_path( __FILE__ ) . 'images/' );
 	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_TOOL_PATH' ) ) {
 		if ( ! defined( 'EWWWIO_CONTENT_DIR' ) ) {
-			$ewwwio_content_dir = trailingslashit( WP_CONTENT_DIR ) . trailingslashit( 'ewww' );
+			$ewwwio_content_dir = trailingslashit( realpath( WP_CONTENT_DIR ) ) . trailingslashit( 'ewww' );
 			if ( ! is_writable( WP_CONTENT_DIR ) || ! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {
 				$upload_dir = wp_get_upload_dir();
 				if ( false === strpos( $upload_dir['basedir'], '://' ) && is_writable( $upload_dir['basedir'] ) ) {
-					$ewwwio_content_dir = trailingslashit( $upload_dir['basedir'] ) . trailingslashit( 'ewww' );
+					$ewwwio_content_dir = trailingslashit( realpath( $upload_dir['basedir'] ) ) . trailingslashit( 'ewww' );
 				}
 			}
 			/**
