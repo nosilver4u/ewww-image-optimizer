@@ -145,6 +145,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: PHP 8.1 deprecation notices from usage of add_submenu_page and add_query_arg
 * fixed: debug notice cannot be dismissed on sub-sites for network-activated installs
 * fixed: PHP notice when cleaning attachment metadata
+* fixed: error when certain options have been stored as strings rather than serialized arrays
+* fixed: tool path and content dir functions don't resolve symlinks
 
 = 6.9.3 =
 * changed: improved Brizy Builder compatibility
