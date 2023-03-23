@@ -1364,10 +1364,13 @@ function ewww_image_optimizer_mimetype( $path, $case ) {
 		ewwwio_debug_message( "$path is not a file, or out of bounds" );
 		return $type;
 	}
-	global $eio_filesystem;
-	ewwwio_get_filesystem();
+	if ( ! is_readable( $path ) ) {
+		ewwwio_debug_message( "$path is not readable" );
+		return $type;
+	}
 	if ( 'i' === $case ) {
-		$file_contents = $eio_filesystem->get_contents( $path );
+		$file_handle   = fopen( $path, 'rb' );
+		$file_contents = fread( $file_handle, 4096 );
 		if ( $file_contents ) {
 			// Read first 12 bytes, which equates to 24 hex characters.
 			$magic = bin2hex( substr( $file_contents, 0, 12 ) );
@@ -1397,7 +1400,7 @@ function ewww_image_optimizer_mimetype( $path, $case ) {
 				ewwwio_debug_message( "ewwwio type: $type" );
 				return $type;
 			}
-			if ( preg_match( '/<svg/', substr( $file_contents, 0, 4096 ) ) ) {
+			if ( preg_match( '/<svg/', $file_contents ) ) {
 				$type = 'image/svg+xml';
 				ewwwio_debug_message( "ewwwio type: $type" );
 				return $type;
@@ -1408,7 +1411,8 @@ function ewww_image_optimizer_mimetype( $path, $case ) {
 		}
 	}
 	if ( 'b' === $case ) {
-		$file_contents = $eio_filesystem->get_contents( $path );
+		$file_handle   = fopen( $path, 'rb' );
+		$file_contents = fread( $file_handle, 12 );
 		if ( $file_contents ) {
 			// Read first 4 bytes, which equates to 8 hex characters.
 			$magic = bin2hex( substr( $file_contents, 0, 4 ) );
