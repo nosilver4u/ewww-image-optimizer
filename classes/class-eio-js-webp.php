@@ -64,6 +64,19 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 	private $load_webp_script = '';
 
 	/**
+	 * A list of attributes to be added to the inline scripts.
+	 *
+	 * @access private
+	 * @var array $inline_script_attrs
+	 */
+	private $inline_script_attrs = array(
+		'data-cfasync'     => 'false',
+		'data-no-defer'    => '1',
+		'data-no-minify'   => '1',
+		'data-no-optimize' => '1',
+	);
+
+	/**
 	 * Request URI.
 	 *
 	 * @var string $request_uri
@@ -143,6 +156,7 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 				add_action( 'wp_head', array( $this, 'inline_load_script' ), -90 );
 			}
 		}
+		$this->inline_script_attrs = (array) apply_filters( 'ewwwio_inline_webp_script_attrs', $this->inline_script_attrs );
 		$this->validate_user_exclusions();
 	}
 
@@ -412,7 +426,17 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 		}
 
 		$body_tags        = $this->get_elements_from_html( $buffer, 'body' );
-		$body_webp_script = '<script data-cfasync="false" data-no-defer="1">if(typeof ewww_webp_supported==="undefined"){var ewww_webp_supported=!1}if(ewww_webp_supported){document.body.classList.add("webp-support")}</script>';
+		$body_webp_script = '<script';
+		foreach ( $this->inline_script_attrs as $attr_name => $attr_value ) {
+			if ( empty( $attr_name ) || empty( $attr_value ) ) {
+				continue;
+			}
+			if ( preg_match( '/[^a-z0-9_-]/i', $attr_name ) ) {
+				continue;
+			}
+			$body_webp_script .= ' ' . $attr_name . '="' . esc_attr( $attr_value ) . '"';
+		}
+		$body_webp_script .= '>if(typeof ewww_webp_supported==="undefined"){var ewww_webp_supported=!1}if(ewww_webp_supported){document.body.classList.add("webp-support")}</script>';
 		if ( $this->is_iterable( $body_tags ) && ! empty( $body_tags[0] ) && false !== strpos( $body_tags[0], '<body' ) ) {
 			// Add the WebP script right after the opening tag.
 			$buffer = str_replace( $body_tags[0], $body_tags[0] . "\n" . $body_webp_script, $buffer );
@@ -1137,7 +1161,17 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 			return;
 		}
 		$this->debug_message( 'inlining check webp script' );
-		echo '<script data-cfasync="false" data-no-defer="1">' . $this->check_webp_script . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo '<script';
+		foreach ( $this->inline_script_attrs as $attr_name => $attr_value ) {
+			if ( empty( $attr_name ) || empty( $attr_value ) ) {
+				continue;
+			}
+			if ( preg_match( '/[^a-z0-9_-]/i', $attr_name ) ) {
+				continue;
+			}
+			echo ' ' . esc_html( $attr_name ) . '="' . esc_attr( $attr_value ) . '"';
+		}
+		echo '>' . $this->check_webp_script . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**
@@ -1154,7 +1188,17 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 			return;
 		}
 		$this->debug_message( 'inlining load webp script' );
-		echo '<script data-cfasync="false" data-no-defer="1">' . $this->load_webp_script . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo '<script';
+		foreach ( $this->inline_script_attrs as $attr_name => $attr_value ) {
+			if ( empty( $attr_name ) || empty( $attr_value ) ) {
+				continue;
+			}
+			if ( preg_match( '/[^a-z0-9_-]/i', $attr_name ) ) {
+				continue;
+			}
+			echo ' ' . esc_html( $attr_name ) . '="' . esc_attr( $attr_value ) . '"';
+		}
+		echo '>' . $this->load_webp_script . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }
 

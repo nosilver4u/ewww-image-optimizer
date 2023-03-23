@@ -147,7 +147,7 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 		function get_style_tags_from_html( $content ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			$styles = array();
-			if ( preg_match_all( '#(?:<style[^>]*?>\s*).*?</style>?#is', $content, $styles ) ) {
+			if ( preg_match_all( '#<style[^>]*?>.*?</style>#is', $content, $styles ) ) {
 				return $styles[0];
 			}
 			return array();

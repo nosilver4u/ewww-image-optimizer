@@ -140,7 +140,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 6.9.4 =
 * added: allow video files to go through Easy IO CDN (pass through)
 * added: support for WP_Image_Editor_Imagick::set_imagick_time_limit() method added in WP 6.2
+* added: ewwwio_inline_webp_script_attrs filter to add custom data-* attributes to the JS WebP inline scripts
 * changed: use fread to check mimetype of files for better performance
+* changed: style tag search/regex cleaned up to prevent excess markup
 * fixed: WebP images are added to WP Offload Media queue multiple times
 * fixed: PHP 8.1 deprecation notices from usage of add_submenu_page and add_query_arg
 * fixed: debug notice cannot be dismissed on sub-sites for network-activated installs
