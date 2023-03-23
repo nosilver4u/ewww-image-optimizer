@@ -139,6 +139,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 6.9.4 =
 * added: allow video files to go through Easy IO CDN (pass through)
+* added: support for WP_Image_Editor_Imagick::set_imagick_time_limit() method added in WP 6.2
 * changed: use fread to check mimetype of files for better performance
 * fixed: WebP images are added to WP Offload Media queue multiple times
 * fixed: PHP 8.1 deprecation notices from usage of add_submenu_page and add_query_arg

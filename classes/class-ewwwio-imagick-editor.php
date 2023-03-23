@@ -221,6 +221,10 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 			}
 			list( $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) = $dims;
 
+			if ( is_callable( 'self::set_imagick_time_limit' ) ) {
+				self::set_imagick_time_limit();
+			}
+
 			$resized = $this->_resize( $dims, $crop );
 
 			if ( is_string( $resized ) ) {
