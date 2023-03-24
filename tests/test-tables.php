@@ -40,7 +40,7 @@ class EWWWIO_Table_Tests extends WP_UnitTestCase {
 	 * Initializes the plugin and installs the ewwwio_images table.
 	 */
 	function set_up() {
-		parent::setUp();
+		parent::set_up();
 		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
 		ewww_image_optimizer_install_table();
 		add_filter( 'query', array( $this, '_create_temporary_tables' ) );
@@ -117,7 +117,7 @@ class EWWWIO_Table_Tests extends WP_UnitTestCase {
 		add_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 		delete_option( 'ewww_image_optimizer_version' );
 		delete_site_option( 'ewww_image_optimizer_version' );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

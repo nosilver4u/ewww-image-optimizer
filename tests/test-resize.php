@@ -48,7 +48,7 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 	 * Initializes the plugin and installs the ewwwio_images table.
 	 */
 	function set_up() {
-		parent::setUp();
+		parent::set_up();
 		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
 		ewww_image_optimizer_install_table();
 		add_filter( 'query', array( $this, '_create_temporary_tables' ) );
@@ -130,6 +130,21 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 		list( $width, $height ) = wp_getimagesize( $file_path );
 		$this->assertEquals( 1024, $width );
 		$this->assertEquals( 1024, $height );
+	}
+
+	/**
+	 * Cleans up ewwwio_images table.
+	 */
+	function tear_down() {
+		global $wpdb;
+		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
+		$wpdb->query( "DROP TABLE IF EXISTS $wpdb->ewwwio_images" );
+		add_filter( 'query', array( $this, '_drop_temporary_tables' ) );
+		delete_option( 'ewww_image_optimizer_version' );
+		delete_option( 'ewww_image_optimizer_cloud_key' );
+		delete_site_option( 'ewww_image_optimizer_version' );
+		delete_site_option( 'ewww_image_optimizer_cloud_key' );
+		parent::tear_down();
 	}
 
 	/**

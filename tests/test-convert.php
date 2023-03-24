@@ -341,7 +341,7 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 		delete_option( 'ewww_image_optimizer_cloud_key' );
 		delete_site_option( 'ewww_image_optimizer_version' );
 		delete_site_option( 'ewww_image_optimizer_cloud_key' );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

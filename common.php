@@ -14751,6 +14751,17 @@ function ewwwio_debug_message( $message ) {
 	if ( ! is_string( $message ) && ! is_int( $message ) && ! is_float( $message ) ) {
 		return;
 	}
+	if ( defined( 'EIO_PHPUNIT' ) && EIO_PHPUNIT ) {
+		if (
+			! empty( $_SERVER['argv'] ) &&
+			( in_array( '--debug', $_SERVER['argv'], true ) || in_array( '--verbose', $_SERVER['argv'], true ) )
+		) {
+			$message = str_replace( '<br>', "\n", $message );
+			$message = str_replace( '<b>', '+', $message );
+			$message = str_replace( '</b>', '+', $message );
+			echo esc_html( $message ) . "\n";
+		}
+	}
 	$message = "$message";
 	if ( defined( 'WP_CLI' ) && WP_CLI ) {
 		WP_CLI::debug( $message );
