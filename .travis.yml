@@ -31,6 +31,9 @@ jobs:
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
     - php: 7.4
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
+    - php: 8.2
+      dist: focal
+      env: WP_VERSION=latest
 
 before_script:
   - export PATH="$HOME/.config/composer/vendor/bin:$PATH"
