@@ -21,7 +21,7 @@ class EWWWIO_Table_Tests extends WP_UnitTestCase {
 	/**
 	 * Downloads test images.
 	 */
-	public static function setUpBeforeClass() {
+	public static function set_up_before_class() {
 		$wp_upload_dir   = wp_upload_dir();
 		$temp_upload_dir = trailingslashit( $wp_upload_dir['basedir'] ) . 'testing/';
 		wp_mkdir_p( $temp_upload_dir );
@@ -39,7 +39,7 @@ class EWWWIO_Table_Tests extends WP_UnitTestCase {
 	/**
 	 * Initializes the plugin and installs the ewwwio_images table.
 	 */
-	function setUp() {
+	function set_up() {
 		parent::setUp();
 		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
 		ewww_image_optimizer_install_table();
@@ -110,7 +110,7 @@ class EWWWIO_Table_Tests extends WP_UnitTestCase {
 	/**
 	 * Cleans up ewwwio_images table.
 	 */
-	function tearDown() {
+	function tear_down() {
 		global $wpdb;
 		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 		$wpdb->query( "DROP TABLE IF EXISTS $wpdb->ewwwio_images" );
@@ -123,7 +123,7 @@ class EWWWIO_Table_Tests extends WP_UnitTestCase {
 	/**
 	 * Cleans up the temp images.
 	 */
-	public static function tearDownAfterClass() {
+	public static function tear_down_after_class() {
 		if ( ewwwio_is_file( self::$test_gif ) ) {
 			unlink( self::$test_gif );
 		}
