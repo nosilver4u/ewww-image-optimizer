@@ -1112,7 +1112,7 @@ class EIO_JS_Webp extends EIO_Page_Parser {
 	 */
 	function generate_url( $url ) {
 		$path_parts = explode( '?', $url );
-		return $path_parts[0] . '.webp' . ( ! empty( $path_parts[1] ) && 'is-pending-load=1' !== $path_parts[1] ? '?' . $path_parts[1] : '' );
+		return apply_filters( 'ewwwio_generated_webp_image_url', $path_parts[0] . '.webp' . ( ! empty( $path_parts[1] ) && 'is-pending-load=1' !== $path_parts[1] ? '?' . $path_parts[1] : '' ) );
 	}
 
 	/**
