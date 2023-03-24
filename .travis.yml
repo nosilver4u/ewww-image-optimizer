@@ -17,6 +17,7 @@ php:
   - 7.2
   - 8.0
   - 8.1
+  - 8.2
 
 services:
   - mysql
@@ -31,9 +32,13 @@ jobs:
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
     - php: 7.4
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
-    - php: 8.2
-      dist: jammy
-      env: WP_VERSION=latest
+#    - php: 8.2
+#      dist: jammy
+#      env: WP_VERSION=latest
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get -y install libonig4
 
 before_script:
   - export PATH="$HOME/.config/composer/vendor/bin:$PATH"
