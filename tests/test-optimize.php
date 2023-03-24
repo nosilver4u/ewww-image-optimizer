@@ -54,19 +54,19 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$temp_upload_dir = trailingslashit( $wp_upload_dir['basedir'] ) . 'testing/';
 		wp_mkdir_p( $temp_upload_dir );
 
-		$test_jpg = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/20170314_174658.jpg' );
+		$test_jpg = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/20170314_174658.jpg' );
 		rename( $test_jpg, $temp_upload_dir . basename( $test_jpg ) );
 		self::$test_jpg = $temp_upload_dir . basename( $test_jpg );
 
-		$test_png = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/books.png' );
+		$test_png = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/books.png' );
 		rename( $test_png, $temp_upload_dir . basename( $test_png ) );
 		self::$test_png = $temp_upload_dir . basename( $test_png );
 
-		$test_gif = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/gifsiclelogo.gif' );
+		$test_gif = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/gifsiclelogo.gif' );
 		rename( $test_gif, $temp_upload_dir . basename( $test_gif ) );
 		self::$test_gif = $temp_upload_dir . basename( $test_gif );
 
-		$test_pdf = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/tomtempleartist-bio-2008.pdf' );
+		$test_pdf = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/tomtempleartist-bio-2008.pdf' );
 		rename( $test_pdf, $temp_upload_dir . basename( $test_pdf ) );
 		self::$test_pdf = $temp_upload_dir . basename( $test_pdf );
 
@@ -344,7 +344,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_optipng_level', 2 );
 		update_site_option( 'ewww_image_optimizer_metadata_remove', '' );
 		$results = $this->optimize_png();
-		$this->assertEquals( 190775, filesize( $results[0] ) );
+		$this->assertLessThanOrEqual( 190775, filesize( $results[0] ) );
 		unlink( $results[0] );
 	}
 

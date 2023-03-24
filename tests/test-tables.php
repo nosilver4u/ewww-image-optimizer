@@ -26,7 +26,7 @@ class EWWWIO_Table_Tests extends WP_UnitTestCase {
 		$temp_upload_dir = trailingslashit( $wp_upload_dir['basedir'] ) . 'testing/';
 		wp_mkdir_p( $temp_upload_dir );
 
-		$test_gif = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/gifsiclelogo.gif' );
+		$test_gif = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/gifsiclelogo.gif' );
 		rename( $test_gif, $temp_upload_dir . basename( $test_gif ) );
 		self::$test_gif = $temp_upload_dir . basename( $test_gif );
 

@@ -22,7 +22,7 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 	 * Downloads test images.
 	 */
 	public static function set_up_before_class() {
-		self::$test_gif = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/rain.gif' );
+		self::$test_gif = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/rain.gif' );
 
 		ewww_image_optimizer_set_defaults();
 		update_option( 'ewww_image_optimizer_gif_level', 10 );

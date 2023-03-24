@@ -40,15 +40,15 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 		$temp_upload_dir = trailingslashit( $wp_upload_dir['basedir'] ) . 'testing/';
 		wp_mkdir_p( $temp_upload_dir );
 
-		$test_jpg = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/DCClogo.jpg' );
+		$test_jpg = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/DCClogo.jpg' );
 		rename( $test_jpg, $temp_upload_dir . basename( $test_jpg ) );
 		self::$test_jpg = $temp_upload_dir . basename( $test_jpg );
 
-		$test_png = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/common-loon.png' );
+		$test_png = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/common-loon.png' );
 		rename( $test_png, $temp_upload_dir . basename( $test_png ) );
 		self::$test_png = $temp_upload_dir . basename( $test_png );
 
-		$test_gif = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/xhtml11.gif' );
+		$test_gif = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/xhtml11.gif' );
 		rename( $test_gif, $temp_upload_dir . basename( $test_gif ) );
 		self::$test_gif = $temp_upload_dir . basename( $test_gif );
 
@@ -203,7 +203,7 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_jpg_background', '' );
 
 		// No background, conversion will fail.
-		$test_png = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/books.png' );
+		$test_png = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/books.png' );
 		rename( $test_png, dirname( self::$test_png ) . basename( $test_png ) );
 		$test_png = dirname( self::$test_png ) . basename( $test_png );
 
@@ -259,7 +259,7 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 		list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
 		$this->assertEquals( 'image/jpeg', ewww_image_optimizer_mimetype( $file_path, 'i' ) );
 
-		$test_png = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/books.png' );
+		$test_png = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/books.png' );
 		$upload_png = $test_png . '.png';
 		copy( $test_png, $upload_png );
 		$id = $this->factory->attachment->create_upload_object( $upload_png );

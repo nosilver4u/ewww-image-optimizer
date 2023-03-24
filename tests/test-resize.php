@@ -36,7 +36,7 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 	 * Downloads test images.
 	 */
 	public static function set_up_before_class() {
-		self::$test_jpg = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/20170314_174658.jpg' );
+		self::$test_jpg = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/20170314_174658.jpg' );
 		copy( self::$test_jpg, self::$test_jpg . '.jpg' );
 		self::$test_jpg .= '.jpg';
 		ewww_image_optimizer_set_defaults();
