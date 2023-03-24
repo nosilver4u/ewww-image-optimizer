@@ -21,7 +21,7 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 	/**
 	 * Downloads test images.
 	 */
-	public static function setUpBeforeClass() {
+	public static function set_up_before_class() {
 		self::$test_gif = download_url( 'https://s3-us-west-2.amazonaws.com/exactlywww/rain.gif' );
 
 		ewww_image_optimizer_set_defaults();
@@ -32,8 +32,8 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 	/**
 	 * Initializes the plugin and installs the ewwwio_images table.
 	 */
-	function setUp() {
-		parent::setUp();
+	function set_up() {
+		parent::set_up();
 		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
 		ewww_image_optimizer_install_table();
 		add_filter( 'query', array( $this, '_create_temporary_tables' ) );
@@ -84,7 +84,7 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 	/**
 	 * Cleans up ewwwio_images table.
 	 */
-	function tearDown() {
+	function tear_down() {
 		global $wpdb;
 		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 		$wpdb->query( "DROP TABLE IF EXISTS $wpdb->ewwwio_images" );
@@ -99,7 +99,7 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 	/**
 	 * Cleans up the temp images.
 	 */
-	public static function tearDownAfterClass() {
+	public static function tear_down_after_class() {
 		if ( ewwwio_is_file( self::$test_gif ) ) {
 			unlink( self::$test_gif );
 		}
