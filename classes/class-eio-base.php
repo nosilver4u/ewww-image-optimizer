@@ -73,12 +73,12 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		public $upload_url = '';
 
 		/**
-		 * Upload directory (path).
+		 * Upload domain.
 		 *
 		 * @access public
-		 * @var string $upload_dir
+		 * @var string $upload_domain
 		 */
-		public $upload_dir = '';
+		public $upload_domain = '';
 
 		/**
 		 * Allowed paths for URL mangling.
