@@ -46,6 +46,20 @@ class EIO_Backup extends EIO_Base {
 	protected $backup_dir = '';
 
 	/**
+	 * Backup location for media uploads.
+	 *
+	 * @var string $backup_uploads_dir
+	 */
+	protected $backup_uploads_dir = '';
+
+	/**
+	 * Backup location for images outside the wp-content directory.
+	 *
+	 * @var string $backup_root_dir
+	 */
+	protected $backup_root_dir = '';
+
+	/**
 	 * Register (once) actions and filters for Backup and Restore.
 	 */
 	function __construct() {

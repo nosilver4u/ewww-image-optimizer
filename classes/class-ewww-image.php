@@ -50,6 +50,13 @@ class EWWW_Image {
 	public $converted = false;
 
 	/**
+	 * The backup reference for a given file.
+	 *
+	 * @var string|bool $backup
+	 */
+	public $backup = '';
+
+	/**
 	 * The suffix added to the converted file, to be applied also to thumbs.
 	 *
 	 * @var string $suffix

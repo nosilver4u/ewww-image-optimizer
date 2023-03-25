@@ -49,6 +49,38 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		public $home_url = '';
 
 		/**
+		 * Home domain.
+		 *
+		 * @access public
+		 * @var string $home_domain
+		 */
+		public $home_domain = '';
+
+		/**
+		 * Relative home (URL) for the plugin to use.
+		 *
+		 * @access public
+		 * @var string $relative_home_url
+		 */
+		public $relative_home_url = '';
+
+		/**
+		 * Upload directory (URL).
+		 *
+		 * @access public
+		 * @var string $upload_url
+		 */
+		public $upload_url = '';
+
+		/**
+		 * Upload directory (path).
+		 *
+		 * @access public
+		 * @var string $upload_dir
+		 */
+		public $upload_dir = '';
+
+		/**
 		 * Allowed paths for URL mangling.
 		 *
 		 * @access protected
@@ -63,6 +95,14 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		 * @var array $allowed_domains
 		 */
 		protected $allowed_domains = array();
+
+		/**
+		 * A WP_Filesystem_Direct object for various file operations.
+		 *
+		 * @access protected
+		 * @var object $filesystem
+		 */
+		protected $filesystem = false;
 
 		/**
 		 * Plugin version for the plugin.
@@ -89,25 +129,41 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 		public $s3_active = false;
 
 		/**
+		 * The S3 object prefix.
+		 *
+		 * @access public
+		 * @var bool $s3_object_prefix
+		 */
+		public $s3_object_prefix = '';
+
+		/**
+		 * Do offloaded URLs contain versioning?
+		 *
+		 * @access public
+		 * @var bool $s3_object_version
+		 */
+		public $s3_object_version = false;
+
+		/**
 		 * Set class properties for children.
 		 *
 		 * @param string $child_class_path The location of the child class extending the base class.
 		 */
 		function __construct( $child_class_path = '' ) {
-			$this->home_url          = trailingslashit( get_site_url() );
+			$this->home_url          = \trailingslashit( \get_site_url() );
 			$this->relative_home_url = preg_replace( '/https?:/', '', $this->home_url );
 			$this->home_domain       = $this->parse_url( $this->home_url, PHP_URL_HOST );
 			if ( strpos( $child_class_path, 'plugins/ewww' ) ) {
-				$this->content_url = content_url( 'ewww/' );
+				$this->content_url = \content_url( 'ewww/' );
 				$this->content_dir = $this->set_content_dir( '/ewww/' );
 				$this->version     = EWWW_IMAGE_OPTIMIZER_VERSION;
 			} elseif ( strpos( $child_class_path, 'plugins/easy' ) ) {
-				$this->content_url = content_url( 'easyio/' );
+				$this->content_url = \content_url( 'easyio/' );
 				$this->content_dir = $this->set_content_dir( '/easyio/' );
 				$this->version     = EASYIO_VERSION;
 				$this->prefix      = 'easyio_';
 			} else {
-				$this->content_url = content_url( 'ewww/' );
+				$this->content_url = \content_url( 'ewww/' );
 			}
 			/**
 			 * NOTE: there might, maybe, be cases where the upload URL does not match the detected site URL.
@@ -614,7 +670,7 @@ if ( ! class_exists( 'EIO_Base' ) ) {
 			if ( ! defined( 'FS_CHMOD_FILE' ) ) {
 				define( 'FS_CHMOD_FILE', ( fileperms( ABSPATH . 'index.php' ) & 0777 | 0644 ) );
 			}
-			if ( ! isset( $this->filesystem ) || ! is_object( $this->filesystem ) ) {
+			if ( ! is_object( $this->filesystem ) ) {
 				$this->filesystem = new \WP_Filesystem_Direct( '' );
 			}
 		}
