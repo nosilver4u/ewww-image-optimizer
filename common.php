@@ -7726,8 +7726,10 @@ function ewww_image_optimizer_autorotate( $file ) {
 	}
 	$orientation = (int) ewww_image_optimizer_get_orientation( $file, $type );
 	if ( ! $orientation || 1 === $orientation ) {
+		ewwwio_debug_message( 'no rotation needed' );
 		return;
 	}
+	ewwwio_debug_message( "current orientation: $orientation" );
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) < 20 && function_exists( 'ewww_image_optimizer_jpegtran_autorotate' ) ) {
 		// Read the exif, if it fails, we won't autorotate.
 		try {
@@ -7737,6 +7739,9 @@ function ewww_image_optimizer_autorotate( $file ) {
 			ewwwio_debug_message( 'pel exception: ' . $pelerror->getMessage() );
 			$exif = null;
 		} catch ( PelDataWindowOffsetException $pelerror ) {
+			ewwwio_debug_message( 'pel exception: ' . $pelerror->getMessage() );
+			$exif = null;
+		} catch ( PelException $pelerror ) {
 			ewwwio_debug_message( 'pel exception: ' . $pelerror->getMessage() );
 			$exif = null;
 		} catch ( Exception $pelerror ) {
@@ -8061,6 +8066,9 @@ function ewww_image_optimizer_resize_upload( $file ) {
 				ewwwio_debug_message( 'pel exception: ' . $pelerror->getMessage() );
 				$old_exif = null;
 			} catch ( PelDataWindowOffsetException $pelerror ) {
+				ewwwio_debug_message( 'pel exception: ' . $pelerror->getMessage() );
+				$old_exif = null;
+			} catch ( PelException $pelerror ) {
 				ewwwio_debug_message( 'pel exception: ' . $pelerror->getMessage() );
 				$old_exif = null;
 			} catch ( Exception $pelerror ) {
