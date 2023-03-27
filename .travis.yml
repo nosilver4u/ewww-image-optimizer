@@ -24,7 +24,7 @@ addons:
   apt:
     update: true
     packages:
-      - libonig
+      - libonig-dev
 
 services:
   - mysql
