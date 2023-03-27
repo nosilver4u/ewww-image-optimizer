@@ -1,10 +1,11 @@
 <?php
-/*
+
+/**
  * PEL: PHP Exif Library.
  * A library with support for reading and
  * writing all Exif headers in JPEG and TIFF images using PHP.
  *
- * Copyright (C) 2004, 2005, 2006, 2007 Martin Geisler.
+ * Copyright (C) 2004, 2005, 2006 Martin Geisler.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,33 +24,28 @@
  */
 
 /**
- * Exception thrown when an invalid marker is found.
+ * Exception indicating that an unexpected format was found.
  *
- * This exception is thrown when PEL expects to find a {@link
- * PelJpegMarker} and instead finds a byte that isn't a known marker.
+ * The documentation for each tag in {@link PelTag} will detail any
+ * constrains.
  *
  * @author Martin Geisler <mgeisler@users.sourceforge.net>
- * @license http://www.gnu.org/licenses/gpl.html GNU General Public License (GPL)
  * @package PEL
  * @subpackage Exception
  */
 namespace lsolesen\pel;
 
-class PelJpegInvalidMarkerException extends PelException
+class PelIllegalFormatException extends PelException
 {
 
     /**
-     * Construct a new invalid marker exception.
-     * The exception will contain a message describing the error,
-     * including the byte found and the offset of the offending byte.
+     * Construct a new exception indicating an illegal format.
      *
-     * @param int $marker
-     *            the byte found.
-     * @param int $offset
-     *            the offset in the data.
+     * @param int $type
+     *            the type of IFD.
      */
-    public function __construct($marker, $offset)
+    public function __construct($type)
     {
-        parent::__construct('Invalid marker found at offset %d: 0x%2X', $offset, $marker);
+        parent::__construct('Unknown format: 0x%X', $type);
     }
 }
