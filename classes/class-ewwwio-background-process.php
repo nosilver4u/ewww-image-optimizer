@@ -60,6 +60,14 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		protected $cron_hook_identifier;
 
 		/**
+		 * Cron health check interval.
+		 *
+		 * @var int
+		 * @access protected
+		 */
+		protected $cron_interval = 5;
+
+		/**
 		 * Cron_interval_identifier
 		 *
 		 * @var mixed
@@ -74,6 +82,14 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		 * @access protected
 		 */
 		protected $active_queue;
+
+		/**
+		 * Amount of time to set the "process lock" transient.
+		 *
+		 * @var int
+		 * @access protected
+		 */
+		protected $queue_lock_time = 180; // 3 minutes
 
 		/**
 		 * Initiate new background process
@@ -224,21 +240,7 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		}
 
 		/**
-		 * Lock process
-		 *
-		 * Lock the process so that multiple instances can't run simultaneously.
-		 * Override if applicable, but the duration should be greater than that
-		 * defined in the time_exceeded() method.
-		 */
-		protected function lock_process() {
-			$this->start_time = time(); // Set start time of current process.
-
-			$lock_duration = ( property_exists( $this, 'queue_lock_time' ) ) ? $this->queue_lock_time : 60; // 1 minute
-			$lock_duration = apply_filters( $this->identifier . '_queue_lock_time', $lock_duration );
-		}
-
-		/**
-		 * Update process lock
+		 * Update (or initialize) process lock
 		 *
 		 * Update the process lock so that other instances do not spawn.
 		 *
@@ -248,8 +250,7 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 			if ( empty( $this->active_queue ) ) {
 				return;
 			}
-			$lock_duration = ( property_exists( $this, 'queue_lock_time' ) ) ? $this->queue_lock_time : 60; // 1 minute
-			$lock_duration = apply_filters( $this->identifier . '_queue_lock_time', $lock_duration );
+			$lock_duration = apply_filters( $this->identifier . '_queue_lock_time', $this->queue_lock_time );
 			set_transient( $this->identifier . '_process_lock', $this->active_queue, $lock_duration );
 		}
 
@@ -290,7 +291,7 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		 * within server memory and time limit constraints.
 		 */
 		protected function handle() {
-			$this->lock_process();
+			$this->start_time = time(); // Set start time of current process.
 
 			do {
 				$batch = $this->get_batch();
@@ -410,13 +411,9 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 		 * @return mixed
 		 */
 		public function schedule_cron_healthcheck( $schedules ) {
-			$interval = apply_filters( $this->identifier . '_cron_interval', 5 );
+			$interval = apply_filters( $this->identifier . '_cron_interval', $this->cron_interval );
 
-			if ( property_exists( $this, 'cron_interval' ) ) {
-				$interval = apply_filters( $this->identifier . '_cron_interval', $this->cron_interval );
-			}
-
-			// Adds every 5 minutes to the existing schedules.
+			// Adds every X (default=5) minutes to the existing schedules.
 			$schedules[ $this->identifier . '_cron_interval' ] = array(
 				'interval' => MINUTE_IN_SECONDS * $interval,
 				/* translators: %d: number of minutes */
@@ -478,6 +475,7 @@ if ( ! class_exists( 'EWWWIO_Background_Process' ) ) {
 			global $wpdb;
 			$wpdb->query( $wpdb->prepare( "DELETE from $wpdb->ewwwio_queue WHERE gallery = %s", $this->active_queue ) );
 			wp_clear_scheduled_hook( $this->cron_hook_identifier );
+			$this->unlock_process();
 		}
 
 		/**

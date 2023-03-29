@@ -195,6 +195,22 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 	class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 
 		/**
+		 * GD Resource.
+		 *
+		 * @access protected
+		 * @var resource|GdImage $ewww_image
+		 */
+		protected $ewww_image;
+
+		/**
+		 * Site (URL) for the plugin to use.
+		 *
+		 * @access protected
+		 * @var string $site_url
+		 */
+		protected $modified = false;
+
+		/**
 		 * Resizes current image.
 		 * Wraps _resize, since _resize returns a GD Resource.
 		 *
@@ -302,7 +318,7 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 				$return_parent = true;
 			}
 			// TODO: Possibly handle crop, rotate, and flip down the road.
-			if ( ! empty( $this->modified ) ) {
+			if ( $this->modified ) {
 				ewwwio_debug_message( 'image already altered, leave it alone' );
 				$return_parent = true;
 			}
@@ -702,7 +718,7 @@ if ( class_exists( 'WP_Thumb_Image_Editor_Imagick' ) ) {
 			ewwwio_debug_message( '<b>wp_image_editor_imagick::' . __FUNCTION__ . '()</b>' );
 			global $ewww_defer;
 			global $ewww_preempt_editor;
-			if ( ! empty( $this->ewww_image ) && empty( $this->modified ) ) {
+			if ( ! empty( $this->ewww_image ) && ! $this->modified ) {
 				return $this->_save_ewwwio_file( $this->ewww_image, $filename, $mime_type );
 			}
 			if ( ! empty( $ewww_preempt_editor ) || ! defined( 'EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR' ) || ! EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR ) {

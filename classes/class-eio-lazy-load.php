@@ -57,12 +57,12 @@ if ( ! class_exists( 'EIO_Lazy_Load' ) ) {
 		protected $placeholder_src = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 
 		/**
-		 * Indicates if we are filtering ExactDN urls.
+		 * The ExactDN domain/zone.
 		 *
-		 * @access protected
-		 * @var bool $parsing_exactdn
+		 * @access private
+		 * @var float $elapsed_time
 		 */
-		protected $parsing_exactdn = false;
+		protected $exactdn_domain = false;
 
 		/**
 		 * The folder to store any PIIPs.

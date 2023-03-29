@@ -33,6 +33,14 @@ if ( ! class_exists( 'EIO_Page_Parser' ) ) {
 		);
 
 		/**
+		 * Indicates if we are filtering ExactDN urls.
+		 *
+		 * @access protected
+		 * @var bool $parsing_exactdn
+		 */
+		protected $parsing_exactdn = false;
+
+		/**
 		 * Match all images and any relevant <a> tags in a block of HTML.
 		 *
 		 * The hyperlinks param implies that the src attribute is required, but not the other way around.

@@ -73,6 +73,30 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		public $remove_path = '';
 
 		/**
+		 * Folder name for the WP content directory (typically wp-content).
+		 *
+		 * @access public
+		 * @var string $content_path
+		 */
+		public $content_path = 'wp-content';
+
+		/**
+		 * Folder name for the WP includes directory (typically wp-includes).
+		 *
+		 * @access public
+		 * @var string $include_path
+		 */
+		public $include_path = 'wp-includes';
+
+		/**
+		 * Folder name for the WP uploads directory (typically 'uploads').
+		 *
+		 * @access public
+		 * @var string $uploads_path
+		 */
+		public $uploads_path = 'uploads';
+
+		/**
 		 * The ExactDN domain/zone.
 		 *
 		 * @access private

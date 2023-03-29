@@ -140,6 +140,22 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 	class EWWWIO_GD_Editor extends WP_Image_Editor_GD {
 
 		/**
+		 * GD Resource.
+		 *
+		 * @access protected
+		 * @var resource|GdImage $ewww_image
+		 */
+		protected $ewww_image;
+
+		/**
+		 * Site (URL) for the plugin to use.
+		 *
+		 * @access protected
+		 * @var string $site_url
+		 */
+		protected $modified = false;
+
+		/**
 		 * Resizes current image.
 		 *
 		 * Requires width or height, crop is optional. Uses gifsicle to preserve GIF animations.
@@ -195,7 +211,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				return parent::_resize( $max_w, $max_h, $crop );
 			}
 			// TODO: Possibly handle crop, rotate, and flip down the road.
-			if ( ! empty( $this->modified ) ) {
+			if ( $this->modified ) {
 				ewwwio_debug_message( 'GIF already altered! Too late, so leave it alone...' );
 				return parent::_resize( $max_w, $max_h, $crop );
 			}
@@ -506,7 +522,7 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			global $ewww_defer;
 			global $ewww_preempt_editor;
-			if ( ! empty( $this->ewww_image ) && empty( $this->modified ) ) {
+			if ( ! empty( $this->ewww_image ) && ! $this->modified ) {
 				return $this->_save_ewwwio_file( $this->ewww_image, $filename, $mime_type );
 			}
 			if ( ! empty( $ewww_preempt_editor ) || ! defined( 'EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR' ) || ! EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR ) {

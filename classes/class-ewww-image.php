@@ -22,32 +22,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 class EWWW_Image {
 
 	/**
-	 * The id number in the database.
-	 *
-	 * @var int $id
-	 */
-	public $id = 0;
-
-	/**
 	 * The id number of the related attachment.
 	 *
 	 * @var int $attachment_id
 	 */
 	public $attachment_id = null;
-
-	/**
-	 * The path to the image.
-	 *
-	 * @var string $file
-	 */
-	public $file = '';
-
-	/**
-	 * The name of the original file if the image was converted. False if not converted.
-	 *
-	 * @var string|bool $converted
-	 */
-	public $converted = false;
 
 	/**
 	 * The backup reference for a given file.
@@ -57,18 +36,46 @@ class EWWW_Image {
 	public $backup = '';
 
 	/**
-	 * The suffix added to the converted file, to be applied also to thumbs.
+	 * The name of the original file if the image was converted. False if not converted.
 	 *
-	 * @var string $suffix
+	 * @var string|bool $converted
 	 */
-	private $suffix = '';
+	public $converted = false;
 
 	/**
-	 * The original size of the image.
+	 * The path to the image.
 	 *
-	 * @var int $orig_size
+	 * @var string $file
 	 */
-	public $orig_size = 0;
+	public $file = '';
+
+	/**
+	 * The gallery of the image, if applicable. Accepts 'media', 'nextgen', etc.
+	 *
+	 * @var string $gallery
+	 */
+	public $gallery = '';
+
+	/**
+	 * The id number in the database.
+	 *
+	 * @var int $id
+	 */
+	public $id = 0;
+
+	/**
+	 * To be appended to converted files if necessary.
+	 *
+	 * @var int|bool $increment
+	 */
+	public $increment = false;
+
+	/**
+	 * Compression level as an integer.
+	 *
+	 * @var int $level
+	 */
+	public $level = 0;
 
 	/**
 	 * The optimized size of the image.
@@ -78,6 +85,20 @@ class EWWW_Image {
 	public $opt_size = 0;
 
 	/**
+	 * The original size of the image.
+	 *
+	 * @var int $orig_size
+	 */
+	public $orig_size = 0;
+
+	/**
+	 * Raw db record.
+	 *
+	 * @var array $record
+	 */
+	public $record = array();
+
+	/**
 	 * The size/type of the image, like 'thumbnail', 'medium', 'large'.
 	 *
 	 * @var string $resize
@@ -85,40 +106,18 @@ class EWWW_Image {
 	public $resize = null;
 
 	/**
-	 * The gallery of the image, if applicable. Accepts 'media', 'nextgen', etc.
+	 * The suffix added to the converted file, to be applied also to thumbs.
 	 *
-	 * @var string $gallery
+	 * @var string $suffix
 	 */
+	private $suffix = '';
 
-	public $gallery = '';
-	/**
-	 * To be appended to converted files if necessary.
-	 *
-	 * @var int|bool $increment
-	 */
-
-	public $increment = false;
 	/**
 	 * The url to the image.
 	 *
 	 * @var string $url
 	 */
-
 	public $url = '';
-	/**
-	 * Compression level as an integer.
-	 *
-	 * @var int $level
-	 */
-
-	public $level = 0;
-	/**
-	 * Raw db record.
-	 *
-	 * @var array $record
-	 */
-
-	public $record = array();
 
 	/**
 	 * Creates an image record, either from a pending record in the database, or from a file path.
