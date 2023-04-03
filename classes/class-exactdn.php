@@ -280,6 +280,12 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			add_filter( 'envira_gallery_output_item_data', array( $this, 'envira_gallery_output_item_data' ) );
 			add_filter( 'envira_gallery_image_src', array( $this, 'plugin_get_image_url' ) );
 
+			// Filter for BuddyBoss image URLs.
+			add_filter( 'bb_media_get_preview_image_url', array( $this, 'buddyboss_get_image_url' ) );
+			add_filter( 'bb_video_get_thumb_url', array( $this, 'buddyboss_get_image_url' ) );
+			add_filter( 'bb_document_get_preview_url', array( $this, 'buddyboss_get_image_url' ) );
+			add_filter( 'bb_video_get_symlink', array( $this, 'buddyboss_get_image_url' ) );
+
 			// Filter for NextGEN image URLs within JS.
 			add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ) );
 			add_filter( 'ngg_get_image_url', array( $this, 'plugin_get_image_url' ) );
@@ -3139,6 +3145,20 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			return $image;
 		}
 
+		/**
+		 * Handler for BuddyBoss image URL hooks.
+		 * Used instead of plugin_get_image_url() to bypass the is_admin() check since BB uses admin-ajax.php.
+		 *
+		 * @param string $image A URL for an image.
+		 * @return string The ExactDNified image URL.
+		 */
+		function buddyboss_get_image_url( $image ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			if ( $this->validate_image_url( $image ) ) {
+				return $this->generate_url( $image );
+			}
+			return $image;
+		}
 		/**
 		 * Handle images in Spotlight's Instagram response/endpoint.
 		 *
