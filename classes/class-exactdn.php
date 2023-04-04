@@ -285,6 +285,12 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			add_filter( 'bb_video_get_thumb_url', array( $this, 'buddyboss_get_image_url' ) );
 			add_filter( 'bb_document_get_preview_url', array( $this, 'buddyboss_get_image_url' ) );
 			add_filter( 'bb_video_get_symlink', array( $this, 'buddyboss_get_image_url' ) );
+			add_filter( 'bb_media_do_symlink', '__return_false', PHP_INT_MAX );
+			add_filter( 'bb_document_do_symlink', '__return_false', PHP_INT_MAX );
+			add_filter( 'bb_video_do_symlink', '__return_false', PHP_INT_MAX );
+			add_filter( 'bb_video_create_thumb_symlinks', '__return_false', PHP_INT_MAX );
+			add_filter( 'bb_media_check_default_access', '__return_true', PHP_INT_MAX );
+			add_filter( 'bb_media_settings_callback_symlink_direct_access', array( $this, 'bb_media_directory_allow_access' ), PHP_INT_MAX, 2 );
 
 			// Filter for NextGEN image URLs within JS.
 			add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ) );
@@ -3159,6 +3165,29 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 			return $image;
 		}
+
+		/**
+		 * Allow access to BuddyBoss media on Easy IO.
+		 *
+		 * @param array $directories List of directories.
+		 * @param array $media_ids Uploaded media IDs.
+		 * 
+		 * return array
+		 */
+		function bb_media_directory_allow_access( $directories, $media_ids ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			if ( ! empty( $directories ) ) {
+				$this->debug_message( 'checking directory access' );
+				$this->debug_message( print_r( $directories, true ) );
+				foreach ( $media_ids as $id => $something ) {
+					$this->debug_message( "checking $id" );
+					$this->debug_message( print_r( $something, true ) );
+					$directories[] = $id;
+				}
+			}
+			return $directories;
+		}
+
 		/**
 		 * Handle images in Spotlight's Instagram response/endpoint.
 		 *
