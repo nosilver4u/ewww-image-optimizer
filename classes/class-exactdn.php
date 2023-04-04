@@ -280,17 +280,19 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			add_filter( 'envira_gallery_output_item_data', array( $this, 'envira_gallery_output_item_data' ) );
 			add_filter( 'envira_gallery_image_src', array( $this, 'plugin_get_image_url' ) );
 
-			// Filter for BuddyBoss image URLs.
-			add_filter( 'bb_media_get_preview_image_url', array( $this, 'buddyboss_get_image_url' ) );
-			add_filter( 'bb_video_get_thumb_url', array( $this, 'buddyboss_get_image_url' ) );
-			add_filter( 'bb_document_get_preview_url', array( $this, 'buddyboss_get_image_url' ) );
-			add_filter( 'bb_video_get_symlink', array( $this, 'buddyboss_get_image_url' ) );
-			add_filter( 'bb_media_do_symlink', '__return_false', PHP_INT_MAX );
-			add_filter( 'bb_document_do_symlink', '__return_false', PHP_INT_MAX );
-			add_filter( 'bb_video_do_symlink', '__return_false', PHP_INT_MAX );
-			add_filter( 'bb_video_create_thumb_symlinks', '__return_false', PHP_INT_MAX );
+			// Filters for BuddyBoss image URLs.
+			add_filter( 'bp_media_get_preview_image_url', array( $this, 'bp_media_get_preview_image_url' ), PHP_INT_MAX, 5 );
+			add_filter( 'bb_video_get_thumb_url', array( $this, 'bb_video_get_thumb_url' ), PHP_INT_MAX, 5 );
+			add_filter( 'bp_document_get_preview_url', array( $this, 'bp_document_get_preview_url' ), PHP_INT_MAX, 6 );
+			add_filter( 'bb_video_get_symlink', array( $this, 'bb_video_get_symlink' ), PHP_INT_MAX, 4 );
+			// Filters for BuddyBoss URL symlinks.
+			add_filter( 'bb_media_do_symlink', array( $this, 'buddyboss_do_symlink' ), PHP_INT_MAX );
+			add_filter( 'bb_document_do_symlink', array( $this, 'buddyboss_do_symlink' ), PHP_INT_MAX );
+			add_filter( 'bb_video_do_symlink', array( $this, 'buddyboss_do_symlink' ), PHP_INT_MAX );
+			add_filter( 'bb_video_create_thumb_symlinks', array( $this, 'buddyboss_do_symlink' ), PHP_INT_MAX );
+			// Filters for BuddyBoss media access checks.
 			add_filter( 'bb_media_check_default_access', '__return_true', PHP_INT_MAX );
-			add_filter( 'bb_media_settings_callback_symlink_direct_access', array( $this, 'bb_media_directory_allow_access' ), PHP_INT_MAX, 2 );
+			add_filter( 'bb_media_settings_callback_symlink_direct_access', array( $this, 'buddyboss_media_directory_allow_access' ), PHP_INT_MAX, 2 );
 
 			// Filter for NextGEN image URLs within JS.
 			add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ) );
@@ -3152,18 +3154,140 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		}
 
 		/**
-		 * Handler for BuddyBoss image URL hooks.
-		 * Used instead of plugin_get_image_url() to bypass the is_admin() check since BB uses admin-ajax.php.
+		 * Handler for BuddyBoss media image URLs.
 		 *
-		 * @param string $image A URL for an image.
+		 * @param string $attachment_url A URL for an image.
+		 * @param int    $media_id BP/BB media ID.
+		 * @param int    $attachment_id Core WP attachment ID.
+		 * @param string $size Size (name) of the media.
+		 * @param bool   $symlink Whether to use symlink or not.
+		 * @return string The (possibly) ExactDNified image URL.
+		 */
+		function bp_media_get_preview_image_url( $attachment_url, $media_id, $attachment_id, $size, $symlink ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			if ( $media_id && ! $symlink ) {
+				$media    = new BP_Media( $media_id );
+				$metadata = wp_get_attachment_metadata( $media->attachment_id );
+				if ( $size && ! empty( $metadata ) && $this->is_iterable( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
+					$attachment_url = wp_get_attachment_image_url( $media->attachment_id, $size );
+				} else {
+					$attachment_url = wp_get_attachment_url( $media->attachment_id );
+				}
+				if ( $this->validate_image_url( $attachment_url ) ) {
+					return $this->generate_url( $attachment_url );
+				}
+			}
+			return $attachment_url;
+		}
+
+		/**
+		 * Handler for BuddyBoss video URLs.
+		 *
+		 * @param string $attachment_url A URL for an image.
+		 * @param int    $video_id BB video ID.
+		 * @param string $size Size (name) of the media.
+		 * @param int    $attachment_id Attachment ID.
+		 * @param bool   $symlink Whether to display symlink or not.
 		 * @return string The ExactDNified image URL.
 		 */
-		function buddyboss_get_image_url( $image ) {
+		function bb_video_get_thumb_url( $attachment_url, $video_id, $size, $attachment_id, $symlink ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-			if ( $this->validate_image_url( $image ) ) {
-				return $this->generate_url( $image );
+			if ( $attachment_id && ! $symlink ) {
+				$metadata = wp_get_attachment_metadata( $attachment_id );
+				if ( $size && ! empty( $metadata ) && $this->is_iterable( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
+					$attachment_url = wp_get_attachment_image_url( $attachment_id, $size );
+				} else {
+					$attachment_url = wp_get_attachment_url( $attachment_id );
+				}
+				if ( $this->validate_image_url( $attachment_url ) ) {
+					return $this->generate_url( $attachment_url );
+				}
 			}
-			return $image;
+			return $attachment_url;
+		}
+
+		/**
+		 * Handler for BuddyBoss media image URLs.
+		 *
+		 * @param string $attachment_url A URL for an image.
+		 * @param int    $document_id BP/BB document ID.
+		 * @param string $extension File extension of the document.
+		 * @param string $size Size (name) of the document preview.
+		 * @param int    $attachment_id Core WP attachment ID for the preview image.
+		 * @param bool   $symlink Whether to use symlink or not.
+		 * @return string The (possibly) ExactDNified image URL.
+		 */
+		function bp_document_get_preview_url( $attachment_url, $document_id, $extension, $size, $attachment_id, $symlink ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			if (
+				$attachment_id && ! $symlink &&
+				function_exists( 'bp_get_document_preview_doc_extensions' ) && in_array( $extension, bp_get_document_preview_doc_extensions(), true )
+			) {
+				$this->debug_message( "$extension is allowed for $document_id" );
+				$metadata = wp_get_attachment_metadata( $attachment_id );
+				if ( $size && ! empty( $metadata ) && $this->is_iterable( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
+					$attachment_url = wp_get_attachment_image_url( $attachment_id, $size );
+				} else {
+					$attachment_url = wp_get_attachment_image_url( $attachment_id, 'full' );
+				}
+				if ( ! $attachment_url ) {
+					$this->debug_message( 'attachment URL does not yet exist' );
+					if ( 'pdf' === strtolower( $extension ) && function_exists( 'bp_document_generate_document_previews' ) ) {
+						bp_document_generate_document_previews( $attachment_id );
+					} elseif ( function_exists( 'bb_document_regenerate_attachment_thumbnails' ) ) {
+						bb_document_regenerate_attachment_thumbnails( $attachment_id );
+					}
+					$metadata = wp_get_attachment_metadata( $attachment_id );
+					if ( $size && ! empty( $metadata ) && $this->is_iterable( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
+						$attachment_url = wp_get_attachment_image_url( $attachment_id, $size );
+					} else {
+						$attachment_url = wp_get_attachment_image_url( $attachment_id, 'full' );
+					}
+				}
+				if ( $this->validate_image_url( $attachment_url ) ) {
+					return $this->generate_url( $attachment_url );
+				}
+			}
+			if (
+				$attachment_id && ! $symlink &&
+				function_exists( 'bp_get_document_preview_music_extensions' ) && in_array( $extension, bp_get_document_preview_music_extensions(), true )
+			) {
+				$attachment_url = wp_get_attachment_url( $attachment_id );
+				if ( $this->validate_image_url( $attachment_url ) ) {
+					return $this->generate_url( $attachment_url );
+				}
+			}
+			return $attachment_url;
+		}
+
+		/**
+		 * Handler for BuddyBoss video URLs.
+		 *
+		 * @param string $attachment_url A URL for an image.
+		 * @param int    $video_id BB video ID.
+		 * @param string $size Size (name) of the media.
+		 * @param int    $attachment_id Attachment ID.
+		 * @param bool   $symlink Whether to display symlink or not.
+		 * @return string The ExactDNified image URL.
+		 */
+		function bb_video_get_symlink( $attachment_url, $video_id, $attachment_id, $symlink ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			if ( $attachment_id && ! $symlink ) {
+				$attachment_url = wp_get_attachment_url( $attachment_id );
+				return $this->parse_enqueue( $attachment_url );
+			}
+			return $attachment_url;
+		}
+
+		/**
+		 * Disable use of symlinks/media protection in BuddyBoss.
+		 *
+		 * @param bool $do_symlinks Defaults to true.
+		 * @return bool False to disable symlinks.
+		 */
+		function buddyboss_do_symlink( $do_symlinks ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			return false;
 		}
 
 		/**
@@ -3171,10 +3295,10 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		 *
 		 * @param array $directories List of directories.
 		 * @param array $media_ids Uploaded media IDs.
-		 * 
-		 * return array
+		 *
+		 * @return array Modified list of diretories.
 		 */
-		function bb_media_directory_allow_access( $directories, $media_ids ) {
+		function buddyboss_media_directory_allow_access( $directories, $media_ids ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			if ( ! empty( $directories ) ) {
 				$this->debug_message( 'checking directory access' );
