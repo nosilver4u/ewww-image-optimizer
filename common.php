@@ -8090,7 +8090,9 @@ function ewww_image_optimizer_resize_upload( $file ) {
 		}
 		// Backup the file before we replace the original.
 		global $eio_backup;
-		$eio_backup->backup_file( $file );
+		if ( ! apply_filters( 'ewww_image_optimizer_backup_post_resize', false ) ) {
+			$eio_backup->backup_file( $file );
+		}
 		// ewww_image_optimizer_cloud_backup( $file );.
 		$new_type = (string) ewww_image_optimizer_mimetype( $new_file, 'i' );
 		if ( $type === $new_type ) {
