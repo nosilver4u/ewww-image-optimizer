@@ -57,6 +57,14 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		public $filtering_the_content = false;
 
 		/**
+		 * Indicates if this is a full-width page that should ignore content_width < 1920.
+		 *
+		 * @access public
+		 * @var bool $full_width
+		 */
+		public $full_width = false;
+
+		/**
 		 * List of permitted domains for ExactDN rewriting.
 		 *
 		 * @access public
@@ -272,6 +280,12 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			// Responsive image srcset substitution.
 			add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_array' ), 1001, 5 );
 			add_filter( 'wp_calculate_image_sizes', array( $this, 'filter_sizes' ), 1, 2 ); // Early so themes can still filter.
+
+			// Filter for generic use by other plugins/themes.
+			add_filter( 'exactdn_local_to_cdn_url', array( $this, 'plugin_get_image_url' ) );
+
+			// Filter to check for Elementor full_width layouts.
+			add_filter( 'elementor/frontend/builder_content_data', array( $this, 'elementor_builder_content_data' ) );
 
 			// Filter for FacetWP JSON responses.
 			add_filter( 'facetwp_render_output', array( $this, 'filter_facetwp_json_output' ) );
@@ -895,6 +909,26 @@ if ( ! class_exists( 'ExactDN' ) ) {
 		}
 
 		/**
+		 * Parse Elementor content data to check for full_width layouts.
+		 *
+		 * @param array $data The builder content data.
+		 * @return array $data
+		 */
+		function elementor_builder_content_data( $data ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+			if ( $this->is_iterable( $data ) ) {
+				foreach ( $data as $section_data ) {
+					if ( ! empty( $section_data['settings']['layout'] ) && 'full_width' === $section_data['settings']['layout'] ) {
+						$this->debug_message( 'we have a winner (full_width container)!' );
+						$this->full_width = true;
+						break;
+					}
+				}
+			}
+			return $data;
+		}
+
+		/**
 		 * Get $content_width, with a filter.
 		 *
 		 * @return bool|string The content width, if set. Default false.
@@ -906,6 +940,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			}
 			if ( defined( 'EXACTDN_CONTENT_WIDTH' ) && EXACTDN_CONTENT_WIDTH ) {
 				$content_width = EXACTDN_CONTENT_WIDTH;
+			} elseif ( $this->full_width ) {
+				$content_width = 1920;
 			}
 			/**
 			 * Filter the Content Width value.
@@ -985,12 +1021,16 @@ if ( ! class_exists( 'ExactDN' ) ) {
 
 			if ( ! empty( $images ) ) {
 				$this->debug_message( 'we have images to parse' );
+				if ( false !== strpos( $content, 'elementor-section-full_width' ) ) {
+					$this->debug_message( 'elementor full_width section found!' );
+					$this->full_width = true;
+				}
 				$content_width = false;
 				if ( ! $this->filtering_the_page ) {
 					$this->filtering_the_content = true;
 					$this->debug_message( 'filtering the content' );
 					$content_width = $this->get_content_width();
-					$this->debug_message( "configured content_width: $content_width" );
+					$this->debug_message( "configured/filtered content_width: $content_width" );
 				}
 				$resize_existing = defined( 'EXACTDN_RESIZE_EXISTING' ) && EXACTDN_RESIZE_EXISTING;
 
@@ -2138,14 +2178,14 @@ if ( ! class_exists( 'ExactDN' ) ) {
 
 						// Make the custom $content_width apply here.
 						global $content_width;
-						if ( defined( 'EXACTDN_CONTENT_WIDTH' ) && ! empty( $content_width ) ) {
+						if ( ! empty( $content_width ) && $this->get_content_width() > $content_width ) {
 							$real_content_width = $content_width;
-							$content_width      = EXACTDN_CONTENT_WIDTH;
+							$content_width      = $this->get_content_width();
 						}
 						// NOTE: it will constrain an image to $content_width which is expected behavior in core, so far as I can see.
 						list( $image_args['width'], $image_args['height'] ) = image_constrain_size_for_editor( $image_args['width'], $image_args['height'], $size, 'display' );
 						// And then set $content_width back to normal.
-						if ( defined( 'EXACTDN_CONTENT_WIDTH' ) && ! empty( $real_content_width ) ) {
+						if ( ! empty( $real_content_width ) ) {
 							$content_width = $real_content_width;
 						}
 
@@ -2266,13 +2306,13 @@ if ( ! class_exists( 'ExactDN' ) ) {
 					}
 
 					global $content_width;
-					if ( defined( 'EXACTDN_CONTENT_WIDTH' ) && ! empty( $content_width ) ) {
+					if ( ! empty( $content_width ) && $this->get_content_width() > $content_width ) {
 						$real_content_width = $content_width;
-						$content_width      = EXACTDN_CONTENT_WIDTH;
+						$content_width      = $this->get_content_width();
 					}
 					list( $width, $height ) = image_constrain_size_for_editor( $width, $height, $size );
 					$this->debug_message( "constrained to w$width by h$height" );
-					if ( defined( 'EXACTDN_CONTENT_WIDTH' ) && ! empty( $real_content_width ) ) {
+					if ( ! empty( $real_content_width ) ) {
 						$content_width = $real_content_width;
 					}
 
@@ -3302,10 +3342,8 @@ if ( ! class_exists( 'ExactDN' ) ) {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			if ( ! empty( $directories ) ) {
 				$this->debug_message( 'checking directory access' );
-				$this->debug_message( print_r( $directories, true ) );
-				foreach ( $media_ids as $id => $something ) {
+				foreach ( $media_ids as $id => $v ) {
 					$this->debug_message( "checking $id" );
-					$this->debug_message( print_r( $something, true ) );
 					$directories[] = $id;
 				}
 			}

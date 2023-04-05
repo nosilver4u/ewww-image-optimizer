@@ -14451,7 +14451,6 @@ function ewww_image_optimizer_easy_active() {
 	return false;
 }
 
-
 /**
  * Checks to see if Easy IO is active for multiple sites in a network install.
  *
@@ -15072,12 +15071,14 @@ function ewwwio_memory_output() {
  * @param mixed $var Could be anything, really.
  * @param mixed $var2 Default false. Could be anything, really.
  * @param mixed $var3 Default false. Could be anything, really.
+ * @param mixed $var4 Default false. Could be anything, really.
  * @return mixed Whatever they gave us.
  */
-function ewwwio_dump_var( $var, $var2 = false, $var3 = false ) {
+function ewwwio_dump_var( $var, $var2 = false, $var3 = false, $var4 = false ) {
 	if ( ! ewww_image_optimizer_function_exists( 'print_r' ) ) {
 		return $var;
 	}
+	ewwwio_debug_message( 'current filter: ' . current_filter() );
 	ewwwio_debug_message( 'dumping var' );
 	ewwwio_debug_message( print_r( $var, true ) );
 	if ( $var2 ) {
@@ -15087,6 +15088,10 @@ function ewwwio_dump_var( $var, $var2 = false, $var3 = false ) {
 	if ( $var3 ) {
 		ewwwio_debug_message( 'dumping var3' );
 		ewwwio_debug_message( print_r( $var3, true ) );
+	}
+	if ( $var4 ) {
+		ewwwio_debug_message( 'dumping var4' );
+		ewwwio_debug_message( print_r( $var4, true ) );
 	}
 	return $var;
 }
