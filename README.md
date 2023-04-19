@@ -1,7 +1,7 @@
 # EWWW Image Optimizer
 **Donate link:** https://ewww.io/donate/
-**Minimum WordPress:** 5.0
-**Minimum PHP:** 5.6
+**Minimum WordPress:** 5.8
+**Minimum PHP:** 7.2
 
 [![Build Status](https://travis-ci.com/nosilver4u/ewww-image-optimizer.svg?branch=master)](https://app.travis-ci.com/github/nosilver4u/ewww-image-optimizer)
 [![WordPress Plugin Downloads](https://img.shields.io/wordpress/plugin/dt/ewww-image-optimizer.svg)](https://wordpress.org/plugins/ewww-image-optimizer/)

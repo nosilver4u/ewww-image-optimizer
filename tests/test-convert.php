@@ -41,16 +41,16 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 		wp_mkdir_p( $temp_upload_dir );
 
 		$test_jpg = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/DCClogo.jpg' );
-		rename( $test_jpg, $temp_upload_dir . basename( $test_jpg ) );
-		self::$test_jpg = $temp_upload_dir . basename( $test_jpg );
+		rename( $test_jpg, $temp_upload_dir . wp_basename( $test_jpg ) );
+		self::$test_jpg = $temp_upload_dir . wp_basename( $test_jpg );
 
 		$test_png = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/common-loon.png' );
-		rename( $test_png, $temp_upload_dir . basename( $test_png ) );
-		self::$test_png = $temp_upload_dir . basename( $test_png );
+		rename( $test_png, $temp_upload_dir . wp_basename( $test_png ) );
+		self::$test_png = $temp_upload_dir . wp_basename( $test_png );
 
 		$test_gif = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/xhtml11.gif' );
-		rename( $test_gif, $temp_upload_dir . basename( $test_gif ) );
-		self::$test_gif = $temp_upload_dir . basename( $test_gif );
+		rename( $test_gif, $temp_upload_dir . wp_basename( $test_gif ) );
+		self::$test_gif = $temp_upload_dir . wp_basename( $test_gif );
 
 		ewww_image_optimizer_set_defaults();
 		update_option( 'ewww_image_optimizer_jpg_level', 10 );
@@ -204,8 +204,8 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 
 		// No background, conversion will fail.
 		$test_png = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/books.png' );
-		rename( $test_png, dirname( self::$test_png ) . basename( $test_png ) );
-		$test_png = dirname( self::$test_png ) . basename( $test_png );
+		rename( $test_png, dirname( self::$test_png ) . wp_basename( $test_png ) );
+		$test_png = dirname( self::$test_png ) . wp_basename( $test_png );
 
 		$results = $this->optimize_png( $test_png );
 		$this->assertEquals( 'image/png', ewww_image_optimizer_mimetype( $results[0], 'i' ) );

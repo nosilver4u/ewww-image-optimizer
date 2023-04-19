@@ -55,24 +55,24 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		wp_mkdir_p( $temp_upload_dir );
 
 		$test_jpg = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/20170314_174658.jpg' );
-		rename( $test_jpg, $temp_upload_dir . basename( $test_jpg ) );
-		self::$test_jpg = $temp_upload_dir . basename( $test_jpg );
+		rename( $test_jpg, $temp_upload_dir . wp_basename( $test_jpg ) );
+		self::$test_jpg = $temp_upload_dir . wp_basename( $test_jpg );
 
 		$test_png = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/books.png' );
-		rename( $test_png, $temp_upload_dir . basename( $test_png ) );
-		self::$test_png = $temp_upload_dir . basename( $test_png );
+		rename( $test_png, $temp_upload_dir . wp_basename( $test_png ) );
+		self::$test_png = $temp_upload_dir . wp_basename( $test_png );
 
 		$test_gif = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/gifsiclelogo.gif' );
-		rename( $test_gif, $temp_upload_dir . basename( $test_gif ) );
-		self::$test_gif = $temp_upload_dir . basename( $test_gif );
+		rename( $test_gif, $temp_upload_dir . wp_basename( $test_gif ) );
+		self::$test_gif = $temp_upload_dir . wp_basename( $test_gif );
 
 		$test_pdf = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/tomtempleartist-bio-2008.pdf' );
-		rename( $test_pdf, $temp_upload_dir . basename( $test_pdf ) );
-		self::$test_pdf = $temp_upload_dir . basename( $test_pdf );
+		rename( $test_pdf, $temp_upload_dir . wp_basename( $test_pdf ) );
+		self::$test_pdf = $temp_upload_dir . wp_basename( $test_pdf );
 
 		$test_svg = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/image-x-generic.svg' );
-		rename( $test_svg, $temp_upload_dir . basename( $test_svg ) );
-		self::$test_svg = $temp_upload_dir . basename( $test_svg );
+		rename( $test_svg, $temp_upload_dir . wp_basename( $test_svg ) );
+		self::$test_svg = $temp_upload_dir . wp_basename( $test_svg );
 
 		ewww_image_optimizer_set_defaults();
 		update_option( 'ewww_image_optimizer_jpg_level', 10 );

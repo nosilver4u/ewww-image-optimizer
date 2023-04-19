@@ -1311,6 +1311,10 @@ function ewww_image_optimizer_delete_queue_images( $gallery = 'media' ) {
  */
 function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( ! is_dir( $dir ) ) {
+		ewwwio_debug_message( "$dir is not a directory, or unreadable" );
+		return;
+	}
 	$folders_completed = get_option( 'ewww_image_optimizer_aux_folders_completed' );
 	if ( ! is_array( $folders_completed ) ) {
 		$folders_completed = array();
@@ -1326,10 +1330,6 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	global $ewww_force_smart;
 	$images       = array();
 	$reset_images = array();
-	if ( ! is_dir( $dir ) ) {
-		ewwwio_debug_message( "$dir is not a directory, or unreadable" );
-		return;
-	}
 	ewwwio_debug_message( "scanning folder for images: $dir" );
 	$iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $dir ), RecursiveIteratorIterator::CHILD_FIRST, RecursiveIteratorIterator::CATCH_GET_CHILD );
 	$start    = microtime( true );
@@ -1604,19 +1604,13 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 			// Need to include the plugin library for the is_plugin_active function.
 			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 		}
-		if ( is_plugin_active( 'buddypress/bp-loader.php' ) || is_plugin_active_for_network( 'buddypress/bp-loader.php' ) ) {
-			$upload_dir = wp_get_upload_dir();
-			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/avatars', $started );
-			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/group-avatars', $started );
-		}
-		if ( is_plugin_active( 'buddypress-activity-plus/bpfb.php' ) || is_plugin_active_for_network( 'buddypress-activity-plus/bpfb.php' ) ) {
-			$upload_dir = wp_get_upload_dir();
-			ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/bpfb', $started );
-		}
-		if ( is_plugin_active( 'grand-media/grand-media.php' ) || is_plugin_active_for_network( 'grand-media/grand-media.php' ) ) {
-			// Scan the grand media folder for images.
-			ewww_image_optimizer_image_scan( WP_CONTENT_DIR . '/grand-media', $started );
-		}
+		ewwwio_debug_message( 'checking for commonly-used folders' );
+		$upload_dir = wp_get_upload_dir();
+		ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/avatars', $started );
+		ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/group-avatars', $started );
+		ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/bpfb', $started );
+		ewww_image_optimizer_image_scan( $upload_dir['basedir'] . '/buddypress', $started );
+		ewww_image_optimizer_image_scan( WP_CONTENT_DIR . '/grand-media', $started );
 		if ( is_plugin_active( 'wp-symposium/wp-symposium.php' ) || is_plugin_active_for_network( 'wp-symposium/wp-symposium.php' ) ) {
 			ewww_image_optimizer_image_scan( get_option( 'symposium_img_path' ), $started );
 		}

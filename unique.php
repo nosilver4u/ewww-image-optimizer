@@ -758,7 +758,7 @@ function ewww_image_optimizer_notice_utils( $quiet = null ) {
 				break;
 			case 'CWEBP':
 				if ( ! $skip['webp'] && empty( $req ) ) {
-					if ( ! ewww_image_optimizer_imagick_supports_webp() && ! ewww_image_optimizer_gd_supports_webp() ) {
+					if ( ! ewwwio()->imagick_supports_webp() && ! ewwwio()->gd_supports_webp() ) {
 						$missing[] = 'webp';
 					}
 					$req = false;
@@ -2273,7 +2273,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					$new_size = $orig_size;
 				}
 				// Convert the JPG to PNG.
-				if ( ewww_image_optimizer_gmagick_support() ) {
+				if ( ewwwio()->gmagick_support() ) {
 					try {
 						$gmagick = new Gmagick( $file );
 						$gmagick->stripimage();
@@ -2284,7 +2284,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					}
 					$png_size = ewww_image_optimizer_filesize( $pngfile );
 				}
-				if ( ! $png_size && ewww_image_optimizer_imagick_support() ) {
+				if ( ! $png_size && ewwwio()->imagick_support() ) {
 					try {
 						$imagick = new Imagick( $file );
 						$imagick->stripImage();
@@ -2295,7 +2295,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					}
 					$png_size = ewww_image_optimizer_filesize( $pngfile );
 				}
-				if ( ! $png_size && ewww_image_optimizer_gd_support() ) {
+				if ( ! $png_size && ewwwio()->gd_support() ) {
 					ewwwio_debug_message( 'converting with GD' );
 					imagepng( imagecreatefromjpeg( $file ), $pngfile );
 					$png_size = ewww_image_optimizer_filesize( $pngfile );
@@ -2597,7 +2597,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					$magick_background = '000000';
 				}
 				// Convert the PNG to a JPG with all the proper options.
-				if ( ewww_image_optimizer_gmagick_support() ) {
+				if ( ewwwio()->gmagick_support() ) {
 					try {
 						if ( ewww_image_optimizer_png_alpha( $file ) ) {
 							$gmagick_overlay = new Gmagick( $file );
@@ -2615,7 +2615,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					}
 					$jpg_size = ewww_image_optimizer_filesize( $jpgfile );
 				}
-				if ( ! $jpg_size && ewww_image_optimizer_imagick_support() ) {
+				if ( ! $jpg_size && ewwwio()->imagick_support() ) {
 					try {
 						$imagick = new Imagick( $file );
 						if ( ewww_image_optimizer_png_alpha( $file ) ) {
@@ -2630,7 +2630,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					}
 					$jpg_size = ewww_image_optimizer_filesize( $jpgfile );
 				}
-				if ( ! $jpg_size && ewww_image_optimizer_gd_support() ) {
+				if ( ! $jpg_size && ewwwio()->gd_support() ) {
 					ewwwio_debug_message( 'converting with GD' );
 					// Retrieve the data from the PNG.
 					$input = imagecreatefrompng( $file );
@@ -3083,9 +3083,9 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 	if ( empty( $tool ) || 'image/gif' === $type ) {
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 			ewww_image_optimizer_cloud_optimizer( $file, $type, false, $webpfile, 'image/webp' );
-		} elseif ( ewww_image_optimizer_imagick_supports_webp() ) {
+		} elseif ( ewwwio()->imagick_supports_webp() ) {
 			ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile );
-		} elseif ( ewww_image_optimizer_gd_supports_webp() ) {
+		} elseif ( ewwwio()->gd_supports_webp() ) {
 			ewww_image_optimizer_gd_create_webp( $file, $type, $webpfile );
 		} else {
 			ewww_image_optimizer_cloud_optimizer( $file, $type, false, $webpfile, 'image/webp' );
@@ -3117,7 +3117,7 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 			case 'image/jpeg':
 				ewwwio_debug_message( "$nice " . $tool . " -q $quality $sharp_yuv -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1' );
 				exec( "$nice " . $tool . " -q $quality $sharp_yuv -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1', $cli_output );
-				if ( ! ewwwio_is_file( $webpfile ) && ewww_image_optimizer_imagick_supports_webp() && ewww_image_optimizer_is_cmyk( $file ) ) {
+				if ( ! ewwwio_is_file( $webpfile ) && ewwwio()->supports_webp() && ewww_image_optimizer_is_cmyk( $file ) ) {
 					ewwwio_debug_message( 'cmyk image skipped, trying imagick' );
 					ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile );
 				} elseif ( ewwwio_is_file( $webpfile ) && 'image/webp' !== ewww_image_optimizer_mimetype( $webpfile, 'i' ) ) {

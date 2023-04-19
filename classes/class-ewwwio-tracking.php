@@ -1,6 +1,6 @@
 <?php
 /**
- * Tracking functions for reporting plugin usage to EWWW IO for users that have opted in.
+ * Functions for reporting plugin usage to EWWW IO for users that have opted in.
  *
  * @package     EWWW_Image_Optimizer
  * @copyright   Copyright (c) 2017, Pippin Williamson and Shane Bishop
@@ -123,11 +123,11 @@ class EWWWIO_Tracking {
 		$data['operating_system'] = ewww_image_optimizer_function_exists( 'php_uname' ) ? php_uname( 's' ) : '';
 
 		$data['image_library'] = '';
-		if ( ewww_image_optimizer_gmagick_support() ) {
+		if ( \ewwwio()->gmagick_support() ) {
 			$data['image_library'] = 'gmagick';
-		} elseif ( ewww_image_optimizer_imagick_support() ) {
+		} elseif ( \ewwwio()->imagick_support() ) {
 			$data['image_library'] = 'imagick';
-		} elseif ( ewww_image_optimizer_gd_support() ) {
+		} elseif ( \ewwwio()->gd_support() ) {
 			$data['image_library'] = 'gd';
 		}
 

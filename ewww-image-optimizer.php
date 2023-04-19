@@ -24,10 +24,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! defined( 'EWWW_IO_CLOUD_PLUGIN' ) ) {
-	define( 'EWWW_IO_CLOUD_PLUGIN', false );
-}
-
 // Check the PHP version.
 if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70200 ) {
 	add_action( 'network_admin_notices', 'ewww_image_optimizer_unsupported_php' );
@@ -106,34 +102,22 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70200 ) {
 	 */
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-base.php' );
 	/**
-	 * The various class extensions for background optimization.
+	 * The setup functions for EWWW IO.
 	 */
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-media-background-process.php' );
+	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-plugin.php' );
 	/**
-	 * EWWW_Image class for working with queued images and image records from the database.
+	 * Class for local optimization/conversion features.
 	 */
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-image.php' );
+	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-local.php' );
 	/**
-	 * EIO_Backup class for managing image backups.
-	 */
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-eio-backup.php' );
-	/**
-	 * EWWWIO_Tracking class for reporting anonymous site data.
-	 */
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-tracking.php' );
-	/**
-	 * The main function to return a single EIO_Base object to functions elsewhere.
+	 * The main function to return a single EWWW_Plugin object to functions elsewhere.
 	 *
-	 * @return object object|EIO_Base The one true EIO_Base instance.
+	 * @return object object|EWWW_Plugin The one true EWWW_Plugin instance.
 	 */
-	function eio_plugin() {
-		// TODO: create an intermediary EIO_Plugin class that inherits from EIO_Base. This
-		// can be used for things like defining constants, including other files, and adding hooks.
-		if ( method_exists( 'EIO_Base', 'instance' ) ) {
-			return EIO_Base::instance();
-		}
-		return new EIO_Base();
+	function ewwwio() {
+		return \EWWW\Plugin::instance();
 	}
+	ewwwio();
 } // End if().
 
 if ( ! function_exists( 'ewww_image_optimizer_unsupported_php' ) ) {

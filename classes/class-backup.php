@@ -6,6 +6,8 @@
  * @package EIO
  */
 
+namespace EWWW;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -13,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Backup & Restore images from both local and cloud locations.
  */
-class EIO_Backup extends EIO_Base {
+class Backup extends EIO_Base {
 
 	/**
 	 * An error from a restore operation.
@@ -64,26 +66,26 @@ class EIO_Backup extends EIO_Base {
 	 */
 	function __construct() {
 		global $eio_backup;
-		if ( is_object( $eio_backup ) ) {
+		if ( \is_object( $eio_backup ) ) {
 			return $eio_backup;
 		}
-		parent::__construct();
+		parent::__construct( __FILE__ );
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( 'local' === $this->get_option( 'ewww_image_optimizer_backup_files' ) ) {
 			$this->backup_mode = 'local';
 			// Sub-folders of the content directory will be stored directly in the image-backup/ folder.
-			$this->backup_dir = trailingslashit( $this->content_dir ) . trailingslashit( 'image-backup' );
+			$this->backup_dir = \trailingslashit( $this->content_dir ) . \trailingslashit( 'image-backup' );
 			// Sub-folders of the content directory will be stored directly in the image-backup/ folder.
-			$this->backup_uploads_dir = trailingslashit( $this->backup_dir ) . trailingslashit( 'uploads' );
+			$this->backup_uploads_dir = \trailingslashit( $this->backup_dir ) . \trailingslashit( 'uploads' );
 			// Folders outside the content dir, and relative to ABSPATH will be stored in the root/ directory.
-			$this->backup_root_dir = trailingslashit( $this->backup_dir ) . trailingslashit( 'root' );
+			$this->backup_root_dir = \trailingslashit( $this->backup_dir ) . \trailingslashit( 'root' );
 		} elseif ( $this->get_option( 'ewww_image_optimizer_cloud_key' ) && $this->get_option( 'ewww_image_optimizer_backup_files' ) ) {
 			$this->backup_mode = 'cloud';
 		}
 
 		// AJAX action hook for manually restoring a single image from cloud/local backups.
-		add_action( 'wp_ajax_ewww_manual_image_restore_single', array( $this, 'restore_single_image_handler' ) );
-		add_action( 'ewww_image_optimizer_pre_optimization', array( $this, 'store_local_backup' ) );
+		\add_action( 'wp_ajax_ewww_manual_image_restore_single', array( $this, 'restore_single_image_handler' ) );
+		\add_action( 'ewww_image_optimizer_pre_optimization', array( $this, 'store_local_backup' ) );
 
 		$this->exclusions = array(
 			$this->content_dir,
@@ -92,7 +94,7 @@ class EIO_Backup extends EIO_Base {
 			'/cache/',
 			'/dynamic/', // Nextgen dynamic images.
 		);
-		$this->exclusions = apply_filters( 'ewww_image_optimizer_backup_exclusions', $this->exclusions );
+		$this->exclusions = \apply_filters( 'ewww_image_optimizer_backup_exclusions', $this->exclusions );
 	}
 
 	/**
@@ -110,8 +112,8 @@ class EIO_Backup extends EIO_Base {
 	 * @param string $error An error message.
 	 */
 	public function throw_error( $error ) {
-		if ( is_string( $error ) ) {
-			$this->error_message = sanitize_text_field( $error );
+		if ( \is_string( $error ) ) {
+			$this->error_message = \sanitize_text_field( $error );
 		}
 	}
 
@@ -124,25 +126,25 @@ class EIO_Backup extends EIO_Base {
 	 * @return string The backup location for the file.
 	 */
 	public function get_backup_location( $file ) {
-		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( \ewww_image_optimizer_stream_wrapped( $file ) || 'local' !== $this->backup_mode ) {
 			return '';
 		}
-		$upload_dir = wp_get_upload_dir();
-		$upload_dir = trailingslashit( realpath( $upload_dir['basedir'] ) );
-		if ( $upload_dir && strpos( $file, $upload_dir ) === 0 ) {
+		$upload_dir = \wp_get_upload_dir();
+		$upload_dir = \trailingslashit( \realpath( $upload_dir['basedir'] ) );
+		if ( $upload_dir && \strpos( $file, $upload_dir ) === 0 ) {
 			$this->debug_message( 'using ' . $this->backup_uploads_dir );
-			return str_replace( $upload_dir, $this->backup_uploads_dir, $file );
+			return \str_replace( $upload_dir, $this->backup_uploads_dir, $file );
 		}
-		$content_dir = trailingslashit( realpath( WP_CONTENT_DIR ) );
-		if ( $content_dir && strpos( $file, $content_dir ) === 0 ) {
+		$content_dir = \trailingslashit( \realpath( \WP_CONTENT_DIR ) );
+		if ( $content_dir && \strpos( $file, $content_dir ) === 0 ) {
 			$this->debug_message( 'using ' . $this->backup_dir );
-			return str_replace( $content_dir, $this->backup_dir, $file );
+			return \str_replace( $content_dir, $this->backup_dir, $file );
 		}
-		$wp_dir = trailingslashit( realpath( ABSPATH ) );
-		if ( $wp_dir && strpos( $file, $wp_dir ) === 0 ) {
+		$wp_dir = \trailingslashit( \realpath( \ABSPATH ) );
+		if ( $wp_dir && \strpos( $file, $wp_dir ) === 0 ) {
 			$this->debug_message( 'using ' . $this->backup_root_dir );
-			return str_replace( $wp_dir, $this->backup_root_dir, $file );
+			return \str_replace( $wp_dir, $this->backup_root_dir, $file );
 		}
 		return '';
 	}
@@ -155,10 +157,10 @@ class EIO_Backup extends EIO_Base {
 	 * @return bool True if a backup is available, false otherwise.
 	 */
 	public function is_backup_available( $file, $record = false ) {
-		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$file = \ewww_image_optimizer_absolutize_path( $file );
 		if ( 'local' === $this->backup_mode ) {
-			clearstatcache();
+			\clearstatcache();
 			$backup_file = $this->get_backup_location( $file );
 			return $this->is_file( $backup_file );
 		} elseif ( 'cloud' === $this->backup_mode ) {
@@ -166,8 +168,8 @@ class EIO_Backup extends EIO_Base {
 				$record = \ewww_image_optimizer_find_already_optimized( $file );
 			}
 			if ( $record && $this->is_iterable( $record ) && ! empty( $record['backup'] ) && ! empty( $record['updated'] ) ) {
-				$updated_time = strtotime( $record['updated'] );
-				if ( DAY_IN_SECONDS * 30 + $updated_time > time() ) {
+				$updated_time = \strtotime( $record['updated'] );
+				if ( \DAY_IN_SECONDS * 30 + $updated_time > \time() ) {
 					return true;
 				}
 			}
@@ -181,10 +183,10 @@ class EIO_Backup extends EIO_Base {
 	 * @param string $file Name of the file to backup.
 	 */
 	public function backup_file( $file ) {
-		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->debug_message( "file: $file " );
 		foreach ( $this->exclusions as $exclusion ) {
-			if ( false !== strpos( $file, $exclusion ) ) {
+			if ( false !== \strpos( $file, $exclusion ) ) {
 				return;
 			}
 		}
@@ -201,7 +203,7 @@ class EIO_Backup extends EIO_Base {
 	 * @param string $file Name of the file to backup.
 	 */
 	public function store_local_backup( $file ) {
-		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( 'local' !== $this->backup_mode ) {
 			return;
 		}
@@ -216,13 +218,13 @@ class EIO_Backup extends EIO_Base {
 		if ( $this->is_file( $backup_file ) ) {
 			return;
 		}
-		\wp_mkdir_p( dirname( $backup_file ) );
-		clearstatcache();
-		if ( ! is_writable( dirname( $backup_file ) ) ) {
+		\wp_mkdir_p( \dirname( $backup_file ) );
+		\clearstatcache();
+		if ( ! \is_writable( \dirname( $backup_file ) ) ) {
 			return;
 		}
 		$this->debug_message( "backing up $file to $backup_file" );
-		copy( $file, $backup_file );
+		\copy( $file, $backup_file );
 		if ( $this->filesize( $file ) !== $this->filesize( $backup_file ) ) {
 			// In order to not store bogus files.
 			$this->delete_file( $backup_file );
@@ -235,7 +237,7 @@ class EIO_Backup extends EIO_Base {
 	 * @param string $file Name of the file to backup.
 	 */
 	protected function store_cloud_backup( $file ) {
-		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		\ewww_image_optimizer_cloud_backup( $file );
 	}
 
@@ -249,17 +251,17 @@ class EIO_Backup extends EIO_Base {
 	 * @return bool True if the image was restored successfully.
 	 */
 	public function restore_file( $image ) {
-		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		global $wpdb;
-		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+		if ( \strpos( $wpdb->charset, 'utf8' ) === false ) {
 			\ewww_image_optimizer_db_init();
 			global $ewwwdb;
 		} else {
 			$ewwwdb = $wpdb;
 		}
 		$this->error_message = '';
-		if ( ! is_array( $image ) && ! empty( $image ) && is_numeric( $image ) ) {
-			$image = $ewwwdb->get_row( "SELECT id,path,backup FROM $ewwwdb->ewwwio_images WHERE id = $image", ARRAY_A );
+		if ( ! \is_array( $image ) && ! empty( $image ) && \is_numeric( $image ) ) {
+			$image = $ewwwdb->get_row( "SELECT id,path,backup FROM $ewwwdb->ewwwio_images WHERE id = $image", \ARRAY_A );
 		}
 		if ( ! empty( $image['path'] ) ) {
 			$image['path'] = \ewww_image_optimizer_absolutize_path( $image['path'] );
@@ -281,35 +283,35 @@ class EIO_Backup extends EIO_Base {
 	 * @param array $image The db record of the image to restore.
 	 */
 	protected function restore_from_local( $image ) {
-		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( 'local' !== $this->backup_mode ) {
 			return false;
 		}
 		$file = $image['path'];
-		if ( ! is_writable( dirname( $file ) ) ) {
+		if ( ! \is_writable( \dirname( $file ) ) ) {
 			$this->debug_message( "$file (or the parent dir) is not writable" );
 			/* translators: %s: An image filename */
-			$this->error_message = sprintf( __( '%s is not writable.', 'ewww-image-optimizer' ), $file );
+			$this->error_message = \sprintf( \__( '%s is not writable.', 'ewww-image-optimizer' ), $file );
 			return false;
 		}
 		$backup_file = $this->get_backup_location( $file );
 		if ( ! $backup_file || $backup_file === $file ) {
 			$this->debug_message( "$backup_file is not a valid backup location for $file" );
 			/* translators: %s: An image filename */
-			$this->error_message = sprintf( __( 'Could not determine backup location for %s.', 'ewww-image-optimizer' ), $file );
+			$this->error_message = \sprintf( \__( 'Could not determine backup location for %s.', 'ewww-image-optimizer' ), $file );
 			return false;
 		}
 		\clearstatcache();
 		if ( ! $this->is_file( $backup_file ) ) {
 			$this->debug_message( "$backup_file does not exist" );
 			/* translators: %s: An image filename */
-			$this->error_message = sprintf( __( 'No backup available for %s.', 'ewww-image-optimizer' ), $file );
+			$this->error_message = \sprintf( \__( 'No backup available for %s.', 'ewww-image-optimizer' ), $file );
 			return false;
 		}
 		if ( \ewww_image_optimizer_mimetype( $file, 'i' ) !== \ewww_image_optimizer_mimetype( $backup_file, 'i' ) ) {
 			$this->debug_message( "$backup_file is different type than $file " . \ewww_image_optimizer_mimetype( $backup_file, 'i' ) . ' vs. ' . \ewww_image_optimizer_mimetype( $file, 'i' ) );
 			/* translators: %s: An image filename */
-			$this->error_message = sprintf( __( 'Backup file for %s has the wrong mime type.', 'ewww-image-optimizer' ), $file );
+			$this->error_message = \sprintf( \__( 'Backup file for %s has the wrong mime type.', 'ewww-image-optimizer' ), $file );
 			return false;
 		}
 		$filesize = $this->filesize( $file );
@@ -321,7 +323,7 @@ class EIO_Backup extends EIO_Base {
 		$this->debug_message( "restoring $file from $backup_file" );
 		copy( $backup_file, $file );
 		if ( $this->filesize( $file ) === $this->filesize( $backup_file ) ) {
-			if ( $this->is_file( $file . '.webp' ) && is_writable( $file . '.webp' ) ) {
+			if ( $this->is_file( $file . '.webp' ) && \is_writable( $file . '.webp' ) ) {
 				$this->delete_file( $file . '.webp' );
 			}
 			/* $this->delete_file( $backup_file ); */
@@ -331,7 +333,7 @@ class EIO_Backup extends EIO_Base {
 			return true;
 		}
 		/* translators: %s: An image filename */
-		$this->error_message = sprintf( __( 'Restore attempted for %s, but could not be confirmed.', 'ewww-image-optimizer' ), $file );
+		$this->error_message = \sprintf( \__( 'Restore attempted for %s, but could not be confirmed.', 'ewww-image-optimizer' ), $file );
 		return false;
 	}
 
@@ -342,7 +344,7 @@ class EIO_Backup extends EIO_Base {
 	 * @return bool True if the image was restored successfully.
 	 */
 	protected function restore_from_cloud( $image ) {
-		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		return \ewww_image_optimizer_cloud_restore_single_image( $image );
 	}
 
@@ -352,7 +354,7 @@ class EIO_Backup extends EIO_Base {
 	 * @param array $file The filename of the image for which we should remove the backup.
 	 */
 	public function delete_local_backup( $file ) {
-		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( ! $file ) {
 			return;
 		}
@@ -382,15 +384,15 @@ class EIO_Backup extends EIO_Base {
 	 * @return array The altered meta (if size differs), or the original value passed along.
 	 */
 	public function restore_backup_from_meta_data( $id, $gallery = 'media', $meta = array() ) {
-		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		global $wpdb;
-		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+		if ( \strpos( $wpdb->charset, 'utf8' ) === false ) {
 			\ewww_image_optimizer_db_init();
 			global $ewwwdb;
 		} else {
 			$ewwwdb = $wpdb;
 		}
-		$images = $ewwwdb->get_results( "SELECT id,path,resize,backup FROM $ewwwdb->ewwwio_images WHERE attachment_id = $id AND gallery = '$gallery'", ARRAY_A );
+		$images = $ewwwdb->get_results( "SELECT id,path,resize,backup FROM $ewwwdb->ewwwio_images WHERE attachment_id = $id AND gallery = '$gallery'", \ARRAY_A );
 		foreach ( $images as $image ) {
 			if ( ! empty( $image['path'] ) ) {
 				$image['path'] = \ewww_image_optimizer_absolutize_path( $image['path'] );
@@ -405,7 +407,7 @@ class EIO_Backup extends EIO_Base {
 			}
 		}
 		if ( 'media' === $gallery ) {
-			remove_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_filesize_metadata', 9 );
+			\remove_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_filesize_metadata', 9 );
 			$meta = \ewww_image_optimizer_update_filesize_metadata( $meta, $id );
 		}
 		if ( $this->s3_uploads_enabled() ) {
@@ -419,9 +421,9 @@ class EIO_Backup extends EIO_Base {
 	 * Handle the AJAX call for a single image restore.
 	 */
 	public function restore_single_image_handler() {
-		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		// Check permissions of current user.
-		$permissions = apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
+		$permissions = \apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
 		if ( ! \current_user_can( $permissions ) ) {
 			// Display error message if insufficient permissions.
 			$this->ob_clean();
@@ -450,4 +452,4 @@ class EIO_Backup extends EIO_Base {
 }
 
 global $eio_backup;
-$eio_backup = new EIO_Backup();
+$eio_backup = new Backup();

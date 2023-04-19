@@ -967,7 +967,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				wp_die( wp_json_encode( $output ) );
 			}
 			// Output the results of the optimization.
-			$output['results'] = sprintf( '<p>' . esc_html__( 'Optimized image:', 'ewww-image-optimizer' ) . ' <strong>%s</strong><br>', esc_html( basename( $storage->object->get_image_abspath( $image, 'full' ) ) ) );
+			$output['results'] = sprintf( '<p>' . esc_html__( 'Optimized image:', 'ewww-image-optimizer' ) . ' <strong>%s</strong><br>', esc_html( wp_basename( $storage->object->get_image_abspath( $image, 'full' ) ) ) );
 			if ( ewww_image_optimizer_iterable( $this->bulk_sizes ) ) {
 				foreach ( $this->bulk_sizes as $size => $results_msg ) {
 					if ( 'backup' === $size ) {

@@ -27,8 +27,8 @@ class EWWWIO_Table_Tests extends WP_UnitTestCase {
 		wp_mkdir_p( $temp_upload_dir );
 
 		$test_gif = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/gifsiclelogo.gif' );
-		rename( $test_gif, $temp_upload_dir . basename( $test_gif ) );
-		self::$test_gif = $temp_upload_dir . basename( $test_gif );
+		rename( $test_gif, $temp_upload_dir . wp_basename( $test_gif ) );
+		self::$test_gif = $temp_upload_dir . wp_basename( $test_gif );
 
 		ewww_image_optimizer_set_defaults();
 		update_option( 'ewww_image_optimizer_gif_level', 10 );

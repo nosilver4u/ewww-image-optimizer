@@ -538,7 +538,7 @@ class EWWW_Image {
 				$newfile  = ! empty( $newfile ) && ! ewwwio_is_file( $newfile ) ? $newfile : $this->unique_filename( $file, '.png' );
 				ewwwio_debug_message( "attempting to convert JPG to PNG: $newfile" );
 				// Convert the JPG to PNG.
-				if ( ewww_image_optimizer_gmagick_support() ) {
+				if ( \ewwwio()->gmagick_support() ) {
 					try {
 						$gmagick = new Gmagick( $file );
 						$gmagick->stripimage();
@@ -549,7 +549,7 @@ class EWWW_Image {
 					}
 					$png_size = ewww_image_optimizer_filesize( $newfile );
 				}
-				if ( ! $png_size && ewww_image_optimizer_imagick_support() ) {
+				if ( ! $png_size && \ewwwio()->imagick_support() ) {
 					try {
 						$imagick = new Imagick( $file );
 						$imagick->stripImage();
@@ -560,7 +560,7 @@ class EWWW_Image {
 					}
 					$png_size = ewww_image_optimizer_filesize( $newfile );
 				}
-				if ( ! $png_size && ewww_image_optimizer_gd_support() ) {
+				if ( ! $png_size && \ewwwio()->gd_support() ) {
 					ewwwio_debug_message( 'converting with GD' );
 					imagepng( imagecreatefromjpeg( $file ), $newfile );
 					$png_size = ewww_image_optimizer_filesize( $newfile );
@@ -614,7 +614,7 @@ class EWWW_Image {
 					$magick_background = '000000';
 				}
 				// Convert the PNG to a JPG with all the proper options.
-				if ( ewww_image_optimizer_gmagick_support() ) {
+				if ( \ewwwio()->gmagick_support() ) {
 					try {
 						if ( ewww_image_optimizer_png_alpha( $file ) ) {
 							$gmagick_overlay = new Gmagick( $file );
@@ -632,7 +632,7 @@ class EWWW_Image {
 					}
 					$jpg_size = ewww_image_optimizer_filesize( $newfile );
 				}
-				if ( ! $jpg_size && ewww_image_optimizer_imagick_support() ) {
+				if ( ! $jpg_size && \ewwwio()->imagick_support() ) {
 					try {
 						$imagick = new Imagick( $file );
 						if ( ewww_image_optimizer_png_alpha( $file ) ) {
@@ -647,7 +647,7 @@ class EWWW_Image {
 					}
 					$jpg_size = ewww_image_optimizer_filesize( $newfile );
 				}
-				if ( ! $jpg_size && ewww_image_optimizer_gd_support() ) {
+				if ( ! $jpg_size && \ewwwio()->gd_support() ) {
 					ewwwio_debug_message( 'converting with GD' );
 					// Retrieve the data from the PNG.
 					$input = imagecreatefrompng( $file );
@@ -699,7 +699,7 @@ class EWWW_Image {
 				$newfile  = ! empty( $newfile ) && ! ewwwio_is_file( $newfile ) ? $newfile : $this->unique_filename( $file, '.png' );
 				ewwwio_debug_message( "attempting to convert GIF to PNG: $newfile" );
 				// Convert the GIF to PNG.
-				if ( ewww_image_optimizer_gmagick_support() ) {
+				if ( \ewwwio()->gmagick_support() ) {
 					try {
 						$gmagick = new Gmagick( $file );
 						$gmagick->stripimage();
@@ -710,7 +710,7 @@ class EWWW_Image {
 					}
 					$png_size = ewww_image_optimizer_filesize( $newfile );
 				}
-				if ( ! $png_size && ewww_image_optimizer_imagick_support() ) {
+				if ( ! $png_size && \ewwwio()->imagick_support() ) {
 					try {
 						$imagick = new Imagick( $file );
 						$imagick->stripImage();
@@ -721,7 +721,7 @@ class EWWW_Image {
 					}
 					$png_size = ewww_image_optimizer_filesize( $newfile );
 				}
-				if ( ! $png_size && ewww_image_optimizer_gd_support() ) {
+				if ( ! $png_size && \ewwwio()->gd_support() ) {
 					ewwwio_debug_message( 'converting with GD' );
 					imagepng( imagecreatefromgif( $file ), $newfile );
 					$png_size = ewww_image_optimizer_filesize( $newfile );

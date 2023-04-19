@@ -142,6 +142,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: support for WP_Image_Editor_Imagick::set_imagick_time_limit() method added in WP 6.2
 * added: ewwwio_inline_webp_script_attrs filter to add custom data-* attributes to the JS WebP inline scripts
 * added: Easy IO support for BuddyBoss images, video, and documents
+* added: Bulk Optimizer and Scheduled Optimizer include BuddyBoss profile and cover image folders automatically
 * added: backup images post-resize but pre-compression with the ewww_image_optimizer_backup_post_resize filter
 * changed: improved Auto Scaling when using full-width layout in Elementor
 * changed: use fread to check mimetype of files for better performance
@@ -152,6 +153,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: PHP notice when cleaning attachment metadata
 * fixed: error when certain options have been stored as strings rather than serialized arrays
 * fixed: tool path and content dir functions don't resolve symlinks
+* fixed: Easy IO image URLs leaking into image gallery block via post editor
 
 = 6.9.3 =
 * changed: improved Brizy Builder compatibility

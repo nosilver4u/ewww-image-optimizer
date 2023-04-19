@@ -43,8 +43,8 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 	 * Test that GD is active and Imagick is not -- otherwise our tests are bogus.
 	 */
 	function test_gd_active() {
-		$this->assertNotEmpty( ewww_image_optimizer_gd_support() );
-		$this->assertFalse( ewww_image_optimizer_imagick_support() );
+		$this->assertNotEmpty( \ewwwio()->gd_support() );
+		$this->assertFalse( \ewwwio()->imagick_support() );
 	}
 
 	/**
