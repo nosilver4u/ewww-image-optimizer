@@ -105,7 +105,7 @@ class Lazy_Load extends Page_Parser {
 	 * Register (once) actions and filters for Lazy Load.
 	 */
 	function __construct() {
-		parent::__construct( __FILE__ );
+		parent::__construct();
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 
 		$this->request_uri = \add_query_arg( '', '' );

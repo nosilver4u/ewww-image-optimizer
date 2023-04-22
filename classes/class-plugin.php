@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * The kitchen sink, for everything that doesn't fit somewhere else.
  * Ideally, these are things like plugin initialization, setting defaults, and checking compatibility. We'll see how that plays out!
  */
-final class Plugin extends EIO_Base {
+final class Plugin extends Base {
 	/* Singleton */
 
 	/**
@@ -27,7 +27,7 @@ final class Plugin extends EIO_Base {
 	private static $instance;
 
 	/**
-	 * SWIS GZIP object.
+	 * Helpscout Beacon object.
 	 *
 	 * @var object|\EWWW\HS_Beacon $hs_beacon
 	 */
@@ -58,11 +58,12 @@ final class Plugin extends EIO_Base {
 				$wpdb->ewwwio_queue = $wpdb->prefix . 'ewwwio_queue';
 			}
 
-			self::$instance = new Plugin();
+			self::$instance = new Plugin( true );
 			self::$instance->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			// TODO: self::$instance->setup_constants()?
 
 			self::$instance->requires();
+			self::$instance->load_children();
 			\add_action( 'admin_init', array( self::$instance, 'admin_init' ) );
 			// TODO: check PHP and WP compat here.
 			// TODO: include files here instead of in main plugin file?
@@ -112,6 +113,13 @@ final class Plugin extends EIO_Base {
 		if ( ! class_exists( '\lsolesen\pel\PelJpeg' ) ) {
 			require_once( \EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/autoload.php' );
 		}
+	}
+
+	/**
+	 * Setup mandatory child classes.
+	 */
+	function load_children() {
+		self::$instance->local = new Local();
 	}
 
 	/**

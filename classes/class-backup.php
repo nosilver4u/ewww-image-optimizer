@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Backup & Restore images from both local and cloud locations.
  */
-class Backup extends EIO_Base {
+class Backup extends Base {
 
 	/**
 	 * An error from a restore operation.
@@ -69,7 +69,7 @@ class Backup extends EIO_Base {
 		if ( \is_object( $eio_backup ) ) {
 			return $eio_backup;
 		}
-		parent::__construct( __FILE__ );
+		parent::__construct();
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( 'local' === $this->get_option( 'ewww_image_optimizer_backup_files' ) ) {
 			$this->backup_mode = 'local';

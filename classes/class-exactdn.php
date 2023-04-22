@@ -164,7 +164,7 @@ class ExactDN extends Page_Parser {
 	 * Register (once) actions and filters for ExactDN. If you want to use this class, use the global.
 	 */
 	function __construct() {
-		parent::__construct( __FILE__ );
+		parent::__construct();
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		global $exactdn;
 		if ( \is_object( $exactdn ) ) {
@@ -3620,7 +3620,7 @@ class ExactDN extends Page_Parser {
 			$parsed_url['query'] = '';
 			$path                = $this->url_to_path_exists( $url );
 			if ( $path ) {
-				$modified = $this->function_exists( 'filemtime' ) ? \filemtime( \dirname( $path ) ) : '';
+				$modified = $this->function_exists( '\filemtime' ) ? \filemtime( \dirname( $path ) ) : '';
 				if ( empty( $modified ) ) {
 					$modified = $this->version;
 				}

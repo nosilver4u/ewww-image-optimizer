@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * HTML element and attribute parsing, replacing, etc.
  */
-class Page_Parser extends EIO_Base {
+class Page_Parser extends Base {
 
 	/**
 	 * Allowed image extensions.

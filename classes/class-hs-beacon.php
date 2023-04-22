@@ -17,13 +17,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since  3.5.1
  */
-class HS_Beacon extends EIO_Base {
+class HS_Beacon extends Base {
 
 	/**
 	 * Get things going
 	 */
 	public function __construct() {
-		parent::__construct( __FILE__ );
+		parent::__construct();
 		\add_action( 'admin_action_eio_opt_into_hs_beacon', array( $this, 'check_for_optin' ) );
 		\add_action( 'admin_action_eio_opt_out_of_hs_beacon', array( $this, 'check_for_optout' ) );
 	}

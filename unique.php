@@ -126,8 +126,9 @@ function ewww_image_optimizer_tool_init() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Make sure the bundled tools are installed.
 	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_bundle' ) ) {
-		ewww_image_optimizer_install_tools();
+		ewwwio()->local->install_tools();
 	}
+	ewwwio()->local->check_all_tools();
 	// Check for optimization utilities and register a notice if something is missing.
 	add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_utils' );
 	add_action( 'admin_notices', 'ewww_image_optimizer_notice_utils' );

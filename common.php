@@ -11375,7 +11375,7 @@ function ewwwio_is_cf_host() {
 		ewwwio_debug_message( 'found Cloudflare host via HTTP_CDN_LOOP' );
 		return true;
 	}
-	// $eio_base = new EIO_Base();
+
 	$hostname = ewwwio()->parse_url( get_site_url(), PHP_URL_HOST );
 	$home_ip  = gethostbyname( $hostname );
 	ewwwio_debug_message( "checking $home_ip from gethostbyname" );
@@ -11387,6 +11387,7 @@ function ewwwio_is_cf_host() {
 	}
 	ewwwio_debug_message( "not a Cloudflare host: $home_ip" );
 	return false;
+
 	// Double-check via Cloudflare DNS. Disabled for now, we'll see if we need to cross that bridge later.
 	$home_ip_lookup = wp_remote_get( 'https://cloudflare-dns.com/dns-query?name=' . urlencode( $hostname ) . '&type=A&ct=' . urlencode( 'application/dns-json' ) );
 	if ( ! is_wp_error( $home_ip_lookup ) && ! empty( $home_ip_lookup['body'] ) && is_string( $home_ip_lookup['body'] ) ) {
