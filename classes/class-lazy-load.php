@@ -371,28 +371,6 @@ class Lazy_Load extends Page_Parser {
 			return $buffer;
 		}
 
-		// If JS WebP isn't running, set ewww_webp_supported to false so we have something defined.
-		if ( ! \class_exists( 'JS_Webp' ) ) {
-			$body_tags        = $this->get_elements_from_html( $buffer, 'body' );
-			$body_webp_script = '<script';
-			foreach ( $this->inline_script_attrs as $attr_name => $attr_value ) {
-				if ( empty( $attr_name ) || empty( $attr_value ) ) {
-					continue;
-				}
-				if ( \preg_match( '/[^a-z0-9_-]/i', $attr_name ) ) {
-					continue;
-				}
-				$body_webp_script .= ' ' . $attr_name . '="' . \esc_attr( $attr_value ) . '"';
-			}
-			$body_webp_script .= '>var ewww_webp_supported=false;</script>';
-			if ( $this->is_iterable( $body_tags ) && ! empty( $body_tags[0] ) && false !== \strpos( $body_tags[0], '<body' ) ) {
-				// Add the WebP script right after the opening tag.
-				$buffer = \str_replace( $body_tags[0], $body_tags[0] . "\n" . $body_webp_script, $buffer );
-			} else {
-				$buffer = \str_replace( '<body>', "<body>\n$body_webp_script", $buffer );
-			}
-		}
-
 		$above_the_fold   = \apply_filters( 'eio_lazy_fold', 0 );
 		$images_processed = 0;
 		$replacements     = array();

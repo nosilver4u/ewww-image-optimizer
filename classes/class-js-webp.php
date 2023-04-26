@@ -439,10 +439,17 @@ class JS_Webp extends Page_Parser {
 			$body_webp_script .= ' ' . $attr_name . '="' . \esc_attr( $attr_value ) . '"';
 		}
 		$body_webp_script .= '>if(typeof ewww_webp_supported==="undefined"){var ewww_webp_supported=!1}if(ewww_webp_supported){document.body.classList.add("webp-support")}</script>';
-		if ( $this->is_iterable( $body_tags ) && ! empty( $body_tags[0] ) && false !== \strpos( $body_tags[0], '<body' ) ) {
+		if (
+			apply_filters( 'ewwwio_insert_body_webp_script', true ) &&
+			$this->is_iterable( $body_tags ) &&
+			! empty( $body_tags[0] ) &&
+			false !== \strpos( $body_tags[0], '<body' ) &&
+			false === strpos( $body_tags[0], 'x-init' ) &&
+			false === strpos( $body_tags[0], 'x-data' )
+		) {
 			// Add the WebP script right after the opening tag.
 			$buffer = \str_replace( $body_tags[0], $body_tags[0] . "\n" . $body_webp_script, $buffer );
-		} else {
+		} elseif ( apply_filters( 'ewwwio_insert_body_webp_script', true ) ) {
 			$buffer = \str_replace( '<body>', "<body>\n$body_webp_script", $buffer );
 		}
 		$images = $this->get_images_from_html( \preg_replace( '/<(picture|noscript).*?\/\1>/s', '', $buffer ), false );
