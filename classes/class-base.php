@@ -1059,6 +1059,24 @@ class Base {
 	}
 
 	/**
+	 * Performs a case-sensitive check indicating if
+	 * the haystack ends with needle.
+	 *
+	 * @param string $haystack The string to search in.
+	 * @param string $needle   The substring to search for in the `$haystack`.
+	 * @return bool True if `$haystack` ends with `$needle`, otherwise false.
+	 */
+	function str_ends_with( $haystack, $needle ) {
+		if ( '' === $haystack && '' !== $needle ) {
+			return false;
+		}
+
+		$len = strlen( $needle );
+
+		return 0 === substr_compare( $haystack, $needle, -$len, $len );
+	}
+
+	/**
 	 * Set an option: use 'site' setting if plugin is network activated, otherwise use 'blog' setting.
 	 *
 	 * @param string $option_name The name of the option to save.
