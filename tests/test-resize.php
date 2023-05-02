@@ -39,9 +39,9 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 		self::$test_jpg = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/20170314_174658.jpg' );
 		copy( self::$test_jpg, self::$test_jpg . '.jpg' );
 		self::$test_jpg .= '.jpg';
-		ewww_image_optimizer_set_defaults();
+		ewwwio()->set_defaults();
 		update_option( 'ewww_image_optimizer_jpg_level', '10' );
-		ewww_image_optimizer_install_tools();
+		ewwwio()->local->install_tools();
 	}
 
 	/**

@@ -13,7 +13,7 @@ Plugin Name: EWWW Image Optimizer
 Plugin URI: https://wordpress.org/plugins/ewww-image-optimizer/
 Description: Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
 Author: Exactly WWW
-Version: 6.9.3.2
+Version: 6.9.3.5
 Requires at least: 5.8
 Requires PHP: 7.2
 Author URI: https://ewww.io/
@@ -29,10 +29,28 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70200 ) {
 	add_action( 'network_admin_notices', 'ewww_image_optimizer_unsupported_php' );
 	add_action( 'admin_notices', 'ewww_image_optimizer_unsupported_php' );
 } elseif ( defined( 'EWWW_IMAGE_OPTIMIZER_VERSION' ) ) {
-	// Prevent loading both EWWW IO plugins.
+	// Prevent loading more than one EWWW IO plugin.
 	add_action( 'network_admin_notices', 'ewww_image_optimizer_dual_plugin' );
 	add_action( 'admin_notices', 'ewww_image_optimizer_dual_plugin' );
 } elseif ( false === strpos( add_query_arg( '', '' ), 'ewwwio_disable=1' ) ) {
+
+	define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 693.5 );
+	// Initialize a couple globals.
+	$eio_debug  = '';
+	$ewww_defer = true;
+
+	if ( WP_DEBUG && function_exists( 'memory_get_usage' ) ) {
+		$ewww_memory = 'plugin load: ' . memory_get_usage( true ) . "\n";
+	}
+
+	/**
+	 * Always use relative paths unless the user has already defined this constant.
+	 *
+	 * @var bool EWWW_IMAGE_OPTIMIZER_RELATIVE
+	 */
+	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_RELATIVE' ) ) {
+		define( 'EWWW_IMAGE_OPTIMIZER_RELATIVE', true );
+	}
 	/**
 	 * The full path of the plugin file (this file).
 	 *
@@ -90,7 +108,7 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70200 ) {
 	}
 
 	/**
-	 * All the 'unique' functions for the core EWWW IO plugin.
+	 * All the 'unique' functions for the core EWWW IO plugin (slowly being replaced with oop).
 	 */
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'unique.php' );
 	/**
@@ -98,7 +116,7 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70200 ) {
 	 */
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'common.php' );
 	/**
-	 * All the base functions for our plugins.
+	 * All the base functions for our plugins and classes to inherit.
 	 */
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-base.php' );
 	/**
@@ -106,7 +124,7 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70200 ) {
 	 */
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-plugin.php' );
 	/**
-	 * Class for local optimization/conversion features.
+	 * Class for local optimization tool installation/valication.
 	 */
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-local.php' );
 	/**

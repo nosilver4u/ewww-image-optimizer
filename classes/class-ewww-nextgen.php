@@ -461,34 +461,41 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 					echo "<button type='button' class='ewww-show-debug-meta button button-secondary' data-id='" . (int) $image->pid . "' style='background-color:#a9c524;'>" . esc_html( $debug_button ) . '</button>' .
 						"<div id='ewww-debug-meta-" . (int) $image->pid . "' style='font-size: 10px;padding: 10px;margin:3px -10px 10px;line-height: 1.1em;display: none;'>" . wp_kses_post( $print_meta ) . '</div>';
 				}
+
 				// Get the absolute path.
 				$file_path = $storage->get_image_abspath( $image, 'full' );
 				// Get the mimetype of the image.
 				$type = ewww_image_optimizer_quick_mimetype( $file_path );
-				// Check to see if we have a tool to handle the mimetype detected.
-				if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) ) {
-					ewww_image_optimizer_tool_init();
-					ewww_image_optimizer_notice_utils( 'quiet' );
+
+				if ( ! ewwwio()->tools_initialized && ! ewwwio()->local->os_supported() ) {
+					ewwwio()->local->skip_tools();
+				} elseif ( ! ewwwio()->tools_initialized ) {
+					ewwwio()->tool_init();
 				}
-				$skip = ewww_image_optimizer_skip_tools();
+				$tools = ewwwio()->local->check_all_tools();
+				// Check to see if we have a tool to handle the mimetype detected.
 				switch ( $type ) {
 					case 'image/jpeg':
 						// If jpegtran is missing, tell the user.
-						if ( ! EWWW_IMAGE_OPTIMIZER_JPEGTRAN && ! $skip['jpegtran'] ) {
+						if ( $tools['jpegtran']['enabled'] && ! $tools['jpegtran']['path'] ) {
 							/* translators: %s: name of a tool like jpegtran */
 							$msg = '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>jpegtran</em>' ) . '</div>';
 						}
 						break;
 					case 'image/png':
 						// If the PNG tools are missing, tell the user.
-						if ( ( ! $skip['optipng'] && ! EWWW_IMAGE_OPTIMIZER_OPTIPNG ) || ( ! $skip['pngout'] && ! EWWW_IMAGE_OPTIMIZER_PNGOUT ) ) {
+						if ( $tools['optipng']['enabled'] && ! $tools['optipng']['path'] ) {
 							/* translators: %s: name of a tool like jpegtran */
-							$msg = '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>optipng/pngout</em>' ) . '</div>';
+							$msg = '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>optipng</em>' ) . '</div>';
+						}
+						if ( $tools['pngout']['enabled'] && ! $tools['pngout']['path'] ) {
+							/* translators: %s: name of a tool like jpegtran */
+							$msg = '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>pngout</em>' ) . '</div>';
 						}
 						break;
 					case 'image/gif':
 						// If gifsicle is missing, tell the user.
-						if ( ! EWWW_IMAGE_OPTIMIZER_GIFSICLE && ! $skip['gifsicle'] ) {
+						if ( $tools['gifsicle']['enabled'] && ! $tools['gifsicle']['path'] ) {
 							/* translators: %s: name of a tool like jpegtran */
 							$msg = '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>gifsicle</em>' ) . '</div>';
 						}
@@ -1110,9 +1117,6 @@ if ( ! empty( $_REQUEST['page'] ) && 'ngg_other_options' !== $_REQUEST['page'] &
 		 */
 		function generate_image_size( $image, $size, $params = null, $skip_defaults = false ) {
 			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) ) {
-				ewww_image_optimizer_cloud_init();
-			}
 			$success = $this->call_parent( 'generate_image_size', $image, $size, $params, $skip_defaults );
 			if ( $success ) {
 				$filename = $success->fileName;

@@ -52,9 +52,6 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 					);
 				}
 			}
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) ) {
-				ewww_image_optimizer_cloud_init();
-			}
 			$saved = parent::_save( $image, $filename, $mime_type );
 			if ( ! is_wp_error( $saved ) ) {
 				if ( ! $filename ) {
@@ -111,9 +108,6 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 						'mime-type' => $mime_type,
 					);
 				}
-			}
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) ) {
-				ewww_image_optimizer_cloud_init();
 			}
 			$saved = parent::_save( $image, $filename, $mime_type );
 			if ( ! is_wp_error( $saved ) ) {
@@ -185,27 +179,34 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				ewwwio_debug_message( 'API resize disabled' );
 				return parent::_resize( $max_w, $max_h, $crop );
 			}
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) ) {
-				ewww_image_optimizer_cloud_init();
-			}
 			$ewww_status = get_transient( 'ewww_image_optimizer_cloud_status' );
-			if ( 'image/gif' === $this->mime_type && function_exists( 'ewww_image_optimizer_path_check' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-				ewww_image_optimizer_path_check( false, false, true, false, false, false, false );
+			if ( 'image/gif' === $this->mime_type && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+				$gifsicle_path = ewwwio()->local->get_path( 'gifsicle' );
 			}
-			if ( 'image/gif' === $this->mime_type && ( ! defined( 'EWWW_IMAGE_OPTIMIZER_GIFSICLE' ) || ! EWWW_IMAGE_OPTIMIZER_GIFSICLE ) ) {
-				if ( false === strpos( $ewww_status, 'great' ) ) {
-					if ( ! ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) ) {
-						ewwwio_debug_message( 'no gifsicle or API to resize an animated GIF' );
-						return parent::_resize( $max_w, $max_h, $crop );
-					}
-				}
+			// If this is a GIF, and we have no gifsicle, and there's an API key, but the status isn't 'great',
+			// double-check the key to see if the status has changed before bailing.
+			if (
+				'image/gif' === $this->mime_type &&
+				empty( $gifsicle_path ) &&
+				false === strpos( $ewww_status, 'great' ) &&
+				ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
+				! ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) )
+			) {
+				ewwwio_debug_message( 'no gifsicle or API to resize an animated GIF' );
+				return parent::_resize( $max_w, $max_h, $crop );
 			}
-			if ( 'image/gif' !== $this->mime_type && false === strpos( $ewww_status, 'great' ) ) {
-				if ( ! ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) ) {
-					ewwwio_debug_message( 'no API to resize the image' );
-					return parent::_resize( $max_w, $max_h, $crop );
-				}
+			// If this is some other image, and there's an API key, but the status isn't 'great',
+			// double-check the key to see if the status has changed before bailing.
+			if (
+				'image/gif' !== $this->mime_type &&
+				false === strpos( $ewww_status, 'great' ) &&
+				ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
+				! ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) )
+			) {
+				ewwwio_debug_message( 'no API to resize the image' );
+				return parent::_resize( $max_w, $max_h, $crop );
 			}
+			// If this isn't a GIF, or if the GIF isn't animated, then bail--we don't yet support "better resizing" for non-GIFs.
 			if ( 'image/gif' !== $this->mime_type || ! ewww_image_optimizer_is_animated( $this->file ) ) {
 				ewwwio_debug_message( 'not an animated GIF' );
 				return parent::_resize( $max_w, $max_h, $crop );
@@ -215,7 +216,13 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				ewwwio_debug_message( 'GIF already altered! Too late, so leave it alone...' );
 				return parent::_resize( $max_w, $max_h, $crop );
 			}
-			if ( ! $this->file || ewww_image_optimizer_stream_wrapped( $this->file ) || 0 === strpos( $this->file, 'http' ) || 0 === strpos( $this->file, 'ftp' ) || ! ewwwio_is_file( $this->file ) ) {
+			if (
+				! $this->file ||
+				ewww_image_optimizer_stream_wrapped( $this->file ) ||
+				0 === strpos( $this->file, 'http' ) ||
+				0 === strpos( $this->file, 'ftp' ) ||
+				! ewwwio_is_file( $this->file )
+			) {
 				ewwwio_debug_message( 'could not load original file, or remote path detected' );
 				return parent::_resize( $max_w, $max_h, $crop );
 			}
@@ -229,7 +236,6 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 				return new WP_Error( 'image_resize_error', __( 'Image resize failed.' ) );
 			}
 			$this->update_size( $new_size[0], $new_size[1] );
-			ewwwio_memory( __METHOD__ );
 			return $resize_result;
 		}
 
@@ -545,9 +551,6 @@ if ( class_exists( 'Bbpp_Animated_Gif' ) ) {
 						'mime-type' => $mime_type,
 					);
 				}
-			}
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) ) {
-				ewww_image_optimizer_cloud_init();
 			}
 			$saved = parent::_save( $image, $filename, $mime_type );
 			if ( ! is_wp_error( $saved ) ) {

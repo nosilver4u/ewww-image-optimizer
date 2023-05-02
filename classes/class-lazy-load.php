@@ -148,7 +148,7 @@ class Lazy_Load extends Page_Parser {
 		// Filter for FacetWP JSON responses.
 		\add_filter( 'facetwp_render_output', array( $this, 'filter_facetwp_json_output' ) );
 
-		if ( \class_exists( 'ExactDN' ) && $this->get_option( $this->prefix . 'exactdn' ) ) {
+		if ( \class_exists( __NAMESPACE__ . '\ExactDN' ) && $this->get_option( $this->prefix . 'exactdn' ) ) {
 			global $exactdn;
 			$this->exactdn_domain = $exactdn->get_exactdn_domain();
 			if ( $this->exactdn_domain ) {
@@ -168,8 +168,8 @@ class Lazy_Load extends Page_Parser {
 
 		\add_filter( 'wp_lazy_loading_enabled', array( $this, 'wp_lazy_loading_enabled' ), 10, 2 );
 
-		if ( ! \defined( 'EIO_LL_AUTOSCALE' ) && ! $this->get_option( $this->prefix . 'll_autoscale' ) ) {
-			\define( 'EIO_LL_AUTOSCALE', false );
+		if ( ! \defined( '\EIO_LL_AUTOSCALE' ) && ! $this->get_option( $this->prefix . 'll_autoscale' ) ) {
+			\define( '\EIO_LL_AUTOSCALE', false );
 		}
 
 		// Override for number of images to consider "above the fold".

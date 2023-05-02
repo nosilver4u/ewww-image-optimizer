@@ -30,7 +30,7 @@ class EWWWIO_Utility_Tests extends WP_UnitTestCase {
 			if ( ! ewwwio_is_file( $binary ) ) {
 				continue;
 			}
-			$this->assertTrue( ewww_image_optimizer_md5check( $binary ) );
+			$this->assertTrue( ewwwio()->local->check_integrity( $binary ) );
 		}
 	}
 
@@ -47,7 +47,7 @@ class EWWWIO_Utility_Tests extends WP_UnitTestCase {
 			if ( ! ewwwio_is_file( $binary ) ) {
 				continue;
 			}
-			$this->assertTrue( (bool) ewww_image_optimizer_mimetype( $binary, 'b' ), $binary . ":\n" . str_replace( '<br>', "\n", $eio_debug ) );
+			$this->assertTrue( (bool) ewwwio()->mimetype( $binary, 'b' ), $binary . ":\n" . str_replace( '<br>', "\n", $eio_debug ) );
 		}
 	}
 
@@ -55,14 +55,14 @@ class EWWWIO_Utility_Tests extends WP_UnitTestCase {
 	 * Tests that shell commands get escaped properly (replaces spaces in binary names).
 	 */
 	function test_shellcmdesc() {
-		$this->assertEquals( ewww_image_optimizer_escapeshellcmd( 'jpeg tran' ), 'jpeg\ tran' );
+		$this->assertEquals( ewwwio()->escapeshellcmd( 'jpeg tran' ), 'jpeg\ tran' );
 	}
 
 	/**
 	 * Tests that shell args get escaped properly (quotes and such).
 	 */
 	function test_shellargesc() {
-		$this->assertEquals( ewww_image_optimizer_escapeshellarg( "file'name" ), "'file'\\''name'" );
+		$this->assertEquals( ewwwio()->escapeshellarg( "file'name" ), "'file'\\''name'" );
 	}
 
 	/**
@@ -146,7 +146,7 @@ class EWWWIO_Utility_Tests extends WP_UnitTestCase {
 	 * Run syntax checks for requires in WP-Admin.
 	 */
 	function test_admin_init() {
-		ewww_image_optimizer_admin_init();
+		ewwwio()->admin_init();
 		$this->assertTrue( true );
 	}
 }

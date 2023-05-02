@@ -166,7 +166,7 @@ class Local extends Base {
 	/**
 	 * Disables all the local tools.
 	 */
-	protected function disable_tools() {
+	public function disable_tools() {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		foreach ( $this->tools as $tool => $status ) {
 			$this->tools[ $tool ]['enabled'] = false;
@@ -184,6 +184,18 @@ class Local extends Base {
 		if ( isset( $this->exec_enabled ) ) {
 			return (bool) $this->exec_enabled;
 		}
+		if (
+			\defined( '\WPCOMSH_VERSION' ) ||
+			! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ||
+			\defined( '\WPE_PLUGIN_VERSION' ) ||
+			\defined( '\FLYWHEEL_CONFIG_DIR' ) ||
+			\defined( '\KINSTAMU_VERSION' ) ||
+			\defined( '\WPNET_INIT_PLUGIN_VERSION' )
+		) {
+			$this->disable_tools();
+			$this->exec_enabled = false;
+			return false;
+		}
 		if ( $this->function_exists( '\exec' ) ) {
 			$this->exec_enabled = true;
 			return true;
@@ -195,24 +207,49 @@ class Local extends Base {
 	}
 
 	/**
+	 * Check if local mode is supported on this operating system.
+	 *
+	 * @return bool True if the PHP_OS is supported, false otherwise.
+	 */
+	function os_supported() {
+		$supported_oss = array(
+			'Linux',
+			'Darwin',
+			'FreeBSD',
+			'WINNT',
+		);
+		return \in_array( \PHP_OS, $supported_oss, true );
+	}
+
+	/**
 	 * Checks which tools should be skipped or enabled.
 	 */
 	public function skip_tools() {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		// If the user has disabled a tool, we aren't going to bother checking to see if it is there.
+		foreach ( $this->tools as $tool => $status ) {
+			if ( $this->tool_enabled( $tool ) ) {
+				$this->debug_message( "enabled: $tool" );
+				$this->tools[ $tool ]['enabled'] = true;
+			}
+		}
+		return;
 		if ( ! $this->get_option( 'ewww_image_optimizer_jpg_level' ) || $this->get_option( 'ewww_image_optimizer_jpg_level' ) > 10 || ! $this->exec_enabled ) {
 			$this->tools['jpegtran']['enabled'] = false;
 		} else {
+			$this->tools['jpegtran']['enabled'] = true;
 			$this->debug_message( 'enabled: jpegtran' );
 		}
 		if ( ! $this->get_option( 'ewww_image_optimizer_png_level' ) || ( $this->get_option( 'ewww_image_optimizer_cloud_key' ) && $this->get_option( 'ewww_image_optimizer_png_level' ) > 10 ) ) {
 			$this->tools['optipng']['enabled'] = false;
 		} else {
+			$this->tools['optipng']['enabled'] = true;
 			$this->debug_message( 'enabled: optipng' );
 		}
 		if ( ! $this->get_option( 'ewww_image_optimizer_gif_level' ) || $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 			$this->tools['gifsicle']['enabled'] = false;
 		} else {
+			$this->tools['gifsicle']['enabled'] = true;
 			$this->debug_message( 'enabled: gifsicle' );
 		}
 		if ( ! $this->get_option( 'ewww_image_optimizer_disable_pngout' ) && $this->get_option( 'ewww_image_optimizer_png_level' ) && ! $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
@@ -231,6 +268,62 @@ class Local extends Base {
 			$this->tools['svgcleaner']['enabled'] = true;
 			$this->debug_message( 'enabled: svgcleaner' );
 		}
+	}
+
+	/**
+	 * Checks if a given tool should be enabled.
+	 *
+	 * @param string $tool The name of the tool to check/test.
+	 * @return bool True if the tool should be enabled.
+	 */
+	public function tool_enabled( $tool ) {
+		if ( ! $this->exec_enabled ) {
+			return false;
+		}
+		if ( ! $this->os_supported() ) {
+			return false;
+		}
+		switch ( $tool ) {
+			case 'jpegtran':
+				if ( 10 === (int) $this->get_option( 'ewww_image_optimizer_jpg_level' ) ) {
+					return true;
+				}
+				break;
+			case 'optipng':
+				if ( $this->get_option( 'ewww_image_optimizer_png_level' ) && ! $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+					return true;
+				}
+				if ( 10 === (int) $this->get_option( 'ewww_image_optimizer_png_level' ) ) {
+					return true;
+				}
+				break;
+			case 'gifsicle':
+				if ( $this->get_option( 'ewww_image_optimizer_gif_level' ) && ! $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+					return true;
+				}
+				break;
+			case 'pngout':
+				if ( ! $this->get_option( 'ewww_image_optimizer_disable_pngout' ) && $this->get_option( 'ewww_image_optimizer_png_level' ) && ! $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+					return true;
+				}
+				break;
+			case 'pngquant':
+				if ( 40 === (int) $this->get_option( 'ewww_image_optimizer_png_level' ) && ! $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+					return true;
+				}
+				break;
+			case 'cwebp':
+				if ( $this->get_option( 'ewww_image_optimizer_webp' ) && ! ( $this->get_option( 'ewww_image_optimizer_cloud_key' ) && $this->get_option( 'ewww_image_optimizer_jpg_level' ) > 10 && $this->get_option( 'ewww_image_optimizer_png_level' ) > 10 ) ) {
+					return true;
+				}
+				break;
+			case 'svgcleaner':
+				if ( ! $this->get_option( 'ewww_image_optimizer_disable_svgcleaner' ) && $this->get_option( 'ewww_image_optimizer_svg_level' ) && ! $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+					return true;
+				}
+				break;
+		}
+		return false;
 	}
 
 	/**
@@ -347,6 +440,7 @@ class Local extends Base {
 	public function install_tools() {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->debug_message( 'Checking/Installing tools in ' . $this->content_dir );
+		$this->skip_tools();
 		$toolfail = false;
 		if ( ! \is_dir( $this->content_dir ) && \is_writable( \dirname( $this->content_dir ) ) ) {
 			$this->debug_message( 'folder does not exist, creating...' );
@@ -422,41 +516,54 @@ class Local extends Base {
 
 		if ( \PHP_OS !== 'WINNT' && ! $toolfail ) {
 			$this->debug_message( 'Linux/UNIX style OS, checking permissions' );
+			// NOTE: check_permissions() looks to make sure it is executable. If the tool is not executable,
+			// then we error if we can't write to the file to make it so, or if we are unable to run chmod().
 			if ( $this->tools['jpegtran']['enabled'] && ! $this->check_permissions( $jpegtran_dst, 'rwxr-xr-x' ) ) {
-				if ( ! \is_executable( $jpegtran_dst ) || ! \chmod( $jpegtran_dst, 0755 ) ) {
+				if ( ! \is_writable( $jpegtran_dst ) || ! \chmod( $jpegtran_dst, 0755 ) ) {
 					$toolfail = true;
 					$this->debug_message( 'could not set jpegtran permissions' );
 				}
 			}
 			if ( $this->tools['gifsicle']['enabled'] && ! $this->check_permissions( $gifsicle_dst, 'rwxr-xr-x' ) ) {
-				if ( ! \is_executable( $gifsicle_dst ) || ! \chmod( $gifsicle_dst, 0755 ) ) {
+				if ( ! \is_writable( $gifsicle_dst ) || ! \chmod( $gifsicle_dst, 0755 ) ) {
 					$toolfail = true;
 					$this->debug_message( 'could not set gifsicle permissions' );
 				}
 			}
 			if ( $this->tools['optipng']['enabled'] && ! $this->check_permissions( $optipng_dst, 'rwxr-xr-x' ) ) {
-				if ( ! \is_executable( $optipng_dst ) || ! \chmod( $optipng_dst, 0755 ) ) {
+				if ( ! \is_writable( $optipng_dst ) || ! \chmod( $optipng_dst, 0755 ) ) {
 					$toolfail = true;
 					$this->debug_message( 'could not set optipng permissions' );
 				}
 			}
 			if ( $this->tools['pngquant']['enabled'] && ! $this->check_permissions( $pngquant_dst, 'rwxr-xr-x' ) ) {
-				if ( ! \is_executable( $pngquant_dst ) || ! \chmod( $pngquant_dst, 0755 ) ) {
+				if ( ! \is_writable( $pngquant_dst ) || ! \chmod( $pngquant_dst, 0755 ) ) {
 					$toolfail = true;
 					$this->debug_message( 'could not set pngquant permissions' );
 				}
 			}
 			if ( $this->tools['cwebp']['enabled'] && ! $this->check_permissions( $cwebp_dst, 'rwxr-xr-x' ) ) {
-				if ( ! \is_executable( $cwebp_dst ) || ! \chmod( $cwebp_dst, 0755 ) ) {
+				if ( ! \is_writable( $cwebp_dst ) || ! \chmod( $cwebp_dst, 0755 ) ) {
 					$toolfail = true;
 					$this->debug_message( 'could not set cwebp permissions' );
 				}
 			}
 		}
 		if ( $toolfail ) {
-			\add_action( 'network_admin_notices', 'ewww_image_optimizer_tool_installation_failed_notice' );
-			\add_action( 'admin_notices', 'ewww_image_optimizer_tool_installation_failed_notice' );
+			\add_action( 'network_admin_notices', array( $this, 'tool_installation_failed_notice' ) );
+			\add_action( 'admin_notices', array( $this, 'tool_installation_failed_notice' ) );
 		}
+	}
+
+	/**
+	 * Alert the user when tool installation fails.
+	 */
+	function tool_installation_failed_notice() {
+		echo "<div id='ewww-image-optimizer-warning-tool-install' class='notice notice-error'><p><strong>" .
+			/* translators: %s: Folder location where executables should be installed */
+			\sprintf( \esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), \esc_html( $this->content_dir ) ) . '.</strong> ' .
+			/* translators: %s: Installation Instructions */
+			\sprintf( \esc_html__( 'For more details, see the %s.', 'ewww-image-optimizer' ), "<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something'>" . \esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
 	}
 
 	/**
@@ -733,6 +840,8 @@ class Local extends Base {
 	 * Checks all tools to see if any are missing.
 	 *
 	 * Normally, we only check the tools we need. On certain admin pages, we check all the tools so we can alert the user if necessary.
+	 *
+	 * @return array The list of tools with enabled and path indices.
 	 */
 	function check_all_tools() {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
@@ -741,6 +850,7 @@ class Local extends Base {
 				$this->check_tool( $tool );
 			}
 		}
+		return $this->tools;
 	}
 
 	/**
@@ -751,12 +861,14 @@ class Local extends Base {
 	 */
 	public function get_path( $tool ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		if ( $this->exec_enabled && $this->tools[ $tool ]['enabled'] ) {
+		if ( $this->exec_enabled && $this->tool_enabled( $tool ) ) {
 			if ( isset( $this->tools[ $tool ]['path'] ) ) {
 				return $this->tools[ $tool ]['path'];
 			}
 			$this->check_tool( $tool );
 			return $this->tools[ $tool ]['path'];
+		} elseif ( ! $this->tool_enabled( $tool ) ) {
+			$this->debug_message( "$tool disabled" );
 		}
 		return '';
 	}
@@ -765,21 +877,24 @@ class Local extends Base {
 	 * Sends each tool to the binary checker appropriate for the operating system.
 	 *
 	 * @param string $tool The name of the tool to check/test.
-	 *               or false for disabled/missing tools.
 	 */
 	function check_tool( $tool ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( isset( $this->tools[ $tool ]['path'] ) ) {
 			return;
 		}
-		if ( ! $this->tools[ $tool ]['enabled'] ) {
+		if ( ! $this->tool_enabled( $tool ) ) {
 			$this->tools[ $tool ]['path'] = '';
 			return;
 		}
 		if ( \defined( \strtoupper( $this->prefix . $tool ) ) ) {
-			$this->tools[ $tool ]['path'] = \constant( \strtoupper( $this->prefix . $tool ) );
-		}
-		if ( 'WINNT' === \PHP_OS ) {
+			$defined_path = \constant( \strtoupper( $this->prefix . $tool ) );
+			if ( 'WINNT' === \PHP_OS ) {
+				$this->tools[ $tool ]['path'] = '"' . $defined_path . '"';
+			} else {
+				$this->tools[ $tool ]['path'] = $this->escapeshellcmd( $defined_path );
+			}
+		} elseif ( 'WINNT' === \PHP_OS ) {
 			$this->tools[ $tool ]['path'] = $this->find_win_binary( $tool );
 		} else {
 			$this->tools[ $tool ]['path'] = $this->find_nix_binary( $tool );
@@ -819,24 +934,25 @@ class Local extends Base {
 			if ( $this->is_file( $tool_path . $binary . '-custom.exe' ) ) {
 				$binary_path = $tool_path . $binary . '-custom.exe';
 				$this->debug_message( "found $binary_path, testing..." );
-				if ( $this->check_integrity( '"' . $binary_path . '"', $binary ) ) {
+				if ( $this->test_binary( '"' . $binary_path . '"', $binary ) ) {
 					return '"' . $binary_path . '"';
 				}
 			}
 			if ( $this->is_file( $tool_path . $binary . '-alt.exe' ) ) {
 				$binary_path = $tool_path . $binary . '-alt.exe';
 				$this->debug_message( "found $binary_path, testing..." );
-				if ( $this->check_integrity( '"' . $binary_path . '"', $binary ) ) {
+				if ( $this->test_binary( '"' . $binary_path . '"', $binary ) ) {
 					return '"' . $binary_path . '"';
 				}
 			}
 		}
-		// If we still haven't found a usable binary, try a system-installed version.
-		if ( $this->check_integrity( $binary . '.exe', $binary ) ) {
-			return $binary . '.exe';
-		} else {
-			return '';
+		if ( ! \defined( '\EWWWIO_SKIP_SYSTEM_BINARIES' ) || ! \EWWWIO_SKIP_SYSTEM_BINARIES ) {
+			// If we still haven't found a usable binary, try a system-installed version.
+			if ( $this->test_binary( $binary . '.exe', $binary ) ) {
+				return $binary . '.exe';
+			}
 		}
+		return '';
 	}
 
 	/**
@@ -1139,527 +1255,4 @@ class Local extends Base {
 		return false;
 	}
 
-}
-
-/**
- * Check for binary installation and availability.
- */
-function ewww_image_optimizer_tool_init() {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	// Make sure the bundled tools are installed.
-	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_bundle' ) ) {
-		ewwwio()->local->install_tools();
-	}
-	// Check for optimization utilities and register a notice if something is missing.
-	add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_utils' );
-	add_action( 'admin_notices', 'ewww_image_optimizer_notice_utils' );
-	if ( defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) && EWWW_IMAGE_OPTIMIZER_CLOUD ) {
-		ewwwio_debug_message( 'cloud options enabled, shutting off binaries' );
-		ewww_image_optimizer_disable_tools();
-	}
-}
-
-/**
- * Alert the user when the tool folder could not be created.
- */
-function ewww_image_optimizer_tool_folder_notice() {
-	echo "<div id='ewww-image-optimizer-warning-tool-folder-create' class='notice notice-error'><p><strong>" . esc_html__( 'EWWW Image Optimizer could not create the tool folder', 'ewww-image-optimizer' ) . ': ' . esc_html( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) . '.</strong> ' . esc_html__( 'Please adjust permissions or create the folder', 'ewww-image-optimizer' ) . '.</p></div>';
-}
-
-/**
- * Alert the user when permissions on the tool folder are insufficient.
- */
-function ewww_image_optimizer_tool_folder_permissions_notice() {
-	echo "<div id='ewww-image-optimizer-warning-tool-folder-permissions' class='notice notice-error'><p><strong>" .
-		/* translators: %s: Folder location where executables should be installed */
-		sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), esc_html( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . '.</strong> ' .
-		esc_html__( 'Please adjust permissions on the folder. If you have installed the tools elsewhere, use the override to skip the bundled tools.', 'ewww-image-optimizer' ) . ' ' .
-		/* translators: s: Installation Instructions (link) */
-		sprintf( esc_html__( 'For more details, see the %s.', 'ewww-image-optimizer' ), "<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
-}
-
-/**
- * Alert the user when tool installation fails.
- */
-function ewww_image_optimizer_tool_installation_failed_notice() {
-	echo "<div id='ewww-image-optimizer-warning-tool-install' class='notice notice-error'><p><strong>" .
-		/* translators: %s: Folder location where executables should be installed */
-		sprintf( esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), esc_html( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) . '.</strong> ' .
-		/* translators: %s: Installation Instructions */
-		sprintf( esc_html__( 'For more details, see the %s.', 'ewww-image-optimizer' ), "<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
-}
-
-/**
- * Disables local compression when exec notice is dismissed by ExactDN user.
- */
-function ewww_image_optimizer_dismiss_exec_notice() {
-	ewwwio_ob_clean();
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	// Verify that the user is properly authorized.
-	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
-		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
-	}
-	ewww_image_optimizer_enable_free_exec();
-	die();
-}
-
-/**
- * Put site in "free exec" mode with JPG-only API compression, and suppress the exec() notice.
- */
-function ewww_image_optimizer_enable_free_exec() {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	update_option( 'ewww_image_optimizer_jpg_level', 10 );
-	update_option( 'ewww_image_optimizer_png_level', 0 );
-	update_option( 'ewww_image_optimizer_gif_level', 0 );
-	update_option( 'ewww_image_optimizer_pdf_level', 0 );
-	update_option( 'ewww_image_optimizer_svg_level', 0 );
-	update_option( 'ewww_image_optimizer_dismiss_exec_notice', 1 );
-	update_site_option( 'ewww_image_optimizer_dismiss_exec_notice', 1 );
-}
-
-/**
- * Checks for safe mode and exec, then displays an error if needed.
- *
- * @param string $quiet Optional. Use 'quiet' to suppress warning messages.
- */
-function ewww_image_optimizer_notice_utils( $quiet = null ) {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	// Check if exec is disabled.
-	if ( ewww_image_optimizer_exec_check() ) {
-		// Need to be a little particular with the quiet parameter.
-		if ( 'quiet' !== $quiet && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_exec_notice' ) ) {
-			ob_start();
-			// Display a warning if exec() is disabled, can't run local tools without it.
-			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) || get_option( 'easyio_exactdn' ) ) {
-				echo "<div id='ewww-image-optimizer-warning-exec' class='notice notice-info is-dismissible'><p>";
-				esc_html_e( 'Free compression of local images cannot be done on your site without an API key. Since Easy IO is already automatically optimizing your site, you may dismiss this notice unless you need to save storage space.', 'ewww-image-optimizer' );
-			} else {
-				echo "<div id='ewww-image-optimizer-warning-exec' class='notice notice-warning is-dismissible'><p>";
-				printf(
-					/* translators: %s: link to 'start your premium trial' */
-					esc_html__( 'Your web server does not meet the requirements for free server-based compression with EWWW Image Optimizer. You may %s for 5x more compression, PNG/GIF/PDF compression, and more. Otherwise, continue with free cloud-based JPG compression.', 'ewww-image-optimizer' ),
-					"<a href='https://ewww.io/plans/'>" . esc_html__( 'start your premium trial', 'ewww-image-optimizer' ) . '</a>'
-				);
-			}
-			ewwwio_help_link( 'https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it', '592dd12d0428634b4a338c39' );
-			echo '</p></div>';
-			echo
-				"<script>\n" .
-				"jQuery(document).on('click', '#ewww-image-optimizer-warning-exec .notice-dismiss', function() {\n" .
-					"\tvar ewww_dismiss_exec_data = {\n" .
-						"\t\taction: 'ewww_dismiss_exec_notice',\n" .
-					"\t};\n" .
-					"\tjQuery.post(ajaxurl, ewww_dismiss_exec_data, function(response) {\n" .
-						"\t\tif (response) {\n" .
-							"\t\t\tconsole.log(response);\n" .
-						"\t\t}\n" .
-					"\t});\n" .
-				"});\n" .
-				"</script>\n";
-			if (
-				ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) &&
-				! ewww_image_optimizer_get_option( 'ewww_image_optimizer_local_mode' )
-			) {
-				ob_end_clean();
-			} else {
-				ob_end_flush();
-			}
-		}
-		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
-			define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', true );
-		}
-		ewwwio_debug_message( 'exec seems to be disabled' );
-		ewww_image_optimizer_disable_tools();
-		return;
-	} else {
-		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_NOEXEC' ) ) {
-			define( 'EWWW_IMAGE_OPTIMIZER_NOEXEC', false );
-		}
-	}
-
-	// Attempt to retrieve values for utility paths, and store them in the appropriate variables.
-	$required = ewww_image_optimizer_path_check( ! $skip['jpegtran'], ! $skip['optipng'], ! $skip['gifsicle'], ! $skip['pngout'], ! $skip['pngquant'], ! $skip['webp'], ! $skip['svgcleaner'] );
-	$missing  = array();
-	// Go through each of the required tools.
-	foreach ( $required as $key => $req ) {
-		// if the tool wasn't found, add it to the $missing array if we are supposed to check the tool in question.
-		switch ( $key ) {
-			case 'JPEGTRAN':
-				if ( ! $skip['jpegtran'] && empty( $req ) ) {
-					$missing[] = 'jpegtran';
-					$req       = false;
-				}
-				if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_' . $key ) ) {
-					ewwwio_debug_message( "defining EWWW_IMAGE_OPTIMIZER_$key" );
-					define( 'EWWW_IMAGE_OPTIMIZER_' . $key, $req );
-				}
-				break;
-			case 'OPTIPNG':
-				if ( ! $skip['optipng'] && empty( $req ) ) {
-					$missing[] = 'optipng';
-					$req       = false;
-				}
-				if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_' . $key ) ) {
-					ewwwio_debug_message( "defining EWWW_IMAGE_OPTIMIZER_$key" );
-					define( 'EWWW_IMAGE_OPTIMIZER_' . $key, $req );
-				}
-				break;
-			case 'GIFSICLE':
-				if ( ! $skip['gifsicle'] && empty( $req ) ) {
-					$missing[] = 'gifsicle';
-					$req       = false;
-				}
-				if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_' . $key ) ) {
-					ewwwio_debug_message( "defining EWWW_IMAGE_OPTIMIZER_$key" );
-					define( 'EWWW_IMAGE_OPTIMIZER_' . $key, $req );
-				}
-				break;
-			case 'PNGOUT':
-				if ( ! $skip['pngout'] && empty( $req ) ) {
-					$missing[] = 'pngout';
-					$req       = false;
-				}
-				if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_' . $key ) ) {
-					ewwwio_debug_message( "defining EWWW_IMAGE_OPTIMIZER_$key" );
-					define( 'EWWW_IMAGE_OPTIMIZER_' . $key, $req );
-				}
-				break;
-			case 'PNGQUANT':
-				if ( ! $skip['pngquant'] && empty( $req ) ) {
-					$missing[] = 'pngquant';
-					$req       = false;
-				}
-				if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_' . $key ) ) {
-					ewwwio_debug_message( "defining EWWW_IMAGE_OPTIMIZER_$key" );
-					define( 'EWWW_IMAGE_OPTIMIZER_' . $key, $req );
-				}
-				break;
-			case 'CWEBP':
-				if ( ! $skip['webp'] && empty( $req ) ) {
-					if ( ! ewwwio()->imagick_supports_webp() && ! ewwwio()->gd_supports_webp() ) {
-						$missing[] = 'webp';
-					}
-					$req = false;
-				}
-				if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_' . $key ) ) {
-					ewwwio_debug_message( "defining EWWW_IMAGE_OPTIMIZER_$key" );
-					define( 'EWWW_IMAGE_OPTIMIZER_' . $key, $req );
-				}
-				break;
-			case 'SVGCLEANER':
-				if ( ! $skip['svgcleaner'] && empty( $req ) ) {
-					$missing[] = 'svgcleaner';
-					$req       = false;
-				}
-				if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_' . $key ) ) {
-					ewwwio_debug_message( "defining EWWW_IMAGE_OPTIMIZER_$key" );
-					define( 'EWWW_IMAGE_OPTIMIZER_' . $key, $req );
-				}
-				break;
-		} // End switch().
-	} // End foreach().
-	// If there is a message, display the warning.
-	if ( ! empty( $missing ) && 'quiet' !== $quiet ) {
-		if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
-			// Need to include the plugin library for the is_plugin_active function.
-			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-		}
-		if ( ! is_dir( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
-			ewww_image_optimizer_tool_folder_notice();
-		} elseif ( ! is_writable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) || ! is_readable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
-			ewww_image_optimizer_tool_folder_permissions_notice();
-		} elseif ( ! is_executable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) && PHP_OS !== 'WINNT' ) {
-			ewww_image_optimizer_tool_folder_permissions_notice();
-		}
-		if ( in_array( 'pngout', $missing, true ) ) {
-			$key = array_search( 'pngout', $missing, true );
-			if ( false !== $key ) {
-				unset( $missing[ $key ] );
-			}
-			$pngout_install_url = admin_url( 'admin.php?action=ewww_image_optimizer_install_pngout' );
-			echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-warning'><p>" .
-			sprintf(
-				/* translators: 1: automatically (link) 2: manually (link) */
-				esc_html__( 'EWWW Image Optimizer is missing pngout. Install %1$s or %2$s.', 'ewww-image-optimizer' ),
-				"<a href='" . esc_url( $pngout_install_url ) . "'>" . esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
-				'<a href="https://docs.ewww.io/article/13-installing-pngout" data-beacon-article="5854531bc697912ffd6c1afa">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>'
-			) .
-			'</p></div>';
-		}
-		if ( in_array( 'svgcleaner', $missing, true ) ) {
-			$key = array_search( 'svgcleaner', $missing, true );
-			if ( false !== $key ) {
-				unset( $missing[ $key ] );
-			}
-			$svgcleaner_install_url = admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' );
-			echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-warning'><p>" .
-			sprintf(
-				/* translators: 1: automatically (link) 2: manually (link) */
-				esc_html__( 'EWWW Image Optimizer is missing svgleaner. Install %1$s or %2$s.', 'ewww-image-optimizer' ),
-				"<a href='" . esc_url( $svgcleaner_install_url ) . "'>" . esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
-				'<a href="https://docs.ewww.io/article/95-installing-svgcleaner" data-beacon-article="5f7921c9cff47e001a58adbc">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>'
-			) .
-			'</p></div>';
-		}
-		if ( ! empty( $missing ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_exec_notice' ) ) {
-			$dismissible = false;
-			if (
-				in_array( 'jpegtran', $missing, true ) &&
-				in_array( 'optipng', $missing, true ) &&
-				in_array( 'gifsicle', $missing, true )
-			) {
-				$dismissible = true;
-			}
-			if ( ! in_array( 'jpegtran', $missing, true ) ) {
-				$dismissible = true;
-			}
-			// Expand the missing utilities list for use in the error message.
-			$msg = implode( ', ', $missing );
-			echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-warning" . ( $dismissible ? ' is-dismissible' : '' ) . "'><p>" .
-			sprintf(
-				/* translators: 1: comma-separated list of missing tools 2: Installation Instructions (link) */
-				esc_html__( 'EWWW Image Optimizer uses open-source tools to enable free mode, but your server is missing these: %1$s. Please install via the %2$s to continue in free mode.', 'ewww-image-optimizer' ),
-				esc_html( $msg ),
-				"<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something' data-beacon-article='585371e3c697912ffd6c0ba1' target='_blank'>" . esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>'
-			) .
-			'</p></div>';
-			echo
-				"<script>\n" .
-				"jQuery(document).on('click', '#ewww-image-optimizer-warning-opt-missing .notice-dismiss', function() {\n" .
-					"\tvar ewww_dismiss_exec_data = {\n" .
-						"\t\taction: 'ewww_dismiss_exec_notice',\n" .
-					"\t};\n" .
-					"\tjQuery.post(ajaxurl, ewww_dismiss_exec_data, function(response) {\n" .
-						"\t\tif (response) {\n" .
-							"\t\t\tconsole.log(response);\n" .
-						"\t\t}\n" .
-					"\t});\n" .
-				"});\n" .
-				"</script>\n";
-		}
-		ewwwio_memory( __FUNCTION__ );
-	}
-}
-
-/**
- * Sends each tool to the binary checker appropriate for the operating system.
- *
- * @param bool $j True to check jpegtran.
- * @param bool $o True to check optipng.
- * @param bool $g True to check gifsicle.
- * @param bool $p True to check pngout.
- * @param bool $q True to check pngquant.
- * @param bool $w True to check cwebp.
- * @param bool $s True to check svgcleaner.
- * @return array Path for each tool (indexes JPEGTRAN, OPTIPNG, GIFSICLE, PNGOUT, PNGQUANT, CWEBP, SVGCLEANER),
- *               or false for disabled/missing tools.
- */
-function ewww_image_optimizer_path_check( $j = true, $o = true, $g = true, $p = true, $q = true, $w = true, $s = true ) {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	$jpegtran   = false;
-	$optipng    = false;
-	$gifsicle   = false;
-	$pngout     = false;
-	$pngquant   = false;
-	$webp       = false;
-	$svgcleaner = false;
-	ewww_image_optimizer_define_noexec();
-	if ( EWWW_IMAGE_OPTIMIZER_NOEXEC ) {
-		return array(
-			'JPEGTRAN'   => false,
-			'OPTIPNG'    => false,
-			'GIFSICLE'   => false,
-			'PNGOUT'     => false,
-			'PNGQUANT'   => false,
-			'CWEBP'      => false,
-			'SVGCLEANER' => false,
-		);
-	}
-	if ( 'WINNT' === PHP_OS ) {
-		if ( $j ) {
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) ) {
-				$jpegtran = ewww_image_optimizer_find_win_binary( 'jpegtran', 'j' );
-				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_JPEGTRAN' );
-				define( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN', $jpegtran );
-			} else {
-				$jpegtran = EWWW_IMAGE_OPTIMIZER_JPEGTRAN;
-			}
-		}
-		if ( $o ) {
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_OPTIPNG' ) ) {
-				$optipng = ewww_image_optimizer_find_win_binary( 'optipng', 'o' );
-				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_OPTIPNG' );
-				define( 'EWWW_IMAGE_OPTIMIZER_OPTIPNG', $optipng );
-			} else {
-				$optipng = EWWW_IMAGE_OPTIMIZER_OPTIPNG;
-			}
-		}
-		if ( $g ) {
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_GIFSICLE' ) ) {
-				$gifsicle = ewww_image_optimizer_find_win_binary( 'gifsicle', 'g' );
-				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_GIFSICLE' );
-				define( 'EWWW_IMAGE_OPTIMIZER_GIFSICLE', $gifsicle );
-			} else {
-				$gifsicle = EWWW_IMAGE_OPTIMIZER_GIFSICLE;
-			}
-		}
-		if ( $p ) {
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_PNGOUT' ) ) {
-				$pngout = ewww_image_optimizer_find_win_binary( 'pngout', 'p' );
-				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_PNGOUT' );
-				define( 'EWWW_IMAGE_OPTIMIZER_PNGOUT', $pngout );
-			} else {
-				$pngout = EWWW_IMAGE_OPTIMIZER_PNGOUT;
-			}
-		}
-		if ( $q ) {
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_PNGQUANT' ) ) {
-				$pngquant = ewww_image_optimizer_find_win_binary( 'pngquant', 'q' );
-				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_PNGQUANT' );
-				define( 'EWWW_IMAGE_OPTIMIZER_PNGQUANT', $pngquant );
-			} else {
-				$pngquant = EWWW_IMAGE_OPTIMIZER_PNGQUANT;
-			}
-		}
-		if ( $w ) {
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CWEBP' ) ) {
-				$webp = ewww_image_optimizer_find_win_binary( 'cwebp', 'w' );
-				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_CWEBP' );
-				define( 'EWWW_IMAGE_OPTIMIZER_CWEBP', $webp );
-			} else {
-				$webp = EWWW_IMAGE_OPTIMIZER_CWEBP;
-			}
-		}
-		if ( $s ) {
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_SVGCLEANER' ) ) {
-				$svgcleaner = ewww_image_optimizer_find_win_binary( 'svgcleaner', 's' );
-				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_SVGCLEANER' );
-				define( 'EWWW_IMAGE_OPTIMIZER_SVGCLEANER', $svgcleaner );
-			} else {
-				ewwwio_debug_message( 'using existing EWWW_IMAGE_OPTIMIZER_SVGCLEANER' );
-				$svgcleaner = EWWW_IMAGE_OPTIMIZER_SVGCLEANER;
-			}
-		}
-	} else {
-		if ( $j ) {
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) ) {
-				$jpegtran = ewww_image_optimizer_find_nix_binary( 'jpegtran', 'j' );
-				if ( ! $jpegtran ) {
-					$jpegtran = ewww_image_optimizer_find_nix_binary( 'jpegtran', 'jb' );
-				}
-				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_JPEGTRAN' );
-				define( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN', $jpegtran );
-			} else {
-				$jpegtran = EWWW_IMAGE_OPTIMIZER_JPEGTRAN;
-			}
-		}
-		if ( $o ) {
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_OPTIPNG' ) ) {
-				$optipng = ewww_image_optimizer_find_nix_binary( 'optipng', 'o' );
-				if ( ! $optipng ) {
-					$optipng = ewww_image_optimizer_find_nix_binary( 'optipng', 'ob' );
-				}
-				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_OPTIPNG' );
-				define( 'EWWW_IMAGE_OPTIMIZER_OPTIPNG', $optipng );
-			} else {
-				$optipng = EWWW_IMAGE_OPTIMIZER_OPTIPNG;
-			}
-		}
-		if ( $g ) {
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_GIFSICLE' ) ) {
-				$gifsicle = ewww_image_optimizer_find_nix_binary( 'gifsicle', 'g' );
-				if ( ! $gifsicle ) {
-					$gifsicle = ewww_image_optimizer_find_nix_binary( 'gifsicle', 'gb' );
-				}
-				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_GIFSICLE' );
-				define( 'EWWW_IMAGE_OPTIMIZER_GIFSICLE', $gifsicle );
-			} else {
-				$gifsicle = EWWW_IMAGE_OPTIMIZER_GIFSICLE;
-			}
-		}
-		if ( $p ) {
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_PNGOUT' ) ) {
-				// Pngout is special and has a dynamic and static binary to check.
-				$pngout = ewww_image_optimizer_find_nix_binary( 'pngout-static', 'p' );
-				if ( ! $pngout ) {
-					$pngout = ewww_image_optimizer_find_nix_binary( 'pngout', 'p' );
-				}
-				if ( ! $pngout ) {
-					$pngout = ewww_image_optimizer_find_nix_binary( 'pngout-static', 'pb' );
-				}
-				if ( ! $pngout ) {
-					$pngout = ewww_image_optimizer_find_nix_binary( 'pngout', 'pb' );
-				}
-				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_PNGOUT' );
-				define( 'EWWW_IMAGE_OPTIMIZER_PNGOUT', $pngout );
-			} else {
-				$pngout = EWWW_IMAGE_OPTIMIZER_PNGOUT;
-			}
-		}
-		if ( $q ) {
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_PNGQUANT' ) ) {
-				$pngquant = ewww_image_optimizer_find_nix_binary( 'pngquant', 'q' );
-				if ( ! $pngquant ) {
-					$pngquant = ewww_image_optimizer_find_nix_binary( 'pngquant', 'qb' );
-				}
-				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_PNGQUANT' );
-				define( 'EWWW_IMAGE_OPTIMIZER_PNGQUANT', $pngquant );
-			} else {
-				$pngquant = EWWW_IMAGE_OPTIMIZER_PNGQUANT;
-			}
-		}
-		if ( $w ) {
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CWEBP' ) ) {
-				$webp = ewww_image_optimizer_find_nix_binary( 'cwebp', 'w' );
-				if ( ! $webp ) {
-					$webp = ewww_image_optimizer_find_nix_binary( 'cwebp', 'wb' );
-				}
-				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_CWEBP' );
-				define( 'EWWW_IMAGE_OPTIMIZER_CWEBP', $webp );
-			} else {
-				$webp = EWWW_IMAGE_OPTIMIZER_CWEBP;
-			}
-		}
-		if ( $s ) {
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_SVGCLEANER' ) ) {
-				$svgcleaner = ewww_image_optimizer_find_nix_binary( 'svgcleaner', 's' );
-				ewwwio_debug_message( 'defining EWWW_IMAGE_OPTIMIZER_SVGCLEANER' );
-				define( 'EWWW_IMAGE_OPTIMIZER_SVGCLEANER', $svgcleaner );
-			} else {
-				ewwwio_debug_message( 'using existing EWWW_IMAGE_OPTIMIZER_SVGCLEANER' );
-				$svgcleaner = EWWW_IMAGE_OPTIMIZER_SVGCLEANER;
-			}
-		}
-	} // End if().
-	if ( $jpegtran ) {
-		ewwwio_debug_message( "using: $jpegtran" );
-	}
-	if ( $optipng ) {
-		ewwwio_debug_message( "using: $optipng" );
-	}
-	if ( $gifsicle ) {
-		ewwwio_debug_message( "using: $gifsicle" );
-	}
-	if ( $pngout ) {
-		ewwwio_debug_message( "using: $pngout" );
-	}
-	if ( $pngquant ) {
-		ewwwio_debug_message( "using: $pngquant" );
-	}
-	if ( $webp ) {
-		ewwwio_debug_message( "using: $webp" );
-	}
-	if ( $svgcleaner ) {
-		ewwwio_debug_message( "using: $svgcleaner" );
-	}
-	ewwwio_memory( __FUNCTION__ );
-	return array(
-		'JPEGTRAN'   => $jpegtran,
-		'OPTIPNG'    => $optipng,
-		'GIFSICLE'   => $gifsicle,
-		'PNGOUT'     => $pngout,
-		'PNGQUANT'   => $pngquant,
-		'CWEBP'      => $webp,
-		'SVGCLEANER' => $svgcleaner,
-	);
 }

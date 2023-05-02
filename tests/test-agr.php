@@ -24,9 +24,9 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 	public static function set_up_before_class() {
 		self::$test_gif = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/rain.gif' );
 
-		ewww_image_optimizer_set_defaults();
+		ewwwio()->set_defaults();
 		update_option( 'ewww_image_optimizer_gif_level', 10 );
-		ewww_image_optimizer_install_tools();
+		ewwwio()->local->install_tools();
 	}
 
 	/**

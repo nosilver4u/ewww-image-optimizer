@@ -48,9 +48,6 @@ if ( class_exists( 'WP_Image_Editor_Gmagick' ) ) {
 					);
 				}
 			}
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD' ) ) {
-				ewww_image_optimizer_cloud_init();
-			}
 			$saved = parent::_save( $image, $filename, $mime_type );
 			if ( ! is_wp_error( $saved ) ) {
 				if ( ! $filename ) {

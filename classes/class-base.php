@@ -338,6 +338,17 @@ class Base {
 		if ( ! \is_string( $message ) && ! \is_int( $message ) && ! \is_float( $message ) ) {
 			return;
 		}
+		if ( \defined( '\EIO_PHPUNIT' ) && \EIO_PHPUNIT ) {
+			if (
+				! empty( $_SERVER['argv'] ) &&
+				( \in_array( '--debug', $_SERVER['argv'], true ) || \in_array( '--verbose', $_SERVER['argv'], true ) )
+			) {
+				$message = \str_replace( '<br>', "\n", $message );
+				$message = \str_replace( '<b>', '+', $message );
+				$message = \str_replace( '</b>', '+', $message );
+				echo \esc_html( $message ) . "\n";
+			}
+		}
 		$message = "$message";
 		if ( \defined( '\WP_CLI' ) && \WP_CLI ) {
 			\WP_CLI::debug( $message );
@@ -564,6 +575,37 @@ class Base {
 	}
 
 	/**
+	 * Sanitize the folders/patterns to exclude from optimization.
+	 *
+	 * @param string $input A list of filesystem paths, from a textarea.
+	 * @return array The sanitized list of paths/patterns to exclude.
+	 */
+	function exclude_paths_sanitize( $input ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( empty( $input ) ) {
+			return '';
+		}
+		$path_array = array();
+		if ( \is_array( $input ) ) {
+			$paths = $input;
+		} elseif ( \is_string( $input ) ) {
+			$paths = \explode( "\n", $input );
+		}
+		if ( $this->is_iterable( $paths ) ) {
+			$i = 0;
+			foreach ( $paths as $path ) {
+				$i++;
+				$this->debug_message( "validating path exclusion: $path" );
+				$path = \trim( \sanitize_text_field( $path ), '*' );
+				if ( ! empty( $path ) ) {
+					$path_array[] = $path;
+				}
+			}
+		}
+		return $path_array;
+	}
+
+	/**
 	 * Retrieve option: use 'site' setting if plugin is network activated, otherwise use 'blog' setting.
 	 *
 	 * Retrieves multi-site and single-site options as appropriate as well as allowing overrides with
@@ -575,17 +617,50 @@ class Base {
 	 * @return mixed The value of the option.
 	 */
 	function get_option( $option_name, $default = false, $single = false ) {
-		if ( 'easyio_' === $this->prefix && \function_exists( '\easyio_get_option' ) ) {
-			return \easyio_get_option( $option_name );
-		}
-		if ( 'ewww_image_optimizer_' === $this->prefix && \function_exists( '\ewww_image_optimizer_get_option' ) ) {
-			return \ewww_image_optimizer_get_option( $option_name, $default, $single );
-		}
 		$constant_name = \strtoupper( $option_name );
 		if ( \defined( $constant_name ) && ( \is_int( \constant( $constant_name ) ) || \is_bool( \constant( $constant_name ) ) ) ) {
 			return \constant( $constant_name );
 		}
-		if ( false !== \strpos( $option_name, 'easyio' ) ) {
+		if ( 'ewww_image_optimizer_cloud_key' === $option_name && \defined( $constant_name ) ) {
+			$option_value = \constant( $constant_name );
+			if ( \is_string( $option_value ) && ! empty( $option_value ) ) {
+				return \trim( $option_value );
+			}
+		}
+
+		if (
+			(
+				'ewww_image_optimizer_exclude_paths' === $option_name ||
+				'exactdn_exclude' === $option_name ||
+				'easyio_ll_exclude' === $option_name ||
+				'ewww_image_optimizer_ll_exclude' === $option_name ||
+				'ewww_image_optimizer_webp_rewrite_exclude' === $option_name
+			)
+			&& \defined( $constant_name )
+		) {
+			return $this->exclude_paths_sanitize( \constant( $constant_name ) );
+		}
+		if ( 'ewww_image_optimizer_ll_all_things' === $option_name && \defined( $constant_name ) ) {
+			return \sanitize_text_field( \constant( $constant_name ) );
+		}
+		if ( 'ewww_image_optimizer_aux_paths' === $option_name && \defined( $constant_name ) ) {
+			return \ewww_image_optimizer_aux_paths_sanitize( \constant( $constant_name ) );
+		}
+		if ( 'ewww_image_optimizer_webp_paths' === $option_name && \defined( $constant_name ) ) {
+			return \ewww_image_optimizer_webp_paths_sanitize( \constant( $constant_name ) );
+		}
+		if ( 'ewww_image_optimizer_disable_resizes' === $option_name && \defined( $constant_name ) ) {
+			return \ewww_image_optimizer_disable_resizes_sanitize( \constant( $constant_name ) );
+		}
+		if ( 'ewww_image_optimizer_disable_resizes_opt' === $option_name && \defined( $constant_name ) ) {
+			return \ewww_image_optimizer_disable_resizes_sanitize( \constant( $constant_name ) );
+		}
+		if ( 'ewww_image_optimizer_jpg_background' === $option_name && \defined( $constant_name ) ) {
+			return \ewww_image_optimizer_jpg_background( \constant( $constant_name ) );
+		}
+		// NOTE: For Easy IO, we bail here, because we don't have a network settings page AND because there's no 'allow_multisite_override' option,
+		// which would slow things down due to lack of auto-loading. If/when we add those things, then we can unlock the multi-site logic below.
+		if ( 'EasyIO' === __NAMESPACE__ ) {
 			return \get_option( $option_name );
 		}
 		if ( ! \function_exists( 'is_plugin_active_for_network' ) && \is_multisite() ) {
@@ -1071,9 +1146,9 @@ class Base {
 			return false;
 		}
 
-		$len = strlen( $needle );
+		$len = \strlen( $needle );
 
-		return 0 === substr_compare( $haystack, $needle, -$len, $len );
+		return 0 === \substr_compare( $haystack, $needle, -$len, $len );
 	}
 
 	/**
@@ -1291,7 +1366,7 @@ class Base {
 		}
 		$this->site_url = \get_home_url();
 		global $as3cf;
-		if ( class_exists( '\Amazon_S3_And_CloudFront' ) && is_object( $as3cf ) ) {
+		if ( \class_exists( '\Amazon_S3_And_CloudFront' ) && \is_object( $as3cf ) ) {
 			$s3_scheme = $as3cf->get_url_scheme();
 			$s3_region = $as3cf->get_setting( 'region' );
 			$s3_bucket = $as3cf->get_setting( 'bucket' );

@@ -768,29 +768,36 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			// Get the mimetype.
 			$type  = ewww_image_optimizer_mimetype( $file_path, 'i' );
 			$valid = true;
-			if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) ) {
-				ewww_image_optimizer_tool_init();
-				ewww_image_optimizer_notice_utils( 'quiet' );
+
+			if ( ! ewwwio()->tools_initialized && ! ewwwio()->local->os_supported() ) {
+				ewwwio()->local->skip_tools();
+			} elseif ( ! ewwwio()->tools_initialized ) {
+				ewwwio()->tool_init();
 			}
+			$tools = ewwwio()->local->check_all_tools();
 			// If we don't have a valid tool for the image type, output the appropriate message.
-			$skip = ewww_image_optimizer_skip_tools();
 			switch ( $type ) {
 				case 'image/jpeg':
-					if ( ! EWWW_IMAGE_OPTIMIZER_JPEGTRAN && ! $skip['jpegtran'] ) {
+					if ( $tools['jpegtran']['enabled'] && ! $tools['jpegtran']['path'] ) {
 						/* translators: %s: name of a tool like jpegtran */
 						echo '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>jpegtran</em>' ) . '</div></div>';
 						return;
 					}
 					break;
 				case 'image/png':
-					if ( ( ! $skip['optipng'] && ! EWWW_IMAGE_OPTIMIZER_OPTIPNG ) || ( ! $skip['pngout'] && ! EWWW_IMAGE_OPTIMIZER_PNGOUT ) ) {
+					if ( $tools['optipng']['enabled'] && ! $tools['optipng']['path'] ) {
 						/* translators: %s: name of a tool like jpegtran */
-						echo '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>optipng/pngout</em>' ) . '</div></div>';
+						echo '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>optipng</em>' ) . '</div></div>';
+						return;
+					}
+					if ( $tools['pngout']['enabled'] && ! $tools['pngout']['path'] ) {
+						/* translators: %s: name of a tool like jpegtran */
+						echo '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>pngout</em>' ) . '</div></div>';
 						return;
 					}
 					break;
 				case 'image/gif':
-					if ( ! EWWW_IMAGE_OPTIMIZER_GIFSICLE && ! $skip['gifsicle'] ) {
+					if ( $tools['gifsicle']['enabled'] && ! $tools['gifsicle']['path'] ) {
 						/* translators: %s: name of a tool like jpegtran */
 						echo '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>gifsicle</em>' ) . '</div></div>';
 						return;

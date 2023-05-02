@@ -294,15 +294,15 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				$type = ewww_image_optimizer_quick_mimetype( $file_path, 'i' );
 
 				// Check to see if we have a tool to handle the mimetype detected.
-				if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_JPEGTRAN' ) ) {
-					ewww_image_optimizer_tool_init();
-					ewww_image_optimizer_notice_utils( 'quiet' );
+				if ( ! ewwwio()->tools_initialized && ! ewwwio()->local->os_supported() ) {
+					ewwwio()->local->skip_tools();
+				} elseif ( ! ewwwio()->tools_initialized ) {
+					ewwwio()->tool_init();
 				}
-				$skip = ewww_image_optimizer_skip_tools();
+				$tools = ewwwio()->local->check_all_tools();
 				switch ( $type ) {
 					case 'image/jpeg':
-						// If jpegtran is missing, tell the user.
-						if ( ! EWWW_IMAGE_OPTIMIZER_JPEGTRAN && ! $skip['jpegtran'] ) {
+						if ( $tools['jpegtran']['enabled'] && ! $tools['jpegtran']['path'] ) {
 							/* translators: %s: name of a tool like jpegtran */
 							echo '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>jpegtran</em>' ) . '</div></div>';
 							if ( $return ) {
@@ -313,7 +313,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 						break;
 					case 'image/png':
 						// If the PNG tools are missing, tell the user.
-						if ( ! EWWW_IMAGE_OPTIMIZER_OPTIPNG && ! $skip['optipng'] ) {
+						if ( $tools['optipng']['enabled'] && ! $tools['optipng']['path'] ) {
 							/* translators: %s: name of a tool like jpegtran */
 							echo '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>optipng</em>' ) . '</div></div>';
 							if ( $return ) {
@@ -324,7 +324,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 						break;
 					case 'image/gif':
 						// If gifsicle is missing, tell the user.
-						if ( ! EWWW_IMAGE_OPTIMIZER_GIFSICLE && ! $skip['gifsicle'] ) {
+						if ( $tools['gifsicle']['enabled'] && ! $tools['gifsicle']['path'] ) {
 							/* translators: %s: name of a tool like jpegtran */
 							echo '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>gifsicle</em>' ) . '</div></div>';
 							if ( $return ) {

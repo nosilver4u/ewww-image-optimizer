@@ -52,14 +52,14 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 		rename( $test_gif, $temp_upload_dir . wp_basename( $test_gif ) );
 		self::$test_gif = $temp_upload_dir . wp_basename( $test_gif );
 
-		ewww_image_optimizer_set_defaults();
+		ewwwio()->set_defaults();
 		update_option( 'ewww_image_optimizer_jpg_level', 10 );
 		update_option( 'ewww_image_optimizer_gif_level', 10 );
 		update_option( 'ewww_image_optimizer_webp', true );
 		update_option( 'ewww_image_optimizer_png_level', 40 );
 		update_site_option( 'ewww_image_optimizer_webp', true );
 		update_site_option( 'ewww_image_optimizer_png_level', 40 );
-		ewww_image_optimizer_install_tools();
+		ewwwio()->local->install_tools();
 		ewww_image_optimizer_install_pngout();
 		ewww_image_optimizer_install_svgcleaner();
 		update_option( 'ewww_image_optimizer_webp', '' );
