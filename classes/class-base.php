@@ -1278,7 +1278,8 @@ class Base {
 	 */
 	function url_to_path_exists( $url, $extension = '' ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		$url = $this->maybe_strip_object_version( $url );
+		$url  = $this->maybe_strip_object_version( $url );
+		$path = '';
 		if ( '/' === \substr( $url, 0, 1 ) && '/' !== \substr( $url, 1, 1 ) ) {
 			$this->debug_message( "found relative URL: $url" );
 			$url = '//' . $this->upload_domain . $url;
@@ -1301,6 +1302,18 @@ class Base {
 		if ( $this->is_file( $path_parts[0] . $extension ) ) {
 			$this->debug_message( 'local file found' );
 			return $path_parts[0];
+		}
+		if ( \class_exists( '\HMWP_Classes_ObjController' ) ) {
+			$hmwp_file_handler = \HMWP_Classes_ObjController::getClass( 'HMWP_Models_Files' );
+			if ( \is_object( $hmwp_file_handler ) ) {
+				$path = $hmwp_file_handler->getOriginalPath( $url );
+				$this->debug_message( "trying $path from HWMP" );
+				$path_parts = \explode( '?', $path );
+				if ( $this->is_file( $path_parts[0] . $extension ) ) {
+					$this->debug_message( 'local file found' );
+					return $path_parts[0];
+				}
+			}
 		}
 		return false;
 	}

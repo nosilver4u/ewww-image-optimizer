@@ -138,12 +138,14 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 6.9.4 =
+* breaking: namespaced and reorganized several classes, third party integrations should check for compatibility
 * added: allow video files to go through Easy IO CDN (pass through)
 * added: support for WP_Image_Editor_Imagick::set_imagick_time_limit() method added in WP 6.2
 * added: ewwwio_inline_webp_script_attrs filter to add custom data-* attributes to the JS WebP inline scripts
 * added: Easy IO support for BuddyBoss images, video, and documents
 * added: Bulk Optimizer and Scheduled Optimizer include BuddyBoss profile and cover image folders automatically
 * added: backup images post-resize but pre-compression with the ewww_image_optimizer_backup_post_resize filter
+* added: improved support for Hide My WP Ghost in Lazy Load, and WebP rewriting engine 
 * changed: improved Auto Scaling when using full-width layout in Elementor
 * changed: use fread to check mimetype of files for better performance
 * changed: style tag search/regex cleaned up to prevent excess markup
