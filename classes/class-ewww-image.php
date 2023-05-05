@@ -911,9 +911,7 @@ class EWWW_Image {
 	}
 
 	/**
-	 * Update URLs in the WP database.
-	 *
-	 * @global object $wpdb
+	 * Update URLs for a converted image, and check alternate domains/sub-folders.
 	 *
 	 * @param string $new_path Optional. The URL to the newly converted image.
 	 * @param string $old_path Optional. The URL to the old version of the image.
@@ -927,30 +925,72 @@ class EWWW_Image {
 			return;
 		}
 		if ( empty( $new_path ) && empty( $old_path ) ) {
-			$old_guid = $this->url;
+			$old_url = $this->url;
 		} else {
-			$old_guid = trailingslashit( dirname( $this->url ) ) . \wp_basename( $old );
+			$old_url = trailingslashit( dirname( $this->url ) ) . \wp_basename( $old );
 		}
-		$guid = trailingslashit( dirname( $this->url ) ) . \wp_basename( $new );
-		// Construct the new guid based on the filename from the attachment metadata.
-		ewwwio_debug_message( "old guid: $old_guid" );
-		ewwwio_debug_message( "new guid: $guid" );
-		if ( substr( $old_guid, -1 ) === '/' || substr( $guid, -1 ) === '/' ) {
+		$new_url = trailingslashit( dirname( $this->url ) ) . \wp_basename( $new );
+		// Construct the new URL based on the filename from the attachment metadata.
+		ewwwio_debug_message( "old URL: $old_url" );
+		ewwwio_debug_message( "new URL: $new_url" );
+		if ( substr( $old_url, -1 ) === '/' || substr( $new_url, -1 ) === '/' ) {
 			ewwwio_debug_message( 'could not obtain full url for current and previous image, bailing' );
 			return;
 		}
 
+		$this->update_db_urls( $new_url, $old_url );
+
+		if ( 2 === (int) \apply_filters( 'wpml_setting', false, 'language_negotiation_type' ) ) {
+			$default_domain = wp_parse_url( get_site_url(), \PHP_URL_HOST );
+			$wpml_domains   = \apply_filters( 'wpml_setting', array(), 'language_domains' );
+			if ( ewww_image_optimizer_iterable( $wpml_domains ) ) {
+				foreach ( $wpml_domains as $wpml_domain ) {
+					$image_domain = wp_parse_url( $old_url, \PHP_URL_HOST );
+					if ( empty( $wpml_domain ) || empty( $image_domain ) ) {
+						continue;
+					}
+					ewwwio_debug_message( "checking image URLs with $wpml_domain" );
+					if ( $image_domain === $wpml_domain ) {
+						// Check the default domain if/when we detect that one of the language domains matches the domain we already had.
+						$new_wpml_url = str_replace( $image_domain, $default_domain, $new_url );
+						$old_wpml_url = str_replace( $image_domain, $default_domain, $old_url );
+					} else {
+						$new_wpml_url = str_replace( $image_domain, $wpml_domain, $new_url );
+						$old_wpml_url = str_replace( $image_domain, $wpml_domain, $old_url );
+					}
+					if ( $new_url !== $new_wpml_url ) {
+						$this->update_db_urls( $new_wpml_url, $old_wpml_url );
+					}
+				}
+			}
+		}
+		// TODO: Also need to check sub-folder style, and maybe make that extensible? Plus be sure to check the default folder if the primary attachment is in a non-default language, just like we did for domains.
+		do_action( 'ewwwio_conversion_replace_url_post', $new_url, $old_url );
+	}
+
+	/**
+	 * Do the actual URL replacement in the database.
+	 *
+	 * @global object $wpdb
+	 *
+	 * @param string $new_url The URL to the newly converted image.
+	 * @param string $old_url The URL to the old version of the image.
+	 */
+	public function update_db_urls( $new_url, $old_url ) {
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+
 		global $wpdb;
 		// Retrieve any posts that link the image.
-		$esql = $wpdb->prepare( "SELECT ID, post_content FROM $wpdb->posts WHERE post_content LIKE %s", '%' . $wpdb->esc_like( $old_guid ) . '%' );
+		$esql = "SELECT ID, post_content FROM $wpdb->posts WHERE post_content LIKE %" . $wpdb->esc_like( $old_url ) . '%';
+		ewwwio_debug_message( "replacing $old_url with $new_url in $wpdb->posts" );
 		ewwwio_debug_message( "using query: $esql" );
-		$rows = $wpdb->get_results( $esql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL
+		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT ID, post_content FROM $wpdb->posts WHERE post_content LIKE %s", '%' . $wpdb->esc_like( $old_url ) . '%' ), ARRAY_A );
 		if ( ewww_image_optimizer_iterable( $rows ) ) {
 			// While there are posts to process.
 			foreach ( $rows as $row ) {
-				// Replace all occurences of the old guid with the new guid.
-				$post_content = str_replace( $old_guid, $guid, $row['post_content'] );
-				ewwwio_debug_message( "replacing $old_guid with $guid in post " . $row['ID'] );
+				// Replace all occurences of the old URL with the new URL.
+				$post_content = str_replace( $old_url, $new_url, $row['post_content'] );
+				ewwwio_debug_message( "replacing $old_url with $new_url in post " . $row['ID'] );
 				// Send the updated content back to the database.
 				$wpdb->update(
 					$wpdb->posts,
@@ -963,16 +1003,6 @@ class EWWW_Image {
 				);
 			}
 		}
-			/*$wpml_domains = \apply_filters( 'wpml_setting', array(), 'language_domains' );
-			if ( $this->is_iterable( $wpml_domains ) ) {
-				$this->debug_message( 'wpml domains: ' . \implode( ',', $wpml_domains ) );
-				$this->allowed_domains[] = $this->parse_url( \get_option( 'home' ), \PHP_URL_HOST );
-				$wpml_scheme             = $this->parse_url( $this->upload_url, \PHP_URL_SCHEME );
-				foreach ( $wpml_domains as $wpml_domain ) {
-					$this->allowed_domains[] = $wpml_domain;
-					$this->allowed_urls[]    = $wpml_scheme . '://' . $wpml_domain;
-				}
-			}*/
 	}
 
 	/**

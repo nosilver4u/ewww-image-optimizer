@@ -42,118 +42,6 @@ class Local extends Base {
 	protected $exec_enabled;
 
 	/**
-	 * Path to cwebp.
-	 *
-	 * @access protected
-	 * @var string $cwebp_path
-	 */
-	protected $cwebp_path;
-
-	/**
-	 * Path to gifsicle.
-	 *
-	 * @access protected
-	 * @var string $gifsicle_path
-	 */
-	protected $gifsicle_path;
-
-	/**
-	 * Path to jpegtran.
-	 *
-	 * @access protected
-	 * @var string $jpegtran_path
-	 */
-	protected $jpegtran_path;
-
-	/**
-	 * Path to optipng.
-	 *
-	 * @access protected
-	 * @var string $optipng_path
-	 */
-	protected $optipng_path;
-
-	/**
-	 * Path to pngout.
-	 *
-	 * @access protected
-	 * @var string $pngout_path
-	 */
-	protected $pngout_path;
-
-	/**
-	 * Path to pngquant.
-	 *
-	 * @access protected
-	 * @var string $pngquant_path
-	 */
-	protected $pngquant_path;
-
-	/**
-	 * Path to svgcleaner.
-	 *
-	 * @access protected
-	 * @var string $svgcleaner_path
-	 */
-	protected $svgcleaner_path;
-
-	/**
-	 * Should we enable cwebp?
-	 *
-	 * @access public
-	 * @var bool
-	 */
-	public $cwebp_enabled = false;
-
-	/**
-	 * Should we enable gifsicle?
-	 *
-	 * @access public
-	 * @var bool
-	 */
-	public $gifsicle_enabled = true;
-
-	/**
-	 * Should we enable jpegtran?
-	 *
-	 * @access public
-	 * @var bool
-	 */
-	public $jpegtran_enabled = true;
-
-	/**
-	 * Should we enable opting?
-	 *
-	 * @access public
-	 * @var bool
-	 */
-	public $optipng_enabled = true;
-
-	/**
-	 * Should we enable pngout?
-	 *
-	 * @access public
-	 * @var bool
-	 */
-	public $pngout_enabled = false;
-
-	/**
-	 * Should we enable pngquant?
-	 *
-	 * @access public
-	 * @var bool
-	 */
-	public $pngquant_enabled = false;
-
-	/**
-	 * Should we enable svgcleaner?
-	 *
-	 * @access public
-	 * @var bool
-	 */
-	public $svgcleaner_enabled = false;
-
-	/**
 	 * Initialize the local properties we'll need later, since tools are late-initialized except on specific pages.
 	 */
 	function __construct() {
@@ -231,6 +119,8 @@ class Local extends Base {
 			if ( $this->tool_enabled( $tool ) ) {
 				$this->debug_message( "enabled: $tool" );
 				$this->tools[ $tool ]['enabled'] = true;
+			} else {
+				$this->tools[ $tool ]['enabled'] = false;
 			}
 		}
 		return;
