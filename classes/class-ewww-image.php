@@ -411,9 +411,6 @@ class EWWW_Image {
 	/**
 	 * Syncs metadata for translated replicas after successful conversion an image.
 	 *
-	 * @global object $wpdb
-	 * @global object $ewwwdb A new database connection with super powers.
-	 *
 	 * @param int   $translated_id The attachment ID of a translated replica.
 	 * @param array $meta The (source) attachment metadata that will be copied to the replica.
 	 */
