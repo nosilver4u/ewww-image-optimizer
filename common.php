@@ -10021,32 +10021,40 @@ function ewww_image_optimizer_custom_column_results( $id, $optimized_images ) {
 /**
  * If attachment is translated (and duplicated), get the primary ID number.
  *
- * Primarily for WPML, but if others duplicate media, the primary_translated_media_id
- * filter may be used, or a pull request may be submitted to contribute the lookup code.
- *
  * @param int $id The attachment ID number to search for in the translation plugin table(s).
  * @return int The primary/original ID number.
  */
 function ewww_image_optimizer_get_primary_translated_media_id( $id ) {
-	if ( defined( 'ICL_SITEPRESS_VERSION' ) && get_post_meta( $id, 'wpml_media_processed', true ) ) {
-		$trid = apply_filters( 'wpml_element_trid', null, $id, 'post_attachment' );
-		if ( ! empty( $trid ) ) {
-			$translations = apply_filters( 'wpml_get_element_translations', null, $trid, 'post_attachment' );
-			if ( ewww_image_optimizer_iterable( $translations ) ) {
-				$possible_ids = array();
-				foreach ( $translations as $translation ) {
-					if ( ! empty( $translation->element_id ) ) {
-						$possible_ids[] = (int) $translation->element_id;
-					}
-				}
-				if ( ewww_image_optimizer_iterable( $possible_ids ) ) {
-					sort( $possible_ids );
-					return $possible_ids[0];
-				}
-			}
+	if ( $id && defined( 'ICL_SITEPRESS_VERSION' ) && get_post_meta( $id, 'wpml_media_processed', true ) ) {
+		$possible_ids = ewww_image_optimizer_get_translated_media_ids( $id );
+		if ( ewww_image_optimizer_iterable( $possible_ids ) ) {
+			sort( $possible_ids );
+			return $possible_ids[0];
 		}
 	}
 	return apply_filters( 'ewwwio_primary_translated_media_id', $id );
+}
+
+/**
+ * Get attachment IDs for translation (WPML) replicates.
+ *
+ * @param int $id The attachment ID number to search for in the translation tables/data.
+ * @return array The resultant attachment IDs.
+ */
+function ewww_image_optimizer_get_translated_media_ids( $id ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$translations = array();
+	if ( $id && defined( 'ICL_SITEPRESS_VERSION' ) ) {
+		$trid = apply_filters( 'wpml_element_trid', null, $id, 'post_attachment' );
+		if ( ! empty( $trid ) ) {
+			$translations = apply_filters( 'wpml_get_element_translations', null, $trid, 'post_attachment' );
+			if ( ! empty( $translations ) ) {
+				$translations = wp_list_pluck( $translations, 'element_id' );
+				$translations = array_filter( $translations );
+			}
+		}
+	}
+	return apply_filters( 'ewwwio_translated_media_ids', $translations, $id );
 }
 
 /**
@@ -10057,20 +10065,7 @@ function ewww_image_optimizer_get_primary_translated_media_id( $id ) {
  */
 function ewww_image_optimizer_get_translated_media_results( $id ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	$translations = array();
-	if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
-		$trid = apply_filters( 'wpml_element_trid', null, $id, 'post_attachment' );
-		if ( empty( $trid ) ) {
-			return array( $id, array() );
-		}
-		$translations = apply_filters( 'wpml_get_element_translations', null, $trid, 'post_attachment' );
-		if ( empty( $translations ) ) {
-			return array( $id, array() );
-		}
-		$translations = wp_list_pluck( $translations, 'element_id' );
-		$translations = array_filter( $translations );
-	}
-	$translations = apply_filters( 'ewwwio_translated_media_ids', $translations, $id );
+	$translations = ewww_image_optimizer_get_translated_media_ids( $id );
 	if ( ewww_image_optimizer_iterable( $translations ) ) {
 		global $wpdb;
 		foreach ( $translations as $translation ) {
@@ -10609,20 +10604,21 @@ function ewww_image_optimizer_settings_script( $hook ) {
 		'ewww-settings-script',
 		'ewww_vars',
 		array(
-			'_wpnonce'                => wp_create_nonce( 'ewww-image-optimizer-settings' ),
-			'invalid_response'        => esc_html__( 'Received an invalid response from your website, please check for errors in the Developer Tools console of your browser.', 'ewww-image-optimizer' ),
-			'loading_image_url'       => plugins_url( '/images/spinner.gif', __FILE__ ),
-			'operation_stopped'       => esc_html__( 'Operation stopped.', 'ewww-image-optimizer' ),
-			'easyio_register_warning' => esc_html__( 'This will register all your sites with the Easy IO CDN and will take some time to complete. Do you wish to proceed?', 'ewww-image-optimizer' ),
-			'easyio_register_success' => esc_html__( 'Easy IO registration complete. Please wait 5-10 minutes and then activate your sites.', 'ewww-image-optimizer' ),
-			'exactdn_network_warning' => esc_html__( 'This will attempt to activate Easy IO on all sites within the multi-site network. Please be sure you have registered all your site URLs before continuing.', 'ewww-image-optimizer' ),
-			'exactdn_network_success' => esc_html__( 'Easy IO setup and verification is complete.', 'ewww-image-optimizer' ),
-			'webp_cloud_warning'      => esc_html__( 'If you have not run the Bulk Optimizer on existing images, you will likely encounter broken image URLs. Are you ready to continue?', 'ewww-image-optimizer' ),
-			'network_blog_ids'        => $blog_ids,
-			'blog_id'                 => (int) get_current_blog_id(),
-			'easy_autoreg'            => ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? true : false,
-			'easyio_site_id'          => (int) $easyio_site_id,
-			'easyio_site_registered'  => (bool) $easyio_site_registered,
+			'_wpnonce'                  => wp_create_nonce( 'ewww-image-optimizer-settings' ),
+			'invalid_response'          => esc_html__( 'Received an invalid response from your website, please check for errors in the Developer Tools console of your browser.', 'ewww-image-optimizer' ),
+			'loading_image_url'         => plugins_url( '/images/spinner.gif', __FILE__ ),
+			'operation_stopped'         => esc_html__( 'Operation stopped.', 'ewww-image-optimizer' ),
+			'easyio_register_warning'   => esc_html__( 'This will register all your sites with the Easy IO CDN and will take some time to complete. Do you wish to proceed?', 'ewww-image-optimizer' ),
+			'easyio_register_success'   => esc_html__( 'Easy IO registration complete. Please wait 5-10 minutes and then activate your sites.', 'ewww-image-optimizer' ),
+			'exactdn_network_warning'   => esc_html__( 'This will attempt to activate Easy IO on all sites within the multi-site network. Please be sure you have registered all your site URLs before continuing.', 'ewww-image-optimizer' ),
+			'easyio_deregister_warning' => esc_html__( 'You are about to remove this site from your account. Do you wish to proceed?', 'ewww-image-optimizer' ),
+			'exactdn_network_success'   => esc_html__( 'Easy IO setup and verification is complete.', 'ewww-image-optimizer' ),
+			'webp_cloud_warning'        => esc_html__( 'If you have not run the Bulk Optimizer on existing images, you will likely encounter broken image URLs. Are you ready to continue?', 'ewww-image-optimizer' ),
+			'network_blog_ids'          => $blog_ids,
+			'blog_id'                   => (int) get_current_blog_id(),
+			'easy_autoreg'              => ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? true : false,
+			'easyio_site_id'            => (int) $easyio_site_id,
+			'easyio_site_registered'    => (bool) $easyio_site_registered,
 		)
 	);
 	wp_add_inline_script(

@@ -1278,6 +1278,7 @@ class Base {
 	 */
 	function url_to_path_exists( $url, $extension = '' ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		$this->debug_message( "trying to find path for $url" );
 		$url  = $this->maybe_strip_object_version( $url );
 		$path = '';
 		if ( '/' === \substr( $url, 0, 1 ) && '/' !== \substr( $url, 1, 1 ) ) {

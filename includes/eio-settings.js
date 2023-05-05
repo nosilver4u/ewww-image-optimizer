@@ -388,6 +388,9 @@ jQuery(document).ready(function($) {
 		return false;
 	});
 	$('#ewwwio-easy-deregister').on( 'click', function() {
+		if (!confirm(ewww_vars.easyio_deregister_warning)) {
+			return false;
+		}
 		$('#ewwwio-easy-activate').hide();
 		$('#ewwwio-easy-deregister').hide();
 		$('#ewwwio-easy-activation-result').hide();

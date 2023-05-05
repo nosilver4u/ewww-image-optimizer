@@ -247,6 +247,20 @@ class EWWW_Image {
 				'post_mime_type' => $mime,
 			)
 		);
+
+		// Possibly update translated replicas (WPML and the like).
+		$translated_ids = ewww_image_optimizer_get_translated_media_ids( $this->attachment_id );
+		if ( ewww_image_optimizer_iterable( $translated_ids ) ) {
+			foreach ( $translated_ids as $translated_id ) {
+				update_attached_file( $translated_id, $meta['file'] );
+				wp_update_post(
+					array(
+						'ID'             => $translated_id,
+						'post_mime_type' => $mime,
+					)
+				);
+			}
+		}
 	}
 
 	/**
@@ -307,7 +321,6 @@ class EWWW_Image {
 
 		ewwwio_debug_message( 'next up for conversion search: meta' );
 		if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
-			$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt', false, true );
 			foreach ( $meta['sizes'] as $size => $data ) {
 				/* ewwwio_debug_message( "checking to see if we should convert $size" ); */
 				if ( strpos( $size, 'webp' ) === 0 ) {
@@ -317,10 +330,6 @@ class EWWW_Image {
 				// Skip sizes that were already in ewwwio_images.
 				if ( isset( $sizes[ $size ] ) ) {
 					/* ewwwio_debug_message( 'skipping size that was in db results' ); */
-					continue;
-				}
-				if ( ! empty( $disabled_sizes[ $size ] ) ) {
-					/* ewwwio_debug_message( 'skipping disabled size' ); */
 					continue;
 				}
 				if ( empty( $data['file'] ) ) {
@@ -387,8 +396,77 @@ class EWWW_Image {
 				}
 			}
 		}
+
+		// Possibly update translated replicas (WPML and the like).
+		$translated_ids = ewww_image_optimizer_get_translated_media_ids( $this->attachment_id );
+		if ( ewww_image_optimizer_iterable( $translated_ids ) ) {
+			foreach ( $translated_ids as $translated_id ) {
+				$this->sync_translated_meta( $translated_id, $meta );
+			}
+		}
 		ewwwio_debug_message( 'end ' . __METHOD__ . '()' );
 		return $meta;
+	}
+
+	/**
+	 * Syncs metadata for translated replicas after successful conversion an image.
+	 *
+	 * @global object $wpdb
+	 * @global object $ewwwdb A new database connection with super powers.
+	 *
+	 * @param int   $translated_id The attachment ID of a translated replica.
+	 * @param array $meta The (source) attachment metadata that will be copied to the replica.
+	 */
+	public function sync_translated_meta( $translated_id, $meta ) {
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+
+		ewwwio_debug_message( "syncing $translated_id" );
+		$tr_meta = wp_get_attachment_metadata( $translated_id );
+		$changed = false;
+		if ( ! ewww_image_optimizer_iterable( $tr_meta ) ) {
+			return;
+		}
+
+		if ( ! empty( $meta['file'] ) && isset( $tr_meta['file'] ) ) {
+			$tr_meta['file'] = $meta['file'];
+			$changed         = true;
+		}
+		if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
+			foreach ( $meta['sizes'] as $size => $data ) {
+				ewwwio_debug_message( "checking to see if we should sync $size" );
+				if ( strpos( $size, 'webp' ) === 0 ) {
+					/* ewwwio_debug_message( 'skipping webp' ); */
+					continue;
+				}
+				if ( ! empty( $data['file'] ) && isset( $tr_meta['sizes'][ $size ]['file'] ) ) {
+					$tr_meta['sizes'][ $size ]['file'] = $data['file'];
+					$changed                           = true;
+				}
+				if ( ! empty( $data['mime-type'] ) && isset( $tr_meta['sizes'][ $size ]['mime-type'] ) ) {
+					$tr_meta['sizes'][ $size ]['mime-type'] = $data['mime-type'];
+					$changed                                = true;
+				}
+				ewwwio_debug_message( "copied $size from meta for $translated_id" );
+			} // End foreach().
+		} // End if().
+
+		// Another custom theme.
+		if ( isset( $meta['custom_sizes'] ) && ewww_image_optimizer_iterable( $meta['custom_sizes'] ) ) {
+			ewwwio_debug_message( 'next up for conversion sync: custom_sizes' );
+			foreach ( $meta['custom_sizes'] as $dimensions => $custom_size ) {
+				ewwwio_debug_message( "checking to see if we should sync $custom_size" );
+				if ( ! empty( $custom_size['file'] ) && isset( $tr_meta['custom_sizes'][ $dimensions ]['file'] ) ) {
+					$tr_meta['custom_sizes'][ $dimensions ]['file'] = $custom_size['file'];
+					$changed                                        = true;
+				}
+			}
+		}
+
+		if ( $changed ) {
+			ewwwio_debug_message( 'meta updated, saving' );
+			wp_update_attachment_metadata( $translated_id, $tr_meta );
+		}
+		ewwwio_debug_message( 'end ' . __METHOD__ . '()' );
 	}
 
 	/**
@@ -478,6 +556,13 @@ class EWWW_Image {
 			/* ewwwio_debug_message( print_r( $meta, true ) ); */
 		} // End foreach().
 
+		// Possibly update translated replicas (WPML and the like).
+		$translated_ids = ewww_image_optimizer_get_translated_media_ids( $this->attachment_id );
+		if ( ewww_image_optimizer_iterable( $translated_ids ) ) {
+			foreach ( $translated_ids as $translated_id ) {
+				$this->sync_translated_meta( $translated_id, $meta );
+			}
+		}
 		return $meta;
 	}
 
@@ -881,6 +966,16 @@ class EWWW_Image {
 				);
 			}
 		}
+			/*$wpml_domains = \apply_filters( 'wpml_setting', array(), 'language_domains' );
+			if ( $this->is_iterable( $wpml_domains ) ) {
+				$this->debug_message( 'wpml domains: ' . \implode( ',', $wpml_domains ) );
+				$this->allowed_domains[] = $this->parse_url( \get_option( 'home' ), \PHP_URL_HOST );
+				$wpml_scheme             = $this->parse_url( $this->upload_url, \PHP_URL_SCHEME );
+				foreach ( $wpml_domains as $wpml_domain ) {
+					$this->allowed_domains[] = $wpml_domain;
+					$this->allowed_urls[]    = $wpml_scheme . '://' . $wpml_domain;
+				}
+			}*/
 	}
 
 	/**
@@ -965,7 +1060,7 @@ class EWWW_Image {
 			if ( ! empty( $image_record ) && is_array( $image_record ) && ! empty( $image_record['id'] ) ) {
 				$id = $image_record['id'];
 			} else {
-				return false;
+				return;
 			}
 		}
 		$ewwwdb->update(
@@ -1138,5 +1233,4 @@ class EWWW_Image {
 		ewwwio_debug_message( "estimated time for this image is $time" );
 		return $time;
 	}
-
 }

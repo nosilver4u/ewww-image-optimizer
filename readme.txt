@@ -146,6 +146,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: Bulk Optimizer and Scheduled Optimizer include BuddyBoss profile and cover image folders automatically
 * added: backup images post-resize but pre-compression with the ewww_image_optimizer_backup_post_resize filter
 * added: improved support for Hide My WP Ghost in Lazy Load, and WebP rewriting engine 
+* added: update attachment metadata for WPML replicas after image conversion
 * changed: improved Auto Scaling when using full-width layout in Elementor
 * changed: use fread to check mimetype of files for better performance
 * changed: style tag search/regex cleaned up to prevent excess markup

@@ -170,7 +170,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 					WP_CLI::confirm( sprintf( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', $pending_count, 'ewww-image-optimizer' ), $pending_count ) );
 				}
 				$_REQUEST['ewww_batch_limit'] = 1;
-				$clicount = 1;
+				$clicount                     = 1;
 				while ( ewww_image_optimizer_bulk_loop( 'ewww-image-optimizer-cli', $delay ) ) {
 					$something = 1;
 					$clicount++;
