@@ -1307,8 +1307,10 @@ class Base {
 		if ( \class_exists( '\HMWP_Classes_ObjController' ) ) {
 			$hmwp_file_handler = \HMWP_Classes_ObjController::getClass( 'HMWP_Models_Files' );
 			if ( \is_object( $hmwp_file_handler ) ) {
-				$path = $hmwp_file_handler->getOriginalPath( $url );
-				$this->debug_message( "trying $path from HWMP" );
+				$original_url = $hmwp_file_handler->getOriginalURL( $url );
+				$this->debug_message( "found $original_url from HMWP" );
+				$path = $hmwp_file_handler->getOriginalPath( $original_url );
+				$this->debug_message( "trying $path from HMWP" );
 				$path_parts = \explode( '?', $path );
 				if ( $this->is_file( $path_parts[0] . $extension ) ) {
 					$this->debug_message( 'local file found' );
