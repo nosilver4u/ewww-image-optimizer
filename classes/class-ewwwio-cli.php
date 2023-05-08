@@ -70,7 +70,17 @@ class EWWWIO_CLI extends WP_CLI_Command {
 		$ewww_reset = false;
 		if ( ! empty( $assoc_args['reset'] ) ) {
 			$ewww_reset = true;
+		} else {
+			$media_resume = get_option( 'ewww_image_optimizer_bulk_resume' );
+			if (
+				( ! empty( $media_resume ) && 'scanning' !== $media_resume ) ||
+				get_option( 'ewww_image_optimizer_bulk_ngg_resume', '' ) ||
+				get_option( 'ewww_image_optimizer_bulk_flag_resume', '' )
+			) {
+				WP_CLI::line( __( 'Resuming previous operation.', 'ewww-image-optimizer' ) );
+			}
 		}
+
 		if ( ! empty( $assoc_args['force'] ) ) {
 			WP_CLI::line( __( 'Forcing re-optimization of previously processed images.', 'ewww-image-optimizer' ) );
 			$_REQUEST['ewww_force'] = true;
@@ -88,6 +98,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 		WP_CLI::line( sprintf( _x( 'Optimizing %1$s with a %2$d second pause between images.', 'string will be something like "media" or "nextgen"', 'ewww-image-optimizer' ), $library, $delay ) );
 		// Let's get started, shall we?
 		ewwwio()->admin_init();
+
 		// And what shall we do?
 		switch ( $library ) {
 			case 'all':
@@ -126,13 +137,19 @@ class EWWWIO_CLI extends WP_CLI_Command {
 					/* translators: 1-2: number of images */
 					WP_CLI::line( 'FlAGallery: ' . sprintf( __( '%1$d images have been selected, with %2$d resized versions.', 'ewww-image-optimizer' ), $fullsize_count, $resize_count ) );
 				}
-				if ( empty( $assoc_args['noprompt'] ) ) {
+				if ( empty( $assoc_args['noprompt'] ) && $pending_count ) {
 					/* translators: %d: number of images */
 					WP_CLI::confirm( sprintf( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', $pending_count, 'ewww-image-optimizer' ), $pending_count ) );
 				}
-				$_REQUEST['ewww_batch_limit'] = 1;
-				while ( ewww_image_optimizer_bulk_loop( 'ewww-image-optimizer-cli', $delay ) ) {
-					$something = 1;
+				if ( $pending_count ) {
+					// Update the 'bulk resume' option to show that an operation is in progress.
+					update_option( 'ewww_image_optimizer_bulk_resume', 'true' );
+					$_REQUEST['ewww_batch_limit'] = 1;
+					while ( ewww_image_optimizer_bulk_loop( 'ewww-image-optimizer-cli', $delay ) ) {
+						$something = 1;
+					}
+				} else {
+					WP_CLI::line( __( 'No images to optimize', 'ewww-image-optimizer' ) );
 				}
 				$this->bulk_media_cleanup();
 				if ( class_exists( 'EWWW_Nextgen' ) ) {
@@ -165,21 +182,26 @@ class EWWWIO_CLI extends WP_CLI_Command {
 				add_filter( 'ewww_image_optimizer_timeout', 'ewww_image_optimizer_cli_timeout', 200 );
 				ewww_image_optimizer_media_scan( 'ewww-image-optimizer-cli' );
 				$pending_count = ewww_image_optimizer_aux_images_script( 'ewww-image-optimizer-cli' );
-				if ( empty( $assoc_args['noprompt'] ) ) {
+				if ( empty( $assoc_args['noprompt'] ) && $pending_count ) {
 					/* translators: %d: number of images */
 					WP_CLI::confirm( sprintf( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', $pending_count, 'ewww-image-optimizer' ), $pending_count ) );
 				}
 				$_REQUEST['ewww_batch_limit'] = 1;
-				$clicount                     = 1;
-				/* translators: 1: current image being proccessed 2: total number of images*/
-				WP_CLI::line( sprintf( __( 'Processing image %1$d of %2$d', 'ewww-image-optimizer' ), $clicount, $pending_count ) );
-				while ( ewww_image_optimizer_bulk_loop( 'ewww-image-optimizer-cli', $delay ) ) {
-					$something = 1;
-					$clicount++;
-					if ( $clicount <= $pending_count ) {
-						/* translators: 1: current image being proccessed 2: total number of images*/
-						WP_CLI::line( sprintf( __( 'Processing image %1$d of %2$d', 'ewww-image-optimizer' ), $clicount, $pending_count ) );
+				if ( $pending_count ) {
+					// Update the 'bulk resume' option to show that an operation is in progress.
+					update_option( 'ewww_image_optimizer_bulk_resume', 'true' );
+					$clicount = 1;
+					/* translators: 1: current image being proccessed 2: total number of images*/
+					WP_CLI::line( sprintf( __( 'Processing image %1$d of %2$d', 'ewww-image-optimizer' ), $clicount, $pending_count ) );
+					while ( ewww_image_optimizer_bulk_loop( 'ewww-image-optimizer-cli', $delay ) ) {
+						$clicount++;
+						if ( $clicount <= $pending_count ) {
+							/* translators: 1: current image being proccessed 2: total number of images*/
+							WP_CLI::line( sprintf( __( 'Processing image %1$d of %2$d', 'ewww-image-optimizer' ), $clicount, $pending_count ) );
+						}
 					}
+				} else {
+					WP_CLI::line( __( 'No images to optimize', 'ewww-image-optimizer' ) );
 				}
 				$this->bulk_media_cleanup();
 				break;

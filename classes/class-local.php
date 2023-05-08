@@ -123,41 +123,6 @@ class Local extends Base {
 				$this->tools[ $tool ]['enabled'] = false;
 			}
 		}
-		return;
-		if ( ! $this->get_option( 'ewww_image_optimizer_jpg_level' ) || $this->get_option( 'ewww_image_optimizer_jpg_level' ) > 10 || ! $this->exec_enabled ) {
-			$this->tools['jpegtran']['enabled'] = false;
-		} else {
-			$this->tools['jpegtran']['enabled'] = true;
-			$this->debug_message( 'enabled: jpegtran' );
-		}
-		if ( ! $this->get_option( 'ewww_image_optimizer_png_level' ) || ( $this->get_option( 'ewww_image_optimizer_cloud_key' ) && $this->get_option( 'ewww_image_optimizer_png_level' ) > 10 ) ) {
-			$this->tools['optipng']['enabled'] = false;
-		} else {
-			$this->tools['optipng']['enabled'] = true;
-			$this->debug_message( 'enabled: optipng' );
-		}
-		if ( ! $this->get_option( 'ewww_image_optimizer_gif_level' ) || $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-			$this->tools['gifsicle']['enabled'] = false;
-		} else {
-			$this->tools['gifsicle']['enabled'] = true;
-			$this->debug_message( 'enabled: gifsicle' );
-		}
-		if ( ! $this->get_option( 'ewww_image_optimizer_disable_pngout' ) && $this->get_option( 'ewww_image_optimizer_png_level' ) && ! $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-			$this->tools['pngout']['enabled'] = true;
-			$this->debug_message( 'enabled: pngout' );
-		}
-		if ( 40 === (int) $this->get_option( 'ewww_image_optimizer_png_level' ) && ! $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-			$this->tools['pngquant']['enabled'] = true;
-			$this->debug_message( 'enabled: pngquant' );
-		}
-		if ( $this->get_option( 'ewww_image_optimizer_webp' ) && ! ( $this->get_option( 'ewww_image_optimizer_cloud_key' ) && $this->get_option( 'ewww_image_optimizer_jpg_level' ) > 10 && $this->get_option( 'ewww_image_optimizer_png_level' ) > 10 ) ) {
-			$this->tools['cwebp']['enabled'] = true;
-			$this->debug_message( 'enabled: cwebp' );
-		}
-		if ( ! $this->get_option( 'ewww_image_optimizer_disable_svgcleaner' ) && $this->get_option( 'ewww_image_optimizer_svg_level' ) && ! $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-			$this->tools['svgcleaner']['enabled'] = true;
-			$this->debug_message( 'enabled: svgcleaner' );
-		}
 	}
 
 	/**
