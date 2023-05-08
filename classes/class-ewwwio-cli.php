@@ -145,7 +145,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 					// Update the 'bulk resume' option to show that an operation is in progress.
 					update_option( 'ewww_image_optimizer_bulk_resume', 'true' );
 					$_REQUEST['ewww_batch_limit'] = 1;
-					$clicount = 1;
+					$clicount                     = 1;
 					/* translators: 1: current image being proccessed 2: total number of images*/
 					WP_CLI::line( sprintf( __( 'Processing image %1$d of %2$d', 'ewww-image-optimizer' ), $clicount, $pending_count ) );
 					while ( ewww_image_optimizer_bulk_loop( 'ewww-image-optimizer-cli', $delay ) ) {
@@ -736,7 +736,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 			if ( ewww_image_optimizer_function_exists( 'sleep' ) ) {
 				sleep( $delay );
 			}
-			// Output which image in the queue is being worked on
+			// Output which image in the queue is being worked on.
 			$clicount++;
 			/* translators: 1: current image being proccessed 2: total number of images*/
 			WP_CLI::line( sprintf( __( 'Processing image %1$d of %2$d', 'ewww-image-optimizer' ), $clicount, $pending_count ) );
