@@ -110,7 +110,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 				WP_CLI::line( __( 'Scanning, this could take a while', 'ewww-image-optimizer' ) );
 				// Do a filter to increase the timeout to 999 or something crazy.
 				add_filter( 'ewww_image_optimizer_timeout', 'ewww_image_optimizer_cli_timeout', 200 );
-				$this->media_scan( 'ewww-image-optimizer-cli' );
+				ewww_image_optimizer_media_scan( 'ewww-image-optimizer-cli' );
 				$pending_count = ewww_image_optimizer_aux_images_script( 'ewww-image-optimizer-cli' );
 				if ( class_exists( 'EWWW_Nextgen' ) ) {
 					list( $fullsize_count, $resize_count ) = ewww_image_optimizer_count_optimized( 'ngg' );
