@@ -14356,90 +14356,6 @@ function ewww_image_optimizer_disable_debugging() {
 }
 
 /**
- * Adds information to the in-memory debug log.
- *
- * @global string $eio_debug The in-memory debug log.
- *
- * @param string $message Debug information to add to the log.
- */
-function ewwwio_debug_message( $message ) {
-	if ( ! is_string( $message ) && ! is_int( $message ) && ! is_float( $message ) ) {
-		return;
-	}
-	if ( defined( 'EIO_PHPUNIT' ) && EIO_PHPUNIT ) {
-		if (
-			! empty( $_SERVER['argv'] ) &&
-			( in_array( '--debug', $_SERVER['argv'], true ) || in_array( '--verbose', $_SERVER['argv'], true ) )
-		) {
-			$message = str_replace( '<br>', "\n", $message );
-			$message = str_replace( '<b>', '+', $message );
-			$message = str_replace( '</b>', '+', $message );
-			echo esc_html( $message ) . "\n";
-		}
-	}
-	$message = "$message";
-	if ( defined( 'WP_CLI' ) && WP_CLI ) {
-		WP_CLI::debug( $message );
-		return;
-	}
-	global $ewwwio_temp_debug;
-	if ( $ewwwio_temp_debug || ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-		$memory_limit = ewwwio_memory_limit();
-		if ( strlen( $message ) + 4000000 + memory_get_usage( true ) <= $memory_limit ) {
-			global $eio_debug;
-			$message    = str_replace( "\n\n\n", '<br>', $message );
-			$message    = str_replace( "\n\n", '<br>', $message );
-			$message    = str_replace( "\n", '<br>', $message );
-			$eio_debug .= "$message<br>";
-		} else {
-			global $eio_debug;
-			$eio_debug = "not logging message, memory limit is $memory_limit";
-		}
-	}
-}
-
-/**
- * Saves the in-memory debug log to a logfile in the plugin folder.
- *
- * @global string $eio_debug The in-memory debug log.
- */
-function ewww_image_optimizer_debug_log() {
-	global $eio_debug;
-	global $ewwwio_temp_debug;
-	$debug_log = EWWWIO_CONTENT_DIR . 'debug.log';
-	if ( ! is_dir( EWWWIO_CONTENT_DIR ) && is_writable( dirname( EWWWIO_CONTENT_DIR ) ) ) {
-		wp_mkdir_p( EWWWIO_CONTENT_DIR );
-	}
-	if (
-		! empty( $eio_debug ) &&
-		empty( $ewwwio_temp_debug ) &&
-		ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) &&
-		is_dir( dirname( $debug_log ) ) &&
-		is_writable( dirname( $debug_log ) )
-	) {
-		$memory_limit = ewwwio_memory_limit();
-		clearstatcache();
-		$timestamp = gmdate( 'Y-m-d H:i:s' ) . "\n";
-		if ( ! file_exists( $debug_log ) ) {
-			touch( $debug_log );
-		} else {
-			if ( filesize( $debug_log ) + 4000000 + memory_get_usage( true ) > $memory_limit ) {
-				unlink( $debug_log );
-				touch( $debug_log );
-			}
-		}
-		if ( filesize( $debug_log ) + strlen( $eio_debug ) + 4000000 + memory_get_usage( true ) <= $memory_limit && is_writable( $debug_log ) ) {
-			$eio_debug = str_replace( '<br>', "\n", $eio_debug );
-			file_put_contents( $debug_log, $timestamp . $eio_debug, FILE_APPEND );
-		}
-		$eio_debug = '';
-	} elseif ( ! is_dir( dirname( $debug_log ) ) || ! is_writable( dirname( $debug_log ) ) ) {
-		$eio_debug = '';
-	}
-	ewwwio_memory( __FUNCTION__ );
-}
-
-/**
  * View the debug.log file from the wp-admin.
  */
 function ewww_image_optimizer_view_debug_log() {
@@ -14468,6 +14384,9 @@ function ewww_image_optimizer_delete_debug_log() {
 		unlink( $debug_log );
 	}
 	$sendback = wp_get_referer();
+	if ( empty( $sendback ) ) {
+		$sendback = ewww_image_optimizer_get_settings_link();
+	}
 	wp_safe_redirect( $sendback );
 	exit;
 }

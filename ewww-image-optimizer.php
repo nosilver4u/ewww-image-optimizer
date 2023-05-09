@@ -13,7 +13,7 @@ Plugin Name: EWWW Image Optimizer
 Plugin URI: https://wordpress.org/plugins/ewww-image-optimizer/
 Description: Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
 Author: Exactly WWW
-Version: 6.9.3.5
+Version: 6.9.3.6
 Requires at least: 5.8
 Requires PHP: 7.2
 Author URI: https://ewww.io/
@@ -34,7 +34,7 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70200 ) {
 	add_action( 'admin_notices', 'ewww_image_optimizer_dual_plugin' );
 } elseif ( false === strpos( add_query_arg( '', '' ), 'ewwwio_disable=1' ) ) {
 
-	define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 693.51 );
+	define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 693.6 );
 	// Initialize a couple globals.
 	$eio_debug  = '';
 	$ewww_defer = true;

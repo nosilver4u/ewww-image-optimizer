@@ -158,6 +158,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: tool path and content dir functions don't resolve symlinks
 * fixed: Easy IO image URLs leaking into image gallery block via post editor
 * fixed: JS WebP issues when body tag has script attributes
+* fixed: clearing debug log does not redirect back to settings page in rare cases
 
 = 6.9.3 =
 * changed: improved Brizy Builder compatibility

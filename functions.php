@@ -42,3 +42,19 @@ function ewww_image_optimizer_escapeshellarg( $arg ) {
 	return ewwwio()->escapeshellarg( $arg );
 }
 
+/**
+ * Adds information to the in-memory debug log.
+ *
+ * @param string $message Debug information to add to the log.
+ */
+function ewwwio_debug_message( $message ) {
+	ewwwio()->debug_message( $message );
+}
+
+/**
+ * Saves the in-memory debug log to a logfile in the plugin folder.
+ */
+function ewww_image_optimizer_debug_log() {
+	ewwwio()->debug_log();
+}
+
