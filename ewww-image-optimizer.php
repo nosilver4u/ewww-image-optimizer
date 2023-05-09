@@ -128,12 +128,12 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70200 ) {
 	 */
 	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-local.php' );
 	/**
-	 * The main function to return a single EWWW_Plugin object to functions elsewhere.
+	 * The main function to return a single EWWW\Plugin object to functions elsewhere.
 	 *
-	 * @return object object|EWWW_Plugin The one true EWWW_Plugin instance.
+	 * @return object object|EWWW\Plugin The one true EWWW\Plugin instance.
 	 */
 	function ewwwio() {
-		return \EWWW\Plugin::instance();
+		return EWWW\Plugin::instance();
 	}
 	ewwwio();
 } // End if().

@@ -20,7 +20,7 @@ final class Plugin extends Base {
 	/* Singleton */
 
 	/**
-	 * The one and only true EWWW_Plugin
+	 * The one and only true EWWW\Plugin
 	 *
 	 * @var object|\EWWW\Plugin $instance
 	 */
@@ -254,7 +254,7 @@ final class Plugin extends Base {
 	 * Setup plugin for wp-admin.
 	 */
 	function admin_init() {
-		self::$instance->hs_beacon = new HS_Beacon();
+		$this->hs_beacon = new HS_Beacon();
 		/**
 		 * Require the file that does the bulk processing.
 		 */
@@ -309,7 +309,7 @@ final class Plugin extends Base {
 		}
 		// Prevent ShortPixel AIO messiness.
 		\remove_action( 'admin_notices', 'autoptimizeMain::notice_plug_imgopt' );
-		if ( \class_exists( 'autoptimizeExtra' ) || \defined( '\AUTOPTIMIZE_PLUGIN_VERSION' ) ) {
+		if ( \class_exists( '\autoptimizeExtra' ) || \defined( '\AUTOPTIMIZE_PLUGIN_VERSION' ) ) {
 			$ao_extra = \get_option( 'autoptimize_imgopt_settings' );
 			if ( $this->get_option( 'ewww_image_optimizer_exactdn' ) && ! empty( $ao_extra['autoptimize_imgopt_checkbox_field_1'] ) ) {
 				$this->debug_message( 'detected ExactDN + SP conflict' );
@@ -374,11 +374,11 @@ final class Plugin extends Base {
 			\ewww_image_optimizer_privacy_policy_content();
 			\ewww_image_optimizer_ajax_compat_check();
 		}
-		if ( \class_exists( 'WooCommerce' ) && $this->get_option( 'ewww_image_optimizer_wc_regen' ) ) {
+		if ( \class_exists( '\WooCommerce' ) && $this->get_option( 'ewww_image_optimizer_wc_regen' ) ) {
 			\add_action( 'admin_notices', 'ewww_image_optimizer_notice_wc_regen' );
 			\add_action( 'admin_footer', 'ewww_image_optimizer_wc_regen_script' );
 		}
-		if ( \class_exists( 'Meow_WPLR_Sync_Core' ) && $this->get_option( 'ewww_image_optimizer_lr_sync' ) ) {
+		if ( \class_exists( '\Meow_WPLR_Sync_Core' ) && $this->get_option( 'ewww_image_optimizer_lr_sync' ) ) {
 			\add_action( 'admin_notices', 'ewww_image_optimizer_notice_lr_sync' );
 			\add_action( 'admin_footer', 'ewww_image_optimizer_lr_sync_script' );
 		}
@@ -417,19 +417,19 @@ final class Plugin extends Base {
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_include_media_paths', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_include_originals', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_aux_paths', 'ewww_image_optimizer_aux_paths_sanitize' );
-		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_exclude_paths', 'ewww_image_optimizer_exclude_paths_sanitize' );
+		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_exclude_paths', array( $this, 'exclude_paths_sanitize' ) );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_allow_tracking', array( $this->tracking, 'check_for_settings_optin' ) );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_enable_help', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'exactdn_all_the_things', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'exactdn_lossy', 'boolval' );
-		register_setting( 'ewww_image_optimizer_options', 'exactdn_exclude', 'ewww_image_optimizer_exclude_paths_sanitize' );
+		register_setting( 'ewww_image_optimizer_options', 'exactdn_exclude', array( $this, 'exclude_paths_sanitize' ) );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_add_missing_dims', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_lazy_load', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_ll_autoscale', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_use_lqip', 'boolval' );
 		// Using sanitize_text_field instead of textarea on purpose.
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_ll_all_things', 'sanitize_text_field' );
-		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_ll_exclude', 'ewww_image_optimizer_exclude_paths_sanitize' );
+		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_ll_exclude', array( $this, 'exclude_paths_sanitize' ) );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_resize_detection', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_maxmediawidth', 'intval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_maxmediaheight', 'intval' );
@@ -448,7 +448,7 @@ final class Plugin extends Base {
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_paths', 'ewww_image_optimizer_webp_paths_sanitize' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_for_cdn', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_picture_webp', 'boolval' );
-		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_rewrite_exclude', 'ewww_image_optimizer_exclude_paths_sanitize' );
+		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_rewrite_exclude', array( $this, 'exclude_paths_sanitize' ) );
 	}
 
 	/**
