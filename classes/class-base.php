@@ -228,18 +228,6 @@ class Base {
 			$this->version     = \EASYIO_VERSION;
 			$this->prefix      = 'easyio_';
 		}
-		/**
-		 * NOTE: there might, maybe, be cases where the upload URL does not match the detected site URL.
-		 * If that happens, we'll want to extend $this->content_url() to compensate using the URL from wp_get_site_url().
-		 *
-		 * Also, home_url is intended to be a "local" content URL, simply using get_site_url().
-		 * It is NOT the actual home URL value/setting, which would normally point to the "home" page.
-		 * The site_url, on the other hand, is intended to be the shortest version of the content/upload URL.
-		 * Thus it might be different than home_url for a sub-directory install:
-		 * site_url = https://example.com/ vs. home_url = https://example.com/wordpress/
-		 * It would also be different if the site is using cloud storage: https://example.s3.amazonaws.com
-		 */
-		$this->content_url();
 		if ( ! $debug ) {
 			return;
 		}
@@ -249,9 +237,6 @@ class Base {
 		$this->debug_message( "home url: $this->home_url" );
 		$this->debug_message( "relative home url: $this->relative_home_url" );
 		$this->debug_message( "home domain: $this->home_domain" );
-		$this->debug_message( "site/upload url: $this->site_url" );
-		$this->debug_message( "site/upload domain: $this->upload_domain" );
-		$this->debug_message( "upload_url: $this->upload_url" );
 	}
 
 	/**
@@ -1203,6 +1188,9 @@ class Base {
 	 */
 	function cdn_to_local( $url ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( empty( $this->site_url ) ) {
+			$this->content_url();
+		}
 		if ( ! $this->is_iterable( $this->allowed_domains ) ) {
 			return false;
 		}
@@ -1278,6 +1266,9 @@ class Base {
 	 */
 	function url_to_path_exists( $url, $extension = '' ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( empty( $this->site_url ) ) {
+			$this->content_url();
+		}
 		$this->debug_message( "trying to find path for $url" );
 		$url  = $this->maybe_strip_object_version( $url );
 		$path = '';
@@ -1374,12 +1365,23 @@ class Base {
 	/**
 	 * Get the shortest version of the content URL.
 	 *
+	 * NOTE: there might, maybe, be cases where the upload URL does not match the detected site URL.
+	 * If that happens, we'll want to extend $this->content_url() to compensate using the URL from wp_get_site_url().
+	 *
+	 * Also, home_url is intended to be a "local" content URL, simply using get_site_url().
+	 * It is NOT the actual home URL value/setting, which would normally point to the "home" page.
+	 * The site_url, on the other hand, is intended to be the shortest version of the content/upload URL.
+	 * Thus it might be different than home_url for a sub-directory install:
+	 * site_url = https://example.com/ vs. home_url = https://example.com/wordpress/
+	 * It would also be different if the site is using cloud storage: https://example.s3.amazonaws.com
+	 *
 	 * @return string The URL where the content lives.
 	 */
 	function content_url() {
 		if ( $this->site_url ) {
 			return $this->site_url;
 		}
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->site_url = \get_home_url();
 		global $as3cf;
 		if ( \class_exists( '\Amazon_S3_And_CloudFront' ) && \is_object( $as3cf ) ) {
@@ -1509,6 +1511,9 @@ class Base {
 				}
 			}
 		}
+		$this->debug_message( "site/upload url: $this->site_url" );
+		$this->debug_message( "site/upload domain: $this->upload_domain" );
+		$this->debug_message( "upload_url: $this->upload_url" );
 		return $this->site_url;
 	}
 

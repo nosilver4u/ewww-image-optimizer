@@ -171,6 +171,7 @@ class ExactDN extends Page_Parser {
 			$this->debug_message( 'you are doing it wrong' );
 			return;
 		}
+		$this->content_url();
 
 		// Bail out on customizer.
 		if ( \is_customize_preview() ) {
@@ -201,10 +202,12 @@ class ExactDN extends Page_Parser {
 		}
 
 		if ( ! $this->scheme ) {
-			$site_url = \get_home_url();
-			$scheme   = 'http';
-			if ( \strpos( $site_url, 'https://' ) !== false ) {
-				$this->debug_message( "$site_url contains https" );
+			$scheme = 'http';
+			if ( \strpos( $this->site_url, 'https://' ) !== false ) {
+				$this->debug_message( "{$this->site_url} contains https" );
+				$scheme = 'https';
+			} elseif ( \strpos( \get_home_url(), 'https://' ) !== false ) {
+				$this->debug_message( \get_home_url() . ' contains https' );
 				$scheme = 'https';
 			} elseif ( \strpos( $this->content_url, 'https://' ) !== false ) {
 				$this->debug_message( $this->content_url . ' contains https' );
@@ -483,7 +486,6 @@ class ExactDN extends Page_Parser {
 			return false;
 		}
 		$site_url = $this->content_url();
-		$home_url = \home_url();
 
 		$url = 'http://optimize.exactlywww.com/exactdn/activate.php';
 		$ssl = \wp_http_supports( array( 'ssl' ) );
@@ -497,7 +499,7 @@ class ExactDN extends Page_Parser {
 				'timeout' => 10,
 				'body'    => array(
 					'site_url' => $site_url,
-					'home_url' => $home_url,
+					'home_url' => \home_url(),
 				),
 			)
 		);

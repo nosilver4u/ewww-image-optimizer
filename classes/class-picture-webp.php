@@ -61,6 +61,7 @@ class Picture_Webp extends Page_Parser {
 		}
 		parent::__construct();
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		$this->content_url();
 
 		$this->request_uri = \add_query_arg( '', '' );
 		if ( false === \strpos( $this->request_uri, 'page=ewww-image-optimizer-options' ) ) {

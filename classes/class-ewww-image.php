@@ -963,9 +963,7 @@ class EWWW_Image {
 					}
 				}
 			}
-		} elseif ( 1 === (int) \apply_filters( 'wpml_setting', false, 'language_negotiation_type' ) ) {
 		}
-		// TODO: Also (maybe) need to check sub-folder style, and maybe make that extensible? Plus be sure to check the default folder if the primary attachment is in a non-default language, just like we did for domains.
 		do_action( 'ewwwio_conversion_replace_url_post', $new_url, $old_url );
 	}
 
