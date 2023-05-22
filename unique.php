@@ -1285,7 +1285,7 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 			case 'image/jpeg':
 				ewwwio_debug_message( "$nice " . $tool . " -q $quality $sharp_yuv -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1' );
 				exec( "$nice " . $tool . " -q $quality $sharp_yuv -metadata $copy_opt -quiet " . ewww_image_optimizer_escapeshellarg( $file ) . ' -o ' . ewww_image_optimizer_escapeshellarg( $webpfile ) . ' 2>&1', $cli_output );
-				if ( ! ewwwio_is_file( $webpfile ) && ewwwio()->supports_webp() && ewww_image_optimizer_is_cmyk( $file ) ) {
+				if ( ! ewwwio_is_file( $webpfile ) && ewwwio()->imagick_supports_webp() && ewww_image_optimizer_is_cmyk( $file ) ) {
 					ewwwio_debug_message( 'cmyk image skipped, trying imagick' );
 					ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile );
 				} elseif ( ewwwio_is_file( $webpfile ) && 'image/webp' !== ewww_image_optimizer_mimetype( $webpfile, 'i' ) ) {
