@@ -210,6 +210,9 @@ class Backup extends Base {
 		if ( ! $this->is_file( $file ) || ! $this->is_readable( $file ) ) {
 			return;
 		}
+		if ( apply_filters( 'ewww_image_optimizer_skip_local_backup', false, $file ) ) {
+			return;
+		}
 		$backup_file = $this->get_backup_location( $file );
 		if ( ! $backup_file || $backup_file === $file ) {
 			return;
