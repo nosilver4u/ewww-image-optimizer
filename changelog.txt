@@ -1,3 +1,7 @@
+= 7.0.1 =
+* fixed: Easy IO instructions display incorrect URL when images are on cloud storage (S3, GCS, etc.)
+* fixed: fatal error calling undefined method supports_webp
+
 = 7.0.0 =
 * breaking: namespaced and reorganized several classes, third party integrations should check for compatibility
 * added: allow video files to go through Easy IO CDN (pass through)

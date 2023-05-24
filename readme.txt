@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 5.8
 Tested up to: 6.2
 Requires PHP: 7.2
-Stable tag: 7.0.0
+Stable tag: 7.0.1
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -139,6 +139,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 7.0.1 =
 * fixed: Easy IO instructions display incorrect URL when images are on cloud storage (S3, GCS, etc.)
+* fixed: fatal error calling undefined method supports_webp
 
 = 7.0.0 =
 * breaking: namespaced and reorganized several classes, third party integrations should check for compatibility
