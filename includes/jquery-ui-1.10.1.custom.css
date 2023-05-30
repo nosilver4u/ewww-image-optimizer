@@ -879,10 +879,14 @@ p#ewww-webp-rewrite-status {
 #ewwwio-banner #ewww-news-button {
 	margin-top: 0;
 }
-h3 a.ewww-upgrade {
+#ewww-general-settings a.ewww-upgrade {
 	font-weight:bold;
-	text-decoration: none;
-	color: #3eadc9;
+	background-color: #3eadc9;
+	border-color: #3eadc9;
+}
+#ewww-general-settings a.ewww-upgrade:hover {
+	background-color: #40bad4;
+	border-color: #3ca0be;
 }
 .ewww-help-beacon-multi, .ewww-help-beacon-single, .ewww-help-external {
 	margin: 3px;

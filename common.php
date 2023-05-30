@@ -12608,7 +12608,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		return;
 	endif;
 	$premium_hide = '';
-	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) || ewww_image_optimizer_easy_active() ) {
 		$premium_hide = ' style="display:none"';
 	}
 	?>
@@ -12616,6 +12616,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				<tr id='ewww_image_optimizer_cloud_key_container'>
 					<th scope='row'>
 						<label for='ewww_image_optimizer_cloud_notkey'><?php esc_html_e( 'Compress API Key', 'ewww-image-optimizer' ); ?></label>
+						<?php ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2,5ad0c8e7042863075092650b,5a9efec62c7d3a7549516550' ); ?>
 					</th>
 					<td>
 						<input type='text' id='ewww_image_optimizer_cloud_notkey' name='ewww_image_optimizer_cloud_notkey' readonly='readonly' value='****************<?php echo esc_attr( substr( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), 28 ) ); ?>' size='32' />
@@ -12640,18 +12641,21 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				</tr>
 	<?php else : ?>
 		<?php if ( ! $exactdn_enabled ) : ?>
-				<tr>
-					<th scope='row'>&nbsp;</th>
+				<tr<?php echo wp_kses_post( $premium_hide ); ?>>
+					<th scope='row'>
+						<p><a type='submit' class='button-primary ewww-upgrade' href='https://ewww.io/trial/'><?php esc_attr_e( 'Start Premium Trial', 'ewww-image-optimizer' ); ?></a></p>
+					</th>
 					<td>
-						<input type='radio' id='ewww_image_optimizer_budget_pay' name='ewww_image_optimizer_budget' value='pay' required />
+						<p><?php esc_html_e( 'Get 5x more compression with a premium plan.', 'ewww-image-optimizer' ); ?></p>
+						<!--<input type='radio' id='ewww_image_optimizer_budget_pay' name='ewww_image_optimizer_budget' value='pay' required />
 						<label for='ewww_image_optimizer_budget_pay'><?php esc_html_e( 'Activate Easy IO and/or the Compress API to get 5x more optimization and priority support', 'ewww-image-optimizer' ); ?></label><br>
 						<input type='radio' id='ewww_image_optimizer_budget_free' name='ewww_image_optimizer_budget' value='free' required <?php checked( (bool) $premium_hide ); ?> />
 						<label for='ewww_image_optimizer_budget_free'><?php esc_html_e( 'Stick with free mode for now', 'ewww-image-optimizer' ); ?></label>
-						<p class="ewwwio-premium-setup-disabled-for-now" <?php echo wp_kses_post( $premium_hide ); ?>><strong><a href='https://ewww.io/plans/' target='_blank'>&gt;&gt;<?php esc_html_e( 'Start your free trial', 'ewww-image-optimizer' ); ?></a></strong></p>
+						<p class="ewwwio-premium-setup-disabled-for-now" <?php echo wp_kses_post( $premium_hide ); ?>><strong><a href='https://ewww.io/plans/' target='_blank'>&gt;&gt;<?php esc_html_e( 'Start your free trial', 'ewww-image-optimizer' ); ?></a></strong></p>-->
 					</td>
 				</tr>
 		<?php endif; ?>
-				<tr id='ewww_image_optimizer_cloud_key_container' class='ewwwio-premium-setup' <?php echo wp_kses_post( $premium_hide ); ?>>
+				<tr id='ewww_image_optimizer_cloud_key_container' class='ewwwio-premium-setup'>
 					<th scope='row'>
 						<label for='ewww_image_optimizer_cloud_key'><?php esc_html_e( 'Compress API Key', 'ewww-image-optimizer' ); ?></label>
 						<?php ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2,5ad0c8e7042863075092650b,5a9efec62c7d3a7549516550' ); ?>
@@ -12663,24 +12667,17 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<span id='ewwwio-api-activation-processing'><img src='<?php echo esc_url( $loading_image_url ); ?>' alt='loading'/></span>
 						<p class='description'>
 							<?php esc_html_e( 'Premium compression for your local images.', 'ewww-image-optimizer' ); ?>
-							<?php
-							printf(
-								/* translators: 1: the string 'Start your free trial' with a link to the signup page 2: 'enter an existing key' linked to the account/key page */
-								esc_html__( '%1$s or %2$s.', 'ewww-image-optimizer' ),
-								"<a href='https://ewww.io/plans/' target='_blank'>" . esc_html__( 'Start your free trial', 'ewww-image-optimizer' ) . '</a>',
-								"<a href='https://ewww.io/manage-keys/' target='_blank'>" . esc_html__( 'enter an existing key', 'ewww-image-optimizer' ) . '</a>'
-							);
-							?>
+							<a href='https://ewww.io/manage-keys/' target='_blank'><?php esc_html_e( 'Manage your API keys', 'ewww-image-optimizer' ); ?></a>
 						</p>
 					</td>
 				</tr>
 	<?php endif; ?>
 	<?php if ( ! get_option( 'easyio_exactdn' ) ) : ?>
 		<?php ob_start(); ?>
-				<tr id="ewww_image_optimizer_exactdn_container" class="ewwwio-premium-setup" <?php echo wp_kses_post( $premium_hide ); ?>>
+				<tr id="ewww_image_optimizer_exactdn_container" class="ewwwio-premium-setup">
 					<th scope='row'>
 						<span id='ewwwio-exactdn-anchor'></span>
-						<label for='ewww_image_optimizer_exactdn'><?php esc_html_e( 'Easy IO', 'ewww-image-optimizer' ); ?></label>
+						<!--<label for='ewww_image_optimizer_exactdn'>--><?php esc_html_e( 'Easy IO', 'ewww-image-optimizer' ); ?><!--</label>-->
 						<?php ewwwio_help_link( 'https://docs.ewww.io/article/44-introduction-to-exactdn', '59bc5ad6042863033a1ce370,5c0042892c7d3a31944e88a4' ); ?>
 					</th>
 					<td>
@@ -12708,10 +12705,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<span style="color: orange; font-weight: bolder"><?php esc_html_e( 'Partially Active', 'ewww-image-optimizer' ); ?></span> - <a href="https://ewww.io/manage-sites/"><?php esc_html_e( 'Manage Sites', 'ewww-image-optimizer' ); ?></a><br>
 							<span><?php esc_html_e( 'Easy IO is not active on some sites. You may activate individual sites via the plugin settings in each site dashboard, or activate all remaining sites below.', 'ewww-image-optimizer' ); ?></span><br>
 				<?php else : ?>
-							<strong><a href="https://ewww.io/plans/" target="_blank">
+							<!-- <strong><a href="https://ewww.io/plans/" target="_blank">
 								<?php esc_html_e( 'Purchase a subscription for your sites', 'ewww-image-optimizer' ); ?>
-							</a></strong><br>
-							<a href="https://ewww.io/manage-sites/" target="_blank"><?php esc_html_e( 'Then, add your Site URLs to your account', 'ewww-image-optimizer' ); ?></a>
+							</a></strong><br>-->
+							<a href="https://ewww.io/manage-sites/" target="_blank"><?php esc_html_e( 'Add your Site URLs to your account', 'ewww-image-optimizer' ); ?></a>
 				<?php endif; ?>
 						</div>
 						<p>
@@ -12749,11 +12746,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
 							<a class='easyio-cloud-key-ui' href="<?php echo esc_url( add_query_arg( 'site_url', trim( $easyio_site_url ), 'https://ewww.io/manage-sites/' ) ); ?>" target="_blank"><?php esc_html_e( 'Verify that this site is added to your account:', 'ewww-image-optimizer' ); ?></a>
 				<?php else : ?>
-							<p class='easyio-manual-ui' style="font-weight: bold;"><a href="https://ewww.io/plans/" target="_blank">
+							<!--<p class='easyio-manual-ui' style="font-weight: bold;"><a href="https://ewww.io/plans/" target="_blank">
 								<?php esc_html_e( 'Purchase a subscription for your site.', 'ewww-image-optimizer' ); ?>
-							</a></p>
+							</a></p>-->
 							<a class='easyio-cloud-key-ui' style='display:none;' href="<?php echo esc_url( add_query_arg( 'site_url', trim( $easyio_site_url ), 'https://ewww.io/manage-sites/' ) ); ?>" target="_blank"><?php esc_html_e( 'Verify that this site is added to your account:', 'ewww-image-optimizer' ); ?></a>
-							<a class='easyio-manual-ui' href="<?php echo esc_url( add_query_arg( 'site_url', trim( $easyio_site_url ), 'https://ewww.io/manage-sites/' ) ); ?>" target="_blank"><?php esc_html_e( 'Then, add your Site URL to your account:', 'ewww-image-optimizer' ); ?></a>
+							<a class='easyio-manual-ui' href="<?php echo esc_url( add_query_arg( 'site_url', trim( $easyio_site_url ), 'https://ewww.io/manage-sites/' ) ); ?>" target="_blank"><?php esc_html_e( 'Add your Site URL to your account:', 'ewww-image-optimizer' ); ?></a>
 				<?php endif; ?>
 							<input type='text' id='exactdn_site_url' name='exactdn_site_url' value='<?php echo esc_url( trim( $easyio_site_url ) ); ?>' readonly />
 							<span id='exactdn-site-url-copy'><?php esc_html_e( 'Click to Copy', 'ewww-image-optimizer' ); ?></span>
@@ -12835,7 +12832,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					</td>
 				</tr>
 	<?php if ( ! function_exists( 'swis' ) ) : ?>
-				<tr id="swis_promo_container" class="ewwwio-premium-setup" <?php echo wp_kses_post( $premium_hide ); ?>>
+				<tr id="swis_promo_container" class="ewwwio-premium-setup">
 					<th scope='row'>
 						SWIS Performance
 					</th>
@@ -12962,7 +12959,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					<td>&nbsp;</td>
 					<td>
 						<input type='checkbox' name='ewww_image_optimizer_use_lqip' value='true' id='<?php echo esc_attr( $lqip_id ); ?>' <?php disabled( $lqip_dis ); ?> <?php checked( $lqip_che ); ?> />
-						<label for='ewww_image_optimizer_use_lqip'><strong>LQIP</strong></label>
+						<label for='<?php echo esc_attr( $lqip_id ); ?>'><strong>LQIP</strong></label>
 						<?php ewwwio_help_link( 'https://docs.ewww.io/article/75-lazy-load-placeholders', '5c9a7a302c7d3a1544615e47' ); ?>
 						<p class='description'>
 							<?php esc_html_e( 'Use low-quality versions of your images as placeholders via Easy IO. Can improve user experience, but may be slower than blank placeholders.', 'ewww-image-optimizer' ); ?>
