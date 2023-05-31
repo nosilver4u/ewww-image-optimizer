@@ -457,6 +457,7 @@ final class Plugin extends Base {
 	function set_defaults() {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		// Set defaults for all options that need to be autoloaded.
+		\add_option( 'ewww_image_optimizer_background_optimization', false );
 		\add_option( 'ewww_image_optimizer_noauto', false );
 		\add_option( 'ewww_image_optimizer_disable_editor', false );
 		\add_option( 'ewww_image_optimizer_debug', false );
@@ -492,6 +493,7 @@ final class Plugin extends Base {
 		\add_option( 'ewww_image_optimizer_webp_rewrite_exclude', '' );
 
 		// Set network defaults.
+		\add_site_option( 'ewww_image_optimizer_background_optimization', false );
 		\add_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		\add_site_option( 'ewww_image_optimizer_jpg_level', '10' );
 		\add_site_option( 'ewww_image_optimizer_png_level', '10' );

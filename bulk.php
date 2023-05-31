@@ -2255,7 +2255,7 @@ function ewww_image_optimizer_bulk_cleanup() {
 		esc_html__( 'Write a Review', 'ewww-image-optimizer' ) :
 		esc_html__( 'Want more compression?', 'ewww-image-optimizer' ) . ' ' .
 		'<a target="_blank" href="https://ewww.io/trial/">' .
-		esc_html__( 'Get 5x more with a free trial.', 'ewww-image-optimizer' )
+		esc_html__( 'Get 5x more with a free trial', 'ewww-image-optimizer' )
 		) .
 		'</a></p>'
 	);

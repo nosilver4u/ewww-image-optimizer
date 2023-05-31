@@ -868,9 +868,9 @@ function ewww_image_optimizer_upgrade() {
 			return;
 		}
 		$ewwwio_upgrading = true;
-		ewww_image_optimizer_enable_background_optimization();
 		ewww_image_optimizer_install_table();
 		ewwwio()->set_defaults();
+		ewww_image_optimizer_enable_background_optimization();
 		// This will get re-enabled if things are too slow.
 		ewww_image_optimizer_set_option( 'exactdn_prevent_db_queries', false );
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn_verify_method' ) > 0 ) {
