@@ -8663,9 +8663,14 @@ function ewww_image_optimizer_detect_wpsf_location_lock() {
  */
 function ewww_image_optimizer_as3cf_attachment_file_paths( $paths, $id ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	$as3cf_action = 'unknown';
+	$as3cf_action = false;
 	if ( ! empty( $_REQUEST['action'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 		$as3cf_action = sanitize_text_field( wp_unslash( $_REQUEST['action'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
+	}
+	global $ewww_new_image;
+	if ( ! empty( $ewww_new_image ) ) {
+		// This is so we can detect new uploads for conversion checking.
+		$as3cf_action = 'media_upload';
 	}
 	foreach ( $paths as $size => $path ) {
 		if ( ! is_string( $path ) ) {
@@ -8674,7 +8679,9 @@ function ewww_image_optimizer_as3cf_attachment_file_paths( $paths, $id ) {
 		if ( false !== strpos( $size, '-webp' ) || str_ends_with( $path, '.webp' ) ) {
 			continue;
 		}
-		ewwwio_debug_message( "checking $path for WebP or converted images in as3cf $as3cf_action queue" );
+		if ( $as3cf_action ) {
+			ewwwio_debug_message( "checking $path for WebP or converted images in as3cf $as3cf_action queue" );
+		}
 		if ( ewwwio_is_file( $path . '.webp' ) ) {
 			$paths[ $size . '-webp' ] = $path . '.webp';
 			ewwwio_debug_message( "added $path.webp to as3cf queue" );
@@ -8694,9 +8701,22 @@ function ewww_image_optimizer_as3cf_attachment_file_paths( $paths, $id ) {
 		if ( ! is_admin() ) {
 			continue;
 		}
+		$conversion_actions = array(
+			'bulk_loop',
+			'copy',
+			'download',
+			'ewww_bulk_update_meta',
+			'ewww_image_optimizer_manual_image_restore',
+			'ewww_image_optimizer_manual_optimize',
+			'ewww_image_optimizer_manual_restore',
+			'media_upload',
+			'wp_ewwwio_image_optimize',
+			'wp_ewwwio_media_optimize',
+			'remove_local',
+		);
 		// If we're not deleting originals, then they should be re-uploaded to S3.
 		// We'd check if conversion options are enabled, but folks can convert via the Media Library without them enabled, so we need to account for that.
-		if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) ) {
+		if ( in_array( $as3cf_action, $conversion_actions, true ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_delete_originals' ) ) {
 			$opt_image = ewww_image_optimizer_find_already_optimized( $path );
 			if ( ! empty( $opt_image['path'] ) && ! empty( $opt_image['converted'] ) ) {
 				$orig_path = ewww_image_optimizer_absolutize_path( $opt_image['converted'] );
