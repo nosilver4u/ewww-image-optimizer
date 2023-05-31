@@ -12295,7 +12295,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	<div id='ewww-widgets' class='metabox-holder'>
 		<div class='meta-box-sortables'>
 			<div id='ewww-status' class='postbox'>
-				<!--<h2 class='ewww-hndle'><?php esc_html_e( 'Optimization Status', 'ewww-image-optimizer' ); ?></h2>-->
 				<div class='ewww-hndle' id="ewwwio-banner">
 					<img height="95" width="167" src="<?php echo esc_url( plugins_url( '/images/ewwwio-logo.png', __FILE__ ) ); ?>">
 	<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_hide_newsletter_signup' ) ) : ?>
@@ -12535,6 +12534,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<li class='ewww-tab ewww-contribute-nav'><span><?php esc_html_e( 'Contribute', 'ewww-image-optimizer' ); ?></span></li>
 	</ul>
 	<?php endif; ?>
+	<?php if ( ! ewww_image_optimizer_easy_site_registered( $easyio_site_url ) ) : ?>
+		<script>var exactdn_registered = false;</script>
+	<?php else : ?>
+		<script>var exactdn_registered = true;</script>
+	<?php endif; ?>
 	<?php if ( false !== strpos( $network, 'network-multisite' ) ) : ?>
 	<form id='ewww-settings-form' method='post' action=''>
 	<?php else : ?>
@@ -12677,7 +12681,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				<tr id="ewww_image_optimizer_exactdn_container" class="ewwwio-premium-setup">
 					<th scope='row'>
 						<span id='ewwwio-exactdn-anchor'></span>
-						<!--<label for='ewww_image_optimizer_exactdn'>--><?php esc_html_e( 'Easy IO', 'ewww-image-optimizer' ); ?><!--</label>-->
+						<?php esc_html_e( 'Easy IO', 'ewww-image-optimizer' ); ?>
 						<?php ewwwio_help_link( 'https://docs.ewww.io/article/44-introduction-to-exactdn', '59bc5ad6042863033a1ce370,5c0042892c7d3a31944e88a4' ); ?>
 					</th>
 					<td>
@@ -12705,9 +12709,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<span style="color: orange; font-weight: bolder"><?php esc_html_e( 'Partially Active', 'ewww-image-optimizer' ); ?></span> - <a href="https://ewww.io/manage-sites/"><?php esc_html_e( 'Manage Sites', 'ewww-image-optimizer' ); ?></a><br>
 							<span><?php esc_html_e( 'Easy IO is not active on some sites. You may activate individual sites via the plugin settings in each site dashboard, or activate all remaining sites below.', 'ewww-image-optimizer' ); ?></span><br>
 				<?php else : ?>
-							<!-- <strong><a href="https://ewww.io/plans/" target="_blank">
-								<?php esc_html_e( 'Purchase a subscription for your sites', 'ewww-image-optimizer' ); ?>
-							</a></strong><br>-->
 							<a href="https://ewww.io/manage-sites/" target="_blank"><?php esc_html_e( 'Add your Site URLs to your account', 'ewww-image-optimizer' ); ?></a>
 				<?php endif; ?>
 						</div>
@@ -12746,18 +12747,12 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
 							<a class='easyio-cloud-key-ui' href="<?php echo esc_url( add_query_arg( 'site_url', trim( $easyio_site_url ), 'https://ewww.io/manage-sites/' ) ); ?>" target="_blank"><?php esc_html_e( 'Verify that this site is added to your account:', 'ewww-image-optimizer' ); ?></a>
 				<?php else : ?>
-							<!--<p class='easyio-manual-ui' style="font-weight: bold;"><a href="https://ewww.io/plans/" target="_blank">
-								<?php esc_html_e( 'Purchase a subscription for your site.', 'ewww-image-optimizer' ); ?>
-							</a></p>-->
 							<a class='easyio-cloud-key-ui' style='display:none;' href="<?php echo esc_url( add_query_arg( 'site_url', trim( $easyio_site_url ), 'https://ewww.io/manage-sites/' ) ); ?>" target="_blank"><?php esc_html_e( 'Verify that this site is added to your account:', 'ewww-image-optimizer' ); ?></a>
 							<a class='easyio-manual-ui' href="<?php echo esc_url( add_query_arg( 'site_url', trim( $easyio_site_url ), 'https://ewww.io/manage-sites/' ) ); ?>" target="_blank"><?php esc_html_e( 'Add your Site URL to your account:', 'ewww-image-optimizer' ); ?></a>
 				<?php endif; ?>
 							<input type='text' id='exactdn_site_url' name='exactdn_site_url' value='<?php echo esc_url( trim( $easyio_site_url ) ); ?>' readonly />
 							<span id='exactdn-site-url-copy'><?php esc_html_e( 'Click to Copy', 'ewww-image-optimizer' ); ?></span>
 							<span id='exactdn-site-url-copied'><?php esc_html_e( 'Copied', 'ewww-image-optimizer' ); ?></span><br>
-							<script>var exactdn_registered = false;</script>
-			<?php else : ?>
-							<script>var exactdn_registered = true;</script>
 			<?php endif; ?>
 							<a id='ewwwio-easy-activate' href='#' class='button-secondary'><?php esc_html_e( 'Activate', 'ewww-image-optimizer' ); ?></a>
 							<span id='ewwwio-easy-activation-processing'><img src='<?php echo esc_url( $loading_image_url ); ?>' alt='loading'/></span>
@@ -12944,17 +12939,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						</p>
 					</td>
 				</tr>
-				<!-- <tr id='ewww_image_optimizer_siip_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? '' : ' style="display:none"'; ?>>
-					<td>&nbsp;</td>
-					<td>
-						<input type='checkbox' name='ewww_image_optimizer_use_siip' value='true' id='ewww_image_optimizer_use_siip' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_siip' ) ); ?> />
-						<label for='ewww_image_optimizer_use_siip'><strong><?php esc_html_e( 'SVG Placeholders', 'ewww-image-optimizer' ); ?></strong></label>
-						<?php ewwwio_help_link( 'https://docs.ewww.io/article/75-lazy-load-placeholders', '5c9a7a302c7d3a1544615e47' ); ?>
-						<p class='description'>
-							<?php esc_html_e( 'Inline SVG placeholders use fewer HTTP requests than right-sized PNG placeholders, but may not work with some themes.', 'ewww-image-optimizer' ); ?>
-						</p>
-					</td>
-				</tr> -->
 				<tr id='ewww_image_optimizer_lqip_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? '' : ' style="display:none"'; ?>>
 					<td>&nbsp;</td>
 					<td>
