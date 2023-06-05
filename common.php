@@ -3525,7 +3525,7 @@ function ewww_image_optimizer_jpg_quality( $quality = null ) {
 		$quality = ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_quality' );
 	}
 	// Verify that the quality level is an integer, 1-100.
-	if ( is_string( $quality ) && preg_match( '/^(100|[1-9][0-9]?)$/', $quality ) ) {
+	if ( is_numeric( $quality ) && preg_match( '/^(100|[1-9][0-9]?)$/', $quality ) ) {
 		ewwwio_debug_message( "quality: $quality" );
 		// Send back the valid quality level.
 		ewwwio_memory( __FUNCTION__ );
@@ -3566,7 +3566,7 @@ function ewww_image_optimizer_webp_quality( $quality = null ) {
 		$quality = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_quality' );
 	}
 	// Verify that the quality level is an integer, 1-100.
-	if ( is_string( $quality ) && preg_match( '/^(100|[1-9][0-9]?)$/', $quality ) ) {
+	if ( is_numeric( $quality ) && preg_match( '/^(100|[1-9][0-9]?)$/', $quality ) ) {
 		ewwwio_debug_message( "webp quality: $quality" );
 		// Send back the valid quality level.
 		return $quality;
@@ -3606,7 +3606,7 @@ function ewww_image_optimizer_avif_quality( $quality = null ) {
 		$quality = ewww_image_optimizer_get_option( 'ewww_image_optimizer_avif_quality' );
 	}
 	// Verify that the quality level is an integer, 1-100.
-	if ( is_string( $quality ) && preg_match( '/^(100|[1-9][0-9]?)$/', $quality ) ) {
+	if ( is_numeric( $quality ) && preg_match( '/^(100|[1-9][0-9]?)$/', $quality ) ) {
 		ewwwio_debug_message( "avif quality: $quality" );
 		// Send back the valid quality level.
 		return $quality;
