@@ -3689,7 +3689,7 @@ class ExactDN extends Page_Parser {
 
 		$jpg_quality  = \apply_filters( 'jpeg_quality', null, 'image_resize' );
 		$webp_quality = \apply_filters( 'webp_quality', 75, 'image/webp' );
-		$avif_quality = \apply_filters( 'avif_quality', 45, 'image/avif' );
+		$avif_quality = \apply_filters( 'avif_quality', 60, 'image/avif' );
 
 		$more_args = array();
 		if ( false === \strpos( $image_url, 'strip=all' ) && $this->get_option( $this->prefix . 'metadata_remove' ) ) {
@@ -3711,7 +3711,7 @@ class ExactDN extends Page_Parser {
 		if ( false === \strpos( $image_url, 'webp=' ) && 75 !== (int) $webp_quality ) {
 			$more_args['webp'] = $webp_quality;
 		}
-		if ( false === \strpos( $image_url, 'avif=' ) && 45 !== (int) $avif_quality ) {
+		if ( false === \strpos( $image_url, 'avif=' ) && 60 !== (int) $avif_quality ) {
 			$more_args['avif'] = $avif_quality;
 		}
 		if ( \defined( '\EIO_WEBP_SHARP_YUV' ) && \EIO_WEBP_SHARP_YUV ) {

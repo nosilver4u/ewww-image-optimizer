@@ -141,6 +141,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: background optimization incorrectly displays as disabled on fresh installs with object caching
 * fixed: Easy IO registration state not detected on multi-site
 * fixed: duplicate queries in wp-admin when used with WP Offload Media
+* fixed: deprecation notices when validating quality settings
+* fixed: error when checking a corrupted PNG for transparency
 
 = 7.0.1 =
 * fixed: Easy IO instructions display incorrect URL when images are on cloud storage (S3, GCS, etc.)
