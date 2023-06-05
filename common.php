@@ -3508,7 +3508,7 @@ function ewww_image_optimizer_jpg_background( $background = null ) {
 		}
 		// Send back a blank value.
 		ewwwio_memory( __FUNCTION__ );
-		return null;
+		return '';
 	}
 }
 

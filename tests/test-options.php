@@ -20,10 +20,10 @@ class EWWWIO_Option_Tests extends WP_UnitTestCase {
 		$this->assertEquals( 'fff333', ewww_image_optimizer_jpg_background() );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_jpg_background', '' );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_jpg_background', '#fff' );
-		$this->assertNull( ewww_image_optimizer_jpg_background() );
+		$this->assertEquals( '', ewww_image_optimizer_jpg_background() );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_jpg_background', '' );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_jpg_background', 'black' );
-		$this->assertNull( ewww_image_optimizer_jpg_background() );
+		$this->assertEquals( '', ewww_image_optimizer_jpg_background() );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_jpg_background', '' );
 	}
 
@@ -32,7 +32,7 @@ class EWWWIO_Option_Tests extends WP_UnitTestCase {
 	 */
 	function test_jpg_quality() {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_jpg_quality', 1000 );
-		$this->assertNull( ewww_image_optimizer_jpg_quality() );
+		$this->assertEquals( '', ewww_image_optimizer_jpg_quality() );
 		$this->assertEquals( 82, (int) apply_filters( 'jpeg_quality', 82, 'image/webp' ) );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_jpg_quality', '' );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_jpg_quality', 75 );
@@ -40,7 +40,7 @@ class EWWWIO_Option_Tests extends WP_UnitTestCase {
 		$this->assertEquals( 75, (int) apply_filters( 'jpeg_quality', 82, 'image/webp' ) );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_jpg_quality', '' );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_jpg_quality', 'spinach' );
-		$this->assertNull( ewww_image_optimizer_jpg_quality() );
+		$this->assertEquals( '', ewww_image_optimizer_jpg_quality() );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_jpg_quality', '' );
 	}
 }
