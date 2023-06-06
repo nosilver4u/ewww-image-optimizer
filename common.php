@@ -10596,7 +10596,7 @@ function ewww_image_optimizer_settings_script( $hook ) {
 	}
 	delete_option( 'ewww_image_optimizer_exactdn_checkin' );
 	global $exactdn;
-	if ( has_action( 'admin_notices', 'ewww_image_optimizer_notice_exactdn_domain_mismatch' ) ) {
+	if ( is_object( $exactdn ) && has_action( 'admin_notices', 'ewww_image_optimizer_notice_exactdn_domain_mismatch' ) ) {
 		delete_option( 'ewww_image_optimizer_exactdn_domain' );
 		delete_option( 'ewww_image_optimizer_exactdn_local_domain' );
 		delete_option( 'ewww_image_optimizer_exactdn_plan_id' );
@@ -11219,7 +11219,7 @@ function ewwwio_debug_info() {
 	if ( PHP_OS !== 'WINNT' && ! ewwwio()->cloud_mode && ewwwio()->local->exec_check() ) {
 		ewwwio()->local->find_nix_binary( 'nice' );
 	}
-	ewwwio_debug_message( ewww_image_optimizer_aux_images_table_count() . ' images have been optimized' );
+	ewwwio_debug_message( ewww_image_optimizer_aux_images_table_count( true ) . ' images have been optimized' );
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
 		ewwwio_debug_message( 'automatic compression disabled' );
 	} else {
@@ -12141,20 +12141,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 			$speed_recommendations[] = __( 'Enable Easy IO for automatic resizing.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/44-introduction-to-exactdn', '59bc5ad6042863033a1ce370,5c0042892c7d3a31944e88a4' );
 		}
-		delete_option( 'ewww_image_optimizer_exactdn_domain' );
-		delete_option( 'ewww_image_optimizer_exactdn_plan_id' );
-		delete_option( 'ewww_image_optimizer_exactdn_failures' );
-		delete_option( 'ewww_image_optimizer_exactdn_checkin' );
-		delete_option( 'ewww_image_optimizer_exactdn_verified' );
-		delete_option( 'ewww_image_optimizer_exactdn_validation' );
-		delete_option( 'ewww_image_optimizer_exactdn_suspended' );
-		delete_site_option( 'ewww_image_optimizer_exactdn_domain' );
-		delete_site_option( 'ewww_image_optimizer_exactdn_plan_id' );
-		delete_site_option( 'ewww_image_optimizer_exactdn_failures' );
-		delete_site_option( 'ewww_image_optimizer_exactdn_checkin' );
-		delete_site_option( 'ewww_image_optimizer_exactdn_verified' );
-		delete_site_option( 'ewww_image_optimizer_exactdn_validation' );
-		delete_site_option( 'ewww_image_optimizer_exactdn_suspended' );
 	}
 	$exactdn_network_enabled = 0;
 	if ( $exactdn_enabled && is_multisite() && is_network_admin() && empty( $exactdn_sub_folder ) ) {

@@ -961,11 +961,18 @@ function ewww_image_optimizer_aux_meta_clean() {
 /**
  * Find the number of optimized images in the ewwwio_images table.
  *
+ * @param bool $cached Whether to use a cached value.
  * @global object $wpdb
  * @return int The total number of records in the images table that are not pending and have a
  *             valid file-size.
  */
-function ewww_image_optimizer_aux_images_table_count() {
+function ewww_image_optimizer_aux_images_table_count( $cached = false ) {
+	if ( $cached ) {
+		$count = get_transient( 'ewwwio_images_table_count' );
+		if ( $count ) {
+			return (int) $count;
+		}
+	}
 	global $wpdb;
 	$count = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > 0" );
 	// Verify that an authorized user has called function.
@@ -980,8 +987,11 @@ function ewww_image_optimizer_aux_images_table_count() {
 		ewwwio_memory( __FUNCTION__ );
 		die();
 	}
+	if ( $cached && $count ) {
+		set_transient( 'ewwwio_images_table_count', (int) $count, HOUR_IN_SECONDS );
+	}
 	ewwwio_memory( __FUNCTION__ );
-	return $count;
+	return (int) $count;
 }
 
 /**
