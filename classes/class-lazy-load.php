@@ -169,8 +169,9 @@ class Lazy_Load extends Page_Parser {
 
 		\add_filter( 'wp_lazy_loading_enabled', array( $this, 'wp_lazy_loading_enabled' ), 10, 2 );
 
-		if ( ! \defined( '\EIO_LL_AUTOSCALE' ) && ! $this->get_option( $this->prefix . 'll_autoscale' ) ) {
-			\define( '\EIO_LL_AUTOSCALE', false );
+		if ( ! \defined( 'EIO_LL_AUTOSCALE' ) && ! $this->get_option( $this->prefix . 'll_autoscale' ) ) {
+			$this->debug_message( 'autoscale disabled' );
+			\define( 'EIO_LL_AUTOSCALE', false );
 		}
 
 		// Override for number of images to consider "above the fold".
@@ -700,7 +701,7 @@ class Lazy_Load extends Page_Parser {
 			if (
 				false === \strpos( $image, 'skip-autoscale' ) &&
 				apply_filters( 'eio_lazy_responsive', $srcset_sizes ) &&
-				( ! \defined( '\EIO_LL_AUTOSCALE' ) || \EIO_LL_AUTOSCALE )
+				( ! \defined( 'EIO_LL_AUTOSCALE' ) || EIO_LL_AUTOSCALE )
 			) {
 				$this->set_attribute( $image, 'data-sizes', 'auto', true );
 				$this->remove_attribute( $image, 'sizes' );
@@ -1282,7 +1283,7 @@ class Lazy_Load extends Page_Parser {
 				\wp_json_encode(
 					array(
 						'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
-						'skip_autoscale' => ( \defined( '\EIO_LL_AUTOSCALE' ) && ! \EIO_LL_AUTOSCALE ? 1 : 0 ),
+						'skip_autoscale' => ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
 						'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
 					)
 				)
@@ -1319,7 +1320,7 @@ class Lazy_Load extends Page_Parser {
 				\wp_json_encode(
 					array(
 						'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
-						'skip_autoscale' => ( \defined( '\EIO_LL_AUTOSCALE' ) && ! \EIO_LL_AUTOSCALE ? 1 : 0 ),
+						'skip_autoscale' => ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
 						'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
 					)
 				)
