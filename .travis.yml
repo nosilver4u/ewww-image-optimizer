@@ -43,7 +43,7 @@ before_script:
   - export PATH="$HOME/.config/composer/vendor/bin:$PATH"
   - phpenv config-rm xdebug.ini
   - bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
-  - composer global require --dev yoast/phpunit-polyfills
+  - composer global require --dev yoast/phpunit-polyfills:"^1.0"
   - |
     if [[ "$WPSNIFF" == "1" ]]; then
       composer global config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true

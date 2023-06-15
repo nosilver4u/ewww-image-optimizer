@@ -7748,7 +7748,9 @@ function ewww_image_optimizer_resize_upload( $file ) {
 				}
 				$new_jpeg->setExif( $old_exif );
 			}
-			$new_jpeg->saveFile( $new_file );
+			if ( ! is_null( $new_jpeg ) ) {
+				$new_jpeg->saveFile( $new_file );
+			}
 		}
 		// Backup the file before we replace the original.
 		global $eio_backup;
