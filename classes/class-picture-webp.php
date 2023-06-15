@@ -186,7 +186,7 @@ class Picture_Webp extends Page_Parser {
 		if ( '/print/' === \substr( $uri, -7 ) ) {
 			return false;
 		}
-		if ( \defined( '\REST_REQUEST' ) && \REST_REQUEST ) {
+		if ( \defined( 'REST_REQUEST' ) && REST_REQUEST ) {
 			return false;
 		}
 		if ( false !== \strpos( $uri, 'tatsu=' ) ) {

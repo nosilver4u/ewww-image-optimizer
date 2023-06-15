@@ -221,20 +221,20 @@ class ExactDN extends Page_Parser {
 			$this->scheme = $scheme;
 		}
 
-		if ( \is_multisite() && \defined( '\SUBDOMAIN_INSTALL' ) && \SUBDOMAIN_INSTALL ) {
+		if ( \is_multisite() && \defined( 'SUBDOMAIN_INSTALL' ) && SUBDOMAIN_INSTALL ) {
 			$this->debug_message( 'working in sub-domain mode' );
 		} elseif ( \is_multisite() ) {
-			if ( \defined( '\EXACTDN_SUB_FOLDER' ) && \EXACTDN_SUB_FOLDER ) {
+			if ( \defined( 'EXACTDN_SUB_FOLDER' ) && EXACTDN_SUB_FOLDER ) {
 				$this->sub_folder = true;
 				$this->debug_message( 'working in sub-folder mode due to constant override' );
-			} elseif ( \defined( '\EXACTDN_SUB_FOLDER' ) ) {
+			} elseif ( \defined( 'EXACTDN_SUB_FOLDER' ) ) {
 				$this->debug_message( 'working in sub-domain mode due to constant override' );
 			} elseif ( \get_site_option( 'exactdn_sub_folder' ) ) {
 				$this->sub_folder = true;
 				$this->debug_message( 'working in sub-folder mode due to global option' );
 			} elseif ( \get_current_blog_id() > 1 ) {
 				$network_site_url = \network_site_url();
-				$network_domain   = $this->parse_url( $network_site_url, \PHP_URL_HOST );
+				$network_domain   = $this->parse_url( $network_site_url, PHP_URL_HOST );
 				if ( $network_domain === $this->upload_domain ) {
 					$this->sub_folder = true;
 					$this->debug_message( 'working in sub-folder mode due to matching domain' );
@@ -255,7 +255,7 @@ class ExactDN extends Page_Parser {
 		\add_filter( $this->prefix . 'filter_page_output', array( $this, 'filter_page_output' ), 5 );
 
 		// Core image retrieval.
-		if ( \defined( '\EIO_DISABLE_DEEP_INTEGRATION' ) && \EIO_DISABLE_DEEP_INTEGRATION ) {
+		if ( \defined( 'EIO_DISABLE_DEEP_INTEGRATION' ) && EIO_DISABLE_DEEP_INTEGRATION ) {
 			$this->debug_message( 'deep (image_downsize) integration disabled' );
 		} elseif ( ! \function_exists( '\aq_resize' ) ) {
 			\add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), 10, 3 );
@@ -264,7 +264,7 @@ class ExactDN extends Page_Parser {
 		}
 		// Disable image_downsize filter during themify_get_image().
 		\add_action( 'themify_before_post_image', array( $this, 'disable_image_downsize' ) );
-		if ( \defined( '\EXACTDN_IMAGE_DOWNSIZE_SCALE' ) && \EXACTDN_IMAGE_DOWNSIZE_SCALE ) {
+		if ( \defined( 'EXACTDN_IMAGE_DOWNSIZE_SCALE' ) && EXACTDN_IMAGE_DOWNSIZE_SCALE ) {
 			\add_action( 'exactdn_image_downsize_array', array( $this, 'image_downsize_scale' ) );
 		}
 
@@ -299,18 +299,18 @@ class ExactDN extends Page_Parser {
 		\add_filter( 'envira_gallery_image_src', array( $this, 'plugin_get_image_url' ) );
 
 		// Filters for BuddyBoss image URLs.
-		\add_filter( 'bp_media_get_preview_image_url', array( $this, 'bp_media_get_preview_image_url' ), \PHP_INT_MAX, 5 );
-		\add_filter( 'bb_video_get_thumb_url', array( $this, 'bb_video_get_thumb_url' ), \PHP_INT_MAX, 5 );
-		\add_filter( 'bp_document_get_preview_url', array( $this, 'bp_document_get_preview_url' ), \PHP_INT_MAX, 6 );
-		\add_filter( 'bb_video_get_symlink', array( $this, 'bb_video_get_symlink' ), \PHP_INT_MAX, 4 );
+		\add_filter( 'bp_media_get_preview_image_url', array( $this, 'bp_media_get_preview_image_url' ), PHP_INT_MAX, 5 );
+		\add_filter( 'bb_video_get_thumb_url', array( $this, 'bb_video_get_thumb_url' ), PHP_INT_MAX, 5 );
+		\add_filter( 'bp_document_get_preview_url', array( $this, 'bp_document_get_preview_url' ), PHP_INT_MAX, 6 );
+		\add_filter( 'bb_video_get_symlink', array( $this, 'bb_video_get_symlink' ), PHP_INT_MAX, 4 );
 		// Filters for BuddyBoss URL symlinks.
-		\add_filter( 'bb_media_do_symlink', array( $this, 'buddyboss_do_symlink' ), \PHP_INT_MAX );
-		\add_filter( 'bb_document_do_symlink', array( $this, 'buddyboss_do_symlink' ), \PHP_INT_MAX );
-		\add_filter( 'bb_video_do_symlink', array( $this, 'buddyboss_do_symlink' ), \PHP_INT_MAX );
-		\add_filter( 'bb_video_create_thumb_symlinks', array( $this, 'buddyboss_do_symlink' ), \PHP_INT_MAX );
+		\add_filter( 'bb_media_do_symlink', array( $this, 'buddyboss_do_symlink' ), PHP_INT_MAX );
+		\add_filter( 'bb_document_do_symlink', array( $this, 'buddyboss_do_symlink' ), PHP_INT_MAX );
+		\add_filter( 'bb_video_do_symlink', array( $this, 'buddyboss_do_symlink' ), PHP_INT_MAX );
+		\add_filter( 'bb_video_create_thumb_symlinks', array( $this, 'buddyboss_do_symlink' ), PHP_INT_MAX );
 		// Filters for BuddyBoss media access checks.
-		\add_filter( 'bb_media_check_default_access', '__return_true', \PHP_INT_MAX );
-		\add_filter( 'bb_media_settings_callback_symlink_direct_access', array( $this, 'buddyboss_media_directory_allow_access' ), \PHP_INT_MAX, 2 );
+		\add_filter( 'bb_media_check_default_access', '__return_true', PHP_INT_MAX );
+		\add_filter( 'bb_media_settings_callback_symlink_direct_access', array( $this, 'buddyboss_media_directory_allow_access' ), PHP_INT_MAX, 2 );
 
 		// Filter for NextGEN image URLs within JS.
 		\add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ) );
@@ -449,7 +449,7 @@ class ExactDN extends Page_Parser {
 		// Setup scheduled optimization if the user has enabled it, and it isn't already scheduled.
 		if ( $schedule && ! \wp_next_scheduled( $event ) ) {
 			$this->debug_message( "scheduling $event" );
-			\wp_schedule_event( \time() + \DAY_IN_SECONDS, \apply_filters( 'easyio_verification_schedule', 'daily', $event ), $event );
+			\wp_schedule_event( \time() + DAY_IN_SECONDS, \apply_filters( 'easyio_verification_schedule', 'daily', $event ), $event );
 		} elseif ( $schedule ) {
 			$this->debug_message( "$event already scheduled: " . \wp_next_scheduled( $event ) );
 		} elseif ( \wp_next_scheduled( $event ) ) {
@@ -457,11 +457,11 @@ class ExactDN extends Page_Parser {
 			\wp_clear_scheduled_hook( $event );
 			if ( ! \function_exists( '\is_plugin_active_for_network' ) && \is_multisite() ) {
 				// Need to include the plugin library for the is_plugin_active function.
-				require_once( \ABSPATH . 'wp-admin/includes/plugin.php' );
+				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 			}
 			if ( \is_multisite() && \is_plugin_active_for_network( \constant( \strtoupper( $this->prefix ) . 'PLUGIN_FILE_REL' ) ) ) {
 				global $wpdb;
-				$blogs = $wpdb->get_results( $wpdb->prepare( "SELECT blog_id FROM $wpdb->blogs WHERE site_id = %d", $wpdb->siteid ), \ARRAY_A );
+				$blogs = $wpdb->get_results( $wpdb->prepare( "SELECT blog_id FROM $wpdb->blogs WHERE site_id = %d", $wpdb->siteid ), ARRAY_A );
 				if ( $this->is_iterable( $blogs ) ) {
 					foreach ( $blogs as $blog ) {
 						\switch_to_blog( $blog['blog_id'] );
@@ -492,7 +492,7 @@ class ExactDN extends Page_Parser {
 		if ( $ssl ) {
 			$url = \set_url_scheme( $url, 'https' );
 		}
-		\add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', \PHP_INT_MAX );
+		\add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', PHP_INT_MAX );
 		$result = \wp_remote_post(
 			$url,
 			array(
@@ -576,7 +576,7 @@ class ExactDN extends Page_Parser {
 		}
 
 		$this->check_verify_method();
-		$this->set_exactdn_option( 'checkin', \time() + \HOUR_IN_SECONDS );
+		$this->set_exactdn_option( 'checkin', \time() + HOUR_IN_SECONDS );
 
 		// Set a default error.
 		global $exactdn_activate_error;
@@ -587,13 +587,13 @@ class ExactDN extends Page_Parser {
 		if ( $ssl ) {
 			$api_url = \set_url_scheme( $api_url, 'https' );
 		}
-		if ( ! \defined( '\EXACTDN_LOCAL_DOMAIN' ) && (int) $this->get_exactdn_option( 'verify_method' ) > 0 ) {
+		if ( ! \defined( 'EXACTDN_LOCAL_DOMAIN' ) && (int) $this->get_exactdn_option( 'verify_method' ) > 0 ) {
 			// Test with an image file that should be available on the ExactDN zone.
 			$test_url     = \plugins_url( '/images/test.png', \constant( \strtoupper( $this->prefix ) . 'PLUGIN_FILE' ) );
-			$local_domain = $this->parse_url( $test_url, \PHP_URL_HOST );
+			$local_domain = $this->parse_url( $test_url, PHP_URL_HOST );
 			$test_url     = \str_replace( $local_domain, $domain, $test_url );
 			$this->debug_message( "test url is $test_url" );
-			\add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', \PHP_INT_MAX );
+			\add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', PHP_INT_MAX );
 			$test_result = \wp_remote_post(
 				$api_url,
 				array(
@@ -640,7 +640,7 @@ class ExactDN extends Page_Parser {
 		}
 
 		// Secondary test against the API db.
-		\add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', \PHP_INT_MAX );
+		\add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', PHP_INT_MAX );
 		$result = \wp_remote_post(
 			$api_url,
 			array(
@@ -698,7 +698,7 @@ class ExactDN extends Page_Parser {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			// Prelim test with a known valid image to ensure http(s) connectivity.
 			$sim_url = 'https://optimize.exactdn.com/exactdn/testorig.jpg';
-			\add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', \PHP_INT_MAX );
+			\add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', PHP_INT_MAX );
 			$sim_result = \wp_remote_get( $sim_url );
 			if ( \is_wp_error( $sim_result ) ) {
 				$error_message = $sim_result->get_error_message();
@@ -754,8 +754,8 @@ class ExactDN extends Page_Parser {
 	 * @return string The ExactDN domain name for this site or network.
 	 */
 	function get_exactdn_domain() {
-		if ( \defined( '\EXACTDN_DOMAIN' ) && \EXACTDN_DOMAIN ) {
-			return $this->sanitize_domain( \EXACTDN_DOMAIN );
+		if ( \defined( 'EXACTDN_DOMAIN' ) && EXACTDN_DOMAIN ) {
+			return $this->sanitize_domain( EXACTDN_DOMAIN );
 		}
 		if ( \is_multisite() ) {
 			if ( $this->sub_folder ) {
@@ -783,7 +783,7 @@ class ExactDN extends Page_Parser {
 	 * @return int The numerical value of the option.
 	 */
 	function get_exactdn_option( $option_name ) {
-		if ( \defined( '\EXACTDN_DOMAIN' ) && \EXACTDN_DOMAIN ) {
+		if ( \defined( 'EXACTDN_DOMAIN' ) && EXACTDN_DOMAIN ) {
 			return \get_option( $this->prefix . 'exactdn_' . $option_name );
 		}
 		if ( \is_multisite() ) {
@@ -801,7 +801,7 @@ class ExactDN extends Page_Parser {
 	 */
 	function set_exactdn_domain( $domain ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		if ( \defined( '\EXACTDN_DOMAIN' ) && $this->sanitize_domain( \EXACTDN_DOMAIN ) ) {
+		if ( \defined( 'EXACTDN_DOMAIN' ) && $this->sanitize_domain( EXACTDN_DOMAIN ) ) {
 			return true;
 		}
 		$domain = $this->sanitize_domain( $domain );
@@ -827,7 +827,7 @@ class ExactDN extends Page_Parser {
 	 */
 	function set_exactdn_option( $option_name, $option_value, $autoload = null ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		if ( \defined( '\EXACTDN_DOMAIN' ) && \EXACTDN_DOMAIN ) {
+		if ( \defined( 'EXACTDN_DOMAIN' ) && EXACTDN_DOMAIN ) {
 			return \update_option( $this->prefix . 'exactdn_' . $option_name, $option_value, $autoload );
 		}
 		if ( \is_multisite() ) {
@@ -864,8 +864,8 @@ class ExactDN extends Page_Parser {
 	 * These are used to help determine which URLs are allowed to be rewritten for Easy IO.
 	 */
 	function get_allowed_paths() {
-		$wp_content_path = \trim( $this->parse_url( \content_url(), \PHP_URL_PATH ), '/' );
-		$wp_include_path = \trim( $this->parse_url( \includes_url(), \PHP_URL_PATH ), '/' );
+		$wp_content_path = \trim( $this->parse_url( \content_url(), PHP_URL_PATH ), '/' );
+		$wp_include_path = \trim( $this->parse_url( \includes_url(), PHP_URL_PATH ), '/' );
 		$this->debug_message( "wp-content path: $wp_content_path" );
 		$this->debug_message( "wp-includes path: $wp_include_path" );
 
@@ -876,7 +876,7 @@ class ExactDN extends Page_Parser {
 		// NOTE: $this->uploads_path is not currently in use, so we'll see if anyone needs it.
 		$uploads_info = \wp_get_upload_dir();
 		if ( ! empty( $uploads_info['baseurl'] ) && ! empty( $wp_content_path ) && false === \strpos( $uploads_info['baseurl'], $wp_content_path ) ) {
-			$uploads_path = \trim( $this->parse_url( $uploads_info['baseurl'], \PHP_URL_PATH ), '/' );
+			$uploads_path = \trim( $this->parse_url( $uploads_info['baseurl'], PHP_URL_PATH ), '/' );
 			$this->debug_message( "wp uploads path: $uploads_path" );
 			$this->uploads_path = \wp_basename( $uploads_path );
 		}
@@ -941,8 +941,8 @@ class ExactDN extends Page_Parser {
 		if ( \function_exists( '\twentynineteen_setup' ) && 640 === (int) $content_width ) {
 			$content_width = 932;
 		}
-		if ( \defined( '\EXACTDN_CONTENT_WIDTH' ) && \EXACTDN_CONTENT_WIDTH ) {
-			$content_width = \EXACTDN_CONTENT_WIDTH;
+		if ( \defined( 'EXACTDN_CONTENT_WIDTH' ) && EXACTDN_CONTENT_WIDTH ) {
+			$content_width = EXACTDN_CONTENT_WIDTH;
 		} elseif ( $this->full_width ) {
 			$content_width = 1920;
 		}
@@ -961,7 +961,7 @@ class ExactDN extends Page_Parser {
 	 * @return string The width, if found.
 	 */
 	public function get_exactdn_width_from_url( $url ) {
-		$url_args = $this->parse_url( $url, \PHP_URL_QUERY );
+		$url_args = $this->parse_url( $url, PHP_URL_QUERY );
 		if ( ! $url_args ) {
 			return '';
 		}
@@ -1035,7 +1035,7 @@ class ExactDN extends Page_Parser {
 				$content_width = $this->get_content_width();
 				$this->debug_message( "configured/filtered content_width: $content_width" );
 			}
-			$resize_existing = \defined( '\EXACTDN_RESIZE_EXISTING' ) && \EXACTDN_RESIZE_EXISTING;
+			$resize_existing = \defined( 'EXACTDN_RESIZE_EXISTING' ) && EXACTDN_RESIZE_EXISTING;
 
 			$image_sizes = $this->image_sizes();
 
@@ -1253,11 +1253,11 @@ class ExactDN extends Page_Parser {
 
 								if ( $src_per_wp && \is_array( $src_per_wp ) ) {
 									$this->debug_message( "src retrieved from db: {$src_per_wp[0]}, checking for match" );
-									$fullsize_url_path = $this->parse_url( $src_per_wp[0], \PHP_URL_PATH );
+									$fullsize_url_path = $this->parse_url( $src_per_wp[0], PHP_URL_PATH );
 									if ( \is_null( $fullsize_url_path ) ) {
 										$src_per_wp = false;
 									} elseif ( $fullsize_url_path ) {
-										$fullsize_url_basename = \pathinfo( $fullsize_url_path, \PATHINFO_FILENAME );
+										$fullsize_url_basename = \pathinfo( $fullsize_url_path, PATHINFO_FILENAME );
 										$this->debug_message( "looking for $fullsize_url_basename in $src" );
 										if ( \strpos( \wp_basename( $src ), $fullsize_url_basename ) === false ) {
 											$this->debug_message( 'fullsize url does not match' );
@@ -1397,7 +1397,7 @@ class ExactDN extends Page_Parser {
 						$new_tag = $tag;
 
 						// If present, replace the link href with an ExactDN URL for the full-size image.
-						if ( \defined( '\EIO_PRESERVE_LINKED_IMAGES' ) && \EIO_PRESERVE_LINKED_IMAGES && ! empty( $images['link_url'][ $index ] ) && $this->validate_image_url( $images['link_url'][ $index ] ) ) {
+						if ( \defined( 'EIO_PRESERVE_LINKED_IMAGES' ) && EIO_PRESERVE_LINKED_IMAGES && ! empty( $images['link_url'][ $index ] ) && $this->validate_image_url( $images['link_url'][ $index ] ) ) {
 							$new_tag = \preg_replace(
 								'#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i',
 								'\1' . $this->generate_url(
@@ -1485,7 +1485,7 @@ class ExactDN extends Page_Parser {
 					$height  = $this->get_attribute( $images['img_tag'][ $index ], 'height' );
 					// Making sure the width/height are numeric.
 					if ( false === \strpos( $new_tag, 'srcset' ) && \strpos( $src, '?' ) && (int) $width > 2 && (int) $height > 2 ) {
-						$url_params = \urldecode( $this->parse_url( $src, \PHP_URL_QUERY ) );
+						$url_params = \urldecode( $this->parse_url( $src, PHP_URL_QUERY ) );
 						if ( $url_params && false !== \strpos( $url_params, 'resize=' ) ) {
 							$this->debug_message( 'existing resize param' );
 						} elseif ( $url_params && false !== \strpos( $url_params, 'fit=' ) ) {
@@ -1560,7 +1560,7 @@ class ExactDN extends Page_Parser {
 					$src = $exactdn_url;
 				}
 				// This is disabled by default, not much reason to do this with the lazy loader auto-scaling.
-				if ( ! \is_feed() && $srcset_fill && \defined( '\EIO_SRCSET_FILL' ) && \EIO_SRCSET_FILL && false !== \strpos( $src, $this->exactdn_domain ) ) {
+				if ( ! \is_feed() && $srcset_fill && \defined( 'EIO_SRCSET_FILL' ) && EIO_SRCSET_FILL && false !== \strpos( $src, $this->exactdn_domain ) ) {
 					if ( ! $this->get_attribute( $images['img_tag'][ $index ], $this->srcset_attr ) && ! $this->get_attribute( $images['img_tag'][ $index ], 'sizes' ) ) {
 						$this->debug_message( "srcset filling with $src" );
 						$zoom = false;
@@ -1663,7 +1663,7 @@ class ExactDN extends Page_Parser {
 		$elements = $this->get_elements_from_html( $content, 'a' );
 		if ( $this->is_iterable( $elements ) ) {
 			$args = array( 'w' => 2560 );
-			if ( \defined( '\EIO_PRESERVE_LINKED_IMAGES' ) && \EIO_PRESERVE_LINKED_IMAGES ) {
+			if ( \defined( 'EIO_PRESERVE_LINKED_IMAGES' ) && EIO_PRESERVE_LINKED_IMAGES ) {
 				$args = array(
 					'lossy' => 0,
 					'strip' => 'none',
@@ -2126,7 +2126,7 @@ class ExactDN extends Page_Parser {
 			}
 
 			$intermediate    = true; // For the fourth array item returned by the image_downsize filter.
-			$resize_existing = \defined( '\EXACTDN_RESIZE_EXISTING' ) && \EXACTDN_RESIZE_EXISTING;
+			$resize_existing = \defined( 'EXACTDN_RESIZE_EXISTING' ) && EXACTDN_RESIZE_EXISTING;
 
 			// If an image is requested with a size known to WordPress, use that size's settings with ExactDN.
 			if ( \is_string( $size ) && \array_key_exists( $size, $this->image_sizes() ) ) {
@@ -2444,7 +2444,7 @@ class ExactDN extends Page_Parser {
 		}
 
 		$this->debug_message( "image_src = $image_src" );
-		$resize_existing = \defined( '\EXACTDN_RESIZE_EXISTING' ) && \EXACTDN_RESIZE_EXISTING;
+		$resize_existing = \defined( 'EXACTDN_RESIZE_EXISTING' ) && EXACTDN_RESIZE_EXISTING;
 		$w_descriptor    = true;
 
 		foreach ( $sources as $i => $source ) {
@@ -2807,7 +2807,7 @@ class ExactDN extends Page_Parser {
 			return $args;
 		}
 		// TST is not active.
-		if ( ! \defined( '\TST_VERSION' ) && ! \defined( '\THEIA_SMART_THUMBNAILS_VERSION' ) ) {
+		if ( ! \defined( 'TST_VERSION' ) && ! \defined( 'THEIA_SMART_THUMBNAILS_VERSION' ) ) {
 			$this->debug_message( 'no TST plugin' );
 			return $args;
 		}
@@ -2850,33 +2850,33 @@ class ExactDN extends Page_Parser {
 		if ( \is_string( $route ) && false !== \strpos( $route, 'wp/v2/media' ) && 'edit' === $request->get_param( 'context' ) ) {
 			$this->debug_message( 'REST API media endpoint from post editor' );
 			// We don't want ExactDN urls anywhere near the editor, so disable everything we can.
-			\add_filter( 'exactdn_override_image_downsize', '__return_true', \PHP_INT_MAX );
-			\add_filter( 'exactdn_skip_image', '__return_true', \PHP_INT_MAX ); // This skips existing srcset indices.
-			\add_filter( 'exactdn_srcset_multipliers', '__return_false', \PHP_INT_MAX ); // This one skips the additional multipliers.
+			\add_filter( 'exactdn_override_image_downsize', '__return_true', PHP_INT_MAX );
+			\add_filter( 'exactdn_skip_image', '__return_true', PHP_INT_MAX ); // This skips existing srcset indices.
+			\add_filter( 'exactdn_srcset_multipliers', '__return_false', PHP_INT_MAX ); // This one skips the additional multipliers.
 		} elseif ( \is_string( $route ) && false !== \strpos( $route, 'wp/v2/media' ) && 'view' === $request->get_param( 'context' ) ) {
 			$this->debug_message( 'REST API media endpoint, could be editor, we may never know...' );
 			// We don't want ExactDN urls anywhere near the editor, so disable everything we can.
-			\add_filter( 'exactdn_override_image_downsize', '__return_true', \PHP_INT_MAX );
-			\add_filter( 'exactdn_skip_image', '__return_true', \PHP_INT_MAX ); // This skips existing srcset indices.
-			\add_filter( 'exactdn_srcset_multipliers', '__return_false', \PHP_INT_MAX ); // This one skips the additional multipliers.
+			\add_filter( 'exactdn_override_image_downsize', '__return_true', PHP_INT_MAX );
+			\add_filter( 'exactdn_skip_image', '__return_true', PHP_INT_MAX ); // This skips existing srcset indices.
+			\add_filter( 'exactdn_srcset_multipliers', '__return_false', PHP_INT_MAX ); // This one skips the additional multipliers.
 		} elseif ( \is_string( $route ) && false !== \strpos( $route, 'wp/v2/media' ) && ! empty( $request['post'] ) && ! empty( $request->get_file_params() ) ) {
 			$this->debug_message( 'REST API media endpoint (new upload)' );
 			// We don't want ExactDN urls anywhere near the editor, so disable everything we can.
-			\add_filter( 'exactdn_override_image_downsize', '__return_true', \PHP_INT_MAX );
-			\add_filter( 'exactdn_skip_image', '__return_true', \PHP_INT_MAX ); // This skips existing srcset indices.
-			\add_filter( 'exactdn_srcset_multipliers', '__return_false', \PHP_INT_MAX ); // This one skips the additional multipliers.
+			\add_filter( 'exactdn_override_image_downsize', '__return_true', PHP_INT_MAX );
+			\add_filter( 'exactdn_skip_image', '__return_true', PHP_INT_MAX ); // This skips existing srcset indices.
+			\add_filter( 'exactdn_srcset_multipliers', '__return_false', PHP_INT_MAX ); // This one skips the additional multipliers.
 		} elseif ( \is_string( $route ) && false !== \strpos( $route, '/ToolsetBlocks/' ) ) {
 			$this->debug_message( 'REST API media endpoint (ToolsetBlocks)' );
 			// We don't want ExactDN urls anywhere near the editor, so disable everything we can.
-			add_filter( 'exactdn_override_image_downsize', '__return_true', \PHP_INT_MAX );
-			add_filter( 'exactdn_skip_image', '__return_true', \PHP_INT_MAX ); // This skips existing srcset indices.
-			add_filter( 'exactdn_srcset_multipliers', '__return_false', \PHP_INT_MAX ); // This one skips the additional multipliers.
+			add_filter( 'exactdn_override_image_downsize', '__return_true', PHP_INT_MAX );
+			add_filter( 'exactdn_skip_image', '__return_true', PHP_INT_MAX ); // This skips existing srcset indices.
+			add_filter( 'exactdn_srcset_multipliers', '__return_false', PHP_INT_MAX ); // This one skips the additional multipliers.
 		} elseif ( \is_string( $route ) && false !== \strpos( $route, '/toolset-dynamic-sources/' ) ) {
 			$this->debug_message( 'REST API media endpoint (toolset-dynamic-sources)' );
 			// We don't want ExactDN urls anywhere near the editor, so disable everything we can.
-			\add_filter( 'exactdn_override_image_downsize', '__return_true', \PHP_INT_MAX );
-			\add_filter( 'exactdn_skip_image', '__return_true', \PHP_INT_MAX ); // This skips existing srcset indices.
-			\add_filter( 'exactdn_srcset_multipliers', '__return_false', \PHP_INT_MAX ); // This one skips the additional multipliers.
+			\add_filter( 'exactdn_override_image_downsize', '__return_true', PHP_INT_MAX );
+			\add_filter( 'exactdn_skip_image', '__return_true', PHP_INT_MAX ); // This skips existing srcset indices.
+			\add_filter( 'exactdn_srcset_multipliers', '__return_false', PHP_INT_MAX ); // This one skips the additional multipliers.
 		}
 		return $response;
 	}
@@ -2973,7 +2973,7 @@ class ExactDN extends Page_Parser {
 		}
 
 		// Ensure image extension is acceptable, unless it's a dynamic NextGEN image.
-		if ( ! \in_array( \strtolower( \pathinfo( $url_info['path'], \PATHINFO_EXTENSION ) ), $this->extensions, true ) && false === \strpos( $url_info['path'], 'nextgen-image/' ) ) {
+		if ( ! \in_array( \strtolower( \pathinfo( $url_info['path'], PATHINFO_EXTENSION ) ), $this->extensions, true ) && false === \strpos( $url_info['path'], 'nextgen-image/' ) ) {
 			$this->debug_message( 'invalid extension' );
 			return false;
 		}
@@ -3714,7 +3714,7 @@ class ExactDN extends Page_Parser {
 		if ( false === \strpos( $image_url, 'avif=' ) && 60 !== (int) $avif_quality ) {
 			$more_args['avif'] = $avif_quality;
 		}
-		if ( \defined( '\EIO_WEBP_SHARP_YUV' ) && \EIO_WEBP_SHARP_YUV ) {
+		if ( \defined( 'EIO_WEBP_SHARP_YUV' ) && EIO_WEBP_SHARP_YUV ) {
 			$more_args['sharp'] = 1;
 		} elseif ( $this->get_option( $this->prefix . 'sharpen' ) ) {
 			$more_args['sharp'] = 1;
@@ -3797,7 +3797,7 @@ class ExactDN extends Page_Parser {
 		// ExactDN doesn't support query strings so we ignore them and look only at the path.
 		// However some source images are served via PHP so check the no-query-string extension.
 		// For future proofing, this is a blacklist of common issues rather than a whitelist.
-		$extension = \pathinfo( $image_url_parts['path'], \PATHINFO_EXTENSION );
+		$extension = \pathinfo( $image_url_parts['path'], PATHINFO_EXTENSION );
 		if ( ( empty( $extension ) && false === \strpos( $image_url_parts['path'], 'nextgen-image/' ) ) || \in_array( $extension, array( 'php', 'ashx' ), true ) ) {
 			$this->debug_message( 'bad extension' );
 			return $image_url;
@@ -3932,7 +3932,7 @@ class ExactDN extends Page_Parser {
 		if ( $ssl ) {
 			$url = \set_url_scheme( $url, 'https' );
 		}
-		\add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', \PHP_INT_MAX );
+		\add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', PHP_INT_MAX );
 		$result = \wp_remote_post(
 			$url,
 			array(

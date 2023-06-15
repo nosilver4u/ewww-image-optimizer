@@ -194,7 +194,7 @@ class Page_Parser extends Base {
 		$width_param  = false;
 		$height_param = false;
 		if ( $use_params && \strpos( $src, '?' ) ) {
-			$url_params = \urldecode( $this->parse_url( $src, \PHP_URL_QUERY ) );
+			$url_params = \urldecode( $this->parse_url( $src, PHP_URL_QUERY ) );
 			if ( $url_params && false !== \strpos( $url_params, 'resize=' ) ) {
 				\preg_match( '/resize=(\d+),(\d+)/', $url_params, $resize_matches );
 				if ( \is_array( $resize_matches ) && ! empty( $resize_matches[1] ) && ! empty( $resize_matches[2] ) ) {
@@ -338,7 +338,7 @@ class Page_Parser extends Base {
 			if ( \preg_match_all( '#url\((?P<bg_url>[^)]+)\)#', $attribute, $prop_matches ) ) {
 				if ( $this->is_iterable( $prop_matches['bg_url'] ) ) {
 					foreach ( $prop_matches['bg_url'] as $url ) {
-						$urls[] = \trim( \html_entity_decode( $url, \ENT_QUOTES | \ENT_HTML401 ), "'\"\t\n\r " );
+						$urls[] = \trim( \html_entity_decode( $url, ENT_QUOTES | ENT_HTML401 ), "'\"\t\n\r " );
 					}
 				}
 			}

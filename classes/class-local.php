@@ -73,12 +73,12 @@ class Local extends Base {
 			return (bool) $this->exec_enabled;
 		}
 		if (
-			\defined( '\WPCOMSH_VERSION' ) ||
+			\defined( 'WPCOMSH_VERSION' ) ||
 			! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ||
-			\defined( '\WPE_PLUGIN_VERSION' ) ||
-			\defined( '\FLYWHEEL_CONFIG_DIR' ) ||
-			\defined( '\KINSTAMU_VERSION' ) ||
-			\defined( '\WPNET_INIT_PLUGIN_VERSION' )
+			\defined( 'WPE_PLUGIN_VERSION' ) ||
+			\defined( 'FLYWHEEL_CONFIG_DIR' ) ||
+			\defined( 'KINSTAMU_VERSION' ) ||
+			\defined( 'WPNET_INIT_PLUGIN_VERSION' )
 		) {
 			$this->disable_tools();
 			$this->exec_enabled = false;
@@ -106,7 +106,7 @@ class Local extends Base {
 			'FreeBSD',
 			'WINNT',
 		);
-		return \in_array( \PHP_OS, $supported_oss, true );
+		return \in_array( PHP_OS, $supported_oss, true );
 	}
 
 	/**
@@ -188,9 +188,9 @@ class Local extends Base {
 	 */
 	public function install_paths() {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		$src_folder = \trailingslashit( \EWWW_IMAGE_OPTIMIZER_BINARY_PATH );
+		$src_folder = \trailingslashit( EWWW_IMAGE_OPTIMIZER_BINARY_PATH );
 		$dst_folder = \trailingslashit( $this->content_dir );
-		if ( \PHP_OS === 'WINNT' ) {
+		if ( PHP_OS === 'WINNT' ) {
 			$gifsicle_src = $src_folder . 'gifsicle.exe';
 			$optipng_src  = $src_folder . 'optipng.exe';
 			$jpegtran_src = $src_folder . 'jpegtran.exe';
@@ -202,7 +202,7 @@ class Local extends Base {
 			$pngquant_dst = $dst_folder . 'pngquant.exe';
 			$webp_dst     = $dst_folder . 'cwebp.exe';
 		}
-		if ( \PHP_OS === 'Darwin' ) {
+		if ( PHP_OS === 'Darwin' ) {
 			$gifsicle_src = $src_folder . 'gifsicle-mac';
 			$optipng_src  = $src_folder . 'optipng-mac';
 			$jpegtran_src = $src_folder . 'jpegtran-mac';
@@ -214,7 +214,7 @@ class Local extends Base {
 			$pngquant_dst = $dst_folder . 'pngquant';
 			$webp_dst     = $dst_folder . 'cwebp';
 		}
-		if ( \PHP_OS === 'SunOS' ) {
+		if ( PHP_OS === 'SunOS' ) {
 			$gifsicle_src = $src_folder . 'gifsicle-sol';
 			$optipng_src  = $src_folder . 'optipng-sol';
 			$jpegtran_src = $src_folder . 'jpegtran-sol';
@@ -226,7 +226,7 @@ class Local extends Base {
 			$pngquant_dst = $dst_folder . 'pngquant';
 			$webp_dst     = $dst_folder . 'cwebp';
 		}
-		if ( \PHP_OS === 'FreeBSD' ) {
+		if ( PHP_OS === 'FreeBSD' ) {
 			if ( $this->function_exists( '\php_uname' ) ) {
 				$arch_type = \php_uname( 'm' );
 				$this->debug_message( "CPU architecture: $arch_type" );
@@ -244,7 +244,7 @@ class Local extends Base {
 			$pngquant_dst = $dst_folder . 'pngquant';
 			$webp_dst     = $dst_folder . 'cwebp';
 		}
-		if ( \PHP_OS === 'Linux' ) {
+		if ( PHP_OS === 'Linux' ) {
 			if ( $this->function_exists( '\php_uname' ) ) {
 				$arch_type = \php_uname( 'm' );
 				$this->debug_message( "CPU architecture: $arch_type" );
@@ -307,7 +307,7 @@ class Local extends Base {
 			if ( ! \is_writable( $this->content_dir ) ) {
 				$this->debug_message( 'wp-content/ewww is not writable, not installing anything' );
 				return;
-			} elseif ( ! \is_executable( $this->content_dir ) && \PHP_OS !== 'WINNT' ) {
+			} elseif ( ! \is_executable( $this->content_dir ) && PHP_OS !== 'WINNT' ) {
 				$this->debug_message( 'wp-content/ewww is not executable (non-Windows), not installing anything' );
 				return;
 			} elseif ( ! \is_readable( $this->content_dir ) ) {
@@ -369,7 +369,7 @@ class Local extends Base {
 			}
 		}
 
-		if ( \PHP_OS !== 'WINNT' && ! $toolfail ) {
+		if ( PHP_OS !== 'WINNT' && ! $toolfail ) {
 			$this->debug_message( 'Linux/UNIX style OS, checking permissions' );
 			// NOTE: check_permissions() looks to make sure it is executable. If the tool is not executable,
 			// then we error if we can't write to the file to make it so, or if we are unable to run chmod().
@@ -670,22 +670,22 @@ class Local extends Base {
 	 * @return bool False if open_basedir setting cannot be retrieved, or the file is "out of bounds", true if the file exists.
 	 */
 	protected function system_binary_exists( $file ) {
-		if ( ! $this->function_exists( '\ini_get' ) && ! \defined( '\EWWWIO_OPEN_BASEDIR' ) ) {
+		if ( ! $this->function_exists( '\ini_get' ) && ! \defined( 'EWWWIO_OPEN_BASEDIR' ) ) {
 			return false;
 		}
-		if ( \defined( '\EWWWIO_OPEN_BASEDIR' ) ) {
-			$basedirs = \EWWWIO_OPEN_BASEDIR;
+		if ( \defined( 'EWWWIO_OPEN_BASEDIR' ) ) {
+			$basedirs = EWWWIO_OPEN_BASEDIR;
 		} else {
 			$basedirs = \ini_get( 'open_basedir' );
 		}
 		if ( empty( $basedirs ) ) {
-			return \defined( '\EWWWIO_OPEN_BASEDIR' ) ? true : \is_file( $file );
+			return \defined( 'EWWWIO_OPEN_BASEDIR' ) ? true : \is_file( $file );
 		}
-		$basedirs = \explode( \PATH_SEPARATOR, $basedirs );
+		$basedirs = \explode( PATH_SEPARATOR, $basedirs );
 		foreach ( $basedirs as $basedir ) {
 			$basedir = \trim( $basedir );
 			if ( 0 === \strpos( $file, $basedir ) ) {
-				return \defined( '\EWWWIO_OPEN_BASEDIR' ) ? true : \is_file( $file );
+				return \defined( 'EWWWIO_OPEN_BASEDIR' ) ? true : \is_file( $file );
 			}
 		}
 		return false;
@@ -744,12 +744,12 @@ class Local extends Base {
 		}
 		if ( \defined( \strtoupper( $this->prefix . $tool ) ) ) {
 			$defined_path = \constant( \strtoupper( $this->prefix . $tool ) );
-			if ( 'WINNT' === \PHP_OS ) {
+			if ( 'WINNT' === PHP_OS ) {
 				$this->tools[ $tool ]['path'] = '"' . $defined_path . '"';
 			} else {
 				$this->tools[ $tool ]['path'] = $this->escapeshellcmd( $defined_path );
 			}
-		} elseif ( 'WINNT' === \PHP_OS ) {
+		} elseif ( 'WINNT' === PHP_OS ) {
 			$this->tools[ $tool ]['path'] = $this->find_win_binary( $tool );
 		} else {
 			$this->tools[ $tool ]['path'] = $this->find_nix_binary( $tool );
@@ -801,7 +801,7 @@ class Local extends Base {
 				}
 			}
 		}
-		if ( ! \defined( '\EWWWIO_SKIP_SYSTEM_BINARIES' ) || ! \EWWWIO_SKIP_SYSTEM_BINARIES ) {
+		if ( ! \defined( 'EWWWIO_SKIP_SYSTEM_BINARIES' ) || ! EWWWIO_SKIP_SYSTEM_BINARIES ) {
 			// If we still haven't found a usable binary, try a system-installed version.
 			if ( $this->test_binary( $binary . '.exe', $binary ) ) {
 				return $binary . '.exe';
@@ -876,7 +876,7 @@ class Local extends Base {
 				}
 			}
 		}
-		if ( ! \defined( '\EWWWIO_SKIP_SYSTEM_BINARIES' ) || ! \EWWWIO_SKIP_SYSTEM_BINARIES ) {
+		if ( ! \defined( 'EWWWIO_SKIP_SYSTEM_BINARIES' ) || ! EWWWIO_SKIP_SYSTEM_BINARIES ) {
 			// If we still haven't found a usable binary, try a system-installed version.
 			if ( $this->system_binary_exists( '/usr/bin/' . $binary ) && $this->test_binary( '/usr/bin/' . $binary, $binary . $blind_suffix ) ) {
 				return '/usr/bin/' . $binary;
@@ -909,7 +909,7 @@ class Local extends Base {
 		switch ( $tool ) {
 			case 'jpegtran':
 				// In case you forget, it is not any slower to run jpegtran this way (with a sample file to operate on) than the other tools.
-				\exec( $path . ' -v ' . \EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'sample.jpg 2>&1', $jpegtran_version );
+				\exec( $path . ' -v ' . EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'sample.jpg 2>&1', $jpegtran_version );
 				if ( $this->is_iterable( $jpegtran_version ) ) {
 					$this->debug_message( "$path: {$jpegtran_version[0]}" );
 				} else {
@@ -926,7 +926,7 @@ class Local extends Base {
 			case 'jpegtran-blind':
 				$upload_dir = \wp_upload_dir();
 				$testjpg    = \trailingslashit( $upload_dir['basedir'] ) . 'testopti.jpg';
-				\exec( $path . ' -copy none -optimize -outfile ' . $this->escapeshellarg( $testjpg ) . ' ' . $this->escapeshellarg( \EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'testorig.jpg' ) );
+				\exec( $path . ' -copy none -optimize -outfile ' . $this->escapeshellarg( $testjpg ) . ' ' . $this->escapeshellarg( EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'testorig.jpg' ) );
 				$testjpgsize = $this->filesize( $testjpg );
 				$this->debug_message( "blind testing jpegtran, is $testjpgsize smaller than 5700?" );
 				if ( $testjpgsize ) {
@@ -953,7 +953,7 @@ class Local extends Base {
 			case 'optipng-blind':
 				$upload_dir = \wp_upload_dir();
 				$testpng    = \trailingslashit( $upload_dir['basedir'] ) . 'testopti.png';
-				\exec( $path . ' -out ' . $this->escapeshellarg( $testpng ) . ' -o1 -quiet -strip all ' . $this->escapeshellarg( \EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'testorig.png' ) );
+				\exec( $path . ' -out ' . $this->escapeshellarg( $testpng ) . ' -o1 -quiet -strip all ' . $this->escapeshellarg( EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'testorig.png' ) );
 				$testpngsize = $this->filesize( $testpng );
 				$this->debug_message( "blind testing optipng, is $testpngsize smaller than 110?" );
 				if ( $testpngsize ) {
@@ -980,7 +980,7 @@ class Local extends Base {
 			case 'gifsicle-blind':
 				$upload_dir = \wp_upload_dir();
 				$testgif    = \trailingslashit( $upload_dir['basedir'] ) . 'testopti.gif';
-				\exec( $path . ' -O3 -o ' . $this->escapeshellarg( $testgif ) . ' ' . $this->escapeshellarg( \EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'testorig.gif' ) );
+				\exec( $path . ' -O3 -o ' . $this->escapeshellarg( $testgif ) . ' ' . $this->escapeshellarg( EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'testorig.gif' ) );
 				$testgifsize = $this->filesize( $testgif );
 				$this->debug_message( "blind testing gifsicle, is $testgifsize smaller than 12000?" );
 				if ( $testgifsize ) {
@@ -1007,7 +1007,7 @@ class Local extends Base {
 			case 'pngout-blind':
 				$upload_dir = \wp_upload_dir();
 				$testpng    = \trailingslashit( $upload_dir['basedir'] ) . 'testopti.png';
-				\exec( $path . ' -s3 -q ' . $this->escapeshellarg( \EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'testorig.png' ) . ' ' . $this->escapeshellarg( $testpng ) );
+				\exec( $path . ' -s3 -q ' . $this->escapeshellarg( EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'testorig.png' ) . ' ' . $this->escapeshellarg( $testpng ) );
 				$testpngsize = $this->filesize( $testpng );
 				$this->debug_message( "blind testing pngout, is $testpngsize smaller than 110?" );
 				if ( $testpngsize ) {
@@ -1034,7 +1034,7 @@ class Local extends Base {
 			case 'pngquant-blind':
 				$upload_dir = \wp_upload_dir();
 				$testpng    = \trailingslashit( $upload_dir['basedir'] ) . 'testopti.png';
-				\exec( $path . ' -o ' . $this->escapeshellarg( $testpng ) . ' ' . $this->escapeshellarg( \EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'testorig.png' ) );
+				\exec( $path . ' -o ' . $this->escapeshellarg( $testpng ) . ' ' . $this->escapeshellarg( EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'testorig.png' ) );
 				$testpngsize = $this->filesize( $testpng );
 				$this->debug_message( "blind testing pngquant, is $testpngsize smaller than 114?" );
 				if ( $testpngsize ) {
@@ -1046,7 +1046,7 @@ class Local extends Base {
 				}
 				break;
 			case 'nice': // nice.
-				if ( \PHP_OS === 'WINNT' ) {
+				if ( PHP_OS === 'WINNT' ) {
 					return false;
 				}
 				\exec( "$path 2>&1", $nice_output );
@@ -1080,7 +1080,7 @@ class Local extends Base {
 			case 'cwebp-blind':
 				$upload_dir = \wp_upload_dir();
 				$testpng    = \trailingslashit( $upload_dir['basedir'] ) . 'testopti.png';
-				\exec( $path . ' -lossless -quiet ' . $this->escapeshellarg( \EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'testorig.png' ) . ' -o ' . $this->escapeshellarg( $testpng ) );
+				\exec( $path . ' -lossless -quiet ' . $this->escapeshellarg( EWWW_IMAGE_OPTIMIZER_IMAGES_PATH . 'testorig.png' ) . ' -o ' . $this->escapeshellarg( $testpng ) );
 				$testpngsize = $this->filesize( $testpng );
 				$this->debug_message( "blind testing cwebp, is $testpngsize smaller than 114?" );
 				if ( $testpngsize ) {

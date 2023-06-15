@@ -22,28 +22,28 @@ final class Plugin extends Base {
 	/**
 	 * The one and only true EWWW\Plugin
 	 *
-	 * @var object|\EWWW\Plugin $instance
+	 * @var object|EWWW\Plugin $instance
 	 */
 	private static $instance;
 
 	/**
 	 * Helpscout Beacon object.
 	 *
-	 * @var object|\EWWW\HS_Beacon $hs_beacon
+	 * @var object|EWWW\HS_Beacon $hs_beacon
 	 */
 	public $hs_beacon;
 
 	/**
 	 * EWWW\Local object for handling local optimization tools/functions.
 	 *
-	 * @var object|\EWWW\Local $local
+	 * @var object|EWWW\Local $local
 	 */
 	public $local;
 
 	/**
 	 * EWWW\Tracking object for anonymous usage tracking.
 	 *
-	 * @var object|\EWWW\Tracking $tracking
+	 * @var object|EWWW\Tracking $tracking
 	 */
 	public $tracking;
 
@@ -111,7 +111,7 @@ final class Plugin extends Base {
 	 */
 	public function __clone() {
 		// Cloning instances of the class is forbidden.
-		\_doing_it_wrong( __METHOD__, \esc_html__( 'Cannot clone core object.', 'ewww-image-optimizer' ), \esc_html( \EWWW_IMAGE_OPTIMIZER_VERSION ) );
+		\_doing_it_wrong( __METHOD__, \esc_html__( 'Cannot clone core object.', 'ewww-image-optimizer' ), \esc_html( EWWW_IMAGE_OPTIMIZER_VERSION ) );
 	}
 
 	/**
@@ -119,7 +119,7 @@ final class Plugin extends Base {
 	 */
 	public function __wakeup() {
 		// Unserializing instances of the class is forbidden.
-		\_doing_it_wrong( __METHOD__, \esc_html__( 'Cannot unserialize (wakeup) the core object.', 'ewww-image-optimizer' ), \esc_html( \EWWW_IMAGE_OPTIMIZER_VERSION ) );
+		\_doing_it_wrong( __METHOD__, \esc_html__( 'Cannot unserialize (wakeup) the core object.', 'ewww-image-optimizer' ), \esc_html( EWWW_IMAGE_OPTIMIZER_VERSION ) );
 	}
 
 	/**
@@ -129,23 +129,23 @@ final class Plugin extends Base {
 	 */
 	private function requires() {
 		// Fall-back and convenience functions.
-		require_once( \EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'functions.php' );
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'functions.php' );
 		// The various class extensions for background optimization.
-		require_once( \EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-media-background-process.php' );
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-media-background-process.php' );
 		// EWWW_Image class for working with queued images and image records from the database.
-		require_once( \EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-image.php' );
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-image.php' );
 		// EWWW\Backup class for managing image backups.
-		require_once( \EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-backup.php' );
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-backup.php' );
 		// EWWW\HS_Beacon class for integrated help/docs.
-		require_once( \EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-hs-beacon.php' );
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-hs-beacon.php' );
 		// EWWW\Tracking class for reporting anonymous site data.
-		require_once( \EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-tracking.php' );
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-tracking.php' );
 		if ( 'done' !== get_option( 'ewww_image_optimizer_relative_migration_status' ) ) {
 			require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwio-relative-migration.php' );
 		}
 		// Used for manipulating exif info.
 		if ( ! class_exists( '\lsolesen\pel\PelJpeg' ) ) {
-			require_once( \EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/autoload.php' );
+			require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/autoload.php' );
 		}
 	}
 
@@ -184,12 +184,12 @@ final class Plugin extends Base {
 			return;
 		}
 		if (
-			\defined( '\WPCOMSH_VERSION' ) ||
+			\defined( 'WPCOMSH_VERSION' ) ||
 			! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ||
-			\defined( '\WPE_PLUGIN_VERSION' ) ||
-			\defined( '\FLYWHEEL_CONFIG_DIR' ) ||
-			\defined( '\KINSTAMU_VERSION' ) ||
-			\defined( '\WPNET_INIT_PLUGIN_VERSION' )
+			\defined( 'WPE_PLUGIN_VERSION' ) ||
+			\defined( 'FLYWHEEL_CONFIG_DIR' ) ||
+			\defined( 'KINSTAMU_VERSION' ) ||
+			\defined( 'WPNET_INIT_PLUGIN_VERSION' )
 		) {
 			if (
 				! $this->get_option( 'ewww_image_optimizer_cloud_key' ) &&
@@ -219,7 +219,7 @@ final class Plugin extends Base {
 			\add_action( 'network_admin_notices', array( $this, 'notice_os' ) );
 			\add_action( 'admin_notices', array( $this, 'notice_os' ) );
 			// Turn off all the tools.
-			$this->debug_message( 'unsupported OS, disabling tools: ' . \PHP_OS );
+			$this->debug_message( 'unsupported OS, disabling tools: ' . PHP_OS );
 			$this->local->skip_tools();
 			return;
 		}
@@ -258,15 +258,15 @@ final class Plugin extends Base {
 		/**
 		 * Require the file that does the bulk processing.
 		 */
-		require_once( \EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'bulk.php' );
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'bulk.php' );
 		/**
 		 * Require the files that contain functions for the images table and bulk processing images outside the library.
 		 */
-		require_once( \EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'aux-optimize.php' );
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'aux-optimize.php' );
 		/**
 		 * Require the files that migrate WebP images from extension replacement to extension appending.
 		 */
-		require_once( \EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'mwebp.php' );
+		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'mwebp.php' );
 		\ewww_image_optimizer_upgrade();
 
 		// Do settings validation for multi-site.
@@ -309,7 +309,7 @@ final class Plugin extends Base {
 		}
 		// Prevent ShortPixel AIO messiness.
 		\remove_action( 'admin_notices', 'autoptimizeMain::notice_plug_imgopt' );
-		if ( \class_exists( '\autoptimizeExtra' ) || \defined( '\AUTOPTIMIZE_PLUGIN_VERSION' ) ) {
+		if ( \class_exists( '\autoptimizeExtra' ) || \defined( 'AUTOPTIMIZE_PLUGIN_VERSION' ) ) {
 			$ao_extra = \get_option( 'autoptimize_imgopt_settings' );
 			if ( $this->get_option( 'ewww_image_optimizer_exactdn' ) && ! empty( $ao_extra['autoptimize_imgopt_checkbox_field_1'] ) ) {
 				$this->debug_message( 'detected ExactDN + SP conflict' );
@@ -334,7 +334,7 @@ final class Plugin extends Base {
 		}
 
 		// Alert user if multiple re-optimizations detected.
-		if ( false && ! \defined( '\EWWWIO_DISABLE_REOPT_NOTICE' ) ) {
+		if ( false && ! \defined( 'EWWWIO_DISABLE_REOPT_NOTICE' ) ) {
 			\add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
 			\add_action( 'admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
 		}
@@ -370,7 +370,7 @@ final class Plugin extends Base {
 			\add_action( 'admin_notices', 'ewww_image_optimizer_svgcleaner_installed' );
 			\add_action( 'network_admin_notices', 'ewww_image_optimizer_svgcleaner_installed' );
 		}
-		if ( ! \defined( '\EIO_PHPUNIT' ) && ( ! \defined( '\WP_CLI' ) || ! \WP_CLI ) ) {
+		if ( ! \defined( 'EIO_PHPUNIT' ) && ( ! \defined( 'WP_CLI' ) || ! WP_CLI ) ) {
 			\ewww_image_optimizer_privacy_policy_content();
 			\ewww_image_optimizer_ajax_compat_check();
 		}
@@ -383,7 +383,7 @@ final class Plugin extends Base {
 			\add_action( 'admin_footer', 'ewww_image_optimizer_lr_sync_script' );
 		}
 		// Increase the version when the next bump is coming.
-		if ( \defined( '\PHP_VERSION_ID' ) && \PHP_VERSION_ID < 70200 ) {
+		if ( \defined( 'PHP_VERSION_ID' ) && PHP_VERSION_ID < 70200 ) {
 			\add_action( 'network_admin_notices', 'ewww_image_optimizer_php72_warning' );
 			\add_action( 'admin_notices', 'ewww_image_optimizer_php72_warning' );
 		}
@@ -585,7 +585,7 @@ final class Plugin extends Base {
 				$this->tool_folder_notice();
 			} elseif ( ! \is_writable( $this->content_dir ) || ! is_readable( $this->content_dir ) ) {
 				$this->tool_folder_permissions_notice();
-			} elseif ( ! \is_executable( $this->content_dir ) && \PHP_OS !== 'WINNT' ) {
+			} elseif ( ! \is_executable( $this->content_dir ) && PHP_OS !== 'WINNT' ) {
 				$this->tool_folder_permissions_notice();
 			}
 			if ( \in_array( 'pngout', $missing, true ) ) {
@@ -667,24 +667,24 @@ final class Plugin extends Base {
 	function notice_hosting_requires_api() {
 		if ( ! \function_exists( '\is_plugin_active_for_network' ) && \is_multisite() ) {
 			// Need to include the plugin library for the is_plugin_active function.
-			require_once( \ABSPATH . 'wp-admin/includes/plugin.php' );
+			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 		}
-		if ( \is_multisite() && \is_plugin_active_for_network( \EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
+		if ( \is_multisite() && \is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
 			$settings_url = \network_admin_url( 'settings.php?page=ewww-image-optimizer-options' );
 		} else {
 			$settings_url = \admin_url( 'options-general.php?page=ewww-image-optimizer-options' );
 		}
-		if ( \defined( '\WPCOMSH_VERSION' ) ) {
+		if ( \defined( 'WPCOMSH_VERSION' ) ) {
 			$webhost = 'WordPress.com';
 		} elseif ( ! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {
 			$webhost = 'Pantheon';
-		} elseif ( \defined( '\WPE_PLUGIN_VERSION' ) ) {
+		} elseif ( \defined( 'WPE_PLUGIN_VERSION' ) ) {
 			$webhost = 'WP Engine';
-		} elseif ( \defined( '\FLYWHEEL_CONFIG_DIR' ) ) {
+		} elseif ( \defined( 'FLYWHEEL_CONFIG_DIR' ) ) {
 			$webhost = 'Flywheel';
-		} elseif ( \defined( '\KINSTAMU_VERSION' ) ) {
+		} elseif ( \defined( 'KINSTAMU_VERSION' ) ) {
 			$webhost = 'Kinsta';
-		} elseif ( \defined( '\WPNET_INIT_PLUGIN_VERSION' ) ) {
+		} elseif ( \defined( 'WPNET_INIT_PLUGIN_VERSION' ) ) {
 			$webhost = 'WP NET';
 		} else {
 			return;
