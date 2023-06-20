@@ -140,6 +140,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 7.0.3 =
 * fixed: PHP error trying to save EXIF data to JPG after resizing
 * fixed: could not disable auto-scaling
+* fixed: prevent errors when using legacy Animated GIF Resizing plugin
+* fixed: prevent WP Offload Media from prematurely re-offloading when using bulk optimizer
 
 = 7.0.2 =
 * fixed: background optimization incorrectly displays as disabled on fresh installs with object caching

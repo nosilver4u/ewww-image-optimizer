@@ -2252,33 +2252,30 @@ function ewww_image_optimizer_load_editor( $editors ) {
 	if ( class_exists( 'S3_Uploads\Image_Editor_Imagick', false ) ) {
 		return $editors;
 	}
-	if ( ! class_exists( 'EWWWIO_GD_Editor' ) && ! class_exists( 'EWWWIO_Imagick_Editor' ) ) {
-		if ( class_exists( 'WP_Image_Editor_GD' ) ) {
-			require_once( plugin_dir_path( __FILE__ ) . '/classes/class-ewwwio-gd-editor.php' );
-		}
-		if ( class_exists( 'WP_Image_Editor_Imagick' ) ) {
-			require_once( plugin_dir_path( __FILE__ ) . '/classes/class-ewwwio-imagick-editor.php' );
-		}
-		if ( class_exists( 'WP_Image_Editor_Gmagick' ) ) {
-			require_once( plugin_dir_path( __FILE__ ) . '/classes/class-ewwwio-gmagick-editor.php' );
-		}
+	if ( ! class_exists( 'EWWWIO_GD_Editor' ) && class_exists( 'WP_Image_Editor_GD' ) ) {
+		require_once( plugin_dir_path( __FILE__ ) . '/classes/class-ewwwio-gd-editor.php' );
+	}
+	if ( ! class_exists( 'EWWWIO_Imagick_Editor' ) && class_exists( 'WP_Image_Editor_Imagick' ) ) {
+		require_once( plugin_dir_path( __FILE__ ) . '/classes/class-ewwwio-imagick-editor.php' );
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_sharpen' ) ) {
 			ewww_image_optimizer_sharpen_filters();
 		}
 	}
-	if ( ! in_array( 'EWWWIO_GD_Editor', $editors, true ) ) {
+	if ( ! class_exists( 'EWWWIO_Gmagick_Editor' ) && class_exists( 'WP_Image_Editor_Gmagick' ) ) {
+		require_once( plugin_dir_path( __FILE__ ) . '/classes/class-ewwwio-gmagick-editor.php' );
+	}
+	if ( class_exists( 'EWWWIO_GD_Editor' ) && ! in_array( 'EWWWIO_GD_Editor', $editors, true ) ) {
 		array_unshift( $editors, 'EWWWIO_GD_Editor' );
 	}
-	if ( ! in_array( 'EWWWIO_Imagick_Editor', $editors, true ) ) {
+	if ( class_exists( 'EWWWIO_Imagick_Editor' ) && ! in_array( 'EWWWIO_Imagick_Editor', $editors, true ) ) {
 		array_unshift( $editors, 'EWWWIO_Imagick_Editor' );
 	}
-	if ( ! in_array( 'EWWWIO_Gmagick_Editor', $editors, true ) && class_exists( 'WP_Image_Editor_Gmagick' ) ) {
+	if ( class_exists( 'EWWWIO_Gmagick_Editor' ) && ! in_array( 'EWWWIO_Gmagick_Editor', $editors, true ) ) {
 		array_unshift( $editors, 'EWWWIO_Gmagick_Editor' );
 	}
 	if ( is_array( $editors ) ) {
 		ewwwio_debug_message( 'loading image editors: ' . implode( '<br>', $editors ) );
 	}
-	ewwwio_memory( __FUNCTION__ );
 	return $editors;
 }
 
@@ -2350,6 +2347,7 @@ function eio_adjust_adaptive_sharpen_sigma( $param, $dst_w, $dst_h ) {
  */
 function ewww_image_optimizer_sharpen_filters() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+
 	add_filter( 'eio_image_resize_filter', 'eio_change_image_resize_filter', 9, 3 );
 
 	add_filter( 'eio_use_adaptive_sharpen', 'eio_enable_adaptive_sharpen', 9, 3 );
