@@ -154,6 +154,14 @@ class ExactDN extends Page_Parser {
 	private $srcset_attr = 'srcset';
 
 	/**
+	 * If we've replaced the Google Fonts this will be set to either 'easyio' or 'bunny'.
+	 *
+	 * @access private
+	 * @var string $replaced_google_fonts
+	 */
+	private $replaced_google_fonts = '';
+
+	/**
 	 * Request URI.
 	 *
 	 * @var string $request_uri
@@ -323,7 +331,7 @@ class ExactDN extends Page_Parser {
 		\add_filter( 'woocommerce_api_product_response', array( $this, 'woocommerce_api_product_response' ) );
 
 		// DNS prefetching.
-		\add_filter( 'wp_resource_hints', array( $this, 'dns_prefetch' ), 10, 2 );
+		\add_filter( 'wp_resource_hints', array( $this, 'resource_hints' ), 100, 2 );
 
 		// Get all the script/css urls and rewrite them (if enabled).
 		if ( $this->get_option( 'exactdn_all_the_things' ) ) {
@@ -1943,6 +1951,109 @@ class ExactDN extends Page_Parser {
 				$content = \preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '(/[^"\'?&>:/]+?)*?/(nextgen-image|' . $this->include_path . '|' . $this->content_path . ')/#i', '$1//' . $this->exactdn_domain . '$2/$3/', $content );
 			}
 			$content = \str_replace( '?wpcontent-bypass?', $this->content_path, $content );
+			$content = $this->replace_fonts( $content );
+		}
+		return $content;
+	}
+
+	/**
+	 * Parse page content looking for (Google) font URLs to rewrite.
+	 *
+	 * @param string $content The HTML content to parse.
+	 * @return string The filtered HTML content.
+	 */
+	function replace_fonts( $content ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( ! \defined( 'EASYIO_REPLACE_GOOGLE_FONTS' ) ) {
+			foreach ( $this->user_exclusions as $exclusion ) {
+				if (
+					false !== strpos( $exclusion, 'googleapi' ) ||
+					false !== strpos( $exclusion, 'googleapis' ) ||
+					false !== strpos( $exclusion, 'gstatic' ) ||
+					false !== strpos( $exclusion, 'googlefont' )
+				) {
+					\define( 'EASYIO_REPLACE_GOOGLE_FONTS', false );
+				}
+			}
+		}
+		$bunny_prefetch_exists    = false;
+		$bunny_preconnect_exists  = false;
+		$bunny_crossorigin_exists = false;
+		if ( 'bunny' === $this->replaced_google_fonts ) {
+			$bunny_prefetch_exists    = \preg_match( '#<link\s+rel=[\'"]?dns-prefetch[\'"]?\s+href=[\'"]?//fonts\.bunny\.net[\'"]?\s*/?>#is', $content );
+			$bunny_preconnect_exists  = \preg_match( '#<link\s+rel=[\'"]?preconnect[\'"]?\s+href=[\'"]?//fonts\.bunny\.net[\'"]?\s*/?>#is', $content );
+			$bunny_crossorigin_exists = \preg_match( '#<link\s+rel=[\'"]?preconnect[\'"]?\s+href=[\'"]?//fonts\.bunny\.net[\'"]?\s*crossorigin\s*/?>#is', $content );
+		}
+		if (
+			\defined( 'EASYIO_REPLACE_GOOGLE_FONTS' ) && 'bunny' === EASYIO_REPLACE_GOOGLE_FONTS &&
+			( ! \function_exists( '\swis' ) || ! \swis()->settings->get_option( 'optimize_fonts' ) )
+		) {
+			$content = \str_replace( '//fonts.googleapis.com/css', '//fonts.bunny.net/css', $content, $gfonts_replaced );
+			if ( $gfonts_replaced ) {
+				$this->replaced_google_fonts = 'bunny';
+			}
+			if ( 'bunny' === $this->replaced_google_fonts ) {
+				if ( ! $bunny_preconnect_exists ) {
+					$content = \preg_replace( '#<link\s+rel=[\'"]?preconnect[\'"]?\s+href=[\'"]?//fonts\.googleapis\.com[\'"]?\s*(crossorigin\s*)?/?>#is', "<link rel='preconnect' href='//fonts.bunny.net' $2/>", $content, 1, $bunny_preconnect_exists );
+				}
+				if ( ! $bunny_prefetch_exists ) {
+					$content = \preg_replace( '#<link\s+rel=[\'"]?dns-prefetch[\'"]?\s+href=[\'"]?//fonts\.googleapis\.com[\'"]?\s*/?>#is', "<link rel='dns-prefetch' href='//fonts.bunny.net' />", $content, 1, $bunny_prefetch_exists );
+				}
+				if ( ! $bunny_crossorigin_exists ) {
+					$content = \preg_replace( '#<link\s+rel=[\'"]?preconnect[\'"]?\s+href=[\'"]?//fonts\.gstatic\.com[\'"]?\s*?(crossorigin\s*)?/?>#is', "<link rel='preconnect' href='//fonts.bunny.net' crossorigin />", $content, 1, $bunny_crossorigin_exists );
+				}
+				if ( ! $bunny_prefetch_exists ) {
+					$content = \preg_replace( '#<link\s+rel=[\'"]?dns-prefetch[\'"]?\s+href=[\'"]?//fonts\.gstatic\.com[\'"]?\s*/?>#is', "<link rel='dns-prefetch' href='//fonts.bunny.net' />", $content, 1, $bunny_prefetch_exists );
+				}
+			}
+		} elseif ( ! \defined( 'EASYIO_REPLACE_GOOGLE_FONTS' ) || EASYIO_REPLACE_GOOGLE_FONTS ) {
+			$content = \str_replace( '//fonts.googleapis.com/css', '//' . $this->exactdn_domain . '/easyio-fonts/css', $content, $gfontcss_replaced );
+			$content = \str_replace( '//fonts.gstatic.com/s/', '//' . $this->exactdn_domain . '/easyio-gfont/s/', $content, $gfonts_replaced );
+			if ( $gfontcss_replaced || $gfonts_replaced ) {
+				$this->replaced_google_fonts = 'easyio';
+			}
+		}
+		if ( 'bunny' === $this->replaced_google_fonts ) {
+			// NOTE: Bunny Fonts cannot directly replace the actual font URLs, so we've only replaced the CSS URLs.
+			// Thus we check to see if Google Fonts have been inlined directly. If not, then we nuke any remaining resource hints.
+			if ( false === \strpos( $content, '//fonts.gstatic.com/s/' ) ) {
+				$content = \preg_replace( '#<link\s+rel=[\'"]?(preconnect|dns-prefetch)[\'"]?\s+href=[\'"]?//fonts\.(googleapis|gstatic)\.com[\'"]?\s*(crossorigin\s*)?/?>\s*#is', '', $content );
+			}
+			$bunny_resource_hints = '';
+			if ( ! $bunny_prefetch_exists && ! $bunny_preconnect_exists && ! $bunny_crossorigin_exists ) {
+					$bunny_resource_hints = "\n<link rel='dns-prefetch' href='//fonts.bunny.net' />" .
+						"\n<link rel='preconnect' href='//fonts.bunny.net' />" .
+						"\n<link rel='preconnect' href='//fonts.bunny.net' crossorigin />";
+			} else {
+				if ( ! $bunny_prefetch_exists ) {
+					$bunny_resource_hints .= "\n<link rel='dns-prefetch' href='//fonts.bunny.net' />";
+				}
+				if ( ! $bunny_preconnect_exists ) {
+					$bunny_resource_hints .= "\n<link rel='preconnect' href='//fonts.bunny.net' />";
+				}
+				if ( ! $bunny_crossorigin_exists ) {
+					$bunny_resource_hints .= "\n<link rel='preconnect' href='//fonts.bunny.net' crossorigin />";
+				}
+			}
+			if ( $bunny_resource_hints ) {
+				$escaped_exactdn_domain = \str_replace( '.', '\.', $this->exactdn_domain );
+				// Now we find the preconnect directive for the *.exactdn.com domain and add the Bunny hints.
+				$content = \preg_replace(
+					'#<link\s+rel=[\'"]?preconnect[\'"]?\s+href=[\'"]?//' . $escaped_exactdn_domain . '[\'"]?\s*/?>#is',
+					"\$0$bunny_resource_hints",
+					$content
+				);
+			}
+		} elseif ( 'easyio' === $this->replaced_google_fonts ) {
+			$escaped_exactdn_domain = \str_replace( '.', '\.', $this->exactdn_domain );
+			// First, remove any hints for Google Fonts.
+			$content = \preg_replace( '#<link\s+rel=[\'"]?(preconnect|dns-prefetch)[\'"]?\s+href=[\'"]?//fonts\.(googleapis|gstatic)\.com[\'"]?\s*(crossorigin\s*)?/?>\s*#is', '', $content );
+			// Then we find the preconnect directive for the *.exactdn.com domain and insert an extra crossorigin directive for fonts.
+			$content = \preg_replace(
+				'#<link\s+?rel=[\'"]?preconnect[\'"]?\s+?href=[\'"]?//' . $escaped_exactdn_domain . '[\'"]?\s*?/?>#is',
+				"\$0\n<link rel='preconnect' href='//" . esc_attr( $this->exactdn_domain ) . "' crossorigin />",
+				$content
+			);
 		}
 		return $content;
 	}
@@ -3575,15 +3686,30 @@ class ExactDN extends Page_Parser {
 			return $url;
 		}
 
-		// Make sure this is an allowed image domain/hostname for ExactDN on this site.
-		if ( ! $this->allow_image_domain( $parsed_url['host'] ) ) {
-			$this->debug_message( "invalid host for ExactDN: {$parsed_url['host']}" );
+		// Make sure we have a CDN domain to use.
+		if ( empty( $this->exactdn_domain ) ) {
+			$this->debug_message( 'no exactdn domain configured' );
 			return $url;
 		}
 
-		// Figure out which CDN (sub)domain to use.
-		if ( empty( $this->exactdn_domain ) ) {
-			$this->debug_message( 'no exactdn domain configured' );
+		if ( ( ! \function_exists( '\swis' ) || ! \swis()->settings->get_option( 'optimize_fonts' ) ) && false !== \strpos( $url, '//fonts.googleapis.com/css' ) ) {
+			if ( \defined( 'EASYIO_REPLACE_GOOGLE_FONTS' ) && 'bunny' === EASYIO_REPLACE_GOOGLE_FONTS ) {
+				$url = \str_replace( '//fonts.googleapis.com/css', '//fonts.bunny.net/css', $url, $gfonts_replaced );
+				if ( $gfonts_replaced ) {
+					$this->replaced_google_fonts = 'bunny';
+				}
+			} elseif ( ! \defined( 'EASYIO_REPLACE_GOOGLE_FONTS' ) || EASYIO_REPLACE_GOOGLE_FONTS ) {
+				$url = \str_replace( '//fonts.googleapis.com/css', '//' . $this->exactdn_domain . '/easyio-fonts/css', $url, $gfonts_replaced );
+				if ( $gfonts_replaced ) {
+					$this->replaced_google_fonts = 'easyio';
+				}
+			}
+			return $url;
+		}
+
+		// Make sure this is an allowed image domain/hostname for ExactDN on this site.
+		if ( ! $this->allow_image_domain( $parsed_url['host'] ) ) {
+			$this->debug_message( "invalid host for ExactDN: {$parsed_url['host']}" );
 			return $url;
 		}
 
@@ -3895,11 +4021,15 @@ class ExactDN extends Page_Parser {
 	 * @param string $relationship_type The type of hint being filtered: dns-prefetch, preconnect, etc.
 	 * @return array The list of hints, potentially with the ExactDN domain added in.
 	 */
-	function dns_prefetch( $hints, $relationship_type ) {
-		if ( 'dns-prefetch' === $relationship_type && $this->exactdn_domain ) {
+	function resource_hints( $hints, $relationship_type ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( ! $this->exactdn_domain ) {
+			return $hints;
+		}
+		if ( 'dns-prefetch' === $relationship_type ) {
 			$hints[] = '//' . $this->exactdn_domain;
 		}
-		if ( 'preconnect' === $relationship_type && $this->exactdn_domain ) {
+		if ( 'preconnect' === $relationship_type ) {
 			$hints[] = '//' . $this->exactdn_domain;
 		}
 		return $hints;
