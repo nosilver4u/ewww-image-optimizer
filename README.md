@@ -1,6 +1,6 @@
 # EWWW Image Optimizer
 **Donate link:** https://ewww.io/donate/
-**Minimum WordPress:** 5.8
+**Minimum WordPress:** 5.9
 **Minimum PHP:** 7.2
 
 [![Build Status](https://travis-ci.com/nosilver4u/ewww-image-optimizer.svg?branch=master)](https://app.travis-ci.com/github/nosilver4u/ewww-image-optimizer)
@@ -17,7 +17,7 @@ Speed up your website and improve your visitors' experience by automatically com
 
 The EWWW Image Optimizer will increase your page speeds by way of image optimization. Increased page speeds can result in better search engine rankings, and will also improve conversion rates (increased sales and signups). It will also save you storage space and bandwidth. While EWWW I.O. will automatically optimize new images that you upload, it can also optimize all the images that you have already uploaded, and optionally convert your images to the best file format. You can choose pixel perfect compression or high compression options that are visually lossless.
 
-EWWW I.O. will optimize images uploaded and created by any plugin, and features special integrations with many popular plugins, detailed below.
+EWWW IO will optimize images uploaded and created by any plugin, and features special integrations with many popular plugins, detailed below.
 
 **Why use EWWW Image Optimizer?**
 

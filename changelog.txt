@@ -1,3 +1,10 @@
+= 7.1.0 =
+* added: deliver Google Fonts via Easy IO or Bunny Fonts for improved user privacy
+* fixed: PHP error trying to save EXIF data to JPG after resizing
+* fixed: could not disable auto-scaling
+* fixed: prevent errors when using legacy Animated GIF Resizing plugin
+* fixed: prevent WP Offload Media from prematurely re-offloading when using bulk optimizer
+
 = 7.0.2 =
 * fixed: background optimization incorrectly displays as disabled on fresh installs with object caching
 * fixed: Easy IO registration state not detected on multi-site
