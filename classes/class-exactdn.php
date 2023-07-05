@@ -279,6 +279,11 @@ class ExactDN extends Page_Parser {
 		// Check REST API requests to see if ExactDN should be running.
 		\add_filter( 'rest_request_before_callbacks', array( $this, 'parse_restapi_maybe' ), 10, 3 );
 
+		// Check to see if the OMGF plugin is active, and suppress our font rewriting if it is.
+		if ( ( \defined( 'OMGF_PLUGIN_FILE' ) || \defined( 'OMGF_DB_VERSION' ) ) && ! \defined( 'EASYIO_REPLACE_GOOGLE_FONTS' ) ) {
+			\define( 'EASYIO_REPLACE_GOOGLE_FONTS', false );
+		}
+
 		// Overrides for admin-ajax images.
 		\add_filter( 'exactdn_admin_allow_image_downsize', array( $this, 'allow_admin_image_downsize' ), 10, 2 );
 		\add_filter( 'exactdn_admin_allow_image_srcset', array( $this, 'allow_admin_image_downsize' ), 10, 2 );
@@ -1964,6 +1969,9 @@ class ExactDN extends Page_Parser {
 	 */
 	function replace_fonts( $content ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( \defined( 'EASYIO_REPLACE_GOOGLE_FONTS' ) && ! EASYIO_REPLACE_GOOGLE_FONTS ) {
+			return $content;
+		}
 		if ( ! \defined( 'EASYIO_REPLACE_GOOGLE_FONTS' ) ) {
 			foreach ( $this->user_exclusions as $exclusion ) {
 				if (
