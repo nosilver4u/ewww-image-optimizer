@@ -129,7 +129,18 @@ function constrainSrc(url,objectWidth,objectHeight,objectType){
 }
 document.addEventListener('lazybeforesizes', function(e){
 	var src = e.target.getAttribute('data-src');
+	var width = e.target.getAttribute('width');
+	var height = e.target.getAttribute('height');
 	console.log('auto-sizing ' + src + ' to: ' + e.detail.width);
+	if (width > 1 && height > 1 && e.target.clientHeight > 1) {
+		var expected_height = 100;
+		var minimum_width = Math.ceil(width / height * e.target.clientHeight);
+		console.log('minimum_width = ' + minimum_width);
+		console.log(e);
+		if (e.detail.width < minimum_width) {
+			e.detail.width = minimum_width;
+		}
+	}
 	if (e.target._lazysizesWidth === undefined) {
 		return;
 	}
