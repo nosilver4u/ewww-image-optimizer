@@ -721,7 +721,10 @@ class Lazy_Load extends Page_Parser {
 			$this->set_attribute( $image, 'width', $width_attr, true );
 			$this->set_attribute( $image, 'height', $height_attr, true );
 		}
-		if ( 0 === \strpos( $placeholder_src, 'data:image/svg+xml' ) ) {
+		if ( 0 === \strpos( $placeholder_src, 'data:image/svg+xml' ) && $physical_width && $physical_height ) {
+			$this->set_attribute( $image, 'data-eio-rwidth', $physical_width, true );
+			$this->set_attribute( $image, 'data-eio-rheight', $physical_height, true );
+		} elseif ( $physical_width && $physical_height ) {
 			$this->set_attribute( $image, 'data-eio-rwidth', $physical_width, true );
 			$this->set_attribute( $image, 'data-eio-rheight', $physical_height, true );
 		}
@@ -1270,7 +1273,6 @@ class Lazy_Load extends Page_Parser {
 		$plugin_file = \constant( \strtoupper( $this->prefix ) . 'PLUGIN_FILE' );
 		\wp_enqueue_script( 'eio-lazy-load-pre', \plugins_url( '/includes/lazysizes-pre.js', $plugin_file ), array(), $this->version, $in_footer );
 		\wp_enqueue_script( 'eio-lazy-load-uvh', \plugins_url( '/includes/ls.unveilhooks.js', $plugin_file ), array(), $this->version, $in_footer );
-		\wp_enqueue_script( 'eio-lazy-load-uvh-addon', \plugins_url( '/includes/ls.unveilhooks-addon.js', $plugin_file ), array(), $this->version, $in_footer );
 		\wp_enqueue_script( 'eio-lazy-load-post', \plugins_url( '/includes/lazysizes-post.js', $plugin_file ), array(), $this->version, $in_footer );
 		\wp_enqueue_script( 'eio-lazy-load', \plugins_url( '/includes/lazysizes.js', $plugin_file ), array(), $this->version, $in_footer );
 		if ( \defined( \strtoupper( $this->prefix ) . 'LAZY_PRINT' ) && \constant( \strtoupper( $this->prefix ) . 'LAZY_PRINT' ) ) {

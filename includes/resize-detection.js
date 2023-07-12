@@ -28,11 +28,9 @@ function checkImageScale(img) {
 		return;
 	}
 	if ('string' == typeof img.src && img.src.search(/\.svg/) > -1) {
-		console.log('not checking size of SVG: ' + img.src);
 		return;
 	}
 	if ('string' == typeof img.src && img.src.search(/data:image/) > -1) {
-		console.log('not checking size of data uri');
 		return;
 	}
 	console.log('checking size of: ' + img.src);
