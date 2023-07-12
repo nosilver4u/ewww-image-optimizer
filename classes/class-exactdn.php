@@ -1634,6 +1634,9 @@ class ExactDN extends Page_Parser {
 		// Process <picture> elements in the page.
 		$content = $this->filter_picture_images( $content );
 
+		// Process <video> elements with poster attributes.
+		$content = $this->filter_video_elements( $content );
+
 		// Process background images on HTML elements.
 		$element_types = \apply_filters( 'eio_allowed_background_image_elements', array( 'div', 'li', 'span', 'section', 'a' ) );
 		foreach ( $element_types as $element_type ) {
@@ -1641,13 +1644,11 @@ class ExactDN extends Page_Parser {
 		}
 		if ( $this->filtering_the_page ) {
 			$content = $this->filter_prz_thumb( $content );
-		}
-		if ( $this->filtering_the_page ) {
 			$content = $this->filter_style_blocks( $content );
-		}
-		if ( $this->filtering_the_page && $this->get_option( 'exactdn_all_the_things' ) ) {
-			$this->debug_message( 'rewriting all other wp-content/wp-includes urls' );
-			$content = $this->filter_all_the_things( $content );
+			if ( $this->get_option( 'exactdn_all_the_things' ) ) {
+				$this->debug_message( 'rewriting all other wp-content/wp-includes urls' );
+				$content = $this->filter_all_the_things( $content );
+			}
 		}
 		$this->debug_message( 'done parsing page' );
 		$this->filtering_the_content = false;
@@ -1754,6 +1755,39 @@ class ExactDN extends Page_Parser {
 					if ( $picture !== $pictures[ $index ] ) {
 						$this->debug_message( 'rewrote source for picture element' );
 						$content = \str_replace( $pictures[ $index ], $picture, $content );
+					}
+				}
+			}
+		}
+		return $content;
+	}
+
+	/**
+	 * Parse page content for video elements with poster attributes to rewrite.
+	 *
+	 * @param string $content The HTML content to parse.
+	 * @return string The filtered HTML content.
+	 */
+	function filter_video_elements( $content ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( false === \strpos( $content, '<video' ) ) {
+			$this->debug_message( 'no video elements, done' );
+			return $content;
+		}
+		// Video elements, looking for poster attributes that are images.
+		$videos = $this->get_elements_from_html( $content, 'video' );
+		if ( $this->is_iterable( $videos ) ) {
+			foreach ( $videos as $index => $video ) {
+				$this->debug_message( 'parsing a video element' );
+				$poster = $this->get_attribute( $video, 'poster' );
+				if ( $poster ) {
+					$this->debug_message( "parsing a video poster: $poster" );
+					if ( $this->validate_image_url( $poster ) ) {
+						$this->debug_message( 'rewriting video poster...' );
+						$this->set_attribute( $video, 'poster', $this->generate_url( $poster ), true );
+						if ( $video !== $videos[ $index ] ) {
+							$content = \str_replace( $videos[ $index ], $video, $content );
+						}
 					}
 				}
 			}

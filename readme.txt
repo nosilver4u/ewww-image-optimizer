@@ -138,6 +138,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 7.2.0 =
+* added: Easy IO rewrites poster/thumbnail image URLs for video elements
 * changed: Easy IO + Auto Scale checks images on load and resize events to reduce browser upscaling
 * changed: prevent Easy IO font substitution when OMGF is active
 * fixed: auto-scale sets sizes attribute too small for landscape images displayed in portrait containers
