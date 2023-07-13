@@ -141,7 +141,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: Easy IO rewrites poster/thumbnail image URLs for video elements
 * changed: Easy IO + Auto Scale checks images on load and resize events to reduce browser upscaling
 * changed: prevent Easy IO font substitution when OMGF is active
-* fixed: auto-scale sets sizes attribute too small for landscape images displayed in portrait containers
+* fixed: Auto Scale downscales too much for landscape images displayed in portrait containers
 
 = 7.1.0 =
 * added: deliver Google Fonts via Easy IO or Bunny Fonts for improved user privacy

@@ -267,22 +267,96 @@
 		} else if ( lazySizes.hC(elem,'ct-image') && lazySizes.hC(elem,'object-cover') ) {
 			console.log('Oxygen cover img that needs a hard crop');
 			return 'img-crop';
+		} else if ( ! elem.getAttribute('data-srcset') && ! elem.srcset && elem.offsetHeight > elem.offsetWidth && getAspectRatio(elem) > 1 ) {
+			console.log('non-srcset img with portrait display, landscape in real life');
+			return 'img-crop';
 		}
 		console.log('plain old img, constraining');
 		return 'img';
 	};
 
 	var getDimensionsFromURL = function(url){
-		var width   = false;
-		var height  = false;
 		var regDims = /-(\d+)x(\d+)\./;
 		var resultDims = regDims.exec(url);
 		if (resultDims && resultDims[1] > 1 && resultDims[2] > 1) {
-			width  = resultDims[1];
-			height = resultDims[2];
+			return {w:resultDims[1],h:resultDims[2]};
 		}
-		return [width,height];
+		return {w:0,h:0};
 	};
+
+	var getRealDimensionsFromImg = function(img){
+		var realWidth = img.getAttribute('data-eio-rwidth');
+		var realHeight = img.getAttribute('data-eio-rheight');
+		if (realWidth > 1 && realHeight > 1) {
+			return {w:realWidth,h:realHeight};
+		}
+		return {w:0,h:0};
+	};
+
+	var getSrcsetDims = function(img) {
+		var srcSet;
+		if (img.srcset){
+			srcSet = img.srcset.split(',');
+		} else {
+			var srcSetAttr = img.getAttribute('data-srcset');
+			if (srcSetAttr){
+				srcSet = srcSetAttr.split(','); 
+			}
+		}
+		if (srcSet){
+			var i = 0;
+			var len = srcSet.length;
+			if (len){
+				for (; i < len; i++){
+					var src = srcSet[i].trim().split(' ');
+					if (src[0].length) {
+						var nextDims = getDimensionsFromURL(src[0]);
+						if (nextDims.w && nextDims.h){
+							var srcSetDims = nextDims;
+						}
+					}
+				}
+				if (srcSetDims.w && srcSetDims.h){
+					return srcSetDims;
+				}
+			}
+		}
+		return {w:0,h:0};
+	}
+
+	var getAspectRatio = function(img){
+		var width = img.getAttribute('width');
+		var height = img.getAttribute('height');
+		if (width > 1 && height > 1){
+			console.log('found dims ' + width + 'x' + height + ', returning ' + width/height);
+			return width / height;
+		}
+		var src = false;
+		if (img.src && img.src.search('http') > -1) {
+			src = img.src;
+		}
+		if (!src) {
+			src = img.getAttribute('data-src');
+		}
+		if (src){
+			var urlDims = getDimensionsFromURL(src);
+			if (urlDims.w && urlDims.h) {
+				console.log('found dims from URL: ' + urlDims.w + 'x' + urlDims.h);
+				return urlDims.w / urlDims.h;
+			}
+		}
+		var realDims = getRealDimensionsFromImg(img);
+		if (realDims.w && realDims.h){
+			console.log('found dims from eio-attrs: ' + realDims.w + 'x' + realDims.h);
+			return realDims.w / realDims.h;
+		}
+		var srcSetDims = getSrcsetDims(img);
+		if (srcSetDims.w && srcSetDims.h){
+			console.log('largest found dims from srcset: ' + srcSetDims.w + 'x' + srcSetDims.h);
+			return srcSetDims.w / srcSetDims.h;
+		}
+		return 0;
+	}
 
 	var updateImgElem = function(target,upScale=false){
 		var dPR = (window.devicePixelRatio || 1);
@@ -311,14 +385,12 @@
 
 	document.addEventListener('lazybeforesizes', function(e){
 		var src = e.target.getAttribute('data-src');
-		var width = e.target.getAttribute('width');
-		var height = e.target.getAttribute('height');
 		console.log('auto-sizing ' + src + ' to: ' + e.detail.width);
-		if (width > 1 && height > 1 && e.target.clientHeight > 1) {
-			var expected_height = 100;
-			var minimum_width = Math.ceil(width / height * e.target.clientHeight);
+		var imgAspect = getAspectRatio(e.target);
+		if (e.target.clientHeight > 1 && imgAspect) {
+			var minimum_width = Math.ceil(imgAspect * e.target.clientHeight);
 			console.log('minimum_width = ' + minimum_width);
-			if (e.detail.width < minimum_width) {
+			if (e.detail.width+2 < minimum_width) {
 				e.detail.width = minimum_width;
 			}
 		}
@@ -346,12 +418,11 @@
 				var dPR = (window.devicePixelRatio || 1);
 				var physicalWidth = target.naturalWidth;
 				var physicalHeight = target.naturalHeight;
-				var realWidth = target.getAttribute('data-eio-rwidth');
-				var realHeight = target.getAttribute('data-eio-rheight');
-				if (realWidth && realWidth > physicalWidth) {
-					console.log( 'using ' + realWidth + 'w instead of ' + physicalWidth + 'w and ' + realHeight + 'h instead of ' + physicalHeight + 'h from data-eio-r*')
-					physicalWidth = realWidth;
-					physicalHeight = realHeight;
+				var realDims = getRealDimensionsFromImg(target);
+				if (realDims.w && realDims.w > physicalWidth) {
+					console.log( 'using ' + realDims.w + 'w instead of ' + physicalWidth + 'w and ' + realDims.h + 'h instead of ' + physicalHeight + 'h from data-eio-r*')
+					physicalWidth = realDims.w;
+					physicalHeight = realDims.h;
 				}
 	            var wrongWidth = (target.clientWidth && (target.clientWidth * 1.25 * dPR < physicalWidth));
 	            var wrongHeight = (target.clientHeight && (target.clientHeight * 1.25 * dPR < physicalHeight));
@@ -429,8 +500,6 @@
 			for(; i < len; i++){
 				var autosizedElem = autosizedElems[i];
 				if (autosizedElem.src && ! autosizedElem.srcset && autosizedElem.naturalWidth > 1 && autosizedElem.naturalHeight > 1 && autosizedElem.clientWidth > 1 && autosizedElem.clientHeight > 1){
-					// TODO: check existing dimensions (natural vs offsetWidth/clientWidth) to see if we should attempt an upscale.
-					// Also see if the height/width attrs indicate that an upscale is possible.
 					console.log(autosizedElem);
 					console.log('natural width of ' + autosizedElem.src + ' is ' + autosizedElem.naturalWidth);
 		        	// For each image with a natural width which isn't
@@ -439,19 +508,18 @@
 					var physicalHeight = autosizedElem.naturalHeight;
 					var maxWidth  = window.innerWidth;
 					var maxHeight = window.innerHeight;
-					var eioRealWidth  = autosizedElem.getAttribute('data-eio-rwidth');
-					var eioRealHeight = autosizedElem.getAttribute('data-eio-rheight');
-					var urlDims = getDimensionsFromURL(autosizedElem.src);
+					var realDims  = getRealDimensionsFromImg(autosizedElem);
+					var urlDims   = getDimensionsFromURL(autosizedElem.src);
 	
-					if (eioRealWidth) {
-						maxWidth = eioRealWidth;
-					} else if (urlDims[0]) {
-						maxWidth = urlDims[0];
+					if (realDims.w) {
+						maxWidth = realDims.w;
+					} else if (urlDims.w) {
+						maxWidth = urlDims.w;
 					}
-					if (eioRealHeight) {
-						maxHeight = eioRealHeight;
-					} else if (urlDims[1]) {
-						maxHeight = urlDims[1];
+					if (realDims.h) {
+						maxHeight = realDims.h;
+					} else if (urlDims.h) {
+						maxHeight = urlDims.h;
 					}
 					console.log( 'max image size is ' + maxWidth + 'w, ' + maxHeight + 'h');
 

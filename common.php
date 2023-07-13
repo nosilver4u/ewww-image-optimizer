@@ -12105,7 +12105,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	if ( get_option( 'easyio_exactdn' ) || ewwwio()->perfect_images_easyio_domain() ) {
 		ewww_image_optimizer_webp_rewrite_verify();
 		update_option( 'ewww_image_optimizer_exactdn', false );
-		update_option( 'ewww_image_optimizer_lazy_load', false );
+		if ( get_option( 'easyio_exactdn' ) ) {
+			update_option( 'ewww_image_optimizer_lazy_load', false );
+		}
 		update_option( 'ewww_image_optimizer_webp_for_cdn', false );
 		update_option( 'ewww_image_optimizer_picture_webp', false );
 		$speed_score += 55;
