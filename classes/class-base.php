@@ -560,6 +560,23 @@ class Base {
 	}
 
 	/**
+	 * Checks if Easy IO is active in Perfect Images plugin.
+	 *
+	 * @return bool True if Easy IO is enabled via PI, false otherwise.
+	 */
+	function perfect_images_easyio_domain() {
+		if ( class_exists( '\Meow_WR2X_Core' ) ) {
+			global $wr2x_core;
+			if ( is_object( $wr2x_core ) && method_exists( $wr2x_core, 'get_option' ) ) {
+				if ( ! empty( $wr2x_core->get_option( 'easyio_domain' ) ) ) {
+					return $wr2x_core->get_option( 'easyio_domain' );
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Sanitize the folders/patterns to exclude from optimization.
 	 *
 	 * @param string $input A list of filesystem paths, from a textarea.

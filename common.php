@@ -12102,7 +12102,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$disable_level = true;
 	}
 	$exactdn_enabled = false;
-	if ( get_option( 'easyio_exactdn' ) ) {
+	if ( get_option( 'easyio_exactdn' ) || ewwwio()->perfect_images_easyio_domain() ) {
 		ewww_image_optimizer_webp_rewrite_verify();
 		update_option( 'ewww_image_optimizer_exactdn', false );
 		update_option( 'ewww_image_optimizer_lazy_load', false );
@@ -12659,11 +12659,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					</th>
 					<td>
 						<p><?php esc_html_e( 'Get 5x more compression with a premium plan.', 'ewww-image-optimizer' ); ?></p>
-						<!--<input type='radio' id='ewww_image_optimizer_budget_pay' name='ewww_image_optimizer_budget' value='pay' required />
-						<label for='ewww_image_optimizer_budget_pay'><?php esc_html_e( 'Activate Easy IO and/or the Compress API to get 5x more optimization and priority support', 'ewww-image-optimizer' ); ?></label><br>
-						<input type='radio' id='ewww_image_optimizer_budget_free' name='ewww_image_optimizer_budget' value='free' required <?php checked( (bool) $premium_hide ); ?> />
-						<label for='ewww_image_optimizer_budget_free'><?php esc_html_e( 'Stick with free mode for now', 'ewww-image-optimizer' ); ?></label>
-						<p class="ewwwio-premium-setup-disabled-for-now" <?php echo wp_kses_post( $premium_hide ); ?>><strong><a href='https://ewww.io/plans/' target='_blank'>&gt;&gt;<?php esc_html_e( 'Start your free trial', 'ewww-image-optimizer' ); ?></a></strong></p>-->
 					</td>
 				</tr>
 		<?php endif; ?>
@@ -12684,7 +12679,19 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					</td>
 				</tr>
 	<?php endif; ?>
-	<?php if ( ! get_option( 'easyio_exactdn' ) ) : ?>
+	<?php if ( ewwwio()->perfect_images_easyio_domain() ) : ?>
+				<tr id="ewww_image_optimizer_exactdn_container" class="ewwwio-premium-setup">
+					<th scope='row'>
+						<span id='ewwwio-exactdn-anchor'></span>
+						<?php esc_html_e( 'Easy IO', 'ewww-image-optimizer' ); ?>
+					</th>
+					<td>
+						<p class='ewwwio-easy-description'>
+							<span style="color: #3eadc9"><?php esc_html_e( 'Easy IO is already active in the Perfect Images plugin.', 'ewww-image-optimizer' ); ?></span>
+						</p>
+					</td>
+				</tr>
+	<?php elseif ( ! get_option( 'easyio_exactdn' ) ) : ?>
 		<?php ob_start(); ?>
 				<tr id="ewww_image_optimizer_exactdn_container" class="ewwwio-premium-setup">
 					<th scope='row'>
