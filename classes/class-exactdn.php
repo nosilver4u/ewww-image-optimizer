@@ -3619,6 +3619,9 @@ class ExactDN extends Page_Parser {
 		if ( false !== \strpos( $uri, '?brizy-edit' ) ) {
 			return true;
 		}
+		if ( false !== \strpos( $uri, '?brizy_media' ) ) {
+			return true;
+		}
 		if ( false !== \strpos( $uri, '&builder=true' ) ) {
 			return true;
 		}

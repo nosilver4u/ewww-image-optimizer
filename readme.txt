@@ -4,7 +4,7 @@ Donate link: https://ewww.io/donate/
 Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization, lossless, lossy, seo, scale
 Requires at least: 5.9
 Tested up to: 6.2
-Requires PHP: 7.2
+Requires PHP: 7.3
 Stable tag: 7.1.0
 License: GPLv3
 
@@ -142,6 +142,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * changed: Easy IO + Auto Scale checks images on load and resize events to reduce browser upscaling
 * changed: prevent Easy IO font substitution when OMGF is active
 * fixed: Auto Scale downscales too much for landscape images displayed in portrait containers
+* fixed: Easy IO compatibility with Brizy thumbnail generation endpoint
 
 = 7.1.0 =
 * added: deliver Google Fonts via Easy IO or Bunny Fonts for improved user privacy
