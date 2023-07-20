@@ -1,3 +1,10 @@
+= 7.2.0 =
+* added: Easy IO rewrites poster/thumbnail image URLs for video elements
+* changed: Easy IO + Auto Scale checks images on load and resize events to reduce browser upscaling
+* changed: prevent Easy IO font substitution when OMGF is active
+* fixed: Auto Scale downscales too much for landscape images displayed in portrait containers
+* fixed: Easy IO compatibility with Brizy thumbnail generation endpoint
+
 = 7.1.0 =
 * added: deliver Google Fonts via Easy IO or Bunny Fonts for improved user privacy
 * fixed: PHP error trying to save EXIF data to JPG after resizing
