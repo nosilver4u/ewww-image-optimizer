@@ -864,7 +864,7 @@ function ewww_image_optimizer_upgrade() {
 	global $ewwwio_upgrading;
 	$ewwwio_upgrading = false;
 	if ( get_option( 'ewww_image_optimizer_version' ) < EWWW_IMAGE_OPTIMIZER_VERSION ) {
-		if ( wp_doing_ajax() ) {
+		if ( wp_doing_ajax() && ! empty( $_POST['ewwwio_test_verify'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return;
 		}
 		$ewwwio_upgrading = true;

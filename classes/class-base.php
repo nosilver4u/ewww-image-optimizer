@@ -722,11 +722,10 @@ class Base {
 		if ( ! \did_action( 'parse_request' ) ) {
 			return false;
 		}
-		if ( ! \did_action( 'wp' ) ) {
+		if ( ! \did_action( 'parse_query' ) ) {
 			return false;
 		}
-		global $wp_query;
-		if ( ! isset( $wp_query ) || ! ( $wp_query instanceof \WP_Query ) ) {
+		if ( ! \did_action( 'wp' ) ) {
 			return false;
 		}
 

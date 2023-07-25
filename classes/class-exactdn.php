@@ -2091,11 +2091,13 @@ class ExactDN extends Page_Parser {
 			// First, remove any hints for Google Fonts.
 			$content = \preg_replace( '#<link\s+rel=[\'"]?(preconnect|dns-prefetch)[\'"]?\s+href=[\'"]?//fonts\.(googleapis|gstatic)\.com[\'"]?\s*(crossorigin\s*)?/?>\s*#is', '', $content );
 			// Then we find the preconnect directive for the *.exactdn.com domain and insert an extra crossorigin directive for fonts.
-			$content = \preg_replace(
-				'#<link\s+?rel=[\'"]?preconnect[\'"]?\s+?href=[\'"]?//' . $escaped_exactdn_domain . '[\'"]?\s*?/?>#is',
-				"\$0\n<link rel='preconnect' href='//" . esc_attr( $this->exactdn_domain ) . "' crossorigin />",
-				$content
-			);
+			if ( ! preg_match( '#<link\s+?rel=[\'"]?preconnect[\'"]?\s+?href=[\'"]?//' . $escaped_exactdn_domain . '[\'"]?\s*crossorigin#is', $content ) ) {
+				$content = \preg_replace(
+					'#<link\s+?rel=[\'"]?preconnect[\'"]?\s+?href=[\'"]?//' . $escaped_exactdn_domain . '[\'"]?\s*?/?>#is',
+					"\$0\n<link rel='preconnect' href='//" . esc_attr( $this->exactdn_domain ) . "' crossorigin />",
+					$content
+				);
+			}
 		}
 		return $content;
 	}
