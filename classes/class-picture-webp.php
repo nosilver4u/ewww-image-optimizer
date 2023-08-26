@@ -51,7 +51,7 @@ class Picture_Webp extends Page_Parser {
 	/**
 	 * Register (once) actions and filters for Picture WebP.
 	 */
-	function __construct() {
+	public function __construct() {
 		global $eio_picture_webp;
 		if ( \is_object( $eio_picture_webp ) ) {
 			return 'you are doing it wrong';
@@ -116,7 +116,7 @@ class Picture_Webp extends Page_Parser {
 	 * @param string  $uri The URI of the page (no domain or scheme included).
 	 * @return boolean True to process the page, false to skip.
 	 */
-	function should_process_page( $should_process = true, $uri = '' ) {
+	public function should_process_page( $should_process = true, $uri = '' ) {
 		// Don't foul up the admin side of things, unless a plugin needs to.
 		if ( \is_admin() &&
 			/**
@@ -229,7 +229,7 @@ class Picture_Webp extends Page_Parser {
 	 *
 	 * @return array A list of WebP domains.
 	 */
-	function get_webp_domains() {
+	public function get_webp_domains() {
 		return $this->allowed_domains;
 	}
 
@@ -239,7 +239,7 @@ class Picture_Webp extends Page_Parser {
 	 * @param string $srcset A valid srcset attribute from an img element.
 	 * @return bool|string False if no changes were made, or the new srcset if any WebP images replaced the originals.
 	 */
-	function srcset_replace( $srcset ) {
+	public function srcset_replace( $srcset ) {
 		$srcset_urls = \explode( ' ', $srcset );
 		$found_webp  = false;
 		if ( $this->is_iterable( $srcset_urls ) && \count( $srcset_urls ) > 1 ) {
@@ -281,7 +281,7 @@ class Picture_Webp extends Page_Parser {
 	 * @param string $buffer The full HTML page generated since the output buffer was started.
 	 * @return string The altered buffer containing the full page with WebP images inserted.
 	 */
-	function filter_page_output( $buffer ) {
+	public function filter_page_output( $buffer ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if (
 			empty( $buffer ) ||
@@ -386,7 +386,7 @@ class Picture_Webp extends Page_Parser {
 	 * @param array $output The full array of FacetWP data.
 	 * @return array The FacetWP data with WebP images.
 	 */
-	function filter_facetwp_json_output( $output ) {
+	public function filter_facetwp_json_output( $output ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( empty( $output['template'] ) || ! \is_string( $output['template'] ) ) {
 			return $output;
@@ -408,14 +408,14 @@ class Picture_Webp extends Page_Parser {
 	 * @param string $extension An optional extension to append during is_file().
 	 * @return bool True if a local file exists correlating to the URL, false otherwise.
 	 */
-	function url_to_path_exists( $url, $extension = '' ) {
+	public function url_to_path_exists( $url, $extension = '' ) {
 		return parent::url_to_path_exists( $url, '.webp' );
 	}
 
 	/**
 	 * Validate the user-defined exclusions.
 	 */
-	function validate_user_exclusions() {
+	public function validate_user_exclusions() {
 		$user_exclusions = $this->get_option( $this->prefix . 'webp_rewrite_exclude' );
 		$this->debug_message( $this->prefix . 'webp_rewrite_exclude' );
 		if ( ! empty( $user_exclusions ) ) {
@@ -455,7 +455,7 @@ class Picture_Webp extends Page_Parser {
 	 * @param string $image The HTML tag: img, span, etc.
 	 * @return bool False if it flags a filter or exclusion, true otherwise.
 	 */
-	function validate_tag( $image ) {
+	public function validate_tag( $image ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		// For now, only picture tags are allowed anyway, so just roll with it!
 		return true;
@@ -467,7 +467,7 @@ class Picture_Webp extends Page_Parser {
 	 * @param string $image The img tag.
 	 * @return bool False if it flags a filter or exclusion, true otherwise.
 	 */
-	function validate_img_tag( $image ) {
+	public function validate_img_tag( $image ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		// Skip inline data URIs.
 		if ( false !== \strpos( $image, 'data:image' ) ) {
@@ -527,7 +527,7 @@ class Picture_Webp extends Page_Parser {
 	 * @param string $image The image URL.
 	 * @return bool True if the file exists or matches a forced path, false otherwise.
 	 */
-	function validate_image_url( $image ) {
+	public function validate_image_url( $image ) {
 		$this->debug_message( __METHOD__ . "() webp validation for $image" );
 		if ( $this->is_lazy_placeholder( $image ) ) {
 			return false;
@@ -575,7 +575,7 @@ class Picture_Webp extends Page_Parser {
 	 * @param string $url The image url.
 	 * @return string The WebP version of the image url.
 	 */
-	function generate_url( $url ) {
+	public function generate_url( $url ) {
 		$path_parts = \explode( '?', $url );
 		return \apply_filters( 'ewwwio_generated_webp_image_url', $path_parts[0] . '.webp' . ( ! empty( $path_parts[1] ) && 'is-pending-load=1' !== $path_parts[1] ? '?' . $path_parts[1] : '' ) );
 	}
@@ -583,7 +583,7 @@ class Picture_Webp extends Page_Parser {
 	/**
 	 * Adds a small CSS block to make sure images in gallery blocks behave.
 	 */
-	function gallery_block_css() {
+	public function gallery_block_css() {
 		echo '<style>.wp-block-gallery.is-cropped .blocks-gallery-item picture{height:100%;width:100%;}</style>';
 	}
 }

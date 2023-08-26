@@ -81,7 +81,7 @@ class HS_Beacon extends Base {
 
 		if ( ! \function_exists( 'is_plugin_active_for_network' ) && \is_multisite() ) {
 			// Need to include the plugin library for the is_plugin_active function.
-			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 		if (
 			\is_multisite() &&

@@ -20,7 +20,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		/**
 		 * Initializes the nextcellent integration functions.
 		 */
-		function __construct() {
+		public function __construct() {
 			add_filter( 'ngg_manage_images_columns', array( $this, 'ewww_manage_images_columns' ) );
 			add_action( 'ngg_manage_image_custom_column', array( $this, 'ewww_manage_image_custom_column' ), 10, 2 );
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ) {
@@ -45,7 +45,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		/**
 		 * Adds the Bulk Optimize page to the tools menu.
 		 */
-		function ewww_ngg_bulk_menu() {
+		public function ewww_ngg_bulk_menu() {
 			add_submenu_page( NGGFOLDER, esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), 'NextGEN Manage gallery', 'ewww-ngg-bulk', array( &$this, 'ewww_ngg_bulk_preview' ) );
 		}
 
@@ -55,16 +55,12 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 * @param int   $gallery The gallery ID number (I think).
 		 * @param array $images The list of new images.
 		 */
-		function dispatch_new_images( $gallery, $images ) {
-			global $ewwwio_ngg_background;
-			if ( ! is_object( $ewwwio_ngg_background ) ) {
-				$ewwwio_ngg_background = new EWWWIO_Ngg_Background_Process();
-			}
+		public function dispatch_new_images( $gallery, $images ) {
 			foreach ( $images as $id ) {
-				$ewwwio_ngg_background->push_to_queue( array( 'id' => $id ) );
+				ewwwio()->background_ngg->push_to_queue( array( 'id' => $id ) );
 				ewwwio_debug_message( "optimization (nextcellent) queued for $id" );
 			}
-			$ewwwio_ngg_background->dispatch();
+			ewwwio()->background_ngg->dispatch();
 		}
 
 		/**
@@ -75,7 +71,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 * @param int   $id The ID number of the image.
 		 * @param array $meta The image metadata.
 		 */
-		function ewww_added_new_image( $id, $meta ) {
+		public function ewww_added_new_image( $id, $meta ) {
 			global $ewww_image;
 			// Retrieve the image path.
 			$file_path          = $meta->image->imagePath;
@@ -94,7 +90,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 *
 		 * @param array $image The new image and all the related data.
 		 */
-		function ewww_added_new_image_slow( $image ) {
+		public function ewww_added_new_image_slow( $image ) {
 			// Query the filesystem path of the gallery from the database.
 			global $ewww_defer;
 			global $wpdb;
@@ -119,7 +115,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 *
 		 * @param string $filename The name of the file generated.
 		 */
-		function ewww_ngg_image_save( $filename ) {
+		public function ewww_ngg_image_save( $filename ) {
 			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 			global $ewww_defer;
 			global $ewww_image;
@@ -147,7 +143,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		/**
 		 * Manually process an image from the NextGEN Gallery.
 		 */
-		function ewww_ngg_manual() {
+		public function ewww_ngg_manual() {
 			// Check permission of current user.
 			$permissions = apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
 			if ( false === current_user_can( $permissions ) ) {
@@ -190,7 +186,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		/**
 		 * Restore an image from the NextGEN Gallery.
 		 */
-		function ewww_ngg_cloud_restore() {
+		public function ewww_ngg_cloud_restore() {
 			// Check permission of current user.
 			$permissions = apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
 			if ( false === current_user_can( $permissions ) ) {
@@ -237,10 +233,10 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 *     @type array $tres The optimization results for the thumbnail.
 		 * }
 		 */
-		function ewww_ngg_optimize( $id ) {
+		public function ewww_ngg_optimize( $id ) {
 			global $ewww_image;
 			// Need this file to work with metadata.
-			require_once( WP_CONTENT_DIR . '/plugins/nextcellent-gallery-nextgen-legacy/lib/meta.php' );
+			require_once WP_CONTENT_DIR . '/plugins/nextcellent-gallery-nextgen-legacy/lib/meta.php';
 			// Retrieve the metadata for the image.
 			$meta = new nggMeta( $id );
 			// Retrieve the image path.
@@ -264,7 +260,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 * @param array $columns A list of columns to display in the images table.
 		 * @return array The updated list of columns.
 		 */
-		function ewww_manage_images_columns( $columns ) {
+		public function ewww_manage_images_columns( $columns ) {
 			$columns['ewww_image_optimizer'] = esc_html__( 'Image Optimizer', 'ewww-image-optimizer' );
 			return $columns;
 		}
@@ -274,17 +270,17 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 *
 		 * @param string $column_name The name of the current column.
 		 * @param int    $id The ID number of the current image.
-		 * @param bool   $return Return the output instead of sending it straight to the screen.
+		 * @param bool   $return_output Return the output instead of sending it straight to the screen.
 		 * @return string The output when $return is true.
 		 */
-		function ewww_manage_image_custom_column( $column_name, $id, $return = false ) {
+		public function ewww_manage_image_custom_column( $column_name, $id, $return_output = false ) {
 			// Once we've found our custom column.
 			if ( 'ewww_image_optimizer' === $column_name ) {
-				if ( $return ) {
+				if ( $return_output ) {
 					ob_start();
 				}
 				// Need this file to work with metadata.
-				require_once( WP_CONTENT_DIR . '/plugins/nextcellent-gallery-nextgen-legacy/lib/meta.php' );
+				require_once WP_CONTENT_DIR . '/plugins/nextcellent-gallery-nextgen-legacy/lib/meta.php';
 				// Get the metadata for the image.
 				$meta = new nggMeta( $id );
 				echo '<div id="ewww-nextcellent-status-' . (int) $id . '">';
@@ -305,7 +301,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 						if ( $tools['jpegtran']['enabled'] && ! $tools['jpegtran']['path'] ) {
 							/* translators: %s: name of a tool like jpegtran */
 							echo '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>jpegtran</em>' ) . '</div></div>';
-							if ( $return ) {
+							if ( $return_output ) {
 								return ob_get_clean();
 							}
 							return;
@@ -316,7 +312,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 						if ( $tools['optipng']['enabled'] && ! $tools['optipng']['path'] ) {
 							/* translators: %s: name of a tool like jpegtran */
 							echo '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>optipng</em>' ) . '</div></div>';
-							if ( $return ) {
+							if ( $return_output ) {
 								return ob_get_clean();
 							}
 							return;
@@ -327,7 +323,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 						if ( $tools['gifsicle']['enabled'] && ! $tools['gifsicle']['path'] ) {
 							/* translators: %s: name of a tool like jpegtran */
 							echo '<div>' . sprintf( esc_html__( '%s is missing', 'ewww-image-optimizer' ), '<em>gifsicle</em>' ) . '</div></div>';
-							if ( $return ) {
+							if ( $return_output ) {
 								return ob_get_clean();
 							}
 							return;
@@ -335,7 +331,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 						break;
 					default:
 						echo '<div>' . esc_html__( 'Unsupported file type', 'ewww-image-optimizer' ) . '</div></div>';
-						if ( $return ) {
+						if ( $return_output ) {
 							return ob_get_clean();
 						}
 						return;
@@ -383,7 +379,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 					}
 				}
 				echo '</div>';
-				if ( $return ) {
+				if ( $return_output ) {
 					return ob_get_clean();
 				}
 			} // End if().
@@ -392,7 +388,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		/**
 		 * Output the html for the bulk optimize page.
 		 */
-		function ewww_ngg_bulk_preview() {
+		public function ewww_ngg_bulk_preview() {
 			// Retrieve the attachments array from the db.
 			$attachments = get_option( 'ewww_image_optimizer_bulk_ngg_attachments' );
 			// Make sure there are some attachments to process.
@@ -476,7 +472,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 *
 		 * @param string $hook The hook identifier for the current page.
 		 */
-		function ewww_ngg_bulk_script( $hook ) {
+		public function ewww_ngg_bulk_script( $hook ) {
 			ewwwio_debug_message( $hook );
 			if ( 'galleries_page_ewww-ngg-bulk' !== $hook ) {
 				return;
@@ -532,7 +528,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		/**
 		 * Start the bulk operation.
 		 */
-		function ewww_ngg_bulk_init() {
+		public function ewww_ngg_bulk_init() {
 			$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 			$output      = array();
 			if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) {
@@ -570,9 +566,9 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 *
 		 * @param int $id The ID number of the image.
 		 */
-		function ewww_ngg_bulk_filename( $id ) {
+		public function ewww_ngg_bulk_filename( $id ) {
 			// Need this file to work with metadata.
-			require_once( WP_CONTENT_DIR . '/plugins/nextcellent-gallery-nextgen-legacy/lib/meta.php' );
+			require_once WP_CONTENT_DIR . '/plugins/nextcellent-gallery-nextgen-legacy/lib/meta.php';
 			// Get the meta for the image.
 			$meta = new nggMeta( $id );
 			// Get the filename for the image, and output our current status.
@@ -589,7 +585,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 *
 		 * @global bool $ewww_defer Set to false to avoid deferring image optimization.
 		 */
-		function ewww_ngg_bulk_loop() {
+		public function ewww_ngg_bulk_loop() {
 			global $ewww_defer;
 			$ewww_defer  = false;
 			$output      = array();
@@ -658,7 +654,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		/**
 		 * Finish the bulk operation.
 		 */
-		function ewww_ngg_bulk_cleanup() {
+		public function ewww_ngg_bulk_cleanup() {
 			$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 			if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) {
 				ewwwio_ob_clean();
@@ -677,7 +673,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 *
 		 * @param string $hook The hook value for the current page.
 		 */
-		function ewww_ngg_manual_actions_script( $hook ) {
+		public function ewww_ngg_manual_actions_script( $hook ) {
 			if ( 'galleries_page_nggallery-manage' !== $hook ) {
 				return;
 			}

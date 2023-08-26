@@ -25,7 +25,7 @@ class EwwwDB extends wpdb {
 	/**
 	 * Ensures use of some variant of utf8 for interacting with the images table.
 	 */
-	function init_charset() {
+	public function init_charset() {
 		parent::init_charset();
 		if ( strpos( $this->charset, 'utf8' ) === false ) {
 			$this->charset = 'utf8';
@@ -45,29 +45,29 @@ class EwwwDB extends wpdb {
 	 *           same number of items as $formats. Default '%s'. Accepts '%s', '%d', '%f'.
 	 * @return int|false Number of rows affected or false on error.
 	 */
-	function insert_multiple( $table, $data, $format ) {
+	public function insert_multiple( $table, $data, $format ) {
 		if ( empty( $table ) || ! ewww_image_optimizer_iterable( $data ) || ! ewww_image_optimizer_iterable( $format ) ) {
 			return false;
 		}
 
 		/*
 		 * Given a multi-dimensional array like so:
-		 * array(
-		 *	[0] =>
-		 *		'path' => '/some/image/path/here.jpg'
-		 *		'gallery' => 'something'
-		 *		'orig_size => 5678
-		 *		'attachment_id => 2
-		 *		'resize' => 'thumb'
-		 *		'pending' => 1
-		 *	[1] =>
-		 *		'path' => '/some/image/path/another.jpg'
-		 *		'gallery' => 'something'
-		 *		'orig_size => 1234
-		 *		'attachment_id => 3
-		 *		'resize' => 'full'
-		 *		'pending' => 1
-		 *	)
+		 *  array(
+		 *    [0] =>
+		 *      'path' => '/some/image/path/here.jpg'
+		 *      'gallery' => 'something'
+		 *      'orig_size => 5678
+		 *      'attachment_id => 2
+		 *      'resize' => 'thumb'
+		 *      'pending' => 1
+		 *    [1] =>
+		 *      'path' => '/some/image/path/another.jpg'
+		 *      'gallery' => 'something'
+		 *      'orig_size => 1234
+		 *      'attachment_id => 3
+		 *      'resize' => 'full'
+		 *      'pending' => 1
+		 *  )
 		 */
 		ewwwio_debug_message( 'we have records to store via ewwwdb' );
 		$multi_formats = array();

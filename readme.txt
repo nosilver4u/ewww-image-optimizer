@@ -3,7 +3,7 @@ Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization, lossless, lossy, seo, scale
 Requires at least: 5.9
-Tested up to: 6.2
+Tested up to: 6.3
 Requires PHP: 7.3
 Stable tag: 7.2.0
 License: GPLv3
@@ -136,6 +136,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
+
+= 7.2.1 =
+* changed: use updated coding standards, and restructure code for async/background functions
+* removed: legacy image editor extensions for unmaintained plugins
 
 = 7.2.0 =
 * added: Easy IO rewrites poster/thumbnail image URLs for video elements

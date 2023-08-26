@@ -64,7 +64,7 @@ class Backup extends Base {
 	/**
 	 * Register (once) actions and filters for Backup and Restore.
 	 */
-	function __construct() {
+	public function __construct() {
 		global $eio_backup;
 		if ( \is_object( $eio_backup ) ) {
 			return $eio_backup;

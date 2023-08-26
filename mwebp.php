@@ -56,7 +56,7 @@ function ewww_image_optimizer_webp_scan() {
 		if ( $path->isDir() ) {
 			continue;
 		} else {
-			$file_counter++;
+			++$file_counter;
 			$path          = $path->getPathname();
 			$newwebpformat = preg_replace( '/\.webp/', '', $path );
 			if ( file_exists( $newwebpformat ) ) {
@@ -148,7 +148,7 @@ function ewww_image_optimizer_webp_loop() {
 		echo '<br>';
 	}
 	while ( $images ) {
-		$images_processed++;
+		++$images_processed;
 		ewwwio_debug_message( "processed $images_processed images so far" );
 		if ( $images_processed > 1000 ) {
 			ewwwio_debug_message( 'hit 1000, breaking loop' );

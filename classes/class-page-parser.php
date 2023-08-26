@@ -53,7 +53,7 @@ class Page_Parser extends Base {
 	 *         an array of full matches, and the link_url, img_tag,
 	 *         and img_url keys are arrays of those matches.
 	 */
-	function get_images_from_html( $content, $hyperlinks = true, $src_required = true ) {
+	public function get_images_from_html( $content, $hyperlinks = true, $src_required = true ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$images          = array();
 		$unquoted_images = array();
@@ -116,7 +116,7 @@ class Page_Parser extends Base {
 	 *         an array of full matches, and the noscript_tag, img_tag,
 	 *         and img_url keys are arrays of those matches.
 	 */
-	function get_noscript_images_from_html( $content ) {
+	public function get_noscript_images_from_html( $content ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$images = array();
 
@@ -138,7 +138,7 @@ class Page_Parser extends Base {
 	 * @param string $content Some HTML.
 	 * @return array An array of $pictures matches, containing full elements with ending tags.
 	 */
-	function get_picture_tags_from_html( $content ) {
+	public function get_picture_tags_from_html( $content ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$pictures = array();
 		if ( \preg_match_all( '#(?:<picture[^>]*?>\s*)(?:<source[^>]*?>)+(?:.*?</picture>)?#is', $content, $pictures ) ) {
@@ -153,7 +153,7 @@ class Page_Parser extends Base {
 	 * @param string $content Some HTML.
 	 * @return array An array of $styles matches, containing full elements with ending tags.
 	 */
-	function get_style_tags_from_html( $content ) {
+	public function get_style_tags_from_html( $content ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$styles = array();
 		if ( \preg_match_all( '#<style[^>]*?>.*?</style>#is', $content, $styles ) ) {
@@ -169,7 +169,7 @@ class Page_Parser extends Base {
 	 * @param string $tag_name The name of the elements to retrieve.
 	 * @return array An array of $elements.
 	 */
-	function get_elements_from_html( $content, $tag_name ) {
+	public function get_elements_from_html( $content, $tag_name ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( ! \ctype_alpha( $tag_name ) ) {
 			return array();
@@ -187,7 +187,7 @@ class Page_Parser extends Base {
 	 * @param bool   $use_params Check ExactDN image parameters for additional size information. Default to false.
 	 * @return array An array consisting of width and height.
 	 */
-	function get_dimensions_from_filename( $src, $use_params = false ) {
+	public function get_dimensions_from_filename( $src, $use_params = false ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$width_height_string = array();
 		$this->debug_message( "looking for dimensions in $src" );
@@ -237,7 +237,7 @@ class Page_Parser extends Base {
 	 * @param string $url The URL of the image.
 	 * @return array The width and height, in pixels.
 	 */
-	function get_image_dimensions_by_url( $url ) {
+	public function get_image_dimensions_by_url( $url ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->debug_message( "getting dimensions for $url" );
 
@@ -310,7 +310,7 @@ class Page_Parser extends Base {
 	 * @param string $name The name of the attribute to search for.
 	 * @return string The value of the attribute, or an empty string if not found.
 	 */
-	function get_attribute( $element, $name ) {
+	public function get_attribute( $element, $name ) {
 		// Don't forget, back references cannot be used in character classes.
 		if ( \preg_match( '#\s' . $name . '\s*=\s*("|\')((?!\1).+?)\1#is', $element, $attr_matches ) ) {
 			if ( ! empty( $attr_matches[2] ) ) {
@@ -332,7 +332,7 @@ class Page_Parser extends Base {
 	 * @param string $attribute An element's style attribute. Do not pass a full HTML element.
 	 * @return array An array containing URL(s) from the background/background-image property.
 	 */
-	function get_background_image_urls( $attribute ) {
+	public function get_background_image_urls( $attribute ) {
 		$urls = array();
 		if ( ( false !== \strpos( $attribute, 'background:' ) || false !== \strpos( $attribute, 'background-image:' ) ) && false !== \strpos( $attribute, 'url(' ) ) {
 			if ( \preg_match_all( '#url\((?P<bg_url>[^)]+)\)#', $attribute, $prop_matches ) ) {
@@ -352,7 +352,7 @@ class Page_Parser extends Base {
 	 * @param string $attribute An element's style attribute. Do not pass a full HTML element.
 	 * @return array An array containing URL(s) from the background/background-image property.
 	 */
-	function get_background_image_url( $attribute ) {
+	public function get_background_image_url( $attribute ) {
 		if ( ( false !== \strpos( $attribute, 'background:' ) || false !== \strpos( $attribute, 'background-image:' ) ) && false !== \strpos( $attribute, 'url(' ) ) {
 			$background_urls = $this->get_background_image_urls( $attribute );
 			if ( ! empty( $background_urls[0] ) ) {
@@ -368,7 +368,7 @@ class Page_Parser extends Base {
 	 * @param string $html The code containing potential background images.
 	 * @return array The URLs with background/background-image properties.
 	 */
-	function get_background_images( $html ) {
+	public function get_background_images( $html ) {
 		if ( ( false !== \strpos( $html, 'background:' ) || false !== \strpos( $html, 'background-image:' ) ) && false !== \strpos( $html, 'url(' ) ) {
 			if ( \preg_match_all( '#background(-image)?:\s*?[^;}]*?url\([^)]+\)#', $html, $matches ) ) {
 				return $matches[0];
@@ -385,7 +385,7 @@ class Page_Parser extends Base {
 	 * @param string $value The value of the attribute to set.
 	 * @param bool   $replace Default false. True to replace, false to append.
 	 */
-	function set_attribute( &$element, $name, $value, $replace = false ) {
+	public function set_attribute( &$element, $name, $value, $replace = false ) {
 		if ( 'class' === $name ) {
 			$element = \preg_replace( "#\s$name\s+([^=])#", ' $1', $element );
 		}
@@ -428,7 +428,7 @@ class Page_Parser extends Base {
 	 * @param string $element The HTML element to modify. Passed by reference.
 	 * @param string $name The name of the attribute to remove.
 	 */
-	function remove_attribute( &$element, $name ) {
+	public function remove_attribute( &$element, $name ) {
 		// Don't forget, back references cannot be used in character classes.
 		$element = \preg_replace( '#\s' . $name . '\s*=\s*("|\')(?!\1).+?\1#is', ' ', $element );
 		$element = \preg_replace( '#\s' . $name . '\s*=\s*[^"\'][^\s>]+#is', ' ', $element );
@@ -440,7 +440,7 @@ class Page_Parser extends Base {
 	 * @param string $attribute The element's style attribute to modify.
 	 * @return string The style attribute with any image url removed.
 	 */
-	function remove_background_image( $attribute ) {
+	public function remove_background_image( $attribute ) {
 		if ( false !== \strpos( $attribute, 'background:' ) && false !== \strpos( $attribute, 'url(' ) ) {
 			$new_attribute = \preg_replace( '#\s?url\([^)]+\)#', '', $attribute );
 			if ( $new_attribute !== $attribute ) {

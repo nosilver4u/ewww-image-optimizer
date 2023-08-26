@@ -9,6 +9,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
 if ( class_exists( 'WP_Image_Editor_Gmagick' ) ) {
 	/**
 	 * Extension of the WP_Image_Editor_Gmagick class to auto-compress edited images.

@@ -12,6 +12,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
 /**
  * Run bulk EWWW IO tools via WP CLI.
  */
@@ -53,13 +54,13 @@ class EWWWIO_CLI extends WP_CLI_Command {
 	 * @param array $args A numeric array of required arguments.
 	 * @param array $assoc_args An associative array of optional arguments.
 	 */
-	function optimize( $args, $assoc_args ) {
+	public function optimize( $args, $assoc_args ) {
 		global $ewww_defer;
 		$ewww_defer = false;
 		global $ewww_webp_only;
 		$ewww_webp_only = false;
 		// because NextGEN hasn't flushed it's buffers...
-		while ( @ob_end_flush() ) {
+		while ( @ob_end_flush() ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		}
 		$library = $args[0];
 		if ( empty( $args[1] ) ) {
@@ -149,7 +150,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 					/* translators: 1: current image being proccessed 2: total number of images*/
 					WP_CLI::line( sprintf( __( 'Processing image %1$d of %2$d', 'ewww-image-optimizer' ), $clicount, $pending_count ) );
 					while ( ewww_image_optimizer_bulk_loop( 'ewww-image-optimizer-cli', $delay ) ) {
-						$clicount++;
+						++$clicount;
 						if ( $clicount <= $pending_count ) {
 							/* translators: 1: current image being proccessed 2: total number of images*/
 							WP_CLI::line( sprintf( __( 'Processing image %1$d of %2$d', 'ewww-image-optimizer' ), $clicount, $pending_count ) );
@@ -201,7 +202,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 					/* translators: 1: current image being proccessed 2: total number of images*/
 					WP_CLI::line( sprintf( __( 'Processing image %1$d of %2$d', 'ewww-image-optimizer' ), $clicount, $pending_count ) );
 					while ( ewww_image_optimizer_bulk_loop( 'ewww-image-optimizer-cli', $delay ) ) {
-						$clicount++;
+						++$clicount;
 						if ( $clicount <= $pending_count ) {
 							/* translators: 1: current image being proccessed 2: total number of images*/
 							WP_CLI::line( sprintf( __( 'Processing image %1$d of %2$d', 'ewww-image-optimizer' ), $clicount, $pending_count ) );
@@ -281,7 +282,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 	 * @param array $args A numeric array of required arguments.
 	 * @param array $assoc_args An associative array of optional arguments.
 	 */
-	function restore( $args, $assoc_args ) {
+	public function restore( $args, $assoc_args ) {
 		if ( ! empty( $assoc_args['reset'] ) ) {
 			delete_option( 'ewww_image_optimizer_bulk_restore_position' );
 		}
@@ -312,7 +313,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 
 		while ( ewww_image_optimizer_iterable( $optimized_images ) ) {
 			foreach ( $optimized_images as $optimized_image ) {
-				$completed++;
+				++$completed;
 				ewwwio_debug_message( "submitting {$optimized_image['id']} to be restored" );
 				$optimized_image['path'] = \ewww_image_optimizer_absolutize_path( $optimized_image['path'] );
 				$eio_backup->restore_file( $optimized_image );
@@ -347,7 +348,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 	 * @param array $args A numeric array of required arguments.
 	 * @param array $assoc_args An associative array of optional arguments.
 	 */
-	function remove_originals( $args, $assoc_args ) {
+	public function remove_originals( $args, $assoc_args ) {
 		if ( ! empty( $assoc_args['reset'] ) ) {
 			delete_option( 'ewww_image_optimizer_delete_originals_resume' );
 		}
@@ -371,7 +372,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 		/**
 		 * Require the files that contain functions for the images table and bulk processing images outside the library.
 		 */
-		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'aux-optimize.php' );
+		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'aux-optimize.php';
 
 		\ewwwio_debug_message( "searching for $per_page records starting at $position" );
 
@@ -420,7 +421,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 	 * @param array $args A numeric array of required arguments.
 	 * @param array $assoc_args An associative array of optional arguments.
 	 */
-	function remove_converted_originals( $args, $assoc_args ) {
+	public function remove_converted_originals( $args, $assoc_args ) {
 		if ( ! empty( $assoc_args['reset'] ) ) {
 			delete_option( 'ewww_image_optimizer_delete_originals_resume' );
 		}
@@ -497,7 +498,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 	 * @param array $args A numeric array of required arguments.
 	 * @param array $assoc_args An associative array of optional arguments.
 	 */
-	function remove_webp( $args, $assoc_args ) {
+	public function remove_webp( $args, $assoc_args ) {
 		if ( ! empty( $assoc_args['reset'] ) ) {
 			delete_option( 'ewww_image_optimizer_webp_clean_position' );
 		}
@@ -538,7 +539,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 		/**
 		 * Require the files that contain functions for the images table and bulk processing images outside the library.
 		 */
-		require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'aux-optimize.php' );
+		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'aux-optimize.php';
 
 		ewwwio_debug_message( "searching for $per_page records starting at $position1" );
 
@@ -645,7 +646,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 		// Set the resume flag to indicate the bulk operation is in progress.
 		update_option( 'ewww_image_optimizer_bulk_flag_resume', 'true' );
 		// Need this file to work with flag meta.
-		require_once( WP_CONTENT_DIR . '/plugins/flash-album-gallery/lib/meta.php' );
+		require_once WP_CONTENT_DIR . '/plugins/flash-album-gallery/lib/meta.php';
 		if ( ! ewww_image_optimizer_iterable( $ids ) ) {
 			WP_CLI::line( __( 'You do not appear to have uploaded any images yet.', 'ewww-image-optimizer' ) );
 			return;
@@ -737,7 +738,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 				sleep( $delay );
 			}
 			// Output which image in the queue is being worked on.
-			$clicount++;
+			++$clicount;
 			/* translators: 1: current image being proccessed 2: total number of images*/
 			WP_CLI::line( sprintf( __( 'Processing image %1$d of %2$d', 'ewww-image-optimizer' ), $clicount, $pending_count ) );
 			// Find out what time we started, in microseconds.
@@ -823,7 +824,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 		// Toggle the resume flag to indicate an operation is in progress.
 		update_option( 'ewww_image_optimizer_bulk_ngg_resume', 'true' );
 		// Need this file to work with metadata.
-		require_once( WP_CONTENT_DIR . '/plugins/nextcellent-gallery-nextgen-legacy/lib/meta.php' );
+		require_once WP_CONTENT_DIR . '/plugins/nextcellent-gallery-nextgen-legacy/lib/meta.php';
 		foreach ( $attachments as $id ) {
 			if ( ewww_image_optimizer_function_exists( 'sleep' ) ) {
 				sleep( $delay );
@@ -857,7 +858,6 @@ class EWWWIO_CLI extends WP_CLI_Command {
 		update_option( 'ewww_image_optimizer_bulk_ngg_attachments', '', false );
 		WP_CLI::success( __( 'Finished Optimization!', 'ewww-image-optimizer' ) );
 	}
-
 }
 
 WP_CLI::add_command( 'ewwwio', 'EWWWIO_CLI' );
@@ -871,4 +871,3 @@ WP_CLI::add_command( 'ewwwio', 'EWWWIO_CLI' );
 function ewww_image_optimizer_cli_timeout( $time_limit ) {
 	return 9999;
 }
-

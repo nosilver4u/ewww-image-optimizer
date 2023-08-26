@@ -64,7 +64,7 @@ class Tracking {
 
 		// Retrieve current theme info.
 		$theme_data      = \wp_get_theme();
-		$theme           = $theme_data->Name . ' ' . $theme_data->Version;
+		$theme           = $theme_data->Name . ' ' . $theme_data->Version; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$data['site_id'] = \md5( \home_url() );
 		if (
 			\strlen( \ewww_image_optimizer_get_option( 'ewww_image_optimizer_tracking_site_id' ) ) === 32 &&
@@ -84,7 +84,7 @@ class Tracking {
 
 		// Retrieve current plugin information.
 		if ( ! \function_exists( '\get_plugins' ) ) {
-			require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
+			require_once ABSPATH . '/wp-admin/includes/plugin.php';
 		}
 
 		$plugins        = \array_keys( \get_plugins() );
@@ -101,7 +101,7 @@ class Tracking {
 		$data['inactive_plugins'] = $plugins;
 		$data['locale']           = ( $data['wp_version'] >= 4.7 ) ? \get_user_locale() : \get_locale();
 		if ( ! \function_exists( '\ewww_image_optimizer_aux_images_table_count_pending' ) ) {
-			require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'aux-optimize.php' );
+			require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'aux-optimize.php';
 		}
 		if (
 			\ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ||
@@ -241,7 +241,6 @@ class Tracking {
 		\ewww_image_optimizer_set_option( 'ewww_image_optimizer_tracking_last_send', \time() );
 
 		return true;
-
 	}
 
 	/**
@@ -303,7 +302,7 @@ class Tracking {
 		if ( \is_multisite() ) {
 			if ( ! \function_exists( '\is_plugin_active_for_network' ) ) {
 				// Need to include the plugin library for the is_plugin_active function.
-				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
 			if ( \is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) && \get_current_blog_id() > 1 ) {
 				return;
@@ -320,7 +319,7 @@ class Tracking {
 			\wp_clear_scheduled_hook( 'ewww_image_optimizer_site_report' );
 			if ( ! \function_exists( '\is_plugin_active_for_network' ) && \is_multisite() ) {
 				// Need to include the plugin library for the is_plugin_active function.
-				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
 			if ( \is_multisite() && get_current_blog_id() > 1 && \is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
 				\switch_to_blog( 1 );
@@ -366,7 +365,7 @@ class Tracking {
 
 		if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
 			// Need to include the plugin library for the is_plugin_active function.
-			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 		if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) && ! current_user_can( 'manage_network_options' ) ) {
 			return;
@@ -394,5 +393,4 @@ class Tracking {
 			echo '</p></div>';
 		}
 	}
-
 }

@@ -16,8 +16,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function ewww_image_optimizer_display_tools() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	global $ewwwio_media_background;
-	global $ewwwio_image_background;
 	if (
 		! empty( $_POST['ewww_nonce'] ) &&
 		wp_verify_nonce( sanitize_key( $_POST['ewww_nonce'] ), 'ewww_image_optimizer_clear_queue' ) &&
@@ -25,8 +23,8 @@ function ewww_image_optimizer_display_tools() {
 		'ewww_image_optimizer_clear_queue' === $_POST['action'] &&
 		current_user_can( 'manage_options' )
 	) {
-		$ewwwio_media_background->cancel_process();
-		$ewwwio_image_background->cancel_process();
+		ewwwio()->background_media->cancel_process();
+		ewwwio()->background_image->cancel_process();
 		update_option( 'ewwwio_stop_scheduled_scan', true, false );
 	}
 	echo "<div class='wrap'>\n";
@@ -55,16 +53,16 @@ function ewww_image_optimizer_display_tools() {
 	echo "\n</div>\n";
 
 	$queue_status = __( 'idle', 'ewww-image-optimizer' );
-	if ( $ewwwio_media_background->is_process_running() ) {
+	if ( ewwwio()->background_media->is_process_running() ) {
 		$queue_status = __( 'running', 'ewww-image-optimizer' );
 	}
-	if ( $ewwwio_image_background->is_process_running() ) {
+	if ( ewwwio()->background_image->is_process_running() ) {
 		$queue_status = __( 'running', 'ewww-image-optimizer' );
 	}
 
 	echo '<hr class="ewww-tool-divider">';
-	$queue_count  = $ewwwio_media_background->count_queue();
-	$queue_count += $ewwwio_image_background->count_queue();
+	$queue_count  = ewwwio()->background_media->count_queue();
+	$queue_count += ewwwio()->background_image->count_queue();
 	/* translators: %s: idle/running */
 	echo "<p id='ewww-queue-info' class='ewww-tool-info'>" . sprintf( esc_html__( 'Current queue status: %s', 'ewww-image-optimizer' ), esc_html( $queue_status ) ) . "<br>\n";
 	if ( $queue_count ) {
@@ -604,7 +602,7 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 				array_walk( $attachment_ids, 'intval' );
 				while ( $attachment_ids && $attachment_query_count < $max_query ) {
 					$attachment_query .= "'" . array_pop( $attachment_ids ) . "',";
-					$attachment_query_count++;
+					++$attachment_query_count;
 				}
 				$attachment_query = 'WHERE pid IN (' . substr( $attachment_query, 0, -1 ) . ')';
 			}
@@ -634,7 +632,7 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 					if ( ewww_image_optimizer_iterable( $ngg_sizes ) ) {
 						foreach ( $ngg_sizes as $size ) {
 							if ( 'full' !== $size ) {
-								$resize_count++;
+								++$resize_count;
 							}
 						}
 					}
@@ -647,7 +645,7 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 					$offset                 = 0;
 					while ( $attachment_ids && $attachment_query_count < $max_query ) {
 						$attachment_query .= "'" . array_pop( $attachment_ids ) . "',";
-						$attachment_query_count++;
+						++$attachment_query_count;
 					}
 					$attachment_query = 'WHERE pid IN (' . substr( $attachment_query, 0, -1 ) . ')';
 				}
@@ -661,7 +659,7 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 				array_walk( $attachment_ids, 'intval' );
 				while ( $attachment_ids && $attachment_query_count < $max_query ) {
 					$attachment_query .= "'" . array_pop( $attachment_ids ) . "',";
-					$attachment_query_count++;
+					++$attachment_query_count;
 				}
 				$attachment_query = 'WHERE pid IN (' . substr( $attachment_query, 0, -1 ) . ')';
 			}
@@ -674,10 +672,10 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 						continue;
 					}
 					if ( ! empty( $meta['webview'] ) ) {
-						$resize_count++;
+						++$resize_count;
 					}
 					if ( ! empty( $meta['thumbnail'] ) ) {
-						$resize_count++;
+						++$resize_count;
 					}
 				}
 				$full_count += count( $attachments );
@@ -688,7 +686,7 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 					$offset                 = 0;
 					while ( $attachment_ids && $attachment_query_count < $max_query ) {
 						$attachment_query .= "'" . array_pop( $attachment_ids ) . "',";
-						$attachment_query_count++;
+						++$attachment_query_count;
 					}
 					$attachment_query = 'WHERE pid IN (' . substr( $attachment_query, 0, -1 ) . ')';
 				}
@@ -1167,7 +1165,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		ewwwio_debug_message( 'validated ' . count( $attachment_meta ) . ' attachment meta items' );
 		ewwwio_debug_message( 'remaining items after selection: ' . count( $attachment_ids ) );
 		foreach ( $attachment_ids as $selected_id ) {
-			$attachments_processed++;
+			++$attachments_processed;
 			if ( 0 === $attachments_processed % 5 && ( microtime( true ) - $started > apply_filters( 'ewww_image_optimizer_timeout', 22 ) || ! ewwwio_check_memory_available( 2194304 ) ) ) {
 				ewwwio_debug_message( 'time exceeded, or memory exceeded' );
 				ewww_image_optimizer_debug_log();
@@ -1556,7 +1554,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						$utf8_file_path = $file_path;
 					} else {
 						ewwwio_debug_message( 'file will become utf8' );
-						$utf8_file_path = utf8_encode( $file_path );
+						$utf8_file_path = mb_convert_encoding( $file_path, 'UTF-8' );
 					}
 					ewww_image_optimizer_debug_log();
 					$images[ $file_path ] = array(
@@ -1567,7 +1565,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						'resize'        => $size,
 						'pending'       => 1,
 					);
-					$image_count++;
+					++$image_count;
 					ewwwio_debug_message( 'image added to $images queue' );
 					ewww_image_optimizer_debug_log();
 				} // End if().
@@ -1981,7 +1979,7 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 	$output['results']   = '';
 	$output['completed'] = 0;
 	while ( $output['completed'] < $batch_image_limit && $image->file && microtime( true ) - $started + $time_adjustment < apply_filters( 'ewww_image_optimizer_timeout', 15 ) ) {
-		$output['completed']++;
+		++$output['completed'];
 		$meta = false;
 		ewwwio_debug_message( "processing {$image->id}: {$image->file}" );
 		// See if the image needs fetching from a CDN.

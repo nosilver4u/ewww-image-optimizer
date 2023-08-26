@@ -879,6 +879,17 @@ p#ewww-webp-rewrite-status {
 #ewwwio-banner #ewww-news-button {
 	margin-top: 0;
 }
+#ewww-settings-form a.ewww-orange-button {
+	background: #f18f07;
+	border-color: #f18f07;
+}
+#ewww-settings-form a.ewww-orange-button:hover {
+	background: #f39c12;
+	border-color: #f18f07;	
+}
+#ewww-settings-form a.ewww-orange-button:focus {
+	box-shadow: 0 0 0 1px #fff,0 0 0 3px #f18f07;
+}
 #ewww-general-settings a.ewww-upgrade {
 	font-weight:bold;
 	background-color: #3eadc9;
@@ -887,6 +898,9 @@ p#ewww-webp-rewrite-status {
 #ewww-general-settings a.ewww-upgrade:hover {
 	background-color: #40bad4;
 	border-color: #3ca0be;
+}
+#ewww-general-settings a.ewww-upgrade:focus {
+	box-shadow: 0 0 0 1px #fff,0 0 0 3px #3ca0be;
 }
 .ewww-help-beacon-multi, .ewww-help-beacon-single, .ewww-help-external {
 	margin: 3px;

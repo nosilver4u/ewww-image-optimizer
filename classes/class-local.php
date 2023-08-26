@@ -44,7 +44,7 @@ class Local extends Base {
 	/**
 	 * Initialize the local properties we'll need later, since tools are late-initialized except on specific pages.
 	 */
-	function __construct() {
+	public function __construct() {
 		parent::__construct();
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->exec_check();
@@ -99,7 +99,7 @@ class Local extends Base {
 	 *
 	 * @return bool True if the PHP_OS is supported, false otherwise.
 	 */
-	function os_supported() {
+	public function os_supported() {
 		$supported_oss = array(
 			'Linux',
 			'Darwin',
@@ -413,7 +413,7 @@ class Local extends Base {
 	/**
 	 * Alert the user when tool installation fails.
 	 */
-	function tool_installation_failed_notice() {
+	public function tool_installation_failed_notice() {
 		echo "<div id='ewww-image-optimizer-warning-tool-install' class='notice notice-error'><p><strong>" .
 			/* translators: %s: Folder location where executables should be installed */
 			\sprintf( \esc_html__( 'EWWW Image Optimizer could not install tools in %s', 'ewww-image-optimizer' ), \esc_html( $this->content_dir ) ) . '.</strong> ' .
@@ -698,7 +698,7 @@ class Local extends Base {
 	 *
 	 * @return array The list of tools with enabled and path indices.
 	 */
-	function check_all_tools() {
+	public function check_all_tools() {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		foreach ( $this->tools as $tool => $status ) {
 			if ( $status['enabled'] && ! isset( $status['path'] ) ) {
@@ -733,7 +733,7 @@ class Local extends Base {
 	 *
 	 * @param string $tool The name of the tool to check/test.
 	 */
-	function check_tool( $tool ) {
+	public function check_tool( $tool ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( isset( $this->tools[ $tool ]['path'] ) ) {
 			return;
@@ -820,7 +820,7 @@ class Local extends Base {
 	 * @param string $blind Process a sample image and do a filesize check instead of looking for the version string.
 	 * @return string A validated binary path.
 	 */
-	function find_nix_binary( $binary, $blind = false ) {
+	public function find_nix_binary( $binary, $blind = false ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( empty( $binary ) ) {
 			return '';
@@ -901,7 +901,7 @@ class Local extends Base {
 	 * @param string $tool The specific tool to test. Append '-blind' for blind to do a 'live' test rather than a version check.
 	 * @return bool|string True (or truthy) if found.
 	 */
-	function test_binary( $path, $tool ) {
+	public function test_binary( $path, $tool ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->debug_message( "testing case: $tool at $path" );
 
@@ -1109,5 +1109,4 @@ class Local extends Base {
 		$this->debug_message( 'tool not found' );
 		return false;
 	}
-
 }

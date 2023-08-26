@@ -35,7 +35,7 @@ class EWWWIO_Relative_Migration {
 	/**
 	 * Sets up the the migration.
 	 */
-	function __construct() {
+	public function __construct() {
 		if ( 'done' === get_option( 'ewww_image_optimizer_relative_migration_status' ) ) {
 			return;
 		}

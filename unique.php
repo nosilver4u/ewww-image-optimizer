@@ -181,7 +181,7 @@ function ewww_image_optimizer_jpegtran_autorotate( $file, $type, $orientation ) 
  *                             6=imagestore.
  * @param bool   $converted True if this is a resize and the full image was converted to a
  *                          new format. Deprecated, always false now.
- * @param bool   $new True if this is a new image, so it should attempt conversion regardless of
+ * @param bool   $new_image True if this is a new image, so it should attempt conversion regardless of
  *                    previous results.
  * @param bool   $fullsize True if this is a full size (original) image.
  * @return array {
@@ -193,7 +193,7 @@ function ewww_image_optimizer_jpegtran_autorotate( $file, $type, $orientation ) 
  *     @type string The original filename if converted.
  * }
  */
-function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $new = false, $fullsize = false ) {
+function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $new_image = false, $fullsize = false ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	session_write_close();
 	if ( function_exists( 'wp_raise_memory_limit' ) ) {
@@ -334,7 +334,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			}
 			$compression_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' );
 			// Check for previous optimization, so long as the force flag is not on and this isn't a new image that needs converting.
-			if ( empty( $ewww_force ) && ! ( $new && $convert ) ) {
+			if ( empty( $ewww_force ) && ! ( $new_image && $convert ) ) {
 				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
 				$smart_reopt = ! empty( $ewww_force_smart ) && ewww_image_optimizer_level_mismatch( $ewww_image->level, $compression_level ) ? true : false;
 				if ( $smart_reopt ) {
@@ -615,7 +615,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			} // End if().
 			$compression_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' );
 			// Check for previous optimization, so long as the force flag is not on and this isn't a new image that needs converting.
-			if ( empty( $ewww_force ) && ! ( $new && $convert ) ) {
+			if ( empty( $ewww_force ) && ! ( $new_image && $convert ) ) {
 				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
 				$smart_reopt = ! empty( $ewww_force_smart ) && ewww_image_optimizer_level_mismatch( $ewww_image->level, $compression_level ) ? true : false;
 				if ( $smart_reopt ) {
@@ -926,7 +926,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			}
 			$compression_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' );
 			// Check for previous optimization, so long as the force flag is on and this isn't a new image that needs converting.
-			if ( empty( $ewww_force ) && ! ( $new && $convert ) ) {
+			if ( empty( $ewww_force ) && ! ( $new_image && $convert ) ) {
 				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
 				$smart_reopt = ! empty( $ewww_force_smart ) && ewww_image_optimizer_level_mismatch( $ewww_image->level, $compression_level ) ? true : false;
 				if ( $smart_reopt ) {

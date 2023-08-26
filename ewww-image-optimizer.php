@@ -34,7 +34,7 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70300 ) {
 	add_action( 'admin_notices', 'ewww_image_optimizer_dual_plugin' );
 } elseif ( false === strpos( add_query_arg( '', '' ), 'ewwwio_disable=1' ) ) {
 
-	define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 720 );
+	define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 720.11 );
 	// Initialize a couple globals.
 	$eio_debug  = '';
 	$ewww_defer = true;
@@ -110,23 +110,23 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70300 ) {
 	/**
 	 * All the 'unique' functions for the core EWWW IO plugin (slowly being replaced with oop).
 	 */
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'unique.php' );
+	require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'unique.php';
 	/**
 	 * All the 'common' functions for both EWWW IO plugins.
 	 */
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'common.php' );
+	require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'common.php';
 	/**
 	 * All the base functions for our plugins and classes to inherit.
 	 */
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-base.php' );
+	require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-base.php';
 	/**
 	 * The setup functions for EWWW IO.
 	 */
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-plugin.php' );
+	require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-plugin.php';
 	/**
 	 * Class for local optimization tool installation/valication.
 	 */
-	require_once( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-local.php' );
+	require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-local.php';
 	/**
 	 * The main function to return a single EWWW\Plugin object to functions elsewhere.
 	 *
