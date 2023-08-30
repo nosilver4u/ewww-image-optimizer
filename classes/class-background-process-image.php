@@ -1,6 +1,6 @@
 <?php
 /**
- * Class for Background optimization of individual images.
+ * Class for Background optimization of individual images, used by scheduled optimization.
  *
  * @link https://ewww.io
  * @package EWWW_Image_Optimizer
@@ -34,6 +34,14 @@ class Background_Process_Image extends Background_Process {
 	 * @var string $action
 	 */
 	protected $active_queue = 'single-async';
+
+	/**
+	 * Attempts limit, shorter for scheduled opt.
+	 *
+	 * @var int
+	 * @access protected
+	 */
+	protected $max_attempts = 5;
 
 	/**
 	 * Runs optimization for a file from the image queue.

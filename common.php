@@ -721,14 +721,6 @@ function ewww_image_optimizer_save_network_settings() {
  */
 function ewww_image_optimizer_init() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	// Check to see if this is the settings page and enable debugging temporarily if it is.
-	global $ewwwio_temp_debug;
-	$ewwwio_temp_debug = ! empty( $ewwwio_temp_debug ) ? $ewwwio_temp_debug : false;
-	if ( is_admin() && ! wp_doing_ajax() ) {
-		if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-			$ewwwio_temp_debug = true;
-		}
-	}
 
 	// For the settings page, check for the enable-local param and take appropriate action.
 	if ( ! empty( $_GET['enable-local'] ) && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
@@ -904,6 +896,9 @@ function ewww_image_optimizer_upgrade() {
 		if ( get_option( 'ewww_image_optimizer_version' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_wizard_complete' ) ) {
 			add_option( 'ewww_image_optimizer_wizard_complete', true, '', false );
 			add_site_option( 'ewww_image_optimizer_wizard_complete', true );
+		}
+		if ( is_file( EWWWIO_CONTENT_DIR . 'debug.log' ) && is_writable( EWWWIO_CONTENT_DIR . 'debug.log' ) ) {
+			unlink( EWWWIO_CONTENT_DIR . 'debug.log' );
 		}
 		ewww_image_optimizer_remove_obsolete_settings();
 		update_option( 'ewww_image_optimizer_version', EWWW_IMAGE_OPTIMIZER_VERSION );
@@ -1110,14 +1105,18 @@ function ewww_image_optimizer_privacy_policy_content() {
  * @param object $screen Information about the page/screen currently being loaded.
  */
 function ewww_image_optimizer_current_screen( $screen ) {
-	global $ewwwio_temp_debug;
-	global $eio_debug;
-	if ( false === strpos( $screen->id, 'settings_page_ewww-image-optimizer' ) && false === strpos( $screen->id, 'settings_page_easy-image-optimizer' ) ) {
-		$ewwwio_temp_debug = false;
-		if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-			$eio_debug = '';
-		}
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
+		return;
 	}
+	ewwwio_debug_message( 'current screen: ' . $screen->id );
+	if ( false !== strpos( $screen->id, 'settings_page_ewww-image-optimizer' ) ) {
+		return;
+	}
+	if ( false !== strpos( $screen->id, 'media_page_ewww-image-optimizer-bulk' ) ) {
+		return;
+	}
+	EWWW\Base::$debug_data = '';
+	EWWW\Base::$temp_debug = false;
 }
 
 /**
@@ -6384,7 +6383,6 @@ function ewww_image_optimizer_size_format( $size, $precision = 1 ) {
  * @global object $wpdb
  * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  * @global bool   $ewww_defer Set to false to avoid deferring image optimization.
- * @global string $eio_debug Contains in-memory debug log.
  * @global object $ewww_image Contains more information about the image currently being processed.
  *
  * @param array $attachment {
@@ -6498,8 +6496,7 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 			number_format_i18n( $elapsed, 2 )
 		);
 		if ( get_site_option( 'ewww_image_optimizer_debug' ) ) {
-			global $eio_debug;
-			$output['results'] .= '<div style="background-color:#f1f1f1;">' . $eio_debug . '</div>';
+			$output['results'] .= '<div style="background-color:#f1f1f1;">' . EWWW\Base::$debug_data . '</div>';
 		}
 		$next_file = ewww_image_optimizer_absolutize_path( $wpdb->get_var( "SELECT path FROM $wpdb->ewwwio_images WHERE pending=1 LIMIT 1" ) );
 		if ( ! empty( $next_file ) ) {
@@ -11365,11 +11362,8 @@ function ewww_image_optimizer_intro_wizard() {
 				ewww_image_optimizer_set_option( 'ewww_image_optimizer_backup_files', 'cloud' );
 			}
 			update_option( 'ewww_image_optimizer_wizard_complete', true, false );
-			global $eio_debug;
-			$debug_info = '';
-			if ( ! empty( $eio_debug ) ) {
-				$debug_info = $eio_debug;
-			}
+			$debug_info = EWWW\Base::$debug_data;
+			ewwwio()->temp_debug_end();
 		}
 		wp_add_inline_script(
 			'ewww-settings-script',
@@ -11656,7 +11650,7 @@ function ewww_image_optimizer_intro_wizard() {
 	window.Beacon('init', 'aa9c3d3b-d4bc-4e9b-b6cb-f11c9f69da87');
 	Beacon( 'prefill', {
 		email: '<?php echo esc_js( $help_email ); ?>',
-		text: '\n\n----------------------------------------\n<?php echo wp_kses_post( $hs_debug ); ?>',
+		text: '\n\n---------------------------------------\n<?php echo wp_kses_post( $hs_debug ); ?>',
 	});
 </script>
 				<?php
@@ -11691,11 +11685,8 @@ function ewww_image_optimizer_rescue_mode() {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_picture_webp', false );
 		$frontend_functions[] = 'picturewebp';
 	}
-	global $eio_debug;
-	$debug_info = '';
-	if ( ! empty( $eio_debug ) ) {
-		$debug_info = $eio_debug;
-	}
+	$debug_info = EWWW\Base::$debug_data;
+	ewwwio()->temp_debug_end();
 	?>
 <div id='ewww-settings-wrap' class='wrap'>
 	<div id='ewwwio-rescue'>
@@ -11764,7 +11755,7 @@ function ewww_image_optimizer_rescue_mode() {
 	window.Beacon('init', 'aa9c3d3b-d4bc-4e9b-b6cb-f11c9f69da87');
 	Beacon( 'prefill', {
 		email: '<?php echo esc_js( $help_email ); ?>',
-		text: '\n\n----------------------------------------\n<?php echo wp_kses_post( $hs_debug ); ?>',
+		text: '\n\n---------------------------------------\n<?php echo wp_kses_post( $hs_debug ); ?>',
 	});
 </script>
 		<?php
@@ -11793,16 +11784,13 @@ function ewww_image_optimizer_network_singlesite_options() {
 /**
  * Displays the EWWW IO options along with status information, and debugging information.
  *
- * @global string $eio_debug In memory debug log.
  * @global int $wp_version
  *
  * @param string $network Indicates which options should be shown in multisite installations.
  */
 function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	global $ewwwio_temp_debug;
 	global $ewwwio_upgrading;
-	global $eio_debug;
 	global $exactdn;
 	global $eio_alt_webp;
 	global $wpdb;
@@ -11816,8 +11804,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	}
 
 	ewwwio_debug_info();
-	$debug_info = $eio_debug;
-	ewww_image_optimizer_temp_debug_clear();
+	$debug_info = EWWW\Base::$debug_data;
 
 	$exactdn_sub_folder = false;
 	if ( is_multisite() && is_network_admin() ) {
@@ -11874,6 +11861,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		ewww_image_optimizer_rescue_mode();
 		return;
 	}
+	ewwwio()->temp_debug_end();
 	ewwwio()->hs_beacon->admin_notice( $network );
 	?>
 
@@ -12442,6 +12430,31 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$premium_hide = ' style="display:none"';
 	}
 	?>
+				<tr>
+					<th scope='row'>
+	<?php if ( $easymode ) : ?>
+						<p>
+							<a class='button-primary ewww-orange-button' href='<?php echo esc_url( $enable_local_url ); ?>'>
+								<?php /* translators: Ludicrous is a reference to Ludicrous Speed in the movie Spaceballs. May be translated literally, or with a suitable replacement for your locale. */ ?>
+								<?php esc_html_e( 'Ludicrous Mode', 'ewww-image-optimizer' ); ?>
+							</a>
+						</p>
+					</th>
+					<td>
+						<?php /* translators: plaid is what happens when they go to Ludicrous Speed in the movie Spaceballs. May be translated literally, ignored, or with a suitable replacement for your locale. */ ?>
+						<p><?php esc_html_e( 'Show every option possible, even plaid.', 'ewww-image-optimizer' ); ?></p>
+	<?php else : ?>
+						<p>
+							<a class='button-primary ewww-orange-button' href='<?php echo esc_url( $enable_easy_url ); ?>'>
+								<?php esc_html_e( 'Easy Mode', 'ewww-image-optimizer' ); ?>
+							</a>
+						</p>
+					</th>
+					<td>
+						<p><?php esc_html_e( 'Go back to the basics.', 'ewww-image-optimizer' ); ?></p>
+	<?php endif; ?>
+					</td>
+				</tr>
 	<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
 				<tr id='ewww_image_optimizer_cloud_key_container'>
 					<th scope='row'>
@@ -13132,29 +13145,6 @@ AddType image/webp .webp</pre>
 					</td>
 				</tr>
 	<?php endif; ?>
-				<tr>
-					<th scope='row'>
-	<?php if ( $easymode ) : ?>
-						<p>
-							<a class='button-primary ewww-orange-button' href='<?php echo esc_url( $enable_local_url ); ?>'>
-								<?php esc_html_e( 'Ludicrous Mode', 'ewww-image-optimizer' ); ?>
-							</a>
-						</p>
-					</th>
-					<td>
-						<p><?php esc_html_e( 'Display every option available.', 'ewww-image-optimizer' ); ?></p>
-	<?php else : ?>
-						<p>
-							<a class='button-primary ewww-orange-button' href='<?php echo esc_url( $enable_easy_url ); ?>'>
-								<?php esc_html_e( 'Easy Mode', 'ewww-image-optimizer' ); ?>
-							</a>
-						</p>
-					</th>
-					<td>
-						<p><?php esc_html_e( 'Hide all the extras.', 'ewww-image-optimizer' ); ?></p>
-	<?php endif; ?>
-					</td>
-				</tr>
 			</table>
 	<?php ob_end_flush(); ?>
 		</div>
@@ -13746,7 +13736,7 @@ AddType image/webp .webp</pre>
 						<span><?php esc_html_e( 'Use this to provide information for support purposes, or if you feel comfortable digging around in the code to fix a problem you are experiencing.', 'ewww-image-optimizer' ); ?></span>
 					</td>
 				</tr>
-	<?php if ( ewwwio_is_file( EWWWIO_CONTENT_DIR . 'debug.log' ) ) : ?>
+	<?php if ( ewwwio_is_file( ewwwio()->debug_log_path() ) ) : ?>
 				<tr>
 					<th scope='row'>
 						<?php esc_html_e( 'Debug Log', 'ewww-image-optimizer' ); ?>
@@ -13833,13 +13823,12 @@ AddType image/webp .webp</pre>
 	window.Beacon('init', 'aa9c3d3b-d4bc-4e9b-b6cb-f11c9f69da87');
 	Beacon( 'prefill', {
 		email: '<?php echo esc_js( $help_email ); ?>',
-		text: '\n\n----------------------------------------\n<?php echo wp_kses_post( $hs_debug ); ?>',
+		text: '\n\n---------------------------------------\n<?php echo wp_kses_post( $hs_debug ); ?>',
 	});
 </script>
 		<?php
 	}
 	ewwwio_memory( __FUNCTION__ );
-	ewww_image_optimizer_temp_debug_clear();
 }
 
 /**
@@ -14189,13 +14178,13 @@ function ewww_image_optimizer_disable_debugging() {
 }
 
 /**
- * View the debug.log file from the wp-admin.
+ * View the debug log file from the wp-admin.
  */
 function ewww_image_optimizer_view_debug_log() {
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
-	$debug_log = EWWWIO_CONTENT_DIR . 'debug.log';
+	$debug_log = ewwwio()->debug_log_path();
 	if ( ewwwio_is_file( $debug_log ) ) {
 		ewwwio_ob_clean();
 		header( 'Content-Type: text/plain;charset=UTF-8' );
@@ -14206,13 +14195,13 @@ function ewww_image_optimizer_view_debug_log() {
 }
 
 /**
- * Removes the debug.log file from the plugin folder.
+ * Removes the debug log file.
  */
 function ewww_image_optimizer_delete_debug_log() {
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
-	$debug_log = EWWWIO_CONTENT_DIR . 'debug.log';
+	$debug_log = ewwwio()->debug_log_path();
 	if ( ewwwio_is_file( $debug_log ) && is_writable( $debug_log ) ) {
 		unlink( $debug_log );
 	}
@@ -14225,13 +14214,13 @@ function ewww_image_optimizer_delete_debug_log() {
 }
 
 /**
- * Download the debug.log file from the wp-admin.
+ * Download the debug log file from the wp-admin.
  */
 function ewww_image_optimizer_download_debug_log() {
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
-	$debug_log = EWWWIO_CONTENT_DIR . 'debug.log';
+	$debug_log = ewwwio()->debug_log_path();
 	if ( ewwwio_is_file( $debug_log ) ) {
 		ewwwio_ob_clean();
 		header( 'Content-Description: File Transfer' );
@@ -14250,11 +14239,10 @@ function ewww_image_optimizer_download_debug_log() {
 /**
  * Adds version information to the in-memory debug log.
  *
- * @global string $eio_debug The in-memory debug log.
  * @global int $wp_version
  */
 function ewwwio_debug_version_info() {
-	global $eio_debug;
+	$eio_debug = '';
 	if ( ! extension_loaded( 'suhosin' ) && function_exists( 'get_current_user' ) ) {
 		$eio_debug .= get_current_user() . '<br>';
 	}
@@ -14278,6 +14266,8 @@ function ewwwio_debug_version_info() {
 		}
 	}
 	$eio_debug .= 'core plugin<br>';
+
+	EWWW\Base::$debug_data .= $eio_debug;
 }
 
 /**
@@ -14294,18 +14284,6 @@ function ewwwio_debug_backtrace() {
 	array_shift( $backtrace );
 	array_shift( $backtrace );
 	return maybe_serialize( $backtrace );
-}
-
-/**
- * Make sure to clear temp debug option on shutdown.
- */
-function ewww_image_optimizer_temp_debug_clear() {
-	global $ewwwio_temp_debug;
-	global $eio_debug;
-	if ( $ewwwio_temp_debug ) {
-		$eio_debug = '';
-	}
-	$ewwwio_temp_debug = false;
 }
 
 /**

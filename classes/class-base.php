@@ -18,6 +18,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Base {
 
 	/**
+	 * Data that has been sent to the debugger, appended as the plugin operates.
+	 *
+	 * @access public
+	 * @var string $debug_data
+	 */
+	public static $debug_data = '';
+
+	/**
+	 * Temporarily enable debug mode, used to collect system info on specific pages.
+	 *
+	 * @access public
+	 * @var bool $temp_debug
+	 */
+	public static $temp_debug = false;
+
+	/**
 	 * Content directory (URL) for the plugin to use.
 	 *
 	 * @access protected
@@ -231,6 +247,17 @@ class Base {
 		if ( ! $debug ) {
 			return;
 		}
+		// Check to see if we're in the wp-admin to enable debugging temporarily.
+		// Done after the above, because this means we are constructing the Plugin() object
+		// which is the very first object initialized.
+		if (
+			! self::$temp_debug &&
+			is_admin() &&
+			! wp_doing_ajax() &&
+			! $this->get_option( $this->prefix . 'debug' )
+		) {
+				self::$temp_debug = true;
+		}
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->debug_message( "plugin (resource) content_url: $this->content_url" );
 		$this->debug_message( "plugin (resource) content_dir: $this->content_dir" );
@@ -271,23 +298,34 @@ class Base {
 	}
 
 	/**
-	 * Saves the in-memory debug log to a logfile in the plugin folder.
+	 * Get the path to the current debug log, if one exists. Otherwise, generate a new filename.
 	 *
-	 * @global string $eio_debug The in-memory debug log.
+	 * @return string The full path to the debug log.
+	 */
+	public function debug_log_path() {
+		$potential_logs = \scandir( $this->content_dir );
+		if ( $this->is_iterable( $potential_logs ) ) {
+			foreach ( $potential_logs as $potential_log ) {
+				if ( $this->str_ends_with( $potential_log, '.log' ) && false !== strpos( $potential_log, strtolower( __NAMESPACE__ ) . '-debug-' ) && is_file( $this->content_dir . $potential_log ) ) {
+					return $this->content_dir . $potential_log;
+				}
+			}
+		}
+		return $this->content_dir . strtolower( __NAMESPACE__ ) . '-debug-' . uniqid() . '.log';
+	}
+
+	/**
+	 * Saves the in-memory debug log to a logfile in the plugin folder.
 	 */
 	public function debug_log() {
-		global $eio_debug;
-		global $ewwwio_temp_debug;
-		global $easyio_temp_debug;
-		$debug_log = $this->content_dir . 'debug.log';
+		$debug_log = $this->debug_log_path();
 		if ( ! \is_dir( $this->content_dir ) && \is_writable( WP_CONTENT_DIR ) ) {
 			\wp_mkdir_p( $this->content_dir );
 		}
-		$debug_enabled = $this->get_option( $this->prefix . 'debug' );
 		if (
-			! empty( $eio_debug ) &&
-			empty( $easyio_temp_debug ) &&
-			$debug_enabled &&
+			! empty( self::$debug_data ) &&
+			empty( self::$temp_debug ) &&
+			$this->get_option( $this->prefix . 'debug' ) &&
 			\is_dir( $this->content_dir ) &&
 			\is_writable( $this->content_dir )
 		) {
@@ -299,23 +337,21 @@ class Base {
 			} else {
 				if ( \filesize( $debug_log ) + 4000000 + \memory_get_usage( true ) > $memory_limit ) {
 					\unlink( $debug_log );
+					\clearstatcache();
+					$debug_log = $this->debug_log_path();
 					\touch( $debug_log );
 				}
 			}
-			if ( \filesize( $debug_log ) + \strlen( $eio_debug ) + 4000000 + \memory_get_usage( true ) <= $memory_limit && \is_writable( $debug_log ) ) {
-				$eio_debug = \str_replace( '<br>', "\n", $eio_debug );
-				\file_put_contents( $debug_log, $timestamp . $eio_debug, FILE_APPEND );
+			if ( \filesize( $debug_log ) + \strlen( self::$debug_data ) + 4000000 + \memory_get_usage( true ) <= $memory_limit && \is_writable( $debug_log ) ) {
+				self::$debug_data = \str_replace( '<br>', "\n", self::$debug_data );
+				\file_put_contents( $debug_log, $timestamp . self::$debug_data, FILE_APPEND );
 			}
 		}
-		$eio_debug = '';
+		self::$debug_data = '';
 	}
 
 	/**
 	 * Adds information to the in-memory debug log.
-	 *
-	 * @global string $eio_debug The in-memory debug log.
-	 * @global bool   $easyio_temp_debug Indicator that we are temporarily debugging on the wp-admin.
-	 * @global bool   $ewwwio_temp_debug Indicator that we are temporarily debugging on the wp-admin.
 	 *
 	 * @param string $message Debug information to add to the log.
 	 */
@@ -339,21 +375,27 @@ class Base {
 			\WP_CLI::debug( $message );
 			return;
 		}
-		global $ewwwio_temp_debug;
-		global $easyio_temp_debug;
-		if ( $easyio_temp_debug || $ewwwio_temp_debug || $this->get_option( $this->prefix . 'debug' ) ) {
+		if ( self::$temp_debug || $this->get_option( $this->prefix . 'debug' ) ) {
 			$memory_limit = $this->memory_limit();
 			if ( \strlen( $message ) + 4000000 + \memory_get_usage( true ) <= $memory_limit ) {
-				global $eio_debug;
-				$message    = \str_replace( "\n\n\n", '<br>', $message );
-				$message    = \str_replace( "\n\n", '<br>', $message );
-				$message    = \str_replace( "\n", '<br>', $message );
-				$eio_debug .= "$message<br>";
+				$message           = \str_replace( "\n\n\n", '<br>', $message );
+				$message           = \str_replace( "\n\n", '<br>', $message );
+				$message           = \str_replace( "\n", '<br>', $message );
+				self::$debug_data .= "$message<br>";
 			} else {
-				global $eio_debug;
-				$eio_debug = "not logging message, memory limit is $memory_limit";
+				self::$debug_data = "not logging message, memory limit is $memory_limit";
 			}
 		}
+	}
+
+	/**
+	 * Clears temp debugging mode and flushes the debug data if needed.
+	 */
+	public function temp_debug_end() {
+		if ( ! $this->get_option( $this->prefix . 'debug' ) ) {
+			self::$debug_data = '';
+		}
+		self::$temp_debug = false;
 	}
 
 	/**

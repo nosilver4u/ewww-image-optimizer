@@ -628,8 +628,6 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 
 		/**
 		 * Output the html for the bulk optimize page.
-		 *
-		 * @global string $eio_debug In-memory debug log.
 		 */
 		public function ewww_ngg_bulk_preview() {
 			if ( ! empty( $_REQUEST['doaction'] ) ) {
@@ -738,9 +736,8 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			}
 			echo '</div>';
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-				global $eio_debug;
 				echo '<div style="clear:both;"></div>';
-				echo '<p><strong>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</strong></p><div style="border:1px solid #e5e5e5;background:#fff;overflow:auto;height:300px;width:800px;">' . wp_kses_post( $eio_debug ) . '</div>';
+				echo '<p><strong>' . esc_html__( 'Debugging Information', 'ewww-image-optimizer' ) . ':</strong></p><div style="border:1px solid #e5e5e5;background:#fff;overflow:auto;height:300px;width:800px;">' . wp_kses_post( EWWW\Base::$debug_data ) . '</div>';
 			}
 			echo '</div>';
 		}

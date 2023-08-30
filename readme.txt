@@ -138,8 +138,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 7.2.1 =
+* changed: Scheduled Optimizer skips image errors faster
 * changed: use updated coding standards, and restructure code for async/background functions
 * removed: legacy image editor extensions for unmaintained plugins
+* security: randomize filename of debug log
 
 = 7.2.0 =
 * added: Easy IO rewrites poster/thumbnail image URLs for video elements

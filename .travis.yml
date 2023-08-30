@@ -30,7 +30,7 @@ jobs:
   include:
     - php: 7.3
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
-    - php: 8.1
+    - php: 8.2
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
     - php: 8.0
       env: WP_VERSION=5.9 WP_MULTISITE=0

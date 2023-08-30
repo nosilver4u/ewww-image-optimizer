@@ -25,11 +25,10 @@ function ewww_image_optimizer_aux_images() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$output = '';
 
-	global $eio_debug;
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 		ewwwio_debug_info();
 		echo '<div style="clear:both;"></div>';
-		if ( ewwwio_is_file( EWWWIO_CONTENT_DIR . 'debug.log' ) ) {
+		if ( ewwwio_is_file( ewwwio()->debug_log_path() ) ) {
 			?>
 			<h2><?php esc_html_e( 'Debug Log', 'ewww-image-optimizer' ); ?></h2>
 			<p>
@@ -43,7 +42,7 @@ function ewww_image_optimizer_aux_images() {
 		echo '<p><button id="ewww-copy-debug" class="button button-secondary" type="button">' . esc_html__( 'Copy', 'ewww-image-optimizer' ) . '</button></p>';
 		echo '<div id="ewww-debug-info" contenteditable="true">' .
 			wp_kses(
-				$eio_debug,
+				EWWW\Base::$debug_data,
 				array(
 					'br' => array(),
 					'b'  => array(),
@@ -51,16 +50,14 @@ function ewww_image_optimizer_aux_images() {
 			) .
 			'</div>';
 	} else {
-		ewww_image_optimizer_set_option( 'ewww_image_optimizer_debug', true );
 		ewwwio_debug_info();
-		ewww_image_optimizer_set_option( 'ewww_image_optimizer_debug', false );
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
 		$current_user = wp_get_current_user();
 		$help_email   = $current_user->user_email;
 		$hs_debug     = '';
-		if ( ! empty( $eio_debug ) ) {
-			$hs_debug = str_replace( array( "'", '<br>', '<b>', '</b>', '=>' ), array( "\'", '\n', '**', '**', '=' ), $eio_debug );
+		if ( ! empty( EWWW\Base::$debug_data ) ) {
+			$hs_debug = str_replace( array( "'", '<br>', '<b>', '</b>', '=>' ), array( "\'", '\n', '**', '**', '=' ), EWWW\Base::$debug_data );
 		}
 		?>
 <script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
@@ -68,13 +65,12 @@ function ewww_image_optimizer_aux_images() {
 	window.Beacon('init', 'aa9c3d3b-d4bc-4e9b-b6cb-f11c9f69da87');
 	Beacon( 'prefill', {
 		email: '<?php echo esc_js( $help_email ); ?>',
-		text: '\n\n----------------------------------------\n<?php echo wp_kses_post( $hs_debug ); ?>',
+		text: '\n\n---------------------------------------\n<?php echo wp_kses_post( $hs_debug ); ?>',
 	});
 </script>
 		<?php
 	}
-	$eio_debug = '';
-	ewwwio_memory( __FUNCTION__ );
+	ewwwio()->temp_debug_end();
 }
 
 /**

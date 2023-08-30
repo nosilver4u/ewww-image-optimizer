@@ -34,9 +34,8 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70300 ) {
 	add_action( 'admin_notices', 'ewww_image_optimizer_dual_plugin' );
 } elseif ( false === strpos( add_query_arg( '', '' ), 'ewwwio_disable=1' ) ) {
 
-	define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 720.11 );
-	// Initialize a couple globals.
-	$eio_debug  = '';
+	define( 'EWWW_IMAGE_OPTIMIZER_VERSION', 720.12 );
+	// Initialize a global.
 	$ewww_defer = true;
 
 	if ( WP_DEBUG && function_exists( 'memory_get_usage' ) ) {
