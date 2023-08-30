@@ -303,11 +303,13 @@ class Base {
 	 * @return string The full path to the debug log.
 	 */
 	public function debug_log_path() {
-		$potential_logs = \scandir( $this->content_dir );
-		if ( $this->is_iterable( $potential_logs ) ) {
-			foreach ( $potential_logs as $potential_log ) {
-				if ( $this->str_ends_with( $potential_log, '.log' ) && false !== strpos( $potential_log, strtolower( __NAMESPACE__ ) . '-debug-' ) && is_file( $this->content_dir . $potential_log ) ) {
-					return $this->content_dir . $potential_log;
+		if ( is_dir( $this->content_dir ) ) {
+			$potential_logs = \scandir( $this->content_dir );
+			if ( $this->is_iterable( $potential_logs ) ) {
+				foreach ( $potential_logs as $potential_log ) {
+					if ( $this->str_ends_with( $potential_log, '.log' ) && false !== strpos( $potential_log, strtolower( __NAMESPACE__ ) . '-debug-' ) && is_file( $this->content_dir . $potential_log ) ) {
+						return $this->content_dir . $potential_log;
+					}
 				}
 			}
 		}
