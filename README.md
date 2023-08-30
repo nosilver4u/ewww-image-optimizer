@@ -1,7 +1,7 @@
 # EWWW Image Optimizer
 **Donate link:** https://ewww.io/donate/
 **Minimum WordPress:** 5.9
-**Minimum PHP:** 7.2
+**Minimum PHP:** 7.3
 
 [![Build Status](https://travis-ci.com/nosilver4u/ewww-image-optimizer.svg?branch=master)](https://app.travis-ci.com/github/nosilver4u/ewww-image-optimizer)
 [![WordPress Plugin Downloads](https://img.shields.io/wordpress/plugin/dt/ewww-image-optimizer.svg)](https://wordpress.org/plugins/ewww-image-optimizer/)
@@ -42,6 +42,8 @@ With Easy IO, images are automatically compressed, scaled to fit the page and de
 ### Support
 
 If you need assistance using the plugin, please visit our [Support Page](https://ewww.io/contact-us/).
+
+You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team help validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/ewww-image-optimizer)
 
 
 ### Bulk Optimize
