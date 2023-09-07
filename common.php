@@ -1108,7 +1108,6 @@ function ewww_image_optimizer_current_screen( $screen ) {
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 		return;
 	}
-	ewwwio_debug_message( 'current screen: ' . $screen->id );
 	if ( false !== strpos( $screen->id, 'settings_page_ewww-image-optimizer' ) ) {
 		return;
 	}
@@ -11935,7 +11934,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				$speed_score += 20;
 		}
 	} elseif (
-		( ! class_exists( 'Jetpack' ) || ! Jetpack::is_module_active( 'photon' ) ) &&
+		( ! class_exists( 'Jetpack' ) || ! method_exists( 'Jetpack', 'is_module_active' ) || ! Jetpack::is_module_active( 'photon' ) ) &&
 		class_exists( 'EWWW\ExactDN' ) &&
 		ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' )
 	) {
@@ -12541,7 +12540,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							);
 							?>
 						</p>
-		<?php if ( class_exists( 'Jetpack' ) && Jetpack::is_module_active( 'photon' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) : ?>
+		<?php if ( class_exists( 'Jetpack' ) && method_exists( 'Jetpack', 'is_module_active' ) && Jetpack::is_module_active( 'photon' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) : ?>
 						<p style='color: red'><?php esc_html_e( 'Inactive, please disable the Site Accelerator option in the Jetpack settings.', 'ewww-image-optimizer' ); ?></p>
 		<?php elseif ( false !== strpos( $easyio_site_url, 'localhost' ) ) : ?>
 						<p class="description" style="font-weight: bolder"><?php esc_html_e( 'Easy IO cannot be activated on localhost installs.', 'ewww-image-optimizer' ); ?></p>
@@ -13444,6 +13443,15 @@ AddType image/webp .webp</pre>
 						<p class='description'>
 							<?php esc_html_e( 'AVIF conversion is enabled via the Easy IO CDN.', 'ewww-image-optimizer' ); ?>
 						</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope='row'>
+						<label for='ewww_image_optimizer_plaid'><?php esc_html_e( 'Plaid', 'ewww-image-optimizer' ); ?></label>
+					</th>
+					<td>
+						<input type='checkbox' id='ewww_image_optimizer_plaid' name='ewww_image_optimizer_plaid' value='true' <?php checked( random_int( 0, 1 ) === 1 ); ?> />
+						<?php esc_html_e( 'What happens when you enable Ludicrous Mode.', 'ewww-image-optimizer' ); ?>
 					</td>
 				</tr>
 			</table>
