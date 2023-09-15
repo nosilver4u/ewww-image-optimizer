@@ -3627,7 +3627,10 @@ class ExactDN extends Page_Parser {
 		if ( false !== \strpos( $uri, '&builder=true' ) ) {
 			return true;
 		}
-		if ( false !== \strpos( $uri, 'cornerstone=' ) || false !== \strpos( $uri, 'cornerstone-endpoint' ) ) {
+		if ( false !== \strpos( $uri, 'cornerstone=' ) || false !== \strpos( $uri, 'cornerstone-endpoint' ) || false !== \strpos( $uri, 'cornerstone/edit/' ) ) {
+			return true;
+		}
+		if ( \did_action( 'cs_element_rendering' ) || \did_action( 'cornerstone_before_boot_app' ) || \apply_filters( 'cs_is_preview_render', false ) ) {
 			return true;
 		}
 		if ( false !== \strpos( $uri, 'ct_builder=' ) ) {
@@ -3698,6 +3701,9 @@ class ExactDN extends Page_Parser {
 			return $url;
 		}
 		if ( \did_action( 'cornerstone_boot_app' ) || \did_action( 'cs_before_preview_frame' ) ) {
+			return $url;
+		}
+		if ( \did_action( 'cs_element_rendering' ) || \did_action( 'cornerstone_before_boot_app' ) || \apply_filters( 'cs_is_preview_render', false ) ) {
 			return $url;
 		}
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );

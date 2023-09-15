@@ -814,7 +814,7 @@ class Base {
 
 	/**
 	 * Make sure this is really and truly a "front-end request", excluding page builders and such.
-	 * Note this is not currently used anywhere, each module has it's own list.
+	 * NOTE: this is not currently used anywhere, each module has it's own list.
 	 *
 	 * @return bool True for front-end requests, false for admin/builder requests.
 	 */

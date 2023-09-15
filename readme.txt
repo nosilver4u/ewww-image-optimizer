@@ -140,6 +140,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 7.2.2 =
+* fixed: Lazy Load compatibility with X/Pro themes and Cornerstone builder
+
 = 7.2.1 =
 * changed: Scheduled Optimizer skips image errors faster
 * changed: use updated coding standards, and restructure code for async/background functions

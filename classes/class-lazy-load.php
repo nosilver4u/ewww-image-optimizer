@@ -246,7 +246,7 @@ class Lazy_Load extends Page_Parser {
 		if ( false !== \strpos( $uri, '&builder=true' ) ) {
 			return false;
 		}
-		if ( false !== \strpos( $uri, 'cornerstone=' ) || false !== \strpos( $uri, 'cornerstone-endpoint' ) ) {
+		if ( false !== \strpos( $uri, 'cornerstone=' ) || false !== \strpos( $uri, 'cornerstone-endpoint' ) || false !== \strpos( $uri, 'cornerstone/edit/' ) ) {
 			return false;
 		}
 		if ( false !== \strpos( $uri, 'ct_builder=' ) ) {
@@ -256,6 +256,9 @@ class Lazy_Load extends Page_Parser {
 			return false;
 		}
 		if ( \did_action( 'cornerstone_boot_app' ) || \did_action( 'cs_before_preview_frame' ) ) {
+			return false;
+		}
+		if ( \did_action( 'cs_element_rendering' ) || \did_action( 'cornerstone_before_boot_app' ) || \apply_filters( 'cs_is_preview_render', false ) ) {
 			return false;
 		}
 		if ( false !== \strpos( $uri, 'elementor-preview=' ) ) {
