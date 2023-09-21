@@ -4,8 +4,6 @@
 	<!-- Only sniff PHP files -->
 	<arg name="extensions" value="php"/>
 
-	<arg value="s"/>
-
 	<exclude-pattern>/vendor/*</exclude-pattern>
 	<exclude-pattern>/tests/*</exclude-pattern>
 
@@ -34,7 +32,7 @@
 		</properties>
 	</rule>
 
-	<config name="testVersion">7.2-</config>
+	<config name="testVersion">7.3-</config>
 	<rule ref="PHPCompatibilityWP">
 		<severity>10</severity>
 	</rule>
