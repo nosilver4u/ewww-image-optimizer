@@ -135,7 +135,7 @@ class Lazy_Load extends Page_Parser {
 			return 'you are doing it wrong';
 		}
 
-		\add_action( 'wp_head', array( $this, 'no_js_css' ) );
+		\add_action( 'wp_head', array( $this, 'no_js_css' ), 1 );
 
 		if ( \method_exists( 'autoptimizeImages', 'imgopt_active' ) && \autoptimizeImages::imgopt_active() ) {
 			add_filter( 'autoptimize_filter_html_before_minify', array( $this, 'filter_page_output' ) );
