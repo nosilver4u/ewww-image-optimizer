@@ -722,7 +722,7 @@ class EWWW_Image {
 							$imagick->setImageAlphaChannel( 11 );
 						}
 						$imagick->setImageFormat( 'JPG' );
-						$imagick->setCompressionQuality( $quality );
+						$imagick->setImageCompressionQuality( $quality );
 						$imagick->writeImage( $newfile );
 					} catch ( Exception $imagick_error ) {
 						ewwwio_debug_message( $imagick_error->getMessage() );

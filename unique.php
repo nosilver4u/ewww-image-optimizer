@@ -804,7 +804,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 							$imagick->setImageAlphaChannel( 11 );
 						}
 						$imagick->setImageFormat( 'JPG' );
-						$imagick->setCompressionQuality( $gquality );
+						$imagick->setImageCompressionQuality( $gquality );
 						$imagick->writeImage( $jpgfile );
 					} catch ( Exception $imagick_error ) {
 						ewwwio_debug_message( $imagick_error->getMessage() );

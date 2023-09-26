@@ -1255,7 +1255,7 @@ class Lazy_Load extends Page_Parser {
 		}
 		echo '<noscript><style>.lazyload[data-src]{display:none !important;}</style></noscript>';
 		// And this allows us to lazy load external/internal CSS background images.
-		echo '<style>.lazyload{background-image:none !important;}.lazyload:before{background-image:none !important;}</style>';
+		echo '<style>.lazyload{background-image:none !important;}.lazyload::before{background-image:none !important;}</style>';
 	}
 
 	/**
