@@ -235,7 +235,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	}
 	$file_owner = 'unknown';
 	$file_group = 'unknown';
-	if ( function_exists( 'posix_getpwuid' ) ) {
+	if ( ewww_image_optimizer_function_exists( 'posix_getpwuid' ) ) {
 		$file_owner = posix_getpwuid( fileowner( $file ) );
 		if ( $file_owner ) {
 			$file_owner = 'xxxxxxxx' . substr( $file_owner['name'], -4 );
@@ -243,7 +243,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			$file_owner = 'unknown';
 		}
 	}
-	if ( function_exists( 'posix_getgrgid' ) ) {
+	if ( ewww_image_optimizer_function_exists( 'posix_getgrgid' ) ) {
 		$file_group = posix_getgrgid( filegroup( $file ) );
 		if ( $file_group ) {
 			$file_group = 'xxxxx' . substr( $file_group['name'], -5 );
@@ -282,7 +282,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	} else {
 		$skip_lossy = false;
 	}
-	if ( ini_get( 'max_execution_time' ) < 90 && ewww_image_optimizer_stl_check() ) {
+	if ( ini_get( 'max_execution_time' ) && ini_get( 'max_execution_time' ) < 90 && ewww_image_optimizer_stl_check() ) {
 		set_time_limit( 0 );
 	}
 	// Get the original image size.
@@ -1178,7 +1178,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			}
 			break;
 		default:
-			// If not a JPG, PNG, GIF, or SVG tell the user we don't work with strangers.
+			// If not a JPG, PNG, GIF, PDF or SVG tell the user we don't work with strangers.
 			return array( false, __( 'Unsupported file type', 'ewww-image-optimizer' ) . ": $type", $converted, $original );
 	} // End switch().
 	// Allow other plugins to run operations on the images after optimization.

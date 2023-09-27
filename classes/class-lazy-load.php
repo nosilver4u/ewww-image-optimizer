@@ -135,7 +135,7 @@ class Lazy_Load extends Page_Parser {
 			return 'you are doing it wrong';
 		}
 
-		\add_action( 'wp_head', array( $this, 'no_js_css' ), 1 );
+		\add_action( 'wp_head', array( $this, 'no_js_css' ) );
 
 		if ( \method_exists( 'autoptimizeImages', 'imgopt_active' ) && \autoptimizeImages::imgopt_active() ) {
 			add_filter( 'autoptimize_filter_html_before_minify', array( $this, 'filter_page_output' ) );
@@ -1255,7 +1255,7 @@ class Lazy_Load extends Page_Parser {
 		}
 		echo '<noscript><style>.lazyload[data-src]{display:none !important;}</style></noscript>';
 		// And this allows us to lazy load external/internal CSS background images.
-		echo '<style>.lazyload{background-image:none !important;}.lazyload::before{background-image:none !important;}</style>';
+		echo '<style>.lazyload{background-image:none !important;}.lazyload:before{background-image:none !important;}</style>';
 	}
 
 	/**
