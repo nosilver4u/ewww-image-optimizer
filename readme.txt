@@ -143,6 +143,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 7.2.2 =
 * fixed: Lazy Load compatibility with X/Pro themes and Cornerstone builder
 * fixed: JPG quality level ignored during PNG to JPG conversion
+* fixed: too much scaling for Visual Composer background images with zoom effect
 
 = 7.2.1 =
 * changed: Scheduled Optimizer skips image errors faster

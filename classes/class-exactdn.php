@@ -1847,9 +1847,13 @@ class ExactDN extends Page_Parser {
 						if ( \apply_filters( 'exactdn_skip_image', false, $bg_image_url, $element ) ) {
 							continue;
 						}
-						$args          = array();
-						$element_class = $this->get_attribute( $element, 'class' );
-						if ( false !== \strpos( $element_class, 'alignfull' ) && \current_theme_supports( 'align-wide' ) ) {
+						$skip_autoscale = false;
+						$args           = array();
+						$element_class  = $this->get_attribute( $element, 'class' );
+						if ( false !== \strpos( $element_class, 'vce-asset-background-zoom-item' ) ) {
+							// Don't constrain Visual Composer 'zoom' images AND disable auto-scaling.
+							$skip_autoscale = true;
+						} elseif ( false !== \strpos( $element_class, 'alignfull' ) && \current_theme_supports( 'align-wide' ) ) {
 							$args['w'] = \apply_filters( 'exactdn_full_align_bgimage_width', 1920, $bg_image_url );
 						} elseif ( false !== \strpos( $element_class, 'wp-block-cover' ) && false !== \strpos( $element_class, 'has-parallax' ) ) {
 							$args['w'] = \apply_filters( 'exactdn_wp_cover_parallax_bgimage_width', 1920, $bg_image_url );
@@ -1871,6 +1875,13 @@ class ExactDN extends Page_Parser {
 				}
 				if ( $style !== $new_style ) {
 					$element = \str_replace( $style, $new_style, $element );
+				}
+				if ( $skip_autoscale ) {
+					$new_class = 'skip-autoscale';
+					if ( ! empty( $element_class ) ) {
+						$new_class = $element_class . ' skip-autoscale';
+					}
+					$this->set_attribute( $element, 'class', $new_class, true );
 				}
 				if ( $element !== $elements[ $index ] ) {
 					$content = \str_replace( $elements[ $index ], $element, $content );
