@@ -1828,6 +1828,7 @@ class ExactDN extends Page_Parser {
 				if ( \count( $bg_image_urls ) > 1 ) {
 					$bg_autoscale = false;
 				}
+				$skip_autoscale = false;
 				foreach ( $bg_image_urls as $bg_image_url ) {
 					$orig_bg_url = $bg_image_url;
 
@@ -1847,9 +1848,8 @@ class ExactDN extends Page_Parser {
 						if ( \apply_filters( 'exactdn_skip_image', false, $bg_image_url, $element ) ) {
 							continue;
 						}
-						$skip_autoscale = false;
-						$args           = array();
-						$element_class  = $this->get_attribute( $element, 'class' );
+						$args          = array();
+						$element_class = $this->get_attribute( $element, 'class' );
 						if ( false !== \strpos( $element_class, 'vce-asset-background-zoom-item' ) ) {
 							// Don't constrain Visual Composer 'zoom' images AND disable auto-scaling.
 							$skip_autoscale = true;

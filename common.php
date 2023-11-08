@@ -102,7 +102,7 @@ add_filter( 'big_image_size_threshold', 'ewww_image_optimizer_adjust_big_image_t
 // Makes sure the plugin bypasses any files affected by the Folders to Ignore setting.
 add_filter( 'ewww_image_optimizer_bypass', 'ewww_image_optimizer_ignore_file', 10, 2 );
 // Ensure we populate the queue with webp images for WP Offload S3.
-// add_filter( 'as3cf_attachment_file_paths', 'ewww_image_optimizer_as3cf_attachment_file_paths', 10, 2 );
+add_filter( 'as3cf_attachment_file_paths', 'ewww_image_optimizer_as3cf_attachment_file_paths', 10, 2 );
 // Make sure to remove webp images from remote storage when an attachment is deleted.
 add_filter( 'as3cf_remove_source_files_from_provider', 'ewww_image_optimizer_as3cf_remove_source_files' );
 // Fix the ContentType for WP Offload S3 on WebP images.
