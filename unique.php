@@ -229,32 +229,9 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		ewwwio_debug_message( "couldn't write to the file $file" );
 		return array( false, $msg, $converted, $original );
 	}
-	$file_perms = 'unknown';
-	if ( ewww_image_optimizer_function_exists( 'fileperms' ) ) {
-		$file_perms = substr( sprintf( '%o', fileperms( $file ) ), -4 );
-	}
-	$file_owner = 'unknown';
-	$file_group = 'unknown';
-	if ( ewww_image_optimizer_function_exists( 'posix_getpwuid' ) ) {
-		$file_owner = posix_getpwuid( fileowner( $file ) );
-		if ( $file_owner ) {
-			$file_owner = 'xxxxxxxx' . substr( $file_owner['name'], -4 );
-		} else {
-			$file_owner = 'unknown';
-		}
-	}
-	if ( ewww_image_optimizer_function_exists( 'posix_getgrgid' ) ) {
-		$file_group = posix_getgrgid( filegroup( $file ) );
-		if ( $file_group ) {
-			$file_group = 'xxxxx' . substr( $file_group['name'], -5 );
-		} else {
-			$file_group = 'unknown';
-		}
-	}
-	ewwwio_debug_message( "permissions: $file_perms, owner: $file_owner, group: $file_group" );
 	$type = ewww_image_optimizer_mimetype( $file, 'i' );
 	if ( ! $type ) {
-		ewwwio_debug_message( 'could not find any functions for mimetype detection' );
+		ewwwio_debug_message( 'could not find mimetype' );
 		// Otherwise we store an error message since we couldn't get the mime-type.
 		return array( false, __( 'Unknown file type', 'ewww-image-optimizer' ), $converted, $original );
 	}

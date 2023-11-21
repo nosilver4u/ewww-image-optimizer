@@ -125,7 +125,7 @@ final class Plugin extends Base {
 	public $tools_initialized = false;
 
 	/**
-	 * Main EWWW_Plugin instance.
+	 * Main EWWW\Plugin instance.
 	 *
 	 * Ensures that only one instance of EWWW_Plugin exists in memory at any given time.
 	 *
