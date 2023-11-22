@@ -145,6 +145,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: JPG quality level ignored during PNG to JPG conversion
 * fixed: too much scaling for Visual Composer background images with zoom effect
 * fixed: Perfect Images compatibility function broken during image upload
+* fixed: Easy IO strips extra sub-folders in non-image URLs
 
 = 7.2.1 =
 * changed: Scheduled Optimizer skips image errors faster
