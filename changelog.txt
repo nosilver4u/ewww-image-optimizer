@@ -1,3 +1,10 @@
+= 7.2.2 =
+* fixed: Lazy Load compatibility with X/Pro themes and Cornerstone builder
+* fixed: JPG quality level ignored during PNG to JPG conversion
+* fixed: too much scaling for Visual Composer background images with zoom effect
+* fixed: Perfect Images compatibility function broken during image upload
+* fixed: Easy IO strips extra sub-folders in non-image URLs
+
 = 7.2.1 =
 * changed: Scheduled Optimizer skips image errors faster
 * changed: use updated coding standards, and restructure code for async/background functions
