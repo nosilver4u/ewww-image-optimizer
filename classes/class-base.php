@@ -234,6 +234,7 @@ class Base {
 		$this->home_url          = \trailingslashit( \get_site_url() );
 		$this->relative_home_url = \preg_replace( '/https?:/', '', $this->home_url );
 		$this->home_domain       = $this->parse_url( $this->home_url, PHP_URL_HOST );
+
 		if ( 'EWWW' === __NAMESPACE__ ) {
 			$this->content_url = \content_url( 'ewww/' );
 			$this->content_dir = $this->set_content_dir( '/ewww/' );
@@ -244,9 +245,11 @@ class Base {
 			$this->version     = EASYIO_VERSION;
 			$this->prefix      = 'easyio_';
 		}
+
 		if ( ! $debug ) {
 			return;
 		}
+
 		// Check to see if we're in the wp-admin to enable debugging temporarily.
 		// Done after the above, because this means we are constructing the Plugin() object
 		// which is the very first object initialized.

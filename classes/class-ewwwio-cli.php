@@ -743,15 +743,11 @@ class EWWWIO_CLI extends WP_CLI_Command {
 			WP_CLI::line( sprintf( __( 'Processing image %1$d of %2$d', 'ewww-image-optimizer' ), $clicount, $pending_count ) );
 			// Find out what time we started, in microseconds.
 			$started = microtime( true );
-			// Creating the 'registry' object for working with nextgen.
-			$registry = C_Component_Registry::get_instance();
-			// Creating a database storage object from the 'registry' object.
-			$storage = $registry->get_utility( 'I_Gallery_Storage' );
 			// Get an image object.
-			$image = $storage->object->_image_mapper->find( $id );
-			$image = $ewwwngg->ewww_added_new_image( $image, $storage );
+			$image = $ewwwngg->get_ngg_image( $id );
+			$image = $ewwwngg->ewww_added_new_image( $image );
 			// Output the results of the optimization.
-			WP_CLI::line( __( 'Optimized image:', 'ewww-image-optimizer' ) . ' ' . basename( $storage->object->get_image_abspath( $image, 'full' ) ) );
+			WP_CLI::line( __( 'Optimized image:', 'ewww-image-optimizer' ) . ' ' . basename( $ewwwngg->get_image_abspath( $image, 'full' ) ) );
 			if ( ewww_image_optimizer_iterable( $ewwwngg->bulk_sizes ) ) {
 				// Output the results for each $size.
 				foreach ( $ewwwngg->bulk_sizes as $size => $results_msg ) {

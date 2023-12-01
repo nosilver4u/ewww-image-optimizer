@@ -21,6 +21,8 @@ use lsolesen\pel\PelTag;
  */
 
 // Runs any checks that need to run everywhere and early.
+add_action( 'plugins_loaded', 'ewww_image_optimizer_load_plugin_compat' );
+// Runs other checks that need to run on 'init'.
 add_action( 'init', 'ewww_image_optimizer_init', 9 );
 // Load our front-end parsers for ExactDN, Lazy Load and WebP.
 add_action( 'init', 'ewww_image_optimizer_parser_init', 99 );
@@ -717,25 +719,11 @@ function ewww_image_optimizer_save_network_settings() {
 }
 
 /**
- * Runs early for checks that need to happen on init before anything else.
+ * Load plugin compat on the plugins_loaded hook, which is about as early as possible.
  */
-function ewww_image_optimizer_init() {
+function ewww_image_optimizer_load_plugin_compat() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 
-	// For the settings page, check for the enable-local param and take appropriate action.
-	if ( ! empty( $_GET['enable-local'] ) && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
-		update_option( 'ewww_image_optimizer_ludicrous_mode', true );
-		update_site_option( 'ewww_image_optimizer_ludicrous_mode', true );
-	} elseif ( isset( $_GET['enable-local'] ) && ! (bool) $_GET['enable-local'] && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
-		delete_option( 'ewww_image_optimizer_ludicrous_mode' );
-		delete_site_option( 'ewww_image_optimizer_ludicrous_mode' );
-	}
-	if ( ! empty( $_GET['complete_wizard'] ) && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
-		update_option( 'ewww_image_optimizer_wizard_complete', true, false );
-	}
-	if ( ! empty( $_GET['uncomplete_wizard'] ) && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
-		update_option( 'ewww_image_optimizer_wizard_complete', false, false );
-	}
 	if ( ewww_image_optimizer_s3_uploads_enabled() ) {
 		ewwwio_debug_message( 's3-uploads detected, deferring resize_upload' );
 		add_filter( 'ewww_image_optimizer_defer_resizing', '__return_true' );
@@ -759,7 +747,6 @@ function ewww_image_optimizer_init() {
 					$nextgen_major_version = substr( $ngg['Version'], 0, 1 );
 					ewwwio_debug_message( "loading nextgen $nextgen_major_version support for $active_plugin" );
 					require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-nextgen.php';
-					require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-nextgen-gallery-storage.php';
 				} else {
 					preg_match( '/\d+\.\d+\.(\d+)/', $ngg['Version'], $nextgen_minor_version );
 					if ( ! empty( $nextgen_minor_version[1] ) && $nextgen_minor_version[1] < 14 ) {
@@ -777,6 +764,29 @@ function ewww_image_optimizer_init() {
 			}
 		}
 	}
+}
+
+/**
+ * Runs early for checks that need to happen on init before anything else.
+ */
+function ewww_image_optimizer_init() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+
+	// For the settings page, check for the enable-local param and take appropriate action.
+	if ( ! empty( $_GET['enable-local'] ) && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
+		update_option( 'ewww_image_optimizer_ludicrous_mode', true );
+		update_site_option( 'ewww_image_optimizer_ludicrous_mode', true );
+	} elseif ( isset( $_GET['enable-local'] ) && ! (bool) $_GET['enable-local'] && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
+		delete_option( 'ewww_image_optimizer_ludicrous_mode' );
+		delete_site_option( 'ewww_image_optimizer_ludicrous_mode' );
+	}
+	if ( ! empty( $_GET['complete_wizard'] ) && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
+		update_option( 'ewww_image_optimizer_wizard_complete', true, false );
+	}
+	if ( ! empty( $_GET['uncomplete_wizard'] ) && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
+		update_option( 'ewww_image_optimizer_wizard_complete', false, false );
+	}
+
 	if ( defined( 'DOING_WPLR_REQUEST' ) && DOING_WPLR_REQUEST ) {
 		// Unhook all automatic processing, and save an option that (does not autoload) tells the user LR Sync regenerated their images and they should run the bulk optimizer.
 		remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );

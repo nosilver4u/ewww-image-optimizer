@@ -59,20 +59,16 @@ class Background_Process_Ngg2 extends Background_Process {
 		if ( ! defined( 'NGG_PLUGIN_VERSION' ) ) {
 			return false;
 		}
-		// Creating the 'registry' object for working with nextgen.
-		$registry = C_Component_Registry::get_instance();
-		// Creating a database storage object from the 'registry' object.
-		$storage = $registry->get_utility( 'I_Gallery_Storage' );
+		global $ewwwngg;
 		// Get a NextGEN image object.
-		$image = $storage->object->_image_mapper->find( $id );
+		$image = $ewwwngg->get_ngg_image( $id );
 		if ( ! is_object( $image ) ) {
 			++$item['attempts'];
 			sleep( 4 );
 			ewwwio_debug_message( "could not retrieve image, requeueing {$item['attempts']}" );
 			return $item;
 		}
-		global $ewwwngg;
-		$ewwwngg->ewww_added_new_image( $image, $storage );
+		$ewwwngg->ewww_added_new_image( $image );
 		return false;
 	}
 
@@ -91,13 +87,10 @@ class Background_Process_Ngg2 extends Background_Process {
 		if ( ! defined( 'NGG_PLUGIN_VERSION' ) ) {
 			return false;
 		}
-		// Creating the 'registry' object for working with nextgen.
-		$registry = C_Component_Registry::get_instance();
-		// Creating a database storage object from the 'registry' object.
-		$storage = $registry->get_utility( 'I_Gallery_Storage' );
 		// Get a NextGEN image object.
-		$image     = $storage->object->_image_mapper->find( $item['id'] );
-		$file_path = $storage->get_image_abspath( $image, 'full' );
+		global $ewwwngg;
+		$image     = $ewwwngg->get_ngg_image( $item['id'] );
+		$file_path = $ewwwngg->get_image_abspath( $image, 'full' );
 		if ( ! empty( $file_path ) ) {
 			ewww_image_optimizer_add_file_exclusion( $file_path );
 		}

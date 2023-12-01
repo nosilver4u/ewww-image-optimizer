@@ -146,6 +146,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: too much scaling for Visual Composer background images with zoom effect
 * fixed: Perfect Images compatibility function broken during image upload
 * fixed: Easy IO strips extra sub-folders in non-image URLs
+* fixed: compatibility with NextGEN Gallery 3.50+
+* fixed: optimization of dynamic thumbs for NextGEN Gallery
 
 = 7.2.1 =
 * changed: Scheduled Optimizer skips image errors faster

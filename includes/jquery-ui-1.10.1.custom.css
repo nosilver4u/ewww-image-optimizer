@@ -473,6 +473,13 @@ button.ewww-handlediv {
 	max-width: 50px;
 	min-width: 30px;
 }
+.ngg-admin .ewww_bulk_wrap {
+	margin-left: 20px;
+}
+.ngg-admin .wrap h2.wp-heading-inline {
+	display: inline-block;
+	margin-right: 5px;
+}
 @media screen and (max-width: 780px) {
 	#ewww-bulk-controls {
 		float: none;

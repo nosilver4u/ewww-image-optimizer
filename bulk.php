@@ -606,13 +606,9 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 				}
 				$attachment_query = 'WHERE pid IN (' . substr( $attachment_query, 0, -1 ) . ')';
 			}
-			// Creating the 'registry' object for working with nextgen.
-			$registry = C_Component_Registry::get_instance();
-			// Creating a database storage object from the 'registry' object.
-			$storage = $registry->get_utility( 'I_Gallery_Storage' );
 			// Get an array of sizes available for the $image.
-			$sizes = $storage->get_image_sizes();
 			global $ewwwngg;
+			$sizes       = $ewwwngg->get_image_sizes();
 			$offset      = 0;
 			$attachments = $wpdb->get_col( "SELECT meta_data FROM $wpdb->nggpictures $attachment_query LIMIT $offset, $max_query" ); // phpcs:ignore WordPress.DB.PreparedSQL
 			while ( $attachments ) {
