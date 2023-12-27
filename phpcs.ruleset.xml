@@ -20,15 +20,12 @@
 
 	<rule ref="WordPress.PHP.NoSilencedErrors">
 		<properties>
-			<property name="custom_whitelist" type="array" value="ini_get,exif_read_data,ob_end_flush"/>
+			<property name="customAllowedFunctionsList" type="array" value="ini_get,exif_read_data,ob_end_flush"/>
 		</properties>
 	</rule>
 	<rule ref="WordPress.NamingConventions.ValidVariableName">
 		<properties>
-			<property name="customPropertiesWhitelist" type="array" value="formatOutput,imgQuality,parentNode,nextSibling,documentElement,imagePath,webimagePath,thumbPath,fileName,Version,Name" />
-		</properties>
-		<properties>
-			<property name="customVariablesWhitelist" type="array" value="formatOutput,parentNode,nextSibling,documentElement" />
+			<property name="allowed_custom_properties" type="array" value="formatOutput,imgQuality,parentNode,nextSibling,documentElement,imagePath,webimagePath,thumbPath,fileName,Version,Name" />
 		</properties>
 	</rule>
 
