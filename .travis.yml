@@ -4,6 +4,12 @@ dist: bionic
 
 language: php
 
+addons:
+  apt:
+    update: true
+    packages:
+    - libonig-dev
+
 notifications:
   email:
     on_success: never
