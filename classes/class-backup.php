@@ -128,7 +128,7 @@ class Backup extends Base {
 	 * @return bool True to skip optimization, false to let it through.
 	 */
 	public function ignore_backup_dir( $skip, $file ) {
-		if ( false !== \strpos( $file, $this->backup_dir ) ) {
+		if ( $file && $this->backup_dir && false !== \strpos( $file, $this->backup_dir ) ) {
 			return true;
 		}
 		return $skip;
