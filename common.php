@@ -108,7 +108,7 @@ add_filter( 'as3cf_attachment_file_paths', 'ewww_image_optimizer_as3cf_attachmen
 // Make sure to remove webp images from remote storage when an attachment is deleted.
 add_filter( 'as3cf_remove_source_files_from_provider', 'ewww_image_optimizer_as3cf_remove_source_files' );
 // Fix the ContentType for WP Offload S3 on WebP images.
-// add_filter( 'as3cf_object_meta', 'ewww_image_optimizer_as3cf_object_meta' );
+add_filter( 'as3cf_object_meta', 'ewww_image_optimizer_as3cf_object_meta' );
 // Get admin color scheme and save it for later.
 add_action( 'admin_head', 'ewww_image_optimizer_save_admin_colors' );
 // Legacy (non-AJAX) action hook for manually optimizing an image.

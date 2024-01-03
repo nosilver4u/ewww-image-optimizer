@@ -144,6 +144,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 *Release Date - TBD*
 
 * fixed: Easy IO incorrectly modifies JS/CSS URLs when using S3 on multisite
+* fixed: regression with WP Offload Media compatibility and incorrect ContentType for WebP images
+* fixed: local backup folder not protected from optimization
 
 = 7.2.2 =
 *Release Date - December 12, 2023*

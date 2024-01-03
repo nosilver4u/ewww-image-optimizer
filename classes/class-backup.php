@@ -87,6 +87,9 @@ class Backup extends Base {
 		\add_action( 'wp_ajax_ewww_manual_image_restore_single', array( $this, 'restore_single_image_handler' ) );
 		\add_action( 'ewww_image_optimizer_pre_optimization', array( $this, 'store_local_backup' ) );
 
+		// Makes sure the plugin does not optimize anything in the backups folder.
+		add_filter( 'ewww_image_optimizer_bypass', array( $this, 'ignore_backup_dir' ), 10, 2 );
+
 		$this->exclusions = array(
 			$this->content_dir,
 			'/wp-admin/',
@@ -115,6 +118,20 @@ class Backup extends Base {
 		if ( \is_string( $error ) ) {
 			$this->error_message = \sanitize_text_field( $error );
 		}
+	}
+
+	/**
+	 * Check if a file is within the backup folder and if so, prevent optimization.
+	 *
+	 * @param bool   $skip Whether optimization will be skipped, defaults to false.
+	 * @param string $file The filename to be checked.
+	 * @return bool True to skip optimization, false to let it through.
+	 */
+	public function ignore_backup_dir( $skip, $file ) {
+		if ( false !== \strpos( $file, $this->backup_dir ) ) {
+			return true;
+		}
+		return $skip;
 	}
 
 	/**
@@ -187,6 +204,7 @@ class Backup extends Base {
 		$this->debug_message( "file: $file " );
 		foreach ( $this->exclusions as $exclusion ) {
 			if ( false !== \strpos( $file, $exclusion ) ) {
+				$this->debug_message( "matched $exclusion, no backup for you!" );
 				return;
 			}
 		}
@@ -209,6 +227,13 @@ class Backup extends Base {
 		}
 		if ( ! $this->is_file( $file ) || ! $this->is_readable( $file ) ) {
 			return;
+		}
+		// Even though these are checked in Backup::backup_file(), this method can be run directly, which bypasses that check.
+		foreach ( $this->exclusions as $exclusion ) {
+			if ( false !== \strpos( $file, $exclusion ) ) {
+				$this->debug_message( "matched $exclusion, no backup for you!" );
+				return;
+			}
 		}
 		if ( apply_filters( 'ewww_image_optimizer_skip_local_backup', false, $file ) ) {
 			return;
