@@ -1,4 +1,13 @@
+= 7.2.3 =
+*Release Date - January 4, 2024*
+
+* fixed: Easy IO incorrectly modifies JS/CSS URLs when using S3 on multisite
+* fixed: regression with WP Offload Media compatibility and incorrect ContentType for WebP images
+* fixed: local backup folder not protected from optimization
+
 = 7.2.2 =
+*Release Date - December 12, 2023*
+
 * fixed: Lazy Load compatibility with X/Pro themes and Cornerstone builder
 * fixed: JPG quality level ignored during PNG to JPG conversion
 * fixed: too much scaling for Visual Composer background images with zoom effect
@@ -8,12 +17,16 @@
 * fixed: optimization of dynamic thumbs for NextGEN Gallery
 
 = 7.2.1 =
+*Release Date - September 7, 2023*
+
 * changed: Scheduled Optimizer skips image errors faster
 * changed: use updated coding standards, and restructure code for async/background functions
 * removed: legacy image editor extensions for unmaintained plugins
 * security: randomize filename of debug log
 
 = 7.2.0 =
+*Release Date - July 20, 2023*
+
 * added: Easy IO rewrites poster/thumbnail image URLs for video elements
 * changed: Easy IO + Auto Scale checks images on load and resize events to reduce browser upscaling
 * changed: prevent Easy IO font substitution when OMGF is active
@@ -21,6 +34,8 @@
 * fixed: Easy IO compatibility with Brizy thumbnail generation endpoint
 
 = 7.1.0 =
+*Release Date - June 29, 2023*
+
 * added: deliver Google Fonts via Easy IO or Bunny Fonts for improved user privacy
 * fixed: PHP error trying to save EXIF data to JPG after resizing
 * fixed: could not disable auto-scaling
