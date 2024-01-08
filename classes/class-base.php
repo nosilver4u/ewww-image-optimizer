@@ -1198,6 +1198,21 @@ class Base {
 	}
 
 	/**
+	 * Trims the given 'needle' from the end of the 'haystack'.
+	 *
+	 * @param string $haystack The string to be modified if it contains needle.
+	 * @param string $needle The string to remove if it is at the end of the haystack.
+	 * @return string The haystack with needle removed from the end.
+	 */
+	public function remove_from_end( $haystack, $needle ) {
+		$needle_length = strlen( $needle );
+		if ( substr( $haystack, -$needle_length ) === $needle ) {
+			return substr( $haystack, 0, -$needle_length );
+		}
+		return $haystack;
+	}
+
+	/**
 	 * Set an option: use 'site' setting if plugin is network activated, otherwise use 'blog' setting.
 	 *
 	 * @param string $option_name The name of the option to save.
@@ -1545,6 +1560,15 @@ class Base {
 		}
 		// This is used by the WebP parsers, and by the Lazy Load via get_image_dimensions_by_url().
 		$this->upload_url = \trailingslashit( ! empty( $upload_dir['baseurl'] ) ? $upload_dir['baseurl'] : \content_url( 'uploads' ) );
+		if ( \is_multisite() ) {
+			// Check for a site-specific suffix and remove it.
+			$current_blog_id = get_current_blog_id();
+			if ( \str_ends_with( $this->upload_url, 'sites/' . $current_blog_id . '/' ) ) {
+				$this->upload_url = $this->remove_from_end( $this->upload_url, 'sites/' . $current_blog_id . '/' );
+			} elseif ( \str_ends_with( $this->upload_url, '/' . $current_blog_id . '/' ) ) {
+				$this->upload_url = $this->remove_from_end( $this->upload_url, $current_blog_id . '/' );
+			}
+		}
 
 		// But this is used by Easy IO, so it should be derived from the above logic instead, which already matches the site/home URLs against the upload URL.
 		$this->upload_domain     = $this->parse_url( $this->site_url, PHP_URL_HOST );
