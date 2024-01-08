@@ -1310,6 +1310,12 @@ class Base {
 				$local_url = \str_replace( $allowed_url, $this->upload_url, $url );
 				$this->debug_message( "found $allowed_url, replaced with $this->upload_url to get $local_url" );
 				$path = $this->url_to_path_exists( $local_url );
+				if ( ! $path ) {
+					// This won't work if the upload dir is outside ABSPATH, but normally it does fix sub-folder multisites.
+					$local_url = \str_replace( $allowed_url, $this->home_url, $url );
+					$this->debug_message( "found $allowed_url, replaced with $this->home_url to get $local_url" );
+					$path = $this->url_to_path_exists( $local_url );
+				}
 				if ( $path ) {
 					return $path;
 				}

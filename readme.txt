@@ -140,6 +140,11 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 7.2.4 =
+*Release Date - TBD*
+
+* fixed: JS WebP can't check for local images when using S3 on multisite in sub-folder mode
+
 = 7.2.3 =
 *Release Date - January 4, 2024*
 
