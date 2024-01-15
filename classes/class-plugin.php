@@ -149,6 +149,8 @@ final class Plugin extends Base {
 			// For classes we need everywhere, front-end and back-end. Others are only included on admin_init (below).
 			self::$instance->requires();
 			self::$instance->load_children();
+			// Load plugin compatibility functions for S3 Uploads, NextGEN, FlaGallery, and Nextcellent.
+			\add_action( 'plugins_loaded', array( self::$instance, 'plugins_compat' ) );
 			// Initializes the plugin for admin interactions, like saving network settings and scheduling cron jobs.
 			\add_action( 'admin_init', array( self::$instance, 'admin_init' ) );
 			// We run this early, and then double-check after admin_init, once network settings have been saved/updated.
@@ -257,15 +259,66 @@ final class Plugin extends Base {
 		self::$instance->async_scan          = new Async_Scan();
 		self::$instance->async_test_optimize = new Async_Test_Optimize();
 		self::$instance->async_test_request  = new Async_Test_Request();
-		self::$instance->background_flag     = new Background_Process_Flag();
 		self::$instance->background_image    = new Background_Process_Image();
 		self::$instance->background_media    = new Background_Process_Media();
-		self::$instance->background_ngg      = new Background_Process_Ngg();
-		self::$instance->background_ngg2     = new Background_Process_Ngg2();
 
 		// Then, setup the rest of the classes we need.
 		self::$instance->local    = new Local();
 		self::$instance->tracking = new Tracking();
+	}
+
+	/**
+	 * Load plugin compat on the plugins_loaded hook, which is about as early as possible.
+	 */
+	public function plugins_compat() {
+		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+
+		if ( $this->s3_uploads_enabled() ) {
+			$this->debug_message( 's3-uploads detected, deferring resize_upload' );
+			\add_filter( 'ewww_image_optimizer_defer_resizing', '__return_true' );
+		}
+
+		$active_plugins = \get_option( 'active_plugins' );
+		if ( \is_multisite() && \is_array( $active_plugins ) ) {
+			$sitewide_plugins = \get_site_option( 'active_sitewide_plugins' );
+			if ( \is_array( $sitewide_plugins ) ) {
+				$active_plugins = \array_merge( $active_plugins, \array_flip( $sitewide_plugins ) );
+			}
+		}
+		if ( $this->is_iterable( $active_plugins ) ) {
+			$this->debug_message( 'checking active plugins' );
+			foreach ( $active_plugins as $active_plugin ) {
+				if ( \strpos( $active_plugin, '/nggallery.php' ) || \strpos( $active_plugin, '\nggallery.php' ) ) {
+					$ngg = ewww_image_optimizer_get_plugin_version( \trailingslashit( WP_PLUGIN_DIR ) . $active_plugin );
+					// Include the file that loads the nextgen gallery optimization functions.
+					$this->debug_message( 'Nextgen version: ' . $ngg['Version'] );
+					if ( 1 < \intval( \substr( $ngg['Version'], 0, 1 ) ) ) { // For Nextgen 2+ support.
+						$nextgen_major_version = \substr( $ngg['Version'], 0, 1 );
+						$this->debug_message( "loading nextgen $nextgen_major_version support for $active_plugin" );
+						// Initialize the nextgen async/background class.
+						self::$instance->background_ngg2 = new Background_Process_Ngg2();
+						require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-nextgen.php';
+					} else {
+						\preg_match( '/\d+\.\d+\.(\d+)/', $ngg['Version'], $nextgen_minor_version );
+						if ( ! empty( $nextgen_minor_version[1] ) && $nextgen_minor_version[1] < 14 ) {
+							$this->debug_message( "NOT loading nextgen legacy support for $active_plugin" );
+						} elseif ( ! empty( $nextgen_minor_version[1] ) && $nextgen_minor_version[1] > 13 ) {
+							$this->debug_message( "loading nextcellent support for $active_plugin" );
+							// Initialize the nextcellent async/background class.
+							self::$instance->background_ngg = new Background_Process_Ngg();
+							require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-nextcellent.php';
+						}
+					}
+				}
+				if ( \strpos( $active_plugin, '/flag.php' ) || \strpos( $active_plugin, '\flag.php' ) ) {
+					$this->debug_message( "loading flagallery support for $active_plugin" );
+					// Initialize the flagallery async/background class.
+					self::$instance->background_flag = new Background_Process_Flag();
+					// Include the file that loads the grand flagallery optimization functions.
+					require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-flag.php';
+				}
+			}
+		}
 	}
 
 	/**

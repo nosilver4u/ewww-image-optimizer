@@ -690,6 +690,9 @@ class Base {
 		if ( 'ewww_image_optimizer_ll_all_things' === $option_name && \defined( $constant_name ) ) {
 			return \sanitize_text_field( \constant( $constant_name ) );
 		}
+		if ( 'easyio_ll_all_things' === $option_name && \defined( $constant_name ) ) {
+			return \sanitize_text_field( \constant( $constant_name ) );
+		}
 		if ( 'ewww_image_optimizer_aux_paths' === $option_name && \defined( $constant_name ) ) {
 			return \ewww_image_optimizer_aux_paths_sanitize( \constant( $constant_name ) );
 		}

@@ -20,8 +20,6 @@ use lsolesen\pel\PelTag;
  * Hooks
  */
 
-// Runs any checks that need to run everywhere and early.
-add_action( 'plugins_loaded', 'ewww_image_optimizer_load_plugin_compat' );
 // Runs other checks that need to run on 'init'.
 add_action( 'init', 'ewww_image_optimizer_init', 9 );
 // Load our front-end parsers for ExactDN, Lazy Load and WebP.
@@ -715,54 +713,6 @@ function ewww_image_optimizer_save_network_settings() {
 		update_option( 'ewww_image_optimizer_png_level', '10' );
 		update_option( 'ewww_image_optimizer_gif_level', '10' );
 		update_option( 'ewww_image_optimizer_svg_level', 0 );
-	}
-}
-
-/**
- * Load plugin compat on the plugins_loaded hook, which is about as early as possible.
- */
-function ewww_image_optimizer_load_plugin_compat() {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-
-	if ( ewww_image_optimizer_s3_uploads_enabled() ) {
-		ewwwio_debug_message( 's3-uploads detected, deferring resize_upload' );
-		add_filter( 'ewww_image_optimizer_defer_resizing', '__return_true' );
-	}
-
-	$active_plugins = get_option( 'active_plugins' );
-	if ( is_multisite() && is_array( $active_plugins ) ) {
-		$sitewide_plugins = get_site_option( 'active_sitewide_plugins' );
-		if ( is_array( $sitewide_plugins ) ) {
-			$active_plugins = array_merge( $active_plugins, array_flip( $sitewide_plugins ) );
-		}
-	}
-	if ( ewww_image_optimizer_iterable( $active_plugins ) ) {
-		ewwwio_debug_message( 'checking active plugins' );
-		foreach ( $active_plugins as $active_plugin ) {
-			if ( strpos( $active_plugin, '/nggallery.php' ) || strpos( $active_plugin, '\nggallery.php' ) ) {
-				$ngg = ewww_image_optimizer_get_plugin_version( trailingslashit( WP_PLUGIN_DIR ) . $active_plugin );
-				// Include the file that loads the nextgen gallery optimization functions.
-				ewwwio_debug_message( 'Nextgen version: ' . $ngg['Version'] );
-				if ( 1 < intval( substr( $ngg['Version'], 0, 1 ) ) ) { // For Nextgen 2+ support.
-					$nextgen_major_version = substr( $ngg['Version'], 0, 1 );
-					ewwwio_debug_message( "loading nextgen $nextgen_major_version support for $active_plugin" );
-					require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-nextgen.php';
-				} else {
-					preg_match( '/\d+\.\d+\.(\d+)/', $ngg['Version'], $nextgen_minor_version );
-					if ( ! empty( $nextgen_minor_version[1] ) && $nextgen_minor_version[1] < 14 ) {
-						ewwwio_debug_message( "NOT loading nextgen legacy support for $active_plugin" );
-					} elseif ( ! empty( $nextgen_minor_version[1] ) && $nextgen_minor_version[1] > 13 ) {
-						ewwwio_debug_message( "loading nextcellent support for $active_plugin" );
-						require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-nextcellent.php';
-					}
-				}
-			}
-			if ( strpos( $active_plugin, '/flag.php' ) || strpos( $active_plugin, '\flag.php' ) ) {
-				ewwwio_debug_message( "loading flagallery support for $active_plugin" );
-				// Include the file that loads the grand flagallery optimization functions.
-				require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-flag.php';
-			}
-		}
 	}
 }
 
@@ -2130,23 +2080,6 @@ function ewww_image_optimizer_notice_reoptimization() {
 				" <a href='" . esc_url( $reset_page ) . "'>" . esc_html__( 'Reset Counters' ) . '</a></p></div>';
 		}
 	}
-}
-
-/**
- * Checks if the S3 Uploads plugin is installed and active.
- *
- * @return bool True if it is fully active and rewriting/offloding media, false otherwise.
- */
-function ewww_image_optimizer_s3_uploads_enabled() {
-	// For version 3.x.
-	if ( class_exists( 'S3_Uploads\Plugin', false ) && function_exists( 'S3_Uploads\enabled' ) && S3_Uploads\enabled() ) {
-		return true;
-	}
-	// Pre version 3.
-	if ( class_exists( 'S3_Uploads', false ) && function_exists( 's3_uploads_enabled' ) && s3_uploads_enabled() ) {
-		return true;
-	}
-	return false;
 }
 
 /**

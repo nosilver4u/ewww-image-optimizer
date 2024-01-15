@@ -74,6 +74,15 @@ function ewww_image_optimizer_iterable( $value ) {
 }
 
 /**
+ * Checks if the S3 Uploads plugin is installed and active.
+ *
+ * @return bool True if it is fully active and rewriting/offloding media, false otherwise.
+ */
+function ewww_image_optimizer_s3_uploads_enabled() {
+	return ewwwio()->s3_uploads_enabled();
+}
+
+/**
  * Adds information to the in-memory debug log.
  *
  * @param string $message Debug information to add to the log.
