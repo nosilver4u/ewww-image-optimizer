@@ -144,6 +144,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 *Release Date - TBD*
 
 * fixed: JS WebP can't check for local images when using S3 on multisite in sub-folder mode
+* fixed: corrupted images (with an unrecognized file header) being repeatedly scanned by the bulk/scheduled optimizer
 
 = 7.2.3 =
 *Release Date - January 4, 2024*

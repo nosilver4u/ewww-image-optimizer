@@ -6409,9 +6409,11 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 		$ewwwdb->delete(
 			$ewwwdb->ewwwio_images,
 			array(
-				'id' => $id,
+				'id'      => $id,
+				'pending' => 1,
 			),
 			array(
+				'%d',
 				'%d',
 			)
 		);

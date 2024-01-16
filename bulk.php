@@ -2035,9 +2035,10 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 			$wpdb->delete(
 				$wpdb->ewwwio_images,
 				array(
-					'id' => $image->id,
+					'id'      => $image->id,
+					'pending' => 1,
 				),
-				array( '%d' )
+				array( '%d', '%d' )
 			);
 		}
 		// Toggle a pending record if the optimization was webp-only.

@@ -229,15 +229,21 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		ewwwio_debug_message( "couldn't write to the file $file" );
 		return array( false, $msg, $converted, $original );
 	}
-	$type = ewww_image_optimizer_mimetype( $file, 'i' );
+	// Get the original image size.
+	$orig_size = ewww_image_optimizer_filesize( $file );
+	$type      = ewww_image_optimizer_mimetype( $file, 'i' );
 	if ( ! $type ) {
 		ewwwio_debug_message( 'could not find mimetype' );
+		// Store a 'no savings' record to prevent this image from being processed without the 'force' flag set.
+		ewww_image_optimizer_update_table( $file, $orig_size, $orig_size );
 		// Otherwise we store an error message since we couldn't get the mime-type.
 		return array( false, __( 'Unknown file type', 'ewww-image-optimizer' ), $converted, $original );
 	}
 	// Not an image or pdf.
 	if ( strpos( $type, 'image' ) === false && strpos( $type, 'pdf' ) === false ) {
 		ewwwio_debug_message( "unsupported mimetype: $type" );
+		// Store a 'no savings' record to prevent this image from being processed without the 'force' flag set.
+		ewww_image_optimizer_update_table( $file, $orig_size, $orig_size );
 		return array( false, __( 'Unsupported file type', 'ewww-image-optimizer' ) . ": $type", $converted, $original );
 	}
 	if ( ! is_object( $ewww_image ) || ! $ewww_image instanceof EWWW_Image || $ewww_image->file !== $file ) {

@@ -68,8 +68,9 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 	function test_api_agr() {
 		$upload_gif = self::$test_gif . '.gif';
 		copy( self::$test_gif, $upload_gif );
-		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
-		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		$api_key = getenv( 'EWWWIO_API_KEY' );
+		update_option( 'ewww_image_optimizer_cloud_key', $api_key );
+		update_site_option( 'ewww_image_optimizer_cloud_key', $api_key );
 		$id = $this->factory->attachment->create_upload_object( $upload_gif );
 		$meta = wp_get_attachment_metadata( $id );
 		list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
