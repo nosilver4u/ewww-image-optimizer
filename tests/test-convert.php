@@ -277,6 +277,10 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_png_to_jpg', true );
 		update_site_option( 'ewww_image_optimizer_jpg_background', '' );
 
+		$test_png = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/books.png' );
+		rename( $test_png, dirname( self::$test_png ) . wp_basename( $test_png ) );
+		$test_png = dirname( self::$test_png ) . wp_basename( $test_png );
+
 		// No background, conversion will fail, using API.
 		update_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		update_site_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
