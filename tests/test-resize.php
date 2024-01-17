@@ -33,12 +33,23 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 	public static $test_gif = '';
 
 	/**
+	 * The API key used for API-based tests.
+	 *
+	 * @var stringg $api_key
+	 */
+	public static $api_key = '';
+
+	/**
 	 * Downloads test images.
 	 */
 	public static function set_up_before_class() {
+
 		self::$test_jpg = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/20170314_174658.jpg' );
 		copy( self::$test_jpg, self::$test_jpg . '.jpg' );
 		self::$test_jpg .= '.jpg';
+
+		self::$api_key  = getenv( 'EWWWIO_API_KEY' );
+
 		ewwwio()->set_defaults();
 		update_option( 'ewww_image_optimizer_jpg_level', '10' );
 		ewwwio()->local->install_tools();
@@ -96,11 +107,15 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 	 * Creates a JPG attachment while resizing is enabled (no cropping) using API.
 	 */
 	function test_scale_jpg_cloud() {
+		if ( empty( self::$api_key ) ) {
+			self::markTestSkipped( 'No API key available.' );
+		}
+
 		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_jpg_level', 20 );
 		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 20 );
-		ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherwidth', 1024 );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherheight', 1024 );
 		$id = $this->factory->attachment->create_upload_object( self::$test_jpg );
@@ -115,11 +130,15 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 	 * Creates a JPG attachment while resizing is enabled (crop-mode) using API.
 	 */
 	function test_crop_jpg_cloud() {
+		if ( empty( self::$api_key ) ) {
+			self::markTestSkipped( 'No API key available.' );
+		}
+
 		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_jpg_level', 20 );
 		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 20 );
-		ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherwidth', 1024 );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherheight', 1024 );
 		add_filter( 'ewww_image_optimizer_crop_image', '__return_true' );

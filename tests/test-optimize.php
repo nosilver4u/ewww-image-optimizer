@@ -47,6 +47,13 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	public static $test_svg = '';
 
 	/**
+	 * The API key used for API-based tests.
+	 *
+	 * @var stringg $api_key
+	 */
+	public static $api_key = '';
+
+	/**
 	 * Downloads test images.
 	 */
 	public static function set_up_before_class() {
@@ -73,6 +80,8 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$test_svg = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/image-x-generic.svg' );
 		rename( $test_svg, $temp_upload_dir . wp_basename( $test_svg ) );
 		self::$test_svg = $temp_upload_dir . wp_basename( $test_svg );
+
+		self::$api_key  = getenv( 'EWWWIO_API_KEY' );
 
 		ewwwio()->set_defaults();
 		update_option( 'ewww_image_optimizer_jpg_level', 10 );
@@ -222,14 +231,18 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test Max Lossless JPG optimization with WebP (API level 20).
 	 */
 	function test_optimize_jpg_20() {
+		if ( empty( self::$api_key ) ) {
+			self::markTestSkipped( 'No API key available.' );
+		}
+
 		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_jpg_level', 20 );
 		update_option( 'ewww_image_optimizer_webp', true );
-		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 20 );
 		update_site_option( 'ewww_image_optimizer_webp', true );
-		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_site_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		$results = $this->optimize_jpg();
 		update_option( 'ewww_image_optimizer_webp', '' );
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
@@ -247,14 +260,18 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test lossless JPG via API and keeps meta with WebP and autorotation check.
 	 */
 	function test_optimize_jpg_20_keep_meta() {
+		if ( empty( self::$api_key ) ) {
+			self::markTestSkipped( 'No API key available.' );
+		}
+
 		update_option( 'ewww_image_optimizer_metadata_remove', '' );
 		update_option( 'ewww_image_optimizer_jpg_level', 20 );
 		update_option( 'ewww_image_optimizer_webp', true );
-		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		update_site_option( 'ewww_image_optimizer_metadata_remove', '' );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 20 );
 		update_site_option( 'ewww_image_optimizer_webp', true );
-		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_site_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		$results = $this->optimize_jpg();
 		update_option( 'ewww_image_optimizer_webp', '' );
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
@@ -276,12 +293,16 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test Regular Lossy JPG optimization (API level 30).
 	 */
 	function test_optimize_jpg_30() {
+		if ( empty( self::$api_key ) ) {
+			self::markTestSkipped( 'No API key available.' );
+		}
+
 		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_jpg_level', 30 );
-		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 30 );
-		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_site_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		$results = $this->optimize_jpg();
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
@@ -293,12 +314,16 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test Max Lossy JPG optimization (API level 40).
 	 */
 	function test_optimize_jpg_40() {
+		if ( empty( self::$api_key ) ) {
+			self::markTestSkipped( 'No API key available.' );
+		}
+
 		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_jpg_level', 40 );
-		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 40 );
-		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_site_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		$results = $this->optimize_jpg();
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
@@ -388,12 +413,16 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test "better" lossless PNG with API, no meta.
 	 */
 	function test_optimize_png_20() {
+		if ( empty( self::$api_key ) ) {
+			self::markTestSkipped( 'No API key available.' );
+		}
+
 		update_option( 'ewww_image_optimizer_png_level', 20 );
 		update_option( 'ewww_image_optimizer_metadata_remove', true );
-		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		update_site_option( 'ewww_image_optimizer_png_level', 20 );
 		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
-		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_site_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		$results = $this->optimize_png();
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
@@ -405,12 +434,16 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test regular lossy PNG with API.
 	 */
 	function test_optimize_png_40() {
+		if ( empty( self::$api_key ) ) {
+			self::markTestSkipped( 'No API key available.' );
+		}
+
 		update_option( 'ewww_image_optimizer_png_level', 40 );
 		update_option( 'ewww_image_optimizer_metadata_remove', true );
-		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		update_site_option( 'ewww_image_optimizer_png_level', 40 );
 		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
-		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_site_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		$results = $this->optimize_png();
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
@@ -422,12 +455,16 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test max lossy PNG with API.
 	 */
 	function test_optimize_png_50() {
+		if ( empty( self::$api_key ) ) {
+			self::markTestSkipped( 'No API key available.' );
+		}
+
 		update_option( 'ewww_image_optimizer_png_level', 50 );
 		update_option( 'ewww_image_optimizer_metadata_remove', true );
-		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		update_site_option( 'ewww_image_optimizer_png_level', 50 );
 		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
-		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_site_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		$results = $this->optimize_png();
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
@@ -450,11 +487,15 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test lossless GIF via API.
 	 */
 	function test_optimize_gif_10_api() {
+		if ( empty( self::$api_key ) ) {
+			self::markTestSkipped( 'No API key available.' );
+		}
+
 		update_option( 'ewww_image_optimizer_gif_level', 10 );
-		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		update_option( 'ewww_image_optimizer_webp', true );
 		update_site_option( 'ewww_image_optimizer_gif_level', 10 );
-		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_site_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		update_site_option( 'ewww_image_optimizer_webp', true );
 		$results = $this->optimize_gif();
 		update_option( 'ewww_image_optimizer_webp', '' );
@@ -473,10 +514,14 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test lossless PDF via API.
 	 */
 	function test_optimize_pdf_10() {
+		if ( empty( self::$api_key ) ) {
+			self::markTestSkipped( 'No API key available.' );
+		}
+
 		update_option( 'ewww_image_optimizer_pdf_level', 10 );
-		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		update_site_option( 'ewww_image_optimizer_pdf_level', 10 );
-		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_site_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		$results = $this->optimize_pdf();
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
@@ -488,10 +533,14 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test lossy PDF via API.
 	 */
 	function test_optimize_pdf_20() {
+		if ( empty( self::$api_key ) ) {
+			self::markTestSkipped( 'No API key available.' );
+		}
+
 		update_option( 'ewww_image_optimizer_pdf_level', 20 );
-		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		update_site_option( 'ewww_image_optimizer_pdf_level', 20 );
-		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_site_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		$results = $this->optimize_pdf();
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
@@ -525,10 +574,14 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test minimal SVG via API.
 	 */
 	function test_optimize_svg_01_api() {
+		if ( empty( self::$api_key ) ) {
+			self::markTestSkipped( 'No API key available.' );
+		}
+
 		update_option( 'ewww_image_optimizer_svg_level', 1 );
-		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		update_site_option( 'ewww_image_optimizer_svg_level', 1 );
-		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_site_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		$results = $this->optimize_svg();
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
@@ -540,10 +593,14 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test default SVG via API.
 	 */
 	function test_optimize_svg_10_api() {
+		if ( empty( self::$api_key ) ) {
+			self::markTestSkipped( 'No API key available.' );
+		}
+
 		update_option( 'ewww_image_optimizer_svg_level', 10 );
-		update_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		update_site_option( 'ewww_image_optimizer_svg_level', 10 );
-		update_site_option( 'ewww_image_optimizer_cloud_key', 'abc123' );
+		update_site_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		$results = $this->optimize_svg();
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
