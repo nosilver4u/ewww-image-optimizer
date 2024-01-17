@@ -114,6 +114,10 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 		$ewww_status   = get_transient( 'ewww_image_optimizer_cloud_status' );
 		if ( 'image/gif' === $this->mime_type && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 			$gifsicle_path = ewwwio()->local->get_path( 'gifsicle' );
+			if ( empty( $gifsicle_path ) ) {
+				ewwwio_debug_message( 'no gifsicle to resize an animated GIF' );
+				$return_parent = true;
+			}
 		}
 		// If this is a GIF, and we have no gifsicle, and there's an API key, but the status isn't 'great',
 		// double-check the key to see if the status has changed before bailing.
@@ -124,7 +128,7 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 			ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
 			! ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) )
 		) {
-			ewwwio_debug_message( 'no gifsicle or API to resize an animated GIF' );
+			ewwwio_debug_message( 'no API key to resize an animated GIF' );
 			$return_parent = true;
 		}
 		// If this is some other image, and there's an API key, but the status isn't 'great',
