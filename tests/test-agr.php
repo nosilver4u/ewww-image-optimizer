@@ -18,11 +18,14 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 	 */
 	public static $test_gif = '';
 
+	public static $api_key = '';
+
 	/**
 	 * Downloads test images.
 	 */
 	public static function set_up_before_class() {
 		self::$test_gif = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/rain.gif' );
+		self::$api_key  = getenv( 'EWWWIO_API_KEY' );
 
 		ewwwio()->set_defaults();
 		update_option( 'ewww_image_optimizer_gif_level', 10 );
@@ -68,9 +71,8 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 	function test_api_agr() {
 		$upload_gif = self::$test_gif . '.gif';
 		copy( self::$test_gif, $upload_gif );
-		$api_key = getenv( 'EWWWIO_API_KEY' );
-		update_option( 'ewww_image_optimizer_cloud_key', $api_key );
-		update_site_option( 'ewww_image_optimizer_cloud_key', $api_key );
+		update_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
+		update_site_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		$id = $this->factory->attachment->create_upload_object( $upload_gif );
 		$meta = wp_get_attachment_metadata( $id );
 		list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
