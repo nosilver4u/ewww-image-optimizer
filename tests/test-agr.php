@@ -18,6 +18,11 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 	 */
 	public static $test_gif = '';
 
+	/**
+	 * The API key used for API-based tests.
+	 *
+	 * @var stringg $api_key
+	 */
 	public static $api_key = '';
 
 	/**
@@ -69,6 +74,9 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 	 * Test API-based AGR.
 	 */
 	function test_api_agr() {
+		if ( empty( self::$api_key ) ) {
+			self::markTestSkipped( 'No API key available.' );
+		}
 		$upload_gif = self::$test_gif . '.gif';
 		copy( self::$test_gif, $upload_gif );
 		update_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
