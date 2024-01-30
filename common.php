@@ -1938,7 +1938,9 @@ function ewww_image_optimizer_lr_sync_script() {
 		"});\n" .
 		"</script>\n";
 }
-
+/**
+ * Requires the removal of Animated Gif Resize plugin.
+ */
 function ewww_image_optimizer_notice_agr() {
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		return;
