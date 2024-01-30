@@ -1939,6 +1939,19 @@ function ewww_image_optimizer_lr_sync_script() {
 		"</script>\n";
 }
 
+function ewww_image_optimizer_notice_agr() {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		return;
+	}
+	?>
+	<div id="ewww-image-optimizer-notice-agr" class="notice notice-warning">
+		<p>
+			<?php esc_html_e( 'GIF animations are preserved by EWWW Image Optimizer automatically. Please remove the Animated GIF Resize plugin.', 'ewww-image-optimizer' ); ?>
+		</p>
+	</div>
+	<?php
+}
+
 /**
  * Let the user know they can view more options and stats in the Media Library's list mode.
  */

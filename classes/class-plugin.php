@@ -546,10 +546,14 @@ final class Plugin extends Base {
 			\add_action( 'admin_notices', 'ewww_image_optimizer_notice_lr_sync' );
 			\add_action( 'admin_footer', 'ewww_image_optimizer_lr_sync_script' );
 		}
+		if ( \class_exists( '\Bbpp_Animated_Gif' ) ) {
+			\add_action( 'admin_notices', 'ewww_image_optimizer_notice_agr' );
+			\add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_agr' );
+		}
 		// Increase the version when the next bump is coming.
 		if ( \defined( 'PHP_VERSION_ID' ) && PHP_VERSION_ID < 70200 ) {
-			\add_action( 'network_admin_notices', 'ewww_image_optimizer_php72_warning' );
 			\add_action( 'admin_notices', 'ewww_image_optimizer_php72_warning' );
+			\add_action( 'network_admin_notices', 'ewww_image_optimizer_php72_warning' );
 		}
 		if ( \get_option( 'ewww_image_optimizer_debug' ) ) {
 			\add_action( 'admin_notices', 'ewww_image_optimizer_debug_enabled_notice' );
