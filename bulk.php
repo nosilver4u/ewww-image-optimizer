@@ -878,7 +878,7 @@ function ewww_image_optimizer_optimized_list() {
 		return;
 	}
 	$starting_memory_usage = memory_get_usage( true );
-	$already_optimized     = $ewwwdb->get_results( "SELECT id,path,image_size,pending,attachment_id,level,updated FROM $ewwwdb->ewwwio_images LIMIT $offset,$max_query", ARRAY_A );
+	$already_optimized     = $ewwwdb->get_results( "SELECT id,path,image_size,pending,attachment_id,level,updated,resized_width,resized_height,resize_error FROM $ewwwdb->ewwwio_images LIMIT $offset,$max_query", ARRAY_A );
 	while ( $already_optimized ) {
 		$ewwwdb->flush();
 		foreach ( $already_optimized as $optimized ) {
@@ -984,6 +984,7 @@ function ewww_image_optimizer_should_resize( $file, $media = false ) {
 	if ( ! $media && ! ewww_image_optimizer_should_resize_other_image( $file ) ) {
 		return false;
 	}
+	global $optimized_list;
 	$maxwidth  = ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherwidth' );
 	$maxheight = ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherheight' );
 	if ( ! $maxwidth && ! $maxheight ) {
@@ -992,6 +993,18 @@ function ewww_image_optimizer_should_resize( $file, $media = false ) {
 	}
 	list( $oldwidth, $oldheight ) = wp_getimagesize( $file );
 	if ( ( $maxwidth && $oldwidth > $maxwidth ) || ( $maxheight && $oldheight > $maxheight ) ) {
+		$already_optimized = false;
+		if ( empty( $optimized_list ) || ! is_array( $optimized_list ) ) {
+			$already_optimized = ewww_image_optimizer_find_already_optimized( $file );
+		} elseif ( is_array( $optimized_list ) && isset( $optimized_list[ $file ] ) ) {
+			$already_optimized = $optimized_list[ $file ];
+		}
+		if ( is_array( $already_optimized ) && isset( $already_optimized['resized_width'] ) ) {
+			if ( (int) $maxwidth >= (int) $already_optimized['resized_width'] && (int) $maxheight >= $already_optimized['resized_height'] && 2 === (int) $already_optimized['resize_error'] ) {
+				ewwwio_debug_message( "$file ($oldwidth x $oldheight) already attempted resize to $maxwidth x $maxheight, and the resulting filesize was too large" );
+				return false;
+			}
+		}
 		ewwwio_debug_message( "$file ($oldwidth x $oldheight) larger than $maxwidth x $maxheight" );
 		return true;
 	}

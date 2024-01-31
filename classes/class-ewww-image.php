@@ -106,6 +106,36 @@ class EWWW_Image {
 	public $resize = null;
 
 	/**
+	 * The width setting (in pixels) when this image was last attempted to be resized.
+	 *
+	 * This is not the actual width of the image, but used to check if the settings
+	 * have changed since the last attempt.
+	 *
+	 * @var int $resized_width
+	 */
+	public $resized_width = 0;
+
+	/**
+	 * The height setting (in pixels) when this image was last attempted to be resized.
+	 *
+	 * This is not the actual height of the image, but used to check if the settings
+	 * have changed since the last attempt.
+	 *
+	 * @var int $resized_height
+	 */
+	public $resized_height = 0;
+
+	/**
+	 * An error code from when this image was last attempted to be resized.
+	 *
+	 * 0 = No error, 1 = WP_Image_Editor error, 2 = scaled version was too large,
+	 * 3 = some other error, like an unwritable or missing image.
+	 *
+	 * @var int $resize_error
+	 */
+	public $resize_error = 0;
+
+	/**
 	 * The suffix added to the converted file, to be applied also to thumbs.
 	 *
 	 * @var string $suffix
