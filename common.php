@@ -6324,7 +6324,7 @@ function ewww_image_optimizer_update_resize_results( $attachment, $resized_width
 	if ( ! seems_utf8( $updates['path'] ) ) {
 		$updates['path'] = mb_convert_encoding( $updates['path'], 'UTF-8' );
 	}
-	if ( is_object( $ewww_image ) && $ewww_image instanceof EWWW_Image && $attachment === $ewww_image->path ) {
+	if ( is_object( $ewww_image ) && $ewww_image instanceof EWWW_Image && $attachment === $ewww_image->file ) {
 		$ewww_image->resized_width  = (int) $resized_width;
 		$ewww_image->resized_height = (int) $resized_height;
 		$ewww_image->resize_error   = (int) $resize_error;
