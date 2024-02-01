@@ -1332,8 +1332,6 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	global $wpdb;
 	global $optimized_list;
 	global $ewww_scan;
-	global $ewww_force;
-	global $ewww_force_smart;
 	$images       = array();
 	$reset_images = array();
 	ewwwio_debug_message( "scanning folder for images: $dir" );
@@ -1481,13 +1479,13 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 					continue;
 				}
 				$compression_level = ewww_image_optimizer_get_level( $mime );
-				if ( ! empty( $ewww_force_smart ) && ewww_image_optimizer_level_mismatch( $already_optimized['level'], $compression_level ) ) {
+				if ( ! empty( ewwwio()->force_smart ) && ewww_image_optimizer_level_mismatch( $already_optimized['level'], $compression_level ) ) {
 					$reset_images[] = (int) $already_optimized['id'];
 					ewwwio_debug_message( "smart re-opt found level mismatch for $path, db says " . $already_optimized['level'] . " vs. current $compression_level" );
 				} elseif ( $should_resize ) {
 					$reset_images[] = (int) $already_optimized['id'];
 					ewwwio_debug_message( "resize other existing found candidate for scaling: $path" );
-				} elseif ( (int) $already_optimized['image_size'] === $image_size && empty( $ewww_force ) ) {
+				} elseif ( (int) $already_optimized['image_size'] === $image_size && empty( ewwwio()->force ) ) {
 					ewwwio_debug_message( "match found for $path" );
 					continue;
 				} else {

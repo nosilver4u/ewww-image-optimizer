@@ -118,6 +118,39 @@ final class Plugin extends Base {
 	public $cloud_mode = false;
 
 	/**
+	 * Whether deferral (async processing) of image optimization is allowed.
+	 *
+	 * Normally true, but if the plugin is already in processing an image
+	 * in async mode, then it shouldn't be deferred endlessly.
+	 *
+	 * @var bool $defer
+	 */
+	public $defer = true;
+
+	/**
+	 * Whether forced re-optimization is enabled.
+	 *
+	 * @var bool $force
+	 */
+	public $force = false;
+
+	/**
+	 * Whether smart, forced re-optimization is enabled, to re-optimize
+	 * images that were previously compressed at a different optimization level.
+	 *
+	 * @var bool $force
+	 */
+	public $force_smart = false;
+
+	/**
+	 * Whether WebP-only mode is enabled, so that other optimizations
+	 * are disabled, and only WebP conversion is attempted.
+	 *
+	 * @var bool $webp_only
+	 */
+	public $webp_only = false;
+
+	/**
 	 * Did we already run tool_init()?
 	 *
 	 * @var bool $tools_initialized

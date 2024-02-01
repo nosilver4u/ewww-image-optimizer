@@ -44,7 +44,6 @@ class Background_Process_Media extends Background_Process {
 	 * Then runs the usual media optimization routine on the specified item.
 	 *
 	 * @access protected
-	 * @global bool $ewww_defer True to defer optimization, false otherwise.
 	 *
 	 * @param array $item The id of the attachment, how many attempts have been made to process
 	 *                    the item, the type of attachment, and whether it is a new upload.
@@ -52,10 +51,9 @@ class Background_Process_Media extends Background_Process {
 	 */
 	protected function task( $item ) {
 		session_write_close();
-		global $ewww_defer;
-		$ewww_defer   = false;
-		$max_attempts = 15;
-		$id           = $item['id'];
+		ewwwio()->defer = false;
+		$max_attempts   = 15;
+		$id             = $item['id'];
 		if ( empty( $item['attempts'] ) ) {
 			ewwwio_debug_message( 'first attempt, going to sleep for a bit' );
 			$item['attempts'] = 0;

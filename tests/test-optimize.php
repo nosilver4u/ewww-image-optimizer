@@ -115,9 +115,8 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * @return array The results of the ewww_image_optimizer() function.
 	 */
 	protected function optimize_jpg() {
-		global $ewww_force;
-		$ewww_force = 1;
-		$filename = self::$test_jpg . ".jpg";
+		ewwwio()->force = true;
+		$filename       = self::$test_jpg . ".jpg";
 		copy( self::$test_jpg, $filename );
 		$results = ewww_image_optimizer( $filename );
 		return $results;
@@ -129,9 +128,8 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * @return array The results of the ewww_image_optimizer() function.
 	 */
 	protected function optimize_png() {
-		global $ewww_force;
-		$ewww_force = 1;
-		$filename = self::$test_png . ".png";
+		ewwwio()->force = true;
+		$filename       = self::$test_png . ".png";
 		copy( self::$test_png, $filename );
 		$results = ewww_image_optimizer( $filename );
 		return $results;
@@ -143,9 +141,8 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * @return array The results of the ewww_image_optimizer() function.
 	 */
 	protected function optimize_gif() {
-		global $ewww_force;
-		$ewww_force = 1;
-		$filename = self::$test_gif . ".gif";
+		ewwwio()->force = true;
+		$filename       = self::$test_gif . ".gif";
 		copy( self::$test_gif, $filename );
 		$results = ewww_image_optimizer( $filename );
 		return $results;
@@ -157,9 +154,8 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * @return array The results of the ewww_image_optimizer() function.
 	 */
 	protected function optimize_pdf() {
-		global $ewww_force;
-		$ewww_force = 1;
-		$filename = self::$test_pdf . ".pdf";
+		ewwwio()->force = true;
+		$filename       = self::$test_pdf . ".pdf";
 		copy( self::$test_pdf, $filename );
 		$results = ewww_image_optimizer( $filename );
 		return $results;
@@ -171,9 +167,8 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * @return array The results of the ewww_image_optimizer() function.
 	 */
 	protected function optimize_svg() {
-		global $ewww_force;
-		$ewww_force = 1;
-		$filename = self::$test_svg . ".svg";
+		ewwwio()->force = true;
+		$filename       = self::$test_svg . ".svg";
 		copy( self::$test_svg, $filename );
 		$results = ewww_image_optimizer( $filename );
 		return $results;

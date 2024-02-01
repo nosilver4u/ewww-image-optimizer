@@ -551,7 +551,6 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 	 */
 	protected function _save( $image, $filename = null, $mime_type = null ) {
 		ewwwio_debug_message( '<b>wp_image_editor_imagick::' . __FUNCTION__ . '()</b>' );
-		global $ewww_defer;
 		global $ewww_preempt_editor;
 		if ( ! empty( $this->ewww_image ) && ! $this->modified ) {
 			return $this->_save_ewwwio_file( $this->ewww_image, $filename, $mime_type );

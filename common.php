@@ -1469,6 +1469,9 @@ function ewww_image_optimizer_install_table() {
 		gallery varchar(20),
 		scanned tinyint NOT NULL DEFAULT 0,
 		new tinyint NOT NULL DEFAULT 0,
+		force_reopt tinyint NOT NULL DEFAULT 0,
+		force_smart tinyint NOT NULL DEFAULT 0,
+		webp_only tinyint NOT NULL DEFAULT 0,
 		PRIMARY KEY  (id),
 		KEY attachment_info (gallery(3),attachment_id)
 	) COLLATE utf8_general_ci;";
@@ -2653,7 +2656,6 @@ function ewww_image_optimizer_upload_info() {
  * metaslider, and WP Symposium. Also includes any user-configured folders, along with the last two
  * months of media uploads.
  *
- * @global bool $ewww_defer Gets set to false to make sure optimization happens inline.
  * @global object $wpdb
  * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  */
@@ -2663,8 +2665,7 @@ function ewww_image_optimizer_auto() {
 		ewwwio_debug_message( 'detected bulk operation in progress, bailing' );
 		return;
 	}
-	global $ewww_defer;
-	$ewww_defer = false;
+	ewwwio()->defer = false;
 	require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'bulk.php';
 	require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'aux-optimize.php';
 	if ( ewwwio()->background_image->is_process_running() || ewwwio()->background_image->count_queue() ) {
@@ -3746,15 +3747,11 @@ function ewwwio_chmod( $file, $mode ) {
 
 /**
  * Manually process an image from the Media Library
- *
- * @global bool $ewww_defer True if the image optimization should be deferred.
  */
 function ewww_image_optimizer_manual() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	global $ewww_force;
 	global $ewww_convert;
-	global $ewww_defer;
-	$ewww_defer = false;
+	ewwwio()->defer = false;
 	add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 	// Check permissions of current user.
 	$permissions = apply_filters( 'ewww_image_optimizer_manual_permissions', '' );
@@ -3784,9 +3781,9 @@ function ewww_image_optimizer_manual() {
 		wp_die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
 	}
 	// Store the attachment ID value.
-	$attachment_id = (int) $_REQUEST['ewww_attachment_ID'];
-	$ewww_force    = ! empty( $_REQUEST['ewww_force'] ) ? true : false;
-	$ewww_convert  = ! empty( $_REQUEST['ewww_convert'] ) ? true : false;
+	$attachment_id  = (int) $_REQUEST['ewww_attachment_ID'];
+	ewwwio()->force = ! empty( $_REQUEST['ewww_force'] ) ? true : false;
+	$ewww_convert   = ! empty( $_REQUEST['ewww_convert'] ) ? true : false;
 	// Retrieve the existing attachment metadata.
 	$original_meta = wp_get_attachment_metadata( $attachment_id );
 	// If the call was to optimize...
@@ -5252,8 +5249,6 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		ewwwio_debug_message( 'license exceeded, image not processed' );
 		return array( $file, false, 'exceeded', 0, '' );
 	}
-	global $ewww_force;
-	global $ewww_force_smart;
 	global $eio_filesystem;
 	ewwwio_get_filesystem();
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_skip_full' ) && $fullsize ) {
@@ -5339,7 +5334,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		if ( is_object( $ewww_image ) && $ewww_image->file === $file && ! empty( $ewww_image->backup ) ) {
 			$hash = $ewww_image->backup;
 		}
-		if ( empty( $hash ) && ( ! empty( $ewww_force ) || ! empty( $ewww_force_smart ) ) ) {
+		if ( empty( $hash ) && ( ! empty( ewwwio()->force ) || ! empty( ewwwio()->force_smart ) ) ) {
 			$image = ewww_image_optimizer_find_already_optimized( $file );
 			if ( ! empty( $image ) && is_array( $image ) && ! empty( $image['backup'] ) ) {
 				$hash = $image['backup'];
@@ -6090,7 +6085,6 @@ function ewww_image_optimizer_check_table( $file, $orig_size ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	ewwwio_debug_message( "checking for $file with size: $orig_size" );
 	global $ewww_image;
-	global $ewww_force_smart;
 	$image = array();
 	if ( ! is_object( $ewww_image ) || ! $ewww_image instanceof EWWW_Image || $ewww_image->file !== $file ) {
 		$ewww_image = new EWWW_Image( 0, '', $file );
@@ -6110,7 +6104,7 @@ function ewww_image_optimizer_check_table( $file, $orig_size ) {
 		ewwwio_debug_message( "already optimized: {$image['path']} - $already_optimized" );
 		ewwwio_memory( __FUNCTION__ );
 		// Make sure the image isn't pending.
-		if ( $image['pending'] && empty( $ewww_force_smart ) ) {
+		if ( $image['pending'] && empty( ewwwio()->force_smart ) ) {
 			global $wpdb;
 			$wpdb->update(
 				$wpdb->ewwwio_images,
@@ -6418,7 +6412,6 @@ function ewww_image_optimizer_size_format( $size, $precision = 1 ) {
  *
  * @global object $wpdb
  * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
- * @global bool   $ewww_defer Set to false to avoid deferring image optimization.
  * @global object $ewww_image Contains more information about the image currently being processed.
  *
  * @param array $attachment {
@@ -6440,9 +6433,8 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 	} else {
 		$ewwwdb = $wpdb;
 	}
-	global $ewww_defer;
-	$ewww_defer = false;
-	$output     = array();
+	ewwwio()->defer = false;
+	$output         = array();
 	// Verify that an authorized user has started the optimizer.
 	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 	if ( ! $auto && ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) ) {
@@ -7422,13 +7414,12 @@ function ewww_image_optimizer_resize_upload( $file ) {
 	// 2 = Scaled image filesize too large (bigger than the original)
 	// 3 = All other errors.
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	global $ewww_webp_only;
 	global $ewwwio_resize_status;
 	$ewwwio_resize_status = '';
 	if ( ! $file ) {
 		return false;
 	}
-	if ( ! empty( $ewww_webp_only ) ) {
+	if ( ! empty( ewwwio()->webp_only ) ) {
 		return false;
 	}
 	if ( function_exists( 'wp_raise_memory_limit' ) ) {
@@ -7771,8 +7762,7 @@ function ewww_image_optimizer_find_already_optimized( $attachment ) {
  */
 function ewww_image_optimizer_attachment_check_variant_level( $id, $type, $meta ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	global $ewww_force;
-	if ( empty( $ewww_force ) ) {
+	if ( empty( ewwwio()->force ) ) {
 		return $meta;
 	}
 	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
@@ -7902,8 +7892,6 @@ function ewww_image_optimizer_background_mode_enabled() {
  *
  * Uses the mimetype and current configuration to determine if background mode should be used.
  *
- * @global bool $ewww_defer True to defer optimization.
- *
  * @param string $type Optional. Mime type of image being processed. Default ''.
  * @return bool True if background mode should be used.
  */
@@ -7920,8 +7908,7 @@ function ewww_image_optimizer_test_background_opt( $type = '' ) {
 	if ( 'image/gif' === $type && ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_to_png' ) ) {
 		return apply_filters( 'ewww_image_optimizer_defer_conversion', false );
 	}
-	global $ewww_defer;
-	return (bool) apply_filters( 'ewww_image_optimizer_background_optimization', $ewww_defer );
+	return (bool) apply_filters( 'ewww_image_optimizer_background_optimization', ewwwio()->defer );
 }
 
 /**
@@ -8068,7 +8055,6 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 	}
 	global $ewww_new_image;
 	global $ewww_image;
-	global $ewww_force;
 	global $eio_filesystem;
 	ewwwio_get_filesystem();
 	$gallery_type = 1;
@@ -8192,13 +8178,6 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		remove_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment', 10 );
 	}
 	ewww_image_optimizer_hidpi_optimize( $file );
-
-	// See if we are forcing re-optimization per the user's request.
-	if ( ! empty( $ewww_force ) ) {
-		$force = true;
-	} else {
-		$force = false;
-	}
 
 	$base_dir = trailingslashit( dirname( $file_path ) );
 	// Resized versions, so we can continue.

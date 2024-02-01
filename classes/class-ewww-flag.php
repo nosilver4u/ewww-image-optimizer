@@ -343,7 +343,6 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		 */
 		public function ewww_added_new_image( $id, $image ) {
 			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-			global $ewww_defer;
 			global $ewww_image;
 			// Make sure the image path is set.
 			if ( ! isset( $image->image->imagePath ) ) {
@@ -435,8 +434,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 				wp_die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
 			}
 			global $ewww_image;
-			global $ewww_force;
-			$ewww_force = ! empty( $_REQUEST['ewww_force'] ) ? true : false;
+			ewwwio()->force = ! empty( $_REQUEST['ewww_force'] ) ? true : false;
 			if ( ! class_exists( 'flagMeta' ) ) {
 				require_once FLAG_ABSPATH . 'lib/meta.php';
 			}
@@ -576,10 +574,9 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 		 */
 		public function ewww_flag_bulk_loop() {
 			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-			global $ewww_defer;
-			$ewww_defer  = false;
-			$output      = array();
-			$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
+			ewwwio()->defer = false;
+			$output         = array();
+			$permissions    = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 			if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) {
 				$output['error'] = esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' );
 				ewwwio_ob_clean();

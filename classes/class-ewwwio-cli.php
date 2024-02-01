@@ -49,16 +49,12 @@ class EWWWIO_CLI extends WP_CLI_Command {
 	 *
 	 * @synopsis <library> [<delay>] [--force] [--reset] [--webp-only] [--noprompt]
 	 *
-	 * @global bool $ewww_defer Gets set to false to make sure optimization happens inline.
-	 *
 	 * @param array $args A numeric array of required arguments.
 	 * @param array $assoc_args An associative array of optional arguments.
 	 */
 	public function optimize( $args, $assoc_args ) {
-		global $ewww_defer;
-		$ewww_defer = false;
-		global $ewww_webp_only;
-		$ewww_webp_only = false;
+		ewwwio()->defer     = false;
+		ewwwio()->webp_only = false;
 		// because NextGEN hasn't flushed it's buffers...
 		while ( @ob_end_flush() ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		}
@@ -85,15 +81,14 @@ class EWWWIO_CLI extends WP_CLI_Command {
 		if ( ! empty( $assoc_args['force'] ) ) {
 			WP_CLI::line( __( 'Forcing re-optimization of previously processed images.', 'ewww-image-optimizer' ) );
 			$_REQUEST['ewww_force'] = true;
-			global $ewww_force;
-			$ewww_force = 1;
+			ewwwio()->force         = 1;
 		}
 		if ( ! empty( $assoc_args['webp-only'] ) ) {
 			if ( empty( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) ) {
 				WP_CLI::error( __( 'WebP Conversion is not enabled.', 'ewww-image-optimizer' ) );
 			}
 			WP_CLI::line( __( 'Running WebP conversion only.', 'ewww-image-optimizer' ) );
-			$ewww_webp_only = true;
+			ewwwio()->webp_only = true;
 		}
 		/* translators: 1: type of images, like media, or nextgen 2: number of seconds */
 		WP_CLI::line( sprintf( _x( 'Optimizing %1$s with a %2$d second pause between images.', 'string will be something like "media" or "nextgen"', 'ewww-image-optimizer' ), $library, $delay ) );
@@ -729,10 +724,9 @@ class EWWWIO_CLI extends WP_CLI_Command {
 		}
 		$attachments = $images; // Kept separate to update status in db.
 		global $ewwwngg;
-		global $ewww_defer;
-		$ewww_defer    = false;
-		$clicount      = 0;
-		$pending_count = count( $images );
+		ewwwio()->defer = false;
+		$clicount       = 0;
+		$pending_count  = count( $images );
 		foreach ( $images as $id ) {
 			if ( ewww_image_optimizer_function_exists( 'sleep' ) ) {
 				sleep( $delay );
@@ -815,8 +809,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 	 */
 	private function bulk_nextcellent( $delay, $attachments ) {
 		global $ewwwngg;
-		global $ewww_defer;
-		$ewww_defer = false;
+		ewwwio()->defer = false;
 		// Toggle the resume flag to indicate an operation is in progress.
 		update_option( 'ewww_image_optimizer_bulk_ngg_resume', 'true' );
 		// Need this file to work with metadata.

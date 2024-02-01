@@ -26,7 +26,6 @@ if ( class_exists( 'WP_Image_Editor_Gmagick' ) ) {
 		 * @return WP_Error| array The full path, base filename, width, height, and mimetype.
 		 */
 		protected function _save( $image, $filename = null, $mime_type = null ) {
-			global $ewww_defer;
 			global $ewww_preempt_editor;
 			if ( ! empty( $ewww_preempt_editor ) || ! defined( 'EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR' ) || ! EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR ) {
 				return parent::_save( $image, $filename, $mime_type );
