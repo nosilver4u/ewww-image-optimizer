@@ -657,7 +657,7 @@ function ewww_image_optimizer_delete_webp_handler() {
 
 	$id = (int) $wpdb->get_var(
 		$wpdb->prepare(
-			"SELECT ID FROM $wpdb->posts WHERE ID > %d AND (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE %s OR post_mime_type LIKE %s) ORDER BY ID LIMIT 1",
+			"SELECT ID FROM $wpdb->posts WHERE ID > %d AND post_type = 'attachment' AND (post_mime_type LIKE %s OR post_mime_type LIKE %s) ORDER BY ID LIMIT 1",
 			(int) $position,
 			'%image%',
 			'%pdf%'
@@ -934,7 +934,7 @@ function ewww_image_optimizer_aux_meta_clean() {
 
 	$attachments = $wpdb->get_col(
 		$wpdb->prepare(
-			"SELECT ID FROM $wpdb->posts WHERE (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE %s OR post_mime_type LIKE %s) ORDER BY ID ASC LIMIT %d,%d",
+			"SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND (post_mime_type LIKE %s OR post_mime_type LIKE %s) ORDER BY ID ASC LIMIT %d,%d",
 			'%image%',
 			'%pdf%',
 			$offset,
@@ -1053,6 +1053,43 @@ function ewww_image_optimizer_delete_pending() {
 }
 
 /**
+ * Remove an un-optimized image from the ewwwio_images table.
+ *
+ * @param int $id The ID of the pending image in the db.
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_delete_pending_image( $id ) {
+	global $wpdb;
+	$wpdb->delete(
+		$wpdb->ewwwio_images,
+		array(
+			'id'      => $id,
+			'pending' => 1,
+		),
+		array( '%d', '%d' )
+	);
+}
+
+/**
+ * Toggle the pending flag for an image in the ewwwio_images table.
+ *
+ * @param int $id The ID of the pending image in the db.
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_toggle_pending_image( $id ) {
+	global $wpdb;
+	$wpdb->update(
+		$wpdb->ewwwio_images,
+		array(
+			'pending' => 0,
+		),
+		array(
+			'id' => $id,
+		)
+	);
+}
+
+/**
  * Retrieve the number images from the ewwwio_queue table.
  *
  * @since 4.6.0
@@ -1105,6 +1142,20 @@ function ewww_image_optimizer_get_unscanned_attachments( $gallery, $limit = 1000
 }
 
 /**
+ * Check to see if an attachment has any more sizes that are pending.
+ *
+ * @param int    $id The ID of the attachment/image.
+ * @param string $gallery The type of image to look for. Optional.
+ * @return bool True if it's still in the queue.
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_attachment_has_pending_sizes( $id, $gallery = 'media' ) {
+	global $wpdb;
+	$id = (int) $id;
+	return $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = %s AND pending = 1", $id, $gallery ) );
+}
+
+/**
  * Check to see if an image is in the queue.
  *
  * @param int    $id The ID of the attachment/image.
@@ -1134,7 +1185,7 @@ function ewww_image_optimizer_get_all_attachments() {
 	global $wpdb;
 	$attachments = $wpdb->get_col(
 		$wpdb->prepare(
-			"SELECT ID FROM $wpdb->posts WHERE ID > %d AND (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE %s OR post_mime_type LIKE %s) ORDER BY ID DESC",
+			"SELECT ID FROM $wpdb->posts WHERE ID > %d AND post_type = 'attachment' AND (post_mime_type LIKE %s OR post_mime_type LIKE %s) ORDER BY ID DESC",
 			(int) $start_id,
 			'%image%',
 			'%pdf%'
@@ -1166,7 +1217,7 @@ function ewww_image_optimizer_webp_attachment_count() {
 	global $wpdb;
 	$total_attachments = (int) $wpdb->get_var(
 		$wpdb->prepare(
-			"SELECT count(ID) FROM $wpdb->posts WHERE ID > %d AND (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE %s OR post_mime_type LIKE %s)",
+			"SELECT count(ID) FROM $wpdb->posts WHERE ID > %d AND post_type = 'attachment' AND (post_mime_type LIKE %s OR post_mime_type LIKE %s)",
 			(int) $start_id,
 			'%image%',
 			'%pdf%'

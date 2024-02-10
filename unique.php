@@ -342,6 +342,8 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				} else {
 					$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, $type, null, $orig_size !== $new_size );
 				}
+				if ( 'pending' === $result ) {
+				}
 				break;
 			}
 			$tools['jpegtran'] = ewwwio()->local->get_path( 'jpegtran' );
@@ -1186,11 +1188,12 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		return array( $file, $results_msg, $converted, $original );
 	}
 	ewwwio_memory( __FUNCTION__ );
-	// Otherwise, send back the filename, the results (some sort of error message), the $converted flag, and the name of the original image.
+	// If this is WebP-only mode, and we got a WebP file.
 	if ( ! empty( $webp_result ) && ! empty( ewwwio()->webp_only ) ) {
 		$result = $webp_result;
 		return array( true, $result, $converted, $original );
 	}
+	// Otherwise, send back the filename, the results (some sort of error message), the $converted flag, and the name of the original image.
 	return array( false, $result, $converted, $original );
 }
 

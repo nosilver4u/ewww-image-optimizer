@@ -354,7 +354,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 
 		$cleanable_uploads = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT count(ID) FROM $wpdb->posts WHERE ID > %d AND (post_type = 'attachment' OR post_type = 'ims_image') AND post_mime_type LIKE %s",
+				"SELECT count(ID) FROM $wpdb->posts WHERE ID > %d AND post_type = 'attachment' AND post_mime_type LIKE %s",
 				(int) $position,
 				'%image%'
 			)
@@ -373,7 +373,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 
 		$attachments = $wpdb->get_col(
 			$wpdb->prepare(
-				"SELECT ID FROM $wpdb->posts WHERE ID > %d AND (post_type = 'attachment' OR post_type = 'ims_image') AND post_mime_type LIKE %s ORDER BY ID LIMIT %d",
+				"SELECT ID FROM $wpdb->posts WHERE ID > %d AND post_type = 'attachment' AND post_mime_type LIKE %s ORDER BY ID LIMIT %d",
 				(int) $position,
 				'%image%',
 				(int) $per_page
@@ -396,7 +396,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 			}
 			$attachments = $wpdb->get_col(
 				$wpdb->prepare(
-					"SELECT ID FROM $wpdb->posts WHERE ID > %d AND (post_type = 'attachment' OR post_type = 'ims_image') AND post_mime_type LIKE %s ORDER BY ID LIMIT %d",
+					"SELECT ID FROM $wpdb->posts WHERE ID > %d AND post_type = 'attachment' AND post_mime_type LIKE %s ORDER BY ID LIMIT %d",
 					(int) $id,
 					'%image%',
 					(int) $per_page
@@ -514,7 +514,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 
 		$cleanable_uploads = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT count(ID) FROM $wpdb->posts WHERE ID > %d AND (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE %s OR post_mime_type LIKE %s)",
+				"SELECT count(ID) FROM $wpdb->posts WHERE ID > %d AND post_type = 'attachment' AND (post_mime_type LIKE %s OR post_mime_type LIKE %s)",
 				(int) $position1,
 				'%image%',
 				'%pdf%'
@@ -540,7 +540,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 
 		$attachment_ids = $wpdb->get_col(
 			$wpdb->prepare(
-				"SELECT ID FROM $wpdb->posts WHERE ID > %d AND (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE %s OR post_mime_type LIKE %s) ORDER BY ID LIMIT %d",
+				"SELECT ID FROM $wpdb->posts WHERE ID > %d AND post_type = 'attachment' AND (post_mime_type LIKE %s OR post_mime_type LIKE %s) ORDER BY ID LIMIT %d",
 				(int) $position1,
 				'%image%',
 				'%pdf%',
@@ -562,7 +562,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 			}
 			$attachment_ids = $wpdb->get_col(
 				$wpdb->prepare(
-					"SELECT ID FROM $wpdb->posts WHERE ID > %d AND (post_type = 'attachment' OR post_type = 'ims_image') AND (post_mime_type LIKE %s OR post_mime_type LIKE %s) ORDER BY ID LIMIT %d",
+					"SELECT ID FROM $wpdb->posts WHERE ID > %d AND post_type = 'attachment' AND (post_mime_type LIKE %s OR post_mime_type LIKE %s) ORDER BY ID LIMIT %d",
 					(int) $id,
 					'%image%',
 					'%pdf%',
