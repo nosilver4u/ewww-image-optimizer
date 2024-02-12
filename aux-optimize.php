@@ -1055,19 +1055,17 @@ function ewww_image_optimizer_delete_pending() {
 /**
  * Remove an un-optimized image from the ewwwio_images table.
  *
+ * If the image was previously optimized, then simply toggle the pending column.
+ *
  * @param int $id The ID of the pending image in the db.
  * @global object $wpdb
  */
 function ewww_image_optimizer_delete_pending_image( $id ) {
 	global $wpdb;
-	$wpdb->delete(
-		$wpdb->ewwwio_images,
-		array(
-			'id'      => $id,
-			'pending' => 1,
-		),
-		array( '%d', '%d' )
-	);
+	$deleted = $wpdb->query( $wpdb->prepare( "DELETE from $wpdb->ewwwio_images WHERE id=%d AND pending=1 AND (image_size IS NULL OR image_size = 0)", $id ) );
+	if ( ! $deleted ) {
+		ewww_image_optimizer_toggle_pending_image( $id );
+	}
 }
 
 /**

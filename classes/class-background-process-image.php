@@ -311,11 +311,10 @@ class Background_Process_Image extends Background_Process {
 		if ( empty( $item['id'] ) ) {
 			return;
 		}
-		global $wpdb;
-		$file_path = ewww_image_optimizer_find_file_by_id( $item['id'] );
+		$file_path = \ewww_image_optimizer_find_file_by_id( $item['id'] );
 		if ( $file_path ) {
-			ewww_image_optimizer_add_file_exclusion( $file_path );
+			\ewww_image_optimizer_add_file_exclusion( $file_path );
 		}
-		$wpdb->query( $wpdb->prepare( "DELETE from $wpdb->ewwwio_images WHERE id=%d AND pending=1 AND (image_size IS NULL OR image_size = 0)", $item['id'] ) );
+		\ewww_image_optimizer_delete_pending_image( $item['id'] );
 	}
 }
