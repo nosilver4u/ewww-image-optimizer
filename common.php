@@ -5351,7 +5351,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	}
 	$async = 0;
 	// Make sure we already have this image pending in the db, no conversion, no webp, and processing through an allowed async method.
-	if ( is_object( $ewww_image ) && ! $convert && ! $webp && ewwwio()->cloud_async_allowed ) {
+	if ( $api_key && is_object( $ewww_image ) && ! $convert && ! $webp && ewwwio()->cloud_async_allowed ) {
 		$async = 1;
 	}
 	ewwwio_debug_message( "file: $file " );

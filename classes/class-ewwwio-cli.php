@@ -95,6 +95,9 @@ class EWWWIO_CLI extends WP_CLI_Command {
 		// Let's get started, shall we?
 		ewwwio()->admin_init();
 
+		// Allow async API procesing. This will still stall the process until a result is retrieved, or the max retries is reached.
+		\ewwwio()->cloud_async_allowed = true;
+
 		// And what shall we do?
 		switch ( $library ) {
 			case 'all':

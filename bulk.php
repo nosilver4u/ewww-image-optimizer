@@ -871,8 +871,10 @@ function ewww_image_optimizer_optimized_list() {
 			if ( ! empty( $optimized_list[ $optimized_path ] ) && ! empty( $optimized_list[ $optimized_path ]['id'] ) ) {
 				$optimized = ewww_image_optimizer_remove_duplicate_records( array( $optimized_list[ $optimized_path ]['id'], $optimized['id'] ) );
 			}
-			unset( $optimized['path'] );
-			$optimized_list[ $optimized_path ] = $optimized;
+			if ( $optimized ) {
+				unset( $optimized['path'] );
+				$optimized_list[ $optimized_path ] = $optimized;
+			}
 		}
 		ewwwio_memory( 'removed original records' );
 		$offset += $max_query;
