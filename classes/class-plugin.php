@@ -41,6 +41,13 @@ final class Plugin extends Base {
 	public $async_scan;
 
 	/**
+	 * Async Update Attachment object.
+	 *
+	 * @var object|EWWW\Async_Update_Attachment $async_update_attachment
+	 */
+	public $async_update_attachment;
+
+	/**
 	 * Async Test Optimize object.
 	 *
 	 * @var object|EWWW\Async_Test_Optimize $async_test_optimize
@@ -116,6 +123,46 @@ final class Plugin extends Base {
 	 * @var bool $cloud_mode
 	 */
 	public $cloud_mode = false;
+
+	/**
+	 * Whether the plugin is allowed to use async mode for the API.
+	 *
+	 * @var bool $cloud_mode
+	 */
+	public $cloud_async_allowed = false;
+
+	/**
+	 * Whether deferral (async processing) of image optimization is allowed.
+	 *
+	 * Normally true, but if the plugin is already in processing an image
+	 * in async mode, then it shouldn't be deferred endlessly.
+	 *
+	 * @var bool $defer
+	 */
+	public $defer = true;
+
+	/**
+	 * Whether forced re-optimization is enabled.
+	 *
+	 * @var bool $force
+	 */
+	public $force = false;
+
+	/**
+	 * Whether smart, forced re-optimization is enabled, to re-optimize
+	 * images that were previously compressed at a different optimization level.
+	 *
+	 * @var bool $force
+	 */
+	public $force_smart = false;
+
+	/**
+	 * Whether WebP-only mode is enabled, so that other optimizations
+	 * are disabled, and only WebP conversion is attempted.
+	 *
+	 * @var bool $webp_only
+	 */
+	public $webp_only = false;
 
 	/**
 	 * Did we already run tool_init()?
@@ -195,6 +242,10 @@ final class Plugin extends Base {
 	private function requires() {
 		// Fall-back and convenience functions.
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'functions.php';
+		// Functions for bulk processing.
+		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'bulk.php';
+		// Functions for the images and queue db tables and bulk processing images outside the library.
+		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'aux-optimize.php';
 		// Require the various class extensions for background optimization.
 		$this->async_requires();
 		// EWWW_Image class for working with queued images and image records from the database.
@@ -234,6 +285,8 @@ final class Plugin extends Base {
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-async-key-verify.php';
 		// Async image scanning for scheduled opt.
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-async-scan.php';
+		// Async attachment updating.
+		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-async-update-attachment.php';
 		// Async optimization test, used for debugging.
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-async-test-optimize.php';
 		// Async test request, used to make sure async works properly.
@@ -255,12 +308,13 @@ final class Plugin extends Base {
 	 */
 	public function load_children() {
 		// Setup async/background classes first.
-		self::$instance->async_key_verify    = new Async_Key_Verify();
-		self::$instance->async_scan          = new Async_Scan();
-		self::$instance->async_test_optimize = new Async_Test_Optimize();
-		self::$instance->async_test_request  = new Async_Test_Request();
-		self::$instance->background_image    = new Background_Process_Image();
-		self::$instance->background_media    = new Background_Process_Media();
+		self::$instance->async_key_verify        = new Async_Key_Verify();
+		self::$instance->async_scan              = new Async_Scan();
+		self::$instance->async_update_attachment = new Async_Update_Attachment();
+		self::$instance->async_test_optimize     = new Async_Test_Optimize();
+		self::$instance->async_test_request      = new Async_Test_Request();
+		self::$instance->background_image        = new Background_Process_Image();
+		self::$instance->background_media        = new Background_Process_Media();
 
 		// Then, setup the rest of the classes we need.
 		self::$instance->local    = new Local();
@@ -420,14 +474,6 @@ final class Plugin extends Base {
 	public function admin_init() {
 		$this->hs_beacon = new HS_Beacon();
 		/**
-		 * Require the file that does the bulk processing.
-		 */
-		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'bulk.php';
-		/**
-		 * Require the files that contain functions for the images table and bulk processing images outside the library.
-		 */
-		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'aux-optimize.php';
-		/**
 		 * Require the files that migrate WebP images from extension replacement to extension appending.
 		 */
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'mwebp.php';
@@ -576,7 +622,6 @@ final class Plugin extends Base {
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_pdf_level', 'intval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_svg_level', 'intval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_backup_files', 'sanitize_text_field' );
-		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_enable_cloudinary', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_sharpen', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_jpg_quality', 'ewww_image_optimizer_jpg_quality' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_quality', 'ewww_image_optimizer_webp_quality' );

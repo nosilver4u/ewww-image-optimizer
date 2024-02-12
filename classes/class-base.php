@@ -1240,6 +1240,28 @@ class Base {
 	}
 
 	/**
+	 * Convert a gallery name to the corresponding integer/ID.
+	 *
+	 * Used for the $gallery_type parameter of the ewww_image_optimizer() function.
+	 *
+	 * @param string $gallery_name The gallery identificer, like 'media', 'nextgen', etc.
+	 * @return int The ID for the gallery/type of image.
+	 */
+	public function gallery_name_to_id( $gallery_name ) {
+		switch ( $gallery_name ) {
+			case 'media':
+				return 1;
+			case 'nextgen':
+			case 'nextcell':
+				return 2;
+			case 'flag':
+				return 3;
+			default:
+				return 4;
+		}
+	}
+
+	/**
 	 * Checks the filename for an S3 or GCS stream wrapper.
 	 *
 	 * @param string $filename The filename to be searched.

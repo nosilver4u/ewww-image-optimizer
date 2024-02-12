@@ -410,7 +410,6 @@ class EWWWIO_GD_Editor extends WP_Image_Editor_GD {
 	 */
 	protected function _save( $image, $filename = null, $mime_type = null ) {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-		global $ewww_defer;
 		global $ewww_preempt_editor;
 		if ( ! empty( $this->ewww_image ) && ! $this->modified ) {
 			return $this->_save_ewwwio_file( $this->ewww_image, $filename, $mime_type );

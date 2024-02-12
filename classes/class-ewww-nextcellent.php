@@ -84,7 +84,6 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		/**
 		 * Optimizes a new image in foreground mode.
 		 *
-		 * @global bool $ewww_defer Set to false to avoid deferring image optimization.
 		 * @global object $wpdb
 		 * @global object $ewww_image Contains more information about the image currently being processed.
 		 *
@@ -92,7 +91,6 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		 */
 		public function ewww_added_new_image_slow( $image ) {
 			// Query the filesystem path of the gallery from the database.
-			global $ewww_defer;
 			global $wpdb;
 			global $ewww_image;
 			$gallery_path = $wpdb->get_var( $wpdb->prepare( "SELECT path FROM {$wpdb->prefix}ngg_gallery WHERE gid = %d LIMIT 1", $image['galleryID'] ) );
@@ -110,14 +108,12 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 		/**
 		 * Optimizes the thumbnail generated for a new upload.
 		 *
-		 * @global bool $ewww_defer Set to false to avoid deferring image optimization.
 		 * @global object $ewww_image Contains more information about the image currently being processed.
 		 *
 		 * @param string $filename The name of the file generated.
 		 */
 		public function ewww_ngg_image_save( $filename ) {
 			ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-			global $ewww_defer;
 			global $ewww_image;
 			ewwwio_debug_message( 'nextcellent new image thumb' );
 			if ( empty( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ngg-ajax' ) ) {
@@ -170,8 +166,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				ewwwio_ob_clean();
 				wp_die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
 			}
-			global $ewww_force;
-			$ewww_force = ! empty( $_REQUEST['ewww_force'] ) ? true : false;
+			ewwwio()->force = ! empty( $_REQUEST['ewww_force'] ) ? true : false;
 			$this->ewww_ngg_optimize( $id );
 			$success = $this->ewww_manage_image_custom_column( 'ewww_image_optimizer', $id, true );
 			if ( ! wp_doing_ajax() ) {
@@ -582,14 +577,11 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 
 		/**
 		 * Process each image in the bulk queue.
-		 *
-		 * @global bool $ewww_defer Set to false to avoid deferring image optimization.
 		 */
 		public function ewww_ngg_bulk_loop() {
-			global $ewww_defer;
-			$ewww_defer  = false;
-			$output      = array();
-			$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
+			ewwwio()->defer = false;
+			$output         = array();
+			$permissions    = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
 			if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) {
 				$outupt['error'] = esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' );
 				ewwwio_ob_clean();

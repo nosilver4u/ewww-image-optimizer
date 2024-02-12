@@ -56,6 +56,14 @@ abstract class Background_Process extends Async_Request {
 	protected $max_attempts = 15;
 
 	/**
+	 * Time limit.
+	 *
+	 * @var int
+	 * @access protected
+	 */
+	protected $time_limit = 20;
+
+	/**
 	 * Cron_hook_identifier
 	 *
 	 * @var mixed
@@ -130,8 +138,11 @@ abstract class Background_Process extends Async_Request {
 	public function push_to_queue( $data ) {
 		global $wpdb;
 
-		$id  = (int) $data['id'];
-		$new = ! empty( $data['new'] ) ? 1 : 0;
+		$id          = (int) $data['id'];
+		$new         = ! empty( $data['new'] ) ? 1 : 0;
+		$force_reopt = ! empty( $data['force_reopt'] ) ? 1 : 0;
+		$force_smart = ! empty( $data['force_smart'] ) ? 1 : 0;
+		$webp_only   = ! empty( $data['webp_only'] ) ? 1 : 0;
 		if ( ! $id ) {
 			return;
 		}
@@ -142,6 +153,9 @@ abstract class Background_Process extends Async_Request {
 				'attachment_id' => $id,
 				'gallery'       => $this->active_queue,
 				'new'           => $new,
+				'force_reopt'   => $force_reopt,
+				'force_smart'   => $force_smart,
+				'webp_only'     => $webp_only,
 			);
 			$wpdb->insert( $wpdb->ewwwio_queue, $to_insert );
 		}
@@ -278,7 +292,7 @@ abstract class Background_Process extends Async_Request {
 	 */
 	protected function get_batch() {
 		global $wpdb;
-		$batch = $wpdb->get_results( $wpdb->prepare( "SELECT attachment_id AS id, scanned AS attempts, new FROM $wpdb->ewwwio_queue WHERE gallery = %s LIMIT %d", $this->active_queue, $this->limit ), ARRAY_A );
+		$batch = $wpdb->get_results( $wpdb->prepare( "SELECT attachment_id AS id, scanned AS attempts, new, force_reopt, force_smart, webp_only FROM $wpdb->ewwwio_queue WHERE gallery = %s LIMIT %d", $this->active_queue, $this->limit ), ARRAY_A );
 		if ( empty( $batch ) ) {
 			return array();
 		}
@@ -386,7 +400,7 @@ abstract class Background_Process extends Async_Request {
 	 * @return bool
 	 */
 	protected function time_exceeded() {
-		$finish = $this->start_time + \apply_filters( $this->identifier . '_default_time_limit', 20 ); // 20 seconds
+		$finish = $this->start_time + \apply_filters( $this->identifier . '_default_time_limit', $this->time_limit ); // 20 seconds
 		$return = false;
 
 		if ( time() >= $finish ) {
