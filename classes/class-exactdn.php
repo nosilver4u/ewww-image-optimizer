@@ -2406,11 +2406,12 @@ class ExactDN extends Page_Parser {
 					$image_url_basename = \wp_basename( $image_url );
 					$intermediate_url   = \str_replace( $image_url_basename, $image_meta['sizes'][ $size ]['file'], $image_url );
 
-					if ( empty( $image_meta['width'] ) || empty( $image_meta['height'] ) ) {
+					if ( empty( $image_meta['sizes'][ $size ]['width'] ) || empty( $image_meta['sizes'][ $size ]['height'] ) ) {
 						list( $filename_width, $filename_height ) = $this->get_dimensions_from_filename( $intermediate_url );
+					} else {
+						$filename_width  = $image_meta['sizes'][ $size ]['width'];
+						$filename_height = $image_meta['sizes'][ $size ]['height'];
 					}
-					$filename_width  = ! empty( $image_meta['width'] ) ? $image_meta['width'] : $filename_width;
-					$filename_height = ! empty( $image_meta['height'] ) ? $image_meta['height'] : $filename_height;
 					if ( $filename_width && $filename_height && $image_args['width'] === $filename_width && $image_args['height'] === $filename_height ) {
 						$this->debug_message( "changing $image_url to $intermediate_url" );
 						$image_url = $intermediate_url;

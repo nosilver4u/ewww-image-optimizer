@@ -143,11 +143,14 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 7.2.4 =
 *Release Date - TBD*
 
+* added: API processing for large images done asynchronously to avoid timeouts
 * added: Store resize results to prevent repeated attempts to scale images that yield larger filesizes
 * added: warning to remove outdated AGR plugin
+* changed: improved timeout handling/avoidance for scheduled optimization
 * fixed: JS WebP can't check for local images when using S3 on multisite in sub-folder mode
 * fixed: corrupted images (with an unrecognized file header) being repeatedly scanned by the bulk/scheduled optimizer
 * fixed: GIF images not offloaded by WP Offload Media when operating in free cloud-based mode due to no thumbnail generation
+* fixed: Easy IO applying resize parameters to existing (re)sizes
 
 = 7.2.3 =
 *Release Date - January 4, 2024*
