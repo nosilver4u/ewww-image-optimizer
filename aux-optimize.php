@@ -1079,7 +1079,8 @@ function ewww_image_optimizer_toggle_pending_image( $id ) {
 	$wpdb->update(
 		$wpdb->ewwwio_images,
 		array(
-			'pending' => 0,
+			'pending'  => 0,
+			'retrieve' => '',
 		),
 		array(
 			'id' => $id,
@@ -1143,8 +1144,8 @@ function ewww_image_optimizer_get_unscanned_attachments( $gallery, $limit = 1000
  * Check to see if an attachment has any more sizes that are pending.
  *
  * @param int    $id The ID of the attachment/image.
- * @param string $gallery The type of image to look for. Optional.
- * @return bool True if it's still in the queue.
+ * @param string $gallery The type of image to look for. Optional, default is 'media'.
+ * @return int The number of pending sizes in the database.
  * @global object $wpdb
  */
 function ewww_image_optimizer_attachment_has_pending_sizes( $id, $gallery = 'media' ) {

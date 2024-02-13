@@ -92,6 +92,7 @@ class Background_Process_Image extends Background_Process {
 	 */
 	protected function task( $item ) {
 		\session_write_close();
+		global $ewww_convert;
 		$id = (int) $item['id'];
 		\ewwwio_debug_message( "background processing $id" );
 		$image = new \EWWW_Image( $id );
@@ -104,10 +105,11 @@ class Background_Process_Image extends Background_Process {
 
 		if ( $image->file ) {
 			$image->new            = $item['new'];
+			$ewww_convert          = $item['convert_once'];
 			\ewwwio()->force       = $item['force_reopt'];
 			\ewwwio()->force_smart = $item['force_smart'];
 			\ewwwio()->webp_only   = $item['webp_only'];
-			\ewwwio_debug_message( "processing background optimization request for $image->file" );
+			\ewwwio_debug_message( "processing background optimization request for $image->file, converting: $ewww_convert" );
 			$pending = $this->process_image( $image, $item['attempts'] );
 			if ( $pending ) {
 				return $item;
@@ -176,25 +178,27 @@ class Background_Process_Image extends Background_Process {
 
 		\set_transient( 'ewww_image_optimizer_bulk_current_image', $image->file, 600 );
 
-		if (
-			'media' === $image->gallery &&
-			'full' === $image->resize &&
-			! function_exists( 'imsanity_get_max_width_height' ) &&
-			(
-				( ! $image->new && \ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) ) ||
-				( $image->new && \apply_filters( 'ewww_image_optimizer_defer_resizing', false ) )
-			)
-		) {
-			if ( empty( $meta ) || ! \is_array( $meta ) ) {
-				$meta = \wp_get_attachment_metadata( $image->attachment_id );
+		if ( ewww_image_optimizer_should_resize( $image->file, 'media' === $image->gallery ) ) {
+			if (
+				'media' === $image->gallery &&
+				'full' === $image->resize &&
+				! function_exists( 'imsanity_get_max_width_height' ) &&
+				(
+					( ! $image->new && \ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) ) ||
+					( $image->new && \apply_filters( 'ewww_image_optimizer_defer_resizing', false ) )
+				)
+			) {
+				if ( empty( $meta ) || ! \is_array( $meta ) ) {
+					$meta = \wp_get_attachment_metadata( $image->attachment_id );
+				}
+				$new_dimensions = \ewww_image_optimizer_resize_upload( $image->file );
+				if ( ! empty( $new_dimensions ) && \is_array( $new_dimensions ) ) {
+					$meta['width']  = $new_dimensions[0];
+					$meta['height'] = $new_dimensions[1];
+				}
+			} elseif ( empty( $image->resize ) ) {
+				$new_dimensions = \ewww_image_optimizer_resize_upload( $image->file );
 			}
-			$new_dimensions = \ewww_image_optimizer_resize_upload( $image->file );
-			if ( ! empty( $new_dimensions ) && \is_array( $new_dimensions ) ) {
-				$meta['width']  = $new_dimensions[0];
-				$meta['height'] = $new_dimensions[1];
-			}
-		} elseif ( empty( $image->resize ) && \ewww_image_optimizer_should_resize_other_image( $image->file ) ) {
-			$new_dimensions = \ewww_image_optimizer_resize_upload( $image->file );
 		}
 
 		// Check for a pending 'retrieve' id, and use the cloud_retrieve() function instead.
@@ -273,7 +277,7 @@ class Background_Process_Image extends Background_Process {
 				\add_filter( 'as3cf_pre_update_attachment_metadata', '__return_true' );
 				$meta_saved = \wp_update_attachment_metadata( $image->attachment_id, $meta );
 				if ( ! $meta_saved ) {
-					\ewwwio_debug_message( 'failed to save meta' );
+					\ewwwio_debug_message( 'failed to save meta, or unchanged' );
 				}
 			}
 		}

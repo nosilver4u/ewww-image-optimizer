@@ -153,11 +153,12 @@ class Background_Process_Media extends Background_Process {
 		}
 		ewwwio()->background_image->push_to_queue(
 			array(
-				'id'          => $id_to_queue,
-				'new'         => $item['new'],
-				'force_reopt' => $item['force_reopt'],
-				'force_smart' => $item['force_smart'],
-				'webp_only'   => $item['webp_only'],
+				'id'           => $id_to_queue,
+				'new'          => $item['new'],
+				'convert_once' => $item['convert_once'],
+				'force_reopt'  => $item['force_reopt'],
+				'force_smart'  => $item['force_smart'],
+				'webp_only'    => $item['webp_only'],
 			)
 		);
 	}
@@ -240,7 +241,10 @@ class Background_Process_Media extends Background_Process {
 			return;
 		}
 
+		// Queue the full-size image.
 		$this->queue_single_size( $id, $size, $file_path, $item );
+		// Then disable the conversion flag for all sub-sizes and derivatives.
+		$item['convert_once'] = false;
 
 		$hidpi_path = ewww_image_optimizer_get_hidpi_path( $file_path, true );
 		$size      .= '-retina';
