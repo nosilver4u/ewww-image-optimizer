@@ -263,6 +263,11 @@ class Tracking {
 	 * Check for a new opt-in via the admin notice
 	 */
 	public function check_for_optin() {
+		\check_admin_referer( 'ewww_image_optimizer_options-options' );
+		$permissions = \apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' );
+		if ( ! \current_user_can( $permissions ) ) {
+			\wp_die( \esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
+		}
 		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		\ewww_image_optimizer_set_option( 'ewww_image_optimizer_allow_tracking', 1 );
 		$this->send_checkin( true );
@@ -275,6 +280,11 @@ class Tracking {
 	 * Check for a new opt-out via the admin notice
 	 */
 	public function check_for_optout() {
+		\check_admin_referer( 'ewww_image_optimizer_options-options' );
+		$permissions = \apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' );
+		if ( ! \current_user_can( $permissions ) ) {
+			\wp_die( \esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
+		}
 		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		\delete_option( 'ewww_image_optimizer_allow_tracking' );
 		\delete_network_option( null, 'ewww_image_optimizer_allow_tracking' );
