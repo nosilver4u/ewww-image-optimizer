@@ -806,12 +806,11 @@ final class Plugin extends Base {
 				if ( false !== $key ) {
 					unset( $missing[ $key ] );
 				}
-				$pngout_install_url = \admin_url( 'admin.php?action=ewww_image_optimizer_install_pngout' );
 				echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-warning'><p>" .
 				\sprintf(
 					/* translators: 1: automatically (link) 2: manually (link) */
 					\esc_html__( 'EWWW Image Optimizer is missing pngout. Install %1$s or %2$s.', 'ewww-image-optimizer' ),
-					"<a href='" . \esc_url( $pngout_install_url ) . "'>" . \esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
+					"<a href='" . \esc_url( \wp_nonce_url( \admin_url( 'admin.php?action=ewww_image_optimizer_install_pngout' ), 'ewww_image_optimizer_options-options' ) ) . "'>" . \esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
 					'<a href="https://docs.ewww.io/article/13-installing-pngout" data-beacon-article="5854531bc697912ffd6c1afa">' . \esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>'
 				) .
 				'</p></div>';
@@ -821,12 +820,11 @@ final class Plugin extends Base {
 				if ( false !== $key ) {
 					unset( $missing[ $key ] );
 				}
-				$svgcleaner_install_url = \admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' );
 				echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-warning'><p>" .
 				\sprintf(
 					/* translators: 1: automatically (link) 2: manually (link) */
 					\esc_html__( 'EWWW Image Optimizer is missing svgleaner. Install %1$s or %2$s.', 'ewww-image-optimizer' ),
-					"<a href='" . \esc_url( $svgcleaner_install_url ) . "'>" . \esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
+					"<a href='" . \esc_url( \wp_nonce_url( \admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' ), 'ewww_image_optimizer_options-options' ) ) . "'>" . \esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
 					'<a href="https://docs.ewww.io/article/95-installing-svgcleaner" data-beacon-article="5f7921c9cff47e001a58adbc">' . \esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>'
 				) .
 				'</p></div>';
