@@ -411,7 +411,6 @@ jQuery(document).ready(function($) {
 			}
 			ewww_attachments = ewww_vars.attachments;
 			ewww_init_action = 'bulk_init';
-			ewww_filename_action = 'bulk_filename';
 			ewww_loop_action = 'bulk_loop';
 			ewww_cleanup_action = 'bulk_cleanup';
 			ewww_init_data = {

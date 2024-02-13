@@ -10419,6 +10419,7 @@ function ewww_image_optimizer_dismiss_wc_regen() {
 	ewwwio_ob_clean();
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that the user is properly authorized.
+	check_ajax_referer( 'ewww-image-optimizer-notice' );
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -10433,6 +10434,7 @@ function ewww_image_optimizer_dismiss_lr_sync() {
 	ewwwio_ob_clean();
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that the user is properly authorized.
+	check_ajax_referer( 'ewww-image-optimizer-notice' );
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -10447,6 +10449,7 @@ function ewww_image_optimizer_dismiss_media_notice() {
 	ewwwio_ob_clean();
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that the user is properly authorized.
+	check_ajax_referer( 'ewww-image-optimizer-notice' );
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -10462,6 +10465,7 @@ function ewww_image_optimizer_dismiss_review_notice() {
 	ewwwio_ob_clean();
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that the user is properly authorized.
+	check_ajax_referer( 'ewww-image-optimizer-notice' );
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -10477,6 +10481,7 @@ function ewww_image_optimizer_dismiss_newsletter_signup() {
 	ewwwio_ob_clean();
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that the user is properly authorized.
+	check_ajax_referer( 'ewww-image-optimizer-notice' );
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -11036,7 +11041,7 @@ function ewww_image_optimizer_webp_rewrite_verify() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( ewww_image_optimizer_easy_active() || ewwwio_is_cf_host() ) {
 		if ( ewwwio_extract_from_markers( ewww_image_optimizer_htaccess_path(), 'EWWWIO' ) ) {
-			ewwwio_debug_message( 'removing htaccess webp to prevent EasyIO/Cloudflare/Clouways problems' );
+			ewwwio_debug_message( 'removing htaccess webp to prevent EasyIO/Cloudflare/Cloudways problems' );
 			insert_with_markers( ewww_image_optimizer_htaccess_path(), 'EWWWIO', '' );
 		}
 		return;

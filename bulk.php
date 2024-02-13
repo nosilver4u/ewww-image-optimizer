@@ -2257,7 +2257,6 @@ add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_bulk_script' );
 add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_tool_script' );
 add_action( 'wp_ajax_bulk_scan', 'ewww_image_optimizer_media_scan' );
 add_action( 'wp_ajax_bulk_init', 'ewww_image_optimizer_bulk_initialize' );
-add_action( 'wp_ajax_bulk_filename', 'ewww_image_optimizer_bulk_filename' );
 add_action( 'wp_ajax_bulk_loop', 'ewww_image_optimizer_bulk_loop' );
 add_action( 'wp_ajax_ewww_bulk_update_meta', 'ewww_image_optimizer_bulk_update_meta' );
 add_action( 'wp_ajax_bulk_cleanup', 'ewww_image_optimizer_bulk_cleanup' );
