@@ -380,6 +380,21 @@ function ewww_image_optimizer_reset_webp_clean() {
 }
 
 /**
+ * Reset the progress/position of the bulk restore routine.
+ */
+function ewww_image_optimizer_reset_bulk_restore() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	check_admin_referer( 'ewww-image-optimizer-tools' );
+	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
+	if ( ! current_user_can( $permissions ) ) {
+		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
+	}
+	delete_option( 'ewww_image_optimizer_bulk_restore_position' );
+	wp_safe_redirect( wp_get_referer() );
+	exit;
+}
+
+/**
  * Restore backups for images using records from the ewwwio_images table.
  *
  * @global object $wpdb

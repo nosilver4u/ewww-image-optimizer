@@ -112,7 +112,7 @@ function ewww_image_optimizer_display_tools() {
 		?>
 		<p class="description ewww-tool-info">
 			<i><?php esc_html_e( 'Will resume from previous position.', 'ewww-image-optimizer' ); ?></i> -
-			<a  href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_reset_bulk_restore' ) ); ?>'>
+			<a  href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_reset_bulk_restore' ), 'ewww-image-optimizer-tools' ) ); ?>'>
 				<?php esc_html_e( 'Reset position', 'ewww-image-optimizer' ); ?>
 			</a>
 		</p>
