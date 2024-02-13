@@ -369,6 +369,7 @@ function ewww_image_optimizer_aux_images_clear_all() {
  */
 function ewww_image_optimizer_reset_webp_clean() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	check_admin_referer( 'ewww-image-optimizer-tools' );
 	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
 	if ( ! current_user_can( $permissions ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
