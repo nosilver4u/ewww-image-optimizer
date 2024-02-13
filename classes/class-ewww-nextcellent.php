@@ -34,9 +34,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 			add_action( 'admin_action_ewww_ngg_manual', array( $this, 'ewww_ngg_manual' ) );
 			add_action( 'admin_menu', array( $this, 'ewww_ngg_bulk_menu' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'ewww_ngg_bulk_script' ), 9 );
-			add_action( 'wp_ajax_bulk_ngg_preview', array( $this, 'ewww_ngg_bulk_preview' ) );
 			add_action( 'wp_ajax_bulk_ngg_init', array( $this, 'ewww_ngg_bulk_init' ) );
-			add_action( 'wp_ajax_bulk_ngg_filename', array( $this, 'ewww_ngg_bulk_filename' ) );
 			add_action( 'wp_ajax_bulk_ngg_loop', array( $this, 'ewww_ngg_bulk_loop' ) );
 			add_action( 'wp_ajax_bulk_ngg_cleanup', array( $this, 'ewww_ngg_bulk_cleanup' ) );
 			add_action( 'ngg_ajax_image_save', array( $this, 'ewww_ngg_image_save' ) );

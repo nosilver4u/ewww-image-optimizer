@@ -57,6 +57,22 @@ jQuery(document).ready(function($) {
 	$('#easyio-savings-fill').animate( {
 		width: easy_save_bar_width + '%',
 	}, 1000 );
+	$('#ewww-news-dismiss-link').on(
+		'click',
+		function() {
+			var ewww_dismiss_news_data = {
+				action: 'ewww_dismiss_newsletter',
+				_wpnonce: ewww_vars._wpnonce,
+			};
+			jQuery.post(ajaxurl, ewww_dismiss_news_data, function(response) {
+				if (response) {
+						console.log(response);
+				}
+				jQuery('#ewww-newsletter-banner').hide();
+			});
+			return false;
+		}
+	);
 	$('#ewww-show-recommendations a').on(
 		'click',
 		function() {

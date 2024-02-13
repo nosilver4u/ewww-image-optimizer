@@ -53,9 +53,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			add_action( 'admin_head', array( $this, 'ewww_ngg_bulk_actions_script' ) );
 			add_action( 'admin_init', array( $this, 'ewww_ngg_bulk_action_handler' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'ewww_ngg_bulk_script' ), 20 );
-			add_action( 'wp_ajax_bulk_ngg_preview', array( $this, 'ewww_ngg_bulk_preview' ) );
 			add_action( 'wp_ajax_bulk_ngg_init', array( $this, 'ewww_ngg_bulk_init' ) );
-			add_action( 'wp_ajax_bulk_ngg_filename', array( $this, 'ewww_ngg_bulk_filename' ) );
 			add_action( 'wp_ajax_bulk_ngg_loop', array( $this, 'ewww_ngg_bulk_loop' ) );
 			add_action( 'wp_ajax_bulk_ngg_cleanup', array( $this, 'ewww_ngg_bulk_cleanup' ) );
 			add_action( 'ngg_generated_image', array( $this, 'ewww_ngg_generated_image' ), 10, 2 );

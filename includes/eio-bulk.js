@@ -51,7 +51,6 @@ jQuery(document).ready(function($) {
 		var ewww_loop_action = 'bulk_flag_loop';
 		var ewww_cleanup_action = 'bulk_flag_cleanup';
 	} else if (ewww_vars.gallery == 'nextgen') {
-		var ewww_preview_action = 'bulk_ngg_preview';
 		var ewww_init_action = 'bulk_ngg_init';
 		var ewww_loop_action = 'bulk_ngg_loop';
 		var ewww_cleanup_action = 'bulk_ngg_cleanup';

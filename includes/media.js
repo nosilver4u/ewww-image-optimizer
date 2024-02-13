@@ -137,6 +137,7 @@ jQuery(document).on('click', '.ewww-show-debug-meta', function() {
 jQuery(document).on('click', '#ewww-image-optimizer-media-listmode .notice-dismiss', function() {
 	var ewww_dismiss_media_data = {
 		action: 'ewww_dismiss_media_notice',
+		_wpnonce: ewww_vars.notice_nonce,
 	};
 	jQuery.post(ajaxurl, ewww_dismiss_media_data, function(response) {
 		if (response) {

@@ -1913,18 +1913,21 @@ function ewww_image_optimizer_notice_wc_regen() {
  * Loads the inline script to dismiss the WC regen notice.
  */
 function ewww_image_optimizer_wc_regen_script() {
-	echo "<script>\n" .
-		"jQuery(document).on('click', '#ewww-image-optimizer-wc-regen .notice-dismiss', function() {\n" .
-		"\tvar ewww_dismiss_wc_regen_data = {\n" .
-		"\t\taction: 'ewww_dismiss_wc_regen',\n" .
-		"\t};\n" .
-		"\tjQuery.post(ajaxurl, ewww_dismiss_wc_regen_data, function(response) {\n" .
-		"\t\tif (response) {\n" .
-		"\t\t\tconsole.log(response);\n" .
-		"\t\t}\n" .
-		"\t});\n" .
-		"});\n" .
-		"</script>\n";
+	?>
+	<script>
+		jQuery(document).on('click', '#ewww-image-optimizer-wc-regen .notice-dismiss', function() {
+			var ewww_dismiss_wc_regen_data = {
+				action: 'ewww_dismiss_wc_regen',
+				_wpnonce: <?php echo wp_json_encode( wp_create_nonce( 'ewww-image-optimizer-notice' ) ); ?>,
+			};
+			jQuery.post(ajaxurl, ewww_dismiss_wc_regen_data, function(response) {
+				if (response) {
+					console.log(response);
+				}
+			});
+		});
+	</script>
+	<?php
 }
 
 /**
@@ -1941,18 +1944,21 @@ function ewww_image_optimizer_notice_lr_sync() {
  * Loads the inline script to dismiss the LR sync notice.
  */
 function ewww_image_optimizer_lr_sync_script() {
-	echo "<script>\n" .
-		"jQuery(document).on('click', '#ewww-image-optimizer-lr-sync .notice-dismiss', function() {\n" .
-		"\tvar ewww_dismiss_lr_sync_data = {\n" .
-		"\t\taction: 'ewww_dismiss_lr_sync',\n" .
-		"\t};\n" .
-		"\tjQuery.post(ajaxurl, ewww_dismiss_lr_sync_data, function(response) {\n" .
-		"\t\tif (response) {\n" .
-		"\t\t\tconsole.log(response);\n" .
-		"\t\t}\n" .
-		"\t});\n" .
-		"});\n" .
-		"</script>\n";
+	?>
+	<script>
+		jQuery(document).on('click', '#ewww-image-optimizer-lr-sync .notice-dismiss', function() {
+			var ewww_dismiss_lr_sync_data = {
+				action: 'ewww_dismiss_lr_sync',
+				_wpnonce: <?php echo wp_json_encode( wp_create_nonce( 'ewww-image-optimizer-notice' ) ); ?>,
+			};
+			jQuery.post(ajaxurl, ewww_dismiss_lr_sync_data, function(response) {
+				if (response) {
+					console.log(response);
+				}
+			});
+		});
+	</script>
+	<?php
 }
 /**
  * Requires the removal of Animated Gif Resize plugin.
@@ -1976,8 +1982,7 @@ function ewww_image_optimizer_notice_agr() {
 function ewww_image_optimizer_notice_media_listmode() {
 	$current_screen = get_current_screen();
 	if ( 'upload' === $current_screen->id && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_media_notice' ) ) {
-		$user_info = wp_get_current_user();
-		if ( ! empty( $user_info->wp_media_library_mode ) && 'list' === $user_info->wp_media_library_mode ) {
+		if ( 'list' === get_user_option( 'media_library_mode', get_current_user_id() ) ) {
 			update_option( 'ewww_image_optimizer_dismiss_media_notice', true, false );
 			update_site_option( 'ewww_image_optimizer_dismiss_media_notice', true );
 			return;
@@ -2039,18 +2044,21 @@ function ewww_image_optimizer_footer_review_text( $footer_text ) {
  * Loads the inline script to dismiss the review notice.
  */
 function ewww_image_optimizer_notice_review_script() {
-	echo "<script>\n" .
-		"jQuery(document).on('click', '#ewww-image-optimizer-review .notice-dismiss', function() {\n" .
-		"\tvar ewww_dismiss_review_data = {\n" .
-		"\t\taction: 'ewww_dismiss_review_notice',\n" .
-		"\t};\n" .
-		"\tjQuery.post(ajaxurl, ewww_dismiss_review_data, function(response) {\n" .
-		"\t\tif (response) {\n" .
-		"\t\t\tconsole.log(response);\n" .
-		"\t\t}\n" .
-		"\t});\n" .
-		"});\n" .
-		"</script>\n";
+	?>
+	<script>
+		jQuery(document).on('click', '#ewww-image-optimizer-review .notice-dismiss', function() {
+			var ewww_dismiss_review_data = {
+				action: 'ewww_dismiss_review_notice',
+				_wpnonce: <?php echo wp_json_encode( wp_create_nonce( 'ewww-image-optimizer-notice' ) ); ?>,
+			};
+			jQuery.post(ajaxurl, ewww_dismiss_review_data, function(response) {
+				if (response) {
+					console.log(response);
+				}
+			});
+		});
+	</script>
+	<?php
 }
 
 /**
@@ -2899,6 +2907,7 @@ function ewww_image_optimizer_media_scripts( $hook ) {
 			'ewww-media-script',
 			'ewww_vars',
 			array(
+				'notice_nonce'  => wp_create_nonce( 'ewww-image-optimizer-notice' ),
 				'optimizing'    => '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
 				'restoring'     => '<p>' . esc_html__( 'Restoring', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
 				'loading_img'   => "<img src='$loading_image' />",
@@ -10481,7 +10490,7 @@ function ewww_image_optimizer_dismiss_newsletter_signup() {
 	ewwwio_ob_clean();
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that the user is properly authorized.
-	check_ajax_referer( 'ewww-image-optimizer-notice' );
+	check_ajax_referer( 'ewww-image-optimizer-settings' );
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -10771,21 +10780,6 @@ function ewww_image_optimizer_settings_script( $hook ) {
 		'ewww_vars.cloud_media = ' . ( ewww_image_optimizer_cloud_based_media() ? 1 : 0 ) . ";\n" .
 		'ewww_vars.save_space = ' . ( get_option( 'ewww_image_optimizer_goal_save_space' ) ? 1 : 0 ) . ";\n" .
 		'ewww_vars.site_speed = ' . ( get_option( 'ewww_image_optimizer_goal_site_speed' ) ? 1 : 0 ) . ";\n"
-	);
-	wp_add_inline_script(
-		'ewww-settings-script',
-		"jQuery(document).on('click', '#ewww-news-dismiss-link', function() {\n" .
-		"\tvar ewww_dismiss_news_data = {\n" .
-		"\t\taction: 'ewww_dismiss_newsletter',\n" .
-		"\t};\n" .
-		"\tjQuery.post(ajaxurl, ewww_dismiss_news_data, function(response) {\n" .
-		"\t\tif (response) {\n" .
-		"\t\t\tconsole.log(response);\n" .
-		"\t\t}\n" .
-		"\tjQuery('#ewww-newsletter-banner').hide();\n" .
-		"\t});\n" .
-		"\treturn false;\n" .
-		"});\n"
 	);
 	ewwwio_memory( __FUNCTION__ );
 }
@@ -14264,7 +14258,7 @@ function ewww_image_optimizer_remove_cloud_key( $redirect = true ) {
  */
 function ewww_image_optimizer_remove_easyio() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	check_admin_referer( 'ewww_image_optimizer_options-options');
+	check_admin_referer( 'ewww_image_optimizer_options-options' );
 	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' );
 	if ( false === current_user_can( $permissions ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
