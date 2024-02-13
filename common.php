@@ -10083,6 +10083,7 @@ function ewww_image_optimizer_custom_column_results( $id, $optimized_images ) {
 	$output           = '';
 	$detail_output    = '<table class="striped"><tr><th>&nbsp;</th><th>' . esc_html__( 'Image Size', 'ewww-image-optimizer' ) . '</th><th>' . esc_html__( 'Savings', 'ewww-image-optimizer' ) . '</th></tr>';
 	foreach ( $optimized_images as $optimized_image ) {
+		$resize_status = '';
 		if ( ! empty( $optimized_image['attachment_id'] ) ) {
 			$id = $optimized_image['attachment_id'];
 		}
@@ -10092,20 +10093,49 @@ function ewww_image_optimizer_custom_column_results( $id, $optimized_images ) {
 			$updated_time = strtotime( $optimized_image['updated'] );
 			global $eio_backup;
 			$backup_available = $eio_backup->is_backup_available( $optimized_image['path'], $optimized_image );
+			if ( empty( $ewwwio_resize_status ) && ! is_null( $optimized_image['resize_error'] ) ) {
+				ewwwio_debug_message( "resize results found: {$optimized_image['resize_error']}, {$optimized_image['resized_width']} x {$optimized_image['resized_height']}" );
+				switch ( $optimized_image['resize_error'] ) {
+					case '0':
+						$full_path = ewww_image_optimizer_absolutize_path( $optimized_image['path'] );
+						if ( ewwwio_is_file( $full_path ) ) {
+							list( $width, $height ) = wp_getimagesize( $full_path );
+							/* translators: 1: width in pixels 2: height in pixels */
+							$resize_status = sprintf( __( 'Resized to %1$s x %2$s', 'ewww-image-optimizer' ), $width . 'w', $height . 'h' );
+						} else {
+							$resize_status = __( 'Resized successfully', 'ewww-image-optimizer' );
+						}
+						break;
+					case '1':
+						$resize_status = __( 'Encountered a WP image editing error while attempting resize', 'ewww-image-optimizer' );
+						break;
+					case '2':
+						$resize_status = __( 'Resizing did not reduce the file size, result discarded', 'ewww-image-optimizer' );
+						break;
+					case '3':
+						$resize_status = __( 'Encountered an error while attempting resize', 'ewww-image-optimizer' );
+						break;
+					default:
+						$resize_status = '';
+				}
+			}
 		}
 		if ( ! empty( $optimized_image['converted'] ) ) {
 			$converted = ewww_image_optimizer_absolutize_path( $optimized_image['converted'] );
 		}
 		++$sizes_to_opt;
+		if ( ! empty( $ewwwio_resize_status ) ) {
+			$resize_status = $ewwwio_resize_status;
+		}
 		if ( ! empty( $optimized_image['resize'] ) ) {
 			$display_size   = ewww_image_optimizer_size_format( $optimized_image['image_size'] );
-			$detail_output .= '<tr><td><strong>' . ucfirst( $optimized_image['resize'] ) . "</strong></td><td>$display_size</td><td>" . esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) ) . '</td></tr>';
+			$detail_output .= '<tr><td><strong>' . ucfirst( $optimized_image['resize'] ) . "</strong></td><td>$display_size</td><td>" . esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) ) . ( ! empty( $resize_status ) ? '<br>' . $resize_status : '' ) . '</td></tr>';
 		}
 	}
 	$detail_output .= '</table>';
 
 	if ( ! empty( $ewwwio_resize_status ) ) {
-		$output .= '<div>' . esc_html( $ewwwio_resize_status ) . '</div>';
+		/* $output .= '<div>' . esc_html( $ewwwio_resize_status ) . '</div>'; */
 	}
 	$output .= '<div>' . sprintf(
 		esc_html(
@@ -10181,7 +10211,7 @@ function ewww_image_optimizer_get_translated_media_results( $id ) {
 		global $wpdb;
 		foreach ( $translations as $translation ) {
 			ewwwio_debug_message( "checking {$translation} for results with WPML (or another translation plugin)" );
-			$optimized_images = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 ORDER BY orig_size DESC", $translation ), ARRAY_A );
+			$optimized_images = ewww_image_optimizer_get_optimized_sizes( $translation );
 			if ( ! empty( $optimized_images ) ) {
 				return array( (int) $translation, $optimized_images );
 			}

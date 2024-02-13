@@ -294,7 +294,6 @@ class Background_Process_Image extends Background_Process {
 					)
 				)->dispatch();
 			}
-			// TODO: swap in ewww_image_optimizer_attachment_has_pending_sizes() when we need to know if an attachment is still pending, which will cover the regular bulk too.
 		}
 
 		\ewww_image_optimizer_debug_log();

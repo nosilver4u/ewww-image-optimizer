@@ -10,7 +10,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// TODO: may be able to make things more efficient by not getting a new flagMeta, but get a new flagImage instead, but still probably need it to migrate data to ewwwio_images.
 if ( ! class_exists( 'EWWW_Flag' ) ) {
 	/**
 	 * Allows EWWW to integrate with the GRAND FlaGallery plugin.
