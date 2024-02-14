@@ -890,6 +890,7 @@ function ewww_image_optimizer_enable_background_optimization() {
  * Re-tests background optimization at a user's request.
  */
 function ewww_image_optimizer_retest_background_optimization() {
+	check_admin_referer( 'ewww_image_optimizer_options-options' );
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -904,6 +905,7 @@ function ewww_image_optimizer_retest_background_optimization() {
  * Apply 6.2.0+ current_timestamp db upgrade.
  */
 function ewww_image_optimizer_620_upgrade() {
+	check_admin_referer( 'ewww_image_optimizer_options-options' );
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -1911,18 +1913,21 @@ function ewww_image_optimizer_notice_wc_regen() {
  * Loads the inline script to dismiss the WC regen notice.
  */
 function ewww_image_optimizer_wc_regen_script() {
-	echo "<script>\n" .
-		"jQuery(document).on('click', '#ewww-image-optimizer-wc-regen .notice-dismiss', function() {\n" .
-		"\tvar ewww_dismiss_wc_regen_data = {\n" .
-		"\t\taction: 'ewww_dismiss_wc_regen',\n" .
-		"\t};\n" .
-		"\tjQuery.post(ajaxurl, ewww_dismiss_wc_regen_data, function(response) {\n" .
-		"\t\tif (response) {\n" .
-		"\t\t\tconsole.log(response);\n" .
-		"\t\t}\n" .
-		"\t});\n" .
-		"});\n" .
-		"</script>\n";
+	?>
+	<script>
+		jQuery(document).on('click', '#ewww-image-optimizer-wc-regen .notice-dismiss', function() {
+			var ewww_dismiss_wc_regen_data = {
+				action: 'ewww_dismiss_wc_regen',
+				_wpnonce: <?php echo wp_json_encode( wp_create_nonce( 'ewww-image-optimizer-notice' ) ); ?>,
+			};
+			jQuery.post(ajaxurl, ewww_dismiss_wc_regen_data, function(response) {
+				if (response) {
+					console.log(response);
+				}
+			});
+		});
+	</script>
+	<?php
 }
 
 /**
@@ -1939,18 +1944,21 @@ function ewww_image_optimizer_notice_lr_sync() {
  * Loads the inline script to dismiss the LR sync notice.
  */
 function ewww_image_optimizer_lr_sync_script() {
-	echo "<script>\n" .
-		"jQuery(document).on('click', '#ewww-image-optimizer-lr-sync .notice-dismiss', function() {\n" .
-		"\tvar ewww_dismiss_lr_sync_data = {\n" .
-		"\t\taction: 'ewww_dismiss_lr_sync',\n" .
-		"\t};\n" .
-		"\tjQuery.post(ajaxurl, ewww_dismiss_lr_sync_data, function(response) {\n" .
-		"\t\tif (response) {\n" .
-		"\t\t\tconsole.log(response);\n" .
-		"\t\t}\n" .
-		"\t});\n" .
-		"});\n" .
-		"</script>\n";
+	?>
+	<script>
+		jQuery(document).on('click', '#ewww-image-optimizer-lr-sync .notice-dismiss', function() {
+			var ewww_dismiss_lr_sync_data = {
+				action: 'ewww_dismiss_lr_sync',
+				_wpnonce: <?php echo wp_json_encode( wp_create_nonce( 'ewww-image-optimizer-notice' ) ); ?>,
+			};
+			jQuery.post(ajaxurl, ewww_dismiss_lr_sync_data, function(response) {
+				if (response) {
+					console.log(response);
+				}
+			});
+		});
+	</script>
+	<?php
 }
 /**
  * Requires the removal of Animated Gif Resize plugin.
@@ -1974,8 +1982,7 @@ function ewww_image_optimizer_notice_agr() {
 function ewww_image_optimizer_notice_media_listmode() {
 	$current_screen = get_current_screen();
 	if ( 'upload' === $current_screen->id && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_media_notice' ) ) {
-		$user_info = wp_get_current_user();
-		if ( ! empty( $user_info->wp_media_library_mode ) && 'list' === $user_info->wp_media_library_mode ) {
+		if ( 'list' === get_user_option( 'media_library_mode', get_current_user_id() ) ) {
 			update_option( 'ewww_image_optimizer_dismiss_media_notice', true, false );
 			update_site_option( 'ewww_image_optimizer_dismiss_media_notice', true );
 			return;
@@ -2000,7 +2007,7 @@ function ewww_image_optimizer_620_upgrade_needed() {
 	}
 	echo "<div id='ewww-image-optimizer-upgrade-notice' class='notice notice-info'><p>" .
 		esc_html__( 'EWWW Image Optimizer needs to upgrade the image log table.', 'ewww-image-optimizer' ) . '<br>' .
-		'<a href="' . esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_620_upgrade' ) ) . '" class="button-secondary">' .
+		'<a href="' . esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_620_upgrade' ), 'ewww_image_optimizer_options-options' ) ) . '" class="button-secondary">' .
 		esc_html__( 'Upgrade', 'ewww-image-optimizer' ) . '</a>' .
 		'</p></div>';
 }
@@ -2037,18 +2044,21 @@ function ewww_image_optimizer_footer_review_text( $footer_text ) {
  * Loads the inline script to dismiss the review notice.
  */
 function ewww_image_optimizer_notice_review_script() {
-	echo "<script>\n" .
-		"jQuery(document).on('click', '#ewww-image-optimizer-review .notice-dismiss', function() {\n" .
-		"\tvar ewww_dismiss_review_data = {\n" .
-		"\t\taction: 'ewww_dismiss_review_notice',\n" .
-		"\t};\n" .
-		"\tjQuery.post(ajaxurl, ewww_dismiss_review_data, function(response) {\n" .
-		"\t\tif (response) {\n" .
-		"\t\t\tconsole.log(response);\n" .
-		"\t\t}\n" .
-		"\t});\n" .
-		"});\n" .
-		"</script>\n";
+	?>
+	<script>
+		jQuery(document).on('click', '#ewww-image-optimizer-review .notice-dismiss', function() {
+			var ewww_dismiss_review_data = {
+				action: 'ewww_dismiss_review_notice',
+				_wpnonce: <?php echo wp_json_encode( wp_create_nonce( 'ewww-image-optimizer-notice' ) ); ?>,
+			};
+			jQuery.post(ajaxurl, ewww_dismiss_review_data, function(response) {
+				if (response) {
+					console.log(response);
+				}
+			});
+		});
+	</script>
+	<?php
 }
 
 /**
@@ -2058,12 +2068,10 @@ function ewww_image_optimizer_notice_beacon() {
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		return;
 	}
-	$optin_url  = admin_url( 'admin.php?action=eio_opt_into_hs_beacon' );
-	$optout_url = admin_url( 'admin.php?action=eio_opt_out_of_hs_beacon' );
 	echo '<div id="ewww-image-optimizer-hs-beacon" class="notice notice-info"><p>' .
 		esc_html__( 'Enable the EWWW I.O. support beacon, which gives you access to documentation and our support team right from your WordPress dashboard. To assist you more efficiently, we collect the current url, IP address, browser/device information, and debugging information.', 'ewww-image-optimizer' ) .
-		'<br><a href="' . esc_url( $optin_url ) . '" class="button-secondary">' . esc_html__( 'Allow', 'ewww-image-optimizer' ) . '</a>' .
-		'&nbsp;<a href="' . esc_url( $optout_url ) . '" class="button-secondary">' . esc_html__( 'Do not allow', 'ewww-image-optimizer' ) . '</a>' .
+		'<br><a href="' . esc_url( wp_nonce_url( admin_url( 'admin.php?action=eio_opt_into_hs_beacon' ), 'ewww_image_optimizer_options-options' ) ) . '" class="button-secondary">' . esc_html__( 'Allow', 'ewww-image-optimizer' ) . '</a>' .
+		'&nbsp;<a href="' . esc_url( wp_nonce_url( admin_url( 'admin.php?action=eio_opt_out_of_hs_beacon' ), 'ewww_image_optimizer_options-options' ) ) . '" class="button-secondary">' . esc_html__( 'Do not allow', 'ewww-image-optimizer' ) . '</a>' .
 		'</p></div>';
 }
 
@@ -2899,6 +2907,7 @@ function ewww_image_optimizer_media_scripts( $hook ) {
 			'ewww-media-script',
 			'ewww_vars',
 			array(
+				'notice_nonce'  => wp_create_nonce( 'ewww-image-optimizer-notice' ),
 				'optimizing'    => '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
 				'restoring'     => '<p>' . esc_html__( 'Restoring', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
 				'loading_img'   => "<img src='$loading_image' />",
@@ -10419,6 +10428,7 @@ function ewww_image_optimizer_dismiss_wc_regen() {
 	ewwwio_ob_clean();
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that the user is properly authorized.
+	check_ajax_referer( 'ewww-image-optimizer-notice' );
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -10433,6 +10443,7 @@ function ewww_image_optimizer_dismiss_lr_sync() {
 	ewwwio_ob_clean();
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that the user is properly authorized.
+	check_ajax_referer( 'ewww-image-optimizer-notice' );
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -10447,6 +10458,7 @@ function ewww_image_optimizer_dismiss_media_notice() {
 	ewwwio_ob_clean();
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that the user is properly authorized.
+	check_ajax_referer( 'ewww-image-optimizer-notice' );
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -10462,6 +10474,7 @@ function ewww_image_optimizer_dismiss_review_notice() {
 	ewwwio_ob_clean();
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that the user is properly authorized.
+	check_ajax_referer( 'ewww-image-optimizer-notice' );
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -10477,6 +10490,7 @@ function ewww_image_optimizer_dismiss_newsletter_signup() {
 	ewwwio_ob_clean();
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Verify that the user is properly authorized.
+	check_ajax_referer( 'ewww-image-optimizer-settings' );
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -10767,21 +10781,6 @@ function ewww_image_optimizer_settings_script( $hook ) {
 		'ewww_vars.save_space = ' . ( get_option( 'ewww_image_optimizer_goal_save_space' ) ? 1 : 0 ) . ";\n" .
 		'ewww_vars.site_speed = ' . ( get_option( 'ewww_image_optimizer_goal_site_speed' ) ? 1 : 0 ) . ";\n"
 	);
-	wp_add_inline_script(
-		'ewww-settings-script',
-		"jQuery(document).on('click', '#ewww-news-dismiss-link', function() {\n" .
-		"\tvar ewww_dismiss_news_data = {\n" .
-		"\t\taction: 'ewww_dismiss_newsletter',\n" .
-		"\t};\n" .
-		"\tjQuery.post(ajaxurl, ewww_dismiss_news_data, function(response) {\n" .
-		"\t\tif (response) {\n" .
-		"\t\t\tconsole.log(response);\n" .
-		"\t\t}\n" .
-		"\tjQuery('#ewww-newsletter-banner').hide();\n" .
-		"\t});\n" .
-		"\treturn false;\n" .
-		"});\n"
-	);
 	ewwwio_memory( __FUNCTION__ );
 }
 
@@ -11036,7 +11035,7 @@ function ewww_image_optimizer_webp_rewrite_verify() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( ewww_image_optimizer_easy_active() || ewwwio_is_cf_host() ) {
 		if ( ewwwio_extract_from_markers( ewww_image_optimizer_htaccess_path(), 'EWWWIO' ) ) {
-			ewwwio_debug_message( 'removing htaccess webp to prevent EasyIO/Cloudflare/Clouways problems' );
+			ewwwio_debug_message( 'removing htaccess webp to prevent EasyIO/Cloudflare/Cloudways problems' );
 			insert_with_markers( ewww_image_optimizer_htaccess_path(), 'EWWWIO', '' );
 		}
 		return;
@@ -12302,7 +12301,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			if ( ! empty( $tools['pngout']['path'] ) ) {
 				$speed_score += 1;
 			} else {
-				$speed_recommendations[] = __( 'Install pngout', 'ewww-image-optimizer' ) . ': <a href="' . admin_url( 'admin.php?action=ewww_image_optimizer_install_pngout' ) . '">' . esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a> | <a href="https://docs.ewww.io/article/13-installing-pngout" data-beacon-article="5854531bc697912ffd6c1afa">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>';
+				$speed_recommendations[] = __( 'Install pngout', 'ewww-image-optimizer' ) . ': <a href="' . esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_install_pngout' ), 'ewww_image_optimizer_options-options' ) ) . '">' . esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a> | <a href="https://docs.ewww.io/article/13-installing-pngout" data-beacon-article="5854531bc697912ffd6c1afa">' . esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>';
 			}
 		}
 		if ( $tools['pngquant']['enabled'] && ewwwio()->local->exec_check() ) {
@@ -12518,14 +12517,14 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	<?php elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ) : ?>
 								<span style="color: orange; font-weight: bolder">
 									<?php esc_html_e( 'Disabled automatically, async requests blocked', 'ewww-image-optimizer' ); ?>
-									- <a href="<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_retest_background_optimization' ) ); ?>">
+									- <a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_retest_background_optimization' ), 'ewww_image_optimizer_options-options' ) ); ?>">
 										<?php esc_html_e( 'Re-test', 'ewww-image-optimizer' ); ?>
 									</a>
 								</span>
 								<?php ewwwio_help_link( 'https://docs.ewww.io/article/42-background-and-parallel-optimization-disabled', '598cb8be2c7d3a73488be237' ); ?>
 	<?php else : ?>
 								<span><?php esc_html_e( 'Enabled', 'ewww-image-optimizer' ); ?>
-									- <a href="<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_retest_background_optimization' ) ); ?>">
+									- <a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_retest_background_optimization' ), 'ewww_image_optimizer_options-options' ) ); ?>">
 										<?php esc_html_e( 'Re-test', 'ewww-image-optimizer' ); ?>
 									</a>
 								</span>
@@ -12757,7 +12756,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					</th>
 					<td>
 						<input type='text' id='ewww_image_optimizer_cloud_notkey' name='ewww_image_optimizer_cloud_notkey' readonly='readonly' value='****************<?php echo esc_attr( substr( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), 28 ) ); ?>' size='32' />
-						<a class='button-secondary' href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_remove_cloud_key' ) ); ?>'>
+						<a class='button-secondary' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_remove_cloud_key' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
 							<?php esc_html_e( 'Remove API key', 'ewww-image-optimizer' ); ?>
 						</a>
 						<p>
@@ -12877,7 +12876,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<span style="color: #3eadc9; font-weight: bolder"><?php esc_html_e( 'Verified', 'ewww-image-optimizer' ); ?></span> - <a href="https://ewww.io/manage-sites/"><?php esc_html_e( 'Manage Sites', 'ewww-image-optimizer' ); ?></a><br>
 			<?php endif; ?>
 			<?php if ( 0 !== $exactdn_network_enabled ) : ?>
-						<a id='ewwwio-easy-deactivate' class='button-secondary' href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_network_remove_easyio' ) ); ?>'>
+						<a id='ewwwio-easy-deactivate' class='button-secondary' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_network_remove_easyio' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
 							<?php esc_html_e( 'De-activate All Sites', 'ewww-image-optimizer' ); ?>
 						</a>
 			<?php endif; ?>
@@ -12916,7 +12915,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<br><i><?php esc_html_e( 'Plugins that remove query strings are unnecessary with Easy IO. You may remove them at your convenience.', 'ewww-image-optimizer' ); ?></i><?php ewwwio_help_link( 'https://docs.ewww.io/article/50-exactdn-and-query-strings', '5a3d278a2c7d3a1943677b52' ); ?>
 			<?php endif; ?>
 							<br>
-							<a id='ewwwio-easy-deactivate' class='button-secondary' href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_remove_easyio' ) ); ?>'>
+							<a id='ewwwio-easy-deactivate' class='button-secondary' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_remove_easyio' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
 								<?php esc_html_e( 'De-activate', 'ewww-image-optimizer' ); ?>
 							</a>
 						</p>
@@ -13397,7 +13396,7 @@ AddType image/webp .webp</pre>
 						<span><?php esc_html_e( 'WebP images will be generated and saved for all images regardless of their size. JS and Picture WebP rewriters will not check if a file exists, only that the domain matches the home url, or one of the provided WebP URLs.', 'ewww-image-optimizer' ); ?></span>
 			<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_force_gif2webp' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
 						<p>
-							<a href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_enable_force_gif2webp' ) ); ?>'>
+							<a href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_enable_force_gif2webp' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
 								<?php esc_html_e( 'Click to enable forced GIF rewriting once WebP version have been generated.', 'ewww-image-optimizer' ); ?>
 							</a>
 						</p>
@@ -13544,7 +13543,7 @@ AddType image/webp .webp</pre>
 							</option>
 						</select>
 	<?php if ( $disable_svg_level || ( empty( $tools['svgcleaner']['path'] ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) ) : ?>
-						<a href="<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' ) ); ?>"><?php esc_html_e( 'Install svgcleaner', 'ewww-image-optimizer' ); ?></a>
+						<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' ), 'ewww_image_optimizer_options-options' ) ); ?>"><?php esc_html_e( 'Install svgcleaner', 'ewww-image-optimizer' ); ?></a>
 	<?php endif; ?>
 					</td>
 				</tr>
@@ -14038,10 +14037,10 @@ AddType image/webp .webp</pre>
 					</th>
 					<td>
 						<p>
-							<a target='_blank' href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_view_debug_log' ) ); ?>'><?php esc_html_e( 'View Log', 'ewww-image-optimizer' ); ?></a> -
-							<a href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_delete_debug_log' ) ); ?>'><?php esc_html_e( 'Clear Log', 'ewww-image-optimizer' ); ?></a>
+							<a target='_blank' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_view_debug_log' ), 'ewww_image_optimizer_options-options' ) ); ?>'><?php esc_html_e( 'View Log', 'ewww-image-optimizer' ); ?></a> -
+							<a href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_delete_debug_log' ), 'ewww_image_optimizer_options-options' ) ); ?>'><?php esc_html_e( 'Clear Log', 'ewww-image-optimizer' ); ?></a>
 						</p>
-						<p><a class='button button-secondary' target='_blank' href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_download_debug_log' ) ); ?>'><?php esc_html_e( 'Download Log', 'ewww-image-optimizer' ); ?></a></p>
+						<p><a class='button button-secondary' target='_blank' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_download_debug_log' ), 'ewww_image_optimizer_options-options' ) ); ?>'><?php esc_html_e( 'Download Log', 'ewww-image-optimizer' ); ?></a></p>
 					</td>
 				</tr>
 	<?php endif; ?>
@@ -14221,6 +14220,7 @@ function ewww_image_optimizer_easyio_network_activated() {
  */
 function ewww_image_optimizer_remove_cloud_key( $redirect = true ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	check_admin_referer( 'ewww_image_optimizer_options-options' );
 	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
 	if ( 'none' !== $redirect && false === current_user_can( $permissions ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
@@ -14258,6 +14258,7 @@ function ewww_image_optimizer_remove_cloud_key( $redirect = true ) {
  */
 function ewww_image_optimizer_remove_easyio() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	check_admin_referer( 'ewww_image_optimizer_options-options' );
 	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' );
 	if ( false === current_user_can( $permissions ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
@@ -14291,6 +14292,7 @@ function ewww_image_optimizer_remove_easyio() {
  */
 function ewww_image_optimizer_network_remove_easyio() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	check_admin_referer( 'ewww_image_optimizer_options-option' );
 	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_network_options' );
 	if ( false === current_user_can( $permissions ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
@@ -14333,6 +14335,7 @@ function ewww_image_optimizer_network_remove_easyio() {
  * Enables Forced WebP for GIF images once the site is ready.
  */
 function ewww_image_optimizer_enable_force_gif2webp() {
+	check_admin_referer( 'ewww_image_optimizer_options-options' );
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -14476,6 +14479,7 @@ function ewww_image_optimizer_disable_debugging() {
  * View the debug log file from the wp-admin.
  */
 function ewww_image_optimizer_view_debug_log() {
+	check_admin_referer( 'ewww_image_optimizer_options-options' );
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -14493,6 +14497,7 @@ function ewww_image_optimizer_view_debug_log() {
  * Removes the debug log file.
  */
 function ewww_image_optimizer_delete_debug_log() {
+	check_admin_referer( 'ewww_image_optimizer_options-options' );
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
@@ -14512,6 +14517,7 @@ function ewww_image_optimizer_delete_debug_log() {
  * Download the debug log file from the wp-admin.
  */
 function ewww_image_optimizer_download_debug_log() {
+	check_admin_referer( 'ewww_image_optimizer_options-options' );
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}

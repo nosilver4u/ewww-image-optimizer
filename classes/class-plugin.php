@@ -729,6 +729,27 @@ final class Plugin extends Base {
 	}
 
 	/**
+	 * Outputs the script to dismiss the 'exec' notice.
+	 */
+	protected function display_exec_dismiss_script() {
+		?>
+		<script>
+			jQuery(document).on('click', '#ewww-image-optimizer-warning-exec .notice-dismiss', function() {
+				var ewww_dismiss_exec_data = {
+					action: 'ewww_dismiss_exec_notice',
+					_wpnonce: <?php echo wp_json_encode( wp_create_nonce( 'ewww-image-optimizer-notice' ) ); ?>,
+				};
+				jQuery.post(ajaxurl, ewww_dismiss_exec_data, function(response) {
+					if (response) {
+						console.log(response);
+					}
+				});
+			});
+		</script>
+		<?php
+	}
+
+	/**
 	 * Checks for exec() and availability of local optimizers, then displays an error if needed.
 	 *
 	 * @param string $quiet Optional. Use 'quiet' to suppress output.
@@ -754,18 +775,7 @@ final class Plugin extends Base {
 				}
 				\ewwwio_help_link( 'https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it', '592dd12d0428634b4a338c39' );
 				echo '</p></div>';
-				echo "<script>\n" .
-					"jQuery(document).on('click', '#ewww-image-optimizer-warning-exec .notice-dismiss', function() {\n" .
-						"\tvar ewww_dismiss_exec_data = {\n" .
-							"\t\taction: 'ewww_dismiss_exec_notice',\n" .
-						"\t};\n" .
-						"\tjQuery.post(ajaxurl, ewww_dismiss_exec_data, function(response) {\n" .
-							"\t\tif (response) {\n" .
-								"\t\t\tconsole.log(response);\n" .
-							"\t\t}\n" .
-						"\t});\n" .
-					"});\n" .
-					"</script>\n";
+				$this->display_exec_dismiss_script();
 				if (
 					\ewww_image_optimizer_easy_active() &&
 					! $this->get_option( 'ewww_image_optimizer_ludicrous_mode' )
@@ -806,12 +816,11 @@ final class Plugin extends Base {
 				if ( false !== $key ) {
 					unset( $missing[ $key ] );
 				}
-				$pngout_install_url = \admin_url( 'admin.php?action=ewww_image_optimizer_install_pngout' );
 				echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-warning'><p>" .
 				\sprintf(
 					/* translators: 1: automatically (link) 2: manually (link) */
 					\esc_html__( 'EWWW Image Optimizer is missing pngout. Install %1$s or %2$s.', 'ewww-image-optimizer' ),
-					"<a href='" . \esc_url( $pngout_install_url ) . "'>" . \esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
+					"<a href='" . \esc_url( \wp_nonce_url( \admin_url( 'admin.php?action=ewww_image_optimizer_install_pngout' ), 'ewww_image_optimizer_options-options' ) ) . "'>" . \esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
 					'<a href="https://docs.ewww.io/article/13-installing-pngout" data-beacon-article="5854531bc697912ffd6c1afa">' . \esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>'
 				) .
 				'</p></div>';
@@ -821,12 +830,11 @@ final class Plugin extends Base {
 				if ( false !== $key ) {
 					unset( $missing[ $key ] );
 				}
-				$svgcleaner_install_url = \admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' );
 				echo "<div id='ewww-image-optimizer-warning-opt-missing' class='notice notice-warning'><p>" .
 				\sprintf(
 					/* translators: 1: automatically (link) 2: manually (link) */
 					\esc_html__( 'EWWW Image Optimizer is missing svgleaner. Install %1$s or %2$s.', 'ewww-image-optimizer' ),
-					"<a href='" . \esc_url( $svgcleaner_install_url ) . "'>" . \esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
+					"<a href='" . \esc_url( \wp_nonce_url( \admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' ), 'ewww_image_optimizer_options-options' ) ) . "'>" . \esc_html__( 'automatically', 'ewww-image-optimizer' ) . '</a>',
 					'<a href="https://docs.ewww.io/article/95-installing-svgcleaner" data-beacon-article="5f7921c9cff47e001a58adbc">' . \esc_html__( 'manually', 'ewww-image-optimizer' ) . '</a>'
 				) .
 				'</p></div>';
@@ -912,20 +920,7 @@ final class Plugin extends Base {
 			\sprintf( \esc_html__( 'Dismiss this notice to continue with free cloud-based JPG compression or %s.', 'ewww-image-optimizer' ), "<a href='https://ewww.io/plans/'>" . \esc_html__( 'start your premium trial', 'ewww-image-optimizer' ) . '</a>' );
 		\ewwwio_help_link( 'https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it', '592dd12d0428634b4a338c39' );
 		echo '</strong></p></div>';
-		?>
-	<script>
-		jQuery(document).on('click', '#ewww-image-optimizer-warning-exec .notice-dismiss', function() {
-			var ewww_dismiss_exec_data = {
-				action: 'ewww_dismiss_exec_notice',
-			};
-			jQuery.post(ajaxurl, ewww_dismiss_exec_data, function(response) {
-				if (response) {
-					console.log(response);
-				}
-			});
-		});
-	</script>
-		<?php
+		$this->display_exec_dismiss_script();
 	}
 
 	/**
@@ -951,20 +946,7 @@ final class Plugin extends Base {
 			\sprintf( \esc_html__( 'Dismiss this notice to continue with free cloud-based JPG compression or %s.', 'ewww-image-optimizer' ), "<a href='https://ewww.io/plans/'>" . \esc_html__( 'start your premium trial', 'ewww-image-optimizer' ) . '</a>' );
 		\ewwwio_help_link( 'https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it', '592dd12d0428634b4a338c39' );
 		echo '</strong></p></div>';
-		?>
-	<script>
-		jQuery(document).on('click', '#ewww-image-optimizer-warning-exec .notice-dismiss', function() {
-			var ewww_dismiss_exec_data = {
-				action: 'ewww_dismiss_exec_notice',
-			};
-			jQuery.post(ajaxurl, ewww_dismiss_exec_data, function(response) {
-				if (response) {
-					console.log(response);
-				}
-			});
-		});
-	</script>
-		<?php
+		$this->display_exec_dismiss_script();
 	}
 
 	/**
@@ -992,6 +974,7 @@ final class Plugin extends Base {
 	public function dismiss_exec_notice() {
 		$this->ob_clean();
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		check_ajax_referer( 'ewww-image-optimizer-notice' );
 		// Verify that the user is properly authorized.
 		if ( ! \current_user_can( \apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 			\wp_die( \esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );

@@ -51,7 +51,6 @@ jQuery(document).ready(function($) {
 		var ewww_loop_action = 'bulk_flag_loop';
 		var ewww_cleanup_action = 'bulk_flag_cleanup';
 	} else if (ewww_vars.gallery == 'nextgen') {
-		var ewww_preview_action = 'bulk_ngg_preview';
 		var ewww_init_action = 'bulk_ngg_init';
 		var ewww_loop_action = 'bulk_ngg_loop';
 		var ewww_cleanup_action = 'bulk_ngg_cleanup';
@@ -411,7 +410,6 @@ jQuery(document).ready(function($) {
 			}
 			ewww_attachments = ewww_vars.attachments;
 			ewww_init_action = 'bulk_init';
-			ewww_filename_action = 'bulk_filename';
 			ewww_loop_action = 'bulk_loop';
 			ewww_cleanup_action = 'bulk_cleanup';
 			ewww_init_data = {

@@ -112,7 +112,7 @@ function ewww_image_optimizer_display_tools() {
 		?>
 		<p class="description ewww-tool-info">
 			<i><?php esc_html_e( 'Will resume from previous position.', 'ewww-image-optimizer' ); ?></i> -
-			<a  href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_reset_bulk_restore' ) ); ?>'>
+			<a  href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_reset_bulk_restore' ), 'ewww-image-optimizer-tools' ) ); ?>'>
 				<?php esc_html_e( 'Reset position', 'ewww-image-optimizer' ); ?>
 			</a>
 		</p>
@@ -152,7 +152,7 @@ function ewww_image_optimizer_display_tools() {
 		?>
 		<p class="description ewww-tool-info">
 			<i><?php esc_html_e( 'Will resume from previous position.', 'ewww-image-optimizer' ); ?></i> -
-			<a  href='<?php echo esc_url( admin_url( 'admin.php?action=ewww_image_optimizer_reset_webp_clean' ) ); ?>'>
+			<a  href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_reset_webp_clean' ), 'ewww-image-optimizer-tools' ) ); ?>'>
 				<?php esc_html_e( 'Reset position', 'ewww-image-optimizer' ); ?>
 			</a>
 		</p>
@@ -2257,7 +2257,6 @@ add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_bulk_script' );
 add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_tool_script' );
 add_action( 'wp_ajax_bulk_scan', 'ewww_image_optimizer_media_scan' );
 add_action( 'wp_ajax_bulk_init', 'ewww_image_optimizer_bulk_initialize' );
-add_action( 'wp_ajax_bulk_filename', 'ewww_image_optimizer_bulk_filename' );
 add_action( 'wp_ajax_bulk_loop', 'ewww_image_optimizer_bulk_loop' );
 add_action( 'wp_ajax_ewww_bulk_update_meta', 'ewww_image_optimizer_bulk_update_meta' );
 add_action( 'wp_ajax_bulk_cleanup', 'ewww_image_optimizer_bulk_cleanup' );

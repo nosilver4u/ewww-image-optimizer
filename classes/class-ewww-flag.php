@@ -46,7 +46,6 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 			add_action( 'admin_menu', array( $this, 'ewww_flag_bulk_menu' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'ewww_flag_bulk_script' ), PHP_INT_MAX );
 			add_action( 'wp_ajax_bulk_flag_init', array( $this, 'ewww_flag_bulk_init' ) );
-			add_action( 'wp_ajax_bulk_flag_filename', array( $this, 'ewww_flag_bulk_filename' ) );
 			add_action( 'wp_ajax_bulk_flag_loop', array( $this, 'ewww_flag_bulk_loop' ) );
 			add_action( 'wp_ajax_bulk_flag_cleanup', array( $this, 'ewww_flag_bulk_cleanup' ) );
 		}
