@@ -352,7 +352,9 @@ class Background_Process_Media extends Background_Process {
 			}
 		}
 
-		ewwwio()->background_image->dispatch();
+		if ( ! ewwwio()->background_image->is_process_running() ) {
+			ewwwio()->background_image->dispatch();
+		}
 	}
 
 

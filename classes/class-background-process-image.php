@@ -87,7 +87,8 @@ class Background_Process_Image extends Background_Process {
 	 *
 	 * @access protected
 	 *
-	 * @param string $item The filename of the attachment.
+	 * @param array $item The id of the db record for an image, how many attempts have been made to process
+	 *                    the item, along with any other optimization parameters.
 	 * @return bool False indicates completion.
 	 */
 	protected function task( $item ) {
@@ -99,6 +100,7 @@ class Background_Process_Image extends Background_Process {
 		// Force the process to re-spawn if we don't have enough time remaining for this image.
 		$time_estimate = $image->time_estimate();
 		if ( empty( $image->retrieve ) && $this->completed && time() + $time_estimate > $this->start_time + \apply_filters( $this->identifier . '_default_time_limit', $this->time_limit ) ) {
+			\ewwwio_debug_message( 'not enough time left, respawning' );
 			\add_filter( $this->identifier . '_time_exceeded', '__return_true' );
 			return $item;
 		}
@@ -112,6 +114,7 @@ class Background_Process_Image extends Background_Process {
 			\ewwwio_debug_message( "processing background optimization request for $image->file, converting: $ewww_convert" );
 			$pending = $this->process_image( $image, $item['attempts'] );
 			if ( $pending ) {
+				\ewwwio_debug_message( "requeueing $id" );
 				return $item;
 			}
 		} else {
@@ -287,12 +290,16 @@ class Background_Process_Image extends Background_Process {
 		if ( $image->attachment_id && $image->gallery ) {
 			$another_image = \ewww_image_optimizer_attachment_has_pending_sizes( $image->attachment_id, $image->gallery );
 			if ( empty( $another_image ) ) {
-				\ewwwio_debug_message( "firing async metadata update for $image->attachment_id" );
-				\ewwwio()->async_update_attachment->data(
+				\ewwwio_debug_message( "queueing async metadata update for $image->attachment_id" );
+				ewwwio()->background_attachment_update->push_to_queue(
 					array(
-						'attachment_id' => $image->attachment_id,
+						'id' => $image->attachment_id,
 					)
-				)->dispatch();
+				);
+				if ( ! ewwwio()->background_attachment_update->is_process_running() ) {
+					ewwwio_debug_message( 'attachment update process idle, dispatching post-haste' );
+					ewwwio()->background_attachment_update->dispatch();
+				}
 			}
 		}
 

@@ -5,18 +5,18 @@ function ewwwUpdateStatus(post_id,ewww_nonce,convert,poll_time,start_time) {
 		ewww_attachment_ID: post_id,
 	};
 	jQuery.post(ajaxurl, ewww_get_status_data, function(response) {
-		if (poll_time<30000) {
+		if (poll_time<30000) { // Keep increasing the poll time until it reaches 30 seconds.
 			poll_time=poll_time+1000;
 		}
 		var ewww_status_response = JSON.parse(response);
 		if (ewww_status_response.pending) {
 			jQuery('#ewww-media-status-' + post_id ).replaceWith( ewww_status_response.output );
-			if (Math.round(performance.now()/1000)-start_time>300) {
+			if (Math.round(performance.now()/1000)-start_time>360) { // Stop polling at 6 minutes.
 				jQuery('#ewww-status-loading-' + post_id ).remove();	
 				console.log('ewwwUpdateStatus exceeded 300 seconds');
 				return;
 			}
-			console.log('running again in ' + poll_time + 'ms for image #' + post_id);
+			console.log('checking status again in ' + poll_time + 'ms for image #' + post_id);
 			setTimeout(ewwwUpdateStatus, poll_time, post_id, ewww_nonce, 0, poll_time, start_time);
 		} else if (ewww_status_response.output) {
 			jQuery('#ewww-media-status-' + post_id).parent().html( ewww_status_response.output );

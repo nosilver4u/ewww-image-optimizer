@@ -41,13 +41,6 @@ final class Plugin extends Base {
 	public $async_scan;
 
 	/**
-	 * Async Update Attachment object.
-	 *
-	 * @var object|EWWW\Async_Update_Attachment $async_update_attachment
-	 */
-	public $async_update_attachment;
-
-	/**
 	 * Async Test Optimize object.
 	 *
 	 * @var object|EWWW\Async_Test_Optimize $async_test_optimize
@@ -60,6 +53,13 @@ final class Plugin extends Base {
 	 * @var object|EWWW\Async_Test_Request $async_test_request
 	 */
 	public $async_test_request;
+
+	/**
+	 * Background Attachment Update object.
+	 *
+	 * @var object|EWWW\Background_Process_Attachment_Update $background_attachment_update
+	 */
+	public $background_attachment_update;
 
 	/**
 	 * Background Process Flag object.
@@ -285,12 +285,12 @@ final class Plugin extends Base {
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-async-key-verify.php';
 		// Async image scanning for scheduled opt.
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-async-scan.php';
-		// Async attachment updating.
-		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-async-update-attachment.php';
 		// Async optimization test, used for debugging.
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-async-test-optimize.php';
 		// Async test request, used to make sure async works properly.
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-async-test-request.php';
+		// Background attachment updating.
+		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-background-process-attachment-update.php';
 		// Background optimization for GRAND FlaGallery.
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-background-process-flag.php';
 		// Background optimization for individual images.
@@ -308,13 +308,13 @@ final class Plugin extends Base {
 	 */
 	public function load_children() {
 		// Setup async/background classes first.
-		self::$instance->async_key_verify        = new Async_Key_Verify();
-		self::$instance->async_scan              = new Async_Scan();
-		self::$instance->async_update_attachment = new Async_Update_Attachment();
-		self::$instance->async_test_optimize     = new Async_Test_Optimize();
-		self::$instance->async_test_request      = new Async_Test_Request();
-		self::$instance->background_image        = new Background_Process_Image();
-		self::$instance->background_media        = new Background_Process_Media();
+		self::$instance->async_key_verify             = new Async_Key_Verify();
+		self::$instance->async_scan                   = new Async_Scan();
+		self::$instance->async_test_optimize          = new Async_Test_Optimize();
+		self::$instance->async_test_request           = new Async_Test_Request();
+		self::$instance->background_attachment_update = new Background_Process_Attachment_Update();
+		self::$instance->background_image             = new Background_Process_Image();
+		self::$instance->background_media             = new Background_Process_Media();
 
 		// Then, setup the rest of the classes we need.
 		self::$instance->local    = new Local();

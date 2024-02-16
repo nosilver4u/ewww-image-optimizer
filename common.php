@@ -3928,6 +3928,9 @@ function ewww_image_optimizer_ajax_get_attachment_status() {
 	$output   = ewww_image_optimizer_custom_column_capture( 'ewww-image-optimizer', $attachment_id, $meta );
 	$basename = wp_basename( $meta['file'] );
 	$pending  = ewww_image_optimizer_attachment_has_pending_sizes( $attachment_id );
+	if ( ! $pending && ewww_image_optimizer_image_is_pending( $attachment_id, 'media-async' ) ) {
+		$pending = 1;
+	}
 	ewwwio_ob_clean();
 	wp_die(
 		wp_json_encode(
@@ -5554,6 +5557,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 			ewwwio_delete_file( $tempfile );
 		} elseif ( str_starts_with( $response['body'], '{' ) && strpos( $response['body'], 'location' ) ) {
 			ewwwio_debug_message( 'optimization pending' );
+			ewwwio_debug_message( $response['body'] );
 			$api_response = json_decode( $response['body'], true );
 			if ( ! empty( $api_response['id'] ) ) {
 				$retrieve_id = $api_response['id'];
@@ -8280,9 +8284,9 @@ function ewww_image_optimizer_add_attachment_to_queue( $id, $new_image = false, 
 			'webp_only'    => $webp_only,
 		)
 	);
-	if ( 5 > ewwwio()->background_media->count_queue() ) {
+	if ( ! ewwwio()->background_media->is_process_running() ) {
+		ewwwio_debug_message( 'media process idle, dispatching post-haste' );
 		ewwwio()->background_media->dispatch();
-		ewwwio_debug_message( 'small queue, dispatching post-haste' );
 	}
 }
 
