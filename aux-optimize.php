@@ -104,9 +104,8 @@ function ewww_image_optimizer_aux_images_table() {
 	$total       = empty( $_POST['ewww_total_pages'] ) ? 0 : (int) $_POST['ewww_total_pages'];
 	$output      = array();
 	if ( ! empty( $search ) ) {
-		ewwwio_debug_message( $ewwwdb->prepare( "SELECT id,path,orig_size,image_size,backup,attachment_id,gallery,updates,trace,UNIX_TIMESTAMP(updated) AS updated FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d AND path LIKE %s ORDER BY " . ( $debug_query ? 'updates DESC,id' : 'id' ) . ' DESC LIMIT %d,%d', $debug_query, '%' . $ewwwdb->esc_like( $search ) . '%', $offset, $per_page ) );
 		ewwwio_debug_message( $ewwwdb->prepare( "SELECT COUNT(*) FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d AND path LIKE %s", $debug_query, '%' . $ewwwdb->esc_like( $search ) . '%' ) );
-		$already_optimized = $ewwwdb->get_results( $ewwwdb->prepare( "SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,updates,trace,UNIX_TIMESTAMP(updated) AS updated FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d AND path LIKE %s ORDER BY " . ( $debug_query ? 'updates DESC,id' : 'id' ) . ' DESC LIMIT %d,%d', $debug_query, '%' . $ewwwdb->esc_like( $search ) . '%', $offset, $per_page ), ARRAY_A );
+		$already_optimized = $ewwwdb->get_results( $ewwwdb->prepare( "SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,trace,UNIX_TIMESTAMP(updated) AS updated FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d AND path LIKE %s ORDER BY " . ( $debug_query ? 'updates DESC,id' : 'id' ) . ' DESC LIMIT %d,%d', $debug_query, '%' . $ewwwdb->esc_like( $search ) . '%', $offset, $per_page ), ARRAY_A );
 		$search_count      = $ewwwdb->get_var( $ewwwdb->prepare( "SELECT COUNT(*) FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d AND path LIKE %s", $debug_query, '%' . $ewwwdb->esc_like( $search ) . '%' ) );
 		if ( $search_count < $per_page ) {
 			/* translators: %d: number of image records found */
@@ -117,8 +116,7 @@ function ewww_image_optimizer_aux_images_table() {
 		}
 		$total = ceil( $search_count / $per_page );
 	} else {
-		ewwwio_debug_message( $ewwwdb->prepare( "SELECT id,path,orig_size,image_size,backup,attachment_id,gallery,updates,trace,UNIX_TIMESTAMP(updated) AS updated FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d ORDER BY " . ( $debug_query ? 'updates DESC,id' : 'id' ) . ' DESC LIMIT %d,%d', $debug_query, $offset, $per_page ) );
-		$already_optimized = $ewwwdb->get_results( $ewwwdb->prepare( "SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,updates,trace,UNIX_TIMESTAMP(updated) AS updated FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d ORDER BY " . ( $debug_query ? 'updates DESC,id' : 'id' ) . ' DESC LIMIT %d,%d', $debug_query, $offset, $per_page ), ARRAY_A );
+		$already_optimized = $ewwwdb->get_results( $ewwwdb->prepare( "SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,trace,UNIX_TIMESTAMP(updated) AS updated FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d ORDER BY " . ( $debug_query ? 'updates DESC,id' : 'id' ) . ' DESC LIMIT %d,%d', $debug_query, $offset, $per_page ), ARRAY_A );
 		if ( $debug_query ) {
 			ewwwio_debug_message( $ewwwdb->prepare( "SELECT COUNT(*) FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d", $debug_query ) );
 			$search_count = $ewwwdb->get_var( $ewwwdb->prepare( "SELECT COUNT(*) FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d", $debug_query ) );
@@ -172,6 +170,33 @@ function ewww_image_optimizer_aux_images_table() {
 		} else {
 			$last_updated = human_time_diff( $optimized_image['updated'] );
 		}
+
+		// Check for WebP results.
+		$webp_info  = '';
+		$webp_error = '';
+		$webpfile   = $file . '.webp';
+		$webp_size  = ewww_image_optimizer_filesize( $webpfile );
+		if ( ! $webp_size ) {
+			if ( ! empty( $optimized_image['webp_size'] ) ) {
+				$webp_size = $optimized_image['webp_size'];
+			} elseif ( ! empty( $optimized_image['webp_error'] ) && 2 !== (int) $optimized_image['webp_error'] ) {
+				$webp_error = ewww_image_optimizer_webp_error_message( $optimized_image['webp_error'] );
+			}
+		}
+		if ( $webp_size ) {
+			$image_name = str_replace( WP_CONTENT_DIR, '', $file );
+			if ( $file !== $image_name ) {
+				$image_url = esc_url( content_url( $image_name ) );
+			}
+			// Get a human readable filesize.
+			$webp_size = ewww_image_optimizer_size_format( $webp_size );
+			$webpurl   = $image_url . '.webp';
+			$webp_info = "<br>WebP: <a href=\"$webpurl\" target=\"_blank\">$webp_size</a>";
+		} elseif ( $webp_error ) {
+			$webp_info = "<br>$webp_error";
+		}
+		$resize_status = ewww_image_optimizer_resize_results_message( $optimized_image['path'], $optimized_image['resize_error'] );
+
 		if ( ewww_image_optimizer_stream_wrapped( $file ) ) {
 			// Retrieve the mimetype of the attachment.
 			$type = esc_html__( 'Amazon S3 image', 'ewww-image-optimizer' );
@@ -204,8 +229,9 @@ function ewww_image_optimizer_aux_images_table() {
 			$output['table'] .= '</td>';
 			$output['table'] .= "<td>$type</td>";
 			$output['table'] .= "<td>$last_updated</td>";
-			$output['table'] .= "<td>$savings<br>$size_string<br>" .
-				'<a class="ewww-remove-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Remove from history', 'ewww-image-optimizer' ) . '</a>' .
+			$output['table'] .= "<td>$savings<br>$size_string" .
+				$webp_info . ( $resize_status ? '<br>' . esc_html( $resize_status ) : '' ) .
+				'<br><a class="ewww-remove-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Remove from history', 'ewww-image-optimizer' ) . '</a>' .
 				( $eio_backup->is_backup_available( $optimized_image['path'], $optimized_image ) ? '<br><a class="ewww-restore-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Restore original', 'ewww-image-optimizer' ) . '</a>' : '' ) .
 				'</td>';
 			$output['table'] .= '</tr>';
@@ -242,23 +268,9 @@ function ewww_image_optimizer_aux_images_table() {
 			$output['table'] .= '</td>';
 			$output['table'] .= "<td>$type</td>";
 			$output['table'] .= "<td>$last_updated</td>";
-			// Determine filepath for webp.
-			$webpfile  = $file . '.webp';
-			$webp_size = ewww_image_optimizer_filesize( $webpfile );
-			$webp_info = '';
-			if ( $webp_size ) {
-				$image_name = str_replace( WP_CONTENT_DIR, '', $file );
-				if ( $file !== $image_name ) {
-					$image_url = esc_url( content_url( $image_name ) );
-				}
-				// Get a human readable filesize.
-				$webp_size = ewww_image_optimizer_size_format( $webp_size );
-				$webpurl   = $image_url . '.webp';
-				$webp_info = "<br>WebP: <a href=\"$webpurl\">$webp_size</a>";
-			}
-			$output['table'] .= "<td>$savings<br>$size_string<br>" .
-				'<a class="ewww-remove-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Remove from history', 'ewww-image-optimizer' ) . '</a>' .
-				$webp_info .
+			$output['table'] .= "<td>$savings<br>$size_string" .
+				$webp_info . ( $resize_status ? '<br>' . esc_html( $resize_status ) : '' ) .
+				'<br><a class="ewww-remove-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Remove from history', 'ewww-image-optimizer' ) . '</a>' .
 				( $eio_backup->is_backup_available( $optimized_image['path'], $optimized_image ) ? '<br><a class="ewww-restore-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Restore original', 'ewww-image-optimizer' ) . '</a>' : '' ) .
 				'</td>';
 			$output['table'] .= '</tr>';
@@ -295,8 +307,9 @@ function ewww_image_optimizer_aux_images_table() {
 			$output['table'] .= '</td>';
 			$output['table'] .= "<td>$type</td>";
 			$output['table'] .= "<td>$last_updated</td>";
-			$output['table'] .= "<td>$savings<br>$size_string<br>" .
-				'<a class="ewww-remove-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Remove from history', 'ewww-image-optimizer' ) . '</a>' .
+			$output['table'] .= "<td>$savings<br>$size_string" .
+				$webp_info .
+				'<br><a class="ewww-remove-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Remove from history', 'ewww-image-optimizer' ) . '</a>' .
 				'</td>';
 			$output['table'] .= '</tr>';
 			$alternate        = ! $alternate;

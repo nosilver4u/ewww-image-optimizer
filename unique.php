@@ -1221,17 +1221,20 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 		return esc_html__( 'Could not find file.', 'ewww-image-optimizer' );
 	} elseif ( ! is_writable( $file ) ) {
 		ewwwio_debug_message( 'original file not writable' );
-		return esc_html__( 'File is not writable.', 'ewww-image-optimizer' );
+		ewww_image_optimizer_update_webp_results( $file, 0, 2 );
+		return ewww_image_optimizer_webp_error_message( 2 );
 	} elseif ( ewwwio_is_file( $webpfile ) && empty( ewwwio()->force ) && ! $recreate ) {
 		ewwwio_debug_message( 'webp file exists, not forcing or recreating' );
 		return esc_html__( 'WebP image already exists.', 'ewww-image-optimizer' );
 	} elseif ( 'image/png' === $type && ewww_image_optimizer_is_animated_png( $file ) ) {
 		ewwwio_debug_message( 'APNG found, WebP not possible' );
-		return esc_html__( 'APNG cannot be converted to WebP.', 'ewww-image-optimizer' );
+		ewww_image_optimizer_update_webp_results( $file, 0, 3 );
+		return ewww_image_optimizer_webp_error_message( 3 );
 	}
 	list( $width, $height ) = wp_getimagesize( $file );
 	if ( $width > 16383 || $height > 16383 ) {
-		return esc_html__( 'Image dimensions too large for WebP conversion.', 'ewww-image-optimizer' );
+		ewww_image_optimizer_update_webp_results( $file, 0, 4 );
+		return ewww_image_optimizer_webp_error_message( 4 );
 	}
 	if ( empty( $tool ) || 'image/gif' === $type ) {
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
@@ -1285,12 +1288,14 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 	if ( ewwwio_is_file( $webpfile ) && $orig_size < $webp_size && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
 		ewwwio_debug_message( 'webp file was too big, deleting' );
 		ewwwio_delete_file( $webpfile );
-		return esc_html__( 'WebP image was larger than original.', 'ewww-image-optimizer' );
+		ewww_image_optimizer_update_webp_results( $file, 0, 5 );
+		return ewww_image_optimizer_webp_error_message( 5 );
 	} elseif ( ewwwio_is_file( $webpfile ) && 'image/webp' === ewww_image_optimizer_mimetype( $webpfile, 'i' ) ) {
 		// Set correct file permissions.
 		$stat  = stat( dirname( $webpfile ) );
 		$perms = $stat['mode'] & 0000666; // Same permissions as parent folder, strip off the executable bits.
 		ewwwio_chmod( $webpfile, $perms );
+		ewww_image_optimizer_update_webp_results( $file, $webp_size );
 		if ( $orig_size < $webp_size && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ) {
 			return esc_html__( 'WebP image larger than original, saved anyway with Force WebP option.', 'ewww-image-optimizer' );
 		}
@@ -1298,9 +1303,36 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 	} elseif ( ewwwio_is_file( $webpfile ) ) {
 		ewwwio_debug_message( 'webp file mimetype did not validate, deleting' );
 		ewwwio_delete_file( $webpfile );
-		return esc_html__( 'WebP conversion error.', 'ewww-image-optimizer' );
+		ewww_image_optimizer_update_webp_results( $file, 0, 6 );
+		return ewww_image_optimizer_webp_error_message( 6 );
 	}
-	return esc_html__( 'Image could not be converted to WebP.', 'ewww-image-optimizer' );
+	ewww_image_optimizer_update_webp_results( $file, 0, 1 );
+	return ewww_image_optimizer_webp_error_message( 1 );
+}
+
+/**
+ * Get an error message for the given WebP status code.
+ *
+ * @param int $webp_code The error code for WebP conversion.
+ * @return string The error message for the given status code.
+ */
+function ewww_image_optimizer_webp_error_message( $webp_code = 0 ) {
+	switch ( $webp_code ) {
+		case 1:
+			return __( 'Image could not be converted to WebP.', 'ewww-image-optimizer' );
+		case 2:
+			return __( 'File is not writable.', 'ewww-image-optimizer' );
+		case 3:
+			return __( 'APNG cannot be converted to WebP.', 'ewww-image-optimizer' );
+		case 4:
+			return __( 'Image dimensions too large for WebP conversion.', 'ewww-image-optimizer' );
+		case 5:
+			return __( 'WebP image was larger than original.', 'ewww-image-optimizer' );
+		case 6:
+			return __( 'WebP conversion error.', 'ewww-image-optimizer' );
+		default:
+			return '';
+	}
 }
 
 /**
