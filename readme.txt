@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 6.1
 Tested up to: 6.4
 Requires PHP: 7.3
-Stable tag: 7.2.3
+Stable tag: 7.3.0
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -141,7 +141,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 7.3.0 =
-*Release Date - TBD*
+*Release Date - February 20, 2024*
 
 * added: API processing for large images done asynchronously to avoid timeouts
 * added: Store resize results to prevent repeated attempts to scale images that yield larger filesizes
