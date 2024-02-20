@@ -764,7 +764,7 @@ final class Plugin extends Base {
 				// Display a warning if exec() is disabled, can't run local tools without it.
 				if ( \ewww_image_optimizer_easy_active() ) {
 					echo "<div id='ewww-image-optimizer-warning-exec' class='notice notice-info is-dismissible'><p>";
-					\esc_html_e( 'Free compression of local images cannot be done on your site without an API key. Since Easy IO is already automatically optimizing your site, you may dismiss this notice unless you need to save storage space.', 'ewww-image-optimizer' );
+					\esc_html_e( 'Compression of local images cannot be done on your site without an API key. Since Easy IO is already automatically optimizing your site, you may dismiss this notice unless you need to save storage space.', 'ewww-image-optimizer' );
 				} else {
 					echo "<div id='ewww-image-optimizer-warning-exec' class='notice notice-warning is-dismissible'><p>";
 					\printf(
