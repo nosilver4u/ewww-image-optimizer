@@ -1450,6 +1450,8 @@ function ewww_image_optimizer_install_table() {
 		resized_width smallint unsigned,
 		resized_height smallint unsigned,
 		resize_error tinyint unsigned,
+		webp_size int unsigned,
+		webp_error tinyint unsigned,
 		pending tinyint NOT NULL DEFAULT 0,
 		updates int unsigned,
 		updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -6554,6 +6556,68 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 }
 
 /**
+ * Updates WebP results for an image record in the database.
+ *
+ * @see ewww_image_optimizer_webp_error_message() Converts WebP error codes to messages.
+ * @global object $wpdb
+ * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
+ * @global object $ewww_image Contains more information about the image currently being processed.
+ *
+ * @param string $attachment The filename of the original image.
+ * @param int    $webp_size The filesize of the WebP image.
+ * @param int    $webp_error Optional. An error code for the WebP conversion.
+ */
+function ewww_image_optimizer_update_webp_results( $attachment, $webp_size, $webp_error = 0 ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	global $wpdb;
+	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
+		ewww_image_optimizer_db_init();
+		global $ewwwdb;
+	} else {
+		$ewwwdb = $wpdb;
+	}
+	global $ewww_image;
+	$already_optimized = ewww_image_optimizer_find_already_optimized( $attachment );
+	ewwwio_debug_message( "webp conversion yielded size $webp_size (error=$webp_error)" );
+
+	$updates = array(
+		'path'       => ewww_image_optimizer_relativize_path( $attachment ),
+		'webp_size'  => (int) $webp_size,
+		'webp_error' => (int) $webp_error,
+	);
+	if ( ! seems_utf8( $updates['path'] ) ) {
+		$updates['path'] = mb_convert_encoding( $updates['path'], 'UTF-8' );
+	}
+	if ( is_object( $ewww_image ) && $ewww_image instanceof EWWW_Image && $attachment === $ewww_image->file ) {
+		$ewww_image->webp_size  = (int) $webp_size;
+		$ewww_image->webp_error = (int) $webp_error;
+	}
+	// Store info on the current image for future reference.
+	if ( empty( $already_optimized ) || ! is_array( $already_optimized ) ) {
+		ewwwio_debug_message( "creating new record for $attachment" );
+		$ewwwdb->insert( $ewwwdb->ewwwio_images, $updates );
+	} else {
+		ewwwio_debug_message( "updating existing record ({$already_optimized['id']}), path: $attachment" );
+		// Update information for the image.
+		$record_updated = $ewwwdb->update(
+			$ewwwdb->ewwwio_images,
+			$updates,
+			array(
+				'id' => $already_optimized['id'],
+			)
+		);
+		if ( false === $record_updated ) {
+			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && ewww_image_optimizer_function_exists( 'print_r' ) ) {
+				ewwwio_debug_message( 'db error: ' . print_r( $wpdb->last_error, true ) );
+			}
+		} else {
+			ewwwio_debug_message( "updated $record_updated records successfully" );
+		}
+	} // End if().
+	$ewwwdb->flush();
+}
+
+/**
  * Updates resize results for an image record in the database.
  *
  * @global object $wpdb
@@ -9747,6 +9811,29 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 			if ( ! empty( $optimized_images ) ) {
 				list( $detail_output, $converted, $backup_available ) = ewww_image_optimizer_custom_column_results( $action_id, $optimized_images );
 				echo wp_kses_post( $detail_output );
+
+				// Check for WebP results.
+				$webp_size  = 0;
+				$webp_error = '';
+				foreach ( $optimized_images as $optimized_image ) {
+					if ( 'full' === $optimized_image['resize'] ) {
+						if ( ! empty( $optimized_image['webp_size'] ) ) {
+							$webp_size = $optimized_image['webp_size'];
+						} elseif ( ! empty( $optimized_image['webp_error'] ) && 2 !== (int) $optimized_image['webp_error'] ) {
+							$webp_error = ewww_image_optimizer_webp_error_message( $optimized_image['webp_error'] );
+						}
+						break;
+					}
+				}
+				if ( $webp_size ) {
+					// Get a human readable filesize.
+					$webp_size = ewww_image_optimizer_size_format( $webp_size );
+					$webpurl   = esc_url( wp_get_attachment_url( $id ) . '.webp' );
+					echo '<div>WebP: <a href="' . esc_url( $webpurl ) . '">' . esc_html( $webp_size ) . '</a></div>';
+				} elseif ( $webp_error ) {
+					echo '<div>' . esc_html( $webp_error ) . '</div>';
+				}
+
 				// Output the optimizer actions.
 				if ( current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
 					// Display a link to re-optimize manually.
@@ -9847,14 +9934,29 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 				echo "<div><a href='" . esc_url( admin_url( 'options.php?page=ewww-image-optimizer-webp-migrate' ) ) . "'>" . esc_html__( 'Run WebP upgrade', 'ewww-image-optimizer' ) . '</a></div>';
 			}
 
-			// Determine filepath for webp.
-			$webpfile  = $file_path . '.webp';
-			$webp_size = ewww_image_optimizer_filesize( $webpfile );
+			// Check for WebP results.
+			$webpfile   = $file_path . '.webp';
+			$webp_size  = ewww_image_optimizer_filesize( $webpfile );
+			$webp_error = '';
+			if ( ! $webp_size ) {
+				foreach ( $optimized_images as $optimized_image ) {
+					if ( 'full' === $optimized_image['resize'] ) {
+						if ( ! empty( $optimized_image['webp_size'] ) ) {
+							$webp_size = $optimized_image['webp_size'];
+						} elseif ( ! empty( $optimized_image['webp_error'] ) && 2 !== (int) $optimized_image['webp_error'] ) {
+							$webp_error = ewww_image_optimizer_webp_error_message( $optimized_image['webp_error'] );
+						}
+						break;
+					}
+				}
+			}
 			if ( $webp_size ) {
 				// Get a human readable filesize.
 				$webp_size = ewww_image_optimizer_size_format( $webp_size );
 				$webpurl   = esc_url( wp_get_attachment_url( $id ) . '.webp' );
 				echo '<div>WebP: <a href="' . esc_url( $webpurl ) . '">' . esc_html( $webp_size ) . '</a></div>';
+			} elseif ( $webp_error ) {
+				echo '<div>' . esc_html( $webp_error ) . '</div>';
 			}
 
 			if ( current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
@@ -10070,6 +10172,37 @@ function ewww_image_optimizer_count_unoptimized_sizes( $sizes ) {
 }
 
 /**
+ * Get a result message for the given resize status code.
+ *
+ * @param string $file The name of the file.
+ * @param int    $resize_code The error code for image resizing/scaling.
+ * @return string The human readable message for the given status code.
+ */
+function ewww_image_optimizer_resize_results_message( $file, $resize_code = 0 ) {
+	if ( is_null( $resize_code ) ) {
+		return '';
+	}
+	switch ( $resize_code ) {
+		case 0:
+			$full_path = ewww_image_optimizer_absolutize_path( $file );
+			if ( ewwwio_is_file( $full_path ) ) {
+				list( $width, $height ) = wp_getimagesize( $full_path );
+				/* translators: 1: width in pixels 2: height in pixels */
+				return sprintf( __( 'Resized to %1$s(w) x %2$s(h)', 'ewww-image-optimizer' ), $width, $height );
+			}
+			return __( 'Resized successfully', 'ewww-image-optimizer' );
+		case 1:
+			return __( 'Encountered a WP image editing error while attempting resize', 'ewww-image-optimizer' );
+		case 2:
+			return __( 'Resizing did not reduce the file size, result discarded', 'ewww-image-optimizer' );
+		case 3:
+			return __( 'Encountered an error while attempting resize', 'ewww-image-optimizer' );
+		default:
+			return '';
+	}
+}
+
+/**
  * Display cumulative image compression results with individual images displayed in a modal.
  *
  * @param int   $id The ID number of the attachment.
@@ -10108,29 +10241,7 @@ function ewww_image_optimizer_custom_column_results( $id, $optimized_images ) {
 			$backup_available = $eio_backup->is_backup_available( $optimized_image['path'], $optimized_image );
 			if ( empty( $ewwwio_resize_status ) && ! is_null( $optimized_image['resize_error'] ) ) {
 				ewwwio_debug_message( "resize results found: {$optimized_image['resize_error']}, {$optimized_image['resized_width']} x {$optimized_image['resized_height']}" );
-				switch ( $optimized_image['resize_error'] ) {
-					case '0':
-						$full_path = ewww_image_optimizer_absolutize_path( $optimized_image['path'] );
-						if ( ewwwio_is_file( $full_path ) ) {
-							list( $width, $height ) = wp_getimagesize( $full_path );
-							/* translators: 1: width in pixels 2: height in pixels */
-							$resize_status = sprintf( __( 'Resized to %1$s x %2$s', 'ewww-image-optimizer' ), $width . 'w', $height . 'h' );
-						} else {
-							$resize_status = __( 'Resized successfully', 'ewww-image-optimizer' );
-						}
-						break;
-					case '1':
-						$resize_status = __( 'Encountered a WP image editing error while attempting resize', 'ewww-image-optimizer' );
-						break;
-					case '2':
-						$resize_status = __( 'Resizing did not reduce the file size, result discarded', 'ewww-image-optimizer' );
-						break;
-					case '3':
-						$resize_status = __( 'Encountered an error while attempting resize', 'ewww-image-optimizer' );
-						break;
-					default:
-						$resize_status = '';
-				}
+				$resize_status = ewww_image_optimizer_resize_results_message( $optimized_image['path'], $optimized_image['resize_error'] );
 			}
 		}
 		if ( ! empty( $optimized_image['converted'] ) ) {

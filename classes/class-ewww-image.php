@@ -143,6 +143,20 @@ class EWWW_Image {
 	public $resized_width = 0;
 
 	/**
+	 * The size of the corresponding WebP image, if it exists.
+	 *
+	 * @var int $webp_size
+	 */
+	public $webp_size = 0;
+
+	/**
+	 * An error code from WebP conversion.
+	 *
+	 * @var int $webp_error
+	 */
+	public $webp_error = 0;
+
+	/**
 	 * A retrieval ID for an API-optimized image that hasn't yet completed.
 	 *
 	 * @var string $retrieve
@@ -245,18 +259,23 @@ class EWWW_Image {
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && ewww_image_optimizer_function_exists( 'print_r' ) ) {
 			ewwwio_debug_message( print_r( $new_image, true ) );
 		}
-		$this->id            = $new_image['id'];
-		$this->file          = ewww_image_optimizer_absolutize_path( $new_image['path'] );
-		$this->attachment_id = (int) $new_image['attachment_id'];
-		$this->opt_size      = (int) $new_image['image_size'];
-		$this->orig_size     = (int) $new_image['orig_size'];
-		$this->resize        = $new_image['resize'];
-		$this->converted     = ewww_image_optimizer_absolutize_path( $new_image['converted'] );
-		$this->gallery       = ( empty( $gallery ) || empty( $new_image['attachment_id'] ) ? $new_image['gallery'] : $gallery );
-		$this->backup        = $new_image['backup'];
-		$this->retrieve      = $new_image['retrieve'];
-		$this->level         = (int) $new_image['level'];
-		$this->record        = $new_image;
+		$this->id             = $new_image['id'];
+		$this->file           = ewww_image_optimizer_absolutize_path( $new_image['path'] );
+		$this->attachment_id  = (int) $new_image['attachment_id'];
+		$this->opt_size       = (int) $new_image['image_size'];
+		$this->orig_size      = (int) $new_image['orig_size'];
+		$this->resize         = $new_image['resize'];
+		$this->converted      = ewww_image_optimizer_absolutize_path( $new_image['converted'] );
+		$this->resized_width  = (int) $new_image['resized_width'];
+		$this->resized_height = (int) $new_image['resized_height'];
+		$this->resize_error   = (int) $new_image['resize_error'];
+		$this->webp_size      = (int) $new_image['webp_size'];
+		$this->webp_error     = (int) $new_image['webp_error'];
+		$this->gallery        = ( empty( $gallery ) || empty( $new_image['attachment_id'] ) ? $new_image['gallery'] : $gallery );
+		$this->backup         = $new_image['backup'];
+		$this->retrieve       = $new_image['retrieve'];
+		$this->level          = (int) $new_image['level'];
+		$this->record         = $new_image;
 	}
 
 	/**
