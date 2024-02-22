@@ -297,6 +297,13 @@ class Local extends Base {
 		$this->debug_message( 'Checking/Installing tools in ' . $this->content_dir );
 		$this->skip_tools();
 		$toolfail = false;
+		if ( $this->function_exists( '\php_uname' ) ) {
+			$arch_type = \php_uname( 'm' );
+			$this->debug_message( "CPU architecture: $arch_type" );
+			if ( 'aarch64' === $arch_type && PHP_OS === 'Linux' ) {
+				return;
+			}
+		}
 		if ( ! \is_dir( $this->content_dir ) && \is_writable( \dirname( $this->content_dir ) ) ) {
 			$this->debug_message( 'folder does not exist, creating...' );
 			if ( ! \wp_mkdir_p( $this->content_dir ) ) {
