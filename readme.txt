@@ -143,7 +143,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 7.3.1 =
 *Release Date - TBD*
 
+* added: async bulk optimizer on settings page
 * added: store WebP results/errors for display in Media Library
+* fixed: restoring images from tools page
 
 = 7.3.0 =
 *Release Date - February 20, 2024*

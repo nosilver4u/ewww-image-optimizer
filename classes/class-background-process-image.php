@@ -52,6 +52,21 @@ class Background_Process_Image extends Background_Process {
 	protected $completed = 0;
 
 	/**
+	 * Handle
+	 *
+	 * Wrapper around parent::handle() to verify that background processing isn't paused.
+	 */
+	protected function handle() {
+		if ( \ewwwio()->get_option( 'ewww_image_optimizer_pause_queues' ) ) {
+			return;
+		}
+		if ( \ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
+			return;
+		}
+		parent::handle();
+	}
+
+	/**
 	 * Runs optimization for a file from the image queue.
 	 *
 	 * @access protected
@@ -123,6 +138,7 @@ class Background_Process_Image extends Background_Process {
 		}
 		$delay = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' );
 		if ( $delay && \ewww_image_optimizer_function_exists( 'sleep' ) ) {
+			\ewwwio_debug_message( "pausing for $delay seconds" );
 			sleep( $delay );
 		}
 		++$this->completed;
