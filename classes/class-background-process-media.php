@@ -103,6 +103,46 @@ class Background_Process_Media extends Background_Process {
 	}
 
 	/**
+	 * Check if an individual size from a media attachment should be (re)optimized.
+	 *
+	 * @param string $file_path The filesystem path for the image.
+	 * @param string $size The thumb size (name).
+	 * @param array  $item The async data for this attachment.
+	 * @param array  $already_optimized The previous image results (if any) for this attachment.
+	 * @return bool True if the image should be optimized, false otherwise.
+	 */
+	protected function should_optimize_size( $file_path, $size, $item, $already_optimized ) {
+		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( apply_filters( 'ewww_image_optimizer_bypass', false, $file_path ) ) {
+			\ewwwio_debug_message( "skipping $file_path as instructed" );
+			return false;
+		}
+		$image_size = filesize( $file_path );
+		if ( $image_size < \ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_size' ) ) {
+			\ewwwio_debug_message( "file skipped due to filesize: $file_path" );
+			return false;
+		}
+		if ( 'image/png' === $mime && ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) && $image_size > ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) ) {
+			ewwwio_debug_message( "file skipped due to PNG filesize: $file_path" );
+			return false;
+		}
+		$compression_level = ewww_image_optimizer_get_level( $mime );
+		$smart_reopt       = false;
+		if ( ! empty( $item['force_smart'] ) && ! ewww_image_optimizer_level_mismatch( $already_optimized['level'], $compression_level ) ) {
+			$item['force_smart'] = false;
+		}
+		if ( 'full' === $size && ewww_image_optimizer_should_resize( $file_path, true ) ) {
+			$item['force_smart'] = true;
+		}
+		if ( ! empty( $already_optimized['id'] ) && (int) $image_size === (int) $already_optimized['image_size'] ) {
+			if ( empty( $item['force_reopt'] ) && empty( $item['force_smart'] ) && empty( $item['webp_only'] ) && empty( $item['new'] ) && empty( $item['convert_once'] ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Queue an individual size for a media attachment.
 	 *
 	 * @global object $wpdb
@@ -129,11 +169,7 @@ class Background_Process_Media extends Background_Process {
 
 		$image_size = \ewww_image_optimizer_filesize( $file_path );
 		ewwwio_debug_message( "(maybe) queuing optimization for $id/$size" );
-		if (
-			! empty( $already_optimized['id'] ) && (int) $image_size === (int) $already_optimized['image_size'] &&
-			empty( $item['force_reopt'] ) && empty( $item['force_smart'] ) && empty( $item['webp_only'] ) && empty( $item['new'] ) && empty( $item['convert_once'] ) &&
-			! \ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' )
-		) {
+		if ( ! $this->should_optimize_size( $file_path, $size, $item, $already_optimized ) ) {
 			\ewwwio_debug_message( 'already optimized, not forcing or webp-only, so skipping' );
 			return 0;
 		} elseif ( ! empty( $already_optimized['id'] ) ) {

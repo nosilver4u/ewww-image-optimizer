@@ -144,7 +144,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 *Release Date - TBD*
 
 * added: async bulk optimizer on settings page
-* added: store WebP results/errors for display in Media Library
+* added: store WebP results/errors for display in Media Library, and in optimization table/results
 * fixed: restoring images from tools page
 
 = 7.3.0 =
