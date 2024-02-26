@@ -574,6 +574,9 @@ function ewww_image_optimizer_clear_queue() {
 	}
 	check_admin_referer( 'ewww_image_optimizer_clear_queue', 'ewww_nonce' );
 
+	update_option( 'ewww_image_optimizer_pause_queues', false, false );
+	delete_option( 'ewwwio_stop_scheduled_scan' );
+
 	ewwwio()->background_media->cancel_process();
 	ewwwio()->background_image->cancel_process();
 	update_option( 'ewwwio_stop_scheduled_scan', true, false );

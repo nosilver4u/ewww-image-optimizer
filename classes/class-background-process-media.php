@@ -38,7 +38,18 @@ class Background_Process_Media extends Background_Process {
 	protected $active_queue = 'media-async';
 
 	/**
+	 * Batch size limit.
+	 *
+	 * @var int
+	 * @access protected
+	 */
+	protected $limit = 500;
+
+	/**
 	 * Handle
+	 *
+	 * @global string|array $optimized_list A list of all images that have been optimized, or a string
+	 *                                      indicating why that is not a good idea.
 	 *
 	 * Wrapper around parent::handle() to verify that background processing isn't paused.
 	 */
@@ -46,6 +57,15 @@ class Background_Process_Media extends Background_Process {
 		if ( \ewwwio()->get_option( 'ewww_image_optimizer_pause_queues' ) ) {
 			return;
 		}
+
+		global $optimized_list;
+		if ( empty( $optimized_list ) && $this->count_queue() > 100 ) {
+			\ewww_image_optimizer_optimized_list();
+		} else {
+			\ewwwio_debug_message( 'less than 100 attachments, not running _optimized_list()' );
+			$optimized_list = 'small_scan';
+		}
+
 		parent::handle();
 	}
 
@@ -67,8 +87,8 @@ class Background_Process_Media extends Background_Process {
 		ewwwio()->defer = false;
 		$max_attempts   = 15;
 		$id             = $item['id'];
-		if ( empty( $item['attempts'] ) ) {
-			ewwwio_debug_message( 'first attempt, going to sleep for a bit' );
+		if ( empty( $item['attempts'] ) && ! empty( $item['new'] ) ) {
+			ewwwio_debug_message( 'first attempt on new upload, going to sleep for a second' );
 			$item['attempts'] = 0;
 			sleep( 1 ); // On the first attempt, hold off and wait for the db to catch up.
 		}
@@ -122,16 +142,16 @@ class Background_Process_Media extends Background_Process {
 			\ewwwio_debug_message( "file skipped due to filesize: $file_path" );
 			return false;
 		}
-		if ( 'image/png' === $mime && ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) && $image_size > ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) ) {
-			ewwwio_debug_message( "file skipped due to PNG filesize: $file_path" );
+		if ( 'image/png' === $mime && \ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) && $image_size > \ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) ) {
+			\ewwwio_debug_message( "file skipped due to PNG filesize: $file_path" );
 			return false;
 		}
-		$compression_level = ewww_image_optimizer_get_level( $mime );
+		$compression_level = \ewww_image_optimizer_get_level( $mime );
 		$smart_reopt       = false;
-		if ( ! empty( $item['force_smart'] ) && ! ewww_image_optimizer_level_mismatch( $already_optimized['level'], $compression_level ) ) {
+		if ( ! empty( $item['force_smart'] ) && ! \ewww_image_optimizer_level_mismatch( $already_optimized['level'], $compression_level ) ) {
 			$item['force_smart'] = false;
 		}
-		if ( 'full' === $size && ewww_image_optimizer_should_resize( $file_path, true ) ) {
+		if ( 'full' === $size && \ewww_image_optimizer_should_resize( $file_path, true ) ) {
 			$item['force_smart'] = true;
 		}
 		if ( ! empty( $already_optimized['id'] ) && (int) $image_size === (int) $already_optimized['image_size'] ) {
@@ -147,6 +167,8 @@ class Background_Process_Media extends Background_Process {
 	 *
 	 * @global object $wpdb
 	 * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
+	 * @global string|array $optimized_list A list of all images that have been optimized, or a string
+	 *                                      indicating why that is not a good idea.
 	 *
 	 * @param int    $id The attachment ID number.
 	 * @param string $size The thumb size (name).
@@ -157,8 +179,13 @@ class Background_Process_Media extends Background_Process {
 	protected function queue_single_size( $id, $size, $file_path, $item ) {
 		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		global $wpdb;
+		global $optimized_list;
 
-		$already_optimized = ewww_image_optimizer_find_already_optimized( $file_path );
+		if ( is_array( $optimized_list ) && isset( $optimized_list[ $file_path ] ) ) {
+			$already_optimized = $optimized_list[ $file_path ];
+		} else {
+			$already_optimized = ewww_image_optimizer_find_already_optimized( $file_path );
+		}
 
 		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
 			ewww_image_optimizer_db_init();
