@@ -10870,7 +10870,7 @@ function ewww_image_optimizer_settings_script( $hook ) {
 	add_thickbox();
 	wp_enqueue_script( 'ewww-beacon-script', plugins_url( '/includes/eio-beacon.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
 	wp_enqueue_script( 'ewww-settings-script', plugins_url( '/includes/eio-settings.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION, true );
-	wp_enqueue_script( 'ewww-bulk-table-script', plugins_url( '/includes/eio-bulk-table.js', __FILE__ ), array( 'jquery', 'jquery-ui-slider' ), '1.032', true );
+	wp_enqueue_script( 'ewww-bulk-table-script', plugins_url( '/includes/eio-bulk-table.js', __FILE__ ), array( 'jquery', 'jquery-ui-slider' ), '1.060', true );
 	wp_enqueue_style( 'jquery-ui-tooltip-custom', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 	wp_enqueue_script( 'postbox' );
 	wp_enqueue_script( 'dashboard' );
@@ -12211,7 +12211,7 @@ function ewww_image_optimizer_bulk_async_show_status() {
 		ewwwio()->background_media->dispatch();
 	} elseif ( $image_queue_count && ! $image_queue_running ) {
 		ewwwio()->background_image->dispatch();
-	} elseif ( 'scanning' === get_option( 'ewww_image_optimizer_aux_resume' ) && ! $image_queue_count ) {
+	} elseif ( 'scanning' === get_option( 'ewww_image_optimizer_aux_resume' ) && ! $media_queue_count ) {
 		if ( ! get_transient( 'ewww_image_optimizer_aux_lock' ) ) {
 			ewwwio_debug_message( 'running scheduled optimization' );
 			ewwwio()->async_scan->data(
@@ -12229,7 +12229,10 @@ function ewww_image_optimizer_bulk_async_show_status() {
 	} elseif ( $image_queue_count ) {
 		/* translators: %s: number of images */
 		$queue_message = sprintf( __( '%s images left to optimize', 'ewww-image-optimizer' ), number_format_i18n( $image_queue_count ) );
+	} elseif ( 'scanning' === get_option( 'ewww_image_optimizer_aux_resume' ) ) {
+		$queue_message = __( 'Searching for images to optimize...', 'ewww-image-optimizer' );
 	}
+
 	$display_queue_controls = 'display:none;';
 	if ( $queue_message ) {
 		$display_queue_controls = '';
@@ -12238,7 +12241,9 @@ function ewww_image_optimizer_bulk_async_show_status() {
 			<div id="ewww-optimize-local-images">
 				<?php echo esc_html( $queue_message ); ?>
 			</div>
-		<?php if ( ! ewwwio()->get_option( 'ewww_image_optimizer_pause_queues' ) && ! ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) ) { ?>
+		<?php if ( ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) && empty( $media_queue_count ) ) { ?>
+			<img class='ewww-bulk-spinner' src='<?php echo esc_url( $loading_image ); ?>' style='display: none;' />
+		<?php } elseif ( ! ewwwio()->get_option( 'ewww_image_optimizer_pause_queues' ) ) { ?>
 			<img class='ewww-bulk-spinner' src='<?php echo esc_url( $loading_image ); ?>' />
 		<?php } ?>
 		</div>
@@ -12253,21 +12258,24 @@ function ewww_image_optimizer_bulk_async_show_status() {
 		</div>
 		<?php
 	}
-	if ( ewwwio()->get_option( 'ewww_image_optimizer_pause_queues' ) && ! ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
+	if ( ewwwio()->get_option( 'ewww_image_optimizer_pause_queues' ) || ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
 		?>
-		<a class='ewww-queue-controls button-secondary' style='<?php echo esc_attr( $display_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_resume_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
+		<a class='ewww-queue-controls ewww-resume-optimization button-secondary' style='<?php echo esc_attr( $display_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_resume_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
 			<?php esc_html_e( 'Resume Optimization', 'ewww-image-optimizer' ); ?>
 		</a>
-	<?php } elseif ( ! ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) ) { ?>
-		<a class='ewww-queue-controls button-secondary' style='<?php echo esc_attr( $display_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_pause_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
+	<?php } else { ?>
+		<a class='ewww-queue-controls ewww-pause-optimization button-secondary' style='<?php echo esc_attr( $display_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_pause_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
 			<?php esc_html_e( 'Pause Optimization', 'ewww-image-optimizer' ); ?>
 		</a>
+		<a class='ewww-queue-controls ewww-resume-optimization button-secondary' style='display:none;' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_resume_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
+			<?php esc_html_e( 'Resume Optimization', 'ewww-image-optimizer' ); ?>
+		</a>
 	<?php } ?>
-	<a class='ewww-queue-controls button-secondary' style='<?php echo esc_attr( $display_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_clear_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
+	<a class='ewww-queue-controls ewww-clear-queue button-secondary' style='<?php echo esc_attr( $display_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_clear_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
 		<?php esc_html_e( 'Clear Queue', 'ewww-image-optimizer' ); ?>
 	</a>
 	<script>
-		ewww_autopoll = <?php echo ( $queue_message && ! ewwwio()->get_option( 'ewww_image_optimizer_pause_queues' ) && ! ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) ) ? 'true' : 'false'; ?>;
+		ewww_autopoll = <?php echo ( $queue_message && ! ewwwio()->get_option( 'ewww_image_optimizer_pause_queues' ) && ( ! ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) || $media_queue_count ) ) ? 'true' : 'false'; ?>;
 	</script>
 	<?php
 }
@@ -12782,6 +12790,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 								&nbsp;<?php esc_html_e( 'Previously optimized images will be skipped by default, check this box before scanning to override.', 'ewww-image-optimizer' ); ?>
 							</p>
 							<?php ewww_image_optimizer_bulk_variant_option(); ?>
+							<?php ewww_image_optimizer_bulk_scan_only(); ?>
 							<?php ewww_image_optimizer_bulk_webp_only(); ?>
 							<?php $delay = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' ); ?>
 							<p>

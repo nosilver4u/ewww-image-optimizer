@@ -138,6 +138,10 @@ class Background_Process_Media extends Background_Process {
 			return false;
 		}
 		$image_size = filesize( $file_path );
+		if ( ! $image_size ) {
+			\ewwwio_debug_message( "file skipped due to no size: $file_path" );
+			return false;
+		}
 		if ( $image_size < \ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_size' ) ) {
 			\ewwwio_debug_message( "file skipped due to filesize: $file_path" );
 			return false;

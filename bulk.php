@@ -197,23 +197,29 @@ function ewww_image_optimizer_display_tools() {
  */
 function ewwwio_table_nav_controls( $location = 'top' ) {
 	?>
-	<div class='tablenav ewww-aux-table' style='display:none'>
-		<form class="ewww-search-form" style="float:left;">
+	<div class='ewww-tablenav ewww-aux-table ewwwio-flex-space-between' style='display:none'>
+		<form class="ewww-search-form">
 			<label for="ewww-search-input-<?php echo esc_attr( $location ); ?>" class="screen-reader-text"><?php esc_html_e( 'Search', 'ewww-image-optimizer' ); ?></label>
 			<input id="ewww-search-input-<?php echo esc_attr( $location ); ?>" type="search" class="ewww-search-input search" name="ewww-search-input" value="">
 			<input type="submit" class="ewww-search-submit button" value="<?php esc_attr_e( 'Search', 'ewww-image-optimizer' ); ?>">
 			&emsp;<span class="ewww-search-count"></span>
 		</form>
-		<div class="tablenav-pages ewww-aux-table">
-			<span class="displaying-num ewww-aux-table"></span>
-			<span class="pagination-links ewww-aux-table">
-				<a class="tablenav-pages-navspan button first-page" style="display:none">&laquo;</a>
-				<a class="tablenav-pages-navspan button prev-page" style="display:none">&lsaquo;</a>
+	<?php if ( 'top' === $location ) : ?>
+		<div class="ewww-search-controls">
+			<a id="ewww-search-pending" class="button button-secondary" <?php echo ! ewww_image_optimizer_aux_images_table_count_pending() ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'View Pending Images', 'ewww-image-optimizer' ); ?></a>
+			<a id="ewww-search-optimized" class="button button-secondary" style="display: none;"><?php esc_html_e( 'View Optimized Images', 'ewww-image-optimizer' ); ?></a>
+		</div>
+	<?php endif; ?>
+		<div class="ewww-tablenav-pages ewww-aux-table">
+			<div class="displaying-num ewww-aux-table"></div>
+			<div class="pagination-links ewww-aux-table">
+				<a class="tablenav-pages-navspan button first-page disabled">&laquo;</a>
+				<a class="tablenav-pages-navspan button prev-page disabled">&lsaquo;</a>
 				<?php /* translators: 1: current page in list of images 2: total pages for list of images */ ?>
-				<span class="current-page"><?php printf( esc_html__( 'page %1$d of %2$d', 'ewww-image-optimizer' ), 1, 0 ); ?></span>
-				<a class="tablenav-pages-navspan button next-page" style="display:none">&rsaquo;</a>
-				<a class="tablenav-pages-navspan button last-page" style="display:none">&raquo;</a>
-			</span>
+				<div class="current-page"><?php printf( esc_html__( 'page %1$d of %2$d', 'ewww-image-optimizer' ), 1, 0 ); ?></div>
+				<a class="tablenav-pages-navspan button next-page disabled">&rsaquo;</a>
+				<a class="tablenav-pages-navspan button last-page disabled">&raquo;</a>
+			</div>
 		</div>
 	</div>
 	<?php
@@ -294,7 +300,17 @@ function ewww_image_optimizer_bulk_preview() {
 		echo '</p></div></div>';
 		return;
 	}
+
+	$async_preempt = false;
 	if ( 'scanning' === get_option( 'ewww_image_optimizer_bulk_resume' ) || 'scanning' === get_option( 'ewww_image_optimizer_aux_resume' ) ) {
+		$async_preempt = true;
+	}
+	if ( ewwwio()->get_option( 'ewww_image_optimizer_pause_queues' ) || ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
+		if ( ewwwio()->background_media->count_queue() || ewwwio()->background_image->count_queue() ) {
+			$async_preempt = true;
+		}
+	}
+	if ( $async_preempt ) {
 		echo '<div class="notice notice-info"><p>';
 		printf(
 			/* translators: %s: settings page */
@@ -304,10 +320,7 @@ function ewww_image_optimizer_bulk_preview() {
 		echo '</p></div></div>';
 		return;
 	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-		echo '<span id="ewww-bulk-credits-available">' . esc_html__( 'Image credits available:', 'ewww-image-optimizer' ) . ' ' . wp_kses_post( ewww_image_optimizer_cloud_quota() ) . '</span>';
-		echo '<hr class="wp-header-end">';
-	}
+
 	if (
 		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
 		ewww_image_optimizer_easy_active()
@@ -483,6 +496,21 @@ function ewww_image_optimizer_bulk_variant_option() {
 /**
  * Output the control for WebP Only on the Bulk page.
  */
+function ewww_image_optimizer_bulk_scan_only() {
+	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_ludicrous_mode' ) ) {
+		return;
+	}
+	?>
+			<p><label for="ewww-scan-only" style="font-weight: bold"><?php esc_html_e( 'Scan Only', 'ewww-image-optimizer' ); ?></label>
+				&emsp;<input type="checkbox" id="ewww-scan-only" name="ewww-scan-only">
+				&nbsp;<?php esc_html_e( 'Search for images to optimize and add them to the queue, but do not optimize any images yet.', 'ewww-image-optimizer' ); ?>
+			</p>
+	<?php
+}
+
+/**
+ * Output the control for WebP Only on the Bulk page.
+ */
 function ewww_image_optimizer_bulk_webp_only() {
 	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
 		return;
@@ -575,6 +603,7 @@ function ewww_image_optimizer_clear_queue() {
 	check_admin_referer( 'ewww_image_optimizer_clear_queue', 'ewww_nonce' );
 
 	update_option( 'ewww_image_optimizer_pause_queues', false, false );
+	update_option( 'ewww_image_optimizer_pause_image_queue', false, false );
 	delete_option( 'ewwwio_stop_scheduled_scan' );
 
 	ewwwio()->background_media->cancel_process();
@@ -615,6 +644,7 @@ function ewww_image_optimizer_resume_queue() {
 	check_admin_referer( 'ewww_image_optimizer_clear_queue', 'ewww_nonce' );
 
 	update_option( 'ewww_image_optimizer_pause_queues', false, false );
+	update_option( 'ewww_image_optimizer_pause_image_queue', false, false );
 	delete_option( 'ewwwio_stop_scheduled_scan' );
 
 	if ( ! ewwwio()->background_media->is_process_running() ) {
@@ -924,7 +954,10 @@ function ewww_image_optimizer_check_bulk_options( $request ) {
 	if ( ! empty( $request['ewww_webp_only'] ) ) {
 		ewwwio()->webp_only = true;
 	}
-	if ( ! empty( $request['ewww_delay'] ) && $request['ewww_delay'] <= 60 ) {
+	if ( ! empty( $request['ewww_scan_only'] ) ) {
+		update_option( 'ewww_image_optimizer_pause_image_queue', true, false );
+	}
+	if ( isset( $request['ewww_delay'] ) && $request['ewww_delay'] <= 60 ) {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_delay', (int) $request['ewww_delay'] );
 	}
 }
@@ -960,7 +993,7 @@ function ewww_image_optimizer_bulk_async_init() {
 		/* translators: %s: number of images */
 		$output['media_remaining'] = sprintf( esc_html__( '%s media uploads left to scan', 'ewww-image-optimizer' ), number_format_i18n( $attachment_count ) );
 	} else {
-		$output['images_remaining'] = esc_html__( 'Searching for images to optimize.', 'ewww-image-optimizer' );
+		$output['media_remaining'] = esc_html__( 'Searching for images to optimize...', 'ewww-image-optimizer' );
 		ewwwio_debug_message( 'starting async scan' );
 		ewwwio()->async_scan->data(
 			array(
@@ -1001,9 +1034,21 @@ function ewww_image_optimizer_bulk_async_get_status() {
 	$image_queue_count = ewwwio()->background_image->count_queue();
 
 	if ( $media_queue_count && ! $media_queue_running ) {
+		ewwwio_debug_message( 'rebooting media queue' );
 		ewwwio()->background_media->dispatch();
 	} elseif ( $image_queue_count && ! $image_queue_running ) {
+		ewwwio_debug_message( 'rebooting image queue' );
 		ewwwio()->background_image->dispatch();
+	} elseif ( 'scanning' === get_option( 'ewww_image_optimizer_aux_resume' ) && ! $media_queue_count ) {
+		ewwwio_debug_message( 'rebooting async image scanner' );
+		if ( ! get_transient( 'ewww_image_optimizer_aux_lock' ) ) {
+			ewwwio_debug_message( 'running scheduled optimization' );
+			ewwwio()->async_scan->data(
+				array(
+					'ewww_scan' => 'scheduled',
+				)
+			)->dispatch();
+		}
 	}
 
 	if ( $media_queue_count ) {
@@ -1012,6 +1057,19 @@ function ewww_image_optimizer_bulk_async_get_status() {
 	} elseif ( $image_queue_count ) {
 		/* translators: %s: number of images */
 		$output['images_remaining'] = sprintf( esc_html__( '%s images left to optimize', 'ewww-image-optimizer' ), number_format_i18n( $image_queue_count ) );
+	} elseif ( 'scanning' === get_option( 'ewww_image_optimizer_aux_resume' ) ) {
+		// We output this as 'media_remaining' because the async scan hasn't run yet, and we don't want the autopoll to quit just yet.
+		$output['media_remaining'] = esc_html__( 'Searching for images to optimize...', 'ewww-image-optimizer' );
+	} else {
+		$output['complete'] = '<div><b>' . esc_html__( 'Finished', 'ewww-image-optimizer' ) . '</b> - ' .
+		( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ?
+		'<a target="_blank" href="https://wordpress.org/support/plugin/ewww-image-optimizer/reviews/#new-post">' .
+		esc_html__( 'Write a Review', 'ewww-image-optimizer' ) :
+		esc_html__( 'Want more compression?', 'ewww-image-optimizer' ) . ' ' .
+		'<a target="_blank" href="https://ewww.io/trial/">' .
+		esc_html__( 'Get 5x more with a free trial', 'ewww-image-optimizer' )
+		) .
+		'</a></div>';
 	}
 
 	ewwwio_ob_clean();
