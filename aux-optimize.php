@@ -372,6 +372,9 @@ function ewww_image_optimizer_aux_images_table() {
 			}
 		}
 		$output['table'] .= '<br><a class="ewww-remove-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html( $remove_from_text ) . '</a>';
+		if ( $pending ) {
+			$output['table'] .= ' | <a class="ewww-exclude-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Add exclusion', 'ewww-image-optimizer' ) . '</a>';
+		}
 		if ( ! $pending && $eio_backup->is_backup_available( $optimized_image['path'], $optimized_image ) ) {
 			$output['table'] .= ' | <a class="ewww-restore-image" data-id="' . (int) $optimized_image['id'] . '">' . esc_html__( 'Restore original', 'ewww-image-optimizer' ) . '</a>';
 		}
@@ -396,6 +399,63 @@ function ewww_image_optimizer_aux_images_table() {
 		}
 	}
 	die( wp_json_encode( $output ) );
+}
+
+/**
+ * Excludes an image from the images table.
+ *
+ * Called via AJAX, this function will add an exclusion based on the record provided by the
+ * POST variable 'ewww_image_id' and return a '1' if successful. It will also toggle the pending
+ * indicator, and remove an image if it has not been optimized yet.
+ *
+ * @global object $wpdb
+ */
+function ewww_image_optimizer_aux_images_exclude() {
+	// Verify that an authorized user has called function.
+	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
+	if (
+		empty( $_REQUEST['ewww_wpnonce'] ) ||
+		(
+			! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-tools' ) &&
+			! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' )
+		) ||
+		! current_user_can( $permissions )
+	) {
+		ewwwio_ob_clean();
+		die( esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) );
+	}
+	ewwwio_ob_clean();
+	global $wpdb;
+	if ( empty( $_POST['ewww_image_id'] ) ) {
+		die();
+	} else {
+		$id = (int) $_POST['ewww_image_id'];
+	}
+	$image = new \EWWW_Image( $id );
+	ewww_image_optimizer_add_file_exclusion( $image->file );
+	if ( empty( $image->opt_size ) ) {
+		if ( $wpdb->delete(
+			$wpdb->ewwwio_images,
+			array(
+				'id' => $id,
+			)
+		) ) {
+			echo '1';
+		}
+	} else {
+		if ( $wpdb->update(
+			$wpdb->ewwwio_images,
+			array(
+				'pending' => 0,
+			),
+			array(
+				'id' => $id,
+			)
+		) ) {
+			echo '1';
+		}
+	}
+	die();
 }
 
 /**
@@ -1995,6 +2055,7 @@ function ewww_image_optimizer_aux_images_cleanup( $auto = false ) {
 add_action( 'wp_ajax_bulk_aux_images_table', 'ewww_image_optimizer_aux_images_table' );
 add_action( 'wp_ajax_bulk_aux_images_table_count', 'ewww_image_optimizer_aux_images_table_count' );
 add_action( 'wp_ajax_bulk_aux_images_table_clear', 'ewww_image_optimizer_aux_images_clear_all' );
+add_action( 'wp_ajax_bulk_aux_images_exclude', 'ewww_image_optimizer_aux_images_exclude' );
 add_action( 'wp_ajax_bulk_aux_images_remove', 'ewww_image_optimizer_aux_images_remove' );
 add_action( 'wp_ajax_bulk_aux_images_restore_original', 'ewww_image_optimizer_bulk_restore_handler' );
 add_action( 'wp_ajax_bulk_aux_images_count_converted', 'ewww_image_optimizer_aux_images_count_converted' );

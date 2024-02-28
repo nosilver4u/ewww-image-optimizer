@@ -845,6 +845,11 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 	if ( 'scanning' !== $scanning && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) ) {
 		$scanning = false;
 	}
+	if ( ewwwio()->get_option( 'ewww_image_optimizer_pause_queues' ) || ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
+		if ( ewwwio()->background_media->count_queue() || ewwwio()->background_image->count_queue() ) {
+			$resume = true;
+		}
+	}
 	if ( ! $resume && ! $scanning ) {
 		ewwwio_debug_message( 'not resuming/scanning, so clearing any pending images in both tables' );
 		ewww_image_optimizer_delete_queue_images();

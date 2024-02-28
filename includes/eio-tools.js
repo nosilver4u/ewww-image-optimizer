@@ -764,6 +764,22 @@ jQuery(document).ready(function($) {
 		});
 		return false;
 	});
+	$('.ewww-aux-table').on( 'click', '.ewww-exclude-image', function() {
+		var imageID = $(this).data('id');
+		var ewww_image_exclusion = {
+			action: 'bulk_aux_images_exclude',
+			ewww_wpnonce: ewww_vars._wpnonce,
+			ewww_image_id: imageID,
+		};
+		$.post(ajaxurl, ewww_image_exclusion, function(response) {
+			if(response == '1') {
+				$('#ewww-image-' + imageID).remove();
+			} else {
+				alert(ewww_vars.remove_failed);
+			}
+		});
+		return false;
+	});
 	$('.ewww-aux-table').on( 'click', '.ewww-restore-image', function() {
 		var imageID = $(this).data('id');
 		var ewww_image_restore = {

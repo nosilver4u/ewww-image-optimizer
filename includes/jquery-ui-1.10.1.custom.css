@@ -370,7 +370,7 @@ body .ui-tooltip {
         top: auto;
 }
 /* media library actions and details */
-a.ewww-remove-image, a.ewww-restore-image {
+a.ewww-remove-image, a.ewww-restore-image, a.ewww-exclude-image {
 	cursor: pointer;
 }
 .ewww-attachment-detail table td, .ewww-attachment-detail table th {
