@@ -442,7 +442,7 @@ class Background_Process_Media extends Background_Process {
 			}
 		}
 
-		if ( $queued && ! ewwwio()->background_image->is_process_running() ) {
+		if ( $queued && ! ewwwio()->background_image->is_process_running() && ! ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
 			ewwwio()->background_image->dispatch();
 		}
 	}

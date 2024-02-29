@@ -11847,6 +11847,9 @@ function ewww_image_optimizer_intro_wizard() {
 							<br>
 							<span class="description"><?php esc_html_e( 'Premium compression for your local images.', 'ewww-image-optimizer' ); ?></span>
 						</p>
+		<?php if ( get_option( 'easyio_exactdn' ) ) : ?>
+						<script>var exactdn_registered = true;</script>
+		<?php else : ?>
 						<div id='ewwwio-easy-activation-result'></div>
 						<div class='ewwwio-easy-setup-instructions'>
 							<label><?php esc_html_e( 'Easy IO', 'ewww-image-optimizer' ); ?></label><br>
@@ -11859,31 +11862,32 @@ function ewww_image_optimizer_intro_wizard() {
 								);
 								?>
 							</span>
-		<?php if ( false !== strpos( $easyio_site_url, 'localhost' ) ) : ?>
+			<?php if ( false !== strpos( $easyio_site_url, 'localhost' ) ) : ?>
 							<br><span class="description" style="font-weight: bolder"><?php esc_html_e( 'Easy IO cannot be activated on localhost installs.', 'ewww-image-optimizer' ); ?></span>
-		<?php elseif ( empty( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) ) : ?>
+			<?php elseif ( empty( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) ) : ?>
 							<br><br>
-			<?php if ( ! ewww_image_optimizer_easy_site_registered( $easyio_site_url ) ) : ?>
-				<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
+				<?php if ( ! ewww_image_optimizer_easy_site_registered( $easyio_site_url ) ) : ?>
+					<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
 							<a class='easyio-cloud-key-ui' href="<?php echo esc_url( add_query_arg( 'site_url', trim( $easyio_site_url ), 'https://ewww.io/manage-sites/' ) ); ?>" target="_blank"><?php esc_html_e( 'Verify that this site is added to your account:', 'ewww-image-optimizer' ); ?></a>
-				<?php else : ?>
+					<?php else : ?>
 							<a class='easyio-cloud-key-ui' style='display:none;' href="<?php echo esc_url( add_query_arg( 'site_url', trim( $easyio_site_url ), 'https://ewww.io/manage-sites/' ) ); ?>" target="_blank"><?php esc_html_e( 'Verify that this site is added to your account:', 'ewww-image-optimizer' ); ?></a>
 							<a class='easyio-manual-ui' href="<?php echo esc_url( add_query_arg( 'site_url', trim( $easyio_site_url ), 'https://ewww.io/manage-sites/' ) ); ?>" target="_blank"><?php esc_html_e( 'First, add your Site URL to your account:', 'ewww-image-optimizer' ); ?></a>
-				<?php endif; ?>
+					<?php endif; ?>
 							<input type='text' id='exactdn_site_url' name='exactdn_site_url' value='<?php echo esc_url( trim( $easyio_site_url ) ); ?>' readonly />
 							<span id='exactdn-site-url-copy'><?php esc_html_e( 'Click to Copy', 'ewww-image-optimizer' ); ?></span>
 							<span id='exactdn-site-url-copied'><?php esc_html_e( 'Copied', 'ewww-image-optimizer' ); ?></span><br>
 							<script>var exactdn_registered = false;</script>
-			<?php else : ?>
+				<?php else : ?>
 							<script>var exactdn_registered = true;</script>
-			<?php endif; ?>
+				<?php endif; ?>
 							<a id='ewwwio-easy-activate' href='#' class='button-secondary'><?php esc_html_e( 'Activate', 'ewww-image-optimizer' ); ?></a>
 							<span id='ewwwio-easy-activation-processing'><img src='<?php echo esc_url( $loading_image_url ); ?>' alt='loading'/></span>
-		<?php elseif ( class_exists( 'EWWW\ExactDN' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && $exactdn->get_exactdn_domain() && $exactdn->verify_domain( $exactdn->get_exactdn_domain() ) ) : ?>
+			<?php elseif ( class_exists( 'EWWW\ExactDN' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && $exactdn->get_exactdn_domain() && $exactdn->verify_domain( $exactdn->get_exactdn_domain() ) ) : ?>
 							<br><span style="color: #3eadc9; font-weight: bolder"><?php esc_html_e( 'Verified', 'ewww-image-optimizer' ); ?></span>
 							<span class="dashicons dashicons-yes"></span>
-		<?php endif; ?>
+			<?php endif; ?>
 						</div>
+		<?php endif; ?>
 					</div>
 					<input type='radio' id='ewww_image_optimizer_budget_free' name='ewww_image_optimizer_budget' value='free' required />
 					<label for='ewww_image_optimizer_budget_free'><?php esc_html_e( 'Stick with free mode for now', 'ewww-image-optimizer' ); ?></label>
@@ -12031,13 +12035,13 @@ function ewww_image_optimizer_intro_wizard() {
 	<?php elseif ( 3 === $wizard_step ) : ?>
 			<p>
 				<?php
-				if ( ewww_image_optimizer_background_mode_enabled() ) {
+				if ( ewww_image_optimizer_background_mode_enabled() || ewww_image_optimizer_easy_active() ) {
 					esc_html_e( 'New uploads will be optimized automatically.', 'ewww-image-optimizer' );
 				} else {
 					printf(
-						/* translators: %s: Bulk Optimize (link) */
-						esc_html__( 'New uploads will be optimized automatically. Optimize existing images with the %s.', 'ewww-image-optimizer' ),
-						'<a href="' . esc_url( admin_url( 'upload.php?page=ewww-image-optimizer-bulk' ) ) . '">' . esc_html__( 'Bulk Optimizer', 'ewww-image-optimizer' ) . '</a>'
+						/* translators: %s: Settings page (link) */
+						esc_html__( 'New uploads will be optimized automatically. You may optimize existing images on the %s.', 'ewww-image-optimizer' ),
+						'<a href="' . esc_url( $settings_page_url . '#ewww-optimize-local-images' ) . '">' . esc_html__( 'Settings page', 'ewww-image-optimizer' ) . '</a>'
 					);
 				}
 				ewwwio_help_link( 'https://docs.ewww.io/article/4-getting-started', '5853713bc697912ffd6c0b98' );
@@ -12089,8 +12093,9 @@ function ewww_image_optimizer_intro_wizard() {
 			?>
 	<?php endif; ?>
 		</div>
-	</div>
-</div>
+	</div><!-- end #ewwwio-wizard -->
+</div><!-- end #ewww-settings-wrap -->
+<script> var ewww_autopoll = false;</script>
 	<?php
 }
 
@@ -12189,6 +12194,7 @@ function ewww_image_optimizer_rescue_mode() {
 		text: '\n\n---------------------------------------\n<?php echo wp_kses_post( $hs_debug ); ?>',
 	});
 </script>
+<script> var ewww_autopoll = false;</script>
 		<?php
 	}
 }
@@ -12311,7 +12317,7 @@ function ewww_image_optimizer_bulk_async_show_status() {
 		<?php esc_html_e( 'Clear Queue', 'ewww-image-optimizer' ); ?>
 	</a>
 	<script>
-		ewww_autopoll = <?php echo ( $autopoll ) ? 'true' : 'false'; ?>;
+		var ewww_autopoll = <?php echo ( $autopoll ) ? 'true' : 'false'; ?>;
 	</script>
 	<?php
 }
