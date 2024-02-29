@@ -12,6 +12,9 @@ jQuery(document).ready(function($) {
 	var ewww_pointer = 0;
 	var ewww_search_total = 0;
 	var ewww_size_sort = false;
+	if (ewww_vars.scan_only_mode) {
+		ewww_scan_only = true;
+	}
 	$("#ewww-delay-slider").slider({
 		min: 0,
 		max: 30,
@@ -105,7 +108,7 @@ jQuery(document).ready(function($) {
 					$('#ewww-search-pending').show();
 				}
 				if (ewww_scan_only) {
-					$('.ewww-resume-optimization').show();
+					$('.ewww-start-optimization').show();
 					$('.ewww-clear-queue').show();
 				} else {
 					$('.ewww-pause-optimization').show();

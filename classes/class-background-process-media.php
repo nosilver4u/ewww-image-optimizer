@@ -146,6 +146,7 @@ class Background_Process_Media extends Background_Process {
 			\ewwwio_debug_message( "file skipped due to filesize: $file_path" );
 			return false;
 		}
+		$mime = ewww_image_optimizer_quick_mimetype( $file_path );
 		if ( 'image/png' === $mime && \ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) && $image_size > \ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) ) {
 			\ewwwio_debug_message( "file skipped due to PNG filesize: $file_path" );
 			return false;
@@ -459,14 +460,15 @@ class Background_Process_Media extends Background_Process {
 		if ( empty( $item['id'] ) ) {
 			return;
 		}
+		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$file_path = false;
-		$meta      = wp_get_attachment_metadata( $item['id'] );
+		$meta      = \wp_get_attachment_metadata( $item['id'] );
 		if ( ! empty( $meta ) ) {
-			list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $item['id'] );
+			list( $file_path, $upload_path ) = \ewww_image_optimizer_attachment_path( $meta, $item['id'] );
 		}
 
 		if ( $file_path ) {
-			ewww_image_optimizer_add_file_exclusion( $file_path );
+			\ewww_image_optimizer_add_file_exclusion( $file_path );
 		}
 	}
 
@@ -474,18 +476,20 @@ class Background_Process_Media extends Background_Process {
 	 * Complete.
 	 */
 	protected function complete() {
+		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		parent::complete();
-		if ( 'scanning' === get_option( 'ewww_image_optimizer_bulk_resume' ) ) {
-			if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) ) {
-				ewwwio_debug_message( 'starting async scan' );
-				ewwwio()->async_scan->data(
+		if ( 'scanning' === \get_option( 'ewww_image_optimizer_bulk_resume' ) ) {
+			if ( ! \ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) ) {
+				\ewwwio_debug_message( 'starting async scan' );
+				\update_option( 'ewww_image_optimizer_aux_resume', 'scanning' );
+				\ewwwio()->async_scan->data(
 					array(
 						'ewww_scan' => 'scheduled',
 					)
 				)->dispatch();
 			}
 			\ewwwio_debug_message( 'finished media queue' );
-			update_option( 'ewww_image_optimizer_bulk_resume', '' );
+			\update_option( 'ewww_image_optimizer_bulk_resume', '' );
 		}
 	}
 }

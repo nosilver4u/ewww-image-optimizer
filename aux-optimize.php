@@ -1977,6 +1977,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 	update_option( 'ewww_image_optimizer_aux_folders_completed', array(), false );
 	update_option( 'ewww_image_optimizer_aux_resume', '' );
 	update_option( 'ewww_image_optimizer_bulk_resume', '' );
+	delete_transient( 'ewww_image_optimizer_aux_lock' );
 	if ( wp_doing_ajax() && 'ewww-image-optimizer-auto' !== $hook && ( ! defined( 'WP_CLI' ) || ! WP_CLI ) ) {
 		$verify_cloud = ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), false );
 		$usage        = false;
@@ -2022,7 +2023,6 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 		}
 		ewwwio()->background_image->dispatch();
 		update_option( 'ewww_image_optimizer_aux_resume', '', false );
-		delete_transient( 'ewww_image_optimizer_aux_lock' );
 	}
 	ewwwio_memory( __FUNCTION__ );
 	return $image_count;

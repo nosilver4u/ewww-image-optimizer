@@ -604,10 +604,12 @@ function ewww_image_optimizer_clear_queue() {
 
 	update_option( 'ewww_image_optimizer_pause_queues', false, false );
 	update_option( 'ewww_image_optimizer_pause_image_queue', false, false );
-	delete_option( 'ewwwio_stop_scheduled_scan' );
+	update_option( 'ewww_image_optimizer_aux_resume', '' );
+	update_option( 'ewww_image_optimizer_bulk_resume', '' );
 
 	ewwwio()->background_media->cancel_process();
 	ewwwio()->background_image->cancel_process();
+	ewww_image_optimizer_delete_pending();
 	update_option( 'ewwwio_stop_scheduled_scan', true, false );
 	sleep( 5 ); // Give the queues a little time to complete in-process items.
 	wp_safe_redirect( wp_get_referer() );
@@ -985,6 +987,7 @@ function ewww_image_optimizer_bulk_async_init() {
 
 	// Update the 'bulk resume' option to show that an operation is in progress.
 	update_option( 'ewww_image_optimizer_bulk_resume', 'scanning' );
+	delete_option( 'ewwwio_stop_scheduled_scan' );
 
 	ewww_image_optimizer_check_bulk_options( $_REQUEST );
 
@@ -1041,7 +1044,7 @@ function ewww_image_optimizer_bulk_async_get_status() {
 	if ( $media_queue_count && ! $media_queue_running ) {
 		ewwwio_debug_message( 'rebooting media queue' );
 		ewwwio()->background_media->dispatch();
-	} elseif ( $image_queue_count && ! $image_queue_running ) {
+	} elseif ( $image_queue_count && ! $image_queue_running && ! ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
 		ewwwio_debug_message( 'rebooting image queue' );
 		ewwwio()->background_image->dispatch();
 	} elseif ( 'scanning' === get_option( 'ewww_image_optimizer_aux_resume' ) && ! $media_queue_count ) {
