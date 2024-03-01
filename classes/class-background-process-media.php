@@ -479,7 +479,7 @@ class Background_Process_Media extends Background_Process {
 		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		parent::complete();
 		if ( 'scanning' === \get_option( 'ewww_image_optimizer_bulk_resume' ) ) {
-			if ( ! \ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) ) {
+			if ( ! \ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) && ! get_option( 'ewwwio_stop_scheduled_scan' ) ) {
 				\ewwwio_debug_message( 'starting async scan' );
 				\update_option( 'ewww_image_optimizer_aux_resume', 'scanning' );
 				\ewwwio()->async_scan->data(

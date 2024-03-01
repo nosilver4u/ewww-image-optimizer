@@ -145,10 +145,15 @@ jQuery(document).ready(function($) {
 			if (ewww_response.new_nonce) {
 				ewww_vars._wpnonce = ewww_response.new_nonce;
 			}
-			if (ewww_scan_only) {
+			if (ewww_scan_only && !ewww_table_visible) {
 				$('.ewww-start-optimization').show();
-				ewww_table_visible = true;
-				ewwwUpdateTable();
+				if (!ewww_table_visible) {
+					ewww_pending = 1;
+					ewww_table_visible = true;
+					$('#ewww-search-pending').hide();
+					$('#ewww-search-optimized').show();
+					ewwwUpdateTable();
+				}
 			}
 			if (ewww_response.media_remaining) {
 				$('#ewww-optimize-local-images').html( ewww_response.media_remaining );
