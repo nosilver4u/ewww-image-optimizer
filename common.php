@@ -10870,7 +10870,7 @@ function ewww_image_optimizer_settings_script( $hook ) {
 	add_thickbox();
 	wp_enqueue_script( 'ewww-beacon-script', plugins_url( '/includes/eio-beacon.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
 	wp_enqueue_script( 'ewww-settings-script', plugins_url( '/includes/eio-settings.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION, true );
-	wp_enqueue_script( 'ewww-bulk-table-script', plugins_url( '/includes/eio-bulk-table.js', __FILE__ ), array( 'jquery', 'jquery-ui-slider' ), '1.066', true );
+	wp_enqueue_script( 'ewww-bulk-table-script', plugins_url( '/includes/eio-bulk-table.js', __FILE__ ), array( 'jquery', 'jquery-ui-slider' ), '1.071', true );
 	wp_enqueue_style( 'jquery-ui-tooltip-custom', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 	wp_enqueue_script( 'postbox' );
 	wp_enqueue_script( 'dashboard' );
@@ -12036,12 +12036,19 @@ function ewww_image_optimizer_intro_wizard() {
 			<p>
 				<?php
 				if ( ewww_image_optimizer_background_mode_enabled() || ewww_image_optimizer_easy_active() ) {
-					esc_html_e( 'New uploads will be optimized automatically.', 'ewww-image-optimizer' );
-				} else {
 					printf(
 						/* translators: %s: Settings page (link) */
 						esc_html__( 'New uploads will be optimized automatically. You may optimize existing images on the %s.', 'ewww-image-optimizer' ),
 						'<a href="' . esc_url( $settings_page_url . '#ewww-optimize-local-images' ) . '">' . esc_html__( 'Settings page', 'ewww-image-optimizer' ) . '</a>'
+					);
+				} else {
+					printf(
+						/* translators: %s: Bulk Optimize (link) */
+						esc_html__( 'New uploads will be optimized automatically. Optimize existing images with the %s.', 'ewww-image-optimizer' ),
+						( 'network-multisite' === esc_attr( $network ) ?
+						esc_html__( 'Media Library', 'ewww-image-optimizer' ) . ' -> ' . esc_html__( 'Bulk Optimizer', 'ewww-image-optimizer' ) :
+						'<a href="' . esc_url( admin_url( 'upload.php?page=ewww-image-optimizer-bulk' ) ) . '">' . esc_html__( 'Bulk Optimizer', 'ewww-image-optimizer' ) . '</a>'
+						)
 					);
 				}
 				ewwwio_help_link( 'https://docs.ewww.io/article/4-getting-started', '5853713bc697912ffd6c0b98' );
@@ -12273,6 +12280,10 @@ function ewww_image_optimizer_bulk_async_show_status() {
 			?>
 			<img class='ewww-bulk-spinner' src='<?php echo esc_url( $loading_image ); ?>' />
 			<?php
+		} else {
+			?>
+			<img class='ewww-bulk-spinner' src='<?php echo esc_url( $loading_image ); ?>' style='display: none;'/>
+			<?php
 		}
 		?>
 		</div>
@@ -12280,9 +12291,11 @@ function ewww_image_optimizer_bulk_async_show_status() {
 	} else {
 		?>
 		<div class='ewww-queue-status'>
-			<a id="ewww-optimize-local-images" class='button-primary' href='#'>
-				<?php esc_html_e( 'Optimize Local Images', 'ewww-image-optimizer' ); ?>
-			</a>
+			<div id='ewww-optimize-local-images'>
+				<a class='button-primary' href='#'>
+					<?php esc_html_e( 'Optimize Local Images', 'ewww-image-optimizer' ); ?>
+				</a>
+			</div>
 			<img class='ewww-bulk-spinner' src='<?php echo esc_url( $loading_image ); ?>' style='display: none;'/>
 		</div>
 		<?php
