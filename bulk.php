@@ -963,6 +963,8 @@ function ewww_image_optimizer_check_bulk_options( $request ) {
 	}
 	if ( ! empty( $request['ewww_scan_only'] ) ) {
 		update_option( 'ewww_image_optimizer_pause_image_queue', true, false );
+	} else {
+		update_option( 'ewww_image_optimizer_pause_image_queue', false, false );
 	}
 	if ( isset( $request['ewww_delay'] ) && $request['ewww_delay'] <= 60 ) {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_delay', (int) $request['ewww_delay'] );
