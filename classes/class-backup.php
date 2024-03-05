@@ -356,15 +356,18 @@ class Backup extends Base {
 		$this->debug_message( "restoring $file from $backup_file" );
 		copy( $backup_file, $file );
 		if ( $this->filesize( $file ) === $this->filesize( $backup_file ) ) {
+			$this->debug_message( 'restore success, checking for .webp variant and resetting db record' );
 			if ( $this->is_file( $file . '.webp' ) && \is_writable( $file . '.webp' ) ) {
+				$this->debug_message( "removing $file.webp" );
 				$this->delete_file( $file . '.webp' );
 			}
 			/* $this->delete_file( $backup_file ); */
 			global $wpdb;
 			// Reset the image record.
-			$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->ewwwio_images SET results = '', image_size = 0, updates = 0, updated=updated, level = 0 WHERE id = %d", $image['id'] ) );
+			$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->ewwwio_images SET results = '', image_size = 0, updates = 0, updated=updated, level = 0, resized_width = 0, resized_height = 0, resize_error = 0, webp_size = 0, webp_error = 0 WHERE id = %d", $image['id'] ) );
 			return true;
 		}
+		$this->debug_message( 'restore not confirmed, filesize does not match: ' . $this->filesize( $file ) . ' vs. ' . $this->filesize( $backup_file ) );
 		/* translators: %s: An image filename */
 		$this->error_message = \sprintf( \__( 'Restore attempted for %s, but could not be confirmed.', 'ewww-image-optimizer' ), $file );
 		return false;
