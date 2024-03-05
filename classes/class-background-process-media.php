@@ -38,6 +38,38 @@ class Background_Process_Media extends Background_Process {
 	protected $active_queue = 'media-async';
 
 	/**
+	 * Batch size limit.
+	 *
+	 * @var int
+	 * @access protected
+	 */
+	protected $limit = 500;
+
+	/**
+	 * Handle
+	 *
+	 * @global string|array $optimized_list A list of all images that have been optimized, or a string
+	 *                                      indicating why that is not a good idea.
+	 *
+	 * Wrapper around parent::handle() to verify that background processing isn't paused.
+	 */
+	protected function handle() {
+		if ( \ewwwio()->get_option( 'ewww_image_optimizer_pause_queues' ) ) {
+			return;
+		}
+
+		global $optimized_list;
+		if ( empty( $optimized_list ) && $this->count_queue() > 100 ) {
+			\ewww_image_optimizer_optimized_list();
+		} else {
+			\ewwwio_debug_message( 'less than 100 attachments, not running _optimized_list()' );
+			$optimized_list = 'small_scan';
+		}
+
+		parent::handle();
+	}
+
+	/**
 	 * Runs task for an item from the Media Library queue.
 	 *
 	 * Makes sure an image upload has finished processing and has been stored in the database.
@@ -55,8 +87,8 @@ class Background_Process_Media extends Background_Process {
 		ewwwio()->defer = false;
 		$max_attempts   = 15;
 		$id             = $item['id'];
-		if ( empty( $item['attempts'] ) ) {
-			ewwwio_debug_message( 'first attempt, going to sleep for a bit' );
+		if ( empty( $item['attempts'] ) && ! empty( $item['new'] ) ) {
+			ewwwio_debug_message( 'first attempt on new upload, going to sleep for a second' );
 			$item['attempts'] = 0;
 			sleep( 1 ); // On the first attempt, hold off and wait for the db to catch up.
 		}
@@ -91,21 +123,74 @@ class Background_Process_Media extends Background_Process {
 	}
 
 	/**
+	 * Check if an individual size from a media attachment should be (re)optimized.
+	 *
+	 * @param string $file_path The filesystem path for the image.
+	 * @param string $size The thumb size (name).
+	 * @param array  $item The async data for this attachment.
+	 * @param array  $already_optimized The previous image results (if any) for this attachment.
+	 * @return bool True if the image should be optimized, false otherwise.
+	 */
+	protected function should_optimize_size( $file_path, $size, $item, $already_optimized ) {
+		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( apply_filters( 'ewww_image_optimizer_bypass', false, $file_path ) ) {
+			\ewwwio_debug_message( "skipping $file_path as instructed" );
+			return false;
+		}
+		$image_size = filesize( $file_path );
+		if ( ! $image_size ) {
+			\ewwwio_debug_message( "file skipped due to no size: $file_path" );
+			return false;
+		}
+		if ( $image_size < \ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_size' ) ) {
+			\ewwwio_debug_message( "file skipped due to filesize: $file_path" );
+			return false;
+		}
+		$mime = ewww_image_optimizer_quick_mimetype( $file_path );
+		if ( 'image/png' === $mime && \ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) && $image_size > \ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) ) {
+			\ewwwio_debug_message( "file skipped due to PNG filesize: $file_path" );
+			return false;
+		}
+		$compression_level = \ewww_image_optimizer_get_level( $mime );
+		$smart_reopt       = false;
+		if ( ! empty( $item['force_smart'] ) && ! \ewww_image_optimizer_level_mismatch( $already_optimized['level'], $compression_level ) ) {
+			$item['force_smart'] = false;
+		}
+		if ( 'full' === $size && \ewww_image_optimizer_should_resize( $file_path, true ) ) {
+			$item['force_smart'] = true;
+		}
+		if ( ! empty( $already_optimized['id'] ) && (int) $image_size === (int) $already_optimized['image_size'] ) {
+			if ( empty( $item['force_reopt'] ) && empty( $item['force_smart'] ) && empty( $item['webp_only'] ) && empty( $item['new'] ) && empty( $item['convert_once'] ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Queue an individual size for a media attachment.
 	 *
 	 * @global object $wpdb
 	 * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
+	 * @global string|array $optimized_list A list of all images that have been optimized, or a string
+	 *                                      indicating why that is not a good idea.
 	 *
 	 * @param int    $id The attachment ID number.
 	 * @param string $size The thumb size (name).
 	 * @param string $file_path The filesystem path for the image.
 	 * @param array  $item The async data for this attachment.
+	 * @return int 1 if the image was queued, 0 if not.
 	 */
 	protected function queue_single_size( $id, $size, $file_path, $item ) {
 		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		global $wpdb;
+		global $optimized_list;
 
-		$already_optimized = ewww_image_optimizer_find_already_optimized( $file_path );
+		if ( is_array( $optimized_list ) && isset( $optimized_list[ $file_path ] ) ) {
+			$already_optimized = $optimized_list[ $file_path ];
+		} else {
+			$already_optimized = ewww_image_optimizer_find_already_optimized( $file_path );
+		}
 
 		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
 			ewww_image_optimizer_db_init();
@@ -114,8 +199,12 @@ class Background_Process_Media extends Background_Process {
 			$ewwwdb = $wpdb;
 		}
 
-		ewwwio_debug_message( "queuing optimization for $id/$size" );
-		if ( ! empty( $already_optimized['id'] ) ) {
+		$image_size = \ewww_image_optimizer_filesize( $file_path );
+		ewwwio_debug_message( "(maybe) queuing optimization for $id/$size" );
+		if ( ! $this->should_optimize_size( $file_path, $size, $item, $already_optimized ) ) {
+			\ewwwio_debug_message( 'already optimized, not forcing or webp-only, so skipping' );
+			return 0;
+		} elseif ( ! empty( $already_optimized['id'] ) ) {
 			$ewwwdb->update(
 				$ewwwdb->ewwwio_images,
 				array(
@@ -130,13 +219,12 @@ class Background_Process_Media extends Background_Process {
 				)
 			);
 			$id_to_queue = $already_optimized['id'];
-			ewwwio_debug_message( 'toggled db record' );
+			\ewwwio_debug_message( 'toggled db record' );
 		} else {
-			$image_size = ewww_image_optimizer_filesize( $file_path );
 			$ewwwdb->insert(
 				$ewwwdb->ewwwio_images,
 				array(
-					'path'          => ewww_image_optimizer_relativize_path( $file_path ),
+					'path'          => \ewww_image_optimizer_relativize_path( $file_path ),
 					'gallery'       => 'media',
 					'orig_size'     => $image_size,
 					'attachment_id' => $id,
@@ -149,7 +237,7 @@ class Background_Process_Media extends Background_Process {
 		}
 		if ( ! $id_to_queue ) {
 			ewwwio_debug_message( 'failed to update/insert record, no ID to queue' );
-			return;
+			return 0;
 		}
 		ewwwio()->background_image->push_to_queue(
 			array(
@@ -161,6 +249,7 @@ class Background_Process_Media extends Background_Process {
 				'webp_only'    => $item['webp_only'],
 			)
 		);
+		return 1;
 	}
 
 	/**
@@ -191,6 +280,7 @@ class Background_Process_Media extends Background_Process {
 
 		$gallery = 'media';
 		$size    = 'full';
+		$queued  = 0;
 		ewwwio_debug_message( "attachment id: $id" );
 
 		session_write_close();
@@ -242,14 +332,14 @@ class Background_Process_Media extends Background_Process {
 		}
 
 		// Queue the full-size image.
-		$this->queue_single_size( $id, $size, $file_path, $item );
+		$queued += $this->queue_single_size( $id, $size, $file_path, $item );
 		// Then disable the conversion flag for all sub-sizes and derivatives.
 		$item['convert_once'] = false;
 
 		$hidpi_path = ewww_image_optimizer_get_hidpi_path( $file_path, true );
 		$size      .= '-retina';
 		if ( $hidpi_path ) {
-			$this->queue_single_size( $id, $size, $hidpi_path, $item );
+			$queued += $this->queue_single_size( $id, $size, $hidpi_path, $item );
 		}
 
 		$base_dir = trailingslashit( dirname( $file_path ) );
@@ -300,7 +390,7 @@ class Background_Process_Media extends Background_Process {
 					continue;
 				}
 
-				$this->queue_single_size( $id, $size, $resize_path, $item );
+				$queued += $this->queue_single_size( $id, $size, $resize_path, $item );
 
 				// Optimize retina images, if they exist.
 				if ( function_exists( 'wr2x_get_retina' ) ) {
@@ -309,11 +399,11 @@ class Background_Process_Media extends Background_Process {
 					$retina_path = false;
 				}
 				if ( $retina_path && ewwwio_is_file( $retina_path ) ) {
-					$this->queue_single_size( $id, $size . '-retina', $retina_path, $item );
+					$queued += $this->queue_single_size( $id, $size . '-retina', $retina_path, $item );
 				} else {
 					$hidpi_path = ewww_image_optimizer_get_hidpi_path( $resize_path, true );
 					if ( $hidpi_path ) {
-						$this->queue_single_size( $id, $size . '-retina', $hidpi_path, $item );
+						$queued += $this->queue_single_size( $id, $size . '-retina', $hidpi_path, $item );
 					}
 				}
 				// Store info on the sizes we've processed, so we can check the list for duplicate sizes.
@@ -327,7 +417,7 @@ class Background_Process_Media extends Background_Process {
 			// Meta sizes don't contain a path, so we calculate one.
 			$resize_path = trailingslashit( dirname( $file_path ) ) . $meta['original_image'];
 
-			$this->queue_single_size( $id, 'original_image', $resize_path, $item );
+			$queued += $this->queue_single_size( $id, 'original_image', $resize_path, $item );
 		} // End if().
 
 		// Process size from a custom theme.
@@ -337,7 +427,7 @@ class Background_Process_Media extends Background_Process {
 			foreach ( $meta['image_meta']['resized_images'] as $imagemeta_resize ) {
 				$imagemeta_resize_path = $imagemeta_resize_pathinfo['dirname'] . '/' . $imagemeta_resize_pathinfo['filename'] . '-' . $imagemeta_resize . '.' . $imagemeta_resize_pathinfo['extension'];
 
-				$this->queue_single_size( $id, '', $imagemeta_resize_path, $item );
+				$queued += $this->queue_single_size( $id, '', $imagemeta_resize_path, $item );
 			}
 		}
 
@@ -348,11 +438,11 @@ class Background_Process_Media extends Background_Process {
 			foreach ( $meta['custom_sizes'] as $custom_size ) {
 				$custom_size_path = $custom_sizes_pathinfo['dirname'] . '/' . $custom_size['file'];
 
-				$this->queue_single_size( $id, '', $custom_size_path, $item );
+				$queued += $this->queue_single_size( $id, '', $custom_size_path, $item );
 			}
 		}
 
-		if ( ! ewwwio()->background_image->is_process_running() ) {
+		if ( $queued && ! ewwwio()->background_image->is_process_running() && ! ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
 			ewwwio()->background_image->dispatch();
 		}
 	}
@@ -370,14 +460,36 @@ class Background_Process_Media extends Background_Process {
 		if ( empty( $item['id'] ) ) {
 			return;
 		}
+		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$file_path = false;
-		$meta      = wp_get_attachment_metadata( $item['id'] );
+		$meta      = \wp_get_attachment_metadata( $item['id'] );
 		if ( ! empty( $meta ) ) {
-			list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $item['id'] );
+			list( $file_path, $upload_path ) = \ewww_image_optimizer_attachment_path( $meta, $item['id'] );
 		}
 
 		if ( $file_path ) {
-			ewww_image_optimizer_add_file_exclusion( $file_path );
+			\ewww_image_optimizer_add_file_exclusion( $file_path );
+		}
+	}
+
+	/**
+	 * Complete.
+	 */
+	protected function complete() {
+		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		parent::complete();
+		if ( 'scanning' === \get_option( 'ewww_image_optimizer_bulk_resume' ) ) {
+			if ( ! \ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) && ! get_option( 'ewwwio_stop_scheduled_scan' ) ) {
+				\ewwwio_debug_message( 'starting async scan' );
+				\update_option( 'ewww_image_optimizer_aux_resume', 'scanning' );
+				\ewwwio()->async_scan->data(
+					array(
+						'ewww_scan' => 'scheduled',
+					)
+				)->dispatch();
+			}
+			\ewwwio_debug_message( 'finished media queue' );
+			\update_option( 'ewww_image_optimizer_bulk_resume', '' );
 		}
 	}
 }
