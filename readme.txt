@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 6.1
 Tested up to: 6.4
 Requires PHP: 7.3
-Stable tag: 7.3.0
+Stable tag: 7.4.0
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -140,13 +140,14 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
-= 7.3.1 =
-*Release Date - TBD*
+= 7.4.0 =
+*Release Date - March 6, 2024*
 
 * added: async bulk optimizer on settings page
 * added: store WebP results/errors for display in Media Library, and in optimization table/results
 * added: ability to view pending/queued images, remove images from queue, and sort queue by original image size
-* fixed: restoring images from tools page
+* fixed: restoring images from optimization table
+* fixed: attempting to install x64 binaries on arm64 servers
 
 = 7.3.0 =
 *Release Date - February 20, 2024*
