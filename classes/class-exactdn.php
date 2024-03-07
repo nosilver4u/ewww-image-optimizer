@@ -1156,6 +1156,9 @@ class ExactDN extends Page_Parser {
 				if ( ! $lazy && \strpos( $images['img_tag'][ $index ], 'revslider/admin/assets/images/dummy' ) ) {
 					$lazy_load_src = \trim( $this->get_attribute( $images['img_tag'][ $index ], 'data-lazyload' ) );
 				}
+				if ( ! $lazy && \strpos( $images['img_tag'][ $index ], '/assets/dummy.png' ) ) {
+					$lazy_load_src = \trim( $this->get_attribute( $images['img_tag'][ $index ], 'data-lazyload' ) );
+				}
 				if ( ! $lazy && $lazy_load_src ) {
 					$placeholder_src      = $src;
 					$placeholder_src_orig = $src;
@@ -1645,6 +1648,7 @@ class ExactDN extends Page_Parser {
 		if ( $this->filtering_the_page ) {
 			$content = $this->filter_prz_thumb( $content );
 			$content = $this->filter_style_blocks( $content );
+			$content = $this->filter_sr6_slides( $content );
 			if ( $this->get_option( 'exactdn_all_the_things' ) ) {
 				$this->debug_message( 'rewriting all other wp-content/wp-includes urls' );
 				$content = $this->filter_all_the_things( $content );
@@ -1955,6 +1959,38 @@ class ExactDN extends Page_Parser {
 			$prz_thumb = $this->generate_url( $prz_detail_matches[1], \apply_filters( 'exactdn_personalizationdotcom_thumb_args', '', $prz_detail_matches[1] ) );
 			if ( $prz_thumb !== $prz_detail_matches ) {
 				$content = \str_replace( "thumbnailUrl:'{$prz_detail_matches[1]}'", "thumbnailUrl:'$prz_thumb'", $content );
+			}
+		}
+		return $content;
+	}
+
+	/**
+	 * Parse page content looking for Slider Revolution 6 slides.
+	 *
+	 * @param string $content The HTML content to parse.
+	 * @return string The filtered HTML content.
+	 */
+	public function filter_sr6_slides( $content ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( false === strpos( $content, 'REVOLUTION SLIDER 6' ) ) {
+			return $content;
+		}
+		// Process background images on elements.
+		$elements = $this->get_elements_from_html( $content, 'rs-slide' );
+		if ( $this->is_iterable( $elements ) ) {
+			foreach ( $elements as $eindex => $element ) {
+				$this->debug_message( 'parsing a slide' );
+				$thumb = $this->get_attribute( $element, 'data-thumb' );
+				if ( $thumb ) {
+					$this->debug_message( "parsing a sr6 thumb: $thumb" );
+					if ( $this->validate_image_url( $thumb ) ) {
+						$this->debug_message( 'rewriting slide thumb...' );
+						$this->set_attribute( $element, 'data-thumb', $this->generate_url( $thumb ), true );
+						if ( $element !== $elements[ $eindex ] ) {
+							$content = \str_replace( $elements[ $eindex ], $element, $content );
+						}
+					}
+				}
 			}
 		}
 		return $content;

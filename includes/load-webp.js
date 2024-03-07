@@ -462,44 +462,31 @@ var ewww_webp_supported = false;
 // webp detection adapted from https://developers.google.com/speed/webp/faq#how_can_i_detect_browser_support_using_javascript
 function check_webp_feature(feature, callback) {
 	if (ewww_webp_supported) {
-                callback(ewww_webp_supported);
+		callback(ewww_webp_supported);
 		return;
 	}
-        var kTestImages = {
-                alpha: "UklGRkoAAABXRUJQVlA4WAoAAAAQAAAAAAAAAAAAQUxQSAwAAAARBxAR/Q9ERP8DAABWUDggGAAAABQBAJ0BKgEAAQAAAP4AAA3AAP7mtQAAAA==",
-                animation: "UklGRlIAAABXRUJQVlA4WAoAAAASAAAAAAAAAAAAQU5JTQYAAAD/////AABBTk1GJgAAAAAAAAAAAAAAAAAAAGQAAABWUDhMDQAAAC8AAAAQBxAREYiI/gcA"
-        };
-        var img = new Image();
-        img.onload = function () {
-                ewww_webp_supported = (img.width > 0) && (img.height > 0);
-                callback(ewww_webp_supported);
-        };
-        img.onerror = function () {
-                callback(false);
-        };
-        img.src = "data:image/webp;base64," + kTestImages[feature];
+	var kTestImages = {
+		alpha: "UklGRkoAAABXRUJQVlA4WAoAAAAQAAAAAAAAAAAAQUxQSAwAAAARBxAR/Q9ERP8DAABWUDggGAAAABQBAJ0BKgEAAQAAAP4AAA3AAP7mtQAAAA==",
+		animation: "UklGRlIAAABXRUJQVlA4WAoAAAASAAAAAAAAAAAAQU5JTQYAAAD/////AABBTk1GJgAAAAAAAAAAAAAAAAAAAGQAAABWUDhMDQAAAC8AAAAQBxAREYiI/gcA"
+	};
+	var img = new Image();
+	img.onload = function () {
+		ewww_webp_supported = (img.width > 0) && (img.height > 0);
+		callback(ewww_webp_supported);
+	};
+	img.onerror = function () {
+		callback(false);
+	};
+	img.src = "data:image/webp;base64," + kTestImages[feature];
 }
 function ewwwLoadImages(ewww_webp_supported) {
 	if (ewww_webp_supported) {
 		var nggImages = document.querySelectorAll('.batch-image img, .image-wrapper a, .ngg-pro-masonry-item a, .ngg-galleria-offscreen-seo-wrapper a');
 		for (var i = 0, len = nggImages.length; i < len; i++){
-                        ewwwAttr(nggImages[i], 'data-src', nggImages[i].getAttribute('data-webp'));
-                        ewwwAttr(nggImages[i], 'data-thumbnail', nggImages[i].getAttribute('data-webp-thumbnail'));
+			ewwwAttr(nggImages[i], 'data-src', nggImages[i].getAttribute('data-webp'));
+			ewwwAttr(nggImages[i], 'data-thumbnail', nggImages[i].getAttribute('data-webp-thumbnail'));
 		}
-		var revImages = document.querySelectorAll('.rev_slider ul li');
-		for (var i = 0, len = revImages.length; i < len; i++){
-			ewwwAttr(revImages[i], 'data-thumb', revImages[i].getAttribute('data-webp-thumb'));
-			var param_num = 1;
-			while ( param_num < 11 ) {
-                                ewwwAttr(revImages[i], 'data-param' + param_num, revImages[i].getAttribute('data-webp-param' + param_num));
-				param_num++;
-			}
-		}
-		var revImages = document.querySelectorAll('.rev_slider img');
-		for (var i = 0, len = revImages.length; i < len; i++){
-			ewwwAttr(revImages[i], 'data-lazyload', revImages[i].getAttribute('data-webp-lazyload'));
-		}
-                var wooImages = document.querySelectorAll('div.woocommerce-product-gallery__image');
+		var wooImages = document.querySelectorAll('div.woocommerce-product-gallery__image');
 		for (var i = 0, len = wooImages.length; i < len; i++){
 			ewwwAttr(wooImages[i], 'data-thumb', wooImages[i].getAttribute('data-webp-thumb'));
 		}
@@ -508,11 +495,11 @@ function ewwwLoadImages(ewww_webp_supported) {
 	for (var i = 0, len = videos.length; i < len; i++){
 		if (ewww_webp_supported) {
 			ewwwAttr(videos[i], 'poster', videos[i].getAttribute('data-poster-webp'));
-                } else {
+		} else {
 			ewwwAttr(videos[i], 'poster', videos[i].getAttribute('data-poster-image'));
-                }
+		}
 	}
-        var lazies = document.querySelectorAll('img.ewww_webp_lazy_load');
+	var lazies = document.querySelectorAll('img.ewww_webp_lazy_load');
 	for (var i = 0, len = lazies.length; i < len; i++){
 		console.log('parsing an image: ' + lazies[i].getAttribute('data-src'));
 		if (ewww_webp_supported) {
@@ -521,30 +508,30 @@ function ewwwLoadImages(ewww_webp_supported) {
 			ewwwAttr(lazies[i], 'data-srcset', lazies[i].getAttribute('data-srcset-webp'));
 			ewwwAttr(lazies[i], 'data-lazy-src', lazies[i].getAttribute('data-lazy-src-webp'));
 			ewwwAttr(lazies[i], 'data-src', lazies[i].getAttribute('data-src-webp'));
-                        ewwwAttr(lazies[i], 'data-orig-file', lazies[i].getAttribute('data-webp-orig-file'));
-                        ewwwAttr(lazies[i], 'data-medium-file', lazies[i].getAttribute('data-webp-medium-file'));
-                        ewwwAttr(lazies[i], 'data-large-file', lazies[i].getAttribute('data-webp-large-file'));
-                        var jpsrcset = lazies[i].getAttribute('srcset');
-                        if (jpsrcset != null && jpsrcset !== false && jpsrcset.includes('R0lGOD')) {
-                                ewwwAttr(lazies[i], 'src', lazies[i].getAttribute('data-lazy-src-webp'));
-                        }
+			ewwwAttr(lazies[i], 'data-orig-file', lazies[i].getAttribute('data-webp-orig-file'));
+			ewwwAttr(lazies[i], 'data-medium-file', lazies[i].getAttribute('data-webp-medium-file'));
+			ewwwAttr(lazies[i], 'data-large-file', lazies[i].getAttribute('data-webp-large-file'));
+			var jpsrcset = lazies[i].getAttribute('srcset');
+			if (jpsrcset != null && jpsrcset !== false && jpsrcset.includes('R0lGOD')) {
+				ewwwAttr(lazies[i], 'src', lazies[i].getAttribute('data-lazy-src-webp'));
+			}
 		}
 		lazies[i].className = lazies[i].className.replace(/\bewww_webp_lazy_load\b/, '');
 	}
-        var elems = document.querySelectorAll('.ewww_webp');
+	var elems = document.querySelectorAll('.ewww_webp');
 	for (var i = 0, len = elems.length; i < len; i++){
 		console.log('parsing an image: ' + elems[i].getAttribute('data-src'));
 		if (ewww_webp_supported) {
 			ewwwAttr(elems[i], 'srcset', elems[i].getAttribute('data-srcset-webp'));
 			ewwwAttr(elems[i], 'src', elems[i].getAttribute('data-src-webp'));
-                        ewwwAttr(elems[i], 'data-orig-file', elems[i].getAttribute('data-webp-orig-file'));
-                        ewwwAttr(elems[i], 'data-medium-file', elems[i].getAttribute('data-webp-medium-file'));
-                        ewwwAttr(elems[i], 'data-large-file', elems[i].getAttribute('data-webp-large-file'));
-                        ewwwAttr(elems[i], 'data-large_image', elems[i].getAttribute('data-webp-large_image'));
-                        ewwwAttr(elems[i], 'data-src', elems[i].getAttribute('data-webp-src'));
+			ewwwAttr(elems[i], 'data-orig-file', elems[i].getAttribute('data-webp-orig-file'));
+			ewwwAttr(elems[i], 'data-medium-file', elems[i].getAttribute('data-webp-medium-file'));
+			ewwwAttr(elems[i], 'data-large-file', elems[i].getAttribute('data-webp-large-file'));
+			ewwwAttr(elems[i], 'data-large_image', elems[i].getAttribute('data-webp-large_image'));
+			ewwwAttr(elems[i], 'data-src', elems[i].getAttribute('data-webp-src'));
 		} else {
-                        ewwwAttr(elems[i], 'srcset', elems[i].getAttribute('data-srcset-img'));
-                        ewwwAttr(elems[i], 'src', elems[i].getAttribute('data-src-img'));
+			ewwwAttr(elems[i], 'srcset', elems[i].getAttribute('data-srcset-img'));
+			ewwwAttr(elems[i], 'src', elems[i].getAttribute('data-src-img'));
 		}
 		elems[i].className = elems[i].className.replace(/\bewww_webp\b/, 'ewww_webp_loaded');
 	}
@@ -564,13 +551,13 @@ function ewwwWebPInit(ewww_webp_supported) {
         ewwwLoadImages(ewww_webp_supported);
         ewwwNggLoadGalleries(ewww_webp_supported);
         document.arrive('.ewww_webp', function() {
-                ewwwLoadImages(ewww_webp_supported);
+			ewwwLoadImages(ewww_webp_supported);
         });
         document.arrive('.ewww_webp_lazy_load', function() {
-                ewwwLoadImages(ewww_webp_supported);
+			ewwwLoadImages(ewww_webp_supported);
         });
         document.arrive('videos', function() {
-                ewwwLoadImages(ewww_webp_supported);
+			ewwwLoadImages(ewww_webp_supported);
         });
         if (document.readyState == 'loading') {
 		console.log('deferring ewwwJSONParserInit until DOMContentLoaded')
@@ -578,20 +565,20 @@ function ewwwWebPInit(ewww_webp_supported) {
         } else {
 		console.log(document.readyState);
 		console.log('running JSON parsers post haste')
-        	if ( typeof galleries !== 'undefined' ) {
+		if ( typeof galleries !== 'undefined' ) {
 			console.log('galleries found, parsing')
-                	ewwwNggParseGalleries(ewww_webp_supported);
+			ewwwNggParseGalleries(ewww_webp_supported);
 		}
-        	ewwwWooParseVariations(ewww_webp_supported);
+		ewwwWooParseVariations(ewww_webp_supported);
 	}
 }
 function ewwwAttr(elem, attr, value) {
-        if (value != null && value !== false) {
-                elem.setAttribute(attr, value);
-        }
+	if (value != null && value !== false) {
+		elem.setAttribute(attr, value);
+	}
 }
 function ewwwJSONParserInit() {
-        if ( typeof galleries !== 'undefined' ) {
+	if ( typeof galleries !== 'undefined' ) {
 		check_webp_feature('alpha', ewwwNggParseGalleries);
 	}
 	check_webp_feature('alpha', ewwwWooParseVariations);
@@ -600,7 +587,7 @@ function ewwwWooParseVariations(ewww_webp_supported) {
 	if (!ewww_webp_supported) {
 		return;
 	}
-        var elems = document.querySelectorAll('form.variations_form');
+	var elems = document.querySelectorAll('form.variations_form');
 	for (var i = 0, len = elems.length; i < len; i++){
 		var variations = elems[i].getAttribute('data-product_variations');
 		var variations_changed = false;
@@ -609,7 +596,7 @@ function ewwwWooParseVariations(ewww_webp_supported) {
 			//console.log(variations);
 			console.log('parsing WC variations');
 			for ( var num in variations ) {
-                                if (variations[ num ] !== undefined && variations[ num ].image !== undefined) {
+				if (variations[ num ] !== undefined && variations[ num ].image !== undefined) {
 					console.log(variations[num].image);
 					if (variations[num].image.src_webp !== undefined) {
 						variations[num].image.src = variations[num].image.src_webp;
@@ -634,7 +621,7 @@ function ewwwWooParseVariations(ewww_webp_supported) {
 				}
 			}
 			if (variations_changed) {
-                                ewwwAttr(elems[i], 'data-product_variations', JSON.stringify(variations));
+				ewwwAttr(elems[i], 'data-product_variations', JSON.stringify(variations));
 			}
 		} catch (err) {
 			console.log(err);
@@ -643,12 +630,12 @@ function ewwwWooParseVariations(ewww_webp_supported) {
 	}
 }
 function ewwwNggParseGalleries(ewww_webp_supported) {
-        if (ewww_webp_supported) {
-                for(var galleryIndex in galleries) {
-                        var gallery = galleries[galleryIndex];
-                        galleries[galleryIndex].images_list = ewwwNggParseImageList(gallery.images_list);
-                }
-        }
+	if (ewww_webp_supported) {
+		for(var galleryIndex in galleries) {
+			var gallery = galleries[galleryIndex];
+			galleries[galleryIndex].images_list = ewwwNggParseImageList(gallery.images_list);
+		}
+	}
 }
 function ewwwNggLoadGalleries(ewww_webp_supported) {
         if (ewww_webp_supported) {

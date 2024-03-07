@@ -171,7 +171,7 @@ class Page_Parser extends Base {
 	 */
 	public function get_elements_from_html( $content, $tag_name ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		if ( ! \ctype_alpha( $tag_name ) ) {
+		if ( ! \ctype_alpha( str_replace( '-', '', $tag_name ) ) ) {
 			return array();
 		}
 		if ( \preg_match_all( '#<' . $tag_name . '\s[^\\\\>]+?>#is', $content, $elements ) ) {

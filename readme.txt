@@ -140,6 +140,11 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 7.4.1 =
+*Release Date - TBD*
+
+* fixed: Easy IO and JS WebP skipping Slider Revolution 6 URLs
+
 = 7.4.0 =
 *Release Date - March 6, 2024*
 
