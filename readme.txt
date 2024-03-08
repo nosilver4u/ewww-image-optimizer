@@ -143,7 +143,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 7.4.1 =
 *Release Date - TBD*
 
-* fixed: Easy IO and JS WebP skipping Slider Revolution 6 URLs
+* added: Easy IO support for upcoming Slider Revolution 7 rendering engine
+* fixed: Easy IO skipping Slider Revolution 6 URLs
 
 = 7.4.0 =
 *Release Date - March 6, 2024*

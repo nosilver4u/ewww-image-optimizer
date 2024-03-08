@@ -329,6 +329,10 @@ class ExactDN extends Page_Parser {
 		\add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ) );
 		\add_filter( 'ngg_get_image_url', array( $this, 'plugin_get_image_url' ) );
 
+		// Filter Slider Revolution 7 REST API JSON.
+		\add_filter( 'sr_get_full_slider_object', array( $this, 'sr7_slider_object' ) );
+		\add_filter( 'revslider_add_slider_base', array( $this, 'sr7_slider_object' ) );
+
 		// Filter for Spotlight Social Media Feeds.
 		\add_filter( 'spotlight/instagram/server/transform_item', array( $this, 'spotlight_instagram_response' ) );
 
@@ -3556,6 +3560,71 @@ class ExactDN extends Page_Parser {
 			}
 		}
 		return $directories;
+	}
+
+	/**
+	 * Handle image urls within Slider Revolution 7 objects.
+	 *
+	 * @param array $slider A Revolution Slider object/JSON.
+	 * @return array The ExactDNified slider object/JSON.
+	 */
+	public function sr7_slider_object( $slider ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		$this->debug_message( 'RS7 object incoming:' );
+		/* $this->debug_message( print_r( $slider, true ) ); */
+		if ( ! is_array( $slider ) ) {
+			if ( is_object( $slider ) ) {
+				if ( ! empty( $slider->params['layout']['bg']['image'] ) && is_string( $slider->params['layout']['bg']['image'] ) && $this->validate_image_url( $slider->params['layout']['bg']['image'] ) ) {
+					$slider->params['layout']['bg']['image'] = $this->generate_url( $slider->params['layout']['bg']['image'] );
+				}
+				if ( ! empty( $slider->params['bg']['image']['src'] ) && is_string( $slider->params['bg']['image']['src'] ) && $this->validate_image_url( $slider->params['bg']['image']['src'] ) ) {
+					$slider->params['bg']['image']['src'] = $this->generate_url( $slider->params['bg']['image']['src'] );
+				}
+				if ( ! empty( $slider->params['imgs'] ) && $this->is_iterable( $slider->params['imgs'] ) ) {
+					foreach ( $slider->params['imgs'] as $img_index => $slider_settings_img ) {
+						if ( \is_string( $slider_settings_img ) && $this->validate_image_url( $slider_settings_img ) ) {
+							$slider->params['imgs'][ $img_index ] = $this->generate_url( $slider_settings_img );
+							continue;
+						}
+						if ( ! empty( $slider_settings_img['src'] ) && $this->validate_image_url( $slider_settings_img['src'] ) ) {
+							$slider->params['imgs'][ $img_index ]['src'] = $this->generate_url( $slider_settings_img['src'] );
+						}
+					}
+				}
+			}
+			return $slider;
+		}
+		if ( ! empty( $slider['settings']['bg']['image']['src'] ) ) {
+			if ( $this->validate_image_url( $slider['settings']['bg']['image']['src'] ) ) {
+				$slider['settings']['bg']['image']['src'] = $this->generate_url( $slider['settings']['bg']['image']['src'] );
+			}
+		}
+		if ( $this->is_iterable( $slider['settings']['imgs'] ) ) {
+			foreach ( $slider['settings']['imgs'] as $img_index => $slider_settings_img ) {
+				if ( \is_string( $slider_settings_img ) && $this->validate_image_url( $slider_settings_img ) ) {
+					$slider['settings']['imgs'][ $img_index ] = $this->generate_url( $slider_settings_img );
+					continue;
+				}
+				if ( ! empty( $slider_settings_img['src'] ) && $this->validate_image_url( $slider_settings_img['src'] ) ) {
+					$slider['settings']['imgs'][ $img_index ]['src'] = $this->generate_url( $slider_settings_img['src'] );
+				}
+			}
+		}
+		if ( $this->is_iterable( $slider['slides'] ) ) {
+			foreach ( $slider['slides'] as $slide_index => $slide ) {
+				if ( $this->is_iterable( $slide['layers'] ) ) {
+					foreach ( $slide['layers'] as $layer_index => $slide_layer ) {
+						if ( ! empty( $slide_layer['bg']['image']['src'] ) && $this->validate_image_url( $slide_layer['bg']['image']['src'] ) ) {
+							$slider['slides'][ $slide_index ]['layers'][ $layer_index ]['bg']['image']['src'] = $this->generate_url( $slide_layer['bg']['image']['src'] );
+						}
+					}
+				}
+				if ( ! empty( $slide['slide']['thumb']['src'] ) && $this->validate_image_url( $slide['slide']['thumb']['src'] ) ) {
+					$slider['slides'][ $slide_index ]['slide']['thumb']['src'] = $this->generate_url( $slide['slide']['thumb']['src'] );
+				}
+			}
+		}
+		return $slider;
 	}
 
 	/**
