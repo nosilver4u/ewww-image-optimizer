@@ -1330,8 +1330,10 @@ function ewww_image_optimizer_install_table() {
 			ewwwio_debug_message( 'getting rid of path_image_size index' );
 			$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images DROP INDEX path_image_size" );
 		}
-		// Make sure there are valid dates in updated column.
-		$wpdb->query( "UPDATE $wpdb->ewwwio_images SET updated = '1971-01-01 00:00:00' WHERE updated < '1001-01-01 00:00:01'" );
+		if ( get_option( 'ewww_image_optimizer_version' ) < 340 ) {
+			// Make sure there are valid dates in updated column.
+			$wpdb->query( "UPDATE $wpdb->ewwwio_images SET updated = '1971-01-01 00:00:00' WHERE updated < '1001-01-01 00:00:01'" );
+		}
 		// Get the current table layout.
 		$suppress    = $wpdb->suppress_errors();
 		$tablefields = $wpdb->get_results( "DESCRIBE {$wpdb->ewwwio_images};" );

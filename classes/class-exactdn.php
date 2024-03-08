@@ -331,6 +331,7 @@ class ExactDN extends Page_Parser {
 
 		// Filter Slider Revolution 7 REST API JSON.
 		\add_filter( 'sr_get_full_slider_object', array( $this, 'sr7_slider_object' ) );
+		\add_filter( 'sr_load_slider_json', array( $this, 'sr7_slider_object' ) );
 		\add_filter( 'revslider_add_slider_base', array( $this, 'sr7_slider_object' ) );
 
 		// Filter for Spotlight Social Media Feeds.
@@ -1635,6 +1636,9 @@ class ExactDN extends Page_Parser {
 			} // End foreach() -- of all images found in the page.
 		} // End if() -- we found images in the page at all.
 
+		// Process placeholder <img> elements within an <image_lists> element for Slider Revolution 7.
+		$content = $this->filter_sr7_image_lists( $content );
+
 		// Process <a> elements in the page for image URLs.
 		$content = $this->filter_image_links( $content );
 
@@ -1997,6 +2001,37 @@ class ExactDN extends Page_Parser {
 				}
 			}
 		}
+		return $content;
+	}
+
+	/**
+	 * Parse page content looking for Slider Revolution 7 image lists.
+	 *
+	 * @param string $content The HTML content to parse.
+	 * @return string The filtered HTML content.
+	 */
+	public function filter_sr7_image_lists( $content ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( false === strpos( $content, '<image_lists' ) ) {
+			return $content;
+		}
+		$images = $this->get_images_from_html( $content, false, false );
+		if ( ! empty( $images ) ) {
+			$this->debug_message( 'we have (maybe) SR7 images to parse' );
+			foreach ( $images[0] as $index => $image ) {
+				$src = $this->get_attribute( $image, 'src' );
+				if ( ! empty( $src ) ) {
+					continue;
+				}
+				$data_src = $this->get_attribute( $image, 'data-src' );
+				if ( $this->validate_image_url( $data_src ) ) {
+					$this->set_attribute( $image, 'data-src', $this->generate_url( $data_src ), true );
+				}
+				if ( $image !== $images[0][ $index ] ) {
+					$content = \str_replace( $images[0][ $index ], $image, $content );
+				}
+			} // End foreach() -- of more images found in the page.
+		} // End if() -- we found more images in the page.
 		return $content;
 	}
 
@@ -3565,13 +3600,13 @@ class ExactDN extends Page_Parser {
 	/**
 	 * Handle image urls within Slider Revolution 7 objects.
 	 *
-	 * @param array $slider A Revolution Slider object/JSON.
-	 * @return array The ExactDNified slider object/JSON.
+	 * @param array|object $slider A Revolution Slider object, or an array prior to JSON conversion.
+	 * @return array The ExactDNified slider object/array.
 	 */
 	public function sr7_slider_object( $slider ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		$this->debug_message( 'RS7 object incoming:' );
-		/* $this->debug_message( print_r( $slider, true ) ); */
+		$this->debug_message( 'RS7 object/array incoming:' );
+		$this->debug_message( print_r( $slider, true ) );
 		if ( ! is_array( $slider ) ) {
 			if ( is_object( $slider ) ) {
 				if ( ! empty( $slider->params['layout']['bg']['image'] ) && is_string( $slider->params['layout']['bg']['image'] ) && $this->validate_image_url( $slider->params['layout']['bg']['image'] ) ) {
@@ -3599,7 +3634,7 @@ class ExactDN extends Page_Parser {
 				$slider['settings']['bg']['image']['src'] = $this->generate_url( $slider['settings']['bg']['image']['src'] );
 			}
 		}
-		if ( $this->is_iterable( $slider['settings']['imgs'] ) ) {
+		if ( ! empty( $slider['settings']['imgs'] ) && $this->is_iterable( $slider['settings']['imgs'] ) ) {
 			foreach ( $slider['settings']['imgs'] as $img_index => $slider_settings_img ) {
 				if ( \is_string( $slider_settings_img ) && $this->validate_image_url( $slider_settings_img ) ) {
 					$slider['settings']['imgs'][ $img_index ] = $this->generate_url( $slider_settings_img );
@@ -3610,14 +3645,29 @@ class ExactDN extends Page_Parser {
 				}
 			}
 		}
-		if ( $this->is_iterable( $slider['slides'] ) ) {
+		if ( ! empty( $slider['slides'] ) && $this->is_iterable( $slider['slides'] ) ) {
 			foreach ( $slider['slides'] as $slide_index => $slide ) {
 				if ( $this->is_iterable( $slide['layers'] ) ) {
 					foreach ( $slide['layers'] as $layer_index => $slide_layer ) {
 						if ( ! empty( $slide_layer['bg']['image']['src'] ) && $this->validate_image_url( $slide_layer['bg']['image']['src'] ) ) {
 							$slider['slides'][ $slide_index ]['layers'][ $layer_index ]['bg']['image']['src'] = $this->generate_url( $slide_layer['bg']['image']['src'] );
 						}
+						if ( ! empty( $slide_layer['content']['src'] ) && $this->validate_image_url( $slide_layer['content']['src'] ) ) {
+							$slider['slides'][ $slide_index ]['layers'][ $layer_index ]['content']['src'] = $this->generate_url( $slide_layer['content']['src'] );
+						}
+						if ( ! empty( $slide_layer['idle']['backgroundImage'] ) && $this->validate_image_url( $slide_layer['idle']['backgroundImage'] ) ) {
+							$slider['slides'][ $slide_index ]['layers'][ $layer_index ]['idle']['backgroundImage'] = $this->generate_url( $slide_layer['idle']['backgroundImage'] );
+						}
+						if ( ! empty( $slide_layer['media']['posterUrl'] ) && $this->validate_image_url( $slide_layer['media']['posterUrl'] ) ) {
+							$slider['slides'][ $slide_index ]['layers'][ $layer_index ]['media']['posterUrl'] = $this->generate_url( $slide_layer['media']['posterUrl'] );
+						}
+						if ( ! empty( $slide_layer['media']['imageUrl'] ) && $this->validate_image_url( $slide_layer['media']['imageUrl'] ) ) {
+							$slider['slides'][ $slide_index ]['layers'][ $layer_index ]['media']['imageUrl'] = $this->generate_url( $slide_layer['media']['imageUrl'] );
+						}
 					}
+				}
+				if ( ! empty( $slide['params']['thumb']['customThumbSrc'] ) && $this->validate_image_url( $slide['params']['thumb']['customThumbSrc'] ) ) {
+					$slider['slides'][ $slide_index ]['params']['thumb']['customThumbSrc'] = $this->generate_url( $slide['params']['thumb']['customThumbSrc'] );
 				}
 				if ( ! empty( $slide['slide']['thumb']['src'] ) && $this->validate_image_url( $slide['slide']['thumb']['src'] ) ) {
 					$slider['slides'][ $slide_index ]['slide']['thumb']['src'] = $this->generate_url( $slide['slide']['thumb']['src'] );
