@@ -3606,7 +3606,7 @@ class ExactDN extends Page_Parser {
 	public function sr7_slider_object( $slider ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->debug_message( 'RS7 object/array incoming:' );
-		$this->debug_message( print_r( $slider, true ) );
+		/* $this->debug_message( print_r( $slider, true ) ); */
 		if ( ! is_array( $slider ) ) {
 			if ( is_object( $slider ) ) {
 				if ( ! empty( $slider->params['layout']['bg']['image'] ) && is_string( $slider->params['layout']['bg']['image'] ) && $this->validate_image_url( $slider->params['layout']['bg']['image'] ) ) {
@@ -3647,34 +3647,60 @@ class ExactDN extends Page_Parser {
 		}
 		if ( ! empty( $slider['slides'] ) && $this->is_iterable( $slider['slides'] ) ) {
 			foreach ( $slider['slides'] as $slide_index => $slide ) {
-				if ( $this->is_iterable( $slide['layers'] ) ) {
-					foreach ( $slide['layers'] as $layer_index => $slide_layer ) {
-						if ( ! empty( $slide_layer['bg']['image']['src'] ) && $this->validate_image_url( $slide_layer['bg']['image']['src'] ) ) {
-							$slider['slides'][ $slide_index ]['layers'][ $layer_index ]['bg']['image']['src'] = $this->generate_url( $slide_layer['bg']['image']['src'] );
-						}
-						if ( ! empty( $slide_layer['content']['src'] ) && $this->validate_image_url( $slide_layer['content']['src'] ) ) {
-							$slider['slides'][ $slide_index ]['layers'][ $layer_index ]['content']['src'] = $this->generate_url( $slide_layer['content']['src'] );
-						}
-						if ( ! empty( $slide_layer['idle']['backgroundImage'] ) && $this->validate_image_url( $slide_layer['idle']['backgroundImage'] ) ) {
-							$slider['slides'][ $slide_index ]['layers'][ $layer_index ]['idle']['backgroundImage'] = $this->generate_url( $slide_layer['idle']['backgroundImage'] );
-						}
-						if ( ! empty( $slide_layer['media']['posterUrl'] ) && $this->validate_image_url( $slide_layer['media']['posterUrl'] ) ) {
-							$slider['slides'][ $slide_index ]['layers'][ $layer_index ]['media']['posterUrl'] = $this->generate_url( $slide_layer['media']['posterUrl'] );
-						}
-						if ( ! empty( $slide_layer['media']['imageUrl'] ) && $this->validate_image_url( $slide_layer['media']['imageUrl'] ) ) {
-							$slider['slides'][ $slide_index ]['layers'][ $layer_index ]['media']['imageUrl'] = $this->generate_url( $slide_layer['media']['imageUrl'] );
-						}
-					}
-				}
-				if ( ! empty( $slide['params']['thumb']['customThumbSrc'] ) && $this->validate_image_url( $slide['params']['thumb']['customThumbSrc'] ) ) {
-					$slider['slides'][ $slide_index ]['params']['thumb']['customThumbSrc'] = $this->generate_url( $slide['params']['thumb']['customThumbSrc'] );
-				}
-				if ( ! empty( $slide['slide']['thumb']['src'] ) && $this->validate_image_url( $slide['slide']['thumb']['src'] ) ) {
-					$slider['slides'][ $slide_index ]['slide']['thumb']['src'] = $this->generate_url( $slide['slide']['thumb']['src'] );
-				}
+				$slider['slides'][ $slide_index ] = $this->sr7_slider_slide( $slide );
 			}
 		}
+		if ( ! empty( $slider['static_slide'] ) ) {
+			$slider['static_slide'] = $this->sr7_slider_slide( $slider['static_slide'] );
+		}
 		return $slider;
+	}
+
+	/**
+	 * Handle image urls within Slider Revolution 7 slides.
+	 *
+	 * @param array $slide A Revolution Slider slide array prior to JSON conversion.
+	 * @return array The ExactDNified slide array.
+	 */
+	public function sr7_slider_slide( $slide ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( is_array( $slide ) ) {
+			if ( $this->is_iterable( $slide['layers'] ) ) {
+				foreach ( $slide['layers'] as $layer_index => $slide_layer ) {
+					if ( ! empty( $slide_layer['bg']['image']['src'] ) && $this->validate_image_url( $slide_layer['bg']['image']['src'] ) ) {
+						$slide['layers'][ $layer_index ]['bg']['image']['src'] = $this->generate_url( $slide_layer['bg']['image']['src'] );
+					}
+					if ( ! empty( $slide_layer['bg']['video']['poster']['src'] ) && $this->validate_image_url( $slide_layer['bg']['video']['poster']['src'] ) ) {
+						$slide['layers'][ $layer_index ]['bg']['video']['poster']['src'] = $this->generate_url( $slide_layer['bg']['video']['poster']['src'] );
+					}
+					if ( ! empty( $slide_layer['content']['src'] ) && $this->validate_image_url( $slide_layer['content']['src'] ) ) {
+						$slide['layers'][ $layer_index ]['content']['src'] = $this->generate_url( $slide_layer['content']['src'] );
+					}
+					if ( ! empty( $slide_layer['idle']['backgroundImage'] ) && $this->validate_image_url( $slide_layer['idle']['backgroundImage'] ) ) {
+						$slide['layers'][ $layer_index ]['idle']['backgroundImage'] = $this->generate_url( $slide_layer['idle']['backgroundImage'] );
+					}
+					if ( ! empty( $slide_layer['media']['posterUrl'] ) && $this->validate_image_url( $slide_layer['media']['posterUrl'] ) ) {
+						$slide['layers'][ $layer_index ]['media']['posterUrl'] = $this->generate_url( $slide_layer['media']['posterUrl'] );
+					}
+					if ( ! empty( $slide_layer['media']['imageUrl'] ) && $this->validate_image_url( $slide_layer['media']['imageUrl'] ) ) {
+						$slide['layers'][ $layer_index ]['media']['imageUrl'] = $this->generate_url( $slide_layer['media']['imageUrl'] );
+					}
+					if ( ! empty( $slide_layer['svg']['source'] ) && $this->validate_image_url( $slide_layer['svg']['source'] ) ) {
+						$slide['layers'][ $layer_index ]['svg']['source'] = $this->generate_url( $slide_layer['svg']['source'] );
+					}
+				}
+			}
+			if ( ! empty( $slide['params']['thumb']['customThumbSrc'] ) && $this->validate_image_url( $slide['params']['thumb']['customThumbSrc'] ) ) {
+				$slide['params']['thumb']['customThumbSrc'] = $this->generate_url( $slide['params']['thumb']['customThumbSrc'] );
+			}
+			if ( ! empty( $slide['params']['bg']['image'] ) && $this->validate_image_url( $slide['params']['bg']['image'] ) ) {
+				$slide['params']['bg']['image'] = $this->generate_url( $slide['params']['bg']['image'] );
+			}
+			if ( ! empty( $slide['slide']['thumb']['src'] ) && $this->validate_image_url( $slide['slide']['thumb']['src'] ) ) {
+				$slide['slide']['thumb']['src'] = $this->generate_url( $slide['slide']['thumb']['src'] );
+			}
+		}
+		return $slide;
 	}
 
 	/**
