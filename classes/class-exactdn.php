@@ -2025,7 +2025,8 @@ class ExactDN extends Page_Parser {
 				}
 				$data_src = $this->get_attribute( $image, 'data-src' );
 				if ( $this->validate_image_url( $data_src ) ) {
-					$this->set_attribute( $image, 'data-src', $this->generate_url( $data_src ), true );
+					$cdn_url = $this->generate_url( $data_src );
+					$this->set_attribute( $image, 'data-src', $cdn_url, true );
 				}
 				if ( $image !== $images[0][ $index ] ) {
 					$content = \str_replace( $images[0][ $index ], $image, $content );

@@ -488,6 +488,10 @@ class Local extends Base {
 			'36535c1b262e0c457bbb0ed2bc71e812a49e26a6cada63b6acbd8d809c68a5a1', // optipng-mac   0.7.7 EWWW 4.1.0.
 			'41a4c78e6c97ea26836f4b021157b34f1812a9e5c2341502aad8cde942b18576', // optipng-sol   0.7.7 EWWW 4.1.0.
 			'6a321e07eca8e28fa8a969b5db3c1d3cc008a2064d636cf74762bbe4364b7b14', // optipng.exe   0.7.7 EWWW 4.1.0.
+			'd', // optipng-fbsd  0.7.8 EWWW 7.5.0.
+			'c', // optipng-linux 0.7.8 EWWW 7.5.0.
+			'b', // optipng-mac   0.7.8 EWWW 7.5.0.
+			'3464cd6c7fc9cb893f368111eb19b634b2acf14dcc94958d0758251071cfcbd9', // optipng.exe   0.7.8 EWWW 7.5.0.
 			// end optipng.
 			'a2292c0085863a65c99cb41ff8418ce63033e162906df72e8fdde52f0633579b', // gifsicle linux 1.67, EWWW 1.2.0.
 			'd7f9609b6fd0000b2eaad2bd0c3cb85476988b18705762e915bda3f2e6007801', // gifsicle-linux 1.68, EWWW 1.3.0.
