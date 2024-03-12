@@ -39,12 +39,6 @@ jobs:
       env: WP_VERSION=6.0 WP_MULTISITE=0
     - os: freebsd
       php: 8.2
-    - os: osx
-      osx_image: xcode12.2
-
-before_install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update         ; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install php@8.1; fi
 
 before_script:
   - export PATH="$HOME/.config/composer/vendor/bin:$PATH"
