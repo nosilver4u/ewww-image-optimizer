@@ -657,7 +657,10 @@ class Local extends Base {
 			'fc25866344efb604b3e70dc3e5519199605da13b550ccee4b7bbdcdeb0b5e6be', // cwebp-mac15 1.2.0, EWWW 6.1.0.
 			'488410937dbbc4ec55fddfc0fa6835b862f7024680744a5e5ac8b88be9270fcc', // cwebp-sol   1.2.0, EWWW 6.1.0.
 			'2849fd06012a9eb311b02a4f8918ae4b16775693bc21e95f4cc6a382eac299f9', // cwebp.exe   1.2.0, EWWW 6.1.0.
-			// libwebp 1.2.2 contains no changes to cwebp from 1.2.0 so far.
+			'b8094b40d73e5eb51fa9f68cc9d5c5a1bf610b0589f1b65698729d27fe2c327f', // cwebp-fbsd  1.3.2, EWWW 7.5.0.
+			'52dde413dc4547abf607d8f1e5426ab8110ae9f02e685c1d7c49537ea75be9ca', // cwebp-linux 1.3.2, EWWW 7.5.0.
+			'6eda6785dac4c23fc363e5db2dc45cfaab71225435a8bad95f3b56c1b7ee026d', // cwebp-mac15 1.3.2, EWWW 7.5.0.
+			'f317c8bc61624db206f5aa254f3bbc46d5cafdcb91862378ce7a0371dbf61b03', // cwebp.exe   1.3.2, EWWW 7.5.0.
 			// end cwebp.
 			'15d8b7d54b73059a9a63ab3d5ca8201cd30c2f6fc59fc068f7bd6c85e6a22420', // svgcleaner-linux 0.9.5.
 			'c88c1961374b3edc93a29376ccbd447a514c1cda335fe6a868c0dac6d77c79fa', // svgcleaner-mac 0.9.5.
