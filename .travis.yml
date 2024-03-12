@@ -28,7 +28,6 @@ env:
 
 jobs:
   allow_failures:
-  	- os: osx
   	- os: freebsd
   include:
     - php: 7.3
