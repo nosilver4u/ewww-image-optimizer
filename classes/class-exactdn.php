@@ -1876,6 +1876,9 @@ class ExactDN extends Page_Parser {
 						} elseif ( 'div' === $tag_type && $content_width ) {
 							$args['w'] = \apply_filters( 'exactdn_content_bgimage_width', $content_width, $bg_image_url );
 						}
+						if ( false !== \strpos( $element_class, 'wp-block-group' ) && false !== \strpos( $element, 'background-size:auto' ) ) {
+							$skip_autoscale = true;
+						}
 						if ( ( isset( $args['w'] ) && empty( $args['w'] ) ) || ! $bg_autoscale ) {
 							unset( $args['w'] );
 						}
