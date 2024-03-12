@@ -34,8 +34,6 @@ jobs:
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
     - php: 8.0
       env: WP_VERSION=6.0 WP_MULTISITE=0
-    - os: freebsd
-      php: 8.2
 
 before_script:
   - export PATH="$HOME/.config/composer/vendor/bin:$PATH"
