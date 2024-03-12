@@ -12603,7 +12603,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		}
 		// NOTE: we don't check cwebp here, because we allow WebP for pretty much everyone, with a fallback to the API if all else fails.
 		if ( $tools['svgcleaner']['enabled'] && ewwwio()->local->exec_check() ) {
-			if ( empty( $tools['svgcleaner']['path'] ) ) {
+			$arch_type = '';
+			if ( ewww_image_optimizer_function_exists( 'php_uname' ) ) {
+				$arch_type = php_uname( 'm' );
+			}
+			if ( 'x86_64' === $arch_type && empty( $tools['svgcleaner']['path'] ) ) {
 				$speed_recommendations[] = '<a href="' . admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' ) . '">' . __( 'Install svgcleaner', 'ewww-image-optimizer' ) . '</a>';
 			}
 		}

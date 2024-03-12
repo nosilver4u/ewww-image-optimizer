@@ -1529,7 +1529,9 @@ function ewww_image_optimizer_install_svgcleaner() {
 	if ( PHP_OS === 'Linux' ) {
 		$arch_type = 'x86_64';
 		if ( ewww_image_optimizer_function_exists( 'php_uname' ) ) {
-			$arch_type = php_uname( 'm' );
+			if ( php_uname( 'm' ) !== $arch_type ) {
+				$download_error = __( 'svgcleaner on Linux only supports the x86_64 architecture', 'ewww-image-optimizer' );
+			}
 		}
 		$os_string = 'linux_' . $arch_type;
 	} elseif ( PHP_OS === 'Darwin' ) {
@@ -1540,6 +1542,8 @@ function ewww_image_optimizer_install_svgcleaner() {
 		$os_string = 'win32';
 		$os_binary = 'svgcleaner.exe';
 		$os_ext    = 'zip';
+	} elseif ( PHP_OS === 'FreeBSD' ) {
+		$download_error = __( 'svgcleaner is not available for FreeBSD', 'ewww-image-optimizer' );
 	}
 	$latest    = '0.9.5';
 	$tool_path = trailingslashit( EWWW_IMAGE_OPTIMIZER_TOOL_PATH );
