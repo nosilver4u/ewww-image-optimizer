@@ -1601,7 +1601,7 @@ function ewww_image_optimizer_install_svgcleaner() {
 			}
 		}
 	}
-	if ( is_string( $download_result ) && is_writable( $download_result ) ) {
+	if ( isset( $download_result ) && is_string( $download_result ) && is_writable( $download_result ) ) {
 		unlink( $download_result );
 	}
 	if ( ! empty( $pkg_version ) ) {
