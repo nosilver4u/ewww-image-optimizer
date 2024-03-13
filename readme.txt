@@ -147,6 +147,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: Easy IO skipping Slider Revolution 6 URLs
 * fixed: Lazy Load incorrectly auto-scales fixed group background images
 * updated: cwebp to version 1.3.2
+* updated: gifsicle to version 1.95
 * updated: optipng to version 0.7.8
 
 = 7.4.0 =

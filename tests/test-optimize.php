@@ -547,6 +547,10 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test minimal SVG locally.
 	 */
 	function test_optimize_svg_01() {
+		if ( PHP_OS === 'FreeBSD' ) {
+			self::markTestSkipped( 'svgcleaner unavailable on FreeBSD.' );
+		}
+
 		update_option( 'ewww_image_optimizer_svg_level', 1 );
 		update_site_option( 'ewww_image_optimizer_svg_level', 1 );
 		$results = $this->optimize_svg();
@@ -558,6 +562,10 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 * Test default SVG locally.
 	 */
 	function test_optimize_svg_10() {
+		if ( PHP_OS === 'FreeBSD' ) {
+			self::markTestSkipped( 'svgcleaner unavailable on FreeBSD.' );
+		}
+
 		update_option( 'ewww_image_optimizer_svg_level', 10 );
 		update_site_option( 'ewww_image_optimizer_svg_level', 10 );
 		$results = $this->optimize_svg();

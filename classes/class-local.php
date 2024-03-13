@@ -527,6 +527,10 @@ class Local extends Base {
 			'3b745d61a6be2b546424523848f699db5c60765a69659c328621daf39be199a1', // gifsicle-fbsd  1.93, EWWW 6.7.0.
 			'205abe804d1060375f713d990c45b0285cbc4b56226da1612e9f1d2d2e2c5369', // gifsicle-linux 1.93, EWWW 6.7.0.
 			'fbd269135c779acf8f96e38116cea3e2f429fb4fada3f876f2cedea8511830ba', // gifsicle-mac   1.93, EWWW 6.7.0.
+			'6f60cc7f696ab4b861bf9e6fb5b4fd940b3cb6b9731e2ef04708334af95a7de4', // gifsicle.exe   1.95, EWWW 7.5.0.
+			'8e69f9ff4807c14613986348d7a06e99eabff2a30c9f1efd32363ab8e5a23c07', // gifsicle-fbsd  1.95, EWWW 7.5.0.
+			'7fc9de52fff727604655a349b579918ba34b76ea371de3460d6272774bd896c6', // gifsicle-linux 1.95, EWWW 7.5.0.
+			'a4ae039ce0d4fb788c97a5b130c1865091fcd12f98345cb8aa4bc1a8e098326e', // gifsicle-mac   1.95, EWWW 7.5.0.
 			// end gifsicle.
 			'bdea95497d6e60aae8938cae8e999ef74a255ad603531bf523dcdb531f61fc8f', // 20110722-bsd/i686/pngout.
 			'57c09b3ebd7d4623d16f6056efd7951e8f98e2362a27993a7d865af677875c00', // 20110722-bsd-static/i686/pngout-static.
