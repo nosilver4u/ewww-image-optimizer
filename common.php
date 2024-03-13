@@ -12602,7 +12602,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			}
 		}
 		// NOTE: we don't check cwebp here, because we allow WebP for pretty much everyone, with a fallback to the API if all else fails.
-		if ( $tools['svgcleaner']['enabled'] && ewwwio()->local->exec_check() ) {
+		if ( $tools['svgcleaner']['enabled'] && ewww_image_optimizer_svgcleaner_installer_available() ) {
 			if ( empty( $tools['svgcleaner']['path'] ) ) {
 				$speed_recommendations[] = '<a href="' . admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' ) . '">' . __( 'Install svgcleaner', 'ewww-image-optimizer' ) . '</a>';
 			}
@@ -13913,7 +13913,9 @@ AddType image/webp .webp</pre>
 							</option>
 						</select>
 	<?php if ( $disable_svg_level || ( empty( $tools['svgcleaner']['path'] ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) ) : ?>
+		<?php if ( ewww_image_optimizer_svgcleaner_installer_available() ) : ?>
 						<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' ), 'ewww_image_optimizer_options-options' ) ); ?>"><?php esc_html_e( 'Install svgcleaner', 'ewww-image-optimizer' ); ?></a>
+		<?php endif; ?>
 	<?php endif; ?>
 					</td>
 				</tr>
