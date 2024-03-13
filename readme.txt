@@ -146,6 +146,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: Easy IO support for upcoming Slider Revolution 7 rendering engine
 * fixed: Easy IO skipping Slider Revolution 6 URLs
 * fixed: Lazy Load incorrectly auto-scales fixed group background images
+* fixed: uncaught errors when attempting svgcleaner install on FreeBSD
 * updated: cwebp to version 1.3.2
 * updated: gifsicle to version 1.95
 * updated: optipng to version 0.7.8

@@ -330,9 +330,9 @@ class ExactDN extends Page_Parser {
 		\add_filter( 'ngg_get_image_url', array( $this, 'plugin_get_image_url' ) );
 
 		// Filter Slider Revolution 7 REST API JSON.
-		\add_filter( 'sr_get_full_slider_object', array( $this, 'sr7_slider_object' ) );
-		\add_filter( 'sr_load_slider_json', array( $this, 'sr7_slider_object' ) );
+		\add_filter( 'sr_get_full_slider_JSON', array( $this, 'sr7_slider_object' ) );
 		\add_filter( 'revslider_add_slider_base', array( $this, 'sr7_slider_object' ) );
+		\add_filter( 'sr_get_image_lists', array( $this, 'filter_sr7_image_lists' ) );
 
 		// Filter for Spotlight Social Media Feeds.
 		\add_filter( 'spotlight/instagram/server/transform_item', array( $this, 'spotlight_instagram_response' ) );
@@ -1636,9 +1636,6 @@ class ExactDN extends Page_Parser {
 			} // End foreach() -- of all images found in the page.
 		} // End if() -- we found images in the page at all.
 
-		// Process placeholder <img> elements within an <image_lists> element for Slider Revolution 7.
-		$content = $this->filter_sr7_image_lists( $content );
-
 		// Process <a> elements in the page for image URLs.
 		$content = $this->filter_image_links( $content );
 
@@ -1649,7 +1646,7 @@ class ExactDN extends Page_Parser {
 		$content = $this->filter_video_elements( $content );
 
 		// Process background images on HTML elements.
-		$element_types = \apply_filters( 'eio_allowed_background_image_elements', array( 'div', 'li', 'span', 'section', 'a' ) );
+		$element_types = \apply_filters( 'eio_allowed_background_image_elements', array( 'div', 'li', 'span', 'section', 'a', 'rs-bg-elem' ) );
 		foreach ( $element_types as $element_type ) {
 			$content = $this->filter_bg_images( $content, $element_type );
 		}
@@ -1986,7 +1983,7 @@ class ExactDN extends Page_Parser {
 		if ( false === strpos( $content, 'REVOLUTION SLIDER 6' ) ) {
 			return $content;
 		}
-		// Process background images on elements.
+		// Process data-thumb images on rs-slide elements.
 		$elements = $this->get_elements_from_html( $content, 'rs-slide' );
 		if ( $this->is_iterable( $elements ) ) {
 			foreach ( $elements as $eindex => $element ) {
@@ -2004,39 +2001,47 @@ class ExactDN extends Page_Parser {
 				}
 			}
 		}
+		// Process data-poster images on rs-layer elements.
+		$elements = $this->get_elements_from_html( $content, 'rs-layer' );
+		if ( $this->is_iterable( $elements ) ) {
+			foreach ( $elements as $eindex => $element ) {
+				$this->debug_message( 'parsing a layer' );
+				$poster = $this->get_attribute( $element, 'data-poster' );
+				if ( $poster ) {
+					$this->debug_message( "parsing a sr6 poster: $poster" );
+					if ( $this->validate_image_url( $poster ) ) {
+						$this->debug_message( 'rewriting layer poster...' );
+						$this->set_attribute( $element, 'data-poster', $this->generate_url( $poster ), true );
+						if ( $element !== $elements[ $eindex ] ) {
+							$content = \str_replace( $elements[ $eindex ], $element, $content );
+						}
+					}
+				}
+			}
+		}
 		return $content;
 	}
 
 	/**
-	 * Parse page content looking for Slider Revolution 7 image lists.
+	 * Parse Slider Revolution 7 image lists and convert them to CDN URLs.
 	 *
-	 * @param string $content The HTML content to parse.
-	 * @return string The filtered HTML content.
+	 * @param array $images The list of images to rewrite.
+	 * @return array The filtered image list.
 	 */
-	public function filter_sr7_image_lists( $content ) {
+	public function filter_sr7_image_lists( $images ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		if ( false === strpos( $content, '<image_lists' ) ) {
-			return $content;
+		if ( ! $this->is_iterable( $images ) ) {
+			return $images;
 		}
-		$images = $this->get_images_from_html( $content, false, false );
 		if ( ! empty( $images ) ) {
-			$this->debug_message( 'we have (maybe) SR7 images to parse' );
-			foreach ( $images[0] as $index => $image ) {
-				$src = $this->get_attribute( $image, 'src' );
-				if ( ! empty( $src ) ) {
-					continue;
-				}
-				$data_src = $this->get_attribute( $image, 'data-src' );
-				if ( $this->validate_image_url( $data_src ) ) {
-					$cdn_url = $this->generate_url( $data_src );
-					$this->set_attribute( $image, 'data-src', $cdn_url, true );
-				}
-				if ( $image !== $images[0][ $index ] ) {
-					$content = \str_replace( $images[0][ $index ], $image, $content );
+			$this->debug_message( 'we have SR7 images to parse' );
+			foreach ( $images as $index => $image ) {
+				if ( ! empty( $image['src'] ) && $this->validate_image_url( $image['src'] ) ) {
+					$images[ $index ]['src'] = $this->generate_url( $image['src'] );
 				}
 			} // End foreach() -- of more images found in the page.
 		} // End if() -- we found more images in the page.
-		return $content;
+		return $images;
 	}
 
 	/**
