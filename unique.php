@@ -1523,6 +1523,9 @@ function ewww_image_optimizer_install_svgcleaner() {
 	if ( ! extension_loaded( 'zlib' ) || ! class_exists( 'PharData' ) ) {
 		$download_error = __( 'zlib or phar extension missing from PHP', 'ewww-image-optimizer' );
 	}
+	if ( ! ewwwio()->local->exec_check() ) {
+		$download_error = __( 'Your web server does not meet the requirements for free server-based compression with EWWW Image Optimizer.', 'ewww-image-optimizer' );
+	}
 	$os_chmod  = true;
 	$os_binary = 'svgcleaner';
 	$os_ext    = 'tar.gz';
@@ -1621,6 +1624,28 @@ function ewww_image_optimizer_install_svgcleaner() {
 		);
 	}
 	return $sendback;
+}
+
+/**
+ * Checks availability of svgcleaner installer.
+ */
+function ewww_image_optimizer_svgcleaner_installer_available() {
+	if ( ! ewwwio()->local->exec_check() ) {
+		return false;
+	}
+	if ( PHP_OS === 'Linux' ) {
+		if ( ewww_image_optimizer_function_exists( 'php_uname' ) ) {
+			if ( php_uname( 'm' ) !== 'x86_64' ) {
+				return false;
+			}
+		}
+		return true;
+	} elseif ( PHP_OS === 'Darwin' ) {
+		return true;
+	} elseif ( PHP_OS === 'WINNT' ) {
+		return true;
+	}
+	return false;
 }
 
 /**
