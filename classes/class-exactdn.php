@@ -1040,6 +1040,10 @@ class ExactDN extends Page_Parser {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$images = $this->get_images_from_html( $content, true );
 
+		if ( $this->filtering_the_page ) {
+			$this->get_preload_images( $content );
+		}
+
 		if ( ! empty( $images ) ) {
 			$this->debug_message( 'we have images to parse' );
 			if ( false !== \strpos( $content, 'elementor-section-full_width' ) ) {
@@ -1192,6 +1196,7 @@ class ExactDN extends Page_Parser {
 				if ( $this->validate_image_url( $src ) ) {
 					$this->debug_message( 'url validated' );
 
+					$srcset_attr = $this->get_attribute( $images['img_tag'][ $index ], $this->srcset_attr );
 					// Find the width and height attributes.
 					$width  = $this->get_attribute( $images['img_tag'][ $index ], 'width' );
 					$height = $this->get_attribute( $images['img_tag'][ $index ], 'height' );
@@ -1254,11 +1259,11 @@ class ExactDN extends Page_Parser {
 						$this->debug_message( 'data-id not found, looking for wp-image-x in class' );
 						\preg_match( '#class=["|\']?[^"\']*wp-image-([\d]+)[^"\']*["|\']?#i', $images['img_tag'][ $index ], $attachment_id );
 					}
-					if ( ! $this->get_option( 'exactdn_prevent_db_queries' ) && empty( $attachment_id ) ) {
+					if ( ! $srcset_attr && ! $this->get_option( 'exactdn_prevent_db_queries' ) && empty( $attachment_id ) ) {
 						$this->debug_message( 'looking for attachment id' );
 						$attachment_id = attachment_url_to_postid( $src );
 					}
-					if ( ! $this->get_option( 'exactdn_prevent_db_queries' ) && ! empty( $attachment_id ) ) {
+					if ( ! $srcset_attr && ! $this->get_option( 'exactdn_prevent_db_queries' ) && ! empty( $attachment_id ) ) {
 						if ( \is_array( $attachment_id ) ) {
 							$attachment_id = \intval( \array_pop( $attachment_id ) );
 						}
@@ -1376,7 +1381,10 @@ class ExactDN extends Page_Parser {
 						$args['h'] = $height;
 					}
 
-					if ( ! $resize_existing && ( ! $width || (int) $filename_width === (int) $width ) ) {
+					if ( ! empty( $srcset_attr ) ) {
+						$this->debug_message( 'src resize not needed, srcset present' );
+						$args = array();
+					} elseif ( ! $resize_existing && ( ! $width || (int) $filename_width === (int) $width ) ) {
 						$this->debug_message( 'preventing resize' );
 						$args = array();
 					} elseif ( ! $fullsize_url ) {
@@ -1440,24 +1448,6 @@ class ExactDN extends Page_Parser {
 							);
 						}
 
-						$srcset_url = false;
-						// Insert new image src into the srcset as well, if we have a width.
-						if ( false !== $width && false === \strpos( $width, '%' ) && $width ) {
-							$srcset_url = $exactdn_url . ' ' . (int) $width . 'w, ';
-						}
-						$srcset_attr = $this->get_attribute( $new_tag, $this->srcset_attr );
-						if ( $srcset_attr ) {
-							$new_srcset_attr = $srcset_attr;
-							if ( $srcset_url && false === \strpos( $srcset_attr, ' ' . (int) $width . 'w' ) && ! \preg_match( '/\s(1|2|3)x/', $srcset_attr ) ) {
-								$this->debug_message( 'src not in srcset, adding' );
-								$new_srcset_attr = $srcset_url . $new_srcset_attr;
-							}
-							$new_srcset_attr = $this->srcset_replace( $new_srcset_attr );
-							if ( $new_srcset_attr && $new_srcset_attr !== $srcset_attr ) {
-								$this->set_attribute( $new_tag, $this->srcset_attr, $new_srcset_attr, true );
-							}
-						}
-
 						// Check if content width pushed the respimg sizes attribute too far down.
 						if ( ! empty( $constrain_width ) && (int) $constrain_width !== (int) $content_width ) {
 							$sizes_attr     = $this->get_attribute( $new_tag, 'sizes' );
@@ -1475,6 +1465,19 @@ class ExactDN extends Page_Parser {
 							$this->set_attribute( $new_tag, 'src', $exactdn_url, true );
 						} else {
 							$new_tag = \str_replace( $src_orig, $exactdn_url, $new_tag );
+						}
+
+						$preload_image = $this->is_image_preloaded( $exactdn_url, $src_orig );
+						if ( $preload_image ) {
+							if ( $exactdn_url !== $preload_image['url'] ) {
+								$this->debug_message( "replacing {$preload_image['url']} with $exactdn_url" );
+								$new_preload_tag = $preload_image['tag'];
+								$this->set_attribute( $new_preload_tag, 'href', \esc_url( $exactdn_url ), true );
+								if ( $preload_image['tag'] !== $new_preload_tag ) {
+									$content = \str_replace( $preload_image['tag'], $new_preload_tag, $content );
+								}
+							}
+							$new_tag = $this->skip_lazyload_for_preload( $new_tag );
 						}
 
 						// If Lazy Load is in use, pass placeholder image through ExactDN.
@@ -1497,8 +1500,8 @@ class ExactDN extends Page_Parser {
 						// Replace original tag with modified version.
 						$content = \str_replace( $tag, $new_tag, $content );
 					}
-				} elseif ( ! $lazy && $this->validate_image_url( $src, true ) ) {
-					$this->debug_message( "found a potential exactdn src url to wrangle, and maybe insert into srcset: $src" );
+				} elseif ( ! $lazy && ! $this->get_attribute( $images['img_tag'][ $index ], $this->srcset_attr ) && $this->validate_image_url( $src, true ) ) {
+					$this->debug_message( "found a potential exactdn src url to wrangle: $src" );
 
 					$args    = array();
 					$new_tag = $tag;
@@ -1530,33 +1533,6 @@ class ExactDN extends Page_Parser {
 						}
 					}
 
-					$srcset_url = false;
-					if ( $width ) {
-						$this->debug_message( 'found the width' );
-						// Insert new image src into the srcset as well, if we have a width.
-						if (
-							false !== $width &&
-							false === \strpos( $width, '%' ) &&
-							false !== \strpos( $src, $width ) &&
-							false !== \strpos( $src, $this->exactdn_domain )
-						) {
-							$exactdn_url = $src;
-
-							$srcset_url = $exactdn_url . ' ' . (int) $width . 'w, ';
-						}
-					}
-					$srcset_attr = $this->get_attribute( $new_tag, $this->srcset_attr );
-					if ( $srcset_attr ) {
-						$new_srcset_attr = $srcset_attr;
-						if ( $srcset_url && false === \strpos( $srcset_attr, ' ' . (int) $width . 'w' ) && ! \preg_match( '/\s(1|2|3)x/', $srcset_attr ) ) {
-							$this->debug_message( 'src not in srcset, adding' );
-							$new_srcset_attr = $srcset_url . $new_srcset_attr;
-						}
-						$new_srcset_attr = $this->srcset_replace( $new_srcset_attr );
-						if ( $new_srcset_attr && $new_srcset_attr !== $srcset_attr ) {
-							$this->set_attribute( $new_tag, $this->srcset_attr, $new_srcset_attr, true );
-						}
-					}
 					if ( $new_tag && $new_tag !== $tag ) {
 						// Replace original tag with modified version.
 						$content = \str_replace( $tag, $new_tag, $content );
@@ -1661,6 +1637,13 @@ class ExactDN extends Page_Parser {
 		}
 		$this->debug_message( 'done parsing page' );
 		$this->filtering_the_content = false;
+
+		foreach ( $this->preload_images as $preload_index => $preload_image ) {
+			if ( ! empty( $preload_image['found'] ) ) {
+				continue;
+			}
+			$this->debug_message( "never found matching img for image preload: {$preload_image['tag']}" );
+		}
 
 		$elapsed_time = \microtime( true ) - $started;
 		$this->debug_message( "parsing the_content took $elapsed_time seconds" );
@@ -1882,6 +1865,20 @@ class ExactDN extends Page_Parser {
 						$exactdn_bg_image_url = $this->generate_url( $bg_image_url, $args );
 						if ( $bg_image_url !== $exactdn_bg_image_url ) {
 							$new_style = \str_replace( $orig_bg_url, $exactdn_bg_image_url, $new_style );
+
+							$preload_image = $this->is_image_preloaded( $exactdn_bg_image_url, $orig_bg_url );
+							if ( $preload_image ) {
+								if ( $exactdn_bg_image_url !== $preload_image['url'] ) {
+									$this->debug_message( "replacing {$preload_image['url']} with $exactdn_bg_image_url" );
+									$new_preload_tag = $preload_image['tag'];
+									$this->set_attribute( $new_preload_tag, 'href', \esc_url( $exactdn_bg_image_url ), true );
+									if ( $preload_image['tag'] !== $new_preload_tag ) {
+										$content = \str_replace( $preload_image['tag'], $new_preload_tag, $content );
+									}
+								}
+								$element        = $this->skip_lazyload_for_preload( $element );
+								$skip_autoscale = false;
+							}
 						}
 					}
 				}
@@ -2088,6 +2085,50 @@ class ExactDN extends Page_Parser {
 			$content = $this->replace_fonts( $content );
 		}
 		return $content;
+	}
+
+	/**
+	 * Check an image URL for preload status.
+	 *
+	 * @param string $exactdn_url The CDN version of an image URL.
+	 * @param string $original_url The pre-CDN version of an image URL. Optional.
+	 * @return array|bool The preload array/details if the URL is being preloaded, false otherwise.
+	 */
+	protected function is_image_preloaded( $exactdn_url, $original_url = '' ) {
+		if ( empty( $original_url ) ) {
+			$original_url = $exactdn_url;
+		}
+		$original_path = $this->parse_url( $original_url, PHP_URL_PATH );
+		foreach ( $this->preload_images as $preload_index => $preload_image ) {
+			if ( ! empty( $preload_image['found'] ) ) {
+				continue;
+			}
+			if ( $original_path === $preload_image['path'] ) {
+				$this->debug_message( "found a preload match for $original_path" );
+				$this->preload_images[ $preload_index ]['found'] = true;
+				return $preload_image;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Prevent an HTML element, like an img or a div with background image(s), from being lazyloaded or autoscaled.
+	 *
+	 * @param string $tag The HTML tag to be modified.
+	 * @return string The modified HTML tag.
+	 */
+	protected function skip_lazyload_for_preload( $tag ) {
+		if ( \defined( 'EIO_LAZY_PRELOAD' ) && EIO_LAZY_PRELOAD ) {
+			if ( false === \strpos( $tag, 'skip-autoscale' ) ) {
+				$this->set_attribute( $tag, 'data-skip-autoscale', '1' );
+			}
+		} else {
+			if ( false === \strpos( $tag, 'skip-lazy' ) ) {
+				$this->set_attribute( $tag, 'data-skip-lazy', '1' );
+			}
+		}
+		return $tag;
 	}
 
 	/**
@@ -3048,6 +3089,9 @@ class ExactDN extends Page_Parser {
 	 */
 	public function maybe_smart_crop( $args, $attachment_id, $meta = false ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( empty( $args ) ) {
+			return $args;
+		}
 		if ( ! empty( $args['crop'] ) ) {
 			$this->debug_message( 'already cropped' );
 			return $args;

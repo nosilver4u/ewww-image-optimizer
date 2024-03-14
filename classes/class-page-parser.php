@@ -42,6 +42,13 @@ class Page_Parser extends Base {
 	protected $parsing_exactdn = false;
 
 	/**
+	 * List of images that will be preloaded.
+	 *
+	 * @var array $preload_images
+	 */
+	public $preload_images = array();
+
+	/**
 	 * Match all images and any relevant <a> tags in a block of HTML.
 	 *
 	 * The hyperlinks param implies that the src attribute is required, but not the other way around.
@@ -160,6 +167,40 @@ class Page_Parser extends Base {
 			return $styles[0];
 		}
 		return array();
+	}
+
+	/**
+	 * Get a list of images that are going to be preloaded.
+	 *
+	 * @param string $content Some HTML.
+	 */
+	public function get_preload_images( $content ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( count( $this->preload_images ) ) {
+			$this->debug_message( 'already got some' );
+			return;
+		}
+		$links = $this->get_elements_from_html( $content, 'link' );
+		foreach ( $links as $link ) {
+			if ( 'preload' === $this->get_attribute( $link, 'rel' ) && 'image' === $this->get_attribute( $link, 'as' ) ) {
+				$url = $this->get_attribute( $link, 'href' );
+				if ( $url ) {
+					$this->debug_message( "found preload for $url" );
+					$path   = $this->parse_url( $url, PHP_URL_PATH );
+					$srcset = $this->get_attribute( $link, 'imagesrcset' );
+					if ( $path ) {
+						$this->debug_message( "parsed it down to $path" );
+						$this->preload_images[] = array(
+							'tag'    => $link,
+							'url'    => $url,
+							'path'   => $path,
+							'srcset' => $srcset,
+							'found'  => false,
+						);
+					}
+				}
+			}
+		}
 	}
 
 	/**
