@@ -111,6 +111,14 @@ class Background_Process_Image extends Background_Process {
 		global $ewww_convert;
 		$id = (int) $item['id'];
 		\ewwwio_debug_message( "background processing $id" );
+
+		if ( ! $this->is_key_valid() ) {
+			// There is another process running.
+			\ewwwio_debug_message( "this key is different than the stored key: {$this->lock_key}" );
+			die;
+		}
+		\ewwwio_debug_message( 'this key is still active: ' . $this->lock_key );
+
 		$image = new \EWWW_Image( $id );
 		// Force the process to re-spawn if we don't have enough time remaining for this image.
 		$time_estimate = $image->time_estimate();

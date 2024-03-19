@@ -96,18 +96,38 @@ abstract class Background_Process extends Async_Request {
 	protected $active_queue;
 
 	/**
+	 * A unique key for each background process. Used to prevent duplication.
+	 *
+	 * @var string
+	 * @access protected
+	 */
+	protected $lock_key;
+
+	/**
 	 * Amount of time to set the "process lock" transient.
 	 *
 	 * @var int
 	 * @access protected
 	 */
-	protected $queue_lock_time = 180; // 3 minutes
+	protected $queue_lock_time = 90; // in seconds.
+
+	/**
+	 * Directory in which to store process locks, if writable.
+	 *
+	 * @var string
+	 * @access protected
+	 */
+	protected $lock_dir = '';
 
 	/**
 	 * Initiate new background process
 	 */
 	public function __construct() {
 		parent::__construct();
+
+		if ( \is_writable( EWWWIO_CONTENT_DIR ) && \function_exists( '\filemtime' ) ) {
+			$this->lock_dir = EWWWIO_CONTENT_DIR;
+		}
 
 		$this->cron_hook_identifier     = $this->identifier . '_cron';
 		$this->cron_interval_identifier = $this->identifier . '_cron_interval';
@@ -206,7 +226,13 @@ abstract class Background_Process extends Async_Request {
 	public function maybe_handle() {
 		session_write_close();
 
-		if ( $this->is_process_running() ) {
+		\check_ajax_referer( $this->identifier, 'nonce' );
+
+		if ( ! empty( $_REQUEST['lock_key'] ) ) {
+			$this->lock_key = \sanitize_text_field( \wp_unslash( $_REQUEST['lock_key'] ) );
+		}
+
+		if ( $this->is_process_running() && ! $this->is_key_valid() ) {
 			// Background process already running.
 			die;
 		}
@@ -215,8 +241,6 @@ abstract class Background_Process extends Async_Request {
 			// No data to process.
 			die;
 		}
-
-		\check_ajax_referer( $this->identifier, 'nonce' );
 
 		$this->handle();
 
@@ -243,7 +267,7 @@ abstract class Background_Process extends Async_Request {
 	}
 
 	/**
-	 * Is process running
+	 * Is process running?
 	 *
 	 * Check whether the current process is already running
 	 * in a background process.
@@ -251,8 +275,76 @@ abstract class Background_Process extends Async_Request {
 	 * @return bool
 	 */
 	public function is_process_running() {
-		if ( \get_transient( $this->identifier . '_process_lock' ) ) {
+		if ( $this->get_process_lock() ) {
 			// Process already running.
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Is disk-based lock valid?
+	 *
+	 * @return bool True if it is valid, false if it is expired.
+	 */
+	protected function is_disk_lock_valid() {
+		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		$lock_duration = \apply_filters( $this->identifier . '_queue_lock_time', $this->queue_lock_time );
+		$lock_file     = $this->process_lock_file();
+		\clearstatcache();
+		if ( \ewwwio_is_file( $lock_file ) && \time() - \filemtime( $lock_file ) < $lock_duration ) {
+			\ewwwio_debug_message( 'process lock file in place' );
+			return true;
+		}
+		\ewwwio_debug_message( 'process lock file gone or expired' );
+		return false;
+	}
+
+	/**
+	 * Get the process lock/key from disk or transient.
+	 *
+	 * @return bool|string The key in the lock, if one exists, false otherwise.
+	 */
+	protected function get_process_lock() {
+		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		$db_key = false;
+		if ( $this->lock_dir ) {
+			\ewwwio_debug_message( "$this->lock_dir is valid" );
+			$lock_file = $this->process_lock_file();
+			if ( $this->is_disk_lock_valid( $lock_file ) ) {
+				$db_key = \trim( \file_get_contents( $lock_file ) );
+				\ewwwio_debug_message( "retrieved lock key: $db_key" );
+			}
+		} else {
+			$db_key = \get_transient( $this->identifier . '_process_lock' );
+		}
+		return $db_key;
+	}
+
+	/**
+	 * Build the filename to the disk-based process lock file.
+	 *
+	 * @return string The filename to use for the lock file.
+	 */
+	protected function process_lock_file() {
+		return $this->lock_dir . '.' . $this->identifier . '_process_lock';
+	}
+
+	/**
+	 * Is process unique?
+	 *
+	 * Check the lock value/transient against the key for this process to ensure they match.
+	 *
+	 * @return bool
+	 */
+	protected function is_key_valid() {
+		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		$stored_key = $this->get_process_lock();
+		\ewwwio_debug_message( "stored key is $stored_key" );
+		\ewwwio_debug_message( "process key is $this->lock_key" );
+		if ( ! empty( $this->lock_key ) && $stored_key === $this->lock_key ) {
+			// Process is unique because db key still matches the key for this process.
 			return true;
 		}
 
@@ -263,15 +355,34 @@ abstract class Background_Process extends Async_Request {
 	 * Update (or initialize) process lock
 	 *
 	 * Update the process lock so that other instances do not spawn.
-	 *
-	 * @return $this
 	 */
 	protected function update_lock() {
-		if ( empty( $this->active_queue ) ) {
-			return;
+		if ( ! empty( $this->active_queue ) ) {
+			if ( empty( $this->lock_key ) ) {
+				$this->lock_key = \uniqid( $this->active_queue, true ) . $this->generate_key_suffix();
+			}
+			if ( $this->lock_dir ) {
+				\file_put_contents( $this->process_lock_file(), $this->lock_key );
+			} else {
+				$lock_duration = \apply_filters( $this->identifier . '_queue_lock_time', $this->queue_lock_time );
+				\set_transient( $this->identifier . '_process_lock', $this->lock_key, $lock_duration );
+			}
 		}
-		$lock_duration = \apply_filters( $this->identifier . '_queue_lock_time', $this->queue_lock_time );
-		\set_transient( $this->identifier . '_process_lock', $this->active_queue, $lock_duration );
+	}
+
+	/**
+	 * Generate a random alpha-numeric suffix for the lock key.
+	 *
+	 * @return string A random alpha-numeric string with 5-10 characters.
+	 */
+	protected function generate_key_suffix() {
+		$suffix = '';
+		$chars  = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+		$length = random_int( 5, 10 );
+		while ( strlen( $suffix ) < $length ) {
+			$suffix .= substr( $chars, random_int( 0, 61 ), 1 );
+		}
+		return $suffix;
 	}
 
 	/**
@@ -282,6 +393,9 @@ abstract class Background_Process extends Async_Request {
 	 * @return $this
 	 */
 	protected function unlock_process() {
+		if ( $this->lock_dir ) {
+			\ewwwio_delete_file( $this->process_lock_file() );
+		}
 		\delete_transient( $this->identifier . '_process_lock' );
 
 		return $this;
@@ -338,7 +452,11 @@ abstract class Background_Process extends Async_Request {
 			}
 		} while ( ! $this->time_exceeded() && ! $this->memory_exceeded() && ! $this->is_queue_empty() );
 
-		$this->unlock_process();
+		// For most queues, it is sufficient to only check once per batch. Individual queues may check on each item if needed.
+		if ( ! $this->is_key_valid() ) {
+			// There is another process running.
+			die;
+		}
 
 		// Start next batch or complete process.
 		if ( ! $this->is_queue_empty() ) {
@@ -419,6 +537,8 @@ abstract class Background_Process extends Async_Request {
 	 * performed, or, call parent::complete().
 	 */
 	protected function complete() {
+		$this->unlock_process();
+
 		// Unschedule the cron healthcheck.
 		$this->clear_scheduled_event();
 	}

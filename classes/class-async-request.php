@@ -105,8 +105,9 @@ abstract class Async_Request {
 		}
 
 		return array(
-			'action' => $this->identifier,
-			'nonce'  => \wp_create_nonce( $this->identifier ),
+			'action'   => $this->identifier,
+			'nonce'    => \wp_create_nonce( $this->identifier ),
+			'lock_key' => \property_exists( $this, 'lock_key' ) ? $this->lock_key : '',
 		);
 	}
 

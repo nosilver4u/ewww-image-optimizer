@@ -146,6 +146,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: Easy IO support for upcoming Slider Revolution 7 rendering engine
 * added: Easy IO updates existing image preload URLs
 * added: Lazy Load automatically excludes preloaded images
+* changed: async process locking uses unique key on disk to avoid duplicate processes
 * fixed: Easy IO skipping Slider Revolution 6 URLs
 * fixed: Lazy Load incorrectly auto-scales fixed group background images
 * fixed: uncaught errors when attempting svgcleaner install on FreeBSD
