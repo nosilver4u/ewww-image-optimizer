@@ -117,7 +117,7 @@ abstract class Background_Process extends Async_Request {
 	 * @var string
 	 * @access protected
 	 */
-	protected $lock_dir = '';
+	protected $lock_dir;
 
 	/**
 	 * Initiate new background process
@@ -125,9 +125,7 @@ abstract class Background_Process extends Async_Request {
 	public function __construct() {
 		parent::__construct();
 
-		if ( \is_writable( EWWWIO_CONTENT_DIR ) && \function_exists( '\filemtime' ) ) {
-			$this->lock_dir = EWWWIO_CONTENT_DIR;
-		}
+		$this->lock_dir = $this->get_lock_dir();
 
 		$this->cron_hook_identifier     = $this->identifier . '_cron';
 		$this->cron_interval_identifier = $this->identifier . '_cron_interval';
@@ -281,6 +279,22 @@ abstract class Background_Process extends Async_Request {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Get the process lock directory, if allowed.
+	 *
+	 * @return string The lock directory to use, or an empty string.
+	 */
+	protected function get_lock_dir() {
+		if (
+			\is_writable( EWWWIO_CONTENT_DIR ) &&
+			\function_exists( '\filemtime' ) &&
+			empty( $_ENV['PANTHEON_ENVIRONMENT'] ) &&
+			\apply_filters( 'ewww_image_optimizer_async_disk_locking', true )
+		) {
+			return EWWWIO_CONTENT_DIR;
+		}
 	}
 
 	/**
