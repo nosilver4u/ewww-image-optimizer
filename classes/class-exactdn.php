@@ -330,10 +330,13 @@ class ExactDN extends Page_Parser {
 		\add_filter( 'ngg_get_image_url', array( $this, 'plugin_get_image_url' ) );
 
 		// Filter Slider Revolution 7 REST API JSON.
-		if ( ! \defined( 'EXACTDN_SUPPRESS_JSON_FILTER' ) ) {
+		if ( \defined( 'EXACTDN_ENABLE_JSON_FILTERS' ) ) {
 			\add_filter( 'sr_get_full_slider_JSON', array( $this, 'sr7_slider_object' ) );
+			// This one is just to get at the slider background image, do not use it for anything else.
+			\add_filter( 'revslider_add_slider_base', array( $this, 'sr7_slider_object' ) );
 		}
-		\add_filter( 'revslider_add_slider_base', array( $this, 'sr7_slider_object' ) );
+		// This is the new one for the slider background image.
+		\add_filter( 'sr_add_slide_background_image_url', array( $this, 'plugin_get_image_url' ) );
 		\add_filter( 'sr_get_image_lists', array( $this, 'filter_sr7_image_lists' ) );
 
 		// Filter for Spotlight Social Media Feeds.
