@@ -332,10 +332,10 @@ class ExactDN extends Page_Parser {
 		// Filter Slider Revolution 7 REST API JSON.
 		if ( \defined( 'EXACTDN_ENABLE_JSON_FILTERS' ) ) {
 			\add_filter( 'sr_get_full_slider_JSON', array( $this, 'sr7_slider_object' ) );
-			// This one is just to get at the slider background image, do not use it for anything else.
-			\add_filter( 'revslider_add_slider_base', array( $this, 'sr7_slider_object' ) );
 		}
-		// This is the new one for the slider background image.
+		// This one is just to get at the slider background image, do not use it for anything else.
+		\add_filter( 'revslider_add_slider_base', array( $this, 'sr7_slider_object' ) );
+		// This is for the slide background image contained in a <noscript>.
 		\add_filter( 'sr_add_slide_background_image_url', array( $this, 'plugin_get_image_url' ) );
 		\add_filter( 'sr_get_image_lists', array( $this, 'filter_sr7_image_lists' ) );
 
@@ -1084,7 +1084,7 @@ class ExactDN extends Page_Parser {
 				$src      = \trim( $images['img_url'][ $index ] );
 				$src_orig = $images['img_url'][ $index ]; // Don't trim, because we'll use it for search/replacement later.
 				if ( \is_string( $src ) ) {
-					$this->debug_message( $src );
+					$this->debug_message( "starting img_url: $src" );
 				} else {
 					$this->debug_message( '$src is not a string?' );
 				}
@@ -2038,8 +2038,10 @@ class ExactDN extends Page_Parser {
 		if ( ! empty( $images ) ) {
 			$this->debug_message( 'we have SR7 images to parse' );
 			foreach ( $images as $index => $image ) {
-				if ( ! empty( $image['src'] ) && $this->validate_image_url( $image['src'] ) ) {
+				if ( is_array( $image ) && ! empty( $image['src'] ) && $this->validate_image_url( $image['src'] ) ) {
 					$images[ $index ]['src'] = $this->generate_url( $image['src'] );
+				} elseif ( is_string( $image ) && $this->validate_image_url( $image ) ) {
+					$images[ $index ] = $this->generate_url( $image );
 				}
 			} // End foreach() -- of more images found in the page.
 		} // End if() -- we found more images in the page.
@@ -3673,7 +3675,8 @@ class ExactDN extends Page_Parser {
 				if ( ! empty( $slider->params['bg']['image']['src'] ) && is_string( $slider->params['bg']['image']['src'] ) && $this->validate_image_url( $slider->params['bg']['image']['src'] ) ) {
 					$slider->params['bg']['image']['src'] = $this->generate_url( $slider->params['bg']['image']['src'] );
 				}
-				if ( ! empty( $slider->params['imgs'] ) && $this->is_iterable( $slider->params['imgs'] ) ) {
+				// This one is disabled, so that we are only altering the overall slider background for now.
+				if ( false && ! empty( $slider->params['imgs'] ) && $this->is_iterable( $slider->params['imgs'] ) ) {
 					foreach ( $slider->params['imgs'] as $img_index => $slider_settings_img ) {
 						if ( \is_string( $slider_settings_img ) && $this->validate_image_url( $slider_settings_img ) ) {
 							$slider->params['imgs'][ $img_index ] = $this->generate_url( $slider_settings_img );
