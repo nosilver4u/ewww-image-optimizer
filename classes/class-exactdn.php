@@ -330,7 +330,9 @@ class ExactDN extends Page_Parser {
 		\add_filter( 'ngg_get_image_url', array( $this, 'plugin_get_image_url' ) );
 
 		// Filter Slider Revolution 7 REST API JSON.
-		\add_filter( 'sr_get_full_slider_JSON', array( $this, 'sr7_slider_object' ) );
+		if ( ! \defined( 'EXACTDN_SUPPRESS_JSON_FILTER' ) ) {
+			\add_filter( 'sr_get_full_slider_JSON', array( $this, 'sr7_slider_object' ) );
+		}
 		\add_filter( 'revslider_add_slider_base', array( $this, 'sr7_slider_object' ) );
 		\add_filter( 'sr_get_image_lists', array( $this, 'filter_sr7_image_lists' ) );
 
