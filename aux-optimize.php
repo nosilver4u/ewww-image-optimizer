@@ -267,7 +267,7 @@ function ewww_image_optimizer_aux_images_table() {
 	foreach ( $already_optimized as $optimized_image ) {
 		$file       = ewww_image_optimizer_absolutize_path( $optimized_image['path'] );
 		$image_name = str_replace( ABSPATH, '', $file );
-		$thumb_url  = esc_url( site_url( 'wp-includes/images/media/default.png' ) );
+		$thumb_url  = '';
 		$image_url  = '';
 		$trace      = maybe_unserialize( $optimized_image['trace'] );
 		ewwwio_debug_message( "name is $image_name after replacing ABSPATH" );
@@ -282,6 +282,12 @@ function ewww_image_optimizer_aux_images_table() {
 				$image_url = esc_url( content_url( $image_name ) );
 			}
 		}
+		if ( empty( $thumb_url ) && ! empty( $image_url ) ) {
+			$thumb_url = $image_url;
+		} elseif ( empty( $thumb_url ) ) {
+			$thumb_url = esc_url( site_url( 'wp-includes/images/media/default.png' ) );
+		}
+
 		$image_name = esc_html( $image_name );
 		$savings    = '';
 		if ( $optimized_image['image_size'] ) {
