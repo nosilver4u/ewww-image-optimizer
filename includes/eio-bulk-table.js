@@ -181,6 +181,9 @@ jQuery(document).ready(function($) {
 				$('.ewww-queue-controls').hide();
 				$('.ewww-bulk-spinner').hide();
 				if (ewww_response.complete) {
+					if (ewww_table_visible) {
+						ewwwUpdateTable();
+					}
 					$('#ewww-optimize-local-images').html( ewww_response.complete );
 					$('#ewww-search-pending').hide();
 				}

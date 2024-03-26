@@ -332,9 +332,6 @@ function ewww_image_optimizer_aux_images_table() {
 		$resize_status = '<br>' . esc_html( ewww_image_optimizer_resize_results_message( $optimized_image['path'], $optimized_image['resize_error'] ) );
 		// Retrieve the mimetype of the attachment.
 		$type = ewww_image_optimizer_quick_mimetype( $file, 'i' );
-		if ( 'application/pdf' === $type ) {
-			$thumb_url = esc_url( site_url( 'wp-includes/images/media/default.png' ) );
-		}
 
 		// Get a human readable filesize.
 		$file_size = ewww_image_optimizer_size_format( $optimized_image['image_size'] );
