@@ -228,11 +228,13 @@ class Lazy_Load extends Page_Parser {
 		if ( $this->is_iterable( $this->user_page_exclusions ) ) {
 			foreach ( $this->user_page_exclusions as $page_exclusion ) {
 				if ( '/' === $page_exclusion && '/' === $uri ) {
+					$this->debug_message( "$uri matchs $page_exclusion" );
 					return false;
 				} elseif ( '/' === $page_exclusion ) {
 					continue;
 				}
 				if ( false !== \strpos( $uri, $page_exclusion ) ) {
+					$this->debug_message( "$uri matchs $page_exclusion" );
 					return false;
 				}
 			}

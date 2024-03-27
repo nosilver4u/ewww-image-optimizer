@@ -211,7 +211,7 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 }
 
 /**
- * Setup page parsing classes after theme functions.php is loaded and plugins have run init routines.
+ * Setup page parsing classes early, but after theme functions.php is loaded and plugins have loaded.
  */
 function ewww_image_optimizer_parser_init() {
 	$buffer_start = false;
@@ -279,6 +279,9 @@ function ewww_image_optimizer_parser_init() {
 	if ( $buffer_start ) {
 		// Start an output buffer before any output starts.
 		add_action( 'template_redirect', 'ewww_image_optimizer_buffer_start', 0 );
+		if ( wp_doing_ajax() && apply_filters( 'eio_filter_admin_ajax_response', false ) ) {
+			add_action( 'admin_init', 'ewww_image_optimizer_buffer_start', 0 );
+		}
 	}
 }
 
