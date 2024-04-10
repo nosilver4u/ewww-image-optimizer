@@ -142,7 +142,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 = 7.5.1 =
 *Release Date - TBD*
+* added: Lazy Load can use dominant color placeholders via Easy IO
 * added: ability to filter/parse admin-ajax.php requests via eio_filter_admin_ajax_response filter
+* changed: improved smoothing of LQIP for Lazy Load when using Easy IO
 * fixed: async bulk interface does not show Start Optimizing when image queue is already visible
 * fixed: bulk process appears to have completed after clearing queue
 
