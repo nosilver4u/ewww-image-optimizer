@@ -2590,6 +2590,7 @@ function ewww_image_optimizer_handle_upload( $params ) {
 				$ewwwdb->ewwwio_images,
 				array(
 					'path'      => ewww_image_optimizer_relativize_path( $file_path ),
+					'converted' => '',
 					'orig_size' => $orig_size,
 				)
 			);
@@ -6247,6 +6248,7 @@ function ewww_image_optimizer_single_insert( $path, $gallery = '', $attachment_i
 		}
 		$to_insert = array(
 			'path'      => $utf8_file_path,
+			'converted' => '',
 			'orig_size' => $orig_size,
 			'pending'   => 1,
 		);
@@ -6468,10 +6470,9 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 		$converted         = ewww_image_optimizer_relativize_path( $original );
 	} else {
 		$already_optimized = ewww_image_optimizer_find_already_optimized( $attachment );
+		$converted         = '';
 		if ( is_array( $already_optimized ) && ! empty( $already_optimized['converted'] ) ) {
 			$converted = $already_optimized['converted'];
-		} else {
-			$converted = '';
 		}
 	}
 	if ( is_array( $already_optimized ) && ! empty( $already_optimized['updates'] ) && $opt_size >= $orig_size ) {
@@ -6605,6 +6606,7 @@ function ewww_image_optimizer_update_webp_results( $attachment, $webp_size, $web
 	// Store info on the current image for future reference.
 	if ( empty( $already_optimized ) || ! is_array( $already_optimized ) ) {
 		ewwwio_debug_message( "creating new record for $attachment" );
+		$updates['converted'] = '';
 		$ewwwdb->insert( $ewwwdb->ewwwio_images, $updates );
 	} else {
 		ewwwio_debug_message( "updating existing record ({$already_optimized['id']}), path: $attachment" );
@@ -6669,6 +6671,7 @@ function ewww_image_optimizer_update_resize_results( $attachment, $resized_width
 	// Store info on the current image for future reference.
 	if ( empty( $already_optimized ) || ! is_array( $already_optimized ) ) {
 		ewwwio_debug_message( "creating new record for $attachment" );
+		$updates['converted'] = '';
 		$ewwwdb->insert( $ewwwdb->ewwwio_images, $updates );
 	} else {
 		ewwwio_debug_message( "updating existing record ({$already_optimized['id']}), path: $attachment" );

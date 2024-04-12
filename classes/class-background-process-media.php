@@ -225,6 +225,7 @@ class Background_Process_Media extends Background_Process {
 				$ewwwdb->ewwwio_images,
 				array(
 					'path'          => \ewww_image_optimizer_relativize_path( $file_path ),
+					'converted'     => '',
 					'gallery'       => 'media',
 					'orig_size'     => $image_size,
 					'attachment_id' => $id,

@@ -93,6 +93,7 @@ class EWWWIO_Table_Tests extends WP_UnitTestCase {
 		unset( $record['id'] );
 		$record['image_size'] = $file_size;
 		$record['path']       = ewww_image_optimizer_relativize_path( $opt_file );
+		$record['converted']  = '';
 		$wpdb->insert( $wpdb->ewwwio_images, $record );
 		$record['image_size'] = 0;
 		$wpdb->insert( $wpdb->ewwwio_images, $record );
