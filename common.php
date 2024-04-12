@@ -122,7 +122,9 @@ add_action( 'wp_handle_replace', 'ewww_image_optimizer_media_replace' );
 // Cleanup db records when Phoenix Media Rename is finished.
 add_action( 'pmr_renaming_successful', 'ewww_image_optimizer_media_rename', 10, 2 );
 // Cleanup db records when Image Regenerate & Select Crop deletes a file.
-add_action( 'sirsc_image_file_deleted', 'ewww_image_optimizer_file_deleted', 10, 2 );
+add_action( 'sirsc_image_file_deleted', 'ewww_image_optimizer_irsc_file_deleted', 10, 2 );
+// Cleanup db records when Force Regenerate Thumbnails deletes a file.
+add_action( 'regenerate_thumbs_post_delete', 'ewww_image_optimizer_file_deleted' );
 // Adds the EWWW IO pages to the admin menu.
 add_action( 'admin_menu', 'ewww_image_optimizer_admin_menu', 60 );
 // Adds the EWWW IO settings to the network admin menu.
@@ -4331,6 +4333,19 @@ function ewww_image_optimizer_delete( $id ) {
 }
 
 /**
+ * Cleans up when a file has been deleted by the IRSC plugin
+ *
+ * Wrapper for ewww_image_optimizer_file_deleted(), which only needs a path.
+ *
+ * @param int    $id The id number for the attachment being deleted.
+ * @param string $file The file being deleted.
+ */
+function ewww_image_optimizer_irsc_file_deleted( $id, $file ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	ewww_image_optimizer_file_deleted( $file );
+}
+
+/**
  * Cleans up when a file has been deleted.
  *
  * Removes any .webp images, backups from conversion, and removes related database records.
@@ -4338,10 +4353,9 @@ function ewww_image_optimizer_delete( $id ) {
  * @global object $wpdb
  * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  *
- * @param int    $id The id number for the attachment being deleted.
  * @param string $file The file being deleted.
  */
-function ewww_image_optimizer_file_deleted( $id, $file ) {
+function ewww_image_optimizer_file_deleted( $file ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $eio_backup;
 	global $wpdb;
@@ -4351,7 +4365,7 @@ function ewww_image_optimizer_file_deleted( $id, $file ) {
 	} else {
 		$ewwwdb = $wpdb;
 	}
-	$id = (int) $id;
+	ewwwio_debug_message( "$file was removed" );
 	// Finds non-meta images to remove from disk, and from db, as well as converted originals.
 	$maybe_relative_path = ewww_image_optimizer_relativize_path( $file );
 	$query               = $ewwwdb->prepare( "SELECT * FROM $ewwwdb->ewwwio_images WHERE path = %s", $maybe_relative_path );

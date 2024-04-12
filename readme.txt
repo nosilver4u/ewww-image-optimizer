@@ -149,6 +149,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: async bulk interface does not show Start Optimizing when image queue is already visible
 * fixed: bulk process appears to have completed after clearing queue
 * fixed: storing resize/webp results for new images fails with MySQL strict mode
+* fixed: database records not cleaned after thumbs are removed by Force Regenerate Thumbnails
 
 = 7.5.0 =
 *Release Date - March 26, 2024*
