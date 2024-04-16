@@ -301,6 +301,9 @@ class ExactDN extends Page_Parser {
 		// Filter for generic use by other plugins/themes.
 		\add_filter( 'exactdn_local_to_cdn_url', array( $this, 'plugin_get_image_url' ) );
 
+		// Filter for Divi Pixel plugin SVG images.
+		\add_filter( 'dipi_image_mask_image_url', array( $this, 'plugin_get_image_url' ) );
+
 		// Filter to check for Elementor full_width layouts.
 		\add_filter( 'elementor/frontend/builder_content_data', array( $this, 'elementor_builder_content_data' ) );
 
