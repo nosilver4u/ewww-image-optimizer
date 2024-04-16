@@ -783,7 +783,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 						$imagick = new Imagick( $file );
 						if ( ewww_image_optimizer_png_alpha( $file ) ) {
 							$imagick->setImageBackgroundColor( new ImagickPixel( '#' . $magick_background ) );
-							$imagick->setImageAlphaChannel( 11 );
+							$imagick->setImageAlphaChannel( imagick::ALPHACHANNEL_REMOVE );
 						}
 						$imagick->setImageFormat( 'JPG' );
 						$imagick->setImageCompressionQuality( $gquality );
