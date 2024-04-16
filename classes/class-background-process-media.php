@@ -364,6 +364,7 @@ class Background_Process_Media extends Background_Process {
 				if ( empty( $data['file'] ) ) {
 					continue;
 				}
+				ewwwio_debug_message( "maybe optimizing {$data['file']}" );
 				// Check through all the sizes we've processed so far.
 				foreach ( $processed as $proc => $scan ) {
 					// If a previous resize had identical dimensions.

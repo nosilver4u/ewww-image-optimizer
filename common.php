@@ -9789,6 +9789,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 			echo wp_kses_post( $msg ) . '</div>';
 			return;
 		}
+
 		$ewww_manual_nonce = wp_create_nonce( 'ewww-manual' );
 		$in_progress       = false;
 		$migrated          = false;
@@ -9797,7 +9798,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 		$file_parts        = pathinfo( $file_path );
 		$basename          = $file_parts['filename'];
 		$action_id         = ewww_image_optimizer_get_primary_translated_media_id( $id );
-		// If necessary, use get_post_meta( $post_id, '_wp_attachment_backup_sizes', true ); to only use basename for edited attachments, but that requires extra queries, so kiss for now.
+
 		if ( $ewww_cdn ) {
 			if ( ewww_image_optimizer_image_is_pending( $action_id, 'media-async' ) ) {
 				echo '<div>' . esc_html__( 'In Progress', 'ewww-image-optimizer' ) . '</div>';
@@ -9914,6 +9915,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 			echo '</div>';
 			return;
 		} // End if().
+
 		// End of output for CDN images.
 		if ( ewww_image_optimizer_image_is_pending( $action_id, 'media-async' ) ) {
 			echo '<div>' . esc_html__( 'In Progress', 'ewww-image-optimizer' ) . '</div>';

@@ -23,24 +23,6 @@ jQuery(document).ready(function($) {
 			}
 		}
 	);
-	$('#ewwwio-wizard-step-1').on(
-		'submit',
-		function() {
-			return;
-			$(this).hide();
-			$('#ewwwio-wizard-step-2').show();
-			return false;
-		}
-	);
-	$('.ewwwio-wizard-back').on(
-		'click',
-		function() {
-			return;
-			$('#ewwwio-wizard-step-2').hide();
-			$('#ewwwio-wizard-step-1').show();
-			return false;
-		}
-	);
 	function removeQueryArg(url) {
 		return url.split('?')[0];
 	}
