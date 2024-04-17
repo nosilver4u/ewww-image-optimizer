@@ -13462,7 +13462,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<p><strong><?php esc_html_e( 'Though you already have a lazy loader on your site, the EWWW IO lazy loader includes auto-scaling for improved responsive images.', 'ewww-image-optimizer' ); ?></strong></p>
 		<?php endif; ?>
 						<p class='description'>
-							<?php esc_html_e( 'The lazy loader chooses the best available image size from existing responsive markup. When used with Easy IO, all images become responsive.', 'ewww-image-optimizer' ); ?></br>
+							<?php esc_html_e( 'Can automatically scale images based on display size.', 'ewww-image-optimizer' ); ?>
 						</p>
 					</td>
 				</tr>
@@ -13474,6 +13474,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<?php ewwwio_help_link( 'https://docs.ewww.io/article/74-lazy-load', '5c6c36ed042863543ccd2d9b' ); ?>
 						<p class='description'>
 							<?php esc_html_e( 'Automatically detect the correct image size within responsive (srcset) markup.', 'ewww-image-optimizer' ); ?>
+							<?php esc_html_e( 'When used with Easy IO, all images become responsive.', 'ewww-image-optimizer' ); ?>
 						</p>
 					</td>
 				</tr>
