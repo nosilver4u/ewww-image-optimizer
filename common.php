@@ -9807,7 +9807,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 				$sizes_pending = ewww_image_optimizer_attachment_has_pending_sizes( $id );
 				if ( $sizes_pending ) {
 					$in_progress     = true;
-					$optimized_sizes = ewww_image_optimizer_get_optimized_sizes( $id );
+					$optimized_sizes = ewww_image_optimizer_get_optimized_sizes( $id, 'media', $meta );
 					$total_sizes     = $sizes_pending + count( $optimized_sizes );
 					echo '<div>' . sprintf(
 						esc_html(
@@ -9820,13 +9820,13 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 				}
 			}
 			if ( ! $in_progress ) {
-				$optimized_images = ewww_image_optimizer_get_optimized_sizes( $id );
+				$optimized_images = ewww_image_optimizer_get_optimized_sizes( $id, 'media', $meta );
 				if ( ! $optimized_images ) {
 					// Attempt migration, but only if the original image is in the db, $migrated will be metadata on success, false on failure.
 					$migrated = ewww_image_optimizer_migrate_meta_to_db( $id, $meta, true );
 				}
 				if ( $migrated ) {
-					$optimized_images = ewww_image_optimizer_get_optimized_sizes( $id );
+					$optimized_images = ewww_image_optimizer_get_optimized_sizes( $id, 'media', $meta );
 				}
 				if ( ! $optimized_images ) {
 					list( $possible_action_id, $optimized_images ) = ewww_image_optimizer_get_translated_media_results( $id );
@@ -9924,7 +9924,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 			$sizes_pending = ewww_image_optimizer_attachment_has_pending_sizes( $id );
 			if ( $sizes_pending ) {
 				$in_progress     = true;
-				$optimized_sizes = ewww_image_optimizer_get_optimized_sizes( $id );
+				$optimized_sizes = ewww_image_optimizer_get_optimized_sizes( $id, 'media', $meta );
 				$total_sizes     = $sizes_pending + count( $optimized_sizes );
 				echo '<div>' . sprintf(
 					esc_html(
@@ -9937,13 +9937,13 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 			}
 		}
 		if ( ! $in_progress ) {
-			$optimized_images = ewww_image_optimizer_get_optimized_sizes( $id );
+			$optimized_images = ewww_image_optimizer_get_optimized_sizes( $id, 'media', $meta );
 			if ( ! $optimized_images ) {
 				// Attempt migration, but only if the original image is in the db, $migrated will be metadata on success, false on failure.
 				$migrated = ewww_image_optimizer_migrate_meta_to_db( $id, $meta, true );
 			}
 			if ( $migrated ) {
-				$optimized_images = ewww_image_optimizer_get_optimized_sizes( $id );
+				$optimized_images = ewww_image_optimizer_get_optimized_sizes( $id, 'media', $meta );
 			}
 			if ( ! $optimized_images ) {
 				list( $possible_action_id, $optimized_images ) = ewww_image_optimizer_get_translated_media_results( $id );
@@ -10145,11 +10145,48 @@ function ewww_image_optimizer_variant_level_notice( $optimized_images, $compress
  *
  * @param int    $id The ID of the attachment/image.
  * @param string $gallery The type of image to look for. Optional, default is 'media'.
+ * @param array  $meta The attachment metadata. Optional.
  * @return array A list of db records connected to the attachment.
  */
-function ewww_image_optimizer_get_optimized_sizes( $id, $gallery = 'media' ) {
+function ewww_image_optimizer_get_optimized_sizes( $id, $gallery = 'media', $meta = array() ) {
 	global $wpdb;
-	return $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = %s AND image_size > 0 AND pending = 0 ORDER BY orig_size DESC", $id, $gallery ), ARRAY_A );
+
+	$optimized_sizes     = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = %s AND image_size > 0 AND pending = 0 ORDER BY orig_size DESC", $id, $gallery ), ARRAY_A );
+	$hide_inactive_sizes = false;
+
+	if ( $optimized_sizes && ! empty( $meta['file'] ) && isset( $meta['sizes'] ) ) {
+		if ( preg_match( '/-e[0-9]{13}\./', $meta['file'] ) ) {
+			$hide_inactive_sizes = true;
+		}
+		foreach ( $optimized_sizes as $optimized_size ) {
+			if ( ! empty( $optimized_size['path'] ) && preg_match( '/-e[0-9]{13}\./', $optimized_size['path'] ) ) {
+				$hide_inactive_sizes = true;
+				break;
+			}
+		}
+		if ( $hide_inactive_sizes ) {
+			$valid_sizes = array();
+			foreach ( $optimized_sizes as $optimized_size ) {
+				if ( wp_basename( $meta['file'] ) === wp_basename( $optimized_size['path'] ) ) {
+					$valid_sizes[] = $optimized_size;
+					continue;
+				}
+				if ( ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
+					foreach ( $meta['sizes'] as $size ) {
+						if ( ! empty( $size['file'] ) && wp_basename( $size['file'] ) === wp_basename( $optimized_size['path'] ) ) {
+							$valid_sizes[] = $optimized_size;
+							continue 2;
+						}
+					}
+				}
+			}
+			if ( ! empty( $valid_sizes ) ) {
+				$optimized_sizes = $valid_sizes;
+			}
+		}
+	}
+
+	return $optimized_sizes;
 }
 
 /**
