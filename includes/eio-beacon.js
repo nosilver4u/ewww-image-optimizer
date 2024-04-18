@@ -11,8 +11,8 @@ jQuery(document).ready(function($) {
 			console.log(err);
 		}
 	});
-	function HSregister() {
-		if (typeof(Beacon) !== 'undefined' ) {
+	if (typeof(Beacon) !== 'undefined' ) {
+		Beacon( 'on', 'ready', function() {
 			$('.ewww-overrides-nav').on( 'click', function() {
 				Beacon('article', '59710ce4042863033a1b45a6', { type: 'modal' });
 				return false;
@@ -40,9 +40,8 @@ jQuery(document).ready(function($) {
 				Beacon('article', hsid, { type: 'modal' });
 				return false;
 			});
-		}
+		});
 	}
-	HSregister();
 });
 function selectText(containerid) {
 	var debug_node = document.getElementById(containerid);

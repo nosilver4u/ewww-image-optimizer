@@ -153,6 +153,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: storing resize/webp results for new images fails with MySQL strict mode
 * fixed: database records not cleaned after thumbs are removed by Force Regenerate Thumbnails
 * fixed: JPG to PNG conversion on 8-bit PNGs sometimes uses incorrect black background
+* fixed: Help links broken in Firefox's Strict mode
 
 = 7.5.0 =
 *Release Date - March 26, 2024*
