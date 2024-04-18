@@ -148,6 +148,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: Easy IO support for Divi Pixel image masks
 * changed: improved smoothing of LQIP for Lazy Load when using Easy IO
 * changed: after editing an image in WordPress, optimization results for backup sizes will be hidden from Media Library list mode
+* changed: Lazy Load checks for auto-scale exclusions on ancestors of lazyloaded element
 * fixed: async bulk interface does not show Start Optimizing when image queue is already visible
 * fixed: bulk process appears to have completed after clearing queue
 * fixed: storing resize/webp results for new images fails with MySQL strict mode

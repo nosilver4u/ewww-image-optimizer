@@ -49,7 +49,7 @@
 					var targetWidth  = Math.round(e.target.offsetWidth * dPR);
 					var targetHeight = Math.round(e.target.offsetHeight * dPR);
 					if ( 0 === bg.search(/\[/) ) {
-					} else if (!shouldAutoScale(e.target)||!shouldAutoScale(e.target.parentNode)){
+					} else if (!shouldAutoScale(e.target)){
 					} else if (lazySizes.hC(e.target,'wp-block-cover')) {
 						console.log('found wp-block-cover with data-back');
 						if (lazySizes.hC(e.target,'has-parallax')) {
@@ -122,18 +122,26 @@
 			console.log('autoscale disabled globally');
 			return false;
 		}
-		if (target.hasAttributes()) {
-			var attrs = target.attributes
-			var regNoScale = /skip-autoscale/;
-			for (var i = attrs.length - 1; i >= 0; i--) {
-				if (regNoScale.test(attrs[i].name)) {
-					console.log('autoscale disabled by attr');
-					return false;
+		var currentNode = target;
+		for (var i = 0; i <= 7; i++) {
+			if (currentNode.hasAttributes()) {
+				var attrs = currentNode.attributes
+				var regNoScale = /skip-autoscale/;
+				for (var i = attrs.length - 1; i >= 0; i--) {
+					if (regNoScale.test(attrs[i].name)) {
+						console.log('autoscale disabled by attr');
+						return false;
+					}
+					if (regNoScale.test(attrs[i].value)) {
+						console.log('autoscale disabled by attr value');
+						return false;
+					}
 				}
-				if (regNoScale.test(attrs[i].value)) {
-					console.log('autoscale disabled by attr value');
-					return false;
-				}
+			}
+			if (currentNode.parentNode && currentNode.parentNode.nodeType === 1 && currentNode.parentNode.hasAttributes) {
+				currentNode = currentNode.parentNode;
+			} else {
+				break;
 			}
 		}
 		return true;
@@ -369,7 +377,7 @@
 			console.log('using data-src-webp');
 			src = webpsrc;
 		}
-		if (!shouldAutoScale(target)||!shouldAutoScale(target.parentNode)){
+		if (!shouldAutoScale(target)){
 			return;
 		}
 		var imgType = getImgType(target);
