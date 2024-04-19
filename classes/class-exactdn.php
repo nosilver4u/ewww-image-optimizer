@@ -2112,6 +2112,20 @@ class ExactDN extends Page_Parser {
 				$this->debug_message( 'searching for #(https?:)?//(?:www\.)?' . $escaped_upload_domain . '((?:/[^"\'?&>:/]+?){0,3})/(nextgen-image|' . $this->include_path . '|' . $this->content_path . ')/#i and replacing with $1//' . $this->exactdn_domain . '$2/$3/' );
 				$content = \preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '((?:/[^"\'?&>:/]+?){0,3})/(nextgen-image|' . $this->include_path . '|' . $this->content_path . ')/#i', '$1//' . $this->exactdn_domain . '$2/$3/', $content );
 			}
+			if ( $this->asset_domains && \apply_filters( 'eio_rewrite_all_the_assets', true ) ) {
+				$asset_domains = \explode( ',', $this->asset_domains );
+				foreach ( $asset_domains as $asset_domain ) {
+					$asset_domain          = \trim( $asset_domain );
+					$escaped_upload_domain = \str_replace( '.', '\.', $asset_domain );
+					if ( $asset_domain === $this->home_domain ) {
+						$this->debug_message( 'searching (assets) for #(https?:)?//(?:www\.)?' . $escaped_upload_domain . '((?:/[^"\'?&>:/]+?){0,3})/(nextgen-image|' . $this->include_path . '|' . $this->content_path . ')/#i and replacing with $1//' . $this->exactdn_domain . '/easyio-assets/' . $asset_domain . '$2/$3/' );
+						$content = \preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '((?:/[^"\'?&>:/]+?){0,3})/(nextgen-image|' . $this->include_path . '|' . $this->content_path . ')/#i', '$1//' . $this->exactdn_domain . '/easyio-assets/' . $asset_domain . '$2/$3/', $content );
+					} else {
+						$this->debug_message( 'searching (assets) for #(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/#i and replacing with $1//' . $this->exactdn_domain . '/easyio-assets/' . $asset_domain . '/' );
+						$content = \preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . '/#i', '$1//' . $this->exactdn_domain . '/easyio-assets/' . $asset_domain . '/', $content );
+					}
+				}
+			}
 			$content = \str_replace( '?wpcontent-bypass?', $this->content_path, $content );
 			$content = $this->replace_fonts( $content );
 		}
