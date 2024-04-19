@@ -146,6 +146,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: Lazy Load can use dominant color placeholders via Easy IO
 * added: ability to filter/parse admin-ajax.php requests via eio_filter_admin_ajax_response filter
 * added: Easy IO support for Divi Pixel image masks
+* added: Easy IO delivery for JS/CSS assets from additional domains
 * changed: improved smoothing of LQIP for Lazy Load when using Easy IO
 * changed: after editing an image in WordPress, optimization results for backup sizes will be hidden from Media Library list mode
 * changed: Lazy Load checks for auto-scale exclusions on ancestors of lazyloaded element
