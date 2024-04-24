@@ -3641,8 +3641,8 @@ function ewwwio_is_dir( $dir ) {
 		false === strpos( $dir, $content_dir ) &&
 		false === strpos( $dir, $wp_dir ) &&
 		false === strpos( $dir, $plugin_dir ) &&
-		false === strpos( $file, $tool_dir ) &&
-		false === strpos( $file, $eio_content_dir )
+		false === strpos( $dir, $tool_dir ) &&
+		false === strpos( $dir, $eio_content_dir )
 	) {
 		return false;
 	}
@@ -10965,7 +10965,7 @@ function ewww_image_optimizer_settings_script( $hook ) {
 			/* translators: %d: number of images */
 			'count_string'              => sprintf( esc_html__( '%d total images', 'ewww-image-optimizer' ), $image_count ),
 			'image_count'               => (int) $image_count,
-			'scan_only_mode'            => ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) ? true : false,
+			'scan_only_mode'            => get_option( 'ewww_image_optimizer_pause_image_queue' ) ? true : false,
 		)
 	);
 	wp_add_inline_script(
@@ -12293,7 +12293,7 @@ function ewww_image_optimizer_bulk_async_show_status() {
 	if ( $media_queue_count && ! $media_queue_running ) {
 		ewwwio_debug_message( 'rebooting media queue' );
 		ewwwio()->background_media->dispatch();
-	} elseif ( $image_queue_count && ! $image_queue_running && ! ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
+	} elseif ( $image_queue_count && ! $image_queue_running && ! get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
 		ewwwio_debug_message( 'rebooting image queue' );
 		ewwwio()->background_image->dispatch();
 	} elseif ( 'scanning' === get_option( 'ewww_image_optimizer_aux_resume' ) && ! $media_queue_count ) {
@@ -12330,7 +12330,7 @@ function ewww_image_optimizer_bulk_async_show_status() {
 		<?php
 		// If scan-only mode is active, and one of the scanners is active.
 		if (
-			ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) &&
+			get_option( 'ewww_image_optimizer_pause_image_queue' ) &&
 			(
 				'scanning' === get_option( 'ewww_image_optimizer_bulk_resume' ) ||
 				'scanning' === get_option( 'ewww_image_optimizer_aux_resume' )
@@ -12340,7 +12340,7 @@ function ewww_image_optimizer_bulk_async_show_status() {
 			?>
 			<img class='ewww-bulk-spinner' src='<?php echo esc_url( $loading_image ); ?>' />
 			<?php
-		} elseif ( ! ewwwio()->get_option( 'ewww_image_optimizer_pause_queues' ) && ! ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
+		} elseif ( ! get_option( 'ewww_image_optimizer_pause_queues' ) && ! get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
 			$autopoll = true;
 			?>
 			<img class='ewww-bulk-spinner' src='<?php echo esc_url( $loading_image ); ?>' />
@@ -12365,13 +12365,13 @@ function ewww_image_optimizer_bulk_async_show_status() {
 		</div>
 		<?php
 	}
-	if ( ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
+	if ( get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
 		?>
 		<a class='ewww-queue-controls ewww-start-optimization button-secondary' style='<?php echo esc_attr( $hide_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_resume_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
 			<?php esc_html_e( 'Start optimizing', 'ewww-image-optimizer' ); ?>
 		</a>
 		<?php
-	} elseif ( ewwwio()->get_option( 'ewww_image_optimizer_pause_queues' ) ) {
+	} elseif ( get_option( 'ewww_image_optimizer_pause_queues' ) ) {
 		?>
 		<a class='ewww-queue-controls ewww-resume-optimization button-secondary' style='<?php echo esc_attr( $hide_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_resume_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
 			<?php esc_html_e( 'Resume Optimization', 'ewww-image-optimizer' ); ?>
@@ -13072,7 +13072,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	<!-- 'network-multisite-over' and 'network-singlesite' get simpler settings, 'network-singlesite-over' masquerades as 'singlesite' -->
 	<?php if ( ! $easymode && ( 'singlesite' === $network || 'network-multisite' === $network ) ) : ?>
 	<ul class='ewww-tab-nav'>
-		<li class='ewww-tab ewww-general-nav'><span><?php esc_html_e( 'Basic', 'ewww-image-optimizer' ); ?></span></li>
+		<li class='ewww-tab ewww-general-nav'><span><?php esc_html_e( 'Essential', 'ewww-image-optimizer' ); ?></span></li>
 		<li class='ewww-tab ewww-local-nav'><span><?php esc_html_e( 'Local', 'ewww-image-optimizer' ); ?></span></li>
 		<li class='ewww-tab ewww-advanced-nav'><span><?php esc_html_e( 'Advanced', 'ewww-image-optimizer' ); ?></span></li>
 		<li class='ewww-tab ewww-resize-nav'><span><?php esc_html_e( 'Resize', 'ewww-image-optimizer' ); ?></span></li>
@@ -13083,7 +13083,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	</ul>
 	<?php elseif ( $easymode && 'network-singlesite' !== $network ) : ?>
 	<ul class='ewww-tab-nav'>
-		<li class='ewww-tab ewww-general-nav'><span><?php esc_html_e( 'Basic', 'ewww-image-optimizer' ); ?></span></li>
+		<li class='ewww-tab ewww-general-nav'><span><?php esc_html_e( 'Essential', 'ewww-image-optimizer' ); ?></span></li>
 		<li class='ewww-tab ewww-support-nav'><span><?php esc_html_e( 'Support', 'ewww-image-optimizer' ); ?></span></li>
 		<li class='ewww-tab ewww-contribute-nav'><span><?php esc_html_e( 'Contribute', 'ewww-image-optimizer' ); ?></span></li>
 	</ul>
@@ -13109,7 +13109,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<?php ob_start(); ?>
 	<?php endif; ?>
 		<div id='ewww-general-settings'>
-			<noscript><h2><?php esc_html_e( 'Basic', 'ewww-image-optimizer' ); ?></h2></noscript>
+			<noscript><h2><?php esc_html_e( 'Essential', 'ewww-image-optimizer' ); ?></h2></noscript>
 	<?php ob_start(); ?>
 			<table class='form-table'>
 	<?php if ( 'network-multisite' === $network || 'network-multisite-over' === $network ) : ?>

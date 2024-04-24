@@ -1,11 +1,11 @@
 === EWWW Image Optimizer ===
 Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
-Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization, lossless, lossy, seo, scale
-Requires at least: 6.1
+Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization, lossless, lossy, scale
+Requires at least: 6.2
 Tested up to: 6.5
 Requires PHP: 7.3
-Stable tag: 7.5.0
+Stable tag: 7.6.0
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -140,13 +140,13 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
-= 7.5.1 =
-*Release Date - TBD*
+= 7.6.0 =
+*Release Date - April 24, 2024*
 
+* added: Easy IO delivery for JS/CSS assets from additional domains
 * added: Lazy Load can use dominant color placeholders via Easy IO
 * added: ability to filter/parse admin-ajax.php requests via eio_filter_admin_ajax_response filter
 * added: Easy IO support for Divi Pixel image masks
-* added: Easy IO delivery for JS/CSS assets from additional domains
 * changed: improved smoothing of LQIP for Lazy Load when using Easy IO
 * changed: after editing an image in WordPress, optimization results for backup sizes will be hidden from Media Library list mode
 * changed: Lazy Load checks for auto-scale exclusions on ancestors of lazyloaded element
@@ -156,6 +156,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: database records not cleaned after thumbs are removed by Force Regenerate Thumbnails
 * fixed: JPG to PNG conversion on 8-bit PNGs sometimes uses incorrect black background
 * fixed: Help links broken in Firefox's Strict mode
+* fixed: async queue status not properly checked on multi-site
 
 = 7.5.0 =
 *Release Date - March 26, 2024*

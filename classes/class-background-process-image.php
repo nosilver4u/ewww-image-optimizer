@@ -57,10 +57,10 @@ class Background_Process_Image extends Background_Process {
 	 * Wrapper around parent::handle() to verify that background processing isn't paused.
 	 */
 	protected function handle() {
-		if ( \ewwwio()->get_option( 'ewww_image_optimizer_pause_queues' ) ) {
+		if ( \get_option( 'ewww_image_optimizer_pause_queues' ) ) {
 			return;
 		}
-		if ( \ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
+		if ( \get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
 			return;
 		}
 		parent::handle();
@@ -268,6 +268,8 @@ class Background_Process_Image extends Background_Process {
 			) {
 				\delete_transient( 'ewww_image_optimizer_bulk_counter_measures' );
 				\delete_transient( 'ewww_image_optimizer_bulk_current_image' );
+				\update_option( 'ewww_image_optimizer_pause_image_queue', true, false );
+				\update_option( 'ewww_image_optimizer_pause_queues', true, false );
 				\ewwwio_debug_message( 'API quota has been reached, async handler bailing' );
 				die;
 			}

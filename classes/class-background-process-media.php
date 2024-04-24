@@ -54,7 +54,7 @@ class Background_Process_Media extends Background_Process {
 	 * Wrapper around parent::handle() to verify that background processing isn't paused.
 	 */
 	protected function handle() {
-		if ( \ewwwio()->get_option( 'ewww_image_optimizer_pause_queues' ) ) {
+		if ( \get_option( 'ewww_image_optimizer_pause_queues' ) ) {
 			return;
 		}
 
@@ -444,7 +444,7 @@ class Background_Process_Media extends Background_Process {
 			}
 		}
 
-		if ( $queued && ! ewwwio()->background_image->is_process_running() && ! ewwwio()->get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
+		if ( $queued && ! ewwwio()->background_image->is_process_running() && ! \get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
 			ewwwio()->background_image->dispatch();
 		}
 	}

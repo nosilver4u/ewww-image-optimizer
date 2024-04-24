@@ -1,3 +1,21 @@
+= 7.6.0 =
+*Release Date - April 24, 2024*
+
+* added: Easy IO delivery for JS/CSS assets from additional domains
+* added: Lazy Load can use dominant color placeholders via Easy IO
+* added: ability to filter/parse admin-ajax.php requests via eio_filter_admin_ajax_response filter
+* added: Easy IO support for Divi Pixel image masks
+* changed: improved smoothing of LQIP for Lazy Load when using Easy IO
+* changed: after editing an image in WordPress, optimization results for backup sizes will be hidden from Media Library list mode
+* changed: Lazy Load checks for auto-scale exclusions on ancestors of lazyloaded element
+* fixed: async bulk interface does not show Start Optimizing when image queue is already visible
+* fixed: bulk process appears to have completed after clearing queue
+* fixed: storing resize/webp results for new images fails with MySQL strict mode
+* fixed: database records not cleaned after thumbs are removed by Force Regenerate Thumbnails
+* fixed: JPG to PNG conversion on 8-bit PNGs sometimes uses incorrect black background
+* fixed: Help links broken in Firefox's Strict mode
+* fixed: async queue status not properly checked on multi-site
+
 = 7.5.0 =
 *Release Date - March 26, 2024*
 
