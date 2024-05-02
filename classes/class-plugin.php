@@ -528,6 +528,12 @@ final class Plugin extends Base {
 				\add_action( 'admin_notices', 'ewww_image_optimizer_notice_exactdn_sp_conflict' );
 			}
 		}
+		if ( \method_exists( '\HMWP_Classes_Tools', 'getOption' ) ) {
+			if ( $this->get_option( 'ewww_image_optimizer_exactdn' ) && \HMWP_Classes_Tools::getOption( 'hmwp_hide_version' ) && ! \HMWP_Classes_Tools::getOption( 'hmwp_hide_version_random' ) ) {
+				$this->debug_message( 'detected HMWP Hide Version' );
+				\add_action( 'admin_notices', array( $this, 'notice_exactdn_hmwp' ) );
+			}
+		}
 		if (
 			! $this->get_option( 'ewww_image_optimizer_ludicrous_mode' ) &&
 			! $this->get_option( 'ewww_image_optimizer_cloud_key' ) &&
@@ -969,6 +975,20 @@ final class Plugin extends Base {
 			\esc_html__( 'Please adjust permissions on the folder. If you have installed the tools elsewhere, use the override to skip the bundled tools.', 'ewww-image-optimizer' ) . ' ' .
 			/* translators: s: Installation Instructions (link) */
 			\sprintf( \esc_html__( 'For more details, see the %s.', 'ewww-image-optimizer' ), "<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something'>" . \esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
+	}
+
+	/**
+	 * Tell the user to disable Hide my WP function that removes query strings.
+	 */
+	public function notice_exactdn_hmwp() {
+		?>
+		<div id='ewww-image-optimizer-warning-hmwp-hide-version' class='notice notice-warning'>
+			<p>
+				<?php \esc_html_e( 'Please enable the Random Static Number option in Hide My WP to ensure compatibility with Easy IO or disable the Hide Version option for best performance.', 'ewww-image-optimizer' ); ?>
+				<?php \ewwwio_help_link( 'https://docs.ewww.io/article/50-exactdn-and-query-strings', '5a3d278a2c7d3a1943677b52' ); ?>
+			</p>
+		</div>
+		<?php
 	}
 
 	/**
