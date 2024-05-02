@@ -529,7 +529,7 @@ final class Plugin extends Base {
 			}
 		}
 		if ( \method_exists( '\HMWP_Classes_Tools', 'getOption' ) ) {
-			if ( $this->get_option( 'ewww_image_optimizer_exactdn' ) && \HMWP_Classes_Tools::getOption( 'hmwp_hide_version' ) ) {
+			if ( $this->get_option( 'ewww_image_optimizer_exactdn' ) && \HMWP_Classes_Tools::getOption( 'hmwp_hide_version' ) && ! \HMWP_Classes_Tools::getOption( 'hmwp_hide_version_random') ) {
 				$this->debug_message( 'detected HMWP Hide Version' );
 				\add_action( 'admin_notices', array( $this, 'notice_exactdn_hmwp' ) );
 			}
@@ -984,7 +984,7 @@ final class Plugin extends Base {
 		?>
 		<div id='ewww-image-optimizer-warning-hmwp-hide-version' class='notice notice-warning'>
 			<p>
-				<?php \esc_html_e( 'Please disable the Hide Version option in Hide My WP to prevent conflicts with Easy IO.', 'ewww-image-optimizer' ); ?>
+				<?php \esc_html_e( 'Please enable the Random Static Number option in Hide My WP to ensure compatibility with Easy IO or disable the Hide Version option for best performance.', 'ewww-image-optimizer' ); ?>
 				<?php \ewwwio_help_link( 'https://docs.ewww.io/article/50-exactdn-and-query-strings', '5a3d278a2c7d3a1943677b52' ); ?>
 			</p>
 		</div>
