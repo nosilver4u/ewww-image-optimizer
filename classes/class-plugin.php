@@ -529,7 +529,7 @@ final class Plugin extends Base {
 			}
 		}
 		if ( \method_exists( '\HMWP_Classes_Tools', 'getOption' ) ) {
-			if ( $this->get_option( 'ewww_image_optimizer_exactdn' ) && \HMWP_Classes_Tools::getOption( 'hmwp_hide_version' ) && ! \HMWP_Classes_Tools::getOption( 'hmwp_hide_version_random') ) {
+			if ( $this->get_option( 'ewww_image_optimizer_exactdn' ) && \HMWP_Classes_Tools::getOption( 'hmwp_hide_version' ) && ! \HMWP_Classes_Tools::getOption( 'hmwp_hide_version_random' ) ) {
 				$this->debug_message( 'detected HMWP Hide Version' );
 				\add_action( 'admin_notices', array( $this, 'notice_exactdn_hmwp' ) );
 			}
@@ -976,7 +976,7 @@ final class Plugin extends Base {
 			/* translators: s: Installation Instructions (link) */
 			\sprintf( \esc_html__( 'For more details, see the %s.', 'ewww-image-optimizer' ), "<a href='https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something'>" . \esc_html__( 'Installation Instructions', 'ewww-image-optimizer' ) . '</a>' ) . '</p></div>';
 	}
-	
+
 	/**
 	 * Tell the user to disable Hide my WP function that removes query strings.
 	 */
