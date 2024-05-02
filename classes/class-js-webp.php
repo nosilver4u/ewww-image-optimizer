@@ -508,7 +508,7 @@ class JS_Webp extends Page_Parser {
 							$this->set_attribute( $new_image, 'data-srcset-webp', $srcset_webp );
 						}
 						$this->set_attribute( $new_image, 'data-srcset-img', $srcset );
-						$this->remove_attribute( $new_image, 'srcset' );
+						$this->set_attribute( $new_image, 'srcset', $this->placeholder_src, true );
 					}
 					if ( $this->get_attribute( $image, 'data-orig-file' ) && $this->get_attribute( $image, 'data-medium-file' ) && $this->get_attribute( $image, 'data-large-file' ) ) {
 						$new_image = $this->jetpack_replace( $new_image );
