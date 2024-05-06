@@ -143,6 +143,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 7.6.1 =
 *Release Date - TBD*
 
+* added: detect resizing of PNG8 images in WP_Image_Editor and re-encode
 * added: warning when hiding query strings with Hide My WP
 * fixed: missing srcset when using JS WebP rewriting
 

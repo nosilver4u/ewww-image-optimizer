@@ -730,15 +730,16 @@ class Local extends Base {
 	 * Get the filesystem path for a given tool, if enabled.
 	 *
 	 * @param string $tool The optimization tool to retrieve.
+	 * @param bool   $override True to bypass tool_enabled() check.
 	 * @return string The path to the requested tool.
 	 */
-	public function get_path( $tool ) {
+	public function get_path( $tool, $override = false ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		if ( $this->exec_enabled && $this->tool_enabled( $tool ) ) {
+		if ( $this->exec_enabled && ( $override || $this->tool_enabled( $tool ) ) ) {
 			if ( isset( $this->tools[ $tool ]['path'] ) ) {
 				return $this->tools[ $tool ]['path'];
 			}
-			$this->check_tool( $tool );
+			$this->check_tool( $tool, $override );
 			return $this->tools[ $tool ]['path'];
 		} elseif ( ! $this->tool_enabled( $tool ) ) {
 			$this->debug_message( "$tool disabled" );
@@ -750,13 +751,14 @@ class Local extends Base {
 	 * Sends each tool to the binary checker appropriate for the operating system.
 	 *
 	 * @param string $tool The name of the tool to check/test.
+	 * @param bool   $override True to bypass tool_enabled() check.
 	 */
-	public function check_tool( $tool ) {
+	public function check_tool( $tool, $override = false ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( isset( $this->tools[ $tool ]['path'] ) ) {
 			return;
 		}
-		if ( ! $this->tool_enabled( $tool ) ) {
+		if ( ! $this->tool_enabled( $tool ) && ! $override ) {
 			$this->tools[ $tool ]['path'] = '';
 			return;
 		}

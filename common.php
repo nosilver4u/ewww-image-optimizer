@@ -5892,6 +5892,120 @@ function ewww_image_optimizer_cloud_autorotate( $file, $type ) {
 }
 
 /**
+ * Converts PNG image to PNG8 encoding via API service.
+ *
+ * @since 7.7.0
+ *
+ * @param string $file Name of the file to fix.
+ *
+ * @return bool True if the operation was successful.
+ */
+function ewww_image_optimizer_cloud_to_png8( $file ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( ! ewwwio_check_memory_available( filesize( $file ) * 2.2 ) ) { // 2.2 = upload buffer + download buffer (2) multiplied by a factor of 1.1 for extra wiggle room.
+		$memory_required = filesize( $file ) * 2.2;
+		ewwwio_debug_message( "possibly insufficient memory for cloud (PNG8) operation: $memory_required" );
+		if ( function_exists( 'wp_raise_memory_limit' ) ) {
+			add_filter( 'image_memory_limit', 'ewww_image_optimizer_raise_memory_limit' );
+			wp_raise_memory_limit( 'image' );
+		}
+	}
+	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
+	if ( empty( $api_key ) ) {
+		return false;
+	}
+	$started = microtime( true );
+	if ( 'exceeded' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
+		if ( ! ewww_image_optimizer_cloud_verify( $api_key ) ) {
+			ewwwio_debug_message( 'cloud verify failed, image not converted' );
+			return false;
+		}
+	}
+	// Calculate how much time has elapsed since we started.
+	$elapsed = microtime( true ) - $started;
+	ewwwio_debug_message( "cloud verify took $elapsed seconds" );
+	if ( 'exceeded' === get_transient( 'ewww_image_optimizer_cloud_status' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
+		ewwwio_debug_message( 'license exceeded, image not converted' );
+		return false;
+	}
+	global $eio_filesystem;
+	ewwwio_get_filesystem();
+	ewwwio_debug_message( "file: $file " );
+	$url = 'http://optimize.exactlywww.com/png8/';
+	$ssl = wp_http_supports( array( 'ssl' ) );
+	if ( $ssl ) {
+		$url = set_url_scheme( $url, 'https' );
+	}
+	$boundary = wp_generate_password( 24, false );
+
+	$headers = array(
+		'content-type' => 'multipart/form-data; boundary=' . $boundary,
+		'timeout'      => 30,
+		'httpversion'  => '1.0',
+		'blocking'     => true,
+	);
+
+	$post_fields = array(
+		'filename' => $file,
+		'api_key'  => $api_key,
+	);
+
+	$payload = '';
+	foreach ( $post_fields as $name => $value ) {
+		$payload .= '--' . $boundary;
+		$payload .= "\r\n";
+		$payload .= 'Content-Disposition: form-data; name="' . $name . '"' . "\r\n\r\n";
+		$payload .= $value;
+		$payload .= "\r\n";
+	}
+
+	$payload .= '--' . $boundary;
+	$payload .= "\r\n";
+	$payload .= 'Content-Disposition: form-data; name="file"; filename="' . wp_basename( $file ) . '"' . "\r\n";
+	$payload .= "Content-Type: image/png\r\n";
+	$payload .= "\r\n";
+	$payload .= $eio_filesystem->get_contents( $file );
+	$payload .= "\r\n";
+	$payload .= '--' . $boundary;
+	$payload .= 'Content-Disposition: form-data; name="submitHandler"' . "\r\n";
+	$payload .= "\r\n";
+	$payload .= "Upload\r\n";
+	$payload .= '--' . $boundary . '--';
+
+	add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
+	$response = wp_remote_post(
+		$url,
+		array(
+			'timeout'   => 30,
+			'headers'   => $headers,
+			'sslverify' => false,
+			'body'      => $payload,
+		)
+	);
+	if ( is_wp_error( $response ) ) {
+		$error_message = $response->get_error_message();
+		ewwwio_debug_message( "PNG8 encode failed: $error_message" );
+		return false;
+	} elseif ( ! empty( $response['body'] ) ) {
+		$tempfile = $file . '.tmp';
+		file_put_contents( $tempfile, $response['body'] );
+		$orig_size = filesize( $file );
+		$newsize   = $orig_size;
+		if ( preg_match( '/exceeded/', $response['body'] ) ) {
+			ewwwio_debug_message( 'License Exceeded' );
+			set_transient( 'ewww_image_optimizer_cloud_status', 'exceeded', HOUR_IN_SECONDS );
+		} elseif ( ewww_image_optimizer_mimetype( $tempfile, 'i' ) === 'image/png' ) {
+			$newsize = filesize( $tempfile );
+			ewwwio_debug_message( "cloud PNG8 success: $newsize (new) vs. $orig_size (original)" );
+			ewwwio_rename( $tempfile, $file );
+			return true;
+		}
+		ewwwio_delete_file( $tempfile );
+	}
+	return false;
+}
+
+/**
  * Backup an image using API servers.
  *
  * @since 4.8.0
@@ -7566,6 +7680,32 @@ function ewww_image_optimizer_better_resize( $file, $dst_x, $dst_y, $src_x, $src
 		return ewww_image_optimizer_gifsicle_resize( $file, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h );
 	}
 	return ewww_image_optimizer_cloud_resize( $file, $type, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h );
+}
+
+/**
+ * Uses pngquant or the API to convert a resized image back to PNG8 format.
+ *
+ * @since 7.7.0
+ *
+ * @param string $file The file to convert to PNG8 encoding.
+ */
+function ewww_image_optimizer_convert_to_png8( $file ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	ewwwio_debug_message( "converting $file to PNG8" );
+	if ( ! ewwwio_is_file( $file ) ) {
+		return;
+	}
+	$type = ewww_image_optimizer_mimetype( $file, 'i' );
+	if ( false === strpos( $type, 'image' ) ) {
+		ewwwio_debug_message( "not an image, no conversion possible: $type" );
+		return;
+	}
+	if ( 'image/png' !== $type  ) {
+		return;
+	}
+	if ( ! ewww_image_optimizer_pngquant_to_png8( $file ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+		ewww_image_optimizer_cloud_to_png8( $file );
+	}
 }
 
 /**
