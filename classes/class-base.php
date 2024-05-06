@@ -1121,6 +1121,77 @@ class Base {
 	}
 
 	/**
+	 * Get the PNG type: PNG8, PNG24, PNG32, or other.
+	 *
+	 * From https://stackoverflow.com/questions/57547818/php-detect-png8-or-png24
+	 *
+	 * @param string $path The name of the file.
+	 * @return string The type of PNG, or an empty string.
+	 */
+	public function get_png_depth( $path ) {
+		$png_type = '';
+		// TODO: check if file is long enough.
+		if ( $this->filesize( $path ) < 24 ) {
+			return $png_type;
+		}
+
+		$file_handle = fopen( $path, 'rb' );
+
+		$png_header = fread( $file_handle, 4 );
+		if ( chr( 0x89 ) . 'PNG' !== $png_header ) {
+			return $png_type;
+		}
+
+		// Move forward 8 bytes.
+		fread( $file_handle, 8 );
+		$png_ihdr = fread( $file_handle, 4 );
+
+		// Make sure we have an IHDR.
+		if ( 'IHDR' !== $png_ihdr ) {
+			return $png_type;
+		}
+
+		// Skip past the dimensions.
+		$dimensions = fread( $file_handle, 8 );
+
+		// Bit depth: 1 byte
+		// Bit depth is a single-byte integer giving the number of bits per sample or
+		// per palette index (not per pixel).
+		//
+		// Valid values are 1, 2, 4, 8, and 16, although not all values are allowed for all color types.
+		$bit_depth = ord( (string) fread( $file_handle, 1 ) );
+
+		// Color type is a single-byte integer that describes the interpretation of the image data.
+		// Color type codes represent sums of the following values:
+		// 1 (palette used), 2 (color used), and 4 (alpha channel used).
+		// The valid color types are:
+		// 0 => Grayscale
+		// 2 => Truecolor
+		// 3 => Indexed
+		// 4 => Greyscale with alpha
+		// 6 => Truecolour with alpha
+		//
+		// Valid values are 0, 2, 3, 4, and 6.
+		$color_type = ord( (string) fread( $file_handle, 1 ) );
+
+		// If the bitdepth is 8 and the colortype is 3 (Indexed color) you have a PNG8.
+		if ( 8 === $bit_depth && 3 === $color_type ) {
+			$png_type = 'PNG8';
+		}
+
+		// If the bitdepth is 8 and colortype is 2 (Truecolor) you have a PNG24.
+		if ( 8 === $bit_depth && 2 === $color_type ) {
+			$png_type = 'PNG24';
+		}
+
+		// If the bitdepth is 8 and colortype is 6 (Truecolor with alpha) you have a PNG32.
+		if ( 8 === $bit_depth && 6 === $color_type ) {
+			$png_type = 'PNG32';
+		}
+		return $png_type;
+	}
+
+	/**
 	 * Checks if there is enough memory still available.
 	 *
 	 * Looks to see if the current usage + padding will fit within the memory_limit defined by PHP.

@@ -34,6 +34,14 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 	protected $modified = false;
 
 	/**
+	 * Type of PNG image: PNG8, PNG24, PNG32, or ''.
+	 *
+	 * @access protected
+	 * @var string $png_color_depth
+	 */
+	protected $png_color_depth = '';
+
+	/**
 	 * Resizes current image.
 	 * Wraps _resize, since _resize returns a GD Resource.
 	 *
@@ -245,6 +253,18 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 			$filter = defined( 'Imagick::FILTER_TRIANGLE' ) ? Imagick::FILTER_TRIANGLE : false;
 		}
 
+		if ( 'image/png' === $this->mime_type ) {
+			if ( ! empty( $this->file ) ) {
+				$this->png_color_depth = ewwwio_get_png_depth( $this->file );
+				if ( 'PNG8' === $this->png_color_depth ) {
+					$colors = $this->image->getImageColors();
+					ewwwio_debug_message( "$colors colors in PNG8" );
+					$colorspace = $this->image->getColorspace();
+					ewwwio_debug_message( "$colorspace colorspace in PNG8" );
+				}
+			}
+		}
+
 		/**
 		 * Filters whether to strip metadata from images when they're resized.
 		 *
@@ -313,6 +333,13 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 				$this->image->setOption( 'png:compression-level', '9' );
 				$this->image->setOption( 'png:compression-strategy', '1' );
 				$this->image->setOption( 'png:exclude-chunk', 'all' );
+				if ( ! empty( $this->file ) ) {
+					$this->png_color_depth = ewwwio_get_png_depth( $this->file );
+					if ( 'PNG8' === $this->png_color_depth ) {
+						$colors = min( 255, $this->image->getImageColors() );
+						$this->image->quantizeImage( $colors, $this->image->getColorspace(), 0, false, false );
+					}
+				}
 			}
 
 			/*
@@ -556,7 +583,27 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 			return $this->_save_ewwwio_file( $this->ewww_image, $filename, $mime_type );
 		}
 		if ( ! empty( $ewww_preempt_editor ) || ! defined( 'EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR' ) || ! EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR ) {
-			return parent::_save( $image, $filename, $mime_type );
+			ewwwio_debug_message( 'EWWW editor not enabled, using parent _save()' );
+			$saved = parent::_save( $image, $filename, $mime_type );
+			if ( 'PNG8' === $this->png_color_depth && ! empty( $saved['path'] ) ) {
+				ewwwio_debug_message( 'downscaling to PNG8 with pngquant' );
+				$filename          = $saved['path'];
+				$tools['pngquant'] = ewwwio()->local->get_path( 'pngquant' );
+				$cmd               = $tools['pngquant'] . ' 256 --nofs --speed 8 --skip-if-larger ' . ewww_image_optimizer_escapeshellarg( $filename );
+				ewwwio_debug_message( "running: $cmd" );
+				/* exec( $cmd, $output, $exit ); */
+				$quantfile = preg_replace( '/\.\w+$/', '-or8.png', $filename );
+				if ( ewwwio_is_file( $quantfile ) && filesize( $filename ) > filesize( $quantfile ) ) {
+					ewwwio_debug_message( 'PNG8 reduction is better: original - ' . filesize( $filename ) . ' vs. lossy - ' . filesize( $quantfile ) );
+					rename( $quantfile, $filename );
+				} elseif ( ewwwio_is_file( $quantfile ) ) {
+					ewwwio_debug_message( 'lossy reduction is worse: original - ' . filesize( $filename ) . ' vs. lossy - ' . filesize( $quantfile ) );
+					ewwwio_delete_file( $quantfile );
+				} else {
+					ewwwio_debug_message( 'pngquant did not produce any output' );
+				}
+			}
+			return $saved;
 		}
 		list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
 		if ( ! $filename ) {

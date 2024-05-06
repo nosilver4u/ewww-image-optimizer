@@ -83,6 +83,16 @@ function ewww_image_optimizer_s3_uploads_enabled() {
 }
 
 /**
+ * Get the PNG type: PNG8, PNG24, PNG32, or other.
+ *
+ * @param string $path The name of the file.
+ * @return string The type of PNG, or an empty string.
+ */
+function ewwwio_get_png_depth( $path ) {
+	return ewwwio()->get_png_depth( $path );
+}
+
+/**
  * Adds information to the in-memory debug log.
  *
  * @param string $message Debug information to add to the log.
