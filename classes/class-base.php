@@ -1174,7 +1174,23 @@ class Base {
 		// Valid values are 0, 2, 3, 4, and 6.
 		$color_type = ord( (string) fread( $file_handle, 1 ) );
 
-		// If the bitdepth is 8 and the colortype is 3 (Indexed color) you have a PNG8.
+		// Note that none of these names are "official", and some we have made up to reference particular bit-depths.
+		// If the bitdepth is 1 and the colortype is 3 (Indexed color) you have a PNG1 with 2 colors.
+		if ( 1 === $bit_depth && 3 === $color_type ) {
+			$png_type = 'PNG1';
+		}
+
+		// If the bitdepth is 2 and the colortype is 3 (Indexed color) you have a PNG2 with 4 colors.
+		if ( 2 === $bit_depth && 3 === $color_type ) {
+			$png_type = 'PNG2';
+		}
+
+		// If the bitdepth is 4 and the colortype is 3 (Indexed color) you have a PNG4 with 16 colors.
+		if ( 4 === $bit_depth && 3 === $color_type ) {
+			$png_type = 'PNG4';
+		}
+
+		// If the bitdepth is 8 and the colortype is 3 (Indexed color) you have a PNG8 with 256 colors.
 		if ( 8 === $bit_depth && 3 === $color_type ) {
 			$png_type = 'PNG8';
 		}

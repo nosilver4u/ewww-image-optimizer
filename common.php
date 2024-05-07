@@ -5897,14 +5897,14 @@ function ewww_image_optimizer_cloud_autorotate( $file, $type ) {
  * @since 7.7.0
  *
  * @param string $file Name of the file to fix.
- *
+ * @param int    $colors Maximum number of colors allowed.
  * @return bool True if the operation was successful.
  */
-function ewww_image_optimizer_cloud_to_png8( $file ) {
+function ewww_image_optimizer_cloud_reduce_png( $file, $colors ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( ! ewwwio_check_memory_available( filesize( $file ) * 2.2 ) ) { // 2.2 = upload buffer + download buffer (2) multiplied by a factor of 1.1 for extra wiggle room.
 		$memory_required = filesize( $file ) * 2.2;
-		ewwwio_debug_message( "possibly insufficient memory for cloud (PNG8) operation: $memory_required" );
+		ewwwio_debug_message( "possibly insufficient memory for cloud (PNG reduction) operation: $memory_required" );
 		if ( function_exists( 'wp_raise_memory_limit' ) ) {
 			add_filter( 'image_memory_limit', 'ewww_image_optimizer_raise_memory_limit' );
 			wp_raise_memory_limit( 'image' );
@@ -5931,7 +5931,7 @@ function ewww_image_optimizer_cloud_to_png8( $file ) {
 	global $eio_filesystem;
 	ewwwio_get_filesystem();
 	ewwwio_debug_message( "file: $file " );
-	$url = 'http://optimize.exactlywww.com/png8/';
+	$url = 'http://optimize.exactlywww.com/reduce-png/';
 	$ssl = wp_http_supports( array( 'ssl' ) );
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
@@ -5948,6 +5948,7 @@ function ewww_image_optimizer_cloud_to_png8( $file ) {
 	$post_fields = array(
 		'filename' => $file,
 		'api_key'  => $api_key,
+		'colors'   => (int) $colors,
 	);
 
 	$payload = '';
@@ -5984,7 +5985,7 @@ function ewww_image_optimizer_cloud_to_png8( $file ) {
 	);
 	if ( is_wp_error( $response ) ) {
 		$error_message = $response->get_error_message();
-		ewwwio_debug_message( "PNG8 encode failed: $error_message" );
+		ewwwio_debug_message( "PNG reduction failed: $error_message" );
 		return false;
 	} elseif ( ! empty( $response['body'] ) ) {
 		$tempfile = $file . '.tmp';
@@ -5996,7 +5997,7 @@ function ewww_image_optimizer_cloud_to_png8( $file ) {
 			set_transient( 'ewww_image_optimizer_cloud_status', 'exceeded', HOUR_IN_SECONDS );
 		} elseif ( ewww_image_optimizer_mimetype( $tempfile, 'i' ) === 'image/png' ) {
 			$newsize = filesize( $tempfile );
-			ewwwio_debug_message( "cloud PNG8 success: $newsize (new) vs. $orig_size (original)" );
+			ewwwio_debug_message( "cloud PNG reduction success: $newsize (new) vs. $orig_size (original)" );
 			ewwwio_rename( $tempfile, $file );
 			return true;
 		}
@@ -7683,15 +7684,16 @@ function ewww_image_optimizer_better_resize( $file, $dst_x, $dst_y, $src_x, $src
 }
 
 /**
- * Uses pngquant or the API to convert a resized image back to PNG8 format.
+ * Uses pngquant or the API to reduce the palette of a PNG image to bit depth 8 (or less).
  *
  * @since 7.7.0
  *
- * @param string $file The file to convert to PNG8 encoding.
+ * @param string $file A PNG image file.
+ * @param string $bit_depth A string representing the bit depth of a paletted image. For example 'PNG8' or 'PNG4'.
  */
-function ewww_image_optimizer_convert_to_png8( $file ) {
+function ewww_image_optimizer_reduce_palette( $file, $bit_depth ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	ewwwio_debug_message( "converting $file to PNG8" );
+	ewwwio_debug_message( "converting $file to $bit_depth" );
 	if ( ! ewwwio_is_file( $file ) ) {
 		return;
 	}
@@ -7700,11 +7702,24 @@ function ewww_image_optimizer_convert_to_png8( $file ) {
 		ewwwio_debug_message( "not an image, no conversion possible: $type" );
 		return;
 	}
-	if ( 'image/png' !== $type  ) {
+	if ( 'image/png' !== $type ) {
 		return;
 	}
-	if ( ! ewww_image_optimizer_pngquant_to_png8( $file ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-		ewww_image_optimizer_cloud_to_png8( $file );
+	switch ( $bit_depth ) {
+		case 'PNG4':
+			$colors = 16;
+			break;
+		case 'PNG2':
+			$colors = 4;
+			break;
+		case 'PNG1':
+			$colors = 2;
+			break;
+		default:
+			$colors = 256;
+	}
+	if ( ! ewww_image_optimizer_pngquant_reduce_png( $file, $colors ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+		ewww_image_optimizer_cloud_reduce_png( $file, $colors );
 	}
 }
 

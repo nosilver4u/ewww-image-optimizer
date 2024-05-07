@@ -566,15 +566,16 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 	protected function _save( $image, $filename = null, $mime_type = null ) {
 		ewwwio_debug_message( '<b>wp_image_editor_imagick::' . __FUNCTION__ . '()</b>' );
 		global $ewww_preempt_editor;
+		$special_palettes = array( 'PNG1', 'PNG2', 'PNG4', 'PNG8' );
 		if ( ! empty( $this->ewww_image ) && ! $this->modified ) {
 			return $this->_save_ewwwio_file( $this->ewww_image, $filename, $mime_type );
 		}
 		if ( ! empty( $ewww_preempt_editor ) || ! defined( 'EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR' ) || ! EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR ) {
 			ewwwio_debug_message( 'EWWW editor not enabled, using parent _save()' );
 			$saved = parent::_save( $image, $filename, $mime_type );
-			if ( 'PNG8' === $this->png_color_depth && ! empty( $saved['path'] ) ) {
-				ewwwio_debug_message( 'encoding to PNG8' );
-				ewww_image_optimizer_convert_to_png8( $saved['path'] );
+			if ( in_array( $this->png_color_depth, $special_palettes, true ) && ! empty( $saved['path'] ) ) {
+				ewwwio_debug_message( "encoding to $this->png_color_depth" );
+				ewww_image_optimizer_reduce_palette( $saved['path'], $this->png_color_depth );
 			}
 			return $saved;
 		}
@@ -603,9 +604,9 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 				$filename = $saved['path'];
 			}
 			if ( ewwwio_is_file( $filename ) ) {
-				if ( 'PNG8' === $this->png_color_depth && ! empty( $filename ) ) {
-					ewwwio_debug_message( 'encoding to PNG8' );
-					ewww_image_optimizer_convert_to_png8( $filename );
+				if ( in_array( $this->png_color_depth, $special_palettes, true ) && ! empty( $filename ) ) {
+					ewwwio_debug_message( "encoding to $this->png_color_depth" );
+					ewww_image_optimizer_reduce_palette( $filename, $this->png_color_depth );
 				}
 
 				ewww_image_optimizer( $filename );

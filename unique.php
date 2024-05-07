@@ -93,27 +93,29 @@ function ewww_image_optimizer_gifsicle_resize( $file, $dst_x, $dst_y, $src_x, $s
 }
 
 /**
- * Convert PNG image to PNG8 encoding using pngquant.
+ * Quantize and reduce the bit-depth of a PNG image using pngquant.
  *
- * @param string $file Name of the file to fix.
- * @return bool True if the conversion was successful.
+ * @param string $file Name of the PNG image file.
+ * @param int    $colors Maximum number of colors allowed.
+ * @return bool True if the reduction was successful.
  */
-function ewww_image_optimizer_pngquant_to_png8( $file ) {
+function ewww_image_optimizer_pngquant_reduce_png( $file, $colors ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$tools['pngquant'] = ewwwio()->local->get_path( 'pngquant', true );
 	if ( empty( $tools['pngquant'] ) ) {
 		return false;
 	}
-	$cmd = $tools['pngquant'] . ' 256 --nofs --skip-if-larger ' . ewww_image_optimizer_escapeshellarg( $file );
+	$colors = (int) min( $colors, 256 );
+	$cmd    = $tools['pngquant'] . ' ' . $colors . ' --nofs --skip-if-larger ' . ewww_image_optimizer_escapeshellarg( $file );
 	ewwwio_debug_message( "running: $cmd" );
 	exec( $cmd, $output, $exit );
 	$quantfile = preg_replace( '/\.\w+$/', '-or8.png', $file );
 	if ( ewwwio_is_file( $quantfile ) && filesize( $file ) > filesize( $quantfile ) ) {
-		ewwwio_debug_message( 'PNG8 reduction is better: original - ' . filesize( $file ) . ' vs. lossy - ' . filesize( $quantfile ) );
+		ewwwio_debug_message( 'PNG reduction is better: original - ' . filesize( $file ) . ' vs. lossy - ' . filesize( $quantfile ) );
 		rename( $quantfile, $file );
 		return true;
 	} elseif ( ewwwio_is_file( $quantfile ) ) {
-		ewwwio_debug_message( 'lossy reduction is worse: original - ' . filesize( $file ) . ' vs. lossy - ' . filesize( $quantfile ) );
+		ewwwio_debug_message( 'PNG reduction is worse: original - ' . filesize( $file ) . ' vs. lossy - ' . filesize( $quantfile ) );
 		ewwwio_delete_file( $quantfile );
 	} else {
 		ewwwio_debug_message( 'pngquant did not produce any output' );
