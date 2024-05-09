@@ -1130,7 +1130,6 @@ class Base {
 	 */
 	public function get_png_depth( $path ) {
 		$png_type = '';
-		// TODO: check if file is long enough.
 		if ( $this->filesize( $path ) < 24 ) {
 			return $png_type;
 		}

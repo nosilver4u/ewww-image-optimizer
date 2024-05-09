@@ -1101,9 +1101,17 @@ class JS_Webp extends Page_Parser {
 		if ( ! \apply_filters( 'eio_do_js_webp', true, $this->request_uri ) ) {
 			return;
 		}
+		$check_args = array(
+			'strategy'  => 'async',
+			'in_footer' => false,
+		);
+		$load_args  = array(
+			'strategy'  => 'async',
+			'in_footer' => true,
+		);
 		if ( ! \ewww_image_optimizer_ce_webp_enabled() ) {
-			\wp_enqueue_script( 'ewww-webp-check-script', \plugins_url( '/includes/check-webp.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), $this->version );
-			\wp_enqueue_script( 'ewww-webp-load-script', \plugins_url( '/includes/load-webp.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), $this->version, true );
+			\wp_enqueue_script( 'ewww-webp-check-script', \plugins_url( '/includes/check-webp.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), $this->version, $check_args );
+			\wp_enqueue_script( 'ewww-webp-load-script', \plugins_url( '/includes/load-webp.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), $this->version, $load_args );
 		}
 	}
 
@@ -1117,9 +1125,17 @@ class JS_Webp extends Page_Parser {
 		if ( ! \apply_filters( 'eio_do_js_webp', true, $this->request_uri ) ) {
 			return;
 		}
+		$check_args = array(
+			'strategy'  => 'async',
+			'in_footer' => false,
+		);
+		$load_args  = array(
+			'strategy'  => 'async',
+			'in_footer' => true,
+		);
 		if ( ! \ewww_image_optimizer_ce_webp_enabled() ) {
-			\wp_enqueue_script( 'ewww-webp-check-script', \plugins_url( '/includes/check-webp.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), $this->version );
-			\wp_enqueue_script( 'ewww-webp-load-script', \plugins_url( '/includes/load-webp.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), $this->version, true );
+			\wp_enqueue_script( 'ewww-webp-check-script', \plugins_url( '/includes/check-webp.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), $this->version, $check_args );
+			\wp_enqueue_script( 'ewww-webp-load-script', \plugins_url( '/includes/load-webp.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), $this->version, true, $load_args );
 		}
 	}
 

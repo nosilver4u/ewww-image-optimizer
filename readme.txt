@@ -143,8 +143,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 7.6.1 =
 *Release Date - TBD*
 
-* added: detect resizing of PNG8 images in WP_Image_Editor and re-encode
+* added: improved resizing of paletted PNG images in WP_Image_Editor using pngquant or API
 * added: warning when hiding query strings with Hide My WP
+* changed: apply async loading to lazyload JS using WP core functionality
 * fixed: missing srcset when using JS WebP rewriting
 
 = 7.6.0 =

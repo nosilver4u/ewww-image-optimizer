@@ -1304,9 +1304,12 @@ class Lazy_Load extends Page_Parser {
 		if ( ! \apply_filters( 'eio_do_lazyload', true, $this->request_uri ) ) {
 			return;
 		}
-		$in_footer = true;
+		$in_footer = array(
+			'strategy'  => 'async',
+			'in_footer' => true,
+		);
 		if ( \defined( 'EIO_LL_FOOTER' ) && ! EIO_LL_FOOTER ) {
-			$in_footer = false;
+			$in_footer['in_footer'] = false;
 		}
 		$plugin_file = \constant( \strtoupper( $this->prefix ) . 'PLUGIN_FILE' );
 		\wp_enqueue_script( 'eio-lazy-load-pre', \plugins_url( '/includes/lazysizes-pre.js', $plugin_file ), array(), $this->version, $in_footer );
@@ -1344,9 +1347,12 @@ class Lazy_Load extends Page_Parser {
 		if ( ! \apply_filters( 'eio_do_lazyload', true, $this->request_uri ) ) {
 			return;
 		}
-		$in_footer = true;
+		$in_footer = array(
+			'strategy'  => 'async',
+			'in_footer' => true,
+		);
 		if ( \defined( 'EIO_LL_FOOTER' ) && ! EIO_LL_FOOTER ) {
-			$in_footer = false;
+			$in_footer['in_footer'] = false;
 		}
 		$plugin_file = \constant( \strtoupper( $this->prefix ) . 'PLUGIN_FILE' );
 		\wp_enqueue_script( 'eio-lazy-load', \plugins_url( '/includes/lazysizes.min.js', $plugin_file ), array(), $this->version, $in_footer );
