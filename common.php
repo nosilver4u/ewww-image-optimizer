@@ -7693,6 +7693,10 @@ function ewww_image_optimizer_better_resize( $file, $dst_x, $dst_y, $src_x, $src
  */
 function ewww_image_optimizer_reduce_palette( $file, $bit_depth ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( apply_filters( 'ewww_image_optimizer_reduce_palette', true ) ) {
+		ewwwio_debug_message( 'palette reduction disabled' );
+		return;
+	}
 	ewwwio_debug_message( "converting $file to $bit_depth" );
 	if ( ! ewwwio_is_file( $file ) ) {
 		return;

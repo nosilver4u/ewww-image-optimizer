@@ -567,6 +567,8 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 		ewwwio_debug_message( '<b>wp_image_editor_imagick::' . __FUNCTION__ . '()</b>' );
 		global $ewww_preempt_editor;
 		$special_palettes = array( 'PNG1', 'PNG2', 'PNG4', 'PNG8' );
+		// If something is in the 'ewww_image' property, meaning this is likely a GIF that has been
+		// resized by EWWW IO, and the image wasn't otherwise cropped, rotated, etc.
 		if ( ! empty( $this->ewww_image ) && ! $this->modified ) {
 			return $this->_save_ewwwio_file( $this->ewww_image, $filename, $mime_type );
 		}
