@@ -253,9 +253,15 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 			$filter = defined( 'Imagick::FILTER_TRIANGLE' ) ? Imagick::FILTER_TRIANGLE : false;
 		}
 
+		$current_colors = false;
 		if ( 'image/png' === $this->mime_type ) {
+			ewwwio_debug_message( 'this image is type: ' . $this->image->getImageType() );
 			if ( ! empty( $this->file ) ) {
+				$special_palettes      = array( 'PNG1', 'PNG2', 'PNG4', 'PNG8' );
 				$this->png_color_depth = ewwwio_get_png_depth( $this->file );
+				if ( in_array( $this->png_color_depth, $special_palettes, true ) ) {
+					$current_colors = $this->image->getImageColors();
+				}
 			}
 		}
 
@@ -342,6 +348,31 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 			) {
 				if ( $this->image->getImageAlphaChannel() === Imagick::ALPHACHANNEL_UNDEFINED ) {
 					$this->image->setImageAlphaChannel( Imagick::ALPHACHANNEL_OPAQUE );
+				}
+			}
+
+			if ( 'image/png' === $this->mime_type ) {
+				switch ( $this->png_color_depth ) {
+					case 'PNG8':
+						$max_colors = 255;
+						break;
+					case 'PNG4':
+						$max_colors = 16;
+						break;
+					case 'PNG2':
+						$max_colors = 4;
+						break;
+					case 'PNG1':
+						$max_colors = 2;
+						break;
+					default:
+						$max_colors = 0;
+				}
+				if ( ! empty( $max_colors ) && ! ewww_image_optimizer_pngquant_reduce_available() ) {
+					$max_colors = min( $max_colors, $current_colors + 8 );
+					ewwwio_debug_message( "doing quantizeImage on $this->file ($dst_w,$dst_h) to reduce palette to $max_colors" );
+					$this->image->quantizeImage( $max_colors, $this->image->getColorspace(), 0, false, false );
+					ewwwio_debug_message( "originally we had $current_colors colors, and now we have " . $this->image->getImageColors() );
 				}
 			}
 
@@ -575,9 +606,12 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 		if ( ! empty( $ewww_preempt_editor ) || ! defined( 'EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR' ) || ! EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR ) {
 			ewwwio_debug_message( 'EWWW editor not enabled, using parent _save()' );
 			$saved = parent::_save( $image, $filename, $mime_type );
-			if ( in_array( $this->png_color_depth, $special_palettes, true ) && ! empty( $saved['path'] ) ) {
+			if ( ! is_wp_error( $saved ) && in_array( $this->png_color_depth, $special_palettes, true ) && ! empty( $saved['path'] ) ) {
 				ewwwio_debug_message( "encoding to $this->png_color_depth" );
 				ewww_image_optimizer_reduce_palette( $saved['path'], $this->png_color_depth );
+			}
+			if ( is_wp_error( $saved ) ) {
+				ewwwio_debug_message( 'editor error: ' . $saved->get_error_message() );
 			}
 			return $saved;
 		}

@@ -7684,6 +7684,25 @@ function ewww_image_optimizer_better_resize( $file, $dst_x, $dst_y, $src_x, $src
 }
 
 /**
+ * Checks if pngquant, local or via API, is available to reduce the pallete of a PNG image.
+ *
+ * @since 7.7.0
+ *
+ * @return bool True if reduction can be run via pngquant or API, false otherwise.
+ */
+function ewww_image_optimizer_pngquant_reduce_available() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+		return true;
+	}
+	$pngquant_path = ewwwio()->local->get_path( 'pngquant', true );
+	if ( ! empty( $pngquant_path ) ) {
+		return true;
+	}
+	return false;
+}
+
+/**
  * Uses pngquant or the API to reduce the palette of a PNG image to bit depth 8 (or less).
  *
  * @since 7.7.0
@@ -7693,7 +7712,7 @@ function ewww_image_optimizer_better_resize( $file, $dst_x, $dst_y, $src_x, $src
  */
 function ewww_image_optimizer_reduce_palette( $file, $bit_depth ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( apply_filters( 'ewww_image_optimizer_reduce_palette', true ) ) {
+	if ( ! apply_filters( 'ewww_image_optimizer_reduce_palette', true ) ) {
 		ewwwio_debug_message( 'palette reduction disabled' );
 		return;
 	}
