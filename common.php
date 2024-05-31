@@ -14912,7 +14912,7 @@ function ewww_image_optimizer_remove_easyio() {
  */
 function ewww_image_optimizer_network_remove_easyio() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	check_admin_referer( 'ewww_image_optimizer_options-option' );
+	check_admin_referer( 'ewww_image_optimizer_options-options' );
 	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_network_options' );
 	if ( false === current_user_can( $permissions ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
