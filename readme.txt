@@ -147,6 +147,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: warning when hiding query strings with Hide My WP
 * changed: apply async loading to lazyload JS using WP core functionality
 * fixed: missing srcset when using JS WebP rewriting
+* fixed: multisite deactivate for Easy IO fails nonce verification
 
 = 7.6.0 =
 *Release Date - April 24, 2024*

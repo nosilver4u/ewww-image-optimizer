@@ -700,6 +700,7 @@ final class Plugin extends Base {
 		\add_option( 'exactdn_prevent_db_queries', true );
 		\add_option( 'exactdn_asset_domains', '' );
 		\add_option( 'ewww_image_optimizer_lazy_load', false );
+		\add_option( 'ewww_image_optimizer_add_missing_dims', false );
 		\add_option( 'ewww_image_optimizer_use_siip', false );
 		\add_option( 'ewww_image_optimizer_use_lqip', false );
 		\add_option( 'ewww_image_optimizer_use_dcip', false );
