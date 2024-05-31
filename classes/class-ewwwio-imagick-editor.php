@@ -460,11 +460,11 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 					ewwwio_debug_message( "doing quantizeImage on $this->file ($dst_w,$dst_h) to reduce palette to $this->indexed_max_colors" );
 					$this->image->quantizeImage( $this->indexed_max_colors, $this->image->getColorspace(), 0, false, false );
 					ewwwio_debug_message( "originally we had $current_colors colors, and now we have " . $this->image->getImageColors() );
-                	/**
-                	 * ImageMagick likes to convert gray indexed images to grayscale.
-                	 * So, if the colorspace has changed to 'gray', use the png8 format
-                	 * to ensure it stays indexed.
-                	 */
+					/**
+					 * ImageMagick likes to convert gray indexed images to grayscale.
+					 * So, if the colorspace has changed to 'gray', use the png8 format
+					 * to ensure it stays indexed.
+					 */
 					if ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() ) {
 						$this->image->setOption( 'png:format', 'png8' );
 					}
