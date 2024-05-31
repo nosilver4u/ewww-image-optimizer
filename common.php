@@ -7692,6 +7692,9 @@ function ewww_image_optimizer_better_resize( $file, $dst_x, $dst_y, $src_x, $src
  */
 function ewww_image_optimizer_pngquant_reduce_available() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( ! defined( 'EWWWIO_PNGQUANT_REDUCE' ) || ! EWWWIO_PNGQUANT_REDUCE ) {
+		return false;
+	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 		return true;
 	}
@@ -7708,15 +7711,18 @@ function ewww_image_optimizer_pngquant_reduce_available() {
  * @since 7.7.0
  *
  * @param string $file A PNG image file.
- * @param string $bit_depth A string representing the bit depth of a paletted image. For example 'PNG8' or 'PNG4'.
+ * @param int    $max_colors The maximum number of colors.
  */
-function ewww_image_optimizer_reduce_palette( $file, $bit_depth ) {
+function ewww_image_optimizer_reduce_palette( $file, $max_colors ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( ! apply_filters( 'ewww_image_optimizer_reduce_palette', true ) ) {
 		ewwwio_debug_message( 'palette reduction disabled' );
 		return;
 	}
-	ewwwio_debug_message( "converting $file to $bit_depth" );
+	if ( ! defined( 'EWWWIO_PNGQUANT_REDUCE' ) || ! EWWWIO_PNGQUANT_REDUCE ) {
+		return false;
+	}
+	ewwwio_debug_message( "reducing $file to $max_colors colors" );
 	if ( ! ewwwio_is_file( $file ) ) {
 		return;
 	}
@@ -7728,21 +7734,8 @@ function ewww_image_optimizer_reduce_palette( $file, $bit_depth ) {
 	if ( 'image/png' !== $type ) {
 		return;
 	}
-	switch ( $bit_depth ) {
-		case 'PNG4':
-			$colors = 16;
-			break;
-		case 'PNG2':
-			$colors = 4;
-			break;
-		case 'PNG1':
-			$colors = 2;
-			break;
-		default:
-			$colors = 256;
-	}
-	if ( ! ewww_image_optimizer_pngquant_reduce_png( $file, $colors ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-		ewww_image_optimizer_cloud_reduce_png( $file, $colors );
+	if ( ! ewww_image_optimizer_pngquant_reduce_png( $file, $max_colors ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+		ewww_image_optimizer_cloud_reduce_png( $file, $max_colors );
 	}
 }
 

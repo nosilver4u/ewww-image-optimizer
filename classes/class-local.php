@@ -361,7 +361,7 @@ class Local extends Base {
 				$this->debug_message( 'could not copy optipng' );
 			}
 		}
-		if ( $this->tools['pngquant']['enabled'] && ( ! $this->is_file( $pngquant_dst ) || \filesize( $pngquant_dst ) !== \filesize( $pngquant_src ) ) ) {
+		if ( ! $this->is_file( $pngquant_dst ) || \filesize( $pngquant_dst ) !== \filesize( $pngquant_src ) ) {
 			$this->debug_message( 'pngquant not found or different size, installing' );
 			if ( ! \copy( $pngquant_src, $pngquant_dst ) ) {
 				$toolfail = true;
@@ -398,7 +398,7 @@ class Local extends Base {
 					$this->debug_message( 'could not set optipng permissions' );
 				}
 			}
-			if ( $this->tools['pngquant']['enabled'] && ! $this->check_permissions( $pngquant_dst, 'rwxr-xr-x' ) ) {
+			if ( ! $this->check_permissions( $pngquant_dst, 'rwxr-xr-x' ) ) {
 				if ( ! \is_writable( $pngquant_dst ) || ! \chmod( $pngquant_dst, 0755 ) ) {
 					$toolfail = true;
 					$this->debug_message( 'could not set pngquant permissions' );
@@ -852,7 +852,7 @@ class Local extends Base {
 		$tool_path = \trailingslashit( $this->content_dir );
 		// First check for the binary in the ewww tool folder.
 		if ( ! $this->get_option( 'ewww_image_optimizer_skip_bundle' ) ) {
-			$this->debug_message( 'checking bundled tool' );
+			$this->debug_message( 'checking for bundled tool' );
 			if ( 'pngout' === $binary && $this->is_file( $tool_path . $binary . '-static' ) ) {
 				$binary_path = $tool_path . $binary . '-static';
 				$this->debug_message( "found $binary_path, testing..." );
@@ -1046,7 +1046,7 @@ class Local extends Base {
 					$this->debug_message( "$path: invalid output" );
 					break;
 				}
-				if ( ! empty( $pngquant_version ) && \substr( $pngquant_version[0], 0, 3 ) >= 2.0 ) {
+				if ( ! empty( $pngquant_version ) && \preg_match( '/^\d\.\d{1,2}\.\d{1,2}/', $pngquant_version[0] ) && \substr( $pngquant_version[0], 0, 3 ) >= 2.0 ) {
 					$this->debug_message( 'optimizer found' );
 					return $pngquant_version[0];
 				}

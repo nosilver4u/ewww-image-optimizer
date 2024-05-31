@@ -42,6 +42,102 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 	protected $png_color_depth = '';
 
 	/**
+	 * Stores the information whether the image is indexed-color encoded.
+	 *
+	 * @access protected
+	 * @var bool
+	 */
+	protected $indexed_color_encoded = false;
+
+	/**
+	 * Stores the information whether the image is indexed-color encoded.
+	 *
+	 * @access protected
+	 * @var int
+	 */
+	protected $indexed_pixel_depth = false;
+
+	/**
+	 * How many colors are allowed for an image that is indexed-color encoded.
+	 *
+	 * @access protected
+	 * @var int
+	 */
+	protected $indexed_max_colors = false;
+
+	/**
+	 * Gets the bit depth for PNG images and checks for indexed-color mode.
+	 *
+	 * Access the file directly, as we cannot currently rely on Imagick to identify
+	 * palette images with alpha support.
+	 *
+	 * @since 6.6.0
+	 */
+	protected function get_png_color_depth() {
+		if ( 'image/png' !== $this->mime_type ) {
+			return;
+		}
+		if ( wp_is_stream( $this->file ) ) {
+			return;
+		}
+		if ( ! is_file( $this->file ) ) {
+			return;
+		}
+		if ( filesize( $this->file ) < 24 ) {
+			return;
+		}
+
+		$file_handle = fopen( $this->file, 'rb' );
+
+		if ( ! $file_handle ) {
+			return;
+		}
+
+		$png_header = fread( $file_handle, 4 );
+		if ( chr( 0x89 ) . 'PNG' !== $png_header ) {
+			return;
+		}
+
+		// Move forward 8 bytes.
+		fread( $file_handle, 8 );
+		$png_ihdr = fread( $file_handle, 4 );
+
+		// Make sure we have an IHDR.
+		if ( 'IHDR' !== $png_ihdr ) {
+			return;
+		}
+
+		// Skip past the dimensions.
+		$dimensions = fread( $file_handle, 8 );
+
+		// Bit depth: 1 byte
+		// Bit depth is a single-byte integer giving the number of bits per sample or
+		// per palette index (not per pixel).
+		//
+		// Valid values are 1, 2, 4, 8, and 16, although not all values are allowed for all color types.
+		$this->indexed_pixel_depth = ord( (string) fread( $file_handle, 1 ) );
+
+		// Color type is a single-byte integer that describes the interpretation of the image data.
+		// Color type codes represent sums of the following values:
+		// 1 (palette used), 2 (color used), and 4 (alpha channel used).
+		// The valid color types are:
+		// 0 => Grayscale
+		// 2 => Truecolor
+		// 3 => Indexed
+		// 4 => Greyscale with alpha
+		// 6 => Truecolour with alpha
+		//
+		// Valid values are 0, 2, 3, 4, and 6.
+		$color_type = ord( (string) fread( $file_handle, 1 ) );
+
+		if ( 3 === (int) $color_type ) {
+			$this->indexed_color_encoded = true;
+		}
+
+		fclose( $file_handle );
+	}
+
+	/**
 	 * Resizes current image.
 	 * Wraps _resize, since _resize returns a GD Resource.
 	 *
@@ -253,15 +349,32 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 			$filter = defined( 'Imagick::FILTER_TRIANGLE' ) ? Imagick::FILTER_TRIANGLE : false;
 		}
 
-		$current_colors = false;
 		if ( 'image/png' === $this->mime_type ) {
 			ewwwio_debug_message( 'this image is type: ' . $this->image->getImageType() );
-			if ( ! empty( $this->file ) ) {
-				$special_palettes      = array( 'PNG1', 'PNG2', 'PNG4', 'PNG8' );
-				$this->png_color_depth = ewwwio_get_png_depth( $this->file );
-				if ( in_array( $this->png_color_depth, $special_palettes, true ) ) {
+			$this->get_png_color_depth();
+			if ( $this->indexed_color_encoded ) {
+				$current_colors = 500; // Fail-safe for more than any indexed PNG could have.
+				if ( is_callable( array( $this->image, 'getImageColors' ) ) ) {
 					$current_colors = $this->image->getImageColors();
 				}
+				switch ( $this->indexed_pixel_depth ) {
+					case 8:
+						$max_colors = 255;
+						break;
+					case 4:
+						$max_colors = 16;
+						break;
+					case 2:
+						$max_colors = 4;
+						break;
+					case 1:
+						$max_colors = 2;
+						break;
+					default:
+						$max_colors = 255;
+				}
+				$this->indexed_max_colors = min( $max_colors, $current_colors );
+				ewwwio_debug_message( "indexed image with pixel depth {$this->indexed_pixel_depth} limiting to {$this->indexed_max_colors} colors" );
 			}
 		}
 
@@ -332,7 +445,30 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 				$this->image->setOption( 'png:compression-filter', '5' );
 				$this->image->setOption( 'png:compression-level', '9' );
 				$this->image->setOption( 'png:compression-strategy', '1' );
-				$this->image->setOption( 'png:exclude-chunk', 'all' );
+				if ( $this->indexed_color_encoded
+					&& is_callable( array( $this->image, 'getImageAlphaChannel' ) )
+					&& $this->image->getImageAlphaChannel()
+				) {
+					$this->image->setOption( 'png:include-chunk', 'tRNS' );
+				} else {
+					$this->image->setOption( 'png:exclude-chunk', 'all' );
+				}
+			}
+
+			if ( $this->indexed_color_encoded ) {
+				if ( ! empty( $this->indexed_max_colors ) && ! ewww_image_optimizer_pngquant_reduce_available() ) {
+					ewwwio_debug_message( "doing quantizeImage on $this->file ($dst_w,$dst_h) to reduce palette to $this->indexed_max_colors" );
+					$this->image->quantizeImage( $this->indexed_max_colors, $this->image->getColorspace(), 0, false, false );
+					ewwwio_debug_message( "originally we had $current_colors colors, and now we have " . $this->image->getImageColors() );
+                	/**
+                	 * ImageMagick likes to convert gray indexed images to grayscale.
+                	 * So, if the colorspace has changed to 'gray', use the png8 format
+                	 * to ensure it stays indexed.
+                	 */
+					if ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() ) {
+						$this->image->setOption( 'png:format', 'png8' );
+					}
+				}
 			}
 
 			/*
@@ -348,31 +484,6 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 			) {
 				if ( $this->image->getImageAlphaChannel() === Imagick::ALPHACHANNEL_UNDEFINED ) {
 					$this->image->setImageAlphaChannel( Imagick::ALPHACHANNEL_OPAQUE );
-				}
-			}
-
-			if ( 'image/png' === $this->mime_type ) {
-				switch ( $this->png_color_depth ) {
-					case 'PNG8':
-						$max_colors = 255;
-						break;
-					case 'PNG4':
-						$max_colors = 16;
-						break;
-					case 'PNG2':
-						$max_colors = 4;
-						break;
-					case 'PNG1':
-						$max_colors = 2;
-						break;
-					default:
-						$max_colors = 0;
-				}
-				if ( ! empty( $max_colors ) && ! ewww_image_optimizer_pngquant_reduce_available() ) {
-					$max_colors = min( $max_colors, $current_colors + 8 );
-					ewwwio_debug_message( "doing quantizeImage on $this->file ($dst_w,$dst_h) to reduce palette to $max_colors" );
-					$this->image->quantizeImage( $max_colors, $this->image->getColorspace(), 0, false, false );
-					ewwwio_debug_message( "originally we had $current_colors colors, and now we have " . $this->image->getImageColors() );
 				}
 			}
 
@@ -606,9 +717,9 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 		if ( ! empty( $ewww_preempt_editor ) || ! defined( 'EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR' ) || ! EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR ) {
 			ewwwio_debug_message( 'EWWW editor not enabled, using parent _save()' );
 			$saved = parent::_save( $image, $filename, $mime_type );
-			if ( ! is_wp_error( $saved ) && in_array( $this->png_color_depth, $special_palettes, true ) && ! empty( $saved['path'] ) ) {
-				ewwwio_debug_message( "encoding to $this->png_color_depth" );
-				ewww_image_optimizer_reduce_palette( $saved['path'], $this->png_color_depth );
+			if ( ! is_wp_error( $saved ) && $this->indexed_color_encoded && ! empty( $saved['path'] ) ) {
+				ewwwio_debug_message( "reducing to $this->indexed_max_colors colors" );
+				ewww_image_optimizer_reduce_palette( $saved['path'], $this->indexed_max_colors );
 			}
 			if ( is_wp_error( $saved ) ) {
 				ewwwio_debug_message( 'editor error: ' . $saved->get_error_message() );
@@ -640,9 +751,9 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 				$filename = $saved['path'];
 			}
 			if ( ewwwio_is_file( $filename ) ) {
-				if ( in_array( $this->png_color_depth, $special_palettes, true ) && ! empty( $filename ) ) {
-					ewwwio_debug_message( "encoding to $this->png_color_depth" );
-					ewww_image_optimizer_reduce_palette( $filename, $this->png_color_depth );
+				if ( $this->indexed_color_encoded && ! empty( $filename ) ) {
+					ewwwio_debug_message( "reducing to $this->indexed_max_colors colors" );
+					ewww_image_optimizer_reduce_palette( $filename, $this->indexed_max_colors );
 				}
 
 				ewww_image_optimizer( $filename );
