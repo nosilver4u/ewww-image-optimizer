@@ -5,7 +5,7 @@ Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization,
 Requires at least: 6.2
 Tested up to: 6.5
 Requires PHP: 7.3
-Stable tag: 7.6.0
+Stable tag: 7.7.0
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -140,14 +140,15 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
-= 7.6.1 =
-*Release Date - TBD*
+= 7.7.0 =
+*Release Date - June 6, 2024*
 
 * added: improved resizing of paletted PNG images in WP_Image_Editor using pngquant or API
 * added: warning when hiding query strings with Hide My WP
 * changed: apply async loading to lazyload JS using WP core functionality
 * fixed: missing srcset when using JS WebP rewriting
 * fixed: multisite deactivate for Easy IO fails nonce verification
+* fixed: some strings were missing i18n (props @DAnn2012)
 
 = 7.6.0 =
 *Release Date - April 24, 2024*
@@ -192,63 +193,6 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: ability to view pending/queued images, remove images from queue, and sort queue by original image size
 * fixed: restoring images from optimization table
 * fixed: attempting to install x64 binaries on arm64 servers
-
-= 7.3.0 =
-*Release Date - February 20, 2024*
-
-* added: API processing for large images done asynchronously to avoid timeouts
-* added: Store resize results to prevent repeated attempts to scale images that yield larger filesizes
-* added: warning to remove outdated AGR plugin
-* changed: improved timeout handling/avoidance for scheduled optimization
-* fixed: JS WebP can't check for local images when using S3 on multisite in sub-folder mode
-* fixed: corrupted images (with an unrecognized file header) being repeatedly scanned by the bulk/scheduled optimizer
-* fixed: GIF images not offloaded by WP Offload Media when operating in free cloud-based mode due to no thumbnail generation
-* fixed: Easy IO applying resize parameters to existing (re)sizes
-* security: improve authentication for some plugin actions
-
-= 7.2.3 =
-*Release Date - January 4, 2024*
-
-* fixed: Easy IO incorrectly modifies JS/CSS URLs when using S3 on multisite
-* fixed: regression with WP Offload Media compatibility and incorrect ContentType for WebP images
-* fixed: local backup folder not protected from optimization
-
-= 7.2.2 =
-*Release Date - December 12, 2023*
-
-* fixed: Lazy Load compatibility with X/Pro themes and Cornerstone builder
-* fixed: JPG quality level ignored during PNG to JPG conversion
-* fixed: too much scaling for Visual Composer background images with zoom effect
-* fixed: Perfect Images compatibility function broken during image upload
-* fixed: Easy IO strips extra sub-folders in non-image URLs
-* fixed: compatibility with NextGEN Gallery 3.50+
-* fixed: optimization of dynamic thumbs for NextGEN Gallery
-
-= 7.2.1 =
-*Release Date - September 7, 2023*
-
-* changed: Scheduled Optimizer skips image errors faster
-* changed: use updated coding standards, and restructure code for async/background functions
-* removed: legacy image editor extensions for unmaintained plugins
-* security: randomize filename of debug log
-
-= 7.2.0 =
-*Release Date - July 20, 2023*
-
-* added: Easy IO rewrites poster/thumbnail image URLs for video elements
-* changed: Easy IO + Auto Scale checks images on load and resize events to reduce browser upscaling
-* changed: prevent Easy IO font substitution when OMGF is active
-* fixed: Auto Scale downscales too much for landscape images displayed in portrait containers
-* fixed: Easy IO compatibility with Brizy thumbnail generation endpoint
-
-= 7.1.0 =
-*Release Date - June 29, 2023*
-
-* added: deliver Google Fonts via Easy IO or Bunny Fonts for improved user privacy
-* fixed: PHP error trying to save EXIF data to JPG after resizing
-* fixed: could not disable auto-scaling
-* fixed: prevent errors when using legacy Animated GIF Resizing plugin
-* fixed: prevent WP Offload Media from prematurely re-offloading when using bulk optimizer
 
 = Earlier versions =
 Please refer to the separate changelog.txt file.
