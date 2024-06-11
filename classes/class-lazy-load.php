@@ -1002,6 +1002,18 @@ class Lazy_Load extends Page_Parser {
 			$this->debug_message( 'data-pin-description img skipped' );
 			return false;
 		}
+		$autoscaling = true;
+		if ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ) {
+			$autoscaling = false;
+		} elseif ( false === \strpos( $image, 'srcset' ) && empty( $this->exactdn_domain ) ) {
+			$autoscaling = false;
+		}
+		if ( ! $autoscaling ) {
+			if ( \strpos( $image, 'fetchpriority="high"' ) || \strpos( $image, "fetchpriority='high'" ) ) {
+				$this->debug_message( 'no autoscaling for this image, and lcp indicated' );
+				return false;
+			}
+		}
 
 		$exclusions = \apply_filters(
 			'eio_lazy_exclusions',

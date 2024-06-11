@@ -140,6 +140,11 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 7.7.1 =
+*Release Date - TBD*
+
+* changed: skip lazy load for LCP images based on fetchpriority when auto-scaling is disabled
+
 = 7.7.0 =
 *Release Date - June 6, 2024*
 
