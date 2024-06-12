@@ -505,10 +505,11 @@ class JS_Webp extends Page_Parser {
 					if ( $srcset ) {
 						$srcset_webp = $this->srcset_replace( $srcset );
 						if ( $srcset_webp ) {
+							$this->debug_message( 'webp srcset generated, setting attrs' );
 							$this->set_attribute( $new_image, 'data-srcset-webp', $srcset_webp );
+							$this->set_attribute( $new_image, 'data-srcset-img', $srcset );
+							$this->set_attribute( $new_image, 'srcset', $this->placeholder_src . ' 1w', true );
 						}
-						$this->set_attribute( $new_image, 'data-srcset-img', $srcset );
-						$this->set_attribute( $new_image, 'srcset', $this->placeholder_src . ' 1w', true );
 					}
 					if ( $this->get_attribute( $image, 'data-orig-file' ) && $this->get_attribute( $image, 'data-medium-file' ) && $this->get_attribute( $image, 'data-large-file' ) ) {
 						$new_image = $this->jetpack_replace( $new_image );

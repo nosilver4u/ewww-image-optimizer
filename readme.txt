@@ -144,6 +144,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 *Release Date - TBD*
 
 * changed: skip lazy load for LCP images based on fetchpriority when auto-scaling is disabled
+* fixed: JS WebP alters img srcset when src is non-WebP but srcset is already WebP
 
 = 7.7.0 =
 *Release Date - June 6, 2024*
