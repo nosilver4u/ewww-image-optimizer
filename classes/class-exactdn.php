@@ -2495,8 +2495,8 @@ class ExactDN extends Page_Parser {
 					$got_meta   = true;
 
 					if ( isset( $image_meta['width'], $image_meta['height'] ) ) {
-						$full_width    = ! empty( $image_meta['width'] ) ? (int) $image_meta['width'] : false;
-						$full_height   = ! empty( $image_meta['height'] ) ? (int) $image_meta['height'] : false;
+						$full_width  = ! empty( $image_meta['width'] ) ? (int) $image_meta['width'] : false;
+						$full_height = ! empty( $image_meta['height'] ) ? (int) $image_meta['height'] : false;
 						$this->debug_message( "original (full-size) dimensions (w,h): $full_width, $full_height" );
 						$image_resized = \image_resize_dimensions( $image_meta['width'], $image_meta['height'], $image_args['width'], $image_args['height'], $image_args['crop'] );
 						if ( $image_resized ) { // This could be false when the requested image size is larger than the full-size image.
