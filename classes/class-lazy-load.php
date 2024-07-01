@@ -557,7 +557,7 @@ class Lazy_Load extends Page_Parser {
 		if ( ! $file ) {
 			$file = $this->get_attribute( $image, 'src' );
 		}
-		$file = \str_replace( '&#038;', '&', \esc_url( \trim( $file ) ) );
+		$file = \str_replace( '&#038;', '&', \esc_url( \trim( html_entity_decode( $file ) ) ) );
 		$this->set_attribute( $image, 'data-src', $file, true );
 		$srcset = $this->get_attribute( $image, 'srcset' );
 

@@ -1551,7 +1551,7 @@ class Base {
 			$url = ( \is_ssl() ? 'https://' : 'http://' ) . $url;
 		}
 		// Because encoded ampersands in the filename break things.
-		$url = \str_replace( '&#038;', '&', $url );
+		$url = \str_replace( '&#038;', '&', \html_entity_decode( $url ) );
 		return \parse_url( $url, $component );
 	}
 

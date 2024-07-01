@@ -1487,7 +1487,7 @@ class ExactDN extends Page_Parser {
 						}
 
 						// Cleanup ExactDN URL.
-						$exactdn_url = \str_replace( '&#038;', '&', \esc_url( \trim( $exactdn_url ) ) );
+						$exactdn_url = \str_replace( '&#038;', '&', \esc_url( \trim( html_entity_decode( $exactdn_url ) ) ) );
 						// Supplant the original source value with our ExactDN URL.
 						$this->debug_message( "replacing $src_orig with $exactdn_url" );
 						if ( $is_relative ) {
@@ -1514,7 +1514,7 @@ class ExactDN extends Page_Parser {
 							$placeholder_src = $this->generate_url( $placeholder_src );
 
 							if ( $placeholder_src !== $placeholder_src_orig ) {
-								$new_tag = \str_replace( $placeholder_src_orig, \str_replace( '&#038;', '&', \esc_url( \trim( $placeholder_src ) ) ), $new_tag );
+								$new_tag = \str_replace( $placeholder_src_orig, \str_replace( '&#038;', '&', \esc_url( \trim( html_entity_decode( $placeholder_src ) ) ) ), $new_tag );
 							}
 
 							unset( $placeholder_src );
@@ -1572,7 +1572,7 @@ class ExactDN extends Page_Parser {
 					// If Lazy Load is in use, pass placeholder image through ExactDN.
 					$placeholder_src = $this->generate_url( $placeholder_src );
 					if ( $placeholder_src !== $placeholder_src_orig ) {
-						$new_tag = \str_replace( $placeholder_src_orig, \str_replace( '&#038;', '&', \esc_url( \trim( $placeholder_src ) ) ), $new_tag );
+						$new_tag = \str_replace( $placeholder_src_orig, \str_replace( '&#038;', '&', \esc_url( \trim( html_entity_decode( $placeholder_src ) ) ) ), $new_tag );
 						// Replace original tag with modified version.
 						$content = \str_replace( $tag, $new_tag, $content );
 					}
