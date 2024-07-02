@@ -145,6 +145,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 * changed: skip lazy load for LCP images based on fetchpriority when auto-scaling is disabled
 * fixed: JS WebP alters img srcset when src is non-WebP but srcset is already WebP
+* fixed: Lazy Load and Easy IO fail to decode URLs with HTML-encoded characters, which causes esc_url to break the URL
 
 = 7.7.0 =
 *Release Date - June 6, 2024*
