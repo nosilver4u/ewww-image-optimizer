@@ -3665,6 +3665,9 @@ function ewwwio_is_file( $file ) {
 	global $eio_filesystem;
 	ewwwio_get_filesystem();
 	$file       = realpath( $file );
+	if ( ! $file ) {
+		return false;
+	}
 	$wp_dir     = realpath( ABSPATH );
 	$upload_dir = wp_get_upload_dir();
 	$upload_dir = realpath( $upload_dir['basedir'] );
