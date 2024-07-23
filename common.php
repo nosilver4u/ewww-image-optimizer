@@ -12763,6 +12763,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			} else {
 				$exactdn_savings = $exactdn->savings();
 			}
+		} elseif ( $exactdn->get_exactdn_domain() ) {
+			update_option( 'ewww_image_optimizer_exactdn', false );
+			update_site_option( 'ewww_image_optimizer_exactdn', false );
+			delete_option( 'ewww_image_optimizer_exactdn_domain' );
+			delete_site_option( 'ewww_image_optimizer_exactdn_domain' );
 		}
 	} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
