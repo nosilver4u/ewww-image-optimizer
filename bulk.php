@@ -1070,7 +1070,7 @@ function ewww_image_optimizer_bulk_async_get_status() {
 	} elseif ( 'scanning' === get_option( 'ewww_image_optimizer_aux_resume' ) ) {
 		// We output this as 'media_remaining' because the async scan hasn't run yet, and we don't want the autopoll to quit just yet.
 		$output['media_remaining'] = esc_html__( 'Searching for images to optimize...', 'ewww-image-optimizer' );
-	} else {
+	} elseif ( ! apply_filters( 'ewwwio_whitelabel', false ) ) {
 		$output['complete'] = '<div><b>' . esc_html__( 'Finished', 'ewww-image-optimizer' ) . '</b> - ' .
 		( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ?
 		'<a target="_blank" href="https://wordpress.org/support/plugin/ewww-image-optimizer/reviews/#new-post">' .
@@ -1080,8 +1080,9 @@ function ewww_image_optimizer_bulk_async_get_status() {
 		esc_html__( 'Get 5x more with a free trial', 'ewww-image-optimizer' )
 		) .
 		'</a></div>';
+	} else {
+		$output['complete'] = '<div><b>' . esc_html__( 'Finished', 'ewww-image-optimizer' ) . '</div></b>';
 	}
-
 	ewwwio_ob_clean();
 	die( wp_json_encode( $output ) );
 }
@@ -2251,14 +2252,14 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		// Gotta make sure we don't delete a pending record if the license is exceeded, so the license check goes first.
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 			if ( 'exceeded' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
-				$output['error'] = '<a href="https://ewww.io/buy-credits/" target="_blank">' . esc_html__( 'License Exceeded', 'ewww-image-optimizer' ) . '</a>';
+				$output['error'] = ewww_image_optimizer_credits_exceeded();
 				delete_transient( 'ewww_image_optimizer_bulk_counter_measures' );
 				delete_transient( 'ewww_image_optimizer_bulk_current_image' );
 				ewwwio_ob_clean();
 				die( wp_json_encode( $output ) );
 			}
 			if ( 'exceeded quota' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
-				$output['error'] = '<a href="https://docs.ewww.io/article/101-soft-quotas-on-unlimited-plans" data-beacon-article="608ddf128996210f18bd95d3" target="_blank">' . esc_html__( 'Soft quota reached, contact us for more', 'ewww-image-optimizer' ) . '</a>';
+				$output['error'] = ewww_image_optimizer_soft_quota_exceeded();
 				delete_transient( 'ewww_image_optimizer_bulk_counter_measures' );
 				delete_transient( 'ewww_image_optimizer_bulk_current_image' );
 				ewwwio_ob_clean();
@@ -2483,17 +2484,21 @@ function ewww_image_optimizer_bulk_cleanup() {
 	// Let the user know we are done.
 	ewwwio_memory( __FUNCTION__ );
 	ewwwio_ob_clean();
-	die(
-		'<p><b>' . esc_html__( 'Finished', 'ewww-image-optimizer' ) . '</b> - ' .
-		( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ?
-		'<a target="_blank" href="https://wordpress.org/support/plugin/ewww-image-optimizer/reviews/#new-post">' .
-		esc_html__( 'Write a Review', 'ewww-image-optimizer' ) :
-		esc_html__( 'Want more compression?', 'ewww-image-optimizer' ) . ' ' .
-		'<a target="_blank" href="https://ewww.io/trial/">' .
-		esc_html__( 'Get 5x more with a free trial', 'ewww-image-optimizer' )
-		) .
-		'</a></p>'
-	);
+	if ( ! apply_filters( 'ewwwio_whitelabel', false ) ) {
+		die(
+			'<p><b>' . esc_html__( 'Finished', 'ewww-image-optimizer' ) . '</b> - ' .
+			( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ?
+			'<a target="_blank" href="https://wordpress.org/support/plugin/ewww-image-optimizer/reviews/#new-post">' .
+			esc_html__( 'Write a Review', 'ewww-image-optimizer' ) :
+			esc_html__( 'Want more compression?', 'ewww-image-optimizer' ) . ' ' .
+			'<a target="_blank" href="https://ewww.io/trial/">' .
+			esc_html__( 'Get 5x more with a free trial', 'ewww-image-optimizer' )
+			) .
+			'</a></p>'
+		);
+	} else {
+		die( '<p><b>' . esc_html__( 'Finished', 'ewww-image-optimizer' ) . '</b></p>' );
+	}
 }
 
 add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_bulk_script' );
