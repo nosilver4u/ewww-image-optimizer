@@ -3858,7 +3858,7 @@ function ewww_image_optimizer_manual() {
 	}
 	if ( 'exceeded' === get_transient( 'ewww_image_optimizer_cloud_status' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
 		if ( ! wp_doing_ajax() ) {
-			wp_die( ewww_image_optimizer_credits_exceeded() );
+			wp_die( wp_kses( ewww_image_optimizer_credits_exceeded() ) );
 		}
 		ewwwio_ob_clean();
 		wp_die(
@@ -3870,7 +3870,7 @@ function ewww_image_optimizer_manual() {
 		);
 	} elseif ( 'exceeded quota' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
 		if ( ! wp_doing_ajax() ) {
-			wp_die( ewww_image_optimizer_soft_quota_exceeded() );
+			wp_die( wp_kses( ewww_image_optimizer_soft_quota_exceeded() ) );
 		}
 		ewwwio_ob_clean();
 		wp_die(
@@ -13468,14 +13468,14 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					<td>
 						<div id='ewwwio-easy-activation-result'></div>
 						<p class='ewwwio-easy-description'>
-							<?php 
-		if ( ! apply_filters( 'ewwwio_whitelabel', false ) ) :
-							printf(
-								/* translators: %s: the string 'and more' with a link to the docs */
-								esc_html__( 'An image-optimizing CDN with automatic compression, scaling, WebP conversion %s.', 'ewww-image-optimizer' ),
-								'<a href="https://docs.ewww.io/article/44-introduction-to-exactdn" target="_blank" data-beacon-article="59bc5ad6042863033a1ce370">' . esc_html__( 'and more', 'ewww-image-optimizer' ) . '</a>'
-							);
-		endif; 
+							<?php
+							if ( ! apply_filters( 'ewwwio_whitelabel', false ) ) {
+								printf(
+									/* translators: %s: the string 'and more' with a link to the docs */
+									esc_html__( 'An image-optimizing CDN with automatic compression, scaling, WebP conversion %s.', 'ewww-image-optimizer' ),
+									'<a href="https://docs.ewww.io/article/44-introduction-to-exactdn" target="_blank" data-beacon-article="59bc5ad6042863033a1ce370">' . esc_html__( 'and more', 'ewww-image-optimizer' ) . '</a>'
+								);
+							}
 							?>
 						</p>
 		<?php if ( class_exists( 'Jetpack' ) && method_exists( 'Jetpack', 'is_module_active' ) && Jetpack::is_module_active( 'photon' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) : ?>
@@ -13820,14 +13820,16 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						</p>
 						<p class='description'>
 							<?php esc_html_e( 'WebP images will be generated automatically for new uploads.', 'ewww-image-optimizer' ); ?>
-							<?php if ( ! apply_filters( 'ewwwio_whitelabel', false ) ) :
+							<?php
+							if ( ! apply_filters( 'ewwwio_whitelabel', false ) ) {
 								printf(
 									/* translators: 1: Bulk Optimizer 2: Easy IO */
 									esc_html__( 'Use the %1$s for existing uploads or get %2$s for automatic WebP conversion and delivery.', 'ewww-image-optimizer' ),
 									'<a href="' . esc_url( admin_url( 'upload.php?page=ewww-image-optimizer-bulk' ) ) . '">' . esc_html__( 'Bulk Optimizer', 'ewww-image-optimizer' ) . '</a>',
 									'<a href="https://ewww.io/plans/">' . esc_html__( 'Easy IO', 'ewww-image-optimizer' ) . '</a>'
 								);
-							endif; ?>
+							}
+							?>
 						</p>
 		<?php endif; ?>
 		<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
@@ -14822,9 +14824,9 @@ function ewwwio_help_link( $link, $hsid = '' ) {
 		return;
 	}
 	if ( ! apply_filters( 'ewwwio_whitelabel', false ) ) {
-	echo '<a class="' . esc_attr( $link_class ) . '" href="' . esc_url( $link ) . '" target="_blank" ' . esc_attr( $beacon_attr ) . '="' . esc_attr( $hsid ) . '">' .
-		'<img title="' . esc_attr__( 'Help', 'ewww-image-optimizer' ) . '" src="' . esc_url( $help_icon ) . '">' .
-		'</a>';
+		echo '<a class="' . esc_attr( $link_class ) . '" href="' . esc_url( $link ) . '" target="_blank" ' . esc_attr( $beacon_attr ) . '="' . esc_attr( $hsid ) . '">' .
+			'<img title="' . esc_attr__( 'Help', 'ewww-image-optimizer' ) . '" src="' . esc_url( $help_icon ) . '">' .
+			'</a>';
 	}
 }
 
@@ -15122,6 +15124,8 @@ function ewww_image_optimizer_admin_bar_menu( $wp_admin_bar ) {
 
 /**
  * Function to implement whitelabel, removing links to EWWW.IO.
+ *
+ * @param bool $whitelabeled True if Whitelabel mode is enabled.  Defaults to false.
  */
 function ewwwio_is_whitelabel( $whitelabeled ) {
 	if ( defined( 'EWWWIO_WHITELABEL' ) && EWWWIO_WHITELABEL ) {

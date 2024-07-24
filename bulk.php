@@ -1083,8 +1083,6 @@ function ewww_image_optimizer_bulk_async_get_status() {
 	} else {
 		$output['complete'] = '<div><b>' . esc_html__( 'Finished', 'ewww-image-optimizer' ) . '</div></b>';
 	}
-
-
 	ewwwio_ob_clean();
 	die( wp_json_encode( $output ) );
 }
