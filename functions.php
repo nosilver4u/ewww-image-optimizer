@@ -11,6 +11,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Check if file exists, and that it is local rather than using a protocol like http:// or phar://
+ *
+ * @param string $file The path of the file to check.
+ * @return bool True if the file exists and is local, false otherwise.
+ */
+function ewwwio_is_file( $file ) {
+	return ewwwio()->is_file( $file );
+}
+
+/**
  * Check the mimetype of the given file with magic mime strings/patterns.
  *
  * @param string $path The absolute path to the file.

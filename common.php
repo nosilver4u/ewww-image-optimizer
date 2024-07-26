@@ -3652,60 +3652,6 @@ function ewwwio_is_dir( $dir ) {
 }
 
 /**
- * Check if file exists, and that it is local rather than using a protocol like http:// or phar://
- *
- * @param string $file The path of the file to check.
- * @return bool True if the file exists and is local, false otherwise.
- */
-function ewwwio_is_file( $file ) {
-	if ( false !== strpos( $file, '://' ) ) {
-		return false;
-	}
-	if ( false !== strpos( $file, 'phar://' ) ) {
-		return false;
-	}
-	global $eio_filesystem;
-	ewwwio_get_filesystem();
-	$file       = realpath( $file );
-	$wp_dir     = realpath( ABSPATH );
-	$upload_dir = wp_get_upload_dir();
-	$upload_dir = realpath( $upload_dir['basedir'] );
-
-	$content_dir = realpath( WP_CONTENT_DIR );
-	if ( empty( $content_dir ) ) {
-		$content_dir = $wp_dir;
-	}
-	if ( empty( $upload_dir ) ) {
-		$upload_dir = $content_dir;
-	}
-	$plugin_dir = realpath( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH );
-	if ( defined( 'EWWW_IMAGE_OPTIMIZER_TOOL_PATH' ) ) {
-		$tool_dir = realpath( EWWW_IMAGE_OPTIMIZER_TOOL_PATH );
-		$tool_dir = dirname( $tool_dir );
-	}
-	if ( empty( $tool_dir ) ) {
-		$tool_dir = $content_dir;
-	}
-	if ( defined( 'EWWWIO_CONTENT_DIR' ) ) {
-		$eio_content_dir = realpath( EWWWIO_CONTENT_DIR );
-	}
-	if ( empty( $eio_content_dir ) ) {
-		$eio_content_dir = $content_dir;
-	}
-	if (
-		false === strpos( $file, $upload_dir ) &&
-		false === strpos( $file, $content_dir ) &&
-		false === strpos( $file, $wp_dir ) &&
-		false === strpos( $file, $plugin_dir ) &&
-		false === strpos( $file, $tool_dir ) &&
-		false === strpos( $file, $eio_content_dir )
-	) {
-		return false;
-	}
-	return $eio_filesystem->is_file( $file );
-}
-
-/**
  * Check if destination is in an approved location and rename the original.
  *
  * @param string $src The path of the original file.
