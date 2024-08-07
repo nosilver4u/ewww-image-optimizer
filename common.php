@@ -5053,9 +5053,9 @@ function ewww_image_optimizer_cloud_useragent( $useragent ) {
 }
 
 /**
- * Submits the api key for verification. Will retrieve the key option if parameter not provided.
+ * Submits the API key for verification.
  *
- * @param string $api_key The API key to verify. Default empty string.
+ * @param string $api_key The API key to verify.
  * @param bool   $cache Optional. True to return cached verification results. Default true.
  * @return string|bool False if verification fails, status message otherwise: great/exceeded.
  */
@@ -5081,7 +5081,7 @@ function ewww_image_optimizer_cloud_verify( $api_key, $cache = true ) {
 		}
 		return false;
 	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() && $cache ) {
 		set_transient( 'ewww_image_optimizer_cloud_status', 'exceeded', HOUR_IN_SECONDS );
 		ewwwio_debug_message( 'license exceeded notice has not expired' );
 		return 'exceeded';
