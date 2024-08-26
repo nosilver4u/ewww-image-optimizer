@@ -5332,6 +5332,10 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		ewwwio_debug_message( 'license exceeded, image not processed' );
 		return array( $file, false, 'exceeded', 0, '' );
 	}
+	if ( 'exceeded subkey' === get_transient( 'ewww_image_optimizer_cloud_status' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
+		ewwwio_debug_message( 'license exceeded, image not processed' );
+		return array( $file, false, 'exceeded', 0, '' );
+	}
 	global $ewww_image;
 	global $eio_filesystem;
 	ewwwio_get_filesystem();
@@ -5547,6 +5551,11 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 			ewwwio_debug_message( 'Soft quota Exceeded' );
 			set_transient( 'ewww_image_optimizer_cloud_status', 'exceeded quota', HOUR_IN_SECONDS );
 			$msg = 'exceeded quota';
+			ewwwio_delete_file( $tempfile );
+		} elseif ( 100 > strlen( $response['body'] ) && strpos( $response['body'], 'exceeded subkey' ) ) {
+			ewwwio_debug_message( 'License Exceeded' );
+			set_transient( 'ewww_image_optimizer_cloud_status', 'exceeded subkey', HOUR_IN_SECONDS );
+			$msg = 'exceeded';
 			ewwwio_delete_file( $tempfile );
 		} elseif ( 100 > strlen( $response['body'] ) && strpos( $response['body'], 'exceeded' ) ) {
 			ewwwio_debug_message( 'License Exceeded' );
@@ -13350,9 +13359,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<span style="color: #3eadc9; font-weight: bolder"><?php esc_html_e( 'Verified,', 'ewww-image-optimizer' ); ?> </span><?php echo wp_kses_post( ewww_image_optimizer_cloud_quota() ); ?>
 		<?php elseif ( apply_filters( 'ewwwio_whitelabel', false ) && false !== strpos( $verify_cloud, 'exceeded' ) ) : ?>
 							<span style="color: orange; font-weight: bolder"><?php esc_html_e( 'Out of credits', 'ewww-image-optimizer' ); ?></span>
-		<?php elseif ( 'exceeded quota' === $verify_cloud ) : ?>
+		<?php elseif ( false !== strpos( $verify_cloud, 'exceeded subkey' ) ) : ?>
+							<span style="color: orange; font-weight: bolder"><?php esc_html_e( 'Out of credits', 'ewww-image-optimizer' ); ?></span>					
+		<?php elseif ( false !== strpos( $verify_cloud, 'exceeded quota' ) ) : ?>
 							<span style="color: orange; font-weight: bolder"><a href="https://docs.ewww.io/article/101-soft-quotas-on-unlimited-plans" data-beacon-article="608ddf128996210f18bd95d3" target="_blank"><?php esc_html_e( 'Soft quota reached, contact us for more', 'ewww-image-optimizer' ); ?></a></span>
-		<?php elseif ( 'exceeded' === $verify_cloud ) : ?>
+		<?php elseif ( false !== strpos( $verify_cloud, 'exceeded' ) ) : ?>
 							<span style="color: orange; font-weight: bolder"><?php esc_html_e( 'Out of credits', 'ewww-image-optimizer' ); ?></span> - <a href="https://ewww.io/buy-credits/" target="_blank"><?php esc_html_e( 'Purchase more', 'ewww-image-optimizer' ); ?></a>
 		<?php else : ?>
 							<span style="color: red; font-weight: bolder"><?php esc_html_e( 'Not Verified', 'ewww-image-optimizer' ); ?></span>
