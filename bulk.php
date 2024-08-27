@@ -988,7 +988,7 @@ function ewww_image_optimizer_bulk_async_init() {
 	}
 	session_write_close();
 	$output = array();
-	
+
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 		$verify_cloud = ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), false );
 		if ( 'exceeded' === $verify_cloud ) {

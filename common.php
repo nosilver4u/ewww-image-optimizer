@@ -5109,40 +5109,39 @@ function ewww_image_optimizer_cloud_verify( $api_key, $cache = true ) {
 		ewwwio_debug_message( "verification failed: $error_message" );
 		$result = ewww_image_optimizer_cloud_post_key( $url, $api_key );
 	}
+	$verified = '';
 	if ( is_wp_error( $result ) ) {
 		$error_message = $result->get_error_message();
 		ewwwio_debug_message( "verification failed via $url: $error_message" );
-	} elseif ( ! empty( $result['body'] ) && preg_match( '/(great|exceeded)/', $result['body'] ) ) {
-		$verified = $result['body'];
-		if ( preg_match( '/exceeded/', $verified ) ) {
-			ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_exceeded', time() + 300 );
-			$exceeded = json_decode( $result['body'], true );
-			set_transient( 'ewww_image_optimizer_cloud_status', $exceeded['error'], HOUR_IN_SECONDS );
-		}
-		if ( false !== strpos( $result['body'], 'expired' ) ) {
+	} elseif ( ! empty( $result['body'] ) && 0 === strpos( $result['body'], '{' ) ) { // A non-empty response that appears to be JSON-encoded.
+		$decoded    = json_decode( $result['body'], true );
+		$key_status = ! empty( $decoded['status'] ) ? $decoded['status'] : '';
+		// While the API may return an 'error' property/key, it has been standardized to always return a 'status'.
+		// The status may be any of the following: great, exceeded, exceeded quota, exceeded subkey, invalid, expired.
+		$valid_statuses = array( 'great', 'exceeded', 'exceeded quota', 'exceeded subkey' );
+		ewwwio_debug_message( "key status is $verified ($url)" );
+		if ( in_array( $key_status, $valid_statuses, true ) ) {
+			$verified = $key_status;
+			if ( false !== strpos( $verified, 'exceeded' ) ) {
+				ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_exceeded', time() + 300 );
+			}
+			delete_option( 'ewww_image_optimizer_cloud_key_invalid' );
+		} else {
+			update_option( 'ewww_image_optimizer_cloud_key_invalid', true, false );
 			ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_key', '' );
 		}
-		ewwwio_debug_message( "verification success via: $url" );
-		delete_option( 'ewww_image_optimizer_cloud_key_invalid' );
 	} else {
 		update_option( 'ewww_image_optimizer_cloud_key_invalid', true, false );
-		if ( ! empty( $result['body'] ) && false !== strpos( $result['body'], 'invalid' ) ) {
-			ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_key', '' );
-		}
 		ewwwio_debug_message( "verification failed via: $url" );
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && ewww_image_optimizer_function_exists( 'print_r' ) ) {
 			ewwwio_debug_message( print_r( $result, true ) );
 		}
 	}
-	if ( empty( $verified ) ) {
-		ewwwio_memory( __FUNCTION__ );
-		return false;
-	} else {
+	if ( $verified ) {
 		set_transient( 'ewww_image_optimizer_cloud_status', $verified, HOUR_IN_SECONDS );
-		ewwwio_debug_message( "verification body contents: {$result['body']}" );
-		ewwwio_memory( __FUNCTION__ );
-		return $verified;
+		ewwwio_debug_message( "verification body contents: $verified" );
 	}
+	return $verified;
 }
 
 /**
