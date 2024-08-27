@@ -988,19 +988,20 @@ function ewww_image_optimizer_bulk_async_init() {
 	}
 	session_write_close();
 	$output = array();
-
+	
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-		if ( 'exceeded' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
+		$verify_cloud = ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), false );
+		if ( 'exceeded' === $verify_cloud ) {
 			$output['media_remaining'] = ewww_image_optimizer_credits_exceeded();
 			ewwwio_ob_clean();
 			die( wp_json_encode( $output ) );
 		}
-		if ( 'exceeded quota' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
+		if ( 'exceeded quota' === $verify_cloud ) {
 			$output['media_remaining'] = ewww_image_optimizer_soft_quota_exceeded();
 			ewwwio_ob_clean();
 			die( wp_json_encode( $output ) );
 		}
-		if ( 'exceeded subkey' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
+		if ( 'exceeded subkey' === $verify_cloud ) {
 			$output['media_remaining'] = esc_html__( 'Out of credits', 'ewww-image=optimizer' );
 			ewwwio_ob_clean();
 			die( wp_json_encode( $output ) );
@@ -2298,6 +2299,13 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 			}
 			if ( 'exceeded quota' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
 				$output['error'] = ewww_image_optimizer_soft_quota_exceeded();
+				delete_transient( 'ewww_image_optimizer_bulk_counter_measures' );
+				delete_transient( 'ewww_image_optimizer_bulk_current_image' );
+				ewwwio_ob_clean();
+				die( wp_json_encode( $output ) );
+			}
+			if ( 'exceeded subkey' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
+				$output['error'] = esc_html__( 'Out of credits', 'ewww-image-optimizer' );
 				delete_transient( 'ewww_image_optimizer_bulk_counter_measures' );
 				delete_transient( 'ewww_image_optimizer_bulk_current_image' );
 				ewwwio_ob_clean();
