@@ -355,7 +355,7 @@ function ewww_image_optimizer_bulk_preview() {
 		$fullsize_count = ewww_image_optimizer_aux_images_table_count_pending();
 		$button_text    = esc_attr__( 'Resume previous optimization', 'ewww-image-optimizer' );
 	}
-	// Check that quota is reset after purchasing more credits
+	// Check that quota is reset after purchasing more credits.
 	ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), false );
 	// Create the html for the bulk optimize form and status divs.
 	ewww_image_optimizer_bulk_head_output();
