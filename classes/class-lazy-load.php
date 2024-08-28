@@ -450,7 +450,7 @@ class Lazy_Load extends Page_Parser {
 						$image    = $this->parse_img_tag( $image, $file );
 						$this->set_attribute( $ns_img, 'data-eio', 'l', true );
 						$noscript = '<noscript>' . $ns_img . '</noscript>';
-						$picture  = \str_replace( $orig_img, $image . $noscript, $picture );
+						$picture  = \str_replace( $orig_img, $image, $picture ) . $noscript;
 					}
 				} else {
 					continue;

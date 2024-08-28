@@ -55,6 +55,7 @@ class Background_Process_Media extends Background_Process {
 	 */
 	protected function handle() {
 		if ( \get_option( 'ewww_image_optimizer_pause_queues' ) ) {
+			\ewwwio_debug_message( 'all queues paused' );
 			return;
 		}
 
