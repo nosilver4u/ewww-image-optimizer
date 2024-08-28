@@ -992,17 +992,17 @@ function ewww_image_optimizer_bulk_async_init() {
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 		$verify_cloud = ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), false );
 		if ( 'exceeded' === $verify_cloud ) {
-			$output['media_remaining'] = ewww_image_optimizer_credits_exceeded();
+			$output['error'] = ewww_image_optimizer_credits_exceeded();
 			ewwwio_ob_clean();
 			die( wp_json_encode( $output ) );
 		}
 		if ( 'exceeded quota' === $verify_cloud ) {
-			$output['media_remaining'] = ewww_image_optimizer_soft_quota_exceeded();
+			$output['error'] = ewww_image_optimizer_soft_quota_exceeded();
 			ewwwio_ob_clean();
 			die( wp_json_encode( $output ) );
 		}
 		if ( 'exceeded subkey' === $verify_cloud ) {
-			$output['media_remaining'] = esc_html__( 'Out of credits', 'ewww-image=optimizer' );
+			$output['error'] = esc_html__( 'Out of credits', 'ewww-image=optimizer' );
 			ewwwio_ob_clean();
 			die( wp_json_encode( $output ) );
 		}

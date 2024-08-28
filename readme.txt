@@ -144,6 +144,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 *Release Date - TBD*
 * changed: allow folders outside of WordPress install to be optimized via Folders to Optimize
 * changed: improve performance of ewwwio_is_file(), props @rmpel
+* changed: improve exceeded credit messages for sub-keys
+* fixed: bulk async shows start optimizing instead of resume when queues are paused
+* fixed: bulk async status refresh does not handle errors properly
 
 = 7.8.0 =
 *Release Date - July 25, 2024*
