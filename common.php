@@ -3802,7 +3802,7 @@ function ewww_image_optimizer_manual() {
 	if ( ! $meta_saved ) {
 		ewwwio_debug_message( 'failed to save meta, or no changes' );
 	}
-	if ( false !== strpos( get_transient( 'ewww_image_optimizer_cloud_status' ), 'exceeded' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
+	if ( 'exceeded' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
 		if ( ! wp_doing_ajax() ) {
 			wp_die( wp_kses( ewww_image_optimizer_credits_exceeded() ) );
 		}
@@ -3811,6 +3811,18 @@ function ewww_image_optimizer_manual() {
 			wp_json_encode(
 				array(
 					'error' => ewww_image_optimizer_credits_exceeded(),
+				)
+			)
+		);
+	} elseif ( 'exceeded subkey' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
+		if ( ! wp_doing_ajax() ) {
+			wp_die( wp_kses( __( 'Out of credits', 'ewww-image-optimizer' ) ) );
+		}
+		ewwwio_ob_clean();
+		wp_die(
+			wp_json_encode(
+				array(
+					'error' => esc_html__( 'Out of credits', 'ewww-image-optimizer' ),
 				)
 			)
 		);
@@ -5336,7 +5348,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	}
 	if ( 'exceeded subkey' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
 		ewwwio_debug_message( 'license exceeded, image not processed' );
-		return array( $file, false, 'exceeded', 0, '' );
+		return array( $file, false, 'exceeded subkey', 0, '' );
 	}
 	if ( 'exceeded' === get_transient( 'ewww_image_optimizer_cloud_status' ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_exceeded' ) > time() ) {
 		ewwwio_debug_message( 'license exceeded, image not processed' );
@@ -5562,7 +5574,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		} elseif ( 100 > strlen( $response['body'] ) && strpos( $response['body'], 'exceeded subkey' ) ) {
 			ewwwio_debug_message( 'License Exceeded' );
 			set_transient( 'ewww_image_optimizer_cloud_status', 'exceeded subkey', HOUR_IN_SECONDS );
-			$msg = 'exceeded';
+			$msg = 'exceeded subkey';
 			ewwwio_delete_file( $tempfile );
 		} elseif ( 100 > strlen( $response['body'] ) && strpos( $response['body'], 'exceeded' ) ) {
 			ewwwio_debug_message( 'License Exceeded' );
