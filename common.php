@@ -12498,6 +12498,7 @@ function ewww_image_optimizer_bulk_async_show_status() {
 		<?php
 		// If scan-only mode is active, and one of the scanners is active.
 		if (
+			! get_option( 'ewww_image_optimizer_pause_queues' ) &&
 			get_option( 'ewww_image_optimizer_pause_image_queue' ) &&
 			(
 				'scanning' === get_option( 'ewww_image_optimizer_bulk_resume' ) ||
@@ -12533,16 +12534,16 @@ function ewww_image_optimizer_bulk_async_show_status() {
 		</div>
 		<?php
 	}
-	if ( get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
-		?>
-		<a class='ewww-queue-controls ewww-start-optimization button-secondary' style='<?php echo esc_attr( $hide_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_resume_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
-			<?php esc_html_e( 'Start optimizing', 'ewww-image-optimizer' ); ?>
-		</a>
-		<?php
-	} elseif ( get_option( 'ewww_image_optimizer_pause_queues' ) ) {
+	if ( get_option( 'ewww_image_optimizer_pause_queues' ) ) {
 		?>
 		<a class='ewww-queue-controls ewww-resume-optimization button-secondary' style='<?php echo esc_attr( $hide_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_resume_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
 			<?php esc_html_e( 'Resume Optimization', 'ewww-image-optimizer' ); ?>
+		</a>
+		<?php
+	} elseif ( get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
+		?>
+		<a class='ewww-queue-controls ewww-start-optimization button-secondary' style='<?php echo esc_attr( $hide_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_resume_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
+			<?php esc_html_e( 'Start optimizing', 'ewww-image-optimizer' ); ?>
 		</a>
 		<?php
 	} else {
