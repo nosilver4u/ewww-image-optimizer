@@ -58,9 +58,11 @@ class Background_Process_Image extends Background_Process {
 	 */
 	protected function handle() {
 		if ( \get_option( 'ewww_image_optimizer_pause_queues' ) ) {
+			\ewwwio_debug_message( 'all queues paused' );
 			return;
 		}
 		if ( \get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
+			\ewwwio_debug_message( 'this queue paused' );
 			return;
 		}
 		parent::handle();
@@ -262,10 +264,7 @@ class Background_Process_Image extends Background_Process {
 
 		// Gotta make sure we don't delete a pending record if the license is exceeded, so the license check goes first.
 		if ( \ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-			if (
-				'exceeded' === \get_transient( 'ewww_image_optimizer_cloud_status' ) ||
-				'exceeded quota' === \get_transient( 'ewww_image_optimizer_cloud_status' )
-			) {
+			if ( false !== \strpos( \get_transient( 'ewww_image_optimizer_cloud_status' ), 'exceeded' ) ) {
 				\delete_transient( 'ewww_image_optimizer_bulk_counter_measures' );
 				\delete_transient( 'ewww_image_optimizer_bulk_current_image' );
 				\update_option( 'ewww_image_optimizer_pause_image_queue', true, false );
