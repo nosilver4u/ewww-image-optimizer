@@ -104,6 +104,7 @@ jQuery(document).ready(function($) {
 			}
 			if ( ewww_response.error ) {
 				$('#ewww-optimize-local-images').html('<span class="ewww-bulk-error"><b>' + ewww_response.error + '</b></span>');
+				$('.ewww-bulk-spinner').hide();
 			} else if ( ewww_response.media_remaining ) {
 				$('.ewww-bulk-spinner').show();
 				$('#ewww-optimize-local-images').html( ewww_response.media_remaining );
@@ -181,7 +182,9 @@ jQuery(document).ready(function($) {
 			} else {
 				$('.ewww-queue-controls').hide();
 				$('.ewww-bulk-spinner').hide();
-				if (ewww_response.complete) {
+				if (ewww_response.error) {
+					$('#ewww-optimize-local-images').html('<span class="ewww-bulk-error"><b>' + ewww_response.error + '</b></span>');
+				} else if (ewww_response.complete) {
 					if (ewww_table_visible) {
 						ewwwUpdateTable();
 					}
