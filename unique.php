@@ -1199,6 +1199,8 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	// If their cloud api license limit has been exceeded.
 	if ( 'exceeded' === $result ) {
 		return array( false, __( 'License exceeded', 'ewww-image-optimizer' ), $converted, $original );
+	} elseif ( 'exceeded subkey' === $result ) {
+		return array( false, __( 'Out of credits', 'ewww-image-optimizer' ), $converted, $original );
 	} elseif ( 'exceeded quota' === $result ) {
 		return array( false, __( 'Soft Quota Reached', 'ewww-image-optimizer' ), $converted, $original );
 	}

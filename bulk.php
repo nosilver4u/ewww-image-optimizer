@@ -355,6 +355,8 @@ function ewww_image_optimizer_bulk_preview() {
 		$fullsize_count = ewww_image_optimizer_aux_images_table_count_pending();
 		$button_text    = esc_attr__( 'Resume previous optimization', 'ewww-image-optimizer' );
 	}
+	// Check that quota is reset after purchasing more credits.
+	ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), false );
 	// Create the html for the bulk optimize form and status divs.
 	ewww_image_optimizer_bulk_head_output();
 	echo '<div id="ewww-bulk-forms">';
@@ -987,6 +989,25 @@ function ewww_image_optimizer_bulk_async_init() {
 	session_write_close();
 	$output = array();
 
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+		$verify_cloud = ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), false );
+		if ( 'exceeded' === $verify_cloud ) {
+			$output['error'] = ewww_image_optimizer_credits_exceeded();
+			ewwwio_ob_clean();
+			die( wp_json_encode( $output ) );
+		}
+		if ( 'exceeded quota' === $verify_cloud ) {
+			$output['error'] = ewww_image_optimizer_soft_quota_exceeded();
+			ewwwio_ob_clean();
+			die( wp_json_encode( $output ) );
+		}
+		if ( 'exceeded subkey' === $verify_cloud ) {
+			$output['error'] = esc_html__( 'Out of credits', 'ewww-image=optimizer' );
+			ewwwio_ob_clean();
+			die( wp_json_encode( $output ) );
+		}
+	}
+
 	// Update the 'bulk resume' option to show that an operation is in progress.
 	update_option( 'ewww_image_optimizer_bulk_resume', 'scanning' );
 	delete_option( 'ewwwio_stop_scheduled_scan' );
@@ -1030,6 +1051,24 @@ function ewww_image_optimizer_bulk_async_get_status() {
 	}
 	session_write_close();
 	$output = array();
+
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+		if ( 'exceeded' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
+			$output['complete'] = ewww_image_optimizer_credits_exceeded();
+			ewwwio_ob_clean();
+			die( wp_json_encode( $output ) );
+		}
+		if ( 'exceeded quota' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
+			$output['complete'] = ewww_image_optimizer_soft_quota_exceeded();
+			ewwwio_ob_clean();
+			die( wp_json_encode( $output ) );
+		}
+		if ( 'exceeded subkey' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
+			$output['complete'] = esc_html__( 'Out of credits', 'ewww-image=optimizer' );
+			ewwwio_ob_clean();
+			die( wp_json_encode( $output ) );
+		}
+	}
 
 	$media_queue_running = false;
 	if ( ewwwio()->background_media->is_process_running() ) {
@@ -2260,6 +2299,13 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 			}
 			if ( 'exceeded quota' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
 				$output['error'] = ewww_image_optimizer_soft_quota_exceeded();
+				delete_transient( 'ewww_image_optimizer_bulk_counter_measures' );
+				delete_transient( 'ewww_image_optimizer_bulk_current_image' );
+				ewwwio_ob_clean();
+				die( wp_json_encode( $output ) );
+			}
+			if ( 'exceeded subkey' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
+				$output['error'] = esc_html__( 'Out of credits', 'ewww-image-optimizer' );
 				delete_transient( 'ewww_image_optimizer_bulk_counter_measures' );
 				delete_transient( 'ewww_image_optimizer_bulk_current_image' );
 				ewwwio_ob_clean();

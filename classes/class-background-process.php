@@ -224,21 +224,30 @@ abstract class Background_Process extends Async_Request {
 	public function maybe_handle() {
 		session_write_close();
 
+		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		\ewwwio_debug_message( "$this->identifier checking for valid nonce" );
 		\check_ajax_referer( $this->identifier, 'nonce' );
 
 		if ( ! empty( $_REQUEST['lock_key'] ) ) {
 			$this->lock_key = \sanitize_text_field( \wp_unslash( $_REQUEST['lock_key'] ) );
 		}
+		\ewwwio_debug_message( "nonce was valid, lock key is $this->lock_key" );
 
 		if ( $this->is_process_running() && ! $this->is_key_valid() ) {
 			// Background process already running.
+			\ewwwio_debug_message( 'background process already running and the submitted lock key is not the active/valid key' );
 			die;
 		}
 
+		\ewwwio_debug_message( 'not already running, checking queue' );
+
 		if ( $this->is_queue_empty() ) {
 			// No data to process.
+			\ewwwio_debug_message( 'nothing in the queue, bye!' );
 			die;
 		}
+
+		\ewwwio_debug_message( 'queue has items, lets handle them...' );
 
 		$this->handle();
 
@@ -273,6 +282,7 @@ abstract class Background_Process extends Async_Request {
 	 * @return bool
 	 */
 	public function is_process_running() {
+		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( $this->get_process_lock() ) {
 			// Process already running.
 			return true;
@@ -300,12 +310,12 @@ abstract class Background_Process extends Async_Request {
 	/**
 	 * Is disk-based lock valid?
 	 *
+	 * @param string $lock_file Location of the process lock file.
 	 * @return bool True if it is valid, false if it is expired.
 	 */
-	protected function is_disk_lock_valid() {
+	protected function is_disk_lock_valid( $lock_file ) {
 		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$lock_duration = \apply_filters( $this->identifier . '_queue_lock_time', $this->queue_lock_time );
-		$lock_file     = $this->process_lock_file();
 		\clearstatcache();
 		if ( \ewwwio_is_file( $lock_file ) && \time() - \filemtime( $lock_file ) < $lock_duration ) {
 			\ewwwio_debug_message( 'process lock file in place' );
@@ -324,8 +334,9 @@ abstract class Background_Process extends Async_Request {
 		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$db_key = false;
 		if ( $this->lock_dir ) {
-			\ewwwio_debug_message( "$this->lock_dir is valid" );
+			\ewwwio_debug_message( "lock dir is $this->lock_dir" );
 			$lock_file = $this->process_lock_file();
+			\ewwwio_debug_message( "checking $lock_file" );
 			if ( $this->is_disk_lock_valid( $lock_file ) ) {
 				$db_key = \trim( \file_get_contents( $lock_file ) );
 				\ewwwio_debug_message( "retrieved lock key: $db_key" );
@@ -439,7 +450,8 @@ abstract class Background_Process extends Async_Request {
 	 * within server memory and time limit constraints.
 	 */
 	protected function handle() {
-		$this->start_time = time(); // Set start time of current process.
+		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		$this->start_time = \time(); // Set start time of current process.
 
 		do {
 			$batch = $this->get_batch();
