@@ -186,6 +186,7 @@ class Tracking {
 		$data['jpg2png']          = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' );
 		$data['png2jpg']          = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' );
 		$data['gif2png']          = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_to_png' );
+		$data['bmpconvert']       = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_bmp_convert' );
 		$data['fill_color']       = \is_null( \ewww_image_optimizer_jpg_background() ) ? '' : \ewww_image_optimizer_jpg_background();
 
 		$data['webp_create'] = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' );

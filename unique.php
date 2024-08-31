@@ -318,12 +318,45 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	do_action( 'ewww_image_optimizer_pre_optimization', $file, $type, $fullsize );
 	// Run the appropriate optimization/conversion for the mime-type.
 	switch ( $type ) {
+		case 'image/bmp':
+			if (
+				1 === (int) $gallery_type &&
+				$fullsize &&
+				( ewww_image_optimizer_get_option( 'ewww_image_optimizer_bmp_convert' ) || ! empty( $ewww_convert ) ) &&
+				empty( ewwwio()->webp_only )
+			) {
+				$jpgfile = ewww_image_optimizer_unique_filename( $file, '.jpg' );
+			} else {
+				$convert = false;
+			}
+			if ( $convert ) {
+				// We leave newfile (param #4) empty, to let the convert() method find the best filetype & corresponding extension.
+				// NOTE: at this point, conversion to PNG is disabled, but we'll keep it as is, just in case.
+				$new_file = $ewww_image->convert( $file, true, true );
+				$new_size = ewww_image_optimizer_filesize( $new_file );
+				if ( $new_file && $new_size && $new_size < $orig_size ) {
+					$file        = $new_file;
+					$converted   = true;
+					$results_msg = ewww_image_optimizer_update_table( $file, $new_size, $orig_size, $original );
+					// Update some of the EWWW_Image properties to prevent re-conversion.
+					$ewww_image->converted = $original;
+					$ewww_image->opt_size  = $new_size;
+					// Then, make sure the optimization will not abort due to the record we just inserted.
+					$original_force = ewwwio()->force;
+					ewwwio()->force = true;
+					ewww_image_optimizer( $file, $gallery_type, false, $new_image, true );
+					ewwwio()->force = $original_force;
+					$new_size       = ewww_image_optimizer_filesize( $file );
+				}
+			}
+			break;
 		case 'image/jpeg':
 			$png_size = 0;
 			// If jpg2png conversion is enabled, and this image is in the WordPress media library.
 			if (
 				1 === (int) $gallery_type &&
 				$fullsize &&
+				empty( $ewww_image->converted ) &&
 				( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) || ! empty( $ewww_convert ) ) &&
 				empty( ewwwio()->webp_only )
 			) {
@@ -371,8 +404,6 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, 'image/png', null, $orig_size !== $new_size );
 				} else {
 					$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, $type, null, $orig_size !== $new_size );
-				}
-				if ( 'pending' === $result ) {
 				}
 				break;
 			}
@@ -583,6 +614,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 			if (
 				1 === (int) $gallery_type &&
 				$fullsize &&
+				empty( $ewww_image->converted ) &&
 				( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' ) || ! empty( $ewww_convert ) ) &&
 				! $skip_lossy &&
 				empty( ewwwio()->webp_only )
@@ -918,6 +950,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				empty( ewwwio()->webp_only ) &&
 				1 === (int) $gallery_type &&
 				$fullsize &&
+				empty( $ewww_image->converted ) &&
 				( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_to_png' ) || ! empty( $ewww_convert ) ) &&
 				! ewww_image_optimizer_is_animated( $file )
 			) {
