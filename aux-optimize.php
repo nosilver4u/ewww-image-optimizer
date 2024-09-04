@@ -1611,22 +1611,9 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	if ( ewww_image_optimizer_stl_check() ) {
 		set_time_limit( 0 );
 	}
-	$enabled_types = array();
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
-		$enabled_types[] = 'image/jpeg';
-	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
-		$enabled_types[] = 'image/png';
-	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) ) {
-		$enabled_types[] = 'image/gif';
-	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) ) {
-		$enabled_types[] = 'application/pdf';
-	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ) ) {
-		$enabled_types[] = 'image/svg+xml';
-	}
+
+	$supported_types = ewwwio()->get_supported_types();
+
 	foreach ( $iterator as $file ) {
 		if ( get_transient( 'ewww_image_optimizer_aux_iterator' ) && get_transient( 'ewww_image_optimizer_aux_iterator' ) > $file_counter ) {
 			continue;
@@ -1714,7 +1701,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			} else {
 				$mime = ewww_image_optimizer_quick_mimetype( $path );
 			}
-			if ( ! in_array( $mime, $enabled_types, true ) ) {
+			if ( ! in_array( $mime, $supported_types, true ) ) {
 				continue;
 			}
 			if ( apply_filters( 'ewww_image_optimizer_bypass', false, $path ) === true ) {

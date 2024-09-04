@@ -617,6 +617,8 @@ function ewww_image_optimizer_save_network_settings() {
 			update_site_option( 'ewww_image_optimizer_png_to_jpg', $ewww_image_optimizer_png_to_jpg );
 			$ewww_image_optimizer_gif_to_png = ( empty( $_POST['ewww_image_optimizer_gif_to_png'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_gif_to_png', $ewww_image_optimizer_gif_to_png );
+			$ewww_image_optimizer_bmp_convert = ( empty( $_POST['ewww_image_optimizer_bmp_convert'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_bmp_convert', $ewww_image_optimizer_bmp_convert );
 			$ewww_image_optimizer_webp = ( empty( $_POST['ewww_image_optimizer_webp'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_webp', $ewww_image_optimizer_webp );
 			$ewww_image_optimizer_jpg_background = empty( $_POST['ewww_image_optimizer_jpg_background'] ) ? '' : sanitize_text_field( wp_unslash( $_POST['ewww_image_optimizer_jpg_background'] ) );
@@ -1112,14 +1114,8 @@ function ewww_image_optimizer_single_size_optimize( $id, $size ) {
 	}
 	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
 	ewwwio_debug_message( "retrieved file path: $file_path" );
-	$type            = ewww_image_optimizer_mimetype( $file_path, 'i' );
-	$supported_types = array(
-		'image/jpeg',
-		'image/png',
-		'image/gif',
-		'application/pdf',
-		'image/svg+xml',
-	);
+	$supported_types = ewwwio()->get_supported_types();
+	$type            = ewww_image_optimizer_mimetype( $file_path );
 	if ( ! in_array( $type, $supported_types, true ) ) {
 		ewwwio_debug_message( "mimetype not supported: $id" );
 		return;
@@ -3536,26 +3532,6 @@ function ewwwio_get_filesystem() {
 }
 
 /**
- * Check filesize, and prevent errors by ensuring file exists, and that the cache has been cleared.
- *
- * @param string $file The name of the file.
- * @return int The size of the file or zero.
- */
-function ewww_image_optimizer_filesize( $file ) {
-	$file = realpath( $file );
-	if ( ewwwio_is_file( $file ) ) {
-		global $eio_filesystem;
-		ewwwio_get_filesystem();
-		// Flush the cache for filesize.
-		clearstatcache();
-		// Find out the size of the new PNG file.
-		return $eio_filesystem->size( $file );
-	} else {
-		return 0;
-	}
-}
-
-/**
  * Check if open_basedir restriction is in effect, and that the path is allowed and exists.
  *
  * Note that when the EWWWIO_OPEN_BASEDIR constant is defined, is_file() will be skipped.
@@ -4077,7 +4053,7 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 		$eio_backup->throw_error( sprintf( __( 'Restore failed with HTTP error: %s', 'ewww-image-optimizer' ), $error_message ) );
 		return false;
 	} elseif ( ! empty( $result['body'] ) && strpos( $result['body'], 'missing' ) === false ) {
-		$enabled_types = array( 'image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'image/svg+xml' );
+		$supported_types = ewwwio()->get_supported_types( 'all' );
 		if ( ! is_dir( dirname( $image['path'] ) ) ) {
 			wp_mkdir_p( dirname( $image['path'] ) );
 		}
@@ -4087,7 +4063,7 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 		if ( ewwwio_is_file( $image['path'] ) ) {
 			$old_type = ewww_image_optimizer_mimetype( $image['path'], 'i' );
 		}
-		if ( ! in_array( $new_type, $enabled_types, true ) ) {
+		if ( ! in_array( $new_type, $supported_types, true ) ) {
 			ewwwio_debug_message( "retrieved file had wrong type: $new_type" );
 			/* translators: %s: An image filename */
 			$eio_backup->throw_error( sprintf( __( 'Backup file for %s has the wrong mime type.', 'ewww-image-optimizer' ), $image['path'] ) );
@@ -5730,7 +5706,7 @@ function ewww_image_optimizer_cloud_retrieve_pending_image( $image, $wait = fals
 			ewwwio_debug_message( "retrieve request failed: $error_message" );
 			return false;
 		} elseif ( ! empty( $result['body'] ) ) {
-			$enabled_types = array( 'image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'image/svg+xml' );
+			$supported_types = ewwwio()->get_supported_types( 'all' );
 			if ( ! is_dir( dirname( $image->file ) ) ) {
 				wp_mkdir_p( dirname( $image->file ) );
 			}
@@ -5740,7 +5716,7 @@ function ewww_image_optimizer_cloud_retrieve_pending_image( $image, $wait = fals
 			if ( ewwwio_is_file( $image->file ) ) {
 				$old_type = ewww_image_optimizer_mimetype( $image->file, 'i' );
 			}
-			if ( ! in_array( $new_type, $enabled_types, true ) ) {
+			if ( ! in_array( $new_type, $supported_types, true ) ) {
 				/* translators: %s: An image filename */
 				ewwwio_debug_message( "result file for {$image->file} has an unacceptable mime type: $new_type" );
 				return false;
@@ -6395,7 +6371,6 @@ function ewww_image_optimizer_single_insert( $path, $gallery = '', $attachment_i
 	}
 }
 
-
 /**
  * Finds the path of a file from the ewwwio_images table.
  *
@@ -6596,6 +6571,9 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 	if ( $original && $original !== $attachment ) {
 		$already_optimized = ewww_image_optimizer_find_already_optimized( $original );
 		$converted         = ewww_image_optimizer_relativize_path( $original );
+		if ( empty( $already_optimized ) ) {
+			$already_optimized = ewww_image_optimizer_find_already_optimized( $attachment );
+		}
 	} else {
 		$already_optimized = ewww_image_optimizer_find_already_optimized( $attachment );
 		$converted         = '';
@@ -8419,13 +8397,16 @@ function ewww_image_optimizer_test_background_opt( $type = '' ) {
 	if ( ! ewww_image_optimizer_background_mode_enabled() ) {
 		return false;
 	}
-	if ( 'image/type' === $type && ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) ) {
+	if ( 'image/jpeg' === $type && ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) ) {
 		return apply_filters( 'ewww_image_optimizer_defer_conversion', false );
 	}
 	if ( 'image/png' === $type && ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' ) ) {
 		return apply_filters( 'ewww_image_optimizer_defer_conversion', false );
 	}
 	if ( 'image/gif' === $type && ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_to_png' ) ) {
+		return apply_filters( 'ewww_image_optimizer_defer_conversion', false );
+	}
+	if ( 'image/bmp' === $type && ewww_image_optimizer_get_option( 'ewww_image_optimizer_bmp_convert' ) ) {
 		return apply_filters( 'ewww_image_optimizer_defer_conversion', false );
 	}
 	return (bool) apply_filters( 'ewww_image_optimizer_background_optimization', ewwwio()->defer );
@@ -8647,14 +8628,8 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		}
 	}
 	ewwwio_debug_message( "retrieved file path: $file_path" );
+	$supported_types = ewwwio()->get_supported_types();
 	$type            = ewww_image_optimizer_mimetype( $file_path, 'i' );
-	$supported_types = array(
-		'image/jpeg',
-		'image/png',
-		'image/gif',
-		'application/pdf',
-		'image/svg+xml',
-	);
 	if ( ! in_array( $type, $supported_types, true ) ) {
 		ewwwio_debug_message( "mimetype not supported: $id" );
 		return $meta;
@@ -8709,8 +8684,6 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		$ewww_image->update_converted_attachment( $meta );
 		$meta = $ewww_image->convert_sizes( $meta );
 		ewwwio_debug_message( 'image was converted' );
-	} else {
-		remove_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_attachment', 10 );
 	}
 	ewww_image_optimizer_hidpi_optimize( $file );
 
@@ -8939,13 +8912,7 @@ function ewww_image_optimizer_lr_sync_update( $id ) {
 	}
 	ewwwio_debug_message( "retrieved file path for lr sync image: $file_path" );
 	$type            = ewww_image_optimizer_mimetype( $file_path, 'i' );
-	$supported_types = array(
-		'image/jpeg',
-		'image/png',
-		'image/gif',
-		'application/pdf',
-		'image/svg+xml',
-	);
+	$supported_types = ewwwio()->get_supported_types();
 	if ( ! in_array( $type, $supported_types, true ) ) {
 		ewwwio_debug_message( "mimetype not supported: $id" );
 		return;
@@ -9130,121 +9097,6 @@ function ewww_image_optimizer_as3cf_object_meta( $args ) {
 		$args['ContentType'] = ewww_image_optimizer_quick_mimetype( $args['SourceFile'] );
 	}
 	return $args;
-}
-
-/**
- * Update the attachment's meta data after being converted.
- *
- * @global object $wpdb
- *
- * @param array $meta Attachment metadata.
- * @param int   $id Attachment ID number.
- */
-function ewww_image_optimizer_update_attachment( $meta, $id ) {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	global $wpdb;
-	// Update the file location in the post metadata based on the new path stored in the attachment metadata.
-	update_attached_file( $id, $meta['file'] );
-	$guid = wp_get_attachment_url( $id );
-	if ( empty( $meta['real_orig_file'] ) ) {
-		$old_guid = dirname( $guid ) . '/' . wp_basename( $meta['orig_file'] );
-	} else {
-		$old_guid = dirname( $guid ) . '/' . wp_basename( $meta['real_orig_file'] );
-		unset( $meta['real_orig_file'] );
-	}
-	// Construct the new guid based on the filename from the attachment metadata.
-	ewwwio_debug_message( "old guid: $old_guid" );
-	ewwwio_debug_message( "new guid: $guid" );
-	if ( substr( $old_guid, -1 ) === '/' || substr( $guid, -1 ) === '/' ) {
-		ewwwio_debug_message( 'could not obtain full url for current and previous image, bailing' );
-		return $meta;
-	}
-	// Retrieve any posts that link the image.
-	$esql = $wpdb->prepare( "SELECT ID, post_content FROM $wpdb->posts WHERE post_content LIKE %s", '%' . $wpdb->esc_like( $old_guid ) . '%' );
-	ewwwio_debug_message( "using query: $esql" );
-	// While there are posts to process.
-	$rows = $wpdb->get_results( $esql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-	if ( ewww_image_optimizer_iterable( $rows ) ) {
-		foreach ( $rows as $row ) {
-			// Replace all occurences of the old guid with the new guid.
-			$post_content = str_replace( $old_guid, $guid, $row['post_content'] );
-			ewwwio_debug_message( "replacing $old_guid with $guid in post " . $row['ID'] );
-			// Send the updated content back to the database.
-			$wpdb->update(
-				$wpdb->posts,
-				array(
-					'post_content' => $post_content,
-				),
-				array(
-					'ID' => $row['ID'],
-				)
-			);
-		}
-	}
-	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
-		// For each resized version.
-		foreach ( $meta['sizes'] as $size => $data ) {
-			// If the resize was converted.
-			if ( isset( $data['converted'] ) ) {
-				// Generate the url for the old image.
-				if ( empty( $data['real_orig_file'] ) ) {
-					$old_sguid = dirname( $old_guid ) . '/' . wp_basename( $data['orig_file'] );
-				} else {
-					$old_sguid = dirname( $old_guid ) . '/' . wp_basename( $data['real_orig_file'] );
-					unset( $meta['sizes'][ $size ]['real_orig_file'] );
-				}
-				ewwwio_debug_message( "processing: $size" );
-				ewwwio_debug_message( "old sguid: $old_sguid" );
-				// Generate the url for the new image.
-				$sguid = dirname( $old_guid ) . '/' . wp_basename( $data['file'] );
-				ewwwio_debug_message( "new sguid: $sguid" );
-				if ( substr( $old_sguid, -1 ) === '/' || substr( $sguid, -1 ) === '/' ) {
-					ewwwio_debug_message( 'could not obtain full url for current and previous resized image, bailing' );
-					continue;
-				}
-				// Retrieve any posts that link the resize.
-				$rows = $wpdb->get_results( $wpdb->prepare( "SELECT ID, post_content FROM $wpdb->posts WHERE post_content LIKE %s", '%' . $wpdb->esc_like( $old_sguid ) . '%' ), ARRAY_A );
-				// While there are posts to process.
-				if ( ewww_image_optimizer_iterable( $rows ) ) {
-					foreach ( $rows as $row ) {
-						// Replace all occurences of the old guid with the new guid.
-						$post_content = str_replace( $old_sguid, $sguid, $row['post_content'] );
-						ewwwio_debug_message( "replacing $old_sguid with $sguid in post " . $row['ID'] );
-						// Send the updated content back to the database.
-						$wpdb->update(
-							$wpdb->posts,
-							array(
-								'post_content' => $post_content,
-							),
-							array(
-								'ID' => $row['ID'],
-							)
-						);
-					}
-				}
-			} // End if().
-		} // End foreach().
-	} // End if().
-	if ( preg_match( '/\.jpg$/i', wp_basename( $meta['file'] ) ) ) {
-		$mime = 'image/jpeg';
-	}
-	if ( preg_match( '/\.png$/i', wp_basename( $meta['file'] ) ) ) {
-		$mime = 'image/png';
-	}
-	if ( preg_match( '/\.gif$/i', wp_basename( $meta['file'] ) ) ) {
-		$mime = 'image/gif';
-	}
-	if ( preg_match( '/\.svg$/i', wp_basename( $meta['file'] ) ) ) {
-		$mime = 'image/svg+xml';
-	}
-	// Update the attachment post with the new mimetype and id.
-	wp_update_post(
-		array(
-			'ID'             => $id,
-			'post_mime_type' => $mime,
-		)
-	);
-	return $meta;
 }
 
 /**
@@ -9525,37 +9377,6 @@ function ewww_image_optimizer_get_unique_filename_iterator( $filename, $ext, $di
 		}
 	}
 	return $filename;
-}
-
-/**
- * Get mimetype based on file extension instead of file contents when speed outweighs accuracy.
- *
- * @param string $path The name of the file.
- * @return string|bool The mime type based on the extension or false.
- */
-function ewww_image_optimizer_quick_mimetype( $path ) {
-	$pathextension = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
-	switch ( $pathextension ) {
-		case 'jpg':
-		case 'jpeg':
-		case 'jpe':
-			return 'image/jpeg';
-		case 'png':
-			return 'image/png';
-		case 'gif':
-			return 'image/gif';
-		case 'webp':
-			return 'image/webp';
-		case 'pdf':
-			return 'application/pdf';
-		case 'svg':
-			return 'image/svg+xml';
-		default:
-			if ( empty( $pathextension ) && ! ewww_image_optimizer_stream_wrapped( $path ) && ewwwio_is_file( $path ) ) {
-				return ewww_image_optimizer_mimetype( $path, 'i' );
-			}
-			return false;
-	}
 }
 
 /**
@@ -9846,6 +9667,10 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 			// Get a human readable filesize.
 			$file_size = ewww_image_optimizer_size_format( filesize( $file_path ) );
 		}
+		$supported_types = ewwwio()->get_supported_types( 'all' );
+		if ( ! in_array( $type, $supported_types, true ) ) {
+			return;
+		}
 
 		if ( ! ewwwio()->tools_initialized && ! ewwwio()->local->os_supported() ) {
 			ewwwio()->local->skip_tools();
@@ -9917,6 +9742,25 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 				} else {
 					$convert_link = __( 'GIF to PNG', 'ewww-image-optimizer' );
 					$convert_desc = __( 'PNG is generally better than GIF, but does not support animation. Animated images will not be converted.', 'ewww-image-optimizer' );
+				}
+				break;
+			case 'image/bmp':
+				// If jpegtran is missing and should not be skipped.
+				if ( $tools['jpegtran']['enabled'] && ! $tools['jpegtran']['path'] && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_exec_notice' ) ) {
+					$msg = '<div>' . sprintf(
+						/* translators: %s: name of a tool like jpegtran */
+						__( '%s is missing', 'ewww-image-optimizer' ),
+						'<em>jpegtran</em>'
+					) . '</div>';
+				} elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
+					$msg = '<div>' . sprintf(
+						/* translators: %s: JPG, PNG, GIF, or PDF */
+						__( '%s compression disabled', 'ewww-image-optimizer' ),
+						'JPG'
+					) . '</div>';
+				} else {
+					$convert_link = __( 'BMP to JPG', 'ewww-image-optimizer' );
+					$convert_desc = __( 'Convert BMP image to the JPG format to save space.', 'ewww-image-optimizer' );
 				}
 				break;
 			case 'application/pdf':
@@ -11837,6 +11681,8 @@ function ewwwio_debug_info() {
 	ewwwio_debug_message( 'jpg2png: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'png2jpg: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'gif2png: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_to_png' ) ? 'on' : 'off' ) );
+	ewwwio_debug_message( 'bmpconvert: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_bmp_convert' ) ? 'on' : 'off' ) );
+	ewwwio_debug_message( 'bmp2png: ' . ( defined( 'EWWW_IMAGE_OPTIMIZER_BMP_TO_PNG' ) && ! EWWW_IMAGE_OPTIMIZER_BMP_TO_PNG ? 'off' : 'on' ) );
 	ewwwio_debug_message( 'png2jpg fill:' );
 	ewww_image_optimizer_jpg_background();
 	ewwwio_debug_message( 'webp conversion: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? 'on' : 'off' ) );
@@ -14541,6 +14387,7 @@ AddType image/webp .webp</pre>
 		<?php
 		return;
 	endif;
+	$bmpconvert = __( 'BMP to JPG Conversion', 'ewww-image-optimizer' );
 	/* translators: 1: JPG, GIF or PNG 2: JPG or PNG */
 	$jpg2png = sprintf( __( '%1$s to %2$s Conversion', 'ewww-image-optimizer' ), 'JPG', 'PNG' );
 	/* translators: 1: JPG, GIF or PNG 2: JPG or PNG */
@@ -14579,13 +14426,13 @@ AddType image/webp .webp</pre>
 				</tr>
 				<tr>
 					<th scope='row'>
-						<label for='ewww_image_optimizer_jpg_to_png'><?php echo esc_html( $jpg2png ); ?></label>
+						<label for='ewww_image_optimizer_gif_to_png'><?php echo esc_html( $gif2png ); ?></label>
 						<span><?php ewwwio_help_link( 'https://docs.ewww.io/article/14-converting-images', '58545a86c697912ffd6c1b53' ); ?></span>
 					</th>
 					<td>
-						<input type='checkbox' id='ewww_image_optimizer_jpg_to_png' name='ewww_image_optimizer_jpg_to_png' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) ); ?> />
-						<span><b><?php esc_html_e( 'WARNING:', 'ewww-image-optimizer' ); ?></b> <?php	esc_html_e( 'Removes metadata and increases cpu usage dramatically.', 'ewww-image-optimizer' ); ?></span>
-						<p class='description'><?php esc_html_e( 'PNG is generally much better than JPG for logos and other images with a limited range of colors. Checking this option will slow down JPG processing significantly, and you may want to enable it only temporarily.', 'ewww-image-optimizer' ); ?></p>
+						<input type='checkbox' id='ewww_image_optimizer_gif_to_png' name='ewww_image_optimizer_gif_to_png' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_to_png' ) ); ?> />
+						<span><?php esc_html_e( 'No warnings here, just do it.', 'ewww-image-optimizer' ); ?></span>
+						<p class='description'><?php esc_html_e( 'PNG is generally better than GIF, but animated images cannot be converted.', 'ewww-image-optimizer' ); ?></p>
 					</td>
 				</tr>
 				<tr>
@@ -14605,13 +14452,29 @@ AddType image/webp .webp</pre>
 				</tr>
 				<tr>
 					<th scope='row'>
-						<label for='ewww_image_optimizer_gif_to_png'><?php echo esc_html( $gif2png ); ?></label>
+						<label for='ewww_image_optimizer_bmp_convert'><?php echo esc_html( $bmpconvert ); ?></label>
 						<span><?php ewwwio_help_link( 'https://docs.ewww.io/article/14-converting-images', '58545a86c697912ffd6c1b53' ); ?></span>
 					</th>
 					<td>
-						<input type='checkbox' id='ewww_image_optimizer_gif_to_png' name='ewww_image_optimizer_gif_to_png' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_to_png' ) ); ?> />
-						<span><?php esc_html_e( 'No warnings here, just do it.', 'ewww-image-optimizer' ); ?></span>
-						<p class='description'><?php esc_html_e( 'PNG is generally better than GIF, but animated images cannot be converted.', 'ewww-image-optimizer' ); ?></p>
+		<?php if ( false && ewwwio()->imagick_support() ) : ?>
+						<input type='checkbox' id='ewww_image_optimizer_bmp_convert' name='ewww_image_optimizer_bmp_convert' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_bmp_convert' ) ); ?> />
+						<span><?php esc_html_e( 'Intelligently convert BMP images to the JPG or PNG formats, depending on the content of the image.', 'ewww-image-optimizer' ); ?></span>
+		<?php else : ?>
+						<input type='checkbox' id='ewww_image_optimizer_bmp_convert' name='ewww_image_optimizer_bmp_convert' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_bmp_convert' ) ); ?> />
+						<span><?php esc_html_e( 'Convert BMP images to the JPG format.', 'ewww-image-optimizer' ); ?></span>
+						<p class='description'><?php esc_html_e( 'WordPress already generates JPG thumbnails for BMP images, but converting the original can help you save disk space.', 'ewww-image-optimizer' ); ?></p>
+		<?php endif; ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope='row'>
+						<label for='ewww_image_optimizer_jpg_to_png'><?php echo esc_html( $jpg2png ); ?></label>
+						<span><?php ewwwio_help_link( 'https://docs.ewww.io/article/14-converting-images', '58545a86c697912ffd6c1b53' ); ?></span>
+					</th>
+					<td>
+						<input type='checkbox' id='ewww_image_optimizer_jpg_to_png' name='ewww_image_optimizer_jpg_to_png' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_to_png' ) ); ?> />
+						<span><b><?php esc_html_e( 'WARNING:', 'ewww-image-optimizer' ); ?></b> <?php	esc_html_e( 'Removes metadata and increases cpu usage dramatically.', 'ewww-image-optimizer' ); ?></span>
+						<p class='description'><?php esc_html_e( 'PNG is generally much better than JPG for logos and other images with a limited range of colors. Checking this option will slow down JPG processing significantly, and you may want to enable it only temporarily.', 'ewww-image-optimizer' ); ?></p>
 					</td>
 				</tr>
 	<?php else : ?>

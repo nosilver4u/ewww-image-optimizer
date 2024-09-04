@@ -1385,22 +1385,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 
 	$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt', false, true );
 
-	$enabled_types = array();
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
-		$enabled_types[] = 'image/jpeg';
-	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) ) {
-		$enabled_types[] = 'image/png';
-	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) ) {
-		$enabled_types[] = 'image/gif';
-	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) ) {
-		$enabled_types[] = 'application/pdf';
-	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ) ) {
-		$enabled_types[] = 'image/svg+xml';
-	}
+	$supported_types = ewwwio()->get_supported_types();
 
 	ewww_image_optimizer_debug_log();
 	$starting_memory_usage = memory_get_usage( true );
@@ -1496,7 +1481,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				ewwwio_debug_message( "missing mime for $selected_id" );
 			}
 
-			if ( ! in_array( $mime, $enabled_types, true ) && empty( ewwwio()->webp_only ) ) {
+			if ( ! in_array( $mime, $supported_types, true ) && empty( ewwwio()->webp_only ) ) {
 				$skipped_ids[] = $selected_id;
 				continue;
 			}
@@ -2131,6 +2116,17 @@ function ewww_image_optimizer_bulk_counter_measures( $image, $error_counter = 0 
 					// If the file is a GIF and GIF2PNG is enabled.
 					define( 'EWWW_IMAGE_OPTIMIZER_GIF_TO_PNG', false );
 					$previous_countermeasures['gif2png'] = true;
+				} else {
+					// If all else fails, skip it.
+					ewww_image_optimizer_bulk_skip_image( $image );
+				}
+			}
+			if ( 'image/bmp' === ewww_image_optimizer_quick_mimetype( $image->file ) ) {
+				if ( empty( $previous_countermeasures['bmp2png'] ) && ! defined( 'EWWW_IMAGE_OPTIMIZER_BMP_TO_PNG' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_bmp_convert' ) ) {
+					ewwwio_debug_message( 'bmp2png' );
+					// If the file is a BMP and GIF2PNG is enabled.
+					define( 'EWWW_IMAGE_OPTIMIZER_BMP_TO_PNG', false );
+					$previous_countermeasures['bmp2png'] = true;
 				} else {
 					// If all else fails, skip it.
 					ewww_image_optimizer_bulk_skip_image( $image );

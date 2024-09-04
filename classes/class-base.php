@@ -590,6 +590,35 @@ class Base {
 	}
 
 	/**
+	 * Get a list of which image/file types are supported.
+	 *
+	 * @param string $select Defaults to 'enabled' to only list those types which have optimization enabled. Specify 'all' to return all possible types.
+	 * @return array A list of file/mime types.
+	 */
+	public function get_supported_types( $select = 'enabled' ) {
+		$supported_types = array();
+		if ( $this->get_option( 'ewww_image_optimizer_jpg_level' ) || $this->get_option( 'ewww_image_optimizer_webp' ) || 'all' === $select ) {
+			$supported_types[] = 'image/jpeg';
+		}
+		if ( $this->get_option( 'ewww_image_optimizer_png_level' ) || $this->get_option( 'ewww_image_optimizer_webp' ) || 'all' === $select ) {
+			$supported_types[] = 'image/png';
+		}
+		if ( $this->get_option( 'ewww_image_optimizer_gif_level' ) || 'all' === $select ) {
+			$supported_types[] = 'image/gif';
+		}
+		if ( $this->get_option( 'ewww_image_optimizer_pdf_level' ) || 'all' === $select ) {
+			$supported_types[] = 'application/pdf';
+		}
+		if ( $this->get_option( 'ewww_image_optimizer_svg_level' ) || 'all' === $select ) {
+			$supported_types[] = 'image/svg+xml';
+		}
+		if ( $this->get_option( 'ewww_image_optimizer_bmp_convert' ) || $this->get_option( 'ewww_image_optimizer_jpg_level' ) || 'all' === $select ) {
+			$supported_types[] = 'image/bmp';
+		}
+		return $supported_types;
+	}
+
+	/**
 	 * Checks if the S3 Uploads plugin is installed and active.
 	 *
 	 * @return bool True if it is fully active and rewriting/offloading media, false otherwise.
@@ -882,6 +911,9 @@ class Base {
 	 * @return bool True if the file exists and is local, false otherwise.
 	 */
 	public function is_file( $file ) {
+		if ( empty( $file ) ) {
+			return false;
+		}
 		if ( false !== \strpos( $file, '://' ) ) {
 			return false;
 		}
@@ -972,11 +1004,11 @@ class Base {
 	 * Check the mimetype of the given file with magic mime strings/patterns.
 	 *
 	 * @param string $path The absolute path to the file.
-	 * @param string $category The type of file we are checking. Accepts 'i' for
+	 * @param string $category The type of file we are checking. Default 'i' for
 	 *                     images/pdfs or 'b' for binary.
 	 * @return bool|string A valid mime-type or false.
 	 */
-	public function mimetype( $path, $category ) {
+	public function mimetype( $path, $category = 'i' ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->debug_message( "testing mimetype: $path" );
 		$type = false;
@@ -1000,6 +1032,11 @@ class Base {
 				// Read first 12 bytes, which equates to 24 hex characters.
 				$magic = \bin2hex( \substr( $file_contents, 0, 12 ) );
 				$this->debug_message( $magic );
+				if ( '424d' === \substr( $magic, 0, 4 ) ) {
+					$type = 'image/bmp';
+					$this->debug_message( "ewwwio type: $type" );
+					return $type;
+				}
 				if ( 0 === \strpos( $magic, '52494646' ) && 16 === \strpos( $magic, '57454250' ) ) {
 					$type = 'image/webp';
 					$this->debug_message( "ewwwio type: $type" );
@@ -1077,6 +1114,8 @@ class Base {
 	public function quick_mimetype( $path ) {
 		$pathextension = \strtolower( \pathinfo( $path, PATHINFO_EXTENSION ) );
 		switch ( $pathextension ) {
+			case 'bmp':
+				return 'image/bmp';
 			case 'jpg':
 			case 'jpeg':
 			case 'jpe':

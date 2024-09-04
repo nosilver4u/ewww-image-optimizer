@@ -1,7 +1,7 @@
 === EWWW Image Optimizer ===
 Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
-Tags: optimize, image, convert, webp, resize, compress, lazy load, optimization, lossless, lossy, scale
+Tags: compress, convert, webp, resize, lazy load
 Requires at least: 6.3
 Tested up to: 6.6
 Requires PHP: 7.3
@@ -140,8 +140,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
-= 7.8.1 =
+= 7.8.9 =
 *Release Date - TBD*
+* added: conversion of BMP images to JPG format
 * changed: allow folders outside of WordPress install to be optimized via Folders to Optimize
 * changed: improve performance of ewwwio_is_file(), props @rmpel
 * changed: improve exceeded credit messages for sub-keys

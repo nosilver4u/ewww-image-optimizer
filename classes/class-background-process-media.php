@@ -99,25 +99,21 @@ class Background_Process_Media extends Background_Process {
 			sleep( 4 );
 			return $item;
 		}
-		ewwwio_debug_message( "background processing $id, type: " . $type );
-		$image_types = array(
-			'image/jpeg',
-			'image/png',
-			'image/gif',
-		);
 
-		if ( in_array( $type, $image_types, true ) && $item['new'] && class_exists( 'wpCloud\StatelessMedia\EWWW' ) ) {
+		ewwwio_debug_message( "background processing $id, type: " . $type );
+		$supported_types = ewwwio()->get_supported_types();
+
+		if ( in_array( $type, $supported_types, true ) && $item['new'] && class_exists( 'wpCloud\StatelessMedia\EWWW' ) ) {
 			$meta = wp_get_attachment_metadata( $id );
 		} else {
 			// This is unfiltered for performance, because we don't often need filtered meta.
 			$meta = wp_get_attachment_metadata( $id, true );
 		}
-		if ( in_array( $type, $image_types, true ) && empty( $meta ) ) {
+		if ( in_array( $type, $supported_types, true ) && empty( $meta ) ) {
 			ewwwio_debug_message( "metadata is missing, requeueing {$item['attempts']}" );
 			sleep( 4 );
 			return $item;
 		}
-		/* $meta = ewww_image_optimizer_resize_from_meta_data( $meta, $id, true, $item['new'] ); */
 		$this->process_attachment( $meta, $item, $id );
 
 		return false;
@@ -134,7 +130,7 @@ class Background_Process_Media extends Background_Process {
 	 */
 	protected function should_optimize_size( $file_path, $size, $item, $already_optimized ) {
 		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-		if ( apply_filters( 'ewww_image_optimizer_bypass', false, $file_path ) ) {
+		if ( \apply_filters( 'ewww_image_optimizer_bypass', false, $file_path ) ) {
 			\ewwwio_debug_message( "skipping $file_path as instructed" );
 			return false;
 		}
@@ -150,6 +146,10 @@ class Background_Process_Media extends Background_Process {
 		$mime = ewww_image_optimizer_quick_mimetype( $file_path );
 		if ( 'image/png' === $mime && \ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) && $image_size > \ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) ) {
 			\ewwwio_debug_message( "file skipped due to PNG filesize: $file_path" );
+			return false;
+		}
+		if ( 'image/bmp' === $mime && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_bmp_convert' ) && empty( $item['convert_once'] ) ) {
+			\ewwwio_debug_message( "BMP skipped, no conversion enabled: $file_path" );
 			return false;
 		}
 		$compression_level = \ewww_image_optimizer_get_level( $mime );
@@ -190,7 +190,7 @@ class Background_Process_Media extends Background_Process {
 		if ( is_array( $optimized_list ) && isset( $optimized_list[ $file_path ] ) ) {
 			$already_optimized = $optimized_list[ $file_path ];
 		} else {
-			$already_optimized = ewww_image_optimizer_find_already_optimized( $file_path );
+			$already_optimized = \ewww_image_optimizer_find_already_optimized( $file_path );
 		}
 
 		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
@@ -201,7 +201,7 @@ class Background_Process_Media extends Background_Process {
 		}
 
 		$image_size = \ewww_image_optimizer_filesize( $file_path );
-		ewwwio_debug_message( "(maybe) queuing optimization for $id/$size" );
+		\ewwwio_debug_message( "(maybe) queuing optimization for $id/$size" );
 		if ( ! $this->should_optimize_size( $file_path, $size, $item, $already_optimized ) ) {
 			\ewwwio_debug_message( 'already optimized, not forcing or webp-only, so skipping' );
 			return 0;
@@ -235,10 +235,10 @@ class Background_Process_Media extends Background_Process {
 				)
 			);
 			$id_to_queue = $ewwwdb->insert_id;
-			ewwwio_debug_message( 'inserted db record' );
+			\ewwwio_debug_message( 'inserted db record' );
 		}
 		if ( ! $id_to_queue ) {
-			ewwwio_debug_message( 'failed to update/insert record, no ID to queue' );
+			\ewwwio_debug_message( 'failed to update/insert record, no ID to queue' );
 			return 0;
 		}
 		ewwwio()->background_image->push_to_queue(
@@ -320,14 +320,9 @@ class Background_Process_Media extends Background_Process {
 			}
 		}
 		ewwwio_debug_message( "retrieved file path: $file_path" );
+
+		$supported_types = ewwwio()->get_supported_types();
 		$type            = ewww_image_optimizer_mimetype( $file_path, 'i' );
-		$supported_types = array(
-			'image/jpeg',
-			'image/png',
-			'image/gif',
-			'application/pdf',
-			'image/svg+xml',
-		);
 		if ( ! in_array( $type, $supported_types, true ) ) {
 			ewwwio_debug_message( "mimetype not supported: $id" );
 			return;
