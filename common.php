@@ -13599,8 +13599,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						</p>
 					</td>
 				</tr>
-		<?php if ( true || ! $easymode ) : ?>
-		<?php endif; ?>
 				<tr id='ewww_image_optimizer_ll_exclude_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? '' : ' style="display:none"'; ?>>
 					<td>&nbsp;</td>
 					<td>
@@ -13613,22 +13611,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						</p>
 					</td>
 				</tr>
-		<?php if ( false && $easymode ) : ?>
-				<tr id='ewww_image_optimizer_more_options_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? '' : ' style="display:none"'; ?>>
-					<td>&nbsp;</td>
-					<td>
-						<p class='description'>
-							<?php
-							printf(
-								/* translators: %s: Ludicrous Mode */
-								'*' . esc_html__( 'More Lazy Load options are available in %s.', 'ewww-image-optimizer' ),
-								"<a href='" . esc_url( $enable_local_url ) . "'>" . esc_html__( 'Ludicrous Mode', 'ewww-image-optimizer' ) . '</a>'
-							);
-							?>
-						</p>
-					</td>
-				</tr>
-		<?php endif; ?>
 	<?php endif; ?>
 	<?php if ( ! $webp_available ) : ?>
 				<tr id='ewww_image_optimizer_webp_container'>
