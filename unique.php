@@ -308,6 +308,10 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 		// Tell the user optimization was skipped.
 		return array( false, __( 'Optimization skipped', 'ewww-image-optimizer' ), $converted, $file );
 	}
+	if ( 'image/bmp' === $type && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_bmp_convert' ) && empty( $ewww_convert ) ) {
+		ewwwio_debug_message( "BMP skipped, no conversion enabled: $file" );
+		return array( false, __( 'Optimization skipped', 'ewww-image-optimizer' ), $converted, $file );
+	}
 	$backup_hash = '';
 	$new_size    = 0;
 	// Set the optimization process to OFF.

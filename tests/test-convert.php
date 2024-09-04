@@ -33,6 +33,13 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 	public static $test_gif = '';
 
 	/**
+	 * The location of the test BMP image.
+	 *
+	 * @var string $test_bmp
+	 */
+	public static $test_bmp = '';
+
+	/**
 	 * The API key used for API-based tests.
 	 *
 	 * @var stringg $api_key
@@ -58,6 +65,10 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 		$test_gif = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/xhtml11.gif' );
 		rename( $test_gif, $temp_upload_dir . wp_basename( $test_gif ) );
 		self::$test_gif = $temp_upload_dir . wp_basename( $test_gif );
+
+		$test_bmp = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/IMG_0391.bmp' );
+		rename( $test_bmp, $temp_upload_dir . wp_basename( $test_bmp ) );
+		self::$test_bmp = $temp_upload_dir . wp_basename( $test_bmp );
 
 		self::$api_key  = getenv( 'EWWWIO_API_KEY' );
 
@@ -130,6 +141,22 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 		}
 		ewwwio()->force = true;
 		$filename       = $original . ".gif";
+		copy( $original, $filename );
+		$results = ewww_image_optimizer( $filename, 1, false, false, true );
+		return $results;
+	}
+
+	/**
+	 * Copies the test BMP to a temp file, optimizes it, and returns the results.
+	 *
+	 * @return array The results of the ewww_image_optimizer() function.
+	 */
+	protected function optimize_bmp( $original = false ) {
+		if ( ! $original ) {
+			$original = self::$test_bmp;
+		}
+		ewwwio()->force = true;
+		$filename       = $original . ".bmp";
 		copy( $original, $filename );
 		$results = ewww_image_optimizer( $filename, 1, false, false, true );
 		return $results;
@@ -398,6 +425,23 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_gif_to_png', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
+	}
+
+	/**
+	 * Test local BMP to JPG conversion.
+	 */
+	function test_local_convert_bmp_to_jpg() {
+		update_option( 'ewww_image_optimizer_jpg_level', 10 );
+		update_option( 'ewww_image_optimizer_bmp_convert', true );
+		update_site_option( 'ewww_image_optimizer_jpg_level', 10 );
+		update_site_option( 'ewww_image_optimizer_bmp_convert', true );
+
+		$results = $this->optimize_bmp();
+		$this->assertEquals( 'image/jpeg', ewww_image_optimizer_mimetype( $results[0], 'i' ) );
+		unlink( $results[0] );
+
+		update_option( 'ewww_image_optimizer_bmp_convert', '' );
+		update_site_option( 'ewww_image_optimizer_bmp_convert', '' );
 	}
 
 	/**

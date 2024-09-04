@@ -717,6 +717,7 @@ class EWWW_Image {
 			ewwwio_debug_message( "cannot convert mimetype: $type" );
 			return false;
 		}
+		$started = microtime( true );
 		switch ( $type ) {
 			case 'image/jpeg':
 				$png_size = 0;
@@ -954,11 +955,12 @@ class EWWW_Image {
 				if ( 'jpg' === $pathinfo['extension'] ) {
 					$convert_to_png = false;
 				}
-				$jpg_size = 0;
-				$png_size = 0;
+				$jpg_size   = 0;
+				$png_size   = 0;
+				$newjpgfile = ! empty( $newfile ) && ! ewwwio_is_file( $newfile ) ? $newfile : $this->unique_filename( $file, '.jpg' );
+				$newpngfile = ! empty( $newfile ) && ! ewwwio_is_file( $newfile ) ? $newfile : $this->unique_filename( $file, '.png' );
 				if ( $convert_to_jpg ) {
 					// Convert the BMP to JPG.
-					$newjpgfile = ! empty( $newfile ) && ! ewwwio_is_file( $newfile ) ? $newfile : $this->unique_filename( $file, '.jpg' );
 					ewwwio_debug_message( "attempting to convert BMP to JPG: $newjpgfile" );
 					// If the user manually set the JPG quality.
 					$quality = ewww_image_optimizer_jpg_quality();
@@ -992,7 +994,6 @@ class EWWW_Image {
 				}
 				if ( $convert_to_png ) {
 					// Convert the BMP to PNG.
-					$newpngfile = ! empty( $newfile ) && ! ewwwio_is_file( $newfile ) ? $newfile : $this->unique_filename( $file, '.png' );
 					ewwwio_debug_message( "attempting to convert BMP to PNG: $newpngfile" );
 					if ( \ewwwio()->imagick_support() ) {
 						try {
@@ -1057,9 +1058,13 @@ class EWWW_Image {
 			default:
 				return false;
 		} // End switch().
+		$elapsed = microtime( true ) - $started;
+		\ewwwio_debug_message( "converting image took $elapsed seconds" );
 		if ( $replace_url ) {
 			$this->replace_url( $newfile, $file );
 		}
+		$elapsed = microtime( true ) - $started;
+		\ewwwio_debug_message( "converting and replacing URL took $elapsed seconds" );
 		return $newfile;
 	}
 
@@ -1345,6 +1350,14 @@ class EWWW_Image {
 			}
 		}
 		switch ( $type ) {
+			case 'image/bmp':
+				++$time;
+				if ( $image_size > 1000000 ) { // greater than 1MB.
+					++$time;
+				} elseif ( $image_size > 5000000 ) { // greater than 5MB.
+					$time += 9;
+				}
+				break;
 			case 'image/jpeg':
 				if ( $image_size > 10000000 ) { // greater than 10MB.
 					$time += 20;

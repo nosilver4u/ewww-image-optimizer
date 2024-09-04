@@ -911,6 +911,9 @@ class Base {
 	 * @return bool True if the file exists and is local, false otherwise.
 	 */
 	public function is_file( $file ) {
+		if ( empty( $file ) ) {
+			return false;
+		}
 		if ( false !== \strpos( $file, '://' ) ) {
 			return false;
 		}

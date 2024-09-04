@@ -148,6 +148,10 @@ class Background_Process_Media extends Background_Process {
 			\ewwwio_debug_message( "file skipped due to PNG filesize: $file_path" );
 			return false;
 		}
+		if ( 'image/bmp' === $mime && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_bmp_convert' ) && empty( $item['convert_once'] ) ) {
+			\ewwwio_debug_message( "BMP skipped, no conversion enabled: $file_path" );
+			return false;
+		}
 		$compression_level = \ewww_image_optimizer_get_level( $mime );
 		$smart_reopt       = false;
 		if ( ! empty( $item['force_smart'] ) && ! \ewww_image_optimizer_level_mismatch( $already_optimized['level'], $compression_level ) ) {
