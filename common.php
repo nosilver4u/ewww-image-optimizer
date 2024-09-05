@@ -4391,7 +4391,7 @@ function ewww_image_optimizer_media_replace( $attachment ) {
 		$ewwwdb->prepare(
 			"SELECT path,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media'",
 			$id
-	 	),
+		),
 		ARRAY_A
 	);
 	if ( $optimized_images ) {
