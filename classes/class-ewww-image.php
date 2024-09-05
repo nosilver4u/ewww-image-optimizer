@@ -232,21 +232,47 @@ class EWWW_Image {
 		} elseif ( $id && $gallery ) {
 			ewwwio_debug_message( "looking for $gallery image $id" );
 			// Matches $id, $gallery, is 'full', and pending.
-			$new_image = $ewwwdb->get_row( "SELECT * FROM $ewwwdb->ewwwio_images WHERE attachment_id = $id AND gallery = '$gallery' AND resize = 'full' AND pending = 1 LIMIT 1", ARRAY_A );
+			$new_image = $ewwwdb->get_row(
+				$ewwwdb->prepare(
+					"SELECT * FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = %s AND resize = 'full' AND pending = 1 LIMIT 1",
+					$id,
+					$gallery
+				),
+				ARRAY_A
+			);
 			if ( empty( $new_image ) ) {
 				// Matches $id, $gallery and pending.
-				$new_image = $ewwwdb->get_row( "SELECT * FROM $ewwwdb->ewwwio_images WHERE attachment_id = $id AND gallery = '$gallery' AND pending = 1 LIMIT 1", ARRAY_A );
+				$new_image = $ewwwdb->get_row(
+					$ewwwdb->prepare(
+						"SELECT * FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = %s AND pending = 1 LIMIT 1",
+						$id,
+						$gallery
+					),
+					ARRAY_A
+				);
 			}
 			if ( empty( $new_image ) ) {
 				// Matches $gallery, is 'full' and pending.
-				$new_image = $ewwwdb->get_row( "SELECT * FROM $ewwwdb->ewwwio_images WHERE gallery = '$gallery' AND resize = 'full' AND pending = 1 LIMIT 1", ARRAY_A );
+				$new_image = $ewwwdb->get_row(
+					$ewwwdb->prepare(
+						"SELECT * FROM $ewwwdb->ewwwio_images WHERE gallery = %s AND resize = 'full' AND pending = 1 LIMIT 1",
+						$gallery
+					),
+					ARRAY_A
+				);
 			}
 			if ( empty( $new_image ) ) {
 				// Pull a random image.
 				$new_image = $ewwwdb->get_row( "SELECT * FROM $ewwwdb->ewwwio_images WHERE pending = 1 LIMIT 1", ARRAY_A );
 			}
 		} elseif ( $id ) {
-			$new_image = $ewwwdb->get_row( $ewwwdb->prepare( "SELECT * FROM $ewwwdb->ewwwio_images WHERE id = %d LIMIT 1", $id ), ARRAY_A );
+			$new_image = $ewwwdb->get_row(
+				$ewwwdb->prepare(
+					"SELECT * FROM $ewwwdb->ewwwio_images WHERE id = %d LIMIT 1",
+					$id
+				),
+				ARRAY_A
+			);
 		} else {
 			ewwwio_debug_message( 'no id or path, just pulling next image' );
 			$new_image = $ewwwdb->get_row( "SELECT * FROM $ewwwdb->ewwwio_images WHERE pending = 1 LIMIT 1", ARRAY_A );
@@ -377,7 +403,13 @@ class EWWW_Image {
 		} else {
 			$ewwwdb = $wpdb;
 		}
-		$sizes_queried = $ewwwdb->get_results( "SELECT * FROM $ewwwdb->ewwwio_images WHERE attachment_id = $this->attachment_id AND resize <> 'full' AND resize <> ''", ARRAY_A );
+		$sizes_queried = $ewwwdb->get_results(
+			$ewwwdb->prepare(
+				"SELECT * FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND resize <> 'full' AND resize <> ''",
+				$this->attachment_id
+			),
+			ARRAY_A
+		);
 		/* ewwwio_debug_message( 'found some images in the db: ' . count( $sizes_queried ) ); */
 		$sizes    = array();
 		$base_dir = trailingslashit( dirname( $this->file ) );
@@ -615,7 +647,13 @@ class EWWW_Image {
 		} else {
 			$ewwwdb = $wpdb;
 		}
-		$sizes_queried = $ewwwdb->get_results( "SELECT id,path,converted,resize FROM $ewwwdb->ewwwio_images WHERE attachment_id = $this->attachment_id AND resize <> 'full'", ARRAY_A );
+		$sizes_queried = $ewwwdb->get_results(
+			$ewwwdb->prepare(
+				"SELECT id,path,converted,resize FROM $ewwwdb->ewwwio_images WHERE attachment_id = $this->attachment_id AND resize <> 'full'",
+				$this->attachment_id
+			),
+			ARRAY_A
+		);
 		ewwwio_debug_message( 'found some images in the db: ' . count( $sizes_queried ) );
 
 		foreach ( $sizes_queried as $size_queried ) {

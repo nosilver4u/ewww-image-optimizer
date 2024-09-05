@@ -72,8 +72,13 @@ class EWWWIO_Relative_Migration {
 		} else {
 			$ewwwdb = $wpdb;
 		}
-		$query   = "SELECT id,path,updated FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 ORDER BY id DESC LIMIT $this->offset,500";
-		$records = $ewwwdb->get_results( $query, ARRAY_A );
+		$records = $ewwwdb->get_results(
+			$ewwwdb->prepare(
+				"SELECT id,path,updated FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 ORDER BY id DESC LIMIT %d,500",
+				$this->offset
+			),
+			ARRAY_A
+		);
 
 		$this->offset += 500;
 		if ( is_array( $records ) ) {

@@ -294,7 +294,13 @@ class Backup extends Base {
 		}
 		$this->error_message = '';
 		if ( ! \is_array( $image ) && ! empty( $image ) && \is_numeric( $image ) ) {
-			$image = $ewwwdb->get_row( "SELECT id,path,backup FROM $ewwwdb->ewwwio_images WHERE id = $image", ARRAY_A );
+			$image = $ewwwdb->get_row(
+				$ewwwdb->prepare(
+					"SELECT id,path,backup FROM $ewwwdb->ewwwio_images WHERE id = %d",
+					$image
+				),
+				ARRAY_A
+			);
 		}
 		if ( ! empty( $image['path'] ) ) {
 			$image['path'] = \ewww_image_optimizer_absolutize_path( $image['path'] );
@@ -428,7 +434,14 @@ class Backup extends Base {
 		} else {
 			$ewwwdb = $wpdb;
 		}
-		$images = $ewwwdb->get_results( "SELECT id,path,resize,backup FROM $ewwwdb->ewwwio_images WHERE attachment_id = $id AND gallery = '$gallery'", ARRAY_A );
+		$images = $ewwwdb->get_results(
+			$ewwwdb->prepare(
+				"SELECT id,path,resize,backup FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = %s",
+				$id,
+				$gallery
+			),
+			ARRAY_A
+		);
 		foreach ( $images as $image ) {
 			if ( ! empty( $image['path'] ) ) {
 				$image['path'] = \ewww_image_optimizer_absolutize_path( $image['path'] );
