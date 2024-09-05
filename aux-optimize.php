@@ -229,8 +229,9 @@ function ewww_image_optimizer_aux_images_table() {
 		);
 		ewwwio_debug_message( $ewwwdb->prepare( "SELECT COUNT(*) FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d", $debug_query ) );
 		$search_count = $ewwwdb->get_var(
-			$ewwwdb->prepare( "SELECT COUNT(*) FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d",
-			$debug_query
+			$ewwwdb->prepare(
+				"SELECT COUNT(*) FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d",
+				$debug_query
 			)
 		);
 		$total        = ceil( $search_count / $per_page );

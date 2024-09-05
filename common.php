@@ -3914,7 +3914,7 @@ function ewww_image_optimizer_restore_from_meta_data( $meta, $id ) {
 		$ewwwdb->prepare(
 			"SELECT id,path,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND resize = 'full'",
 			$id
-	 	),
+		),
 		ARRAY_A
 	);
 	if ( empty( $db_image ) || ! is_array( $db_image ) || empty( $db_image['path'] ) ) {
@@ -4132,7 +4132,7 @@ function ewww_image_optimizer_delete( $id ) {
 		$ewwwdb->prepare(
 			"SELECT path,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media'",
 			$id
-	 	),
+		),
 		ARRAY_A
 	);
 	if ( $optimized_images ) {
@@ -6441,8 +6441,9 @@ function ewww_image_optimizer_find_file_by_id( $id ) {
 	}
 	$id   = (int) $id;
 	$file = $ewwwdb->get_var(
-		$ewwwdb->prepare( "SELECT path FROM $ewwwdb->ewwwio_images WHERE id = %d",
-		$id
+		$ewwwdb->prepare(
+			"SELECT path FROM $ewwwdb->ewwwio_images WHERE id = %d",
+			$id
 		)
 	);
 	if ( is_null( $file ) ) {
@@ -8431,7 +8432,7 @@ function ewww_image_optimizer_remove_duplicate_records( $duplicates ) {
 			foreach ( $record as $key => $value ) {
 				if ( empty( $keeper[ $key ] ) && ! empty( $value ) ) {
 					$keeper[ $key ] = $value;
-					$update_keeper = true;
+					$update_keeper  = true;
 				}
 			}
 			$ewwwdb->delete(

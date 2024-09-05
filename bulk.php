@@ -1168,7 +1168,7 @@ function ewww_image_optimizer_optimized_list() {
 			"SELECT id,path,image_size,pending,attachment_id,level,updated,resized_width,resized_height,resize_error FROM $ewwwdb->ewwwio_images LIMIT %d,%d",
 			$offset,
 			$max_query
-	 	),
+		),
 		ARRAY_A
 	);
 	while ( $already_optimized ) {
@@ -1212,7 +1212,7 @@ function ewww_image_optimizer_optimized_list() {
 				"SELECT id,path,image_size,pending,attachment_id,level,updated,resized_width,resized_height,resize_error FROM $ewwwdb->ewwwio_images LIMIT %d,%d",
 				$offset,
 				$max_query
-			 ),
+			),
 			ARRAY_A
 		);
 	} // End while().
