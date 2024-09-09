@@ -4209,7 +4209,7 @@ function ewww_image_optimizer_delete( $id ) {
 				"SELECT ID, post_content FROM $ewwwdb->posts WHERE post_content LIKE %s LIMIT 1",
 				'%' . $ewwwdb->esc_like( $filename ) . '%'
 			)
-		)
+		);
 		// If the original file still exists and no posts contain links to the image.
 		if ( ewwwio_is_file( $file_path ) && empty( $rows ) ) {
 			ewwwio_debug_message( 'removing: ' . $file_path );
