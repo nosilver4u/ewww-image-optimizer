@@ -49,5 +49,5 @@ before_script:
   - |
 
 script:
-  - if [[ "$WPSNIFF" == "1" ]]; then phpcs --standard=phpcs.ruleset.xml --extensions=php .; fi
+  - if [[ "$WPSNIFF" == "1" ]]; then phpcs -s --standard=phpcs.ruleset.xml --extensions=php .; fi
   - phpunit

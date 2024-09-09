@@ -941,7 +941,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				$attachments = unserialize( $attachments );
 			}
 			if ( ! is_array( $attachments ) ) {
-				$output['error'] = esc_html__( 'Error retrieving list of images' );
+				$output['error'] = esc_html__( 'Error retrieving list of images', 'ewww-image-optimizer' );
 				ewwwio_ob_clean();
 				wp_die( wp_json_encode( $output ) );
 			}

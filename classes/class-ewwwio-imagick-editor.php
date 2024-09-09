@@ -160,7 +160,7 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 
 		$dims = image_resize_dimensions( $this->size['width'], $this->size['height'], $max_w, $max_h, $crop );
 		if ( ! $dims ) {
-			return new WP_Error( 'error_getting_dimensions', __( 'Could not calculate resized image dimensions' ) );
+			return new WP_Error( 'error_getting_dimensions', __( 'Could not calculate resized image dimensions' ) ); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 		}
 		list( $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) = $dims;
 
@@ -297,7 +297,7 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 		}
 		$this->image = $imagick;
 		if ( empty( $new_size ) ) {
-			return new WP_Error( 'image_resize_error', __( 'Image resize failed.' ) );
+			return new WP_Error( 'image_resize_error', __( 'Image resize failed.', 'ewww-image-optimizer' ), );
 		}
 		$this->update_size( $new_size['width'], $new_size['height'] );
 		return $resize_result;
@@ -692,7 +692,7 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 			);
 		}
 		ewwwio_memory( __FUNCTION__ );
-		return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
+		return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) ); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 	}
 
 	/**

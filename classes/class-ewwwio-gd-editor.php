@@ -50,7 +50,7 @@ class EWWWIO_GD_Editor extends WP_Image_Editor_GD {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$dims = image_resize_dimensions( $this->size['width'], $this->size['height'], $max_w, $max_h, $crop );
 		if ( ! $dims ) {
-			return new WP_Error( 'error_getting_dimensions', __( 'Could not calculate resized image dimensions' ), $this->file );
+			return new WP_Error( 'error_getting_dimensions', __( 'Could not calculate resized image dimensions' ), $this->file ); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 		}
 		list( $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) = $dims;
 		ewwwio_debug_message( "dst_x $dst_x, dst_y $dst_y, src_x $src_x, src_y $src_y, dst_w $dst_w, dst_h $dst_h, src_w $src_w, src_h $src_h" );
@@ -117,7 +117,7 @@ class EWWWIO_GD_Editor extends WP_Image_Editor_GD {
 
 		$new_size = getimagesizefromstring( $resize_result );
 		if ( empty( $new_size ) ) {
-			return new WP_Error( 'image_resize_error', __( 'Image resize failed.' ) );
+			return new WP_Error( 'image_resize_error', __( 'Image resize failed.' ) ); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 		}
 		$this->update_size( $new_size[0], $new_size[1] );
 		return $resize_result;
@@ -158,7 +158,7 @@ class EWWWIO_GD_Editor extends WP_Image_Editor_GD {
 		} elseif ( is_wp_error( $resized ) ) {
 			return $resized;
 		}
-		return new WP_Error( 'image_resize_error', __( 'Image resize failed.' ), $this->file );
+		return new WP_Error( 'image_resize_error', __( 'Image resize failed.' ), $this->file ); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 	}
 
 	/**
@@ -179,7 +179,7 @@ class EWWWIO_GD_Editor extends WP_Image_Editor_GD {
 	public function make_subsize( $size_data ) {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( ! isset( $size_data['width'] ) && ! isset( $size_data['height'] ) ) {
-			return new WP_Error( 'image_subsize_create_error', __( 'Cannot resize the image. Both width and height are not set.' ) );
+			return new WP_Error( 'image_subsize_create_error', __( 'Cannot resize the image. Both width and height are not set.' ) ); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 		}
 
 		$orig_size = $this->size;
@@ -395,7 +395,7 @@ class EWWWIO_GD_Editor extends WP_Image_Editor_GD {
 			);
 		}
 		ewwwio_memory( __METHOD__ );
-		return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
+		return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) ); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 	}
 
 	/**

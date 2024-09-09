@@ -1002,7 +1002,7 @@ function ewww_image_optimizer_bulk_async_init() {
 			die( wp_json_encode( $output ) );
 		}
 		if ( 'exceeded subkey' === $verify_cloud ) {
-			$output['error'] = esc_html__( 'Out of credits', 'ewww-image=optimizer' );
+			$output['error'] = esc_html__( 'Out of credits', 'ewww-image-optimizer' );
 			ewwwio_ob_clean();
 			die( wp_json_encode( $output ) );
 		}
@@ -1064,7 +1064,7 @@ function ewww_image_optimizer_bulk_async_get_status() {
 			die( wp_json_encode( $output ) );
 		}
 		if ( 'exceeded subkey' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
-			$output['complete'] = esc_html__( 'Out of credits', 'ewww-image=optimizer' );
+			$output['complete'] = esc_html__( 'Out of credits', 'ewww-image-optimizer' );
 			ewwwio_ob_clean();
 			die( wp_json_encode( $output ) );
 		}

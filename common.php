@@ -1071,8 +1071,8 @@ function ewww_image_optimizer_privacy_policy_content() {
 	$content  = '<p class="privacy-policy-tutorial">';
 	$content .= wp_kses_post( __( 'By default, the EWWW Image Optimizer does not store any personal data nor share it with anyone.', 'ewww-image-optimizer' ) ) . '</p><p>';
 	$content .= wp_kses_post( __( 'If you accept user-submitted images and use the API or Easy IO, those images may be transmitted to third-party servers in foreign countries. If Backup Originals is enabled, images are stored for 30 days. Otherwise, no images are stored on the API for longer than 30 minutes.', 'ewww-image-optimizer' ) ) . '</p>';
-	$content .= '<p><strong>' . wp_kses_post( __( 'Suggested API Text:' ) ) . '</strong> <i>' . wp_kses_post( __( 'User-submitted images may be transmitted to image compression servers in the United States and stored there for up to 30 days.' ) ) . '</i></p>';
-	$content .= '<p><strong>' . wp_kses_post( __( 'Suggested Easy IO Text:' ) ) . '</strong> <i>' . wp_kses_post( __( 'User-submitted images that are displayed on this site will be transmitted and stored on a global network of third-party servers (a CDN).' ) ) . '</i></p>';
+	$content .= '<p><strong>' . esc_html__( 'Suggested API Text:', 'ewww-image-optimizer' ) . '</strong> <i>' . esc_html__( 'User-submitted images may be transmitted to image compression servers in the United States and stored there for up to 30 days.', 'ewww-image-optimizer' ) . '</i></p>';
+	$content .= '<p><strong>' . esc_html__( 'Suggested Easy IO Text:', 'ewww-image-optimizer' ) . '</strong> <i>' . esc_html__( 'User-submitted images that are displayed on this site will be transmitted and stored on a global network of third-party servers (a CDN).', 'ewww-image-optimizer' ) . '</i></p>';
 	wp_add_privacy_policy_content( 'EWWW Image Optimizer', $content );
 }
 
@@ -2123,7 +2123,7 @@ function ewww_image_optimizer_notice_reoptimization() {
 					esc_html__( 'The EWWW Image Optimizer has detected excessive re-optimization of multiple images. Please use the %s page to Show Re-Optimized Images.', 'ewww-image-optimizer' ),
 					"<a href='" . esc_url( $debugging_page ) . "'>" . esc_html__( 'Tools', 'ewww-image-optimizer' ) . '</a>'
 				) .
-				" <a href='" . esc_url( $reset_page ) . "'>" . esc_html__( 'Reset Counters' ) . '</a></p></div>';
+				" <a href='" . esc_url( $reset_page ) . "'>" . esc_html__( 'Reset Counters', 'ewww-image-optimizer' ) . '</a></p></div>';
 		}
 	}
 }
@@ -7717,7 +7717,7 @@ function ewww_image_optimizer_better_resize( $file, $dst_x, $dst_y, $src_x, $src
 	$type = ewww_image_optimizer_mimetype( $file, 'i' );
 	if ( false === strpos( $type, 'image' ) ) {
 		ewwwio_debug_message( 'not an image, no resizing possible' );
-		return new WP_Error( 'invalid_image', __( 'File is not an image.' ), $file );
+		return new WP_Error( 'invalid_image', __( 'File is not an image.', 'ewww-image-optimizer' ), $file );
 	}
 	if ( 'image/gif' === $type && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && function_exists( 'ewww_image_optimizer_gifsicle_resize' ) ) {
 		return ewww_image_optimizer_gifsicle_resize( $file, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h );
@@ -10252,7 +10252,7 @@ function ewww_image_optimizer_variant_level_notice( $optimized_images, $compress
 	foreach ( $optimized_images as $optimized_image ) {
 		if ( 'full' === $optimized_image['resize'] ) {
 			if ( is_numeric( $optimized_image['level'] ) && (int) $compression_level > (int) $optimized_image['level'] ) {
-				return ' <span title="' . esc_attr__( 'Compressed at a lower level than current setting.' ) . '" class="ewww-variant-icon"><sup>!</sup></span>';
+				return ' <span title="' . esc_attr__( 'Compressed at a lower level than current setting.', 'ewww-image-optimizer' ) . '" class="ewww-variant-icon"><sup>!</sup></span>';
 			}
 		}
 	}
@@ -12981,7 +12981,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 										'<br>' .
 										sprintf(
 											/* translators: %s: S3 Image Optimizer (link) */
-											esc_html__( 'Optimize unlimited Amazon S3 buckets with our %s.' ),
+											esc_html__( 'Optimize unlimited Amazon S3 buckets with our %s.', 'ewww-image-optimizer' ),
 											'<a href="https://wordpress.org/plugins/s3-image-optimizer/">' . esc_html__( 'S3 Image Optimizer', 'ewww-image-optimizer' ) . '</a>'
 										) : '' );
 								}
@@ -13038,7 +13038,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							</div>
 		<?php elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && ewww_image_optimizer_easy_active() && ! ewwwio()->local->exec_check() ) : ?>
 							<div id="ewww-bulk-warning" class="ewww-bulk-info ewwwio-notice notice-info">
-								<?php esc_html_e( 'Easy IO is already optimizing your images! If you need to save storage space, you may enter your API key below to compress the local images on your site.' ); ?>
+								<?php esc_html_e( 'Easy IO is already optimizing your images! If you need to save storage space, you may enter your API key below to compress the local images on your site.', 'ewww-image-optimizer' ); ?>
 								<?php ewwwio_help_link( 'https://docs.ewww.io/article/46-exactdn-with-the-ewww-io-api-cloud', '59c44349042863033a1d06d3' ); ?>
 							</div>
 		<?php elseif ( $fullsize_count < 1 ) : ?>
