@@ -1163,7 +1163,14 @@ function ewww_image_optimizer_optimized_list() {
 		return;
 	}
 	$starting_memory_usage = memory_get_usage( true );
-	$already_optimized     = $ewwwdb->get_results( "SELECT id,path,image_size,pending,attachment_id,level,updated,resized_width,resized_height,resize_error FROM $ewwwdb->ewwwio_images LIMIT $offset,$max_query", ARRAY_A );
+	$already_optimized     = $ewwwdb->get_results(
+		$ewwwdb->prepare(
+			"SELECT id,path,image_size,pending,attachment_id,level,updated,resized_width,resized_height,resize_error FROM $ewwwdb->ewwwio_images LIMIT %d,%d",
+			$offset,
+			$max_query
+		),
+		ARRAY_A
+	);
 	while ( $already_optimized ) {
 		$ewwwdb->flush();
 		foreach ( $already_optimized as $optimized ) {
@@ -1200,7 +1207,14 @@ function ewww_image_optimizer_optimized_list() {
 			set_transient( 'ewww_image_optimizer_low_memory_mode', 'large_list', 600 ); // Use low memory mode so that we don't waste lots of time pulling a huge list of images repeatedly.
 			return;
 		}
-		$already_optimized = $ewwwdb->get_results( "SELECT id,path,image_size,pending,attachment_id,level,updated FROM $ewwwdb->ewwwio_images LIMIT $offset,$max_query", ARRAY_A );
+		$already_optimized = $ewwwdb->get_results(
+			$ewwwdb->prepare(
+				"SELECT id,path,image_size,pending,attachment_id,level,updated,resized_width,resized_height,resize_error FROM $ewwwdb->ewwwio_images LIMIT %d,%d",
+				$offset,
+				$max_query
+			),
+			ARRAY_A
+		);
 	} // End while().
 }
 

@@ -228,7 +228,12 @@ function ewww_image_optimizer_aux_images_table() {
 			ARRAY_A
 		);
 		ewwwio_debug_message( $ewwwdb->prepare( "SELECT COUNT(*) FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d", $debug_query ) );
-		$search_count = $ewwwdb->get_var( $ewwwdb->prepare( "SELECT COUNT(*) FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d", $debug_query ) );
+		$search_count = $ewwwdb->get_var(
+			$ewwwdb->prepare(
+				"SELECT COUNT(*) FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d",
+				$debug_query
+			)
+		);
 		$total        = ceil( $search_count / $per_page );
 		if ( $debug_query ) {
 			if ( $search_count > $per_page ) {
@@ -890,7 +895,13 @@ function ewww_image_optimizer_delete_webp( $id ) {
 	}
 
 	// Finds non-meta images to remove from disk, and from db, as well as converted originals.
-	$optimized_images = $ewwwdb->get_results( "SELECT path,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media'", ARRAY_A );
+	$optimized_images = $ewwwdb->get_results(
+		$ewwwdb->prepare(
+			"SELECT path,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media'",
+			$id
+		),
+		ARRAY_A
+	);
 	if ( $optimized_images ) {
 		if ( ewww_image_optimizer_iterable( $optimized_images ) ) {
 			foreach ( $optimized_images as $image ) {

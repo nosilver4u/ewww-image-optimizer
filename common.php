@@ -3910,7 +3910,13 @@ function ewww_image_optimizer_restore_from_meta_data( $meta, $id ) {
 	} else {
 		$ewwwdb = $wpdb;
 	}
-	$db_image = $ewwwdb->get_results( "SELECT id,path,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media' AND resize = 'full'", ARRAY_A );
+	$db_image = $ewwwdb->get_results(
+		$ewwwdb->prepare(
+			"SELECT id,path,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND resize = 'full'",
+			$id
+		),
+		ARRAY_A
+	);
 	if ( empty( $db_image ) || ! is_array( $db_image ) || empty( $db_image['path'] ) ) {
 		// Get the filepath based on the meta and id.
 		list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
@@ -3945,7 +3951,14 @@ function ewww_image_optimizer_cloud_restore_from_meta_data( $id, $gallery = 'med
 	} else {
 		$ewwwdb = $wpdb;
 	}
-	$images = $ewwwdb->get_results( "SELECT id,path,resize,backup FROM $ewwwdb->ewwwio_images WHERE attachment_id = $id AND gallery = '$gallery'", ARRAY_A );
+	$images = $ewwwdb->get_results(
+		$ewwwdb->prepare(
+			"SELECT id,path,resize,backup FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = %s",
+			$id,
+			$gallery
+		),
+		ARRAY_A
+	);
 	foreach ( $images as $image ) {
 		if ( ! empty( $image['path'] ) ) {
 			$image['path'] = ewww_image_optimizer_absolutize_path( $image['path'] );
@@ -4020,7 +4033,13 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 		$ewwwdb = $wpdb;
 	}
 	if ( ! is_array( $image ) && ! empty( $image ) && is_numeric( $image ) ) {
-		$image = $ewwwdb->get_row( "SELECT id,path,backup FROM $ewwwdb->ewwwio_images WHERE id = $image", ARRAY_A );
+		$image = $ewwwdb->get_row(
+			$ewwwdb->prepare(
+				"SELECT id,path,backup FROM $ewwwdb->ewwwio_images WHERE id = %d",
+				$image
+			),
+			ARRAY_A
+		);
 	}
 	if ( ! empty( $image['path'] ) ) {
 		$image['path'] = ewww_image_optimizer_absolutize_path( $image['path'] );
@@ -4109,7 +4128,13 @@ function ewww_image_optimizer_delete( $id ) {
 	}
 	$id = (int) $id;
 	// Finds non-meta images to remove from disk, and from db, as well as converted originals.
-	$optimized_images = $ewwwdb->get_results( "SELECT path,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media'", ARRAY_A );
+	$optimized_images = $ewwwdb->get_results(
+		$ewwwdb->prepare(
+			"SELECT path,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media'",
+			$id
+		),
+		ARRAY_A
+	);
 	if ( $optimized_images ) {
 		if ( ewww_image_optimizer_iterable( $optimized_images ) ) {
 			foreach ( $optimized_images as $image ) {
@@ -4179,8 +4204,12 @@ function ewww_image_optimizer_delete( $id ) {
 			ewwwio_delete_file( $webpfileold );
 		}
 		// Retrieve any posts that link the original image.
-		$esql = "SELECT ID, post_content FROM $ewwwdb->posts WHERE post_content LIKE '%$filename%' LIMIT 1";
-		$rows = $ewwwdb->get_row( $esql );
+		$rows = $ewwwdb->get_row(
+			$ewwwdb->prepare(
+				"SELECT ID, post_content FROM $ewwwdb->posts WHERE post_content LIKE %s LIMIT 1",
+				'%' . $ewwwdb->esc_like( $filename ) . '%'
+			)
+		);
 		// If the original file still exists and no posts contain links to the image.
 		if ( ewwwio_is_file( $file_path ) && empty( $rows ) ) {
 			ewwwio_debug_message( 'removing: ' . $file_path );
@@ -4243,8 +4272,12 @@ function ewww_image_optimizer_delete( $id ) {
 				// Retrieve the filename from the metadata.
 				$filename = $data['orig_file'];
 				// Retrieve any posts that link the image.
-				$esql  = "SELECT ID, post_content FROM $ewwwdb->posts WHERE post_content LIKE '%$filename%' LIMIT 1";
-				$srows = $ewwwdb->get_row( $esql );
+				$srows = $ewwwdb->get_row(
+					$ewwwdb->prepare(
+						"SELECT ID, post_content FROM $ewwwdb->posts WHERE post_content LIKE %s LIMIT 1",
+						'%' . $ewwwdb->esc_like( $filename ) . '%'
+					)
+				);
 				// If there are no posts containing links to the original, delete it.
 				if ( empty( $srows ) ) {
 					ewwwio_debug_message( 'removing: ' . $base_dir . $data['orig_file'] );
@@ -4304,8 +4337,13 @@ function ewww_image_optimizer_file_deleted( $file ) {
 	ewwwio_debug_message( "$file was removed" );
 	// Finds non-meta images to remove from disk, and from db, as well as converted originals.
 	$maybe_relative_path = ewww_image_optimizer_relativize_path( $file );
-	$query               = $ewwwdb->prepare( "SELECT * FROM $ewwwdb->ewwwio_images WHERE path = %s", $maybe_relative_path );
-	$optimized_images    = $ewwwdb->get_results( $query, ARRAY_A );
+	$optimized_images    = $ewwwdb->get_results(
+		$ewwwdb->prepare(
+			"SELECT * FROM $ewwwdb->ewwwio_images WHERE path = %s",
+			$maybe_relative_path
+		),
+		ARRAY_A
+	);
 	if ( ewww_image_optimizer_iterable( $optimized_images ) ) {
 		foreach ( $optimized_images as $image ) {
 			if ( ! empty( $image['path'] ) ) {
@@ -4349,7 +4387,13 @@ function ewww_image_optimizer_media_replace( $attachment ) {
 	}
 	$id = (int) $attachment['post_id'];
 	// Finds non-meta images to remove from disk, and from db, as well as converted originals.
-	$optimized_images = $ewwwdb->get_results( "SELECT path,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media'", ARRAY_A );
+	$optimized_images = $ewwwdb->get_results(
+		$ewwwdb->prepare(
+			"SELECT path,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media'",
+			$id
+		),
+		ARRAY_A
+	);
 	if ( $optimized_images ) {
 		if ( ewww_image_optimizer_iterable( $optimized_images ) ) {
 			foreach ( $optimized_images as $image ) {
@@ -4457,7 +4501,13 @@ function ewww_image_optimizer_media_rename( $old_name, $new_name ) {
 	$id = (int) $_REQUEST['post_id'];
 	ewwwio_debug_message( "image renamed from $old_name to $new_name, looking for old records (id $id)" );
 	// Finds images to remove from disk, and from db, as well as converted originals.
-	$optimized_images = $ewwwdb->get_results( "SELECT id,path,resize,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = $id AND gallery = 'media'", ARRAY_A );
+	$optimized_images = $ewwwdb->get_results(
+		$ewwwdb->prepare(
+			"SELECT id,path,resize,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media'",
+			$id
+		),
+		ARRAY_A
+	);
 	if ( ewww_image_optimizer_iterable( $optimized_images ) ) {
 		foreach ( $optimized_images as $image ) {
 			if ( ! empty( $image['path'] ) ) {
@@ -6390,7 +6440,12 @@ function ewww_image_optimizer_find_file_by_id( $id ) {
 		$ewwwdb = $wpdb;
 	}
 	$id   = (int) $id;
-	$file = $ewwwdb->get_var( $ewwwdb->prepare( "SELECT path FROM $ewwwdb->ewwwio_images WHERE id = %d", $id ) );
+	$file = $ewwwdb->get_var(
+		$ewwwdb->prepare(
+			"SELECT path FROM $ewwwdb->ewwwio_images WHERE id = %d",
+			$id
+		)
+	);
 	if ( is_null( $file ) ) {
 		return false;
 	}
@@ -8211,11 +8266,21 @@ function ewww_image_optimizer_find_already_optimized( $attachment ) {
 	}
 	$maybe_return_image  = false;
 	$maybe_relative_path = ewww_image_optimizer_relativize_path( $attachment );
-	$query               = $ewwwdb->prepare( "SELECT * FROM $ewwwdb->ewwwio_images WHERE path = %s", $maybe_relative_path );
-	$optimized_query     = $ewwwdb->get_results( $query, ARRAY_A );
+	$optimized_query     = $ewwwdb->get_results(
+		$ewwwdb->prepare(
+			"SELECT * FROM $ewwwdb->ewwwio_images WHERE path = %s",
+			$maybe_relative_path
+		),
+		ARRAY_A
+	);
 	if ( empty( $optimized_query ) && $attachment !== $maybe_relative_path ) {
-		$query           = $ewwwdb->prepare( "SELECT * FROM $ewwwdb->ewwwio_images WHERE path = %s", $attachment );
-		$optimized_query = $ewwwdb->get_results( $query, ARRAY_A );
+		$optimized_query = $ewwwdb->get_results(
+			$ewwwdb->prepare(
+				"SELECT * FROM $ewwwdb->ewwwio_images WHERE path = %s",
+				$attachment
+			),
+			ARRAY_A
+		);
 	}
 	if ( ewww_image_optimizer_iterable( $optimized_query ) ) {
 		foreach ( $optimized_query as $image ) {
@@ -8310,10 +8375,26 @@ function ewww_image_optimizer_remove_duplicate_records( $duplicates ) {
 	} else {
 		$ewwwdb = $wpdb;
 	}
+
 	if ( ! is_array( $duplicates[0] ) ) {
 		// Retrieve records for the ID #s passed.
-		$duplicate_ids = implode( ',', array_map( 'intval', $duplicates ) );
-		$duplicates    = $ewwwdb->get_results( "SELECT * FROM $ewwwdb->ewwwio_images WHERE id IN ($duplicate_ids)" );
+		$duplicate_results = array();
+		foreach ( $duplicates as $duplicate ) {
+			if ( empty( $duplicate['id'] ) ) {
+				continue;
+			}
+			$duplicate_result = $ewwwdb->get_row(
+				$ewwwdb->prepare(
+					"SELECT * FROM $ewwwdb->ewwwio_images WHERE id = %d",
+					$duplicate['id']
+				),
+				ARRAY_A
+			);
+			if ( is_array( $duplicate_result ) && ! empty( $duplicate_result['id'] ) ) {
+				$duplicate_results[] = $duplicate_result;
+			}
+		}
+		$duplicates = $duplicate_results;
 	}
 	if ( ! is_array( $duplicates ) || ! is_array( $duplicates[0] ) ) {
 		return false;
@@ -8346,18 +8427,32 @@ function ewww_image_optimizer_remove_duplicate_records( $duplicates ) {
 		$discard = $duplicates;
 	}
 	if ( is_array( $keeper ) && is_array( $discard ) ) {
-		$delete_ids = array();
+		$update_keeper = false;
 		foreach ( $discard as $record ) {
 			foreach ( $record as $key => $value ) {
 				if ( empty( $keeper[ $key ] ) && ! empty( $value ) ) {
 					$keeper[ $key ] = $value;
+					$update_keeper  = true;
 				}
 			}
-			$delete_ids[] = (int) $record['id'];
+			$ewwwdb->delete(
+				$ewwwdb->ewwwio_images,
+				array(
+					'id' => $record['id'],
+				),
+				'%d'
+			);
 		}
-		if ( ! empty( $delete_ids ) && is_array( $delete_ids ) ) {
-			$query_ids = implode( ',', $delete_ids );
-			$ewwwdb->query( "DELETE FROM $ewwwdb->ewwwio_images WHERE id IN ($query_ids)" );
+		if ( $update_keeper ) {
+			$update_keeper = $keeper;
+			unset( $update_keeper['id'] );
+			$ewwwdb->update(
+				$ewwwdb->ewwwio_images,
+				$update_keeper,
+				array(
+					'id' => $keeper['id'],
+				)
+			);
 		}
 		return $keeper;
 	}
