@@ -29,6 +29,15 @@
 		</properties>
 	</rule>
 
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="my-text-domain"/>
+				<element value="ewww-image-optimizer"/>
+			</property>
+		</properties>
+	</rule>
+
 	<config name="testVersion">7.3-</config>
 	<rule ref="PHPCompatibilityWP">
 		<severity>10</severity>
