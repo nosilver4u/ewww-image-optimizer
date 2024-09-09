@@ -583,7 +583,7 @@ abstract class Background_Process extends Async_Request {
 		$schedules[ $this->identifier . '_cron_interval' ] = array(
 			'interval' => MINUTE_IN_SECONDS * $interval,
 			/* translators: %d: number of minutes */
-			'display'  => sprintf( __( 'Every %d Minutes' ), $interval ),
+			'display'  => sprintf( __( 'Every %d Minutes', 'ewww-image-optimizer' ), $interval ),
 		);
 
 		return $schedules;

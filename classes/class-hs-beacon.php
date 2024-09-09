@@ -35,7 +35,7 @@ class HS_Beacon extends Base {
 		\check_admin_referer( 'eio_beacon' );
 		$permissions = \apply_filters( 'easyio_admin_permissions', 'manage_options' );
 		if ( ! \current_user_can( $permissions ) ) {
-			\wp_die( \esc_html__( 'Access denied.', 'easy-image-optimizer' ) );
+			\wp_die( \esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 		}
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->set_option( $this->prefix . 'enable_help', 1 );
@@ -51,7 +51,7 @@ class HS_Beacon extends Base {
 		\check_admin_referer( 'eio_beacon' );
 		$permissions = \apply_filters( 'easyio_admin_permissions', 'manage_options' );
 		if ( ! \current_user_can( $permissions ) ) {
-			\wp_die( \esc_html__( 'Access denied.', 'easy-image-optimizer' ) );
+			\wp_die( \esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 		}
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		\delete_option( $this->prefix . 'enable_help' );
