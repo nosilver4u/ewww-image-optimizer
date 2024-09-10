@@ -146,8 +146,11 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * changed: allow folders outside of WordPress install to be optimized via Folders to Optimize
 * changed: improve performance of ewwwio_is_file(), props @rmpel
 * changed: improve exceeded credit messages for sub-keys
+* changed: warn when db connection is not using UTF-8
+* changed: ensure all db statements are properly prepared/sanitized
 * fixed: bulk async shows start optimizing instead of resume when queues are paused
 * fixed: bulk async status refresh does not handle errors properly
+* fixed: some strings with i18n had incorrect text domain
 
 = 7.8.0 =
 *Release Date - July 25, 2024*

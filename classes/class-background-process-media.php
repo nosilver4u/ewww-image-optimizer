@@ -172,7 +172,6 @@ class Background_Process_Media extends Background_Process {
 	 * Queue an individual size for a media attachment.
 	 *
 	 * @global object $wpdb
-	 * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
 	 * @global string|array $optimized_list A list of all images that have been optimized, or a string
 	 *                                      indicating why that is not a good idea.
 	 *
@@ -193,21 +192,14 @@ class Background_Process_Media extends Background_Process {
 			$already_optimized = \ewww_image_optimizer_find_already_optimized( $file_path );
 		}
 
-		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-			ewww_image_optimizer_db_init();
-			global $ewwwdb;
-		} else {
-			$ewwwdb = $wpdb;
-		}
-
 		$image_size = \ewww_image_optimizer_filesize( $file_path );
 		\ewwwio_debug_message( "(maybe) queuing optimization for $id/$size" );
 		if ( ! $this->should_optimize_size( $file_path, $size, $item, $already_optimized ) ) {
 			\ewwwio_debug_message( 'already optimized, not forcing or webp-only, so skipping' );
 			return 0;
 		} elseif ( ! empty( $already_optimized['id'] ) ) {
-			$ewwwdb->update(
-				$ewwwdb->ewwwio_images,
+			$wpdb->update(
+				$wpdb->ewwwio_images,
 				array(
 					'pending'       => 1,
 					'attachment_id' => $id,
@@ -222,8 +214,8 @@ class Background_Process_Media extends Background_Process {
 			$id_to_queue = $already_optimized['id'];
 			\ewwwio_debug_message( 'toggled db record' );
 		} else {
-			$ewwwdb->insert(
-				$ewwwdb->ewwwio_images,
+			$wpdb->insert(
+				$wpdb->ewwwio_images,
 				array(
 					'path'          => \ewww_image_optimizer_relativize_path( $file_path ),
 					'converted'     => '',
@@ -234,7 +226,7 @@ class Background_Process_Media extends Background_Process {
 					'pending'       => 1,
 				)
 			);
-			$id_to_queue = $ewwwdb->insert_id;
+			$id_to_queue = $wpdb->insert_id;
 			\ewwwio_debug_message( 'inserted db record' );
 		}
 		if ( ! $id_to_queue ) {

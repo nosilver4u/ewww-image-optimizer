@@ -181,7 +181,6 @@ class EWWW_Image {
 	 * Creates an image record, either from a pending record in the database, or from a file path.
 	 *
 	 * @global object $wpdb
-	 * @global object $ewwwdb A new database connection with super powers.
 	 *
 	 * @param int    $id Optional. The attachment ID to search for.
 	 * @param string $gallery Optional. The type of image to work with. Accepts 'media', 'nextgen', 'flag', or 'nextcellent'.
@@ -200,13 +199,7 @@ class EWWW_Image {
 		}
 		$id = (int) $id;
 		global $wpdb;
-		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-			ewww_image_optimizer_db_init();
-			global $ewwwdb;
-		} else {
-			$ewwwdb = $wpdb;
-		}
-		$ewwwdb->flush();
+		$wpdb->flush();
 		if ( $path && ( ewwwio_is_file( $path ) || ewww_image_optimizer_stream_wrapped( $path ) ) ) {
 			ewwwio_debug_message( "creating EWWW_Image with $path" );
 			$new_image = ewww_image_optimizer_find_already_optimized( $path );
@@ -232,9 +225,9 @@ class EWWW_Image {
 		} elseif ( $id && $gallery ) {
 			ewwwio_debug_message( "looking for $gallery image $id" );
 			// Matches $id, $gallery, is 'full', and pending.
-			$new_image = $ewwwdb->get_row(
-				$ewwwdb->prepare(
-					"SELECT * FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = %s AND resize = 'full' AND pending = 1 LIMIT 1",
+			$new_image = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT * FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = %s AND resize = 'full' AND pending = 1 LIMIT 1",
 					$id,
 					$gallery
 				),
@@ -242,9 +235,9 @@ class EWWW_Image {
 			);
 			if ( empty( $new_image ) ) {
 				// Matches $id, $gallery and pending.
-				$new_image = $ewwwdb->get_row(
-					$ewwwdb->prepare(
-						"SELECT * FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = %s AND pending = 1 LIMIT 1",
+				$new_image = $wpdb->get_row(
+					$wpdb->prepare(
+						"SELECT * FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = %s AND pending = 1 LIMIT 1",
 						$id,
 						$gallery
 					),
@@ -253,9 +246,9 @@ class EWWW_Image {
 			}
 			if ( empty( $new_image ) ) {
 				// Matches $gallery, is 'full' and pending.
-				$new_image = $ewwwdb->get_row(
-					$ewwwdb->prepare(
-						"SELECT * FROM $ewwwdb->ewwwio_images WHERE gallery = %s AND resize = 'full' AND pending = 1 LIMIT 1",
+				$new_image = $wpdb->get_row(
+					$wpdb->prepare(
+						"SELECT * FROM $wpdb->ewwwio_images WHERE gallery = %s AND resize = 'full' AND pending = 1 LIMIT 1",
 						$gallery
 					),
 					ARRAY_A
@@ -263,19 +256,19 @@ class EWWW_Image {
 			}
 			if ( empty( $new_image ) ) {
 				// Pull a random image.
-				$new_image = $ewwwdb->get_row( "SELECT * FROM $ewwwdb->ewwwio_images WHERE pending = 1 LIMIT 1", ARRAY_A );
+				$new_image = $wpdb->get_row( "SELECT * FROM $wpdb->ewwwio_images WHERE pending = 1 LIMIT 1", ARRAY_A );
 			}
 		} elseif ( $id ) {
-			$new_image = $ewwwdb->get_row(
-				$ewwwdb->prepare(
-					"SELECT * FROM $ewwwdb->ewwwio_images WHERE id = %d LIMIT 1",
+			$new_image = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT * FROM $wpdb->ewwwio_images WHERE id = %d LIMIT 1",
 					$id
 				),
 				ARRAY_A
 			);
 		} else {
 			ewwwio_debug_message( 'no id or path, just pulling next image' );
-			$new_image = $ewwwdb->get_row( "SELECT * FROM $ewwwdb->ewwwio_images WHERE pending = 1 LIMIT 1", ARRAY_A );
+			$new_image = $wpdb->get_row( "SELECT * FROM $wpdb->ewwwio_images WHERE pending = 1 LIMIT 1", ARRAY_A );
 		} // End if().
 
 		if ( empty( $new_image ) ) {
@@ -388,7 +381,6 @@ class EWWW_Image {
 	 * Converts all the 'resizes' after a successful conversion of the original image.
 	 *
 	 * @global object $wpdb
-	 * @global object $ewwwdb A new database connection with super powers.
 	 *
 	 * @param array $meta The attachment metadata.
 	 * @return array $meta The updated attachment metadata.
@@ -397,15 +389,9 @@ class EWWW_Image {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 
 		global $wpdb;
-		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-			ewww_image_optimizer_db_init();
-			global $ewwwdb;
-		} else {
-			$ewwwdb = $wpdb;
-		}
-		$sizes_queried = $ewwwdb->get_results(
-			$ewwwdb->prepare(
-				"SELECT * FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND resize <> 'full' AND resize <> ''",
+		$sizes_queried = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND resize <> 'full' AND resize <> ''",
 				$this->attachment_id
 			),
 			ARRAY_A
@@ -632,7 +618,6 @@ class EWWW_Image {
 	 * Restores all the 'resizes' of a converted image.
 	 *
 	 * @global object $wpdb
-	 * @global object $ewwwdb A new database connection with super powers.
 	 *
 	 * @param array $meta The attachment metadata.
 	 * @return array $meta The updated attachment metadata.
@@ -641,15 +626,9 @@ class EWWW_Image {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 
 		global $wpdb;
-		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-			ewww_image_optimizer_db_init();
-			global $ewwwdb;
-		} else {
-			$ewwwdb = $wpdb;
-		}
-		$sizes_queried = $ewwwdb->get_results(
-			$ewwwdb->prepare(
-				"SELECT id,path,converted,resize FROM $ewwwdb->ewwwio_images WHERE attachment_id = $this->attachment_id AND resize <> 'full'",
+		$sizes_queried = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id,path,converted,resize FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND resize <> 'full'",
 				$this->attachment_id
 			),
 			ARRAY_A
@@ -1273,7 +1252,6 @@ class EWWW_Image {
 	 * Updates records in the ewwwio_images table after conversion.
 	 *
 	 * @global object $wpdb
-	 * @global object $ewwwdb A new database connection with super powers.
 	 *
 	 * @param string $path The old path to search for.
 	 * @param string $new_path The new path to update.
@@ -1284,19 +1262,13 @@ class EWWW_Image {
 			return;
 		}
 		global $wpdb;
-		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-			ewww_image_optimizer_db_init();
-			global $ewwwdb;
-		} else {
-			$ewwwdb = $wpdb;
-		}
 		if ( ! $record ) {
 			$image_record = ewww_image_optimizer_find_already_optimized( $path );
 			if ( ! empty( $image_record ) && is_array( $image_record ) && ! empty( $image_record['id'] ) ) {
 				$record = $image_record;
 			} else { // Insert a new record.
-				$ewwwdb->insert(
-					$ewwwdb->ewwwio_images,
+				$wpdb->insert(
+					$wpdb->ewwwio_images,
 					array(
 						'path'          => ewww_image_optimizer_relativize_path( $new_path ),
 						'converted'     => ewww_image_optimizer_relativize_path( $path ),
@@ -1309,8 +1281,8 @@ class EWWW_Image {
 				return;
 			}
 		}
-		$ewwwdb->update(
-			$ewwwdb->ewwwio_images,
+		$wpdb->update(
+			$wpdb->ewwwio_images,
 			array(
 				'path'      => ewww_image_optimizer_relativize_path( $new_path ),
 				'converted' => ewww_image_optimizer_relativize_path( $path ),
@@ -1327,7 +1299,6 @@ class EWWW_Image {
 	 * Updates records in the ewwwio_images table after the original image is restored.
 	 *
 	 * @global object $wpdb
-	 * @global object $ewwwdb A new database connection with super powers.
 	 *
 	 * @param string $path The old path to search for.
 	 * @param string $new_path The new path to update.
@@ -1338,12 +1309,6 @@ class EWWW_Image {
 			return;
 		}
 		global $wpdb;
-		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-			ewww_image_optimizer_db_init();
-			global $ewwwdb;
-		} else {
-			$ewwwdb = $wpdb;
-		}
 		if ( ! $id ) {
 			$image_record = ewww_image_optimizer_find_already_optimized( $path );
 			if ( ! empty( $image_record ) && is_array( $image_record ) && ! empty( $image_record['id'] ) ) {
@@ -1352,8 +1317,8 @@ class EWWW_Image {
 				return;
 			}
 		}
-		$ewwwdb->update(
-			$ewwwdb->ewwwio_images,
+		$wpdb->update(
+			$wpdb->ewwwio_images,
 			array(
 				'path'       => ewww_image_optimizer_relativize_path( $new_path ),
 				'converted'  => '',

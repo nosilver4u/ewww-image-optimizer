@@ -1142,12 +1142,6 @@ function ewww_image_optimizer_optimized_list() {
 	$started = microtime( true );
 	global $optimized_list;
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
 	$offset         = 0;
 	$max_query      = (int) apply_filters( 'ewww_image_optimizer_count_optimized_queries', 4000 );
 	$optimized_list = array();
@@ -1163,16 +1157,16 @@ function ewww_image_optimizer_optimized_list() {
 		return;
 	}
 	$starting_memory_usage = memory_get_usage( true );
-	$already_optimized     = $ewwwdb->get_results(
-		$ewwwdb->prepare(
-			"SELECT id,path,image_size,pending,attachment_id,level,updated,resized_width,resized_height,resize_error FROM $ewwwdb->ewwwio_images LIMIT %d,%d",
+	$already_optimized     = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT id,path,image_size,pending,attachment_id,level,updated,resized_width,resized_height,resize_error FROM $wpdb->ewwwio_images LIMIT %d,%d",
 			$offset,
 			$max_query
 		),
 		ARRAY_A
 	);
 	while ( $already_optimized ) {
-		$ewwwdb->flush();
+		$wpdb->flush();
 		foreach ( $already_optimized as $optimized ) {
 			$optimized_path = ewww_image_optimizer_absolutize_path( $optimized['path'] );
 			// Check for duplicate records.
@@ -1207,9 +1201,9 @@ function ewww_image_optimizer_optimized_list() {
 			set_transient( 'ewww_image_optimizer_low_memory_mode', 'large_list', 600 ); // Use low memory mode so that we don't waste lots of time pulling a huge list of images repeatedly.
 			return;
 		}
-		$already_optimized = $ewwwdb->get_results(
-			$ewwwdb->prepare(
-				"SELECT id,path,image_size,pending,attachment_id,level,updated,resized_width,resized_height,resize_error FROM $ewwwdb->ewwwio_images LIMIT %d,%d",
+		$already_optimized = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id,path,image_size,pending,attachment_id,level,updated,resized_width,resized_height,resize_error FROM $wpdb->ewwwio_images LIMIT %d,%d",
 				$offset,
 				$max_query
 			),
@@ -1320,7 +1314,6 @@ function ewww_image_optimizer_should_resize( $file, $media = false ) {
  * checked, marks existing records as pending also.
  *
  * @global object $wpdb
- * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  * @global string|array $optimized_list A list of all images that have been optimized, or a string
  *                                      indicating why that is not a good idea.
  *
@@ -1341,12 +1334,6 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
 	}
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
 	global $ewww_scan;
 	$ewww_scan = empty( $_REQUEST['ewww_scan'] ) ? '' : sanitize_key( $_REQUEST['ewww_scan'] );
 
@@ -1363,14 +1350,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	$images                = array();
 	$attachment_images     = array();
 	$reset_images          = array();
-	$field_formats         = array(
-		'%s', // path.
-		'%s', // gallery.
-		'%d', // orig_size.
-		'%d', // attachment_id.
-		'%s', // resize.
-		'%d', // pending.
-	);
+
 	ewwwio_debug_message( 'scanning for media attachments' );
 	update_option( 'ewww_image_optimizer_bulk_resume', 'scanning' );
 	set_transient( 'ewww_image_optimizer_no_scheduled_optimization', true, 60 * MINUTE_IN_SECONDS );
@@ -1614,8 +1594,8 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 							$optimized_list[ $ims_path ] = $optimized_list[ $ims_temp_path ];
 							ewwwio_debug_message( "updating record {$optimized_list[ $ims_temp_path ]['id']} with $ims_path" );
 							// Update our records so that we have the correct path going forward.
-							$ewwwdb->update(
-								$ewwwdb->ewwwio_images,
+							$wpdb->update(
+								$wpdb->ewwwio_images,
 								array(
 									'path'    => ewww_image_optimizer_relativize_path( $ims_path ),
 									'updated' => $optimized_list[ $ims_temp_path ]['updated'],
@@ -1774,8 +1754,8 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						if ( empty( $already_optimized['attachment_id'] ) ) {
 							ewwwio_debug_message( "updating record for $file_path, with id $selected_id and resize $size" );
 							ewww_image_optimizer_debug_log();
-							$ewwwdb->update(
-								$ewwwdb->ewwwio_images,
+							$wpdb->update(
+								$wpdb->ewwwio_images,
 								array(
 									'pending'       => 1,
 									'attachment_id' => $selected_id,
@@ -1851,7 +1831,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					if ( ! empty( $images ) ) {
 						ewwwio_debug_message( 'doing mass insert' );
 						ewww_image_optimizer_debug_log();
-						ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, $field_formats );
+						ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images );
 					}
 					$images = array();
 					if ( ! empty( $reset_images ) ) {
@@ -1898,7 +1878,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	ewww_image_optimizer_debug_log();
 
 	if ( ! empty( $images ) ) {
-		ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images, $field_formats );
+		ewww_image_optimizer_mass_insert( $wpdb->ewwwio_images, $images );
 	}
 	ewww_image_optimizer_reset_images( $reset_images );
 	ewww_image_optimizer_update_scanned_images( $queued_ids );
