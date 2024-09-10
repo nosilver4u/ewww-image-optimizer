@@ -65,16 +65,12 @@ class EWWWIO_Relative_Migration {
 	 */
 	private function get_records() {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+
 		global $wpdb;
-		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-			ewww_image_optimizer_db_init();
-			global $ewwwdb;
-		} else {
-			$ewwwdb = $wpdb;
-		}
-		$records = $ewwwdb->get_results(
-			$ewwwdb->prepare(
-				"SELECT id,path,updated FROM $ewwwdb->ewwwio_images WHERE pending=0 AND image_size > 0 ORDER BY id DESC LIMIT %d,500",
+
+		$records = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id,path,updated FROM $wpdb->ewwwio_images WHERE pending=0 AND image_size > 0 ORDER BY id DESC LIMIT %d,500",
 				$this->offset
 			),
 			ARRAY_A
@@ -146,14 +142,8 @@ class EWWWIO_Relative_Migration {
 	private function update_relative_record( $record ) {
 		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		global $wpdb;
-		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-			ewww_image_optimizer_db_init();
-			global $ewwwdb;
-		} else {
-			$ewwwdb = $wpdb;
-		}
-		$ewwwdb->update(
-			$ewwwdb->ewwwio_images,
+		$wpdb->update(
+			$wpdb->ewwwio_images,
 			array(
 				'path'    => $record['path'],
 				'updated' => $record['updated'],

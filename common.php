@@ -1106,12 +1106,6 @@ function ewww_image_optimizer_single_size_optimize( $id, $size ) {
 	session_write_close();
 	$meta = wp_get_attachment_metadata( $id );
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
 	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
 	ewwwio_debug_message( "retrieved file path: $file_path" );
 	$supported_types = ewwwio()->get_supported_types();
@@ -2380,16 +2374,10 @@ function ewww_image_optimizer_path_renamed( $post, $old_filepath, $new_filepath 
 	$optimized_query = ewww_image_optimizer_find_already_optimized( $old_filepath );
 	if ( is_array( $optimized_query ) && ! empty( $optimized_query['id'] ) ) {
 		global $wpdb;
-		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-			ewww_image_optimizer_db_init();
-			global $ewwwdb;
-		} else {
-			$ewwwdb = $wpdb;
-		}
 		ewwwio_debug_message( "$old_filepath changed to $new_filepath" );
 		// Replace the 'temp' path in the database with the real path.
-		$ewwwdb->update(
-			$ewwwdb->ewwwio_images,
+		$wpdb->update(
+			$wpdb->ewwwio_images,
 			array(
 				'path' => ewww_image_optimizer_relativize_path( $new_filepath ),
 			),
@@ -2576,18 +2564,12 @@ function ewww_image_optimizer_handle_upload( $params ) {
 	if ( ! empty( $orig_size ) && $orig_size > ewww_image_optimizer_filesize( $file_path ) ) {
 		ewwwio_debug_message( "stashing $orig_size for $file_path" );
 		global $wpdb;
-		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-			ewww_image_optimizer_db_init();
-			global $ewwwdb;
-		} else {
-			$ewwwdb = $wpdb;
-		}
 		$already_optimized = ewww_image_optimizer_find_already_optimized( $file_path );
 		if ( empty( $already_optimized ) ) {
 			// If the file didn't already get optimized (and it shouldn't), then just insert a dummy record to be updated shortly.
 			ewwwio_debug_message( 'creating new record' );
-			$dbinserted = $ewwwdb->insert(
-				$ewwwdb->ewwwio_images,
+			$dbinserted = $wpdb->insert(
+				$wpdb->ewwwio_images,
 				array(
 					'path'      => ewww_image_optimizer_relativize_path( $file_path ),
 					'converted' => '',
@@ -2600,8 +2582,8 @@ function ewww_image_optimizer_handle_upload( $params ) {
 		} else {
 			// Update the existing record.
 			ewwwio_debug_message( 'updating existing record' );
-			$dbupdated = $ewwwdb->update(
-				$ewwwdb->ewwwio_images,
+			$dbupdated = $wpdb->update(
+				$wpdb->ewwwio_images,
 				array(
 					'orig_size' => $orig_size,
 				),
@@ -2681,9 +2663,6 @@ function ewww_image_optimizer_upload_info() {
  * Regularly compresses any preconfigured folders including Buddypress, the active theme,
  * metaslider, and WP Symposium. Also includes any user-configured folders, along with the last two
  * months of media uploads.
- *
- * @global object $wpdb
- * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  */
 function ewww_image_optimizer_auto() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
@@ -2857,15 +2836,9 @@ function ewww_image_optimizer_retina( $id, $retina_path ) {
 	$optimized_query = ewww_image_optimizer_find_already_optimized( $temp_path );
 	if ( is_array( $optimized_query ) && $optimized_query['image_size'] === $opt_size ) {
 		global $wpdb;
-		if ( false === strpos( $wpdb->charset, 'utf8' ) ) {
-			ewww_image_optimizer_db_init();
-			global $ewwwdb;
-		} else {
-			$ewwwdb = $wpdb;
-		}
 		// Replace the 'temp' path in the database with the real path.
-		$ewwwdb->update(
-			$ewwwdb->ewwwio_images,
+		$wpdb->update(
+			$wpdb->ewwwio_images,
 			array(
 				'path'          => ewww_image_optimizer_relativize_path( $retina_path ),
 				'attachment_id' => $id,
@@ -3895,7 +3868,6 @@ function ewww_image_optimizer_ajax_get_attachment_status() {
  * Manually restore a converted image.
  *
  * @global object $wpdb
- * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  *
  * @param array $meta The attachment metadata.
  * @param int   $id The attachment id number.
@@ -3904,15 +3876,9 @@ function ewww_image_optimizer_ajax_get_attachment_status() {
 function ewww_image_optimizer_restore_from_meta_data( $meta, $id ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
-	$db_image = $ewwwdb->get_results(
-		$ewwwdb->prepare(
-			"SELECT id,path,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND resize = 'full'",
+	$db_image = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT id,path,converted FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND resize = 'full'",
 			$id
 		),
 		ARRAY_A
@@ -3935,7 +3901,6 @@ function ewww_image_optimizer_restore_from_meta_data( $meta, $id ) {
  * Manually restore an attachment from the API
  *
  * @global object $wpdb
- * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  *
  * @param int    $id The attachment id number.
  * @param string $gallery Optional. The gallery from whence we came. Default 'media'.
@@ -3945,15 +3910,9 @@ function ewww_image_optimizer_restore_from_meta_data( $meta, $id ) {
 function ewww_image_optimizer_cloud_restore_from_meta_data( $id, $gallery = 'media', $meta = array() ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
-	$images = $ewwwdb->get_results(
-		$ewwwdb->prepare(
-			"SELECT id,path,resize,backup FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = %s",
+	$images = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT id,path,resize,backup FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = %s",
 			$id,
 			$gallery
 		),
@@ -4017,7 +3976,6 @@ function ewww_image_optimizer_cloud_restore_single_image_handler() {
  * Restores a single image from the API.
  *
  * @global object $wpdb
- * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  *
  * @param int|array $image The db record/ID of the image to restore.
  * @return bool True if the image was restored successfully.
@@ -4026,16 +3984,10 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $eio_backup;
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
 	if ( ! is_array( $image ) && ! empty( $image ) && is_numeric( $image ) ) {
-		$image = $ewwwdb->get_row(
-			$ewwwdb->prepare(
-				"SELECT id,path,backup FROM $ewwwdb->ewwwio_images WHERE id = %d",
+		$image = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT id,path,backup FROM $wpdb->ewwwio_images WHERE id = %d",
 				$image
 			),
 			ARRAY_A
@@ -4096,7 +4048,7 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 					unlink( $image['path'] . '.webp' );
 				}
 				// Set the results to nothing.
-				$ewwwdb->query( $ewwwdb->prepare( "UPDATE $ewwwdb->ewwwio_images SET results = '', image_size = 0, updates = 0, updated=updated, level = 0, resized_width = 0, resized_height = 0, resize_error = 0, webp_size = 0, webp_error = 0 WHERE id = %d", $image['id'] ) );
+				$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->ewwwio_images SET results = '', image_size = 0, updates = 0, updated=updated, level = 0, resized_width = 0, resized_height = 0, resize_error = 0, webp_size = 0, webp_error = 0 WHERE id = %d", $image['id'] ) );
 				return true;
 			}
 		}
@@ -4112,7 +4064,6 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
  * Removes any .webp images, backups from conversion, and removes related database records.
  *
  * @global object $wpdb
- * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  *
  * @param int $id The id number for the attachment being deleted.
  */
@@ -4120,17 +4071,11 @@ function ewww_image_optimizer_delete( $id ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $eio_backup;
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
 	$id = (int) $id;
 	// Finds non-meta images to remove from disk, and from db, as well as converted originals.
-	$optimized_images = $ewwwdb->get_results(
-		$ewwwdb->prepare(
-			"SELECT path,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media'",
+	$optimized_images = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT path,converted FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media'",
 			$id
 		),
 		ARRAY_A
@@ -4172,7 +4117,7 @@ function ewww_image_optimizer_delete( $id ) {
 			}
 		}
 		ewwwio_debug_message( "removing all db records for attachment $id" );
-		$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'attachment_id' => $id ) );
+		$wpdb->delete( $wpdb->ewwwio_images, array( 'attachment_id' => $id ) );
 	}
 	$s3_path = false;
 	$s3_dir  = false;
@@ -4204,10 +4149,10 @@ function ewww_image_optimizer_delete( $id ) {
 			ewwwio_delete_file( $webpfileold );
 		}
 		// Retrieve any posts that link the original image.
-		$rows = $ewwwdb->get_row(
-			$ewwwdb->prepare(
-				"SELECT ID, post_content FROM $ewwwdb->posts WHERE post_content LIKE %s LIMIT 1",
-				'%' . $ewwwdb->esc_like( $filename ) . '%'
+		$rows = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT ID, post_content FROM $wpdb->posts WHERE post_content LIKE %s LIMIT 1",
+				'%' . $wpdb->esc_like( $filename ) . '%'
 			)
 		);
 		// If the original file still exists and no posts contain links to the image.
@@ -4216,7 +4161,7 @@ function ewww_image_optimizer_delete( $id ) {
 			ewwwio_delete_file( $file_path );
 			$eio_backup->delete_local_backup( $file_path );
 			ewwwio_debug_message( "removing all db records for $file_path" );
-			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
+			$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
 		}
 	}
 	$file_path = get_attached_file( $id );
@@ -4238,11 +4183,11 @@ function ewww_image_optimizer_delete( $id ) {
 		}
 		$eio_backup->delete_local_backup( $orig_path );
 		ewwwio_debug_message( "removing all db records for $orig_path" );
-		$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $orig_path ) ) );
+		$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $orig_path ) ) );
 	}
 	// Remove the regular image from the ewwwio_images tables.
 	ewwwio_debug_message( "removing all db records for $file_path" );
-	$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
+	$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
 	// Resized versions, so we can continue.
 	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 		// One way or another, $file_path is now set, and we can get the base folder name.
@@ -4265,17 +4210,17 @@ function ewww_image_optimizer_delete( $id ) {
 			}
 			$eio_backup->delete_local_backup( $base_dir . wp_basename( $data['file'] ) );
 			ewwwio_debug_message( "removing all db records for {$data['file']}" );
-			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['file'] ) ) );
+			$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['file'] ) ) );
 			// If the original resize is set, and still exists.
 			if ( ! empty( $data['orig_file'] ) && ewwwio_is_file( $base_dir . $data['orig_file'] ) ) {
 				unset( $srows );
 				// Retrieve the filename from the metadata.
 				$filename = $data['orig_file'];
 				// Retrieve any posts that link the image.
-				$srows = $ewwwdb->get_row(
-					$ewwwdb->prepare(
-						"SELECT ID, post_content FROM $ewwwdb->posts WHERE post_content LIKE %s LIMIT 1",
-						'%' . $ewwwdb->esc_like( $filename ) . '%'
+				$srows = $wpdb->get_row(
+					$wpdb->prepare(
+						"SELECT ID, post_content FROM $wpdb->posts WHERE post_content LIKE %s LIMIT 1",
+						'%' . $wpdb->esc_like( $filename ) . '%'
 					)
 				);
 				// If there are no posts containing links to the original, delete it.
@@ -4284,7 +4229,7 @@ function ewww_image_optimizer_delete( $id ) {
 					ewwwio_delete_file( $base_dir . $data['orig_file'] );
 					$eio_backup->delete_local_backup( $base_dir . $data['orig_file'] );
 					ewwwio_debug_message( "removing all db records for {$data['orig_file']}" );
-					$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['orig_file'] ) ) );
+					$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['orig_file'] ) ) );
 				}
 			}
 		}
@@ -4320,7 +4265,6 @@ function ewww_image_optimizer_irsc_file_deleted( $id, $file ) {
  * Removes any .webp images, backups from conversion, and removes related database records.
  *
  * @global object $wpdb
- * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  *
  * @param string $file The file being deleted.
  */
@@ -4328,18 +4272,12 @@ function ewww_image_optimizer_file_deleted( $file ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $eio_backup;
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
 	ewwwio_debug_message( "$file was removed" );
 	// Finds non-meta images to remove from disk, and from db, as well as converted originals.
 	$maybe_relative_path = ewww_image_optimizer_relativize_path( $file );
-	$optimized_images    = $ewwwdb->get_results(
-		$ewwwdb->prepare(
-			"SELECT * FROM $ewwwdb->ewwwio_images WHERE path = %s",
+	$optimized_images    = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT * FROM $wpdb->ewwwio_images WHERE path = %s",
 			$maybe_relative_path
 		),
 		ARRAY_A
@@ -4362,7 +4300,7 @@ function ewww_image_optimizer_file_deleted( $file ) {
 				}
 			}
 			$eio_backup->delete_local_backup( $image['converted'] );
-			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'id' => $image['id'] ) );
+			$wpdb->delete( $wpdb->ewwwio_images, array( 'id' => $image['id'] ) );
 		}
 	}
 	if ( ewwwio_is_file( $file . '.webp' ) ) {
@@ -4379,17 +4317,11 @@ function ewww_image_optimizer_file_deleted( $file ) {
 function ewww_image_optimizer_media_replace( $attachment ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
 	$id = (int) $attachment['post_id'];
 	// Finds non-meta images to remove from disk, and from db, as well as converted originals.
-	$optimized_images = $ewwwdb->get_results(
-		$ewwwdb->prepare(
-			"SELECT path,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media'",
+	$optimized_images = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT path,converted FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media'",
 			$id
 		),
 		ARRAY_A
@@ -4420,7 +4352,7 @@ function ewww_image_optimizer_media_replace( $attachment ) {
 			}
 		}
 		ewwwio_debug_message( "removing all db records for attachment $id" );
-		$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'attachment_id' => $id ) );
+		$wpdb->delete( $wpdb->ewwwio_images, array( 'attachment_id' => $id ) );
 	}
 	// Retrieve the image metadata.
 	$meta = wp_get_attachment_metadata( $id );
@@ -4437,7 +4369,7 @@ function ewww_image_optimizer_media_replace( $attachment ) {
 		if ( ewwwio_is_file( $webpfileold ) ) {
 			ewwwio_delete_file( $webpfileold );
 		}
-		$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
+		$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
 	}
 	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
 	// If the attachment has an original file set.
@@ -4451,10 +4383,10 @@ function ewww_image_optimizer_media_replace( $attachment ) {
 		if ( ewwwio_is_file( $webpfile ) ) {
 			ewwwio_delete_file( $webpfile );
 		}
-		$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $orig_path ) ) );
+		$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $orig_path ) ) );
 	}
 	// Remove the regular image from the ewwwio_images tables.
-	$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
+	$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
 	// Resized versions, so we can continue.
 	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 		// One way or another, $file_path is now set, and we can get the base folder name.
@@ -4469,12 +4401,12 @@ function ewww_image_optimizer_media_replace( $attachment ) {
 			if ( ewwwio_is_file( $webpfileold ) ) {
 				ewwwio_delete_file( $webpfileold );
 			}
-			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['file'] ) ) );
+			$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['file'] ) ) );
 			// If the original resize is set, and still exists.
 			if ( ! empty( $data['orig_file'] ) ) {
 				// Retrieve the filename from the metadata.
 				$filename = $data['orig_file'];
-				$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['orig_file'] ) ) );
+				$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['orig_file'] ) ) );
 			}
 		}
 	}
@@ -4489,21 +4421,15 @@ function ewww_image_optimizer_media_replace( $attachment ) {
 function ewww_image_optimizer_media_rename( $old_name, $new_name ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
 	if ( ! check_ajax_referer( 'phoenix_media_rename', '_wpnonce', false ) || empty( $_REQUEST['post_id'] ) ) {
 		return;
 	}
 	$id = (int) $_REQUEST['post_id'];
 	ewwwio_debug_message( "image renamed from $old_name to $new_name, looking for old records (id $id)" );
 	// Finds images to remove from disk, and from db, as well as converted originals.
-	$optimized_images = $ewwwdb->get_results(
-		$ewwwdb->prepare(
-			"SELECT id,path,resize,converted FROM $ewwwdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media'",
+	$optimized_images = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT id,path,resize,converted FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media'",
 			$id
 		),
 		ARRAY_A
@@ -4542,8 +4468,8 @@ function ewww_image_optimizer_media_rename( $old_name, $new_name ) {
 				$new_path = str_replace( wp_basename( $old_name ), wp_basename( $new_name ), $image['path'] );
 				if ( ewwwio_is_file( $new_path ) ) {
 					$new_path = ewww_image_optimizer_relativize_path( $new_path );
-					$ewwwdb->update(
-						$ewwwdb->ewwwio_images,
+					$wpdb->update(
+						$wpdb->ewwwio_images,
 						array(
 							'path' => $new_path,
 						),
@@ -4554,7 +4480,7 @@ function ewww_image_optimizer_media_rename( $old_name, $new_name ) {
 					continue;
 				}
 			}
-			$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'id' => $image['id'] ) );
+			$wpdb->delete( $wpdb->ewwwio_images, array( 'id' => $image['id'] ) );
 		}
 	}
 	// Retrieve the image metadata.
@@ -4572,7 +4498,7 @@ function ewww_image_optimizer_media_rename( $old_name, $new_name ) {
 		if ( ewwwio_is_file( $webpfileold ) ) {
 			ewwwio_delete_file( $webpfileold );
 		}
-		$ewwwdb->delete( $ewwwdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
+		$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
 	}
 	ewww_image_optimizer_resize_from_meta_data( $meta, $id );
 }
@@ -6281,88 +6207,7 @@ function ewww_image_optimizer_cloud_resize( $file, $type, $dst_x, $dst_y, $src_x
 }
 
 /**
- * Setup our own database connection with full utf8 capability.
- *
- * @global object $ewwwdb A new database connection with super powers.
- * @global string $table_prefix The table prefix for the WordPress database.
- */
-function ewww_image_optimizer_db_init() {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	global $ewwwdb, $table_prefix;
-	require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewwwdb.php';
-	if ( ! defined( 'DB_USER' ) || ! defined( 'DB_PASSWORD' ) || ! defined( 'DB_NAME' ) || ! defined( 'DB_HOST' ) ) {
-		global $wpdb;
-		$ewwwdb = $wpdb;
-		return;
-	} elseif ( ! isset( $ewwwdb ) ) {
-		$ewwwdb = new EwwwDB( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
-	}
-
-	if ( ! empty( $ewwwdb->error ) ) {
-		dead_db();
-	}
-
-	$ewwwdb->field_types = array(
-		'post_author'      => '%d',
-		'post_parent'      => '%d',
-		'menu_order'       => '%d',
-		'term_id'          => '%d',
-		'term_group'       => '%d',
-		'term_taxonomy_id' => '%d',
-		'parent'           => '%d',
-		'count'            => '%d',
-		'object_id'        => '%d',
-		'term_order'       => '%d',
-		'ID'               => '%d',
-		'comment_ID'       => '%d',
-		'comment_post_ID'  => '%d',
-		'comment_parent'   => '%d',
-		'user_id'          => '%d',
-		'link_id'          => '%d',
-		'link_owner'       => '%d',
-		'link_rating'      => '%d',
-		'option_id'        => '%d',
-		'blog_id'          => '%d',
-		'meta_id'          => '%d',
-		'post_id'          => '%d',
-		'user_status'      => '%d',
-		'umeta_id'         => '%d',
-		'comment_karma'    => '%d',
-		'comment_count'    => '%d',
-		// multisite.
-		'active'           => '%d',
-		'cat_id'           => '%d',
-		'deleted'          => '%d',
-		'lang_id'          => '%d',
-		'mature'           => '%d',
-		'public'           => '%d',
-		'site_id'          => '%d',
-		'spam'             => '%d',
-	);
-
-	$prefix = $ewwwdb->set_prefix( $table_prefix );
-
-	// Setup blog_id and prefix for multisite (and fallback).
-	if ( is_wp_error( $prefix ) || is_multisite() ) {
-		global $wpdb;
-		$ewwwdb->prefix = $wpdb->prefix;
-		$ewwwdb->blogid = $wpdb->blogid;
-		// and just in case we need it...
-		$ewwwdb->base_prefix = $wpdb->base_prefix;
-	}
-
-	if ( ! isset( $ewwwdb->ewwwio_images ) ) {
-		$ewwwdb->ewwwio_images = $ewwwdb->prefix . 'ewwwio_images';
-	}
-	if ( ! isset( $ewwwdb->ewwwio_queue ) ) {
-		$ewwwdb->ewwwio_queue = $ewwwdb->prefix . 'ewwwio_queue';
-	}
-}
-
-/**
  * Inserts a single record into the table as pending, or marks it pending if it exists.
- *
- * @global object $ewwwdb A new database connection with super powers.
  *
  * @param string $path The filename of the image.
  * @param string $gallery The type (origin) of the image.
@@ -6372,8 +6217,7 @@ function ewww_image_optimizer_db_init() {
  */
 function ewww_image_optimizer_single_insert( $path, $gallery = '', $attachment_id = '', $size = '' ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	ewww_image_optimizer_db_init();
-	global $ewwwdb;
+	global $wpdb;
 
 	$already_optimized = ewww_image_optimizer_find_already_optimized( $path );
 	if ( is_array( $already_optimized ) && ! empty( $already_optimized ) ) {
@@ -6381,8 +6225,8 @@ function ewww_image_optimizer_single_insert( $path, $gallery = '', $attachment_i
 			ewwwio_debug_message( "already pending record for $path - {$already_optimized['id']}" );
 			return $already_optimized['id'];
 		}
-		$ewwwdb->update(
-			$ewwwdb->ewwwio_images,
+		$wpdb->update(
+			$wpdb->ewwwio_images,
 			array(
 				'pending' => 1,
 			),
@@ -6415,9 +6259,9 @@ function ewww_image_optimizer_single_insert( $path, $gallery = '', $attachment_i
 		if ( $size ) {
 			$to_insert['resize'] = $size;
 		}
-		$ewwwdb->insert( $ewwwdb->ewwwio_images, $to_insert );
-		ewwwio_debug_message( "inserted pending record for $path - {$ewwwdb->insert_id}" );
-		return $ewwwdb->insert_id;
+		$wpdb->insert( $wpdb->ewwwio_images, $to_insert );
+		ewwwio_debug_message( "inserted pending record for $path - {$wpdb->insert_id}" );
+		return $wpdb->insert_id;
 	}
 }
 
@@ -6433,16 +6277,10 @@ function ewww_image_optimizer_find_file_by_id( $id ) {
 	}
 	ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
 	$id   = (int) $id;
-	$file = $ewwwdb->get_var(
-		$ewwwdb->prepare(
-			"SELECT path FROM $ewwwdb->ewwwio_images WHERE id = %d",
+	$file = $wpdb->get_var(
+		$wpdb->prepare(
+			"SELECT path FROM $wpdb->ewwwio_images WHERE id = %d",
 			$id
 		)
 	);
@@ -6460,47 +6298,50 @@ function ewww_image_optimizer_find_file_by_id( $id ) {
 /**
  * Inserts multiple records into the table at once.
  *
- * Each sub-array in $data should have the same number of items as $format.
- *
  * @global object $wpdb
- * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  *
  * @param string $table The table to insert records into.
- * @param array  $data Can be any multi-dimensional array with records to insert.
- * @param array  $format A list of formats for the values in each record of $data.
+ * @param array  $data Can be any multi-dimensional array with records to insert. All values must be int/string data.
  */
-function ewww_image_optimizer_mass_insert( $table, $data, $format ) {
+function ewww_image_optimizer_mass_insert( $table, $data ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( empty( $table ) || ! ewww_image_optimizer_iterable( $data ) || ! ewww_image_optimizer_iterable( $format ) ) {
+	if ( empty( $table ) || ! ewww_image_optimizer_iterable( $data ) ) {
 		return false;
 	}
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
 
 	$record_count = count( $data );
 	ewwwio_debug_message( "inserting $record_count records" );
-	$multi_formats = array();
-	$values        = array();
+	$multi_values = array();
 	foreach ( $data as $record ) {
 		if ( ! ewww_image_optimizer_iterable( $record ) ) {
 			continue;
 		}
-
+		$values = array();
 		foreach ( $record as $value ) {
-			$values[] = $value;
+			if ( is_int( $value ) ) {
+				$values[] = $value;
+			} elseif ( is_string( $value ) ) {
+				$values[] = "'" . esc_sql( $value ) . "'";
+			} else {
+				$values[] = "''";
+			}
 		}
-		$multi_formats[] = '(' . implode( ',', $format ) . ')';
+		$multi_values[] = '(' . implode( ',', $values ) . ')';
 	}
-	$first         = reset( $data );
-	$fields        = '`' . implode( '`, `', array_keys( $first ) ) . '`';
-	$multi_formats = implode( ',', $multi_formats );
 
-	return $ewwwdb->query( $ewwwdb->prepare( "INSERT INTO `$table` ($fields) VALUES $multi_formats", $values ) );
+	$first_record   = reset( $data );
+	$unsafe_fields  = array_keys( $first_record );
+	$escaped_fields = array();
+	foreach ( $unsafe_fields as $unsafe_field ) {
+		$escaped_fields[] = $wpdb->quote_identifier( $unsafe_field );
+	}
+	$escaped_table  = $wpdb->quote_identifier( $table );
+	$escaped_fields = implode( ',', $escaped_fields );
+	$escaped_values = implode( ',', $multi_values );
+
+	// Only int and string values allowed (above). All values, field names and table names are escaped.
+	return $wpdb->query( "INSERT INTO $escaped_table ($escaped_fields) VALUES $escaped_values" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 }
 
 /**
@@ -6603,7 +6444,6 @@ function ewww_image_optimizer_update_savings( $opt_size, $orig_size ) {
  * Inserts or updates an image record in the database.
  *
  * @global object $wpdb
- * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  * @global object $ewww_image Contains more information about the image currently being processed.
  *
  * @param string $attachment The filename of the image.
@@ -6615,12 +6455,6 @@ function ewww_image_optimizer_update_savings( $opt_size, $orig_size ) {
 function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, $original = '', $backup_hash = '' ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
 	global $ewww_image;
 	// First check if the image was converted, so we don't orphan records.
 	if ( $original && $original !== $attachment ) {
@@ -6677,7 +6511,7 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 		}
 		$updates['orig_size'] = $orig_size;
 		/* $updates['updated']   = gmdate( 'Y-m-d H:i:s' ); */
-		$ewwwdb->insert( $ewwwdb->ewwwio_images, $updates );
+		$wpdb->insert( $wpdb->ewwwio_images, $updates );
 	} else {
 		if ( is_array( $already_optimized ) && empty( $already_optimized['orig_size'] ) ) {
 			$updates['orig_size'] = $orig_size;
@@ -6708,8 +6542,8 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 			ewwwio_debug_message( print_r( $updates, true ) );
 		}
 		// Update information for the image.
-		$record_updated = $ewwwdb->update(
-			$ewwwdb->ewwwio_images,
+		$record_updated = $wpdb->update(
+			$wpdb->ewwwio_images,
 			$updates,
 			array(
 				'id' => $already_optimized['id'],
@@ -6723,7 +6557,7 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 			ewwwio_debug_message( "updated $record_updated records successfully" );
 		}
 	} // End if().
-	$ewwwdb->flush();
+	$wpdb->flush();
 	return $results_msg;
 }
 
@@ -6732,7 +6566,6 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
  *
  * @see ewww_image_optimizer_webp_error_message() Converts WebP error codes to messages.
  * @global object $wpdb
- * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  * @global object $ewww_image Contains more information about the image currently being processed.
  *
  * @param string $attachment The filename of the original image.
@@ -6742,12 +6575,6 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 function ewww_image_optimizer_update_webp_results( $attachment, $webp_size, $webp_error = 0 ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
 	global $ewww_image;
 	$already_optimized = ewww_image_optimizer_find_already_optimized( $attachment );
 	ewwwio_debug_message( "webp conversion yielded size $webp_size (error=$webp_error)" );
@@ -6768,12 +6595,12 @@ function ewww_image_optimizer_update_webp_results( $attachment, $webp_size, $web
 	if ( empty( $already_optimized ) || ! is_array( $already_optimized ) ) {
 		ewwwio_debug_message( "creating new record for $attachment" );
 		$updates['converted'] = '';
-		$ewwwdb->insert( $ewwwdb->ewwwio_images, $updates );
+		$wpdb->insert( $wpdb->ewwwio_images, $updates );
 	} else {
 		ewwwio_debug_message( "updating existing record ({$already_optimized['id']}), path: $attachment" );
 		// Update information for the image.
-		$record_updated = $ewwwdb->update(
-			$ewwwdb->ewwwio_images,
+		$record_updated = $wpdb->update(
+			$wpdb->ewwwio_images,
 			$updates,
 			array(
 				'id' => $already_optimized['id'],
@@ -6787,14 +6614,13 @@ function ewww_image_optimizer_update_webp_results( $attachment, $webp_size, $web
 			ewwwio_debug_message( "updated $record_updated records successfully" );
 		}
 	} // End if().
-	$ewwwdb->flush();
+	$wpdb->flush();
 }
 
 /**
  * Updates resize results for an image record in the database.
  *
  * @global object $wpdb
- * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  * @global object $ewww_image Contains more information about the image currently being processed.
  *
  * @param string $attachment The filename of the image.
@@ -6805,12 +6631,6 @@ function ewww_image_optimizer_update_webp_results( $attachment, $webp_size, $web
 function ewww_image_optimizer_update_resize_results( $attachment, $resized_width, $resized_height, $resize_error = 0 ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
 	global $ewww_image;
 	$already_optimized = ewww_image_optimizer_find_already_optimized( $attachment );
 	ewwwio_debug_message( "resize attempted at: $resized_width (w) vs. $resized_height (h), code $resize_error" );
@@ -6833,12 +6653,12 @@ function ewww_image_optimizer_update_resize_results( $attachment, $resized_width
 	if ( empty( $already_optimized ) || ! is_array( $already_optimized ) ) {
 		ewwwio_debug_message( "creating new record for $attachment" );
 		$updates['converted'] = '';
-		$ewwwdb->insert( $ewwwdb->ewwwio_images, $updates );
+		$wpdb->insert( $wpdb->ewwwio_images, $updates );
 	} else {
 		ewwwio_debug_message( "updating existing record ({$already_optimized['id']}), path: $attachment" );
 		// Update information for the image.
-		$record_updated = $ewwwdb->update(
-			$ewwwdb->ewwwio_images,
+		$record_updated = $wpdb->update(
+			$wpdb->ewwwio_images,
 			$updates,
 			array(
 				'id' => $already_optimized['id'],
@@ -6852,7 +6672,7 @@ function ewww_image_optimizer_update_resize_results( $attachment, $resized_width
 			ewwwio_debug_message( "updated $record_updated records successfully" );
 		}
 	} // End if().
-	$ewwwdb->flush();
+	$wpdb->flush();
 }
 
 /**
@@ -6903,7 +6723,6 @@ function ewww_image_optimizer_size_format( $size, $precision = 1 ) {
  * Called to process each image during scheduled optimization.
  *
  * @global object $wpdb
- * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  * @global object $ewww_image Contains more information about the image currently being processed.
  *
  * @param array $attachment {
@@ -6919,12 +6738,6 @@ function ewww_image_optimizer_size_format( $size, $precision = 1 ) {
 function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false, $cli = false ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
 	ewwwio()->defer = false;
 	$output         = array();
 	// Verify that an authorized user has started the optimizer.
@@ -6952,7 +6765,7 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 	}
 	// Get the next image in the queue.
 	if ( empty( $attachment ) ) {
-		list( $id, $attachment ) = $ewwwdb->get_row( "SELECT id,path FROM $ewwwdb->ewwwio_images WHERE pending=1 LIMIT 1", ARRAY_N );
+		list( $id, $attachment ) = $wpdb->get_row( "SELECT id,path FROM $wpdb->ewwwio_images WHERE pending=1 LIMIT 1", ARRAY_N );
 	} else {
 		$id         = $attachment['id'];
 		$attachment = $attachment['path'];
@@ -7615,7 +7428,6 @@ function ewww_image_optimizer_check_table_as3cf( $meta, $id, $s3_path ) {
  * Given an S3 path, replaces it with the local path.
  *
  * @global object $wpdb
- * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  *
  * @param string $local_path The local filesystem path to the image.
  * @param string $s3_path The remote S3 path to the image.
@@ -7627,12 +7439,6 @@ function ewww_image_optimizer_update_table_as3cf( $local_path, $s3_path ) {
 	ewwwio_debug_message( "looking for $s3_path" );
 	if ( is_array( $s3_image ) ) {
 		global $wpdb;
-		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-			ewww_image_optimizer_db_init();
-			global $ewwwdb;
-		} else {
-			$ewwwdb = $wpdb;
-		}
 		ewwwio_debug_message( "found $s3_path in db" );
 		// When we find a match by the s3 path, we need to find out if there are already records for the local path.
 		$found_local_image = ewww_image_optimizer_find_already_optimized( $local_path );
@@ -7640,8 +7446,8 @@ function ewww_image_optimizer_update_table_as3cf( $local_path, $s3_path ) {
 		// If we found records for both local and s3 paths, we delete the s3 record, but store the original size in the local record.
 		if ( ! empty( $found_local_image ) && is_array( $found_local_image ) ) {
 			ewwwio_debug_message( "found $local_path in db" );
-			$ewwwdb->delete(
-				$ewwwdb->ewwwio_images,
+			$wpdb->delete(
+				$wpdb->ewwwio_images,
 				array(
 					'id' => $s3_image['id'],
 				),
@@ -7650,8 +7456,8 @@ function ewww_image_optimizer_update_table_as3cf( $local_path, $s3_path ) {
 				)
 			);
 			if ( $s3_image['orig_size'] > $found_local_image['orig_size'] ) {
-				$ewwwdb->update(
-					$ewwwdb->ewwwio_images,
+				$wpdb->update(
+					$wpdb->ewwwio_images,
 					array(
 						'orig_size' => $s3_image['orig_size'],
 					),
@@ -7663,8 +7469,8 @@ function ewww_image_optimizer_update_table_as3cf( $local_path, $s3_path ) {
 		} else {
 			// If we just found an s3 path and no local match, then we just update the path in the table to the local path.
 			ewwwio_debug_message( 'just updating s3 to local' );
-			$ewwwdb->update(
-				$ewwwdb->ewwwio_images,
+			$wpdb->update(
+				$wpdb->ewwwio_images,
 				array(
 					'path' => ewww_image_optimizer_relativize_path( $local_path ),
 				),
@@ -7954,7 +7760,6 @@ function ewww_image_optimizer_should_resize_other_image( $file ) {
  * Resizes Media Library uploads based on the maximum dimensions specified by the user.
  *
  * @global object $wpdb
- * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  *
  * @param string $file The file to check for rotation.
  * @return array|bool The new height and width, or false if no resizing was done.
@@ -8193,17 +7998,11 @@ function ewww_image_optimizer_resize_upload( $file ) {
 		}
 		// Store info on the current image for future reference.
 		global $wpdb;
-		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-			ewww_image_optimizer_db_init();
-			global $ewwwdb;
-		} else {
-			$ewwwdb = $wpdb;
-		}
 		// Delete the record created from optimizing the resized file (if it exists, which it shouldn't).
 		$temp_optimized = ewww_image_optimizer_find_already_optimized( $new_file );
 		if ( is_array( $temp_optimized ) && ! empty( $temp_optimized['id'] ) ) {
-			$ewwwdb->delete(
-				$ewwwdb->ewwwio_images,
+			$wpdb->delete(
+				$wpdb->ewwwio_images,
 				array(
 					'id' => $temp_optimized['id'],
 				),
@@ -8250,7 +8049,6 @@ function ewww_image_optimizer_get_orientation( $file, $type ) {
  * If more than one record is found, verifies case and calls duplicate removal if needed.
  *
  * @global object $wpdb
- * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  *
  * @param string $attachment The name of the file.
  * @return array|bool If found, information about the image, false otherwise.
@@ -8258,25 +8056,19 @@ function ewww_image_optimizer_get_orientation( $file, $type ) {
 function ewww_image_optimizer_find_already_optimized( $attachment ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
 	$maybe_return_image  = false;
 	$maybe_relative_path = ewww_image_optimizer_relativize_path( $attachment );
-	$optimized_query     = $ewwwdb->get_results(
-		$ewwwdb->prepare(
-			"SELECT * FROM $ewwwdb->ewwwio_images WHERE path = %s",
+	$optimized_query     = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT * FROM $wpdb->ewwwio_images WHERE path = %s",
 			$maybe_relative_path
 		),
 		ARRAY_A
 	);
 	if ( empty( $optimized_query ) && $attachment !== $maybe_relative_path ) {
-		$optimized_query = $ewwwdb->get_results(
-			$ewwwdb->prepare(
-				"SELECT * FROM $ewwwdb->ewwwio_images WHERE path = %s",
+		$optimized_query = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM $wpdb->ewwwio_images WHERE path = %s",
 				$attachment
 			),
 			ARRAY_A
@@ -8359,7 +8151,6 @@ function ewww_image_optimizer_attachment_check_variant_level( $id, $type, $meta 
  * Merge duplicate records from the images table and remove any extras.
  *
  * @global object $wpdb
- * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  *
  * @param array $duplicates An array of records referencing the same image.
  * @return array|bool A single image record or false if something unexpected happens.
@@ -8369,12 +8160,6 @@ function ewww_image_optimizer_remove_duplicate_records( $duplicates ) {
 		return false;
 	}
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
 
 	if ( ! is_array( $duplicates[0] ) ) {
 		// Retrieve records for the ID #s passed.
@@ -8383,9 +8168,9 @@ function ewww_image_optimizer_remove_duplicate_records( $duplicates ) {
 			if ( empty( $duplicate['id'] ) ) {
 				continue;
 			}
-			$duplicate_result = $ewwwdb->get_row(
-				$ewwwdb->prepare(
-					"SELECT * FROM $ewwwdb->ewwwio_images WHERE id = %d",
+			$duplicate_result = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT * FROM $wpdb->ewwwio_images WHERE id = %d",
 					$duplicate['id']
 				),
 				ARRAY_A
@@ -8435,8 +8220,8 @@ function ewww_image_optimizer_remove_duplicate_records( $duplicates ) {
 					$update_keeper  = true;
 				}
 			}
-			$ewwwdb->delete(
-				$ewwwdb->ewwwio_images,
+			$wpdb->delete(
+				$wpdb->ewwwio_images,
 				array(
 					'id' => $record['id'],
 				),
@@ -8446,8 +8231,8 @@ function ewww_image_optimizer_remove_duplicate_records( $duplicates ) {
 		if ( $update_keeper ) {
 			$update_keeper = $keeper;
 			unset( $update_keeper['id'] );
-			$ewwwdb->update(
-				$ewwwdb->ewwwio_images,
+			$wpdb->update(
+				$wpdb->ewwwio_images,
 				$update_keeper,
 				array(
 					'id' => $keeper['id'],
@@ -8645,7 +8430,6 @@ function ewww_image_optimizer_add_attachment_to_queue( $id, $new_image = false, 
  * possible, and then this same function is run in the background.
  *
  * @global object $wpdb
- * @global object $ewwwdb A clone of $wpdb unless it is lacking utf8 connectivity.
  * @global bool $ewww_new_image True if this is a newly uploaded image.
  * @global object $ewww_image Contains more information about the image currently being processed.
  * @global array $ewww_attachment {
@@ -8672,12 +8456,6 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		return $meta;
 	}
 	global $wpdb;
-	if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-		ewww_image_optimizer_db_init();
-		global $ewwwdb;
-	} else {
-		$ewwwdb = $wpdb;
-	}
 	global $ewww_new_image;
 	global $ewww_image;
 	global $eio_filesystem;
@@ -8820,8 +8598,8 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 					if ( is_array( $already_optimized ) ) {
 						ewwwio_debug_message( "updating existing record, path: $ims_path, size: " . $image_size );
 						// Store info on the current image for future reference.
-						$ewwwdb->update(
-							$ewwwdb->ewwwio_images,
+						$wpdb->update(
+							$wpdb->ewwwio_images,
 							array(
 								'path' => ewww_image_optimizer_relativize_path( $ims_path ),
 							),

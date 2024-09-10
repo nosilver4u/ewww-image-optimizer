@@ -286,12 +286,6 @@ class EWWWIO_CLI extends WP_CLI_Command {
 		}
 		global $eio_backup;
 		global $wpdb;
-		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-			ewww_image_optimizer_db_init();
-			global $ewwwdb;
-		} else {
-			$ewwwdb = $wpdb;
-		}
 
 		$completed = 0;
 		$position  = (int) get_option( 'ewww_image_optimizer_bulk_restore_position' );
@@ -424,12 +418,6 @@ class EWWWIO_CLI extends WP_CLI_Command {
 			delete_option( 'ewww_image_optimizer_delete_originals_resume' );
 		}
 		global $wpdb;
-		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-			ewww_image_optimizer_db_init();
-			global $ewwwdb;
-		} else {
-			$ewwwdb = $wpdb;
-		}
 
 		$per_page = 200;
 
@@ -501,12 +489,6 @@ class EWWWIO_CLI extends WP_CLI_Command {
 			delete_option( 'ewww_image_optimizer_webp_clean_position' );
 		}
 		global $wpdb;
-		if ( strpos( $wpdb->charset, 'utf8' ) === false ) {
-			ewww_image_optimizer_db_init();
-			global $ewwwdb;
-		} else {
-			$ewwwdb = $wpdb;
-		}
 
 		$completed = 0;
 		$per_page  = 200;
