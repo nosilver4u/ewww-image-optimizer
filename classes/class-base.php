@@ -553,11 +553,11 @@ class Base {
 					$this->debug_message( 'imagewebp() missing' );
 				} elseif ( ! \function_exists( '\imagepalettetotruecolor' ) ) {
 					$this->debug_message( 'imagepalettetotruecolor() missing' );
-				} elseif ( \function_exists( '\imageistruecolor' ) ) {
+				} elseif ( ! \function_exists( '\imageistruecolor' ) ) {
 					$this->debug_message( 'imageistruecolor() missing' );
-				} elseif ( \function_exists( '\imagealphablending' ) ) {
+				} elseif ( ! \function_exists( '\imagealphablending' ) ) {
 					$this->debug_message( 'imagealphablending() missing' );
-				} elseif ( \function_exists( '\imagesavealpha' ) ) {
+				} elseif ( ! \function_exists( '\imagesavealpha' ) ) {
 					$this->debug_message( 'imagesavealpha() missing' );
 				} elseif ( $gd_version ) {
 					$this->debug_message( "version: $gd_version" );
