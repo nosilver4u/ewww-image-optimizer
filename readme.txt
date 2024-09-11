@@ -4,7 +4,7 @@ Donate link: https://ewww.io/donate/
 Tags: compress, convert, webp, resize, lazy load
 Requires at least: 6.3
 Tested up to: 6.6
-Requires PHP: 7.3
+Requires PHP: 7.4
 Stable tag: 7.8.0
 License: GPLv3
 

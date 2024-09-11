@@ -38,7 +38,7 @@
 		</properties>
 	</rule>
 
-	<config name="testVersion">7.3-</config>
+	<config name="testVersion">7.4-</config>
 	<rule ref="PHPCompatibilityWP">
 		<severity>10</severity>
 	</rule>
