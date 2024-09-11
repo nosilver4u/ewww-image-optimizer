@@ -801,7 +801,7 @@ final class Plugin extends Base {
 	/**
 	 * Display a notice that PHP version 8.1 will be required in a future version.
 	 */
-	function php_warning() {
+	public function php_warning() {
 		if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 			return;
 		}
