@@ -610,9 +610,9 @@ final class Plugin extends Base {
 			\add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_agr' );
 		}
 		// Increase the version when the next bump is coming.
-		if ( \defined( 'PHP_VERSION_ID' ) && PHP_VERSION_ID < 70200 ) {
-			\add_action( 'admin_notices', 'ewww_image_optimizer_php72_warning' );
-			\add_action( 'network_admin_notices', 'ewww_image_optimizer_php72_warning' );
+		if ( \defined( 'PHP_VERSION_ID' ) && PHP_VERSION_ID < 70400 ) {
+			\add_action( 'admin_notices', array( $this, 'php_warning' ) );
+			\add_action( 'network_admin_notices', array( $this, 'php_warning' ) );
 		}
 		if ( \get_option( 'ewww_image_optimizer_debug' ) ) {
 			\add_action( 'admin_notices', 'ewww_image_optimizer_debug_enabled_notice' );
@@ -796,6 +796,16 @@ final class Plugin extends Base {
 		\update_option( 'ewww_image_optimizer_dismiss_utf8', 1 );
 		\update_site_option( 'ewww_image_optimizer_dismiss_utf8', 1 );
 		die();
+	}
+
+	/**
+	 * Display a notice that PHP version 8.1 will be required in a future version.
+	 */
+	public function php_warning() {
+		if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+			return;
+		}
+		echo '<div id="ewww-image-optimizer-notice-php" class="notice notice-info"><p><a href="https://docs.ewww.io/article/55-upgrading-php" target="_blank" data-beacon-article="5ab2baa6042863478ea7c2ae">' . esc_html__( 'The next release of EWWW Image Optimizer will require PHP 8.1 or greater. Newer versions of PHP are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</a></p></div>';
 	}
 
 	/**
