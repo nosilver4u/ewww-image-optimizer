@@ -5,7 +5,7 @@ Tags: compress, convert, webp, resize, lazy load
 Requires at least: 6.3
 Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 7.8.0
+Stable tag: 7.9.0
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -140,8 +140,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
-= 7.8.9 =
-*Release Date - TBD*
+= 7.9.0 =
+*Release Date - September 12, 2024*
 * added: conversion of BMP images to JPG format
 * changed: allow folders outside of WordPress install to be optimized via Folders to Optimize
 * changed: improve performance of ewwwio_is_file(), props @rmpel
