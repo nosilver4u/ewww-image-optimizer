@@ -45,6 +45,9 @@ jQuery(document).ready(function($) {
 		$('#ewww-hide-table').hide();
 		return false;
 	});
+	if (ewww_vars.bulk_init) {
+		$('#ewww-optimize-local-images a.button-primary').trigger('click');
+	}
 	$('#ewww-bulk-start-optimizing').on('click', function() {
 		$('#ewww-bulk-queue-images').hide();
 		$('#ewww-bulk-controls').hide();
