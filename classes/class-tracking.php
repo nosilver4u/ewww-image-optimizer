@@ -140,13 +140,16 @@ class Tracking {
 		$data['jpg_level']     = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' );
 		$data['png_level']     = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' );
 		$data['gif_level']     = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' );
+		$data['svg_level']     = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' );
 		$data['pdf_level']     = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' );
 		$data['bulk_delay']    = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' );
 		$data['backups']       = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' );
 
+		$data['exactdn'] = 0;
 		if ( \ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && \class_exists( __NAMESPACE__ . '\ExactDN' ) ) {
 			global $exactdn;
 			if ( $exactdn->get_exactdn_domain() ) {
+				$data['exactdn']                     = 1;
 				$data['exactdn_lossy']               = (int) \ewww_image_optimizer_get_option( 'exactdn_lossy' );
 				$data['exactdn_all_the_things']      = (bool) \ewww_image_optimizer_get_option( 'exactdn_all_the_things' );
 				$data['exactdn_resize_existing']     = (bool) \ewww_image_optimizer_get_option( 'exactdn_resize_existing' );
@@ -155,11 +158,19 @@ class Tracking {
 			}
 		}
 
+		$data['add_missing_dims']       = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_add_missing_dims' );
 		$data['lazyload']               = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' );
+		$data['ll_autoscale']           = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_autoscale' );
+		$data['lqip']                   = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_lqip' );
+		$data['dcip']                   = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_dcip' );
+		$data['ll_all_things']          = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_all_things' );
 		$data['optipng_level']          = \ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? 0 : (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_optipng_level' );
 		$data['disable_pngout']         = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_pngout' );
 		$data['pngout_level']           = \ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? 9 : (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_pngout_level' );
+		$data['sharpen']                = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_sharpen' );
 		$data['jpg_quality']            = (int) \apply_filters( 'jpeg_quality', 82 );
+		$data['webp_quality']           = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_quality' );
+		$data['avif_quality']           = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_avif_quality' );
 		$data['background_opt']         = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' );
 		$data['scheduled_opt']          = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' );
 		$data['include_media_folders']  = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_media_paths' );
@@ -189,10 +200,13 @@ class Tracking {
 		$data['bmpconvert']       = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_bmp_convert' );
 		$data['fill_color']       = \is_null( \ewww_image_optimizer_jpg_background() ) ? '' : \ewww_image_optimizer_jpg_background();
 
-		$data['webp_create'] = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' );
-		$data['webp_force']  = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' );
-		$data['webp_urls']   = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' );
-		$data['alt_webp']    = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' );
+		$data['webp_create']  = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' );
+		$data['webp_force']   = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' );
+		$data['webp_urls']    = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_paths' );
+		$data['alt_webp']     = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' );
+		$data['picture_webp'] = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' );
+
+		$data['help'] = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' );
 
 		$this->data = $data;
 	}
