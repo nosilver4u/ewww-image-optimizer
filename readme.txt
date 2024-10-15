@@ -140,8 +140,15 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 7.9.1 =
+*Release Date - TBD*
+
+* changed: bulk optimizer links point to async bulk tool, if available
+* fixed: Lazy Load for iframes results in empty src attribute
+
 = 7.9.0 =
 *Release Date - September 12, 2024*
+
 * added: conversion of BMP images to JPG format
 * changed: allow folders outside of WordPress install to be optimized via Folders to Optimize
 * changed: improve performance of ewwwio_is_file(), props @rmpel

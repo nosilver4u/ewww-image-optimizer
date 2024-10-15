@@ -3,6 +3,7 @@ if (typeof ewww_webp_supported === 'undefined') {
 }
 window.lazySizesConfig = window.lazySizesConfig || {};
 window.lazySizesConfig.expand = document.documentElement.clientHeight > 500 && document.documentElement.clientWidth > 500 ? 1000 : 740;
+window.lazySizesConfig.iframeLoadMode = 1;
 if (typeof eio_lazy_vars === 'undefined'){
 	console.log('setting failsafe lazy vars');
 	eio_lazy_vars = {
