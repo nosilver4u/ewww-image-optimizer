@@ -145,6 +145,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 * changed: bulk optimizer links point to async bulk tool, if available
 * fixed: Lazy Load for iframes results in empty src attribute
+* fixed: debug actions on bulk optimizer missing nonces
+* fixed: bulk optimize scanner queries are too long for some hosts
 
 = 7.9.0 =
 *Release Date - September 12, 2024*

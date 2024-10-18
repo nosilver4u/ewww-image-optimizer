@@ -684,12 +684,17 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	ewwwio_debug_message( "scanning for $gallery" );
 	global $wpdb;
-	$full_count             = 0;
-	$resize_count           = 0;
-	$attachment_query       = '';
-	$started                = microtime( true ); // Retrieve the time when the counting starts.
-	$max_query              = apply_filters( 'ewww_image_optimizer_count_optimized_queries', 4000 );
-	$max_query              = (int) $max_query;
+	$full_count       = 0;
+	$resize_count     = 0;
+	$attachment_query = '';
+	$started          = microtime( true ); // Retrieve the time when the counting starts.
+	$max_query        = (int) apply_filters( 'ewww_image_optimizer_count_optimized_queries', 4000 );
+	/**
+	 * Set a maximum for a query, 1k less than WPE's 16k limit, just to be safe.
+	 *
+	 * @param int 15000 The maximum query length.
+	 */
+	$max_query_length       = apply_filters( 'ewww_image_optimizer_max_query_length', 15000 );
 	$attachment_query_count = 0;
 	switch ( $gallery ) {
 		case 'media':
@@ -701,11 +706,12 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 				// Retrieve the attachment IDs that were pre-loaded in the database.
 				$attachment_ids = get_option( 'ewww_image_optimizer_bulk_ngg_attachments' );
 				array_walk( $attachment_ids, 'intval' );
-				while ( $attachment_ids && $attachment_query_count < $max_query ) {
+				while ( $attachment_ids && strlen( $attachment_query ) < $max_query_length ) {
 					$attachment_query .= "'" . array_pop( $attachment_ids ) . "',";
 					++$attachment_query_count;
 				}
 				$attachment_query = 'WHERE pid IN (' . substr( $attachment_query, 0, -1 ) . ')';
+				$max_query        = $attachment_query_count;
 			}
 			// Get an array of sizes available for the $image.
 			global $ewwwngg;
@@ -740,11 +746,12 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 					$attachment_query       = '';
 					$attachment_query_count = 0;
 					$offset                 = 0;
-					while ( $attachment_ids && $attachment_query_count < $max_query ) {
+					while ( $attachment_ids && strlen( $attachment_query ) < $max_query_length ) {
 						$attachment_query .= "'" . array_pop( $attachment_ids ) . "',";
 						++$attachment_query_count;
 					}
 					$attachment_query = 'WHERE pid IN (' . substr( $attachment_query, 0, -1 ) . ')';
+					$max_query        = $attachment_query_count;
 				}
 				$attachments = $wpdb->get_col( "SELECT meta_data FROM $wpdb->nggpictures $attachment_query LIMIT $offset, $max_query" ); // phpcs:ignore WordPress.DB.PreparedSQL
 			} // End while().
@@ -754,11 +761,12 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 				// Retrieve the attachment IDs that were pre-loaded in the database.
 				$attachment_ids = get_option( 'ewww_image_optimizer_bulk_flag_attachments' );
 				array_walk( $attachment_ids, 'intval' );
-				while ( $attachment_ids && $attachment_query_count < $max_query ) {
+				while ( $attachment_ids && strlen( $attachment_query ) < $max_query_length ) {
 					$attachment_query .= "'" . array_pop( $attachment_ids ) . "',";
 					++$attachment_query_count;
 				}
 				$attachment_query = 'WHERE pid IN (' . substr( $attachment_query, 0, -1 ) . ')';
+				$max_query        = $attachment_query_count;
 			}
 			$offset      = 0;
 			$attachments = $wpdb->get_col( "SELECT meta_data FROM $wpdb->flagpictures $attachment_query LIMIT $offset, $max_query" ); // phpcs:ignore WordPress.DB.PreparedSQL
@@ -781,11 +789,12 @@ function ewww_image_optimizer_count_optimized( $gallery ) {
 					$attachment_query       = '';
 					$attachment_query_count = 0;
 					$offset                 = 0;
-					while ( $attachment_ids && $attachment_query_count < $max_query ) {
+					while ( $attachment_ids && strlen( $attachment_query ) < $max_query_length ) {
 						$attachment_query .= "'" . array_pop( $attachment_ids ) . "',";
 						++$attachment_query_count;
 					}
 					$attachment_query = 'WHERE pid IN (' . substr( $attachment_query, 0, -1 ) . ')';
+					$max_query        = $attachment_query_count;
 				}
 				$attachments = $wpdb->get_col( "SELECT meta_data FROM $wpdb->flagpictures $attachment_query LIMIT $offset, $max_query" ); // phpcs:ignore WordPress.DB.PreparedSQL
 			}
@@ -1218,22 +1227,60 @@ function ewww_image_optimizer_optimized_list() {
  * @global object $wpdb
  *
  * @param string $attachments_in A comma-imploded array containing a list of attachment IDs.
- * @return array Multi-dimensional array containing all the postmeta and mime-types for the IDs
- * of $attachments_in.
+ * @return array An associative array with the results of the query.
  */
-function ewww_image_optimizer_fetch_metadata_batch( $attachments_in ) {
+function ewww_image_optimizer_query_metadata_batch( $attachments_in ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( ! preg_match( '/^[\d,]+$/', $attachments_in ) ) {
 		ewwwio_debug_message( 'invalid attachments string' );
 		return array();
 	}
-	ewwwio_debug_message( 'attachment query length: ' . strlen( $attachments_in ) );
+	$attachments_in = rtrim( $attachments_in, ',' );
 	global $wpdb;
-	// Retrieve image attachment metadata from the database (in batches).
 	$attachments = $wpdb->get_results( "SELECT metas.post_id,metas.meta_key,metas.meta_value,posts.post_mime_type FROM $wpdb->postmeta metas INNER JOIN $wpdb->posts posts ON posts.ID = metas.post_id WHERE (posts.post_mime_type LIKE '%%image%%' OR posts.post_mime_type LIKE '%%pdf%%') AND metas.post_id IN ($attachments_in)", ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL
-	ewwwio_debug_message( 'fetched ' . count( $attachments ) . ' attachment meta items' );
 	$wpdb->flush();
+	return $attachments;
+}
+
+/**
+ * Retrieves a selected set of attachment metadata from the postmeta table.
+ *
+ * @param array $attachment_ids An array of attachment IDs.
+ * @return array Multi-dimensional array containing all the postmeta and mime-types for the IDs provided.
+ */
+function ewww_image_optimizer_fetch_metadata_batch( $attachment_ids ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( empty( $attachment_ids ) ) {
+		ewwwio_debug_message( 'invalid attachments provided' );
+		return array();
+	}
+	ewwwio_debug_message( 'attachment query length: ' . strlen( $attachments_in ) );
 	$attachment_meta = array();
+	$attachments_in  = '';
+	$attachments     = array();
+	/**
+	 * Set a maximum for a query, 1k less than WPE's 16k limit, just to be safe.
+	 *
+	 * @param int 15000 The maximum query length.
+	 */
+	$max_query_length = apply_filters( 'ewww_image_optimizer_max_query_length', 15000 );
+	foreach ( $attachment_ids as $attachment_id ) {
+		$attachments_in .= (int) $attachment_id . ',';
+		if ( strlen( $attachments_in ) > $max_query_length - 20 ) {
+			ewwwio_debug_message( 'fetching partial metadata batch with query length: ' . strlen( $attachments_in ) );
+			$more_attachments = ewww_image_optimizer_query_metadata_batch( $attachments_in );
+			if ( $more_attachments ) {
+				$attachments = array_merge( $attachments, $more_attachments );
+			}
+			$attachments_in = '';
+		}
+	}
+	// Retrieve image attachment metadata from the database (in batches).
+	$more_attachments = ewww_image_optimizer_query_metadata_batch( $attachments_in );
+	if ( $more_attachments ) {
+		$attachments = array_merge( $attachments, $more_attachments );
+	}
+	ewwwio_debug_message( 'fetched ' . count( $attachments ) . ' attachment meta items (final)' );
 	foreach ( $attachments as $attachment ) {
 		if ( '_wp_attached_file' === $attachment['meta_key'] ) {
 			$attachment_meta[ $attachment['post_id'] ]['_wp_attached_file'] = $attachment['meta_value'];
@@ -1358,7 +1405,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	// Retrieve the time when the scan starts.
 	$started = microtime( true );
 
-	$max_query = intval( apply_filters( 'ewww_image_optimizer_count_optimized_queries', 4000 ) );
+	$max_query = (int) apply_filters( 'ewww_image_optimizer_count_optimized_queries', 4000 );
 
 	$attachment_ids = ewww_image_optimizer_get_unscanned_attachments( 'media', $max_query );
 
@@ -1397,15 +1444,13 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 		}
 		if ( ! empty( $attachment_ids ) && is_array( $attachment_ids ) ) {
 			ewwwio_debug_message( 'selected items: ' . count( $attachment_ids ) );
-			$attachments_in = implode( ',', $attachment_ids );
 		} else {
 			ewwwio_debug_message( 'no array found' );
 			ewwwio_ob_clean();
 			die( wp_json_encode( array( 'error' => esc_html__( 'List of attachment IDs not found.', 'ewww-image-optimizer' ) ) ) );
 		}
 
-		$attachment_meta = ewww_image_optimizer_fetch_metadata_batch( $attachments_in );
-		$attachments_in  = null;
+		$attachment_meta = ewww_image_optimizer_fetch_metadata_batch( $attachment_ids );
 
 		// If we just completed the first batch, check how much the memory usage increased.
 		if ( empty( $estimated_batch_memory ) ) {
@@ -1823,7 +1868,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					ewwwio_debug_message( 'image added to $images queue' );
 					ewww_image_optimizer_debug_log();
 				} // End if().
-				if ( $image_count > 1000 || count( $reset_images ) > 1000 ) {
+				if ( false ) { // $image_count > 1000 || count( $reset_images ) > 1000 ) { // Disabled, should not be needed anymore.
 					ewwwio_debug_message( 'making a dump run' );
 					ewww_image_optimizer_debug_log();
 					// Let's dump what we have so far to the db.

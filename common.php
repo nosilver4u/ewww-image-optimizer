@@ -6304,6 +6304,7 @@ function ewww_image_optimizer_find_file_by_id( $id ) {
  *
  * @param string $table The table to insert records into.
  * @param array  $data Can be any multi-dimensional array with records to insert. All values must be int/string data.
+ * @return int|bool Number of rows inserted. Boolean false on error.
  */
 function ewww_image_optimizer_mass_insert( $table, $data ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
@@ -6312,9 +6313,26 @@ function ewww_image_optimizer_mass_insert( $table, $data ) {
 	}
 	global $wpdb;
 
-	$record_count = count( $data );
+	/**
+	 * Set a maximum for a query, 1k less than WPE's 16k limit, just to be safe.
+	 *
+	 * @param int 15000 The maximum query length.
+	 */
+	$max_query_length = apply_filters( 'ewww_image_optimizer_max_query_length', 15000 );
+
+	$first_record   = reset( $data );
+	$unsafe_fields  = array_keys( $first_record );
+	$escaped_fields = array();
+	foreach ( $unsafe_fields as $unsafe_field ) {
+		$escaped_fields[] = $wpdb->quote_identifier( $unsafe_field );
+	}
+	$escaped_table  = $wpdb->quote_identifier( $table );
+	$escaped_fields = implode( ',', $escaped_fields );
+
+	$record_count   = count( $data );
+	$total_inserted = 0;
 	ewwwio_debug_message( "inserting $record_count records" );
-	$multi_values = array();
+	$escaped_values = '';
 	foreach ( $data as $record ) {
 		if ( ! ewww_image_optimizer_iterable( $record ) ) {
 			continue;
@@ -6329,21 +6347,33 @@ function ewww_image_optimizer_mass_insert( $table, $data ) {
 				$values[] = "''";
 			}
 		}
-		$multi_values[] = '(' . implode( ',', $values ) . ')';
+		if ( strlen( $escaped_values ) > $max_query_length ) {
+			$escaped_values = rtrim( $escaped_values, ',' );
+			// Only int and string values allowed (escaped and validated above). All values, field names and table names are now escaped.
+			$inserted = $wpdb->query( "INSERT INTO $escaped_table ($escaped_fields) VALUES $escaped_values" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			if ( $inserted ) {
+				$total_inserted += $inserted;
+			} else {
+				ewwwio_debug_message( 'db error inserting: ' . $wpdb->last_error );
+				return $inserted;
+			}
+			$escaped_values = '';
+		}
+		$escaped_values .= '(' . implode( ',', $values ) . '),';
 	}
 
-	$first_record   = reset( $data );
-	$unsafe_fields  = array_keys( $first_record );
-	$escaped_fields = array();
-	foreach ( $unsafe_fields as $unsafe_field ) {
-		$escaped_fields[] = $wpdb->quote_identifier( $unsafe_field );
-	}
-	$escaped_table  = $wpdb->quote_identifier( $table );
-	$escaped_fields = implode( ',', $escaped_fields );
-	$escaped_values = implode( ',', $multi_values );
+	$escaped_values = rtrim( $escaped_values, ',' );
 
-	// Only int and string values allowed (above). All values, field names and table names are escaped.
-	return $wpdb->query( "INSERT INTO $escaped_table ($escaped_fields) VALUES $escaped_values" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	// Only int and string values allowed (escaped and validated above). All values, field names and table names are now escaped.
+	$inserted = $wpdb->query( "INSERT INTO $escaped_table ($escaped_fields) VALUES $escaped_values" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	if ( $inserted ) {
+		$total_inserted += $inserted;
+		ewwwio_debug_message( "inserted $total_inserted rows" );
+		return $total_inserted;
+	} else {
+		ewwwio_debug_message( 'db error inserting: ' . $wpdb->last_error );
+		return $inserted;
+	}
 }
 
 /**
