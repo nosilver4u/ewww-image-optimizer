@@ -778,6 +778,14 @@ class Lazy_Load extends Page_Parser {
 					}
 					continue;
 				}
+				if ( false !== \strpos( $element, '--background' ) ) {
+					$this->set_attribute( $element, 'class', $this->get_attribute( $element, 'class' ) . ' lazyload', true );
+					if ( $element !== $elements[ $index ] ) {
+						$this->debug_message( "$tag_type with bg var lazified, replacing in html source" );
+						$buffer = \str_replace( $elements[ $index ], $element, $buffer );
+					}
+					continue;
+				}
 				$this->debug_message( 'element contains background/background-image:' );
 				if ( ! $this->validate_bgimage_tag( $element ) ) {
 					continue;
