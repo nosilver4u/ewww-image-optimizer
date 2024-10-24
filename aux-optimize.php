@@ -386,13 +386,11 @@ function ewww_image_optimizer_aux_images_table() {
 		}
 
 		$output['table'] .= '<tr ' . ( $alternate ? "class='alternate' " : '' ) . 'id="ewww-image-' . $optimized_image['id'] . '">';
-		if ( ewww_image_optimizer_stream_wrapped( $file ) || ewwwio_is_file( $file ) ) {
-			$output['table'] .= "<td style='width:50px;' class='column-icon'><img style='width:50px;height:50px;object-fit:contain;' loading='lazy' src='$thumb_url' /></td>";
-		} else {
-			$output['table'] .= "<td style='width:50px;' class='column-icon'>" . esc_html__( 'file not found', 'ewww-image-optimizer' ) . '</td>';
-			ewwwio_debug_message( "could not find $file" );
-		} // End if().
+
+		$output['table'] .= "<td style='width:50px;' class='column-icon'><img style='width:50px;height:50px;object-fit:contain;' loading='lazy' src='$thumb_url' /></td>";
+
 		$output['table'] .= "<td class='title'>$image_name";
+
 		if ( $debug_query ) {
 			/* translators: %d: number of re-optimizations */
 			$output['table'] .= '<br>' . sprintf( esc_html__( 'Number of attempted optimizations: %d', 'ewww-image-optimizer' ), $optimized_image['updates'] );
