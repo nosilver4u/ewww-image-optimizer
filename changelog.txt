@@ -1,3 +1,12 @@
+= 7.9.1 =
+*Release Date - October 31*
+
+* changed: bulk optimizer links point to async bulk tool, if available
+* fixed: Lazy Load for iframes results in empty src attribute
+* fixed: debug actions on bulk optimizer missing nonces
+* fixed: bulk optimize scanner queries are too long for some hosts
+* fixed: Lazy Load breaks --background CSS variable
+
 = 7.9.0 =
 *Release Date - September 12, 2024*
 * added: conversion of BMP images to JPG format
