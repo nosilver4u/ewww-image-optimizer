@@ -507,7 +507,6 @@ class Picture_Webp extends Page_Parser {
 					'jetpack-lazy-image',
 					'lazy-slider-img=',
 					'mgl-lazy',
-					'skip-lazy',
 					'timthumb.php?',
 					'wpcf7_captcha/',
 				),
