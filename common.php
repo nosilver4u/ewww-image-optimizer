@@ -5278,8 +5278,9 @@ function ewww_image_optimizer_cloud_quota( $raw = false ) {
  *
  *     @type string Filename of the optimized version.
  *     @type bool True if the image was converted.
- *     @type string Set to 'exceeded' if the API key is out of credits. Or 'exceeded quota' if soft quota is reached.
+ *     @type string Set to 'exceeded' if the API key is out of credits, or 'exceeded quota' if soft quota is reached (among other errors).
  *     @type int File size of the (new) image.
+ *     @type string Hash key for API backup.
  * }
  */
 function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $newfile = null, $newtype = null, $fullsize = false, $jpg_fill = '', $jpg_quality = 82 ) {
@@ -5358,6 +5359,9 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	if ( strpos( $file, '/wp-admin/' ) || strpos( $file, '/wp-includes/' ) || strpos( $file, '/wp-content/themes/' ) || strpos( $file, '/wp-content/plugins/' ) ) {
 		$lossy      = 0;
 		$lossy_fast = 0;
+		if ( 'image/webp' === $type ) {
+			return array( $file, false, '', filesize( $file ), '' );
+		}
 	}
 	$sharp_yuv = defined( 'EIO_WEBP_SHARP_YUV' ) && EIO_WEBP_SHARP_YUV ? 1 : 0;
 	if ( empty( $sharp_yuv ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_sharpen' ) ) {
