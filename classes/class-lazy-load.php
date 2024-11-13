@@ -508,7 +508,9 @@ class Lazy_Load extends Page_Parser {
 			\ksort( $replacements );
 			foreach ( $replacements as $position => $replacement ) {
 				$this->debug_message( "possible replacement at $position" );
-				++$images_processed;
+				if ( $this->is_counted( $replacement['orig'] ) ) {
+					++$images_processed;
+				}
 				if ( $images_processed <= $above_the_fold ) {
 					$this->debug_message( 'image above fold threshold' );
 					continue;
@@ -525,6 +527,24 @@ class Lazy_Load extends Page_Parser {
 		}
 		$this->debug_message( 'all done parsing page for lazy' );
 		return $buffer;
+	}
+
+	/**
+	 * Check whether an image is counted for above the fold purposes
+	 * @param string $image The image tag to parse.
+	 * @return bool True if it should be counted, false otherwise.
+	 */
+	public function is_counted( $image ) {
+		$uncounted_images = array(
+			'secure.gravatar.com',
+		);
+		$uncounted_images = \apply_filters( 'eio_uncounted_lazy_images', $uncounted_images );
+		foreach ( $uncounted_images as $uncounted_image_pattern ) {
+			if ( false !== strpos( $image, $uncounted_image_pattern ) ) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
