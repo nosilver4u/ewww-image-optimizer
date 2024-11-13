@@ -1462,6 +1462,12 @@ class EWWW_Image {
 					$time += 5;
 				}
 				break;
+			case 'image/webp':
+				$time += 5;
+				if ( $image_size > 1000000 ) { // greater than 1MB.
+					$time += 5; // Add another 5 seconds.
+				}
+				break;
 			case 'application/pdf':
 				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) ) {
 					$time += 2;

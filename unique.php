@@ -1226,6 +1226,22 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				}
 			}
 			break;
+		case 'image/webp':
+			if ( ! empty( ewwwio()->webp_only ) ) {
+				break;
+			}
+			$compression_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_level' );
+			if ( empty( ewwwio()->force ) ) {
+				$results_msg = ewww_image_optimizer_check_table( $file, $orig_size );
+				if ( $results_msg ) {
+					return array( $file, $results_msg, $converted, $original );
+				}
+			}
+			$ewww_image->level = $compression_level;
+			if ( $compression_level > 0 ) {
+				list( $file, $converted, $result, $new_size, $backup_hash ) = ewww_image_optimizer_cloud_optimizer( $file, $type );
+			}
+			break;
 		default:
 			// If not a JPG, PNG, GIF, PDF or SVG tell the user we don't work with strangers.
 			return array( false, __( 'Unsupported file type', 'ewww-image-optimizer' ) . ": $type", $converted, $original );

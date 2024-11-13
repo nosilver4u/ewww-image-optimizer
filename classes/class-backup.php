@@ -363,7 +363,7 @@ class Backup extends Base {
 			/* $this->delete_file( $backup_file ); */
 			global $wpdb;
 			// Reset the image record.
-			$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->ewwwio_images SET results = '', image_size = 0, updates = 0, updated=updated, level = 0, resized_width = 0, resized_height = 0, resize_error = 0, webp_size = 0, webp_error = 0 WHERE id = %d", $image['id'] ) );
+			$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->ewwwio_images SET image_size = 0, updates = 0, updated=updated, level = 0, resized_width = 0, resized_height = 0, resize_error = 0, webp_size = 0, webp_error = 0 WHERE id = %d", $image['id'] ) );
 			return true;
 		}
 		$this->debug_message( 'restore not confirmed, filesize does not match: ' . $this->filesize( $file ) . ' vs. ' . $this->filesize( $backup_file ) );
