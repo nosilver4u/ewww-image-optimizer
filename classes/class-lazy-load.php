@@ -530,7 +530,8 @@ class Lazy_Load extends Page_Parser {
 	}
 
 	/**
-	 * Check whether an image is counted for above the fold purposes
+	 * Check whether an image is counted for above the fold purposes.
+	 *
 	 * @param string $image The image tag to parse.
 	 * @return bool True if it should be counted, false otherwise.
 	 */
@@ -1107,6 +1108,7 @@ class Lazy_Load extends Page_Parser {
 			'eio_lazy_bg_image_exclusions',
 			\array_merge(
 				array(
+					'data:image/',
 					'data-no-lazy=',
 					'header-gallery-wrapper ',
 					'lazyload',
