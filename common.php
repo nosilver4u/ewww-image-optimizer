@@ -8197,7 +8197,7 @@ function ewww_image_optimizer_remove_duplicate_records( $duplicates ) {
 		// Retrieve records for the ID #s passed.
 		$duplicate_results = array();
 		foreach ( $duplicates as $duplicate ) {
-			if ( empty( $duplicate['id'] ) ) {
+			if ( empty( $duplicate ) ) {
 				continue;
 			}
 			$duplicate_result = $wpdb->get_row(
@@ -8213,7 +8213,7 @@ function ewww_image_optimizer_remove_duplicate_records( $duplicates ) {
 		}
 		$duplicates = $duplicate_results;
 	}
-	if ( ! is_array( $duplicates ) || ! is_array( $duplicates[0] ) ) {
+	if ( ! is_array( $duplicates ) || empty( $duplicates ) || ! is_array( $duplicates[0] ) ) {
 		return false;
 	}
 	$image_size = ewww_image_optimizer_filesize( $duplicates[0]['path'] );
