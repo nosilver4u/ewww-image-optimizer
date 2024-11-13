@@ -47,6 +47,13 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	public static $test_svg = '';
 
 	/**
+	 * The location of the test WebP image.
+	 *
+	 * @var string $test_webp
+	 */
+	public static $test_webp = '';
+
+	/**
 	 * The API key used for API-based tests.
 	 *
 	 * @var stringg $api_key
