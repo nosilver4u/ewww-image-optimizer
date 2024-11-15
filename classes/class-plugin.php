@@ -634,6 +634,7 @@ final class Plugin extends Base {
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_gif_level', 'intval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_pdf_level', 'intval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_svg_level', 'intval' );
+		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_level', 'intval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_backup_files', 'sanitize_text_field' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_sharpen', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_jpg_quality', 'ewww_image_optimizer_jpg_quality' );
@@ -695,6 +696,7 @@ final class Plugin extends Base {
 		\add_option( 'ewww_image_optimizer_gif_level', '10' );
 		\add_option( 'ewww_image_optimizer_pdf_level', '0' );
 		\add_option( 'ewww_image_optimizer_svg_level', '0' );
+		\add_option( 'ewww_image_optimizer_webp_level', '0' );
 		\add_option( 'ewww_image_optimizer_jpg_quality', '' );
 		\add_option( 'ewww_image_optimizer_webp_quality', '' );
 		\add_option( 'ewww_image_optimizer_backup_files', '' );
@@ -731,6 +733,7 @@ final class Plugin extends Base {
 		\add_site_option( 'ewww_image_optimizer_gif_level', '10' );
 		\add_site_option( 'ewww_image_optimizer_pdf_level', '0' );
 		\add_site_option( 'ewww_image_optimizer_svg_level', '0' );
+		\add_site_option( 'ewww_image_optimizer_webp_level', '0' );
 		\add_site_option( 'ewww_image_optimizer_jpg_quality', '' );
 		\add_site_option( 'ewww_image_optimizer_webp_quality', '' );
 		\add_site_option( 'ewww_image_optimizer_backup_files', '' );
@@ -1097,6 +1100,7 @@ final class Plugin extends Base {
 		\update_option( 'ewww_image_optimizer_gif_level', 0 );
 		\update_option( 'ewww_image_optimizer_pdf_level', 0 );
 		\update_option( 'ewww_image_optimizer_svg_level', 0 );
+		\update_option( 'ewww_image_optimizer_webp_level', 0 );
 		\update_option( 'ewww_image_optimizer_dismiss_exec_notice', 1 );
 		\update_site_option( 'ewww_image_optimizer_dismiss_exec_notice', 1 );
 	}

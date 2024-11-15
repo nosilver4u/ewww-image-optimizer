@@ -2171,6 +2171,10 @@ function ewww_image_optimizer_bulk_counter_measures( $image, $error_counter = 0 
 					ewww_image_optimizer_bulk_skip_image( $image );
 				}
 			}
+			if ( 'image/webp' === ewww_image_optimizer_quick_mimetype( $image->file ) ) {
+				// There is nothing "less" that we can do with WebP, so just skip it.
+				ewww_image_optimizer_bulk_skip_image( $image );
+			}
 			if ( 'application/pdf' === ewww_image_optimizer_quick_mimetype( $image->file ) ) {
 				if ( empty( $previous_countermeasures['pdf20'] ) && ! defined( 'EWWW_IMAGE_OPTIMIZER_PDF_LEVEL' ) && 20 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) ) {
 					ewwwio_debug_message( 'pdf20' );

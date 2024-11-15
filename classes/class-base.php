@@ -606,6 +606,9 @@ class Base {
 		if ( $this->get_option( 'ewww_image_optimizer_gif_level' ) || 'all' === $select ) {
 			$supported_types[] = 'image/gif';
 		}
+		if ( $this->get_option( 'ewww_image_optimizer_webp_level' ) || 'all' === $select ) {
+			$supported_types[] = 'image/webp';
+		}
 		if ( $this->get_option( 'ewww_image_optimizer_pdf_level' ) || 'all' === $select ) {
 			$supported_types[] = 'application/pdf';
 		}

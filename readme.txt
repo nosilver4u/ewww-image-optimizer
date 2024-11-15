@@ -144,6 +144,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 *Release Date - TBA*
 
 * fixed: Picture WebP ignores images with skip-lazy when it should not
+* fixed: image records not reset after image restore
 
 = 7.9.1 =
 *Release Date - October 31*

@@ -140,8 +140,9 @@ class Tracking {
 		$data['jpg_level']     = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' );
 		$data['png_level']     = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' );
 		$data['gif_level']     = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' );
-		$data['svg_level']     = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' );
 		$data['pdf_level']     = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' );
+		$data['svg_level']     = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' );
+		$data['webp_level']    = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_level' );
 		$data['bulk_delay']    = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' );
 		$data['backups']       = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' );
 
