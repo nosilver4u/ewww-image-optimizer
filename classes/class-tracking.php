@@ -161,6 +161,7 @@ class Tracking {
 		$data['add_missing_dims']       = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_add_missing_dims' );
 		$data['lazyload']               = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' );
 		$data['ll_autoscale']           = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_autoscale' );
+		$data['ll_abovethefold']        = defined( 'EIO_LAZY_FOLD' ) ? (int) \constant( 'EIO_LAZY_FOLD' ) : (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_abovethefold' );
 		$data['lqip']                   = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_lqip' );
 		$data['dcip']                   = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_dcip' );
 		$data['ll_all_things']          = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_all_things' );
