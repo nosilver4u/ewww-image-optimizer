@@ -695,6 +695,8 @@ function ewww_image_optimizer_save_network_settings() {
 			update_site_option( 'ewww_image_optimizer_lazy_load', $ewww_image_optimizer_lazy_load );
 			$ewww_image_optimizer_ll_autoscale = ( empty( $_POST['ewww_image_optimizer_ll_autoscale'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_ll_autoscale', $ewww_image_optimizer_ll_autoscale );
+			$ewww_image_optimizer_ll_abovethefold = ( empty( $_POST['ewww_image_optimizer_ll_abovethefold'] ) ? 0 : (int) $_POST['ewww_image_optimizer_ll_abovethefold'] );
+			update_site_option( 'ewww_image_optimizer_ll_abovethefold', $ewww_image_optimizer_ll_abovethefold );
 			$ewww_image_optimizer_use_lqip = ( empty( $_POST['ewww_image_optimizer_use_lqip'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_use_lqip', $ewww_image_optimizer_use_lqip );
 			$ewww_image_optimizer_use_dcip = ( empty( $_POST['ewww_image_optimizer_use_dcip'] ) ? false : true );
@@ -11555,6 +11557,11 @@ function ewwwio_debug_info() {
 	ewwwio_debug_message( 'lazy load: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? 'on' : 'off' ) );
 	ewwwio_other_lazy_detected();
 	ewwwio_debug_message( 'LL autoscale: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_autoscale' ) ? 'on' : 'off' ) );
+	if ( defined( 'EIO_LAZY_FOLD' ) ) {
+		ewwwio_debug_message( 'LL above-the-fold: ' . EIO_LAZY_FOLD );
+	} else {
+		ewwwio_debug_message( 'LL above-the-fold: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_abovethefold' ) );
+	}
 	ewwwio_debug_message( 'LQIP: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_lqip' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'DCIP: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_dcip' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'S(VG)IIP: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_siip' ) ? 'on' : 'off' ) );
@@ -13529,6 +13536,18 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<p class='description'>
 							<?php esc_html_e( 'Automatically detect the correct image size within responsive (srcset) markup.', 'ewww-image-optimizer' ); ?>
 							<?php esc_html_e( 'When used with Easy IO, all images become responsive.', 'ewww-image-optimizer' ); ?>
+						</p>
+					</td>
+				</tr>
+				<tr id='ewww_image_optimizer_ll_abovethefold_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? '' : ' style="display:none"'; ?>>
+					<td>&nbsp;</td>
+					<td>
+						<label for='ewww_image_optimizer_ll_abovethefold'><strong><?php esc_html_e( 'Above the Fold', 'ewww-image-optimizer' ); ?></strong></label>
+						<?php ewwwio_help_link( 'https://docs.ewww.io/article/74-lazy-load', '5c6c36ed042863543ccd2d9b' ); ?><br>
+						<input type='number' step='1' min='0' class='small-text' id='ewww_image_optimizer_ll_abovethefold' name='ewww_image_optimizer_ll_abovethefold' value='<?php	echo defined( 'EIO_LAZY_FOLD' ) ? (int) constant( 'EIO_LAZY_FOLD' ) : (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_abovethefold' ); ?>' <?php disabled( defined( 'EIO_LAZY_FOLD' ) ); ?> />
+						<?php esc_html_e( 'Skip this many images from lazy loading so that above the fold images load more quickly.', 'ewww-image-optimizer' ); ?>
+						<p class='description'>
+							<?php esc_html_e( 'This will exclude images from auto-scaling, which may decrease performance if those images are not properly sized.', 'ewww-image-optimizer' ); ?>
 						</p>
 					</td>
 				</tr>

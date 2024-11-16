@@ -653,6 +653,7 @@ final class Plugin extends Base {
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_add_missing_dims', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_lazy_load', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_ll_autoscale', 'boolval' );
+		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_ll_abovethefold', 'intval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_use_lqip', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_use_dcip', 'boolval' );
 		// Using sanitize_text_field instead of textarea on purpose.

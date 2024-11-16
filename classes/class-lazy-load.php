@@ -382,7 +382,7 @@ class Lazy_Load extends Page_Parser {
 			$this->get_preload_images( $buffer );
 		}
 
-		$above_the_fold   = \apply_filters( 'eio_lazy_fold', 0 );
+		$above_the_fold   = (int) \apply_filters( 'eio_lazy_fold', $this->get_option( $this->prefix . 'll_abovethefold' ) );
 		$images_processed = 0;
 		$replacements     = array();
 
