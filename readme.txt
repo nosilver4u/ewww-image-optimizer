@@ -2,7 +2,7 @@
 Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: compress, convert, webp, resize, lazy load
-Requires at least: 6.3
+Requires at least: 6.4
 Tested up to: 6.7
 Requires PHP: 7.4
 Stable tag: 7.9.1
@@ -143,8 +143,12 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 7.9.2 =
 *Release Date - TBA*
 
+* added: WebP Optimization via API, existing customers may enable it on the Local tab in Ludicrous Mode
+* added: Above the Fold setting for Lazy Load (previously EIO_LAZY_FOLD override)
+* changed: gravatar images excluded from Above the Fold/EIO_LAZY_FOLD counts
 * fixed: Picture WebP ignores images with skip-lazy when it should not
 * fixed: image records not reset after image restore
+* fixed: several PHP warnings from bulk processes
 
 = 7.9.1 =
 *Release Date - October 31*

@@ -134,6 +134,10 @@ class Background_Process_Media extends Background_Process {
 			\ewwwio_debug_message( "skipping $file_path as instructed" );
 			return false;
 		}
+		if ( ! \is_file( $file_path ) ) {
+			\ewwwio_debug_message( "file does not exist: $file_path" );
+			return false;
+		}
 		$image_size = filesize( $file_path );
 		if ( ! $image_size ) {
 			\ewwwio_debug_message( "file skipped due to no size: $file_path" );
@@ -359,8 +363,10 @@ class Background_Process_Media extends Background_Process {
 					if ( $scan['height'] === $data['height'] && $scan['width'] === $data['width'] ) {
 						// We found a duplicate resize, so...
 						// Point this resize at the same image as the previous one.
-						$meta['sizes'][ $size ]['file']      = $meta['sizes'][ $proc ]['file'];
-						$meta['sizes'][ $size ]['mime-type'] = $meta['sizes'][ $proc ]['mime-type'];
+						$meta['sizes'][ $size ]['file'] = $meta['sizes'][ $proc ]['file'];
+						if ( isset( $meta['sizes'][ $proc ]['mime-type'] ) ) {
+							$meta['sizes'][ $size ]['mime-type'] = $meta['sizes'][ $proc ]['mime-type'];
+						}
 						continue( 2 );
 					}
 				}
