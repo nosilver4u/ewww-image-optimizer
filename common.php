@@ -5002,6 +5002,9 @@ function ewww_image_optimizer_cloud_key_verify_ajax() {
 		);
 	} elseif ( ! empty( $result['body'] ) && preg_match( '/(great|exceeded)/', $result['body'] ) ) {
 		$verified = $result['body'];
+		if ( preg_match( '/banned/', $verified ) ) {
+			die( wp_json_encode( array( 'error' => esc_html__( 'Domain or IP address blocked, contact support for assistance.', 'ewww-image-optimizer' ) ) ) );
+		}
 		if ( preg_match( '/exceeded/', $verified ) ) {
 			die( wp_json_encode( array( 'error' => esc_html__( 'No credits remaining for API key.', 'ewww-image-optimizer' ) ) ) );
 		}
@@ -5274,6 +5277,9 @@ function ewww_image_optimizer_cloud_quota( $raw = false ) {
 				$quota['days']
 			);
 		} elseif ( ! $quota['licensed'] && $quota['consumed'] < 0 ) {
+			if ( ! empty( $quota['soft_cap'] ) ) {
+				$quota['consumed'] = $quota['soft_cap'] - $quota['consumed'];
+			}
 			return sprintf(
 				/* translators: 1: Number of image credits for the compression API */
 				_n( '%1$d image credit remaining.', '%1$d image credits remaining.', abs( $quota['consumed'] ), 'ewww-image-optimizer' ),
