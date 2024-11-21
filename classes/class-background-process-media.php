@@ -376,7 +376,6 @@ class Background_Process_Media extends Background_Process {
 					ewwwio_debug_message( 'strange... $resize_path was empty' );
 					continue;
 				}
-				$resize_path = path_join( $upload_path, $resize_path );
 				if ( 'application/pdf' === $type && 'full' === $size ) {
 					$size = 'pdf-full';
 				}

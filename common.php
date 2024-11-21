@@ -8720,7 +8720,6 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 				ewwwio_debug_message( 'strange... $resize_path was empty' );
 				continue;
 			}
-			$resize_path = path_join( $upload_path, $resize_path );
 			if ( 'application/pdf' === $type && 'full' === $size ) {
 				$size = 'pdf-full';
 				ewwwio_debug_message( 'processing full size pdf preview' );

@@ -359,6 +359,8 @@ class ExactDN extends Page_Parser {
 
 		// Filter for legacy WooCommerce API endpoints.
 		\add_filter( 'woocommerce_api_product_response', array( $this, 'woocommerce_api_product_response' ) );
+		// Filter to fix WooCommerce srcset madness.
+		\add_action( 'template_redirect', array( $this, 'check_conditionals' ) );
 
 		// DNS prefetching.
 		\add_filter( 'wp_resource_hints', array( $this, 'resource_hints' ), 100, 2 );
@@ -3446,6 +3448,17 @@ class ExactDN extends Page_Parser {
 		}
 
 		return \is_array( self::$image_sizes ) ? self::$image_sizes : array();
+	}
+
+	/**
+	 * Runs on template_redirect to run checks via "conditional tags", that must be done after the WP_Query object is setup.
+	 */
+	public function check_conditionals() {
+		// Woo gallery thumbnails on product pages, as of 9.4, get srcset with no sizes. If we add more images to the srcset, this blows things up even worse.
+		// Suppress the srcset multipliers if this is a singular product page.
+		if ( \function_exists( '\is_product' ) && \is_product() ) {
+			\add_filter( 'exactdn_srcset_multipliers', '__return_false' );
+		}
 	}
 
 	/**
