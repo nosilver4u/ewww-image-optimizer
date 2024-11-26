@@ -45,7 +45,7 @@
 							bg = bgWebP;
 						}
 					}
-					var dPR = (window.devicePixelRatio || 1);
+					var dPR = getdPR();
 					var targetWidth  = Math.round(e.target.offsetWidth * dPR);
 					var targetHeight = Math.round(e.target.offsetHeight * dPR);
 					if ( 0 === bg.search(/\[/) ) {
@@ -367,7 +367,7 @@
 	}
 
 	var updateImgElem = function(target,upScale=false){
-		var dPR = (window.devicePixelRatio || 1);
+		var dPR = getdPR();
 		var targetWidth = Math.round(target.offsetWidth * dPR);
 		var targetHeight = Math.round(target.offsetHeight * dPR);
 
@@ -390,6 +390,13 @@
 			target.setAttribute('data-src', newSrc);
 		}
 	};
+
+	var getdPR = function() {
+		if (eio_lazy_vars.use_dpr && window.devicePixelRatio > 1) {
+			return window.devicePixelRatio;
+		}
+		return 1;
+	}
 
 	document.addEventListener('lazybeforesizes', function(e){
 		var src = e.target.getAttribute('data-src');
@@ -423,7 +430,7 @@
 			if ((target.naturalWidth > 1) && (target.naturalHeight > 1)) {
 	        	// For each image with a natural width which isn't
 	        	// a 1x1 image, check its size.
-				var dPR = (window.devicePixelRatio || 1);
+	        	var dPR = getdPR();
 				var physicalWidth = target.naturalWidth;
 				var physicalHeight = target.naturalHeight;
 				var realDims = getRealDimensionsFromImg(target);
@@ -498,7 +505,7 @@
 				lazySizes.autoSizer.checkElems();
 			}
 		}
-		var dPR = (window.devicePixelRatio || 1);
+		var dPR = getdPR();
 		var autosizedElems = document.getElementsByClassName(lazySizes.cfg.loadedClass);
 		var i;
 		var len = autosizedElems.length;

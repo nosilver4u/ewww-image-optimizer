@@ -217,7 +217,11 @@ jQuery(document).ready(function($) {
 				$('#ewwwio-easy-activation-result').removeClass('error');
 				$('#ewwwio-easy-activation-result').show();
 				$('.ewwwio-exactdn-options input').prop('disabled', false);
-				$('.ewwwio-exactdn-options').show();
+				if (ewww_vars.easymode) {
+					$('.exactdn-easy-options').show();
+				} else {
+					$('.ewwwio-exactdn-options').show();
+				}
 				$('.ewwwio-easy-setup-instructions').hide();
 				$('#ewww_image_optimizer_webp_container').hide();
 				$('.ewww_image_optimizer_webp_setting_container').hide();

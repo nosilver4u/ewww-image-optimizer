@@ -291,10 +291,7 @@ class ExactDN extends Page_Parser {
 		// Check REST API requests to see if ExactDN should be running.
 		\add_filter( 'rest_request_before_callbacks', array( $this, 'parse_restapi_maybe' ), 10, 3 );
 
-		// Check to see if the OMGF plugin is active, and suppress our font rewriting if it is.
-		if ( ( \defined( 'OMGF_PLUGIN_FILE' ) || \defined( 'OMGF_DB_VERSION' ) ) && ! \defined( 'EASYIO_REPLACE_GOOGLE_FONTS' ) ) {
-			\define( 'EASYIO_REPLACE_GOOGLE_FONTS', false );
-		}
+		\add_filter( 'exactdn_srcset_multipliers', array( $this, 'add_hidpi_srcset_multipliers' ) );
 
 		// Overrides for admin-ajax images.
 		\add_filter( 'exactdn_admin_allow_image_downsize', array( $this, 'allow_admin_image_downsize' ), 10, 2 );
@@ -312,6 +309,11 @@ class ExactDN extends Page_Parser {
 
 		// Filter for generic use by other plugins/themes.
 		\add_filter( 'exactdn_local_to_cdn_url', array( $this, 'plugin_get_image_url' ) );
+
+		// Check to see if the OMGF plugin is active, and suppress our font rewriting if it is.
+		if ( ( \defined( 'OMGF_PLUGIN_FILE' ) || \defined( 'OMGF_DB_VERSION' ) ) && ! \defined( 'EASYIO_REPLACE_GOOGLE_FONTS' ) ) {
+			\define( 'EASYIO_REPLACE_GOOGLE_FONTS', false );
+		}
 
 		// Filter for Divi Pixel plugin SVG images.
 		\add_filter( 'dipi_image_mask_image_url', array( $this, 'plugin_get_image_url' ) );
@@ -2860,7 +2862,7 @@ class ExactDN extends Page_Parser {
 		 *
 		 * @param array|bool $multipliers Array of multipliers to use or false to bypass.
 		 */
-		$multipliers = \apply_filters( 'exactdn_srcset_multipliers', array( .2, .4, .6, .8, 1, 2, 3, 1920 ) );
+		$multipliers = \apply_filters( 'exactdn_srcset_multipliers', array( .2, .4, .6, .8, 1 ) );
 
 		if ( empty( $url ) || empty( $multipliers ) ) {
 			// No URL, or no multipliers, bail!
@@ -2931,7 +2933,9 @@ class ExactDN extends Page_Parser {
 			if ( \abs( $constrained_size[0] - $expected_size[0] ) <= 1 && \abs( $constrained_size[1] - $expected_size[1] ) <= 1 ) {
 				$this->debug_message( 'soft cropping' );
 				$crop = 'soft';
-				$base = $this->get_content_width(); // Provide a default width if none set by the theme.
+				// If the full width is larger than the requested width, we have a usable full width.
+				// Otherwise use the requested width for soft-crop calculations.
+				$base = $fullwidth > $reqwidth ? $fullwidth : $reqwidth;
 			} else {
 				$this->debug_message( 'hard cropping' );
 				$crop = 'hard';
@@ -2948,19 +2952,23 @@ class ExactDN extends Page_Parser {
 				if ( 1920 === (int) $multiplier ) {
 					$newwidth = 1920;
 					if ( ! $w_descriptor || 1920 >= $reqwidth || 'soft' !== $crop ) {
+						$this->debug_message( "skipping $multiplier due to no w descriptor, larger than $reqwidth, or $crop !== soft" );
 						continue;
 					}
 				}
 				if ( $newwidth < 50 ) {
+					$this->debug_message( "skipping $multiplier, as $newwidth is smaller than 50" );
 					continue;
 				}
 				foreach ( $currentwidths as $currentwidth ) {
 					// If a new width would be within 50 pixels of an existing one or larger than the full size image, skip.
 					if ( \abs( $currentwidth - $newwidth ) < 50 || ( $newwidth > $fullwidth ) ) {
+						$this->debug_message( "skipping $multiplier (width $newwidth) too close to $currentwidth, or larger than $fullwidth" );
 						continue 2; // Back to the foreach ( $multipliers as $multiplier ).
 					}
-				} // foreach ( $currentwidths as $currentwidth ){
+				}
 
+				$this->debug_message( "using $multiplier multiplier: $newwidth px" );
 				if ( 1 === $multiplier && \abs( $newwidth - $fullwidth ) < 5 ) {
 					$args = array();
 				} elseif ( 'soft' === $crop ) {
@@ -3052,7 +3060,7 @@ class ExactDN extends Page_Parser {
 		 *
 		 * @param array|bool $multipliers Array of multipliers to use or false to bypass.
 		 */
-		$multipliers = \apply_filters( 'exactdn_srcset_multipliers', array( .2, .4, .6, .8, 1, 2, 3, 1920 ) );
+		$multipliers = \apply_filters( 'exactdn_srcset_multipliers', array( .2, .4, .6, .8, 1 ) );
 		/**
 		 * Filter the width ExactDN will use to create srcset attribute.
 		 * Return a falsy value to short-circuit and bypass srcset fill.
@@ -3455,10 +3463,25 @@ class ExactDN extends Page_Parser {
 	 */
 	public function check_conditionals() {
 		// Woo gallery thumbnails on product pages, as of 9.4, get srcset with no sizes. If we add more images to the srcset, this blows things up even worse.
-		// Suppress the srcset multipliers if this is a singular product page.
+		// Suppress hi-dpi srcset multipliers if this is a singular product page.
 		if ( \function_exists( '\is_product' ) && \is_product() ) {
-			\add_filter( 'exactdn_srcset_multipliers', '__return_false' );
+			$this->debug_message( 'disabling hidpi multipliers (filter)' );
+			\remove_filter( 'exactdn_srcset_multipliers', array( $this, 'add_hidpi_srcset_multipliers' ) );
 		}
+	}
+
+	/**
+	 * Add multipliers for high-DPI devices.
+	 *
+	 * @param array $multipliers An array of multipliers.
+	 * @return array The modified list of multipliers.
+	 */
+	public function add_hidpi_srcset_multipliers( $multipliers ) {
+		if ( $this->get_option( 'exactdn_hidpi' ) ) {
+			$this->debug_message( 'adding hidpi multipliers' );
+			return array( .2, .4, .6, .8, 1, 2, 3, 1920 );
+		}
+		return $multipliers;
 	}
 
 	/**

@@ -145,12 +145,14 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 * added: WebP Optimization via API, existing customers may enable it on the Local tab in Ludicrous Mode
 * added: Above the Fold setting for Lazy Load (previously EIO_LAZY_FOLD override)
+* added: High-DPI option for Easy IO
 * changed: gravatar images excluded from Above the Fold/EIO_LAZY_FOLD counts
 * fixed: Picture WebP ignores images with skip-lazy when it should not
 * fixed: image records not reset after image restore
 * fixed: several PHP warnings from bulk processes
 * fixed: paths for thumbs were broken on Windows
 * fixed: Easy IO adding images to srcset combined with broken WooCommerce gallery thumbnails causes oversized image sizes to be loaded
+* fixed: Easy IO srcset filler using incorrect width for calculations
 
 = 7.9.1 =
 *Release Date - October 31*

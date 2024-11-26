@@ -10,6 +10,7 @@ if (typeof eio_lazy_vars === 'undefined'){
 		exactdn_domain: '.exactdn.com',
 		threshold: 0,
 		skip_autoscale: 0,
+		use_dpr: 0,
 	};
 }
 if (eio_lazy_vars.threshold > 50) {

@@ -649,6 +649,7 @@ final class Plugin extends Base {
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_enable_help', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'exactdn_all_the_things', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'exactdn_lossy', 'boolval' );
+		register_setting( 'ewww_image_optimizer_options', 'exactdn_hidpi', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'exactdn_exclude', array( $this, 'exclude_paths_sanitize' ) );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_add_missing_dims', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_lazy_load', 'boolval' );
@@ -706,6 +707,7 @@ final class Plugin extends Base {
 		\add_option( 'ewww_image_optimizer_exactdn_plan_id', 0 );
 		\add_option( 'exactdn_all_the_things', true );
 		\add_option( 'exactdn_lossy', true );
+		\add_option( 'exactdn_hidpi', false );
 		\add_option( 'exactdn_exclude', '' );
 		\add_option( 'exactdn_sub_folder', false );
 		\add_option( 'exactdn_prevent_db_queries', true );
@@ -745,6 +747,7 @@ final class Plugin extends Base {
 		\add_site_option( 'ewww_image_optimizer_pngout_level', 2 );
 		\add_site_option( 'exactdn_all_the_things', true );
 		\add_site_option( 'exactdn_lossy', true );
+		\add_site_option( 'exactdn_hidpi', true );
 		\add_site_option( 'exactdn_sub_folder', false );
 		\add_site_option( 'exactdn_prevent_db_queries', true );
 		\add_site_option( 'ewww_image_optimizer_ll_autoscale', true );
