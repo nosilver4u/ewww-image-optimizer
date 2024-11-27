@@ -118,8 +118,10 @@ function ewww_image_optimizer_display_tools() {
 	echo "<form id='ewww-clean-originals' class='ewww-tool-form' method='post' action=''>\n" .
 		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Delete Originals', 'ewww-image-optimizer' ) . "' />\n" .
 		"</form>\n</div>\n";
+	echo "<div id='ewww-clean-originals-action' style='display:none;'><p>" . esc_html__( 'Searching for originals to remove...', 'ewww-image-optimizer' ) . '</p></div>';
 	echo "<div id='ewww-clean-originals-progressbar' style='display:none;'></div>";
 	echo "<div id='ewww-clean-originals-progress' style='display:none;'></div>";
+	echo "<div id='ewww-clean-originals-messages' style='display:none;'><p></p></div>";
 
 	echo '<hr class="ewww-tool-divider">';
 	echo "<div>\n<p id='ewww-clean-converted-info' class='ewww-tool-info'>" .

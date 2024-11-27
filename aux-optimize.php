@@ -1048,14 +1048,40 @@ function ewww_image_optimizer_ajax_delete_original() {
 	// Because some plugins might have loose filters (looking at you WPML).
 	remove_all_filters( 'wp_delete_file' );
 
-	$id = (int) $_POST['attachment_id'];
-
-	$new_meta = ewwwio_remove_original_image( $id );
-	if ( ewww_image_optimizer_iterable( $new_meta ) ) {
-		wp_update_attachment_metadata( $id, $new_meta );
+	$count = 0;
+	if ( ! empty( $_POST['completed'] ) ) {
+		$count = (int) $_POST['completed'] + 1;
 	}
+
+	$total = 0;
+	if ( ! empty( $_POST['total'] ) ) {
+		$total = (int) $_POST['total'];
+	}
+
+	$deleted  = false;
+	$id       = (int) $_POST['attachment_id'];
+	$old_meta = wp_get_attachment_metadata( $id );
+	$new_meta = ewwwio_remove_original_image( $id, $old_meta );
+	if ( ewww_image_optimizer_iterable( $new_meta ) ) {
+		$deleted_image = ewwwio_get_original_image_path( $id, '', $old_meta );
+		wp_update_attachment_metadata( $id, $new_meta );
+		/* translators: %s: filename of deleted image */
+		$deleted = sprintf( esc_html__( 'Deleted %s', 'ewww-image-optimizer' ), esc_html( $deleted_image ) );
+	}
+
 	update_option( 'ewww_image_optimizer_delete_originals_resume', $id, false );
-	die( wp_json_encode( array( 'completed' => 1 ) ) );
+
+	/* translators: 1: number of images scanned so far, 2: total number of images to scan */
+	$progress = sprintf( esc_html__( '%1$s / %2$s images checked', 'ewww-image-optimizer' ), number_format_i18n( $count ), number_format_i18n( $total ) );
+
+	die(
+		wp_json_encode(
+			array(
+				'progress' => $progress,
+				'deleted'  => $deleted,
+			)
+		)
+	);
 }
 
 /**

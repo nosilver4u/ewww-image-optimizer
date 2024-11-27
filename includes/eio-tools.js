@@ -447,19 +447,24 @@ jQuery(document).ready(function($) {
 			$('.ewww-tool-form').hide();
 			$('.ewww-tool-divider').hide();
 			$('#ewww-clean-originals-progressbar').progressbar({ max: ewww_total_originals });
-			$('#ewww-clean-originals-progress').html('<p> 0/' + ewww_total_originals + '</p>');
+			//$('#ewww-clean-originals-progress').html('<p> 0/' + ewww_total_originals + '</p>');
 			$('#ewww-clean-originals-progressbar').show();
+			$('#ewww-clean-originals-action').show();
 			$('#ewww-clean-originals-progress').show();
+			$('#ewww-clean-originals-messages').show();
 			ewwwDeleteOriginalByID();
 		});
 		return false;
 	});
 	function ewwwDeleteOriginalByID(){
 		var attachment_id = ewww_original_attachments.pop();
+		var completed = ewww_total_originals - ewww_original_attachments.length;
 		var ewww_originals_data = {
 			action: 'bulk_aux_images_delete_original',
 			ewww_wpnonce: ewww_vars._wpnonce,
 			attachment_id: attachment_id,
+			completed: completed,
+			total: ewww_total_originals,
 		};
 		$.post(ajaxurl, ewww_originals_data, function(response) {
 			try {
@@ -471,12 +476,15 @@ jQuery(document).ready(function($) {
 				console.log(response);
 				return false;
 			}
-			if ( ewww_response.error ) {
+			if (ewww_response.error) {
 				$('#ewww-clean-originals-progressbar').hide();
 				$('#ewww-clean-originals-progress').html('<span style="color: red"><b>' + ewww_response.error + '</b></span>');
 				return false;
 			}
-			if(!ewww_original_attachments.length) {
+			if (ewww_response.deleted) {
+				$('#ewww-clean-originals-messages p').append(ewww_response.deleted + '<br>');
+			}
+			if (!ewww_original_attachments.length) {
 				var ewww_originals_data = {
 					action: 'bulk_aux_images_delete_original',
 					ewww_wpnonce: ewww_vars._wpnonce,
@@ -486,9 +494,10 @@ jQuery(document).ready(function($) {
 				$('#ewww-clean-originals-progress').html(ewww_vars.finished);
 				return false;
 			}
-			var completed = ewww_total_originals - ewww_original_attachments.length;
+			completed = ewww_total_originals - ewww_original_attachments.length;
 			$('#ewww-clean-originals-progressbar').progressbar("option", "value", completed);
-			$('#ewww-clean-originals-progress').html('<p>' + completed + '/' + ewww_total_originals + '</p>');
+			//$('#ewww-clean-originals-progress').html('<p>' + completed + '/' + ewww_total_originals + '</p>');
+			$('#ewww-clean-originals-progress').html('<p>' + ewww_response.progress + '</p>');
 			ewwwDeleteOriginalByID();
 		});
 	}
