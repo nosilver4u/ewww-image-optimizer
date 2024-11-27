@@ -153,6 +153,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: paths for thumbs were broken on Windows
 * fixed: Easy IO adding images to srcset combined with broken WooCommerce gallery thumbnails causes oversized image sizes to be loaded
 * fixed: Easy IO srcset filler using incorrect width for calculations
+* fixed: PHP warning during bulk scan
 
 = 7.9.1 =
 *Release Date - October 31*

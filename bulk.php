@@ -1254,7 +1254,7 @@ function ewww_image_optimizer_fetch_metadata_batch( $attachment_ids ) {
 		ewwwio_debug_message( 'invalid attachments provided' );
 		return array();
 	}
-	ewwwio_debug_message( 'attachment query length: ' . strlen( $attachments_in ) );
+	ewwwio_debug_message( 'fetching meta for ' . count( $attachment_ids ) . ' attachments' );
 	$attachment_meta = array();
 	$attachments_in  = '';
 	$attachments     = array();
