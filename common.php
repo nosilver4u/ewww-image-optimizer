@@ -5529,8 +5529,9 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		'blocking'     => true,
 	);
 
+	$upload_file = ! empty( $fullsize_image ) ? $fullsize_image : $file;
 	$post_fields = array(
-		'filename'   => ! empty( $fullsize_image ) ? $fullsize_image : $file,
+		'filename'   => $upload_file,
 		'convert'    => $convert,
 		'metadata'   => $metadata,
 		'api_key'    => $api_key,
@@ -5564,10 +5565,10 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 
 	$payload .= '--' . $boundary;
 	$payload .= "\r\n";
-	$payload .= 'Content-Disposition: form-data; name="file"; filename="' . wp_basename( $file ) . '"' . "\r\n";
+	$payload .= 'Content-Disposition: form-data; name="file"; filename="' . wp_basename( $upload_file ) . '"' . "\r\n";
 	$payload .= 'Content-Type: ' . $type . "\r\n";
 	$payload .= "\r\n";
-	$payload .= $eio_filesystem->get_contents( $file );
+	$payload .= $eio_filesystem->get_contents( $upload_file );
 	$payload .= "\r\n";
 	$payload .= '--' . $boundary;
 	$payload .= 'Content-Disposition: form-data; name="submitHandler"' . "\r\n";
