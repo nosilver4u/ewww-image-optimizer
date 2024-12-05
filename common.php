@@ -5417,17 +5417,23 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	if ( empty( $sharp_yuv ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_sharpen' ) ) {
 		$sharp_yuv = 1;
 	}
+	$webp           = 0;
+	$webp_width     = 0;
+	$webp_height    = 0;
+	$webp_crop      = 0;
+	$fullsize_image = '';
 	if ( 'image/webp' === $newtype ) {
 		$webp        = 1;
 		$jpg_quality = apply_filters( 'webp_quality', 75, 'image/webp' );
-		if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) || ! EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) {
+		if ( 'image/png' === $type && ( ! defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) || ! EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) ) {
 			$lossy = 0;
 		}
-		if ( defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_GIF2WEBP' ) && ! EWWW_IMAGE_OPTIMIZER_LOSSY_GIF2WEBP ) {
+		if ( 'image/gif' === $type && defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_GIF2WEBP' ) && ! EWWW_IMAGE_OPTIMIZER_LOSSY_GIF2WEBP ) {
 			$lossy = 1;
 		}
-	} else {
-		$webp = 0;
+		if ( 'image/jpeg' === $type ) {
+			list( $webp_width, $webp_height, $webp_crop, $fullsize_image ) = ewww_image_optimizer_cloud_get_webp_params( $file );
+		}
 	}
 	if ( $jpg_quality < 50 ) {
 		$jpg_quality = 75;
@@ -5484,6 +5490,12 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	ewwwio_debug_message( "newfile: $newfile" );
 	ewwwio_debug_message( "newtype: $newtype" );
 	ewwwio_debug_message( "webp: $webp" );
+	if ( $webp && $fullsize_image ) {
+		ewwwio_debug_message( "fullsize: $fullsize_image" );
+		ewwwio_debug_message( "width: $webp_width" );
+		ewwwio_debug_message( "height: $webp_height" );
+		ewwwio_debug_message( "webp crop $webp_crop" );
+	}
 	ewwwio_debug_message( "sharp_yuv: $sharp_yuv" );
 	ewwwio_debug_message( "jpg fill: $jpg_fill" );
 	ewwwio_debug_message( "jpg quality: $jpg_quality" );
@@ -5518,7 +5530,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	);
 
 	$post_fields = array(
-		'filename'   => $file,
+		'filename'   => ! empty( $fullsize_image ) ? $fullsize_image : $file,
 		'convert'    => $convert,
 		'metadata'   => $metadata,
 		'api_key'    => $api_key,
@@ -5534,6 +5546,12 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		'domain'     => $domain,
 		// 'force_async' => 1, // for testing out async mode.
 	);
+
+	if ( $webp && $fullsize_image && $webp_width && $webp_height ) {
+		$post_fields['width']  = $webp_width;
+		$post_fields['height'] = $webp_height;
+		$post_fields['crop']   = $webp_crop;
+	}
 
 	$payload = '';
 	foreach ( $post_fields as $name => $value ) {
@@ -5652,6 +5670,64 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		ewwwio_memory( __FUNCTION__ );
 		return array( $file, $converted, $msg, $newsize, $hash );
 	} // End if().
+}
+
+/**
+ * Get the dimensions for creating a WebP image from the full-size image.
+ *
+ * @since 8.0.0
+ *
+ * @global object $ewww_image
+ *
+ * @param string $file The filename of the existing (JPG) thumbnail image.
+ * @return array {
+ *     Information for resizing the file.
+ *
+ *     @type int The desired width of the image.
+ *     @type int The desired height of the image.
+ *     @type int 1 to crop the image, 0 to scale.
+ * }
+ */
+function ewww_image_optimizer_cloud_get_webp_params( $file ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	global $ewww_image;
+	$crop   = 0;
+	$params = array( 0, 0, $crop );
+	if ( empty( $ewww_image->resize ) || empty( $ewww_image->gallery ) ) {
+		ewwwio_debug_message( 'size or gallery data missing' );
+		return $params;
+	}
+	if ( 'full' === $ewww_image->resize || 'media' !== $ewww_image->gallery ) {
+		ewwwio_debug_message( "$file not a thumb or not from media lib" );
+		return $params;
+	}
+	list( $thumb_width, $thumb_height ) = wp_getimagesize( $file );
+	if ( empty( $thumb_width ) || empty( $thumb_height ) ) {
+		ewwwio_debug_message( "no dims for $file" );
+		return $params;
+	}
+
+	$attachment_id = 0;
+	if ( ! empty( $ewww_image->attachment_id ) ) {
+		$attachment_id = $ewww_image->attachment_id;
+		ewwwio_debug_message( "found attachment ID: $attachment_id" );
+	}
+
+	$original_image = ewwwio_get_original_image_path_from_thumb( $file, $attachment_id );
+	if ( $original_image && ewwwio_is_file( $original_image ) ) {
+		list( $full_width, $full_height ) = wp_getimagesize( $original_image );
+		if ( empty( $full_width ) || empty( $full_height ) ) {
+			ewwwio_debug_message( "no dims for $original_image" );
+			return $params;
+		}
+		// Then we do a calculation with the dimensions to see if the thumb was cropped.
+		$original_height_calc = $full_width / $thumb_width * $thumb_height;
+		if ( abs( $original_height_calc - $full_height ) > 5 ) {
+			$crop = 1;
+		}
+		return array( (int) $thumb_width, (int) $thumb_height, $crop, $original_image );
+	}
+	return $params;
 }
 
 /**
@@ -8418,12 +8494,50 @@ function ewww_image_optimizer_rebuild_meta( $attachment_id ) {
 }
 
 /**
+ * Find the path to the original image from the path of a thumb.
+ *
+ * @since 8.0.0
+ *
+ * @param string $image_file The path to a scaled image file.
+ * @param int    $id The attachment ID number.
+ * @return string True on success, false on failure.
+ */
+function ewwwio_get_original_image_path_from_thumb( $image_file, $id = 0 ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$id             = (int) $id;
+	$original_image = '';
+	if ( ! empty( $id ) ) {
+		$original_image = wp_get_original_image_path( $id, true );
+		ewwwio_debug_message( "possible original at $original_image" );
+		if ( $original_image && ewwwio_is_file( $original_image ) ) {
+			return $original_image;
+		}
+	}
+
+	// If core was no good, try stripping the dimensions and '-scaled' from the filename.
+	$original_unscaled_image = preg_replace( '#(?:-scaled)?-\d+x\d+(\.jpe?g)#i', '$1', $file );
+	ewwwio_debug_message( "possible unscaled original at $original_unscaled_image" );
+	if ( ewwwio_is_file( $original_unscaled_image ) ) {
+		ewwwio_debug_message( 'got em' );
+		return $original_unscaled_image;
+	}
+	$original_scaled_image = preg_replace( '#(?:-scaled)?-\d+x\d+(\.jpe?g)#i', '-scaled$1', $file );
+	ewwwio_debug_message( "possible scaled original at $original_scaled_image" );
+	if ( ewwwio_is_file( $original_scaled_image ) ) {
+		ewwwio_debug_message( 'got em' );
+		return $original_scaled_image;
+	}
+	ewwwio_debug_message( 'no original to be found!' );
+	return $original_image;
+}
+
+/**
  * Find the path to a backed-up original (not the full-size version like the core WP function).
  *
  * @param int    $id The attachment ID number.
  * @param string $image_file The path to a scaled image file.
  * @param array  $meta The attachment metadata. Optional, default to null.
- * @return bool True on success, false on failure.
+ * @return string|bool File path on success, false on failure.
  */
 function ewwwio_get_original_image_path( $id, $image_file = '', $meta = null ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
