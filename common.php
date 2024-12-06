@@ -5432,7 +5432,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 			$lossy = 1;
 		}
 		if ( 'image/jpeg' === $type ) {
-			list( $webp_width, $webp_height, $webp_crop, $fullsize_image ) = ewww_image_optimizer_cloud_get_webp_params( $file );
+			list( $webp_width, $webp_height, $webp_crop, $fullsize_image ) = ewww_image_optimizer_get_webp_resize_params( $file );
 		}
 	}
 	if ( $jpg_quality < 50 ) {
@@ -5494,7 +5494,11 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		ewwwio_debug_message( "fullsize: $fullsize_image" );
 		ewwwio_debug_message( "width: $webp_width" );
 		ewwwio_debug_message( "height: $webp_height" );
-		ewwwio_debug_message( "webp crop $webp_crop" );
+		if ( is_array( $webp_crop ) ) {
+			ewwwio_debug_message( 'webp crop: ' . implode( ', ', $crop ) );
+		} else {
+			ewwwio_debug_message( "webp crop: $webp_crop" );
+		}
 	}
 	ewwwio_debug_message( "sharp_yuv: $sharp_yuv" );
 	ewwwio_debug_message( "jpg fill: $jpg_fill" );
@@ -5689,7 +5693,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
  *     @type int 1 to crop the image, 0 to scale.
  * }
  */
-function ewww_image_optimizer_cloud_get_webp_params( $file ) {
+function ewww_image_optimizer_get_webp_resize_params( $file ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $ewww_image;
 	$crop   = 0;
@@ -5722,9 +5726,20 @@ function ewww_image_optimizer_cloud_get_webp_params( $file ) {
 			return $params;
 		}
 		// Then we do a calculation with the dimensions to see if the thumb was cropped.
-		$original_height_calc = $full_width / $thumb_width * $thumb_height;
-		if ( abs( $original_height_calc - $full_height ) > 5 ) {
+		$thumb_height_calc = $thumb_width / $full_width * $full_height;
+		if ( abs( $thumb_height_calc - $thumb_height ) > 5 ) {
 			$crop = 1;
+			// Check if crop is non-centered, as that gets a bit more complicated.
+			$registered_sizes = ewww_image_optimizer_get_image_sizes();
+			ewwwio_debug_message( "looking for {$ewww_image->resize} crop settings" );
+			if ( isset( $registered_sizes[ $ewww_image->resize ] ) && is_array( $registered_sizes[ $ewww_image->resize ]['crop'] ) ) {
+				ewwwio_debug_message( 'non-standard (array) crop' );
+				$crop = $registered_sizes[ $ewww_image->resize ]['crop'];
+				ewwwio_debug_message( 'crop params: ' . implode( ', ', $crop ) );
+			} elseif ( ! isset( $registered_sizes[ $ewww_image->resize ] ) ) {
+				ewwwio_debug_message( 'unknown crop, must use existing thumb as source' );
+				return $params;
+			}
 		}
 		return array( (int) $thumb_width, (int) $thumb_height, $crop, $original_image );
 	}
