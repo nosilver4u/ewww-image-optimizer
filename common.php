@@ -5486,6 +5486,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	}
 	ewwwio_debug_message( "file: $file " );
 	ewwwio_debug_message( "type: $type" );
+	ewwwio_debug_message( "metadata: $metadata" );
 	ewwwio_debug_message( "convert: $convert" );
 	ewwwio_debug_message( "newfile: $newfile" );
 	ewwwio_debug_message( "newtype: $newtype" );
@@ -5495,7 +5496,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		ewwwio_debug_message( "width: $webp_width" );
 		ewwwio_debug_message( "height: $webp_height" );
 		if ( is_array( $webp_crop ) ) {
-			ewwwio_debug_message( 'webp crop: ' . implode( ', ', $crop ) );
+			ewwwio_debug_message( 'webp crop: ' . implode( ', ', $webp_crop ) );
 		} else {
 			ewwwio_debug_message( "webp crop: $webp_crop" );
 		}
@@ -5555,7 +5556,18 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	if ( $webp && $fullsize_image && $webp_width && $webp_height ) {
 		$post_fields['width']  = $webp_width;
 		$post_fields['height'] = $webp_height;
-		$post_fields['crop']   = $webp_crop;
+		$post_fields['crop']   = 0;
+		if ( ! empty( $webp_crop ) ) {
+			$post_fields['crop'] = 1;
+			if ( is_array( $webp_crop ) && 2 === count( $webp_crop ) ) {
+				if ( is_string( $webp_crop[0] ) ) {
+					$post_fields['crop_x'] = $webp_crop[0];
+				}
+				if ( is_string( $webp_crop[0] ) ) {
+					$post_fields['crop_y'] = $webp_crop[1];
+				}
+			}
+		}
 	}
 
 	$payload = '';
