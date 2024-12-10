@@ -5743,7 +5743,7 @@ function ewww_image_optimizer_get_webp_resize_params( $file ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $ewww_image;
 	$crop   = 0;
-	$params = array( 0, 0, $crop );
+	$params = array( 0, 0, $crop, '' );
 	if ( ! apply_filters( 'ewwwio_use_original_for_webp_thumbs', true ) ) {
 		ewwwio_debug_message( 'disabled by filter' );
 		return $params;
