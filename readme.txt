@@ -144,6 +144,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 *Release Date - TBA*
 
 * added: WebP Optimization via API, existing customers may enable it on the Local tab in Ludicrous Mode
+* added: improved WebP Conversion quality by using full-size/original source for thumbs
 * added: Above the Fold setting for Lazy Load (previously EIO_LAZY_FOLD override)
 * added: High-DPI option for Easy IO
 * changed: gravatar images excluded from Above the Fold/EIO_LAZY_FOLD counts
