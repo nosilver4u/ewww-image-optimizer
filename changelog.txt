@@ -1,3 +1,19 @@
+= 8.0.0 =
+*Release Date - December 11, 2024*
+
+* added: WebP Optimization via API, existing customers may enable it on the Local tab in Ludicrous Mode
+* added: improved WebP Conversion quality by using full-size/original source for thumbs
+* added: Above the Fold setting for Lazy Load (previously EIO_LAZY_FOLD override)
+* added: High-DPI option for Easy IO
+* changed: gravatar images excluded from Above the Fold/EIO_LAZY_FOLD counts
+* fixed: Picture WebP ignores images with skip-lazy when it should not
+* fixed: image records not reset after image restore
+* fixed: several PHP warnings from bulk processes
+* fixed: paths for thumbs were broken on Windows
+* fixed: Easy IO adding images to srcset combined with broken WooCommerce gallery thumbnails causes oversized image sizes to be loaded
+* fixed: Easy IO srcset filler using incorrect width for calculations
+* fixed: PHP warning during bulk scan
+
 = 7.9.1 =
 *Release Date - October 31*
 
