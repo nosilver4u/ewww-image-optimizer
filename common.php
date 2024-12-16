@@ -796,6 +796,10 @@ function ewww_image_optimizer_init() {
 		update_option( 'ewww_image_optimizer_wizard_complete', false, false );
 	}
 
+	if ( defined( 'CROP_THUMBNAILS_VERSION' ) ) {
+		add_filter( 'ewwwio_use_original_for_webp_thumbs', '__return_false', 9 ); // Early, so folks can turn it back on if they want for some reason.
+	}
+
 	if ( defined( 'DOING_WPLR_REQUEST' ) && DOING_WPLR_REQUEST ) {
 		// Unhook all automatic processing, and save an option that (does not autoload) tells the user LR Sync regenerated their images and they should run the bulk optimizer.
 		remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
