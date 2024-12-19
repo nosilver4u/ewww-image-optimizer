@@ -118,6 +118,8 @@ class JS_Webp extends Page_Parser {
 
 		// Hook into the output buffer callback function.
 		\add_filter( 'ewww_image_optimizer_filter_page_output', array( $this, 'filter_page_output' ), 20 );
+		// Generic filter for use by other plugins/themes.
+		\add_filter( 'eio_parse_page_html', array( $this, 'filter_page_output' ), 20, 2 );
 		// Filter for NextGEN image urls within JSON.
 		\add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ), 11 );
 		// Filter for WooCommerce product variations (individual items).
@@ -248,7 +250,7 @@ class JS_Webp extends Page_Parser {
 		if ( '/print/' === \substr( $uri, -7 ) ) {
 			return false;
 		}
-		if ( \defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+		if ( \defined( 'REST_REQUEST' ) && REST_REQUEST && ! \apply_filters( 'eio_allow_restapi_parsing', false, 'js_webp' ) ) {
 			return false;
 		}
 		if ( false !== \strpos( $uri, 'tatsu=' ) ) {
@@ -408,10 +410,15 @@ class JS_Webp extends Page_Parser {
 	 * values for those attributes.
 	 *
 	 * @param string $buffer The full HTML page generated since the output buffer was started.
+	 * @param string $context Indicate which parsers are allowed. Defaults to empty, but may be lazyload, js_webp, or picture_webp.
 	 * @return string The altered buffer containing the full page with WebP images inserted.
 	 */
-	public function filter_page_output( $buffer ) {
+	public function filter_page_output( $buffer, $context = '' ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( ! empty( $context ) && 'js_webp' !== $context ) {
+			$this->debug_message( "3rd party context does not match: $context" );
+			return $buffer;
+		}
 		if (
 			empty( $buffer ) ||
 			\preg_match( '/^<\?xml/', $buffer ) ||
