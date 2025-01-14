@@ -53,6 +53,32 @@ function ewww_image_optimizer_quick_mimetype( $path ) {
 }
 
 /**
+ * Retrieve option: use 'site' setting if plugin is network activated, otherwise use 'blog' setting.
+ *
+ * Retrieves multi-site and single-site options as appropriate as well as allowing overrides with
+ * same-named constant. Overrides are only available for integers, booleans, and specifically supported options.
+ *
+ * @param string $option_name The name of the option to retrieve.
+ * @param mixed  $default_value The default to use if not found/set, defaults to false, but not currently used.
+ * @param bool   $single Use single-site setting regardless of multisite activation. Default is off/false.
+ * @return mixed The value of the option.
+ */
+function ewww_image_optimizer_get_option( $option_name, $default_value = false, $single = false ) {
+	return ewwwio()->get_option( $option_name, $default_value, $single );
+}
+
+/**
+ * Set an option: use 'site' setting if plugin is network activated, otherwise use 'blog' setting.
+ *
+ * @param string $option_name The name of the option to save.
+ * @param mixed  $option_value The value to save for the option.
+ * @return bool True if the operation was successful.
+ */
+function ewww_image_optimizer_set_option( $option_name, $option_value ) {
+	return ewwwio()->set_option( $option_name, $option_value );
+}
+
+/**
  * Escape any spaces in the filename.
  *
  * @param string $path The path to a binary file.

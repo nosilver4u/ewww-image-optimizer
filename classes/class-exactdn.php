@@ -4056,6 +4056,9 @@ class ExactDN extends Page_Parser {
 		if ( \did_action( 'cs_element_rendering' ) || \did_action( 'cornerstone_before_boot_app' ) || \apply_filters( 'cs_is_preview_render', false ) ) {
 			return $url;
 		}
+		if ( empty( $url ) ) {
+			return $url;
+		}
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$parsed_url = $this->parse_url( $url );
 

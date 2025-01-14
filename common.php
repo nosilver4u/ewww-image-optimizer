@@ -20,47 +20,10 @@ use lsolesen\pel\PelTag;
  * Hooks
  */
 
-// Runs other checks that need to run on 'init'.
-add_action( 'init', 'ewww_image_optimizer_init', 9 );
 // Load our front-end parsers for ExactDN, Lazy Load and WebP.
 add_action( 'init', 'ewww_image_optimizer_parser_init', 99 );
 // Check the current screen ID to see if temp debugging should still be enabled.
 add_action( 'current_screen', 'ewww_image_optimizer_current_screen', 10, 1 );
-// If automatic optimization is NOT disabled.
-if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_noauto' ) ) {
-	if ( ! defined( 'EWWW_IMAGE_OPTIMIZER_DISABLE_EDITOR' ) || ! EWWW_IMAGE_OPTIMIZER_DISABLE_EDITOR ) {
-		// Turns off the ewwwio_image_editor during uploads.
-		add_action( 'add_attachment', 'ewww_image_optimizer_add_attachment' );
-		// Turn off the editor when scaling down the original (core WP 5.3+).
-		add_filter( 'big_image_size_threshold', 'ewww_image_optimizer_image_sizes' );
-		// Turns off ewwwio_image_editor during Enable Media Replace.
-		add_filter( 'emr_unfiltered_get_attached_file', 'ewww_image_optimizer_image_sizes' );
-		// Checks to see if thumb regen or other similar operation is running via REST API.
-		add_action( 'rest_api_init', 'ewww_image_optimizer_restapi_compat_check' );
-		// Detect WP/LR Sync when it starts.
-		add_action( 'wplr_presync_media', 'ewww_image_optimizer_image_sizes' );
-		// Enables direct integration to the editor's save function.
-		add_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
-	}
-	// Resizes and auto-rotates images.
-	add_filter( 'wp_handle_upload', 'ewww_image_optimizer_handle_upload' );
-	// Processes an image via the metadata after upload.
-	add_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
-	// Add hook for PTE confirmation to make sure new resizes are optimized.
-	add_filter( 'wp_get_attachment_metadata', 'ewww_image_optimizer_pte_check' );
-	// Resizes and auto-rotates MediaPress images.
-	add_filter( 'mpp_handle_upload', 'ewww_image_optimizer_handle_mpp_upload' );
-	// Processes a MediaPress image via the metadata after upload.
-	add_filter( 'mpp_generate_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
-	// Processes an attachment after IRSC has done a thumb regen.
-	add_filter( 'sirsc_attachment_images_ready', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
-	// Processes an attachment after Crop Thumbnails plugin has modified the images.
-	add_filter( 'crop_thumbnails_before_update_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
-	// Process BuddyPress uploads from Vikinger theme.
-	add_action( 'vikinger_file_uploaded', 'ewww_image_optimizer' );
-	// Process image after resize by Imsanity.
-	add_action( 'imsanity_post_process_attachment', 'ewww_image_optimizer_optimize_by_id', 10, 2 );
-}
 
 // Ensures we update the filesize data in the meta.
 // add_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_filesize_metadata', 9, 2 );
@@ -772,41 +735,6 @@ function ewww_image_optimizer_save_network_settings() {
 		update_option( 'ewww_image_optimizer_gif_level', '10' );
 		update_option( 'ewww_image_optimizer_svg_level', 0 );
 		update_option( 'ewww_image_optimizer_webp_level', 0 );
-	}
-}
-
-/**
- * Runs early for checks that need to happen on init before anything else.
- */
-function ewww_image_optimizer_init() {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-
-	// For the settings page, check for the enable-local param and take appropriate action.
-	if ( ! empty( $_GET['enable-local'] ) && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
-		update_option( 'ewww_image_optimizer_ludicrous_mode', true );
-		update_site_option( 'ewww_image_optimizer_ludicrous_mode', true );
-	} elseif ( isset( $_GET['enable-local'] ) && ! (bool) $_GET['enable-local'] && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
-		delete_option( 'ewww_image_optimizer_ludicrous_mode' );
-		delete_site_option( 'ewww_image_optimizer_ludicrous_mode' );
-	}
-	if ( ! empty( $_GET['complete_wizard'] ) && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
-		update_option( 'ewww_image_optimizer_wizard_complete', true, false );
-	}
-	if ( ! empty( $_GET['uncomplete_wizard'] ) && ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
-		update_option( 'ewww_image_optimizer_wizard_complete', false, false );
-	}
-
-	if ( defined( 'CROP_THUMBNAILS_VERSION' ) ) {
-		add_filter( 'ewwwio_use_original_for_webp_thumbs', '__return_false', 9 ); // Early, so folks can turn it back on if they want for some reason.
-	}
-
-	if ( defined( 'DOING_WPLR_REQUEST' ) && DOING_WPLR_REQUEST ) {
-		// Unhook all automatic processing, and save an option that (does not autoload) tells the user LR Sync regenerated their images and they should run the bulk optimizer.
-		remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
-		remove_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15 );
-		add_action( 'wplr_add_media', 'ewww_image_optimizer_lr_sync_update' );
-		add_action( 'wplr_update_media', 'ewww_image_optimizer_lr_sync_update' );
-		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 	}
 }
 
@@ -10948,92 +10876,6 @@ function ewww_image_optimizer_level_mismatch( $old_level, $new_level ) {
 		return false;
 	}
 	return true;
-}
-
-/**
- * Retrieve option: use 'site' setting if plugin is network activated, otherwise use 'blog' setting.
- *
- * Retrieves multi-site and single-site options as appropriate as well as allowing overrides with
- * same-named constant. Overrides are only available for integer and boolean options.
- *
- * @param string $option_name The name of the option to retrieve.
- * @param mixed  $default_value The default to use if not found/set, defaults to false, but not currently used.
- * @param bool   $single Use single-site setting regardless of multisite activation. Default is off/false.
- * @return mixed The value of the option.
- */
-function ewww_image_optimizer_get_option( $option_name, $default_value = false, $single = false ) {
-	$constant_name = strtoupper( $option_name );
-	if ( defined( $constant_name ) && ( is_int( constant( $constant_name ) ) || is_bool( constant( $constant_name ) ) ) ) {
-		return constant( $constant_name );
-	}
-	if ( 'ewww_image_optimizer_cloud_key' === $option_name && defined( $constant_name ) ) {
-		$option_value = constant( $constant_name );
-		if ( is_string( $option_value ) && ! empty( $option_value ) ) {
-			return trim( $option_value );
-		}
-	}
-	if ( 'ewww_image_optimizer_ll_all_things' === $option_name && defined( $constant_name ) ) {
-		return sanitize_text_field( constant( $constant_name ) );
-	}
-	if (
-		(
-			'ewww_image_optimizer_exclude_paths' === $option_name ||
-			'exactdn_exclude' === $option_name ||
-			'ewww_image_optimizer_ll_exclude' === $option_name ||
-			'ewww_image_optimizer_webp_rewrite_exclude' === $option_name
-		)
-		&& defined( $constant_name )
-	) {
-		return ewww_image_optimizer_exclude_paths_sanitize( constant( $constant_name ) );
-	}
-	if ( 'ewww_image_optimizer_aux_paths' === $option_name && defined( $constant_name ) ) {
-		return ewww_image_optimizer_aux_paths_sanitize( constant( $constant_name ) );
-	}
-	if ( 'ewww_image_optimizer_webp_paths' === $option_name && defined( $constant_name ) ) {
-		return ewww_image_optimizer_webp_paths_sanitize( constant( $constant_name ) );
-	}
-	if ( 'ewww_image_optimizer_disable_resizes' === $option_name && defined( $constant_name ) ) {
-		return ewww_image_optimizer_disable_resizes_sanitize( constant( $constant_name ) );
-	}
-	if ( 'ewww_image_optimizer_disable_resizes_opt' === $option_name && defined( $constant_name ) ) {
-		return ewww_image_optimizer_disable_resizes_sanitize( constant( $constant_name ) );
-	}
-	if ( 'ewww_image_optimizer_jpg_background' === $option_name && defined( $constant_name ) ) {
-		return ewww_image_optimizer_jpg_background( constant( $constant_name ) );
-	}
-	if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
-		// Need to include the plugin library for the is_plugin_active function.
-		require_once ABSPATH . 'wp-admin/includes/plugin.php';
-	}
-	if ( ! $single && is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) && ! get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
-		$option_value = get_site_option( $option_name );
-		if ( 'ewww_image_optimizer_exactdn' === $option_name && ! $option_value ) {
-			$option_value = get_option( $option_name );
-		}
-	} else {
-		$option_value = get_option( $option_name );
-	}
-	return $option_value;
-}
-
-/**
- * Set an option: use 'site' setting if plugin is network activated, otherwise use 'blog' setting.
- *
- * @param string $option_name The name of the option to save.
- * @param mixed  $option_value The value to save for the option.
- * @return bool True if the operation was successful.
- */
-function ewww_image_optimizer_set_option( $option_name, $option_value ) {
-	if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
-		// Need to include the plugin library for the is_plugin_active function.
-		require_once ABSPATH . 'wp-admin/includes/plugin.php';
-	}
-	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) && ! get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) ) {
-		$success = update_site_option( $option_name, $option_value );
-	} else {
-		$success = update_option( $option_name, $option_value );
-	}
-	return $success;
 }
 
 /**

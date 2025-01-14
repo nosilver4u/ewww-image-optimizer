@@ -148,6 +148,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 *Release Date - TBD*
 
 * added: ability for 3rd party plugins to hook into Lazy Load and WebP HTML parsers
+* changed: improved performance of custom *_option functions on multisite
 * fixed: WebP resizing overrides custom crop set by Crop Thumbnails
 
 = 8.0.0 =

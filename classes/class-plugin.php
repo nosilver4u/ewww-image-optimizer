@@ -202,6 +202,13 @@ final class Plugin extends Base {
 			\add_action( 'admin_init', array( self::$instance, 'admin_init' ) );
 			// We run this early, and then double-check after admin_init, once network settings have been saved/updated.
 			self::$instance->cloud_init();
+			// Runs other checks that need to run on 'init'.
+			\add_action( 'init', array( self::$instance, 'init' ), 9 );
+
+			// Registers various hooks for automatic optimization with core and other plugins.
+			// NOTE: this may make sense to move elsewhere someday, but it is here for now!
+			// TODO: the functions registered could (should?) become class members, which is why it may make more sense as a separate class.
+			self::$instance->register_integration_hooks();
 
 			// AJAX action hook to dismiss the UTF-8 notice.
 			\add_action( 'wp_ajax_ewww_dismiss_utf8_notice', array( self::$instance, 'dismiss_utf8_notice' ) );
@@ -618,6 +625,82 @@ final class Plugin extends Base {
 			\add_action( 'admin_notices', 'ewww_image_optimizer_debug_enabled_notice' );
 		} elseif ( \get_site_option( 'ewww_image_optimizer_debug' ) && \is_network_admin() ) {
 			\add_action( 'network_admin_notices', 'ewww_image_optimizer_debug_enabled_notice' );
+		}
+	}
+
+	/**
+	 * Runs early for checks that need to happen on init before anything else.
+	 */
+	public function init() {
+		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+
+		// For the settings page, check for the enable-local param and take appropriate action.
+		if ( ! empty( $_GET['enable-local'] ) && ! empty( $_REQUEST['_wpnonce'] ) && \wp_verify_nonce( \sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
+			\update_option( 'ewww_image_optimizer_ludicrous_mode', true );
+			\update_site_option( 'ewww_image_optimizer_ludicrous_mode', true );
+		} elseif ( isset( $_GET['enable-local'] ) && ! (bool) $_GET['enable-local'] && ! empty( $_REQUEST['_wpnonce'] ) && \wp_verify_nonce( \sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
+			\delete_option( 'ewww_image_optimizer_ludicrous_mode' );
+			\delete_site_option( 'ewww_image_optimizer_ludicrous_mode' );
+		}
+		if ( ! empty( $_GET['complete_wizard'] ) && ! empty( $_REQUEST['_wpnonce'] ) && \wp_verify_nonce( \sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
+			\update_option( 'ewww_image_optimizer_wizard_complete', true, false );
+		}
+		if ( ! empty( $_GET['uncomplete_wizard'] ) && ! empty( $_REQUEST['_wpnonce'] ) && \wp_verify_nonce( \sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
+			\update_option( 'ewww_image_optimizer_wizard_complete', false, false );
+		}
+
+		if ( \defined( 'CROP_THUMBNAILS_VERSION' ) ) {
+			\add_filter( 'ewwwio_use_original_for_webp_thumbs', '__return_false', 9 ); // Early, so folks can turn it back on if they want for some reason.
+		}
+
+		if ( \defined( 'DOING_WPLR_REQUEST' ) && DOING_WPLR_REQUEST ) {
+			// Unhook all automatic processing, and save an option that (does not autoload) tells the user LR Sync regenerated their images and they should run the bulk optimizer.
+			\remove_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
+			\remove_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15 );
+			\add_action( 'wplr_add_media', 'ewww_image_optimizer_lr_sync_update' );
+			\add_action( 'wplr_update_media', 'ewww_image_optimizer_lr_sync_update' );
+			\add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
+		}
+	}
+
+	/**
+	 * If automatic optimization is enabled, register hooks to integrate with various core functions and plugins.
+	 */
+	public function register_integration_hooks() {
+		// If automatic optimization is NOT disabled.
+		if ( ! $this->get_option( 'ewww_image_optimizer_noauto' ) ) {
+			if ( ! \defined( 'EWWW_IMAGE_OPTIMIZER_DISABLE_EDITOR' ) || ! EWWW_IMAGE_OPTIMIZER_DISABLE_EDITOR ) {
+				// Turns off the ewwwio_image_editor during uploads.
+				\add_action( 'add_attachment', 'ewww_image_optimizer_add_attachment' );
+				// Turn off the editor when scaling down the original (core WP 5.3+).
+				\add_filter( 'big_image_size_threshold', 'ewww_image_optimizer_image_sizes' );
+				// Turns off ewwwio_image_editor during Enable Media Replace.
+				\add_filter( 'emr_unfiltered_get_attached_file', 'ewww_image_optimizer_image_sizes' );
+				// Checks to see if thumb regen or other similar operation is running via REST API.
+				\add_action( 'rest_api_init', 'ewww_image_optimizer_restapi_compat_check' );
+				// Detect WP/LR Sync when it starts.
+				\add_action( 'wplr_presync_media', 'ewww_image_optimizer_image_sizes' );
+				// Enables direct integration to the editor's save function.
+				\add_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
+			}
+			// Resizes and auto-rotates images.
+			\add_filter( 'wp_handle_upload', 'ewww_image_optimizer_handle_upload' );
+			// Processes an image via the metadata after upload.
+			\add_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
+			// Add hook for PTE confirmation to make sure new resizes are optimized.
+			\add_filter( 'wp_get_attachment_metadata', 'ewww_image_optimizer_pte_check' );
+			// Resizes and auto-rotates MediaPress images.
+			\add_filter( 'mpp_handle_upload', 'ewww_image_optimizer_handle_mpp_upload' );
+			// Processes a MediaPress image via the metadata after upload.
+			\add_filter( 'mpp_generate_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
+			// Processes an attachment after IRSC has done a thumb regen.
+			\add_filter( 'sirsc_attachment_images_ready', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
+			// Processes an attachment after Crop Thumbnails plugin has modified the images.
+			\add_filter( 'crop_thumbnails_before_update_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
+			// Process BuddyPress uploads from Vikinger theme.
+			\add_action( 'vikinger_file_uploaded', 'ewww_image_optimizer' );
+			// Process image after resize by Imsanity.
+			\add_action( 'imsanity_post_process_attachment', 'ewww_image_optimizer_optimize_by_id', 10, 2 );
 		}
 	}
 
