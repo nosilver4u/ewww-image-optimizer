@@ -523,7 +523,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		$this->assertEquals( 8900, filesize( $results[0] ) );
 		unlink( $results[0] );
-		$this->assertEquals( 8014, filesize( $results[0] . '.webp' ) );
+		$this->assertEquals( 8008, filesize( $results[0] . '.webp' ) );
 		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
 			unlink( $results[0] . '.webp' );
 		}
