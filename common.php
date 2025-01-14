@@ -13476,7 +13476,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				</tr>
 				<tr>
 					<th scope='row'>
-						<?php esc_html_e( 'Resize Images', 'ewww-image-optimizer' ); ?>
+						<?php esc_html_e( 'Max Image Dimensions', 'ewww-image-optimizer' ); ?>
 						<?php ewwwio_help_link( 'https://docs.ewww.io/article/41-resize-settings', '59849911042863033a1ba5f9' ); ?>
 					</th>
 					<td>
@@ -13487,11 +13487,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<?php esc_html_e( 'in pixels', 'ewww-image-optimizer' ); ?>
 	<?php if ( function_exists( 'imsanity_get_max_width_height' ) ) : ?>
 						<p>
-							<span style="color: #3eadc9"><?php esc_html_e( '*Imsanity settings override the resize dimensions.', 'ewww-image-optimizer' ); ?></span>
+							<span style="color: #3eadc9"><?php esc_html_e( '*Imsanity settings override these dimensions.', 'ewww-image-optimizer' ); ?></span>
 						</p>
 	<?php else : ?>
 						<p class='description'>
-							<?php esc_html_e( 'Resize uploaded images to these dimensions (in pixels).', 'ewww-image-optimizer' ); ?>
+							<?php esc_html_e( 'Limit full-size images to these dimensions. Overrides default WordPress threshold of 2560px.', 'ewww-image-optimizer' ); ?>
 							<?php
 							printf(
 								/* translators: %s: Bulk Optimizer (link) */
