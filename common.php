@@ -8239,7 +8239,10 @@ function ewww_image_optimizer_update_scaled_metadata( $meta, $attachment_id ) {
 		ewwwio_debug_message( 'Image already has -scaled' );
 		return $meta;
 	}
-	$file = $meta['file'];
+	list( $file, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $attachment_id );
+	if ( ewww_image_optimizer_stream_wrapped( $file ) ) {
+		return $meta;
+	}
 	$dir  = realpath( pathinfo( $file, PATHINFO_DIRNAME ) );
 	$ext  = pathinfo( $file, PATHINFO_EXTENSION );
 	$name = wp_basename( $file, ".$ext" );
