@@ -8245,7 +8245,9 @@ function ewww_image_optimizer_update_scaled_metadata( $meta, $attachment_id ) {
 	$name = wp_basename( $file, ".$ext" );
 
 	$scaled_file = trailingslashit( $dir ) . "{$name}-scaled.{$ext}";
+	ewwwio_debug_message( "Does $scaled_file exist?" );
 	if ( ewwwio_is_file( $scaled_file ) ) {
+		ewwwio_debug_message( 'Yup, sure does exist!' );
 		// Update the attached file meta.
 		update_attached_file( $attachment_id, $scaled_file );
 
