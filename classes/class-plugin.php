@@ -687,6 +687,9 @@ final class Plugin extends Base {
 			\add_filter( 'wp_handle_upload', 'ewww_image_optimizer_handle_upload' );
 			// Processes an image via the metadata after upload.
 			\add_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15, 2 );
+			// Checks attachment for scaled version and updates metadata.
+			\add_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_update_scaled_metadata', 8, 2 );
+			\add_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_scaled_metadata', 8, 2 );
 			// Add hook for PTE confirmation to make sure new resizes are optimized.
 			\add_filter( 'wp_get_attachment_metadata', 'ewww_image_optimizer_pte_check' );
 			// Resizes and auto-rotates MediaPress images.
