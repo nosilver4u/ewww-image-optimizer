@@ -2499,6 +2499,7 @@ function ewww_image_optimizer_handle_upload( $params ) {
 	}
 	global $ewww_new_image;
 	$ewww_new_image = true;
+	remove_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_scaled_metadata', 8 );
 	if ( empty( $params['file'] ) ) {
 		if ( ! empty( $params['tmp_name'] ) ) {
 			$file_path = $params['tmp_name'];
@@ -8229,25 +8230,42 @@ function ewww_image_optimizer_resize_upload( $file ) {
 function ewww_image_optimizer_update_scaled_metadata( $meta, $attachment_id ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( ! empty( $meta['original_image'] ) ) {
-		ewwwio_debug_message( 'Original image already set' );
+		ewwwio_debug_message( 'Original image already set.' );
 		return $meta;
 	}
 	if ( empty( $meta['file'] ) ) {
 		return $meta;
 	}
-	if ( false !== strpos( $meta['file'], '-scaled' ) ) {
-		ewwwio_debug_message( 'Image already has -scaled' );
-		return $meta;
-	}
 	list( $file, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $attachment_id );
+	if ( strpos( $file, '-scaled' ) ) {
+		ewwwio_debug_message( 'Image already has -scaled' );
+		$dir  = realpath( pathinfo( $file, PATHINFO_DIRNAME ) );
+		$ext  = pathinfo( $file, PATHINFO_EXTENSION );
+		$name = wp_basename( $file, "-scaled.$ext" );
+	
+		$original_file = trailingslashit( $dir ) . "{$name}.{$ext}";
+		if ( $original_file === $file ) {
+			ewwwio_debug_message( "$original_file same as $file, sorry." );
+			return $meta;
+		}
+		if ( ! ewwwio_is_file( $original_file ) ) {
+			ewwwio_debug_message( "$original_file does not exist" );
+			return $meta;
+		}
+		$scaled_image = $file;
+		$file = $original_file;
+	}
 	if ( ewww_image_optimizer_stream_wrapped( $file ) ) {
+		ewwwio_debug_message( "$file is stream wrapped" );
 		return $meta;
 	}
-	$dir  = realpath( pathinfo( $file, PATHINFO_DIRNAME ) );
-	$ext  = pathinfo( $file, PATHINFO_EXTENSION );
-	$name = wp_basename( $file, ".$ext" );
-
-	$scaled_file = trailingslashit( $dir ) . "{$name}-scaled.{$ext}";
+	if ( empty( $scaled_file ) ) {
+		$dir  = realpath( pathinfo( $file, PATHINFO_DIRNAME ) );
+		$ext  = pathinfo( $file, PATHINFO_EXTENSION );
+		$name = wp_basename( $file, ".$ext" );
+	
+		$scaled_file = trailingslashit( $dir ) . "{$name}-scaled.{$ext}";
+	}
 	ewwwio_debug_message( "Does $scaled_file exist?" );
 	if ( ewwwio_is_file( $scaled_file ) ) {
 		ewwwio_debug_message( 'Yup, sure does exist!' );
