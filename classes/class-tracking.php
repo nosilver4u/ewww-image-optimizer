@@ -186,6 +186,7 @@ class Tracking {
 		$data['resize_indirect_height'] = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherheight' );
 		$data['resize_existing']        = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' );
 		$data['resize_other']           = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_other_existing' );
+		$data['preserve_originals']     = (bool) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_preserve_originals' );
 		$data['total_sizes']            = (int) \count( \ewww_image_optimizer_get_image_sizes() );
 		$data['disabled_opt_sizes']     = \is_array( \get_option( 'ewww_image_optimizer_disable_resizes_opt' ) ) ? \count( \get_option( 'ewww_image_optimizer_disable_resizes_opt' ) ) : 0;
 		$data['disabled_create_sizes']  = \is_array( \get_option( 'ewww_image_optimizer_disable_resizes' ) ) ? \count( \get_option( 'ewww_image_optimizer_disable_resizes' ) ) : 0;

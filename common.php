@@ -681,6 +681,8 @@ function ewww_image_optimizer_save_network_settings() {
 			update_site_option( 'ewww_image_optimizer_resize_existing', $ewww_image_optimizer_resize_existing );
 			$ewww_image_optimizer_resize_other_existing = ( empty( $_POST['ewww_image_optimizer_resize_other_existing'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_resize_other_existing', $ewww_image_optimizer_resize_other_existing );
+			$ewww_image_optimizer_preserve_originals = ( empty( $_POST['ewww_image_optimizer_preserve_originals'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_preserve_originals', $ewww_image_optimizer_preserve_originals );
 			$ewww_image_optimizer_include_media_paths = ( empty( $_POST['ewww_image_optimizer_include_media_paths'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_include_media_paths', $ewww_image_optimizer_include_media_paths );
 			$ewww_image_optimizer_include_originals = ( empty( $_POST['ewww_image_optimizer_include_originals'] ) ? false : true );
@@ -11730,6 +11732,7 @@ function ewwwio_debug_info() {
 	ewwwio_debug_message( 'max other dimensions: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherwidth' ) . ' x ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherheight' ) );
 	ewwwio_debug_message( 'resize existing images: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'resize existing (non-media) images: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_other_existing' ) ? 'on' : 'off' ) );
+	ewwwio_debug_message( 'preserve originals: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_preserve_originals' ) ? 'on' : 'off' ) );
 	$image_sizes = ewww_image_optimizer_get_image_sizes();
 	ewwwio_debug_message( 'disabled sizes:' );
 	$disabled_sizes     = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes', false, true );
@@ -14361,6 +14364,16 @@ AddType image/webp .webp</pre>
 					<td>
 						<input type='checkbox' id='ewww_image_optimizer_resize_other_existing' name='ewww_image_optimizer_resize_other_existing' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_other_existing' ) ); ?> />
 						<?php esc_html_e( 'Allow resizing of existing images outside the Media Library. Use this to resize images specified under the Folders to Optimize setting when running Bulk or Scheduled Optimization.', 'ewww-image-optimizer' ); ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope='row'>
+						<label for='ewww_image_optimizer_preserve_originals'><?php esc_html_e( 'Preserve Originals', 'ewww-image-optimizer' ); ?></label>
+						<?php ewwwio_help_link( 'https://docs.ewww.io/article/41-resize-settings', '59849911042863033a1ba5f9' ); ?>
+					</th>
+					<td>
+						<input type='checkbox' id='ewww_image_optimizer_preserve_originals' name='ewww_image_optimizer_preserve_originals' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_preserve_originals' ) ); ?> />
+						<?php esc_html_e( 'When scaling image to max dimensions, save original image for thumbnail and WebP generation.', 'ewww-image-optimizer' ); ?>
 					</td>
 				</tr>
 	<?php if ( 'network-multisite' === $network ) : ?>
