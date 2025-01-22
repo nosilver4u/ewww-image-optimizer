@@ -780,6 +780,8 @@ final class Plugin extends Base {
 		\add_option( 'ewww_image_optimizer_disable_editor', false );
 		\add_option( 'ewww_image_optimizer_debug', false );
 		\add_option( 'ewww_image_optimizer_metadata_remove', true );
+		\add_option( 'ewww_image_optimizer_maxmediawidth', 2560 );
+		\add_option( 'ewww_image_optimizer_maxmediaheight', 2560 );
 		\add_option( 'ewww_image_optimizer_jpg_level', '10' );
 		\add_option( 'ewww_image_optimizer_png_level', '10' );
 		\add_option( 'ewww_image_optimizer_gif_level', '10' );
@@ -818,6 +820,8 @@ final class Plugin extends Base {
 		// Set network defaults.
 		\add_site_option( 'ewww_image_optimizer_background_optimization', false );
 		\add_site_option( 'ewww_image_optimizer_metadata_remove', true );
+		\add_site_option( 'ewww_image_optimizer_maxmediawidth', 2560 );
+		\add_site_option( 'ewww_image_optimizer_maxmediaheight', 2560 );
 		\add_site_option( 'ewww_image_optimizer_jpg_level', '10' );
 		\add_site_option( 'ewww_image_optimizer_png_level', '10' );
 		\add_site_option( 'ewww_image_optimizer_gif_level', '10' );
