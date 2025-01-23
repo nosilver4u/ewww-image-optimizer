@@ -8162,7 +8162,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
 		}
 		// Backup the file before we replace the original.
 		global $eio_backup;
-		if ( ! apply_filters( 'ewww_image_optimizer_backup_post_resize', false ) ) {
+		if ( ! apply_filters( 'ewww_image_optimizer_backup_post_resize', false ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_preserve_originals' ) ) {
 			$eio_backup->backup_file( $file );
 		}
 		// ewww_image_optimizer_cloud_backup( $file );.

@@ -237,7 +237,7 @@ class Background_Process_Image extends Background_Process {
 									'pending'       => 1,
 									'attachment_id' => $image->attachment_id,
 									'gallery'       => 'media',
-									'resize'        => 'original_image',
+									'resize'        => 'full',
 								),
 								array(
 									'id' => $already_optimized['id'],
