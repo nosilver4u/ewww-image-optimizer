@@ -3739,12 +3739,15 @@ function ewww_image_optimizer_manual() {
 	// Retrieve the existing attachment metadata.
 	$original_meta = wp_get_attachment_metadata( $attachment_id );
 	// If the call was to optimize...
+	$update_meta = true;
 	if ( 'ewww_image_optimizer_manual_optimize' === $_REQUEST['action'] || 'ewww_manual_optimize' === $_REQUEST['action'] ) {
 		ewwwio()->defer = true;
 		if ( ewww_image_optimizer_test_background_opt() ) {
+			ewwwio_debug_message( "attachment $attachment_id queued for async" );
 			add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 			ewww_image_optimizer_add_attachment_to_queue( $attachment_id, false, $ewww_convert, ewwwio()->force );
-			$new_meta = $original_meta;
+			$new_meta    = $original_meta;
+			$update_meta = false;
 		} else {
 			// Call the optimize from metadata function and store the resulting new metadata.
 			$new_meta = ewww_image_optimizer_resize_from_meta_data( $original_meta, $attachment_id );
@@ -3766,9 +3769,11 @@ function ewww_image_optimizer_manual() {
 		$basename = wp_basename( $new_meta['file'] );
 	}
 	// Update the attachment metadata in the database.
-	$meta_saved = wp_update_attachment_metadata( $attachment_id, $new_meta );
-	if ( ! $meta_saved ) {
-		ewwwio_debug_message( 'failed to save meta, or no changes' );
+	if ( $update_meta ) {
+		$meta_saved = wp_update_attachment_metadata( $attachment_id, $new_meta );
+		if ( ! $meta_saved ) {
+			ewwwio_debug_message( 'failed to save meta, or no changes' );
+		}
 	}
 	if ( 'exceeded' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
 		if ( ! wp_doing_ajax() ) {
@@ -7953,8 +7958,13 @@ function ewww_image_optimizer_resize_upload( $file ) {
 	// 2 = Scaled image filesize too large (bigger than the original)
 	// 3 = All other errors.
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	global $ewww_image;
 	global $ewwwio_resize_status;
 	$ewwwio_resize_status = '';
+	$is_media = false;
+	if ( empty( $ewww_image ) || 'media' === $ewww_image->gallery ) {
+		$is_media = true;
+	}
 	if ( ! $file ) {
 		return false;
 	}
@@ -8168,7 +8178,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
 		// ewww_image_optimizer_cloud_backup( $file );.
 		$new_type = (string) ewww_image_optimizer_mimetype( $new_file, 'i' );
 		if ( $type === $new_type ) {
-			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_preserve_originals' ) ) {
+			if ( $is_media && ewww_image_optimizer_get_option( 'ewww_image_optimizer_preserve_originals' ) ) {
 				$scaled_file = ewww_image_optimizer_scaled_filename( $file );
 				ewwwio_rename( $new_file, $scaled_file );
 			} else {
@@ -8215,6 +8225,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
 	}
 	return false;
 }
+
 /**
  * Build scaled filename from original path
  * 
