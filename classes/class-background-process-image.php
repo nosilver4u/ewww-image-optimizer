@@ -243,15 +243,14 @@ class Background_Process_Image extends Background_Process {
 									'id' => $already_optimized['id'],
 								)
 							);
-							$id_to_queue = $already_optimized['id'];
-							ewwwio()->background_image->push_to_queue(
+							$wpdb->update(
+								$wpdb->ewwwio_queue,
 								array(
-									'id'           => $id_to_queue,
-									'new'          => $item['new'],
-									'convert_once' => $item['convert_once'],
-									'force_reopt'  => $item['force_reopt'],
-									'force_smart'  => $item['force_smart'],
-									'webp_only'    => $item['webp_only'],
+									'attachment_id' => $already_optimized['id'],
+									'scanned'       => 0,
+								),
+								array(
+									'attachment_id' => $item['id'],
 								)
 							);
 						}
@@ -260,13 +259,30 @@ class Background_Process_Image extends Background_Process {
 						$meta_saved = \wp_update_attachment_metadata( $image->attachment_id, $meta );
 
 						if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_originals' ) ) {
-							$image->resize      = 'original_image';
-							$ewww_image->resize = 'original_image';
+							$wpdb->update(
+								$wpdb->ewwwio_images,
+								array(
+									'resize' => 'original_image',
+								),
+								array(
+									'id' => $item['id'],
+								)
+							);
+							ewwwio()->background_image->push_to_queue(
+								array(
+									'id'           => $item['id'],
+									'new'          => $item['new'],
+									'convert_once' => $item['convert_once'],
+									'force_reopt'  => $item['force_reopt'],
+									'force_smart'  => $item['force_smart'],
+									'webp_only'    => $item['webp_only'],
+								)
+							);
 						} else {
 							\ewww_image_optimizer_delete_pending_image( $image->id );
-							\add_filter( $this->identifier . '_time_exceeded', '__return_true' );
-							return false;
 						}
+						\add_filter( $this->identifier . '_time_exceeded', '__return_true' );
+						return true;
 					}
 				}
 			} elseif ( empty( $image->resize ) ) {
