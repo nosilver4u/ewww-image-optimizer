@@ -137,7 +137,7 @@ class Background_Process_Image extends Background_Process {
 			\ewwwio()->force_smart = $item['force_smart'];
 			\ewwwio()->webp_only   = $item['webp_only'];
 			\ewwwio_debug_message( "processing background optimization request for $image->file, converting: $ewww_convert" );
-			$pending = $this->process_image( $image, $item['attempts'] );
+			$pending = $this->process_image( $image, $item );
 			if ( $pending ) {
 				\ewwwio_debug_message( "requeueing $id" );
 				return $item;
@@ -163,13 +163,15 @@ class Background_Process_Image extends Background_Process {
 	 * @access protected
 	 *
 	 * @param array $image An EWWW_Image() object with all the pertinent details.
-	 * @param int   $attempts How many previous attempts have been made. Optional, default 0.
+	 * @param array $item The id of the db record for an image, how many attempts have been made to process
+	 *                    the item, along with any other optimization parameters.
 	 * @return bool Similar to task(), false indicates completion, true to re-queue image.
 	 */
-	protected function process_image( $image, $attempts = 0 ) {
+	protected function process_image( $image, $item ) {
 		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$output          = array();
 		$time_adjustment = 0;
+		$attempts        = $item['attempts'];
 
 		// Prevents the 'updates' column from increasing, because this is intentional, usually.
 		// And even if it isn't, we probably have no way of tracking the source.
@@ -224,6 +226,48 @@ class Background_Process_Image extends Background_Process {
 				if ( ! empty( $new_dimensions ) && \is_array( $new_dimensions ) ) {
 					$meta['width']  = $new_dimensions[0];
 					$meta['height'] = $new_dimensions[1];
+					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_preserve_originals' ) ) {
+						$scaled_file = ewww_image_optimizer_scaled_filename( $image->file );
+						if ( ewwwio_is_file( $scaled_file ) ) {
+							$already_optimized = \ewww_image_optimizer_find_already_optimized( $scaled_file );
+							global $wpdb;
+							$wpdb->update(
+								$wpdb->ewwwio_images,
+								array(
+									'pending'       => 1,
+									'attachment_id' => $image->attachment_id,
+									'gallery'       => 'media',
+									'resize'        => 'original_image',
+								),
+								array(
+									'id' => $already_optimized['id'],
+								)
+							);
+							$id_to_queue = $already_optimized['id'];
+							ewwwio()->background_image->push_to_queue(
+								array(
+									'id'           => $id_to_queue,
+									'new'          => $item['new'],
+									'convert_once' => $item['convert_once'],
+									'force_reopt'  => $item['force_reopt'],
+									'force_smart'  => $item['force_smart'],
+									'webp_only'    => $item['webp_only'],
+								)
+							);
+						}
+
+						\add_filter( 'as3cf_pre_update_attachment_metadata', '__return_true' );
+						$meta_saved = \wp_update_attachment_metadata( $image->attachment_id, $meta );
+
+						if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_originals' ) ) {
+							$image->resize      = 'original_image';
+							$ewww_image->resize = 'original_image';
+						} else {
+							\ewww_image_optimizer_delete_pending_image( $image->id );
+							\add_filter( $this->identifier . '_time_exceeded', '__return_true' );
+							return false;
+						}
+					}
 				}
 			} elseif ( empty( $image->resize ) ) {
 				$new_dimensions = \ewww_image_optimizer_resize_upload( $image->file );
