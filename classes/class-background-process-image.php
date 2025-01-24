@@ -113,6 +113,9 @@ class Background_Process_Image extends Background_Process {
 		global $ewww_convert;
 		$id = (int) $item['id'];
 		\ewwwio_debug_message( "background processing $id" );
+        if ( ewww_image_optmizer_function_exists( 'print_r' ) ) {
+			ewwwio_debug_message( print_r( $item, true ) );
+		}
 
 		if ( ! $this->is_key_valid() ) {
 			// There is another process running.
