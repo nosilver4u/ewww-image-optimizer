@@ -2322,6 +2322,41 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 			if ( ! empty( $new_dimensions ) && is_array( $new_dimensions ) ) {
 				$meta['width']  = $new_dimensions[0];
 				$meta['height'] = $new_dimensions[1];
+				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_preserve_originals' ) ) {
+					$meta        = ewww_image_optimizer_update_scaled_metadata( $meta, $id );
+					$scaled_file = ewww_image_optimizer_scaled_filename( $image->file );
+					if ( ewwwio_is_file( $scaled_file ) ) {
+						if ( ! empty( $ewww_image->id ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_originals' ) ) {
+							ewww_image_optimizer_delete_pending_image( $ewww_image->id );
+						} elseif ( ! empty( $ewww_image->id ) ) {
+							global $wpdb;
+							$wpdb->update(
+								$wpdb->ewwwio_images,
+								array(
+									'resize' => 'original_image',
+								),
+								array(
+									'id' => $ewww_image->id,
+								)
+							);
+						}
+						$ewww_image         = new EWWW_Image( $id, 'media', $scaled_file );
+						$ewww_image->resize = 'full';
+						$wpdb->update(
+							$wpdb->ewwwio_images,
+							array(
+								'pending'       => 1,
+								'attachment_id' => $image->attachment_id,
+								'gallery'       => 'media',
+								'resize'        => 'full',
+							),
+							array(
+								'id' => $ewww_image->id,
+							)
+						);
+						$image = $ewww_image;
+					}
+				}
 			}
 		} elseif ( empty( $image->resize ) && ewww_image_optimizer_should_resize_other_image( $image->file ) ) {
 			$new_dimensions = ewww_image_optimizer_resize_upload( $image->file );

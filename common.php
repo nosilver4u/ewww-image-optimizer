@@ -8867,6 +8867,18 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 			$meta['height'] = $new_dimensions[1];
 		}
 	}
+	if ( isset( $new_dimensions ) && is_array( $new_dimensions ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_preserve_originals' ) ) {
+		$meta        = ewww_image_optimizer_update_scaled_metadata( $meta, $id );
+		$scaled_file = ewww_image_optimizer_scaled_filename( $file_path );
+		if ( ewwwio_is_file( $scaled_file ) ) {
+			if ( ! empty( $ewww_image->id ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_originals' ) ) {
+				ewww_image_optimizer_delete_pending_image( $ewww_image->id );
+			}
+			$file_path          = $scaled_file;
+			$ewww_image         = new EWWW_Image( $id, 'media', $file_path );
+			$ewww_image->resize = 'full';
+		}
+	}
 	ewwwio_debug_message( 'running in sequence' );
 	// Run the optimization and store the results.
 	list( $file, $msg, $conv, $original ) = ewww_image_optimizer( $file_path, $gallery_type, false, $new_image, true );
