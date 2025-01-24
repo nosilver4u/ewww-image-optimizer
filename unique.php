@@ -1793,6 +1793,9 @@ function ewww_image_optimizer_remove_binaries() {
 	foreach ( $iterator as $file ) {
 		if ( $file->isFile() ) {
 			$path = $file->getPathname();
+			if ( strpos( $path, 'image-backup' ) ) {
+				continue;
+			}
 			if ( is_writable( $path ) ) {
 				unlink( $path );
 			}

@@ -1328,6 +1328,10 @@ function ewww_image_optimizer_should_resize( $file, $media = false ) {
 	if ( ! $media && ! ewww_image_optimizer_should_resize_other_image( $file ) ) {
 		return false;
 	}
+	global $ewww_image;
+	if ( $media && ! empty( $ewww_image->resize ) && 'full' !== $ewww_image->resize ) {
+		return false;
+	}
 	global $optimized_list;
 	$maxwidth  = ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherwidth' );
 	$maxheight = ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherheight' );
@@ -2214,6 +2218,7 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 	ewwwio()->defer  = false;
 	$output          = array();
 	$time_adjustment = 0;
+	$add_to_total    = 0;
 	add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 	// Verify that an authorized user has started the optimizer.
 	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
@@ -2323,12 +2328,13 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 				$meta['width']  = $new_dimensions[0];
 				$meta['height'] = $new_dimensions[1];
 				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_preserve_originals' ) ) {
-					$meta        = ewww_image_optimizer_update_scaled_metadata( $meta, $id );
+					$meta        = ewww_image_optimizer_update_scaled_metadata( $meta, $image->attachment_id );
 					$scaled_file = ewww_image_optimizer_scaled_filename( $image->file );
 					if ( ewwwio_is_file( $scaled_file ) ) {
 						if ( ! empty( $ewww_image->id ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_originals' ) ) {
 							ewww_image_optimizer_delete_pending_image( $ewww_image->id );
 						} elseif ( ! empty( $ewww_image->id ) ) {
+							$add_to_total = 1;
 							global $wpdb;
 							$wpdb->update(
 								$wpdb->ewwwio_images,
@@ -2340,8 +2346,12 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 								)
 							);
 						}
-						$ewww_image         = new EWWW_Image( $id, 'media', $scaled_file );
-						$ewww_image->resize = 'full';
+						set_transient( 'ewww_image_optimizer_bulk_current_image', $scaled_file, 600 );
+						delete_transient( 'ewww_image_optimizer_failed_file' );
+						$ewww_image                = new EWWW_Image( 0, 'media', $scaled_file );
+						$ewww_image->resize        = 'full';
+						$ewww_image->attachment_id = $image->attachment_id;
+						$ewww_image->gallery       = 'media';
 						$wpdb->update(
 							$wpdb->ewwwio_images,
 							array(
@@ -2507,6 +2517,8 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		$debug_id           = uniqid();
 		$output['results'] .= "<button type='button' class='ewww-show-debug-meta button button-secondary' data-id='$debug_id'>$debug_button</button><div class='ewww-debug-meta-$debug_id' style='background-color:#f1f1f1;display:none;'>" . EWWW\Base::$debug_data . '</div>';
 	}
+
+	$output['add_to_total'] = (int) $add_to_total;
 
 	if ( ! empty( $next_image->file ) ) {
 		$next_file = esc_html( $next_image->file );
