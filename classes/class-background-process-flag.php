@@ -52,8 +52,8 @@ class Background_Process_Flag extends Background_Process {
 		if ( empty( $item['attempts'] ) ) {
 			$item['attempts'] = 0;
 		}
-		$id = $item['id'];
-		ewwwio_debug_message( "background processing flagallery: $id" );
+		$attachment_id = $item['attachment_id'];
+		ewwwio_debug_message( "background processing flagallery: $attachment_id" );
 		if ( ! class_exists( 'flagMeta' ) ) {
 			if ( defined( 'FLAG_ABSPATH' ) && ewwwio_is_file( FLAG_ABSPATH . 'lib/meta.php' ) ) {
 				require_once FLAG_ABSPATH . 'lib/meta.php';
@@ -62,7 +62,7 @@ class Background_Process_Flag extends Background_Process {
 			}
 		}
 		// Retrieve the metadata for the image.
-		$meta = new flagMeta( $id );
+		$meta = new flagMeta( $attachment_id );
 		if ( empty( $meta ) ) {
 			++$item['attempts'];
 			sleep( 4 );
@@ -70,7 +70,7 @@ class Background_Process_Flag extends Background_Process {
 			return $item;
 		}
 		global $ewwwflag;
-		$ewwwflag->ewww_added_new_image( $id, $meta );
+		$ewwwflag->ewww_added_new_image( $attachment_id, $meta );
 		return false;
 	}
 
@@ -83,7 +83,7 @@ class Background_Process_Flag extends Background_Process {
 	 *                    the item and whether it is a new upload.
 	 */
 	protected function failure( $item ) {
-		if ( empty( $item['id'] ) ) {
+		if ( empty( $item['attachment_id'] ) ) {
 			return;
 		}
 		if ( ! class_exists( 'flagMeta' ) ) {
@@ -94,7 +94,7 @@ class Background_Process_Flag extends Background_Process {
 			}
 		}
 		// Retrieve the metadata for the image.
-		$meta = new flagMeta( $item['id'] );
+		$meta = new flagMeta( $item['attachment_id'] );
 		if ( ! empty( $meta ) && isset( $meta->image->imagePath ) ) {
 			ewww_image_optimizer_add_file_exclusion( $meta->image->imagePath );
 		}

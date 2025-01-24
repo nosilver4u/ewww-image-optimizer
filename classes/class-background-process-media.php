@@ -87,34 +87,34 @@ class Background_Process_Media extends Background_Process {
 		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		ewwwio()->defer = false;
 		$max_attempts   = 15;
-		$id             = $item['id'];
+		$attachment_id  = $item['attachment_id'];
 		if ( empty( $item['attempts'] ) && ! empty( $item['new'] ) ) {
 			ewwwio_debug_message( 'first attempt on new upload, going to sleep for a second' );
 			$item['attempts'] = 0;
 			sleep( 1 ); // On the first attempt, hold off and wait for the db to catch up.
 		}
-		$type = get_post_mime_type( $id );
+		$type = get_post_mime_type( $attachment_id );
 		if ( empty( $type ) ) {
 			ewwwio_debug_message( "mime is missing, requeueing {$item['attempts']}" );
 			sleep( 4 );
 			return $item;
 		}
 
-		ewwwio_debug_message( "background processing $id, type: " . $type );
+		ewwwio_debug_message( "background processing $attachment_id, type: " . $type );
 		$supported_types = ewwwio()->get_supported_types();
 
 		if ( in_array( $type, $supported_types, true ) && $item['new'] && class_exists( 'wpCloud\StatelessMedia\EWWW' ) ) {
-			$meta = wp_get_attachment_metadata( $id );
+			$meta = wp_get_attachment_metadata( $attachment_id );
 		} else {
 			// This is unfiltered for performance, because we don't often need filtered meta.
-			$meta = wp_get_attachment_metadata( $id, true );
+			$meta = wp_get_attachment_metadata( $attachment_id, true );
 		}
 		if ( in_array( $type, $supported_types, true ) && empty( $meta ) ) {
 			ewwwio_debug_message( "metadata is missing, requeueing {$item['attempts']}" );
 			sleep( 4 );
 			return $item;
 		}
-		$this->process_attachment( $meta, $item, $id );
+		$this->process_attachment( $meta, $item, $attachment_id );
 
 		return false;
 	}
@@ -452,14 +452,14 @@ class Background_Process_Media extends Background_Process {
 	 *                    the item and whether it is a new upload.
 	 */
 	protected function failure( $item ) {
-		if ( empty( $item['id'] ) ) {
+		if ( empty( $item['attachment_id'] ) ) {
 			return;
 		}
 		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$file_path = false;
-		$meta      = \wp_get_attachment_metadata( $item['id'] );
+		$meta      = \wp_get_attachment_metadata( $item['attachment_id'] );
 		if ( ! empty( $meta ) ) {
-			list( $file_path, $upload_path ) = \ewww_image_optimizer_attachment_path( $meta, $item['id'] );
+			list( $file_path, $upload_path ) = \ewww_image_optimizer_attachment_path( $meta, $item['attachment_id'] );
 		}
 
 		if ( $file_path ) {

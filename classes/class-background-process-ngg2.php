@@ -54,14 +54,14 @@ class Background_Process_Ngg2 extends Background_Process {
 		if ( empty( $item['attempts'] ) ) {
 			$item['attempts'] = 0;
 		}
-		$id = $item['id'];
-		ewwwio_debug_message( "background processing nextgen2: $id" );
+		$attachment_id = $item['attachment_id'];
+		ewwwio_debug_message( "background processing nextgen2: $attachment_id" );
 		if ( ! defined( 'NGG_PLUGIN_VERSION' ) ) {
 			return false;
 		}
 		global $ewwwngg;
 		// Get a NextGEN image object.
-		$image = $ewwwngg->get_ngg_image( $id );
+		$image = $ewwwngg->get_ngg_image( $attachment_id );
 		if ( ! is_object( $image ) ) {
 			++$item['attempts'];
 			sleep( 4 );
@@ -81,7 +81,7 @@ class Background_Process_Ngg2 extends Background_Process {
 	 *                    the item and whether it is a new upload.
 	 */
 	protected function failure( $item ) {
-		if ( empty( $item['id'] ) ) {
+		if ( empty( $item['attachment_id'] ) ) {
 			return;
 		}
 		if ( ! defined( 'NGG_PLUGIN_VERSION' ) ) {
@@ -89,7 +89,7 @@ class Background_Process_Ngg2 extends Background_Process {
 		}
 		// Get a NextGEN image object.
 		global $ewwwngg;
-		$image     = $ewwwngg->get_ngg_image( $item['id'] );
+		$image     = $ewwwngg->get_ngg_image( $item['attachment_id'] );
 		$file_path = $ewwwngg->get_image_abspath( $image, 'full' );
 		if ( ! empty( $file_path ) ) {
 			ewww_image_optimizer_add_file_exclusion( $file_path );

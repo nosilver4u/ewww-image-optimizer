@@ -73,37 +73,6 @@ class Background_Process_Image extends Background_Process {
 	 *
 	 * @access protected
 	 *
-	 * @param string $item The filename of the attachment.
-	 * @return bool False indicates completion.
-	 */
-	protected function old_task( $item ) {
-		\session_write_close();
-		$id = (int) $item['id'];
-		\ewwwio_debug_message( "background processing $id" );
-		$file_path = \ewww_image_optimizer_find_file_by_id( $id );
-		if ( $file_path ) {
-			$attachment = array(
-				'id'   => $id,
-				'path' => $file_path,
-			);
-			\ewwwio_debug_message( "processing background optimization request for $file_path" );
-			\ewww_image_optimizer_aux_images_loop( $attachment, true );
-		} else {
-			\ewwwio_debug_message( "could not find file to process background optimization request for $id" );
-			return false;
-		}
-		$delay = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' );
-		if ( $delay && \ewww_image_optimizer_function_exists( 'sleep' ) ) {
-			sleep( $delay );
-		}
-		return false;
-	}
-
-	/**
-	 * Runs optimization for a file from the image queue.
-	 *
-	 * @access protected
-	 *
 	 * @param array $item The id of the db record for an image, how many attempts have been made to process
 	 *                    the item, along with any other optimization parameters.
 	 * @return bool False indicates completion.
@@ -111,9 +80,10 @@ class Background_Process_Image extends Background_Process {
 	protected function task( $item ) {
 		\session_write_close();
 		global $ewww_convert;
-		$id = (int) $item['id'];
-		\ewwwio_debug_message( "background processing $id" );
-        if ( \ewww_image_optimizer_function_exists( 'print_r' ) ) {
+		$id        = (int) $item['id'];
+		$record_id = (int) $item['attachment_id'];
+		\ewwwio_debug_message( "background processing item $id (record $record_id)" );
+		if ( \ewww_image_optimizer_function_exists( 'print_r' ) ) {
 			\ewwwio_debug_message( print_r( $item, true ) );
 		}
 
@@ -124,7 +94,7 @@ class Background_Process_Image extends Background_Process {
 		}
 		\ewwwio_debug_message( 'this key is still active: ' . $this->lock_key );
 
-		$image = new \EWWW_Image( $id );
+		$image = new \EWWW_Image( $record_id );
 		// Force the process to re-spawn if we don't have enough time remaining for this image.
 		$time_estimate = $image->time_estimate();
 		if ( empty( $image->retrieve ) && $this->completed && time() + $time_estimate > $this->start_time + \apply_filters( $this->identifier . '_default_time_limit', $this->time_limit ) ) {
@@ -253,7 +223,7 @@ class Background_Process_Image extends Background_Process {
 									'scanned'       => 0,
 								),
 								array(
-									'attachment_id' => $item['id'],
+									'id' => $item['id'],
 								)
 							);
 						}
@@ -268,12 +238,12 @@ class Background_Process_Image extends Background_Process {
 									'resize' => 'original_image',
 								),
 								array(
-									'id' => $item['id'],
+									'id' => $item['attachment_id'],
 								)
 							);
 							ewwwio()->background_image->push_to_queue(
 								array(
-									'id'           => $item['id'],
+									'id'           => $item['attachment_id'],
 									'new'          => $item['new'],
 									'convert_once' => $item['convert_once'],
 									'force_reopt'  => $item['force_reopt'],
@@ -409,10 +379,10 @@ class Background_Process_Image extends Background_Process {
 		if ( empty( $item['id'] ) ) {
 			return;
 		}
-		$file_path = \ewww_image_optimizer_find_file_by_id( $item['id'] );
+		$file_path = \ewww_image_optimizer_find_file_by_id( $item['attachment_id'] );
 		if ( $file_path ) {
 			\ewww_image_optimizer_add_file_exclusion( $file_path );
 		}
-		\ewww_image_optimizer_delete_pending_image( $item['id'] );
+		\ewww_image_optimizer_delete_pending_image( $item['attachment_id'] );
 	}
 }

@@ -46,12 +46,12 @@ class Background_Process_Attachment_Update extends Background_Process {
 	protected function task( $item ) {
 		session_write_close();
 		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-		if ( empty( $item['id'] ) ) {
+		if ( empty( $item['attachment_id'] ) ) {
 			return false;
 		}
-		$id = (int) $item['id'];
-		\ewwwio_debug_message( "updating attachment $id" );
-		\ewww_image_optimizer_post_optimize_attachment( $id );
+		$attachment_id = (int) $item['attachment_id'];
+		\ewwwio_debug_message( "updating attachment $attachment_id" );
+		\ewww_image_optimizer_post_optimize_attachment( $attachment_id );
 		return false;
 	}
 
