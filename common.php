@@ -8614,27 +8614,36 @@ function ewwwio_get_original_image_path_from_thumb( $image_file, $id = 0 ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$id             = (int) $id;
 	$original_image = '';
+
 	if ( ! empty( $id ) ) {
 		$original_image = wp_get_original_image_path( $id, true );
 		ewwwio_debug_message( "possible original from wp_get_original_image_path() at $original_image" );
-		if ( $original_image && ewwwio_is_file( $original_image ) ) {
+		if ( $original_image && ewwwio_is_file( $original_image ) && false === strpos( $original_image, '-scaled.' ) ) {
+			ewwwio_debug_message( 'got em' );
 			return $original_image;
 		}
 	}
 
 	// If core was no good, try stripping the dimensions and '-scaled' from the filename.
-	$original_unscaled_image = preg_replace( '#(?:-scaled)?-\d+x\d+(\.jpe?g)#i', '$1', $file );
+	$original_unscaled_image = preg_replace( '#(?:-scaled)?-\d+x\d+(\.jpe?g)#i', '$1', $image_file );
 	ewwwio_debug_message( "possible unscaled original at $original_unscaled_image" );
-	if ( ewwwio_is_file( $original_unscaled_image ) ) {
+	if ( $original_unscaled_image && $original_unscaled_image !== $image_file && ewwwio_is_file( $original_unscaled_image ) ) {
 		ewwwio_debug_message( 'got em' );
 		return $original_unscaled_image;
 	}
-	$original_scaled_image = preg_replace( '#(?:-scaled)?-\d+x\d+(\.jpe?g)#i', '-scaled$1', $file );
+
+	if ( $original_image && ewwwio_is_file( $original_image ) ) {
+		ewwwio_debug_message( 'got em' );
+		return $original_image;
+	}
+
+	$original_scaled_image = preg_replace( '#(?:-scaled)?-\d+x\d+(\.jpe?g)#i', '-scaled$1', $image_file );
 	ewwwio_debug_message( "possible scaled original at $original_scaled_image" );
-	if ( ewwwio_is_file( $original_scaled_image ) ) {
+	if ( $original_scaled_image && $original_scaled_image !== $image_file && ewwwio_is_file( $original_scaled_image ) ) {
 		ewwwio_debug_message( 'got em' );
 		return $original_scaled_image;
 	}
+
 	ewwwio_debug_message( 'no original to be found!' );
 	return $original_image;
 }
@@ -10514,7 +10523,6 @@ function ewww_image_optimizer_custom_column_results( $id, $optimized_images ) {
 		return array( '', false, false );
 	}
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	global $ewwwio_resize_status;
 	$orig_size        = 0;
 	$opt_size         = 0;
 	$converted        = false;
@@ -10533,7 +10541,7 @@ function ewww_image_optimizer_custom_column_results( $id, $optimized_images ) {
 			$updated_time = strtotime( $optimized_image['updated'] );
 			global $eio_backup;
 			$backup_available = $eio_backup->is_backup_available( $optimized_image['path'], $optimized_image );
-			if ( empty( $ewwwio_resize_status ) && ! is_null( $optimized_image['resize_error'] ) ) {
+			if ( ! is_null( $optimized_image['resize_error'] ) ) {
 				ewwwio_debug_message( "resize results found: {$optimized_image['resize_error']}, {$optimized_image['resized_width']} x {$optimized_image['resized_height']}" );
 				$resize_status = ewww_image_optimizer_resize_results_message( $optimized_image['path'], $optimized_image['resize_error'] );
 			}
@@ -10542,9 +10550,6 @@ function ewww_image_optimizer_custom_column_results( $id, $optimized_images ) {
 			$converted = ewww_image_optimizer_absolutize_path( $optimized_image['converted'] );
 		}
 		++$sizes_to_opt;
-		if ( ! empty( $ewwwio_resize_status ) ) {
-			$resize_status = $ewwwio_resize_status;
-		}
 		if ( ! empty( $optimized_image['resize'] ) ) {
 			$display_size   = ewww_image_optimizer_size_format( $optimized_image['image_size'] );
 			$detail_output .= '<tr><td><strong>' . ucfirst( $optimized_image['resize'] ) . "</strong></td><td>$display_size</td><td>" . esc_html( ewww_image_optimizer_image_results( $optimized_image['orig_size'], $optimized_image['image_size'] ) ) . ( ! empty( $resize_status ) ? '<br>' . $resize_status : '' ) . '</td></tr>';
@@ -10552,9 +10557,6 @@ function ewww_image_optimizer_custom_column_results( $id, $optimized_images ) {
 	}
 	$detail_output .= '</table>';
 
-	if ( ! empty( $ewwwio_resize_status ) ) {
-		/* $output .= '<div>' . esc_html( $ewwwio_resize_status ) . '</div>'; */
-	}
 	$output .= '<div>' . sprintf(
 		esc_html(
 			/* translators: %d: number of resizes/thumbnails compressed */
