@@ -190,7 +190,7 @@ abstract class Background_Process extends Async_Request {
 	public function update( $id, $data = array() ) {
 		if ( ! empty( $id ) ) {
 			global $wpdb;
-			$wpdb->get_row( $wpdb->prepare( "UPDATE $wpdb->ewwwio_queue SET scanned=scanned+1 WHERE attachment_id = %d AND gallery = %s LIMIT 1", $id, $this->active_queue ) );
+			$wpdb->get_row( $wpdb->prepare( "UPDATE $wpdb->ewwwio_queue SET scanned=scanned+1 WHERE id = %d LIMIT 1", $id ) );
 		}
 	}
 
@@ -208,10 +208,9 @@ abstract class Background_Process extends Async_Request {
 		$wpdb->delete(
 			$wpdb->ewwwio_queue,
 			array(
-				'attachment_id' => $key,
-				'gallery'       => $this->active_queue,
+				'id' => $key,
 			),
-			array( '%d', '%s' )
+			array( '%d' )
 		);
 	}
 
@@ -433,7 +432,7 @@ abstract class Background_Process extends Async_Request {
 	 */
 	protected function get_batch() {
 		global $wpdb;
-		$batch = $wpdb->get_results( $wpdb->prepare( "SELECT attachment_id AS id, scanned AS attempts, new, convert_once, force_reopt, force_smart, webp_only FROM $wpdb->ewwwio_queue WHERE gallery = %s LIMIT %d", $this->active_queue, $this->limit ), ARRAY_A );
+		$batch = $wpdb->get_results( $wpdb->prepare( "SELECT id, attachment_id, scanned AS attempts, new, convert_once, force_reopt, force_smart, webp_only FROM $wpdb->ewwwio_queue WHERE gallery = %s ORDER BY id LIMIT %d", $this->active_queue, $this->limit ), ARRAY_A );
 		if ( empty( $batch ) ) {
 			return array();
 		}

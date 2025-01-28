@@ -73,37 +73,6 @@ class Background_Process_Image extends Background_Process {
 	 *
 	 * @access protected
 	 *
-	 * @param string $item The filename of the attachment.
-	 * @return bool False indicates completion.
-	 */
-	protected function old_task( $item ) {
-		\session_write_close();
-		$id = (int) $item['id'];
-		\ewwwio_debug_message( "background processing $id" );
-		$file_path = \ewww_image_optimizer_find_file_by_id( $id );
-		if ( $file_path ) {
-			$attachment = array(
-				'id'   => $id,
-				'path' => $file_path,
-			);
-			\ewwwio_debug_message( "processing background optimization request for $file_path" );
-			\ewww_image_optimizer_aux_images_loop( $attachment, true );
-		} else {
-			\ewwwio_debug_message( "could not find file to process background optimization request for $id" );
-			return false;
-		}
-		$delay = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' );
-		if ( $delay && \ewww_image_optimizer_function_exists( 'sleep' ) ) {
-			sleep( $delay );
-		}
-		return false;
-	}
-
-	/**
-	 * Runs optimization for a file from the image queue.
-	 *
-	 * @access protected
-	 *
 	 * @param array $item The id of the db record for an image, how many attempts have been made to process
 	 *                    the item, along with any other optimization parameters.
 	 * @return bool False indicates completion.
@@ -111,8 +80,12 @@ class Background_Process_Image extends Background_Process {
 	protected function task( $item ) {
 		\session_write_close();
 		global $ewww_convert;
-		$id = (int) $item['id'];
-		\ewwwio_debug_message( "background processing $id" );
+		$id        = (int) $item['id'];
+		$record_id = (int) $item['attachment_id'];
+		\ewwwio_debug_message( "background processing item $id (record $record_id)" );
+		if ( \ewww_image_optimizer_function_exists( 'print_r' ) ) {
+			\ewwwio_debug_message( print_r( $item, true ) );
+		}
 
 		if ( ! $this->is_key_valid() ) {
 			// There is another process running.
@@ -121,7 +94,7 @@ class Background_Process_Image extends Background_Process {
 		}
 		\ewwwio_debug_message( 'this key is still active: ' . $this->lock_key );
 
-		$image = new \EWWW_Image( $id );
+		$image = new \EWWW_Image( $record_id );
 		// Force the process to re-spawn if we don't have enough time remaining for this image.
 		$time_estimate = $image->time_estimate();
 		if ( empty( $image->retrieve ) && $this->completed && time() + $time_estimate > $this->start_time + \apply_filters( $this->identifier . '_default_time_limit', $this->time_limit ) ) {
@@ -137,7 +110,7 @@ class Background_Process_Image extends Background_Process {
 			\ewwwio()->force_smart = $item['force_smart'];
 			\ewwwio()->webp_only   = $item['webp_only'];
 			\ewwwio_debug_message( "processing background optimization request for $image->file, converting: $ewww_convert" );
-			$pending = $this->process_image( $image, $item['attempts'] );
+			$pending = $this->process_image( $image, $item );
 			if ( $pending ) {
 				\ewwwio_debug_message( "requeueing $id" );
 				return $item;
@@ -163,13 +136,15 @@ class Background_Process_Image extends Background_Process {
 	 * @access protected
 	 *
 	 * @param array $image An EWWW_Image() object with all the pertinent details.
-	 * @param int   $attempts How many previous attempts have been made. Optional, default 0.
+	 * @param array $item The id of the db record for an image, how many attempts have been made to process
+	 *                    the item, along with any other optimization parameters.
 	 * @return bool Similar to task(), false indicates completion, true to re-queue image.
 	 */
-	protected function process_image( $image, $attempts = 0 ) {
+	protected function process_image( $image, $item ) {
 		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$output          = array();
 		$time_adjustment = 0;
+		$attempts        = $item['attempts'];
 
 		// Prevents the 'updates' column from increasing, because this is intentional, usually.
 		// And even if it isn't, we probably have no way of tracking the source.
@@ -224,6 +199,64 @@ class Background_Process_Image extends Background_Process {
 				if ( ! empty( $new_dimensions ) && \is_array( $new_dimensions ) ) {
 					$meta['width']  = $new_dimensions[0];
 					$meta['height'] = $new_dimensions[1];
+					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_preserve_originals' ) ) {
+						$scaled_file = ewww_image_optimizer_scaled_filename( $image->file );
+						if ( ewwwio_is_file( $scaled_file ) ) {
+							$already_optimized = \ewww_image_optimizer_find_already_optimized( $scaled_file );
+							global $wpdb;
+							$wpdb->update(
+								$wpdb->ewwwio_images,
+								array(
+									'pending'       => 1,
+									'attachment_id' => $image->attachment_id,
+									'gallery'       => 'media',
+									'resize'        => 'full',
+								),
+								array(
+									'id' => $already_optimized['id'],
+								)
+							);
+							$wpdb->update(
+								$wpdb->ewwwio_queue,
+								array(
+									'attachment_id' => $already_optimized['id'],
+									'scanned'       => 0,
+								),
+								array(
+									'id' => $item['id'],
+								)
+							);
+						}
+
+						\add_filter( 'as3cf_pre_update_attachment_metadata', '__return_true' );
+						$meta_saved = \wp_update_attachment_metadata( $image->attachment_id, $meta );
+
+						if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_include_originals' ) ) {
+							$wpdb->update(
+								$wpdb->ewwwio_images,
+								array(
+									'resize' => 'original_image',
+								),
+								array(
+									'id' => $item['attachment_id'],
+								)
+							);
+							ewwwio()->background_image->push_to_queue(
+								array(
+									'id'           => $item['attachment_id'],
+									'new'          => $item['new'],
+									'convert_once' => $item['convert_once'],
+									'force_reopt'  => $item['force_reopt'],
+									'force_smart'  => $item['force_smart'],
+									'webp_only'    => $item['webp_only'],
+								)
+							);
+						} else {
+							\ewww_image_optimizer_delete_pending_image( $image->id );
+						}
+						\add_filter( $this->identifier . '_time_exceeded', '__return_true' );
+						return true;
+					}
 				}
 			} elseif ( empty( $image->resize ) ) {
 				$new_dimensions = \ewww_image_optimizer_resize_upload( $image->file );
@@ -346,10 +379,10 @@ class Background_Process_Image extends Background_Process {
 		if ( empty( $item['id'] ) ) {
 			return;
 		}
-		$file_path = \ewww_image_optimizer_find_file_by_id( $item['id'] );
+		$file_path = \ewww_image_optimizer_find_file_by_id( $item['attachment_id'] );
 		if ( $file_path ) {
 			\ewww_image_optimizer_add_file_exclusion( $file_path );
 		}
-		\ewww_image_optimizer_delete_pending_image( $item['id'] );
+		\ewww_image_optimizer_delete_pending_image( $item['attachment_id'] );
 	}
 }

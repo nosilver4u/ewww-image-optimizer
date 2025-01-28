@@ -197,6 +197,7 @@ class EWWW_Image {
 		if ( ! is_string( $gallery ) ) {
 			$gallery = '';
 		}
+		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$id = (int) $id;
 		global $wpdb;
 		$wpdb->flush();

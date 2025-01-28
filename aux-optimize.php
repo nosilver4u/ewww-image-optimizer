@@ -1397,7 +1397,7 @@ function ewww_image_optimizer_attachment_has_pending_sizes( $id, $gallery = 'med
 function ewww_image_optimizer_image_is_pending( $id, $gallery = 'media' ) {
 	global $wpdb;
 	$id = (int) $id;
-	return $wpdb->get_var( $wpdb->prepare( "SELECT attachment_id FROM $wpdb->ewwwio_queue WHERE attachment_id = %d AND gallery = %s", $id, $gallery ) );
+	return $wpdb->get_var( $wpdb->prepare( "SELECT attachment_id FROM $wpdb->ewwwio_queue WHERE attachment_id = %d AND gallery = %s LIMIT 1", $id, $gallery ) );
 }
 
 /**

@@ -52,8 +52,8 @@ class Background_Process_Ngg extends Background_Process {
 		if ( empty( $item['attempts'] ) ) {
 			$item['attempts'] = 0;
 		}
-		$id = $item['id'];
-		ewwwio_debug_message( "background processing nextcellent: $id" );
+		$attachment_id = $item['attachment_id'];
+		ewwwio_debug_message( "background processing nextcellent: $attachment_id" );
 		if ( ! class_exists( 'nggMeta' ) ) {
 			if ( defined( 'NGGALLERY_ABSPATH' ) && ewwwio_is_file( NGGALLERY_ABSPATH . 'lib/meta.php' ) ) {
 				require_once NGGALLERY_ABSPATH . '/lib/meta.php';
@@ -62,7 +62,7 @@ class Background_Process_Ngg extends Background_Process {
 			}
 		}
 		// Retrieve the metadata for the image.
-		$meta = new nggMeta( $id );
+		$meta = new nggMeta( $attachment_id );
 		if ( empty( $meta ) ) {
 			++$item['attempts'];
 			sleep( 4 );
@@ -70,7 +70,7 @@ class Background_Process_Ngg extends Background_Process {
 			return $item;
 		}
 		global $ewwwngg;
-		$ewwwngg->ewww_added_new_image( $id, $meta );
+		$ewwwngg->ewww_added_new_image( $attachment_id, $meta );
 		return false;
 	}
 
@@ -83,7 +83,7 @@ class Background_Process_Ngg extends Background_Process {
 	 *                    the item and whether it is a new upload.
 	 */
 	protected function failure( $item ) {
-		if ( empty( $item['id'] ) ) {
+		if ( empty( $item['attachment_id'] ) ) {
 			return;
 		}
 		if ( ! class_exists( 'nggMeta' ) ) {
@@ -94,7 +94,7 @@ class Background_Process_Ngg extends Background_Process {
 			}
 		}
 		// Retrieve the metadata for the image.
-		$meta = new nggMeta( $item['id'] );
+		$meta = new nggMeta( $item['attachment_id'] );
 		if ( ! empty( $meta ) && isset( $meta->image->imagePath ) ) {
 			ewww_image_optimizer_add_file_exclusion( $meta->image->imagePath );
 		}
