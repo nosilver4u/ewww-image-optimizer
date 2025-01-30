@@ -1,6 +1,6 @@
 <?php
 /**
- * Class and methods to integrate with the WP_Image_Editor_Imagick class and other extensions.
+ * Class and methods to extend the WP_Image_Editor_Imagick class.
  *
  * @link https://ewww.io
  * @package EWWW_Image_Optimizer
@@ -223,35 +223,30 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 				$return_parent = true;
 			}
 		}
-		// If this is a GIF, and we have no gifsicle, and there's an API key, but the status isn't 'great',
-		// double-check the key to see if the status has changed before bailing.
+		// If this is a GIF, and we have no gifsicle, and there's an API key, but the status isn't 'great'.
 		if (
 			'image/gif' === $this->mime_type &&
 			empty( $gifsicle_path ) &&
 			false === strpos( $ewww_status, 'great' ) &&
-			ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
-			! ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) )
+			ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' )
 		) {
 			ewwwio_debug_message( 'no API key to resize an animated GIF' );
 			$return_parent = true;
 		}
-		// If this is some other image, and there's an API key, but the status isn't 'great',
-		// double-check the key to see if the status has changed before bailing.
+		// If this is some other image, and there's an API key, but the status isn't 'great'.
 		if (
 			'image/gif' !== $this->mime_type &&
 			false === strpos( $ewww_status, 'great' ) &&
-			ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
-			! ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) )
+			ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' )
 		) {
 			ewwwio_debug_message( 'no API to resize the image' );
 			$return_parent = true;
 		}
-		// If this isn't a GIF, or if the GIF isn't animated, then bail--we don't yet support "better resizing" for non-GIFs.
+		// If this isn't a GIF, or if the GIF isn't animated, then bail.
 		if ( 'image/gif' !== $this->mime_type || ! ewww_image_optimizer_is_animated( $this->file ) ) {
 			ewwwio_debug_message( 'not an animated GIF' );
 			$return_parent = true;
 		}
-		// TODO: Possibly handle crop, rotate, and flip down the road.
 		if ( $this->modified ) {
 			ewwwio_debug_message( 'image already altered, leave it alone' );
 			$return_parent = true;
@@ -552,7 +547,7 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 
 			if ( ! is_wp_error( $resize_result ) && ! $duplicate ) {
 				if ( is_string( $resize_result ) ) {
-					$resized = $this->_save_ewwwio_file( $resize_result );
+					$resized = $this->_save_file_from_string( $resize_result );
 					unset( $resize_result );
 					// Note sure this bit is necessary, but just to be safe.
 					$this->image->clear();
@@ -637,21 +632,15 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 	 * @param string $mime_type Optional. The mimetype of the file.
 	 * @return WP_Error|array The full path, base filename, and mimetype.
 	 */
-	protected function _save_ewwwio_file( $image, $filename = null, $mime_type = null ) {
+	protected function _save_file_from_string( $image, $filename = null, $mime_type = null ) {
 		ewwwio_debug_message( '<b>wp_image_editor_imagick::' . __FUNCTION__ . '()</b>' );
 		list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
 		if ( ! $filename ) {
 			$filename = $this->generate_filename( null, null, $extension );
 		}
 		if ( wp_is_stream( $filename ) ) {
-			$imagick = new Imagick();
-			try {
-				$imagick->readImageBlob( $image );
-			} catch ( Exception $e ) {
-				return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
-			}
 			unset( $this->ewww_image );
-			return parent::_save( $imagick, $filename, $mime_type );
+			return parent::_save( $this->image, $filename, $mime_type );
 		}
 		if ( ! is_string( $image ) ) {
 			unset( $this->ewww_image );
@@ -700,36 +689,26 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 	 *
 	 * @since 1.7.0
 	 *
-	 * @param resource $image An Imagick image object.
+	 * @param resource $image An Imagick image object. Not actually used for some reason.
 	 * @param string   $filename Optional. The name of the file to be saved to.
 	 * @param string   $mime_type Optional. The mimetype of the file.
 	 * @return WP_Error| array The full path, base filename, width, height, and mimetype.
 	 */
 	protected function _save( $image, $filename = null, $mime_type = null ) {
 		ewwwio_debug_message( '<b>wp_image_editor_imagick::' . __FUNCTION__ . '()</b>' );
-		global $ewww_preempt_editor;
-		$special_palettes = array( 'PNG1', 'PNG2', 'PNG4', 'PNG8' );
+
 		// If something is in the 'ewww_image' property, meaning this is likely a GIF that has been
 		// resized by EWWW IO, and the image wasn't otherwise cropped, rotated, etc.
 		if ( ! empty( $this->ewww_image ) && ! $this->modified ) {
-			return $this->_save_ewwwio_file( $this->ewww_image, $filename, $mime_type );
+			return $this->_save_file_from_string( $this->ewww_image, $filename, $mime_type );
 		}
-		if ( ! empty( $ewww_preempt_editor ) || ! defined( 'EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR' ) || ! EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR ) {
-			ewwwio_debug_message( 'EWWW editor not enabled, using parent _save()' );
-			$saved = parent::_save( $image, $filename, $mime_type );
-			if ( ! is_wp_error( $saved ) && $this->indexed_color_encoded && ! empty( $saved['path'] ) ) {
-				ewwwio_debug_message( "reducing to $this->indexed_max_colors colors" );
-				ewww_image_optimizer_reduce_palette( $saved['path'], $this->indexed_max_colors );
-			}
-			if ( is_wp_error( $saved ) ) {
-				ewwwio_debug_message( 'editor error: ' . $saved->get_error_message() );
-			}
-			return $saved;
-		}
+
 		list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
 		if ( ! $filename ) {
 			$filename = $this->generate_filename( null, null, $extension );
 		}
+		\ewwwio_debug_message( "saving $filename" );
+
 		if ( ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) || ! EWWWIO_EDITOR_OVERWRITE ) && ewwwio_is_file( $filename ) ) {
 			ewwwio_debug_message( "detected existing file: $filename" );
 			$current_size = wp_getimagesize( $filename );
@@ -744,25 +723,169 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 				);
 			}
 		}
-		$saved = parent::_save( $image, $filename, $mime_type );
 
-		if ( ! is_wp_error( $saved ) ) {
-			if ( ! $filename ) {
-				$filename = $saved['path'];
+		$sharp_yuv = defined( 'EIO_WEBP_SHARP_YUV' ) && EIO_WEBP_SHARP_YUV ? true : false;
+		if ( empty( $sharp_yuv ) && \ewww_image_optimizer_get_option( 'ewww_image_optimizer_sharpen' ) ) {
+			$sharp_yuv = true;
+		}
+		$profiles = array();
+		try {
+			// Store original format.
+			$orig_format = $this->image->getImageFormat();
+			\ewwwio_debug_message( "original format is $orig_format" );
+
+			if ( 'image/webp' === $mime_type ) {
+				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
+					// Getting possible color profiles.
+					$profiles = $this->image->getImageProfiles( 'icc', true );
+				}
+				\ewwwio_debug_message( 'checking colorspace for WebP (in case of incompatible CMYK)' );
+				$color = $this->image->getImageColorspace();
+				\ewwwio_debug_message( "color space is $color" );
+				if ( Imagick::COLORSPACE_CMYK === $color ) {
+					\ewwwio_debug_message( 'found CMYK image' );
+					if ( \ewwwio_is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/icc/sRGB2014.icc' ) ) {
+						\ewwwio_debug_message( 'adding sRGB2014.icc profile' );
+						$icc_profile = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/icc/sRGB2014.icc' );
+						$this->image->profileImage( 'icc', $icc_profile );
+					}
+					\ewwwio_debug_message( 'attempting SRGB transform' );
+					$this->image->transformImageColorspace( Imagick::COLORSPACE_SRGB );
+					\ewwwio_debug_message( 'removing icc profile' );
+					$this->image->setImageProfile( '*', null );
+					$profiles = array();
+				}
 			}
-			if ( ewwwio_is_file( $filename ) ) {
-				if ( $this->indexed_color_encoded && ! empty( $filename ) ) {
-					ewwwio_debug_message( "reducing to $this->indexed_max_colors colors" );
-					ewww_image_optimizer_reduce_palette( $filename, $this->indexed_max_colors );
+
+			$this->image->setImageFormat( strtoupper( $this->get_extension( $mime_type ) ) );
+
+			if ( 'image/webp' === $mime_type ) {
+				if ( $sharp_yuv ) {
+					\ewwwio_debug_message( 'enabling sharp_yuv' );
+					$this->image->setOption( 'webp:use-sharp-yuv', 'true' );
 				}
 
-				ewww_image_optimizer( $filename );
-				ewwwio_debug_message( "image editor (imagick) saved: $filename" );
-				$image_size = ewww_image_optimizer_filesize( $filename );
-				ewwwio_debug_message( "image editor size: $image_size" );
+				if ( \ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
+					\ewwwio_debug_message( 'removing meta' );
+					$this->image->stripImage();
+					if ( ! empty( $profiles ) ) {
+						\ewwwio_debug_message( 'adding color profile to WebP' );
+						$this->image->profileImage( 'icc', $profiles['icc'] );
+					}
+				}
+			}
+		} catch ( Exception $e ) {
+			return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
+		}
+
+		if ( method_exists( $this->image, 'setInterlaceScheme' )
+			&& method_exists( $this->image, 'getInterlaceScheme' )
+			&& defined( 'Imagick::INTERLACE_PLANE' )
+		) {
+			$orig_interlace = $this->image->getInterlaceScheme();
+
+			/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
+			if ( apply_filters( 'image_save_progressive', false, $mime_type ) ) {
+				$this->image->setInterlaceScheme( Imagick::INTERLACE_PLANE ); // True - line interlace output.
+			} else {
+				$this->image->setInterlaceScheme( Imagick::INTERLACE_NO ); // False - no interlace output.
 			}
 		}
-		ewwwio_memory( __FUNCTION__ );
-		return $saved;
+
+		$write_image_result = $this->write_image( $this->image, $filename );
+		if ( is_wp_error( $write_image_result ) ) {
+			return $write_image_result;
+		}
+
+		try {
+			// Reset original format.
+			$this->image->setImageFormat( $orig_format );
+
+			if ( isset( $orig_interlace ) ) {
+				$this->image->setInterlaceScheme( $orig_interlace );
+			}
+		} catch ( Exception $e ) {
+			return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
+		}
+
+		// Set correct file permissions.
+		$stat  = stat( dirname( $filename ) );
+		$perms = $stat['mode'] & 0000666; // Same permissions as parent folder, strip off the executable bits.
+		chmod( $filename, $perms );
+
+		if ( ewwwio_is_file( $filename ) ) {
+			if ( $this->indexed_color_encoded ) {
+				ewwwio_debug_message( "reducing to $this->indexed_max_colors colors" );
+				ewww_image_optimizer_reduce_palette( $filename, $this->indexed_max_colors );
+			}
+
+			global $ewww_preempt_editor;
+			if ( empty( $ewww_preempt_editor ) && defined( 'EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR' ) && EWWW_IMAGE_OPTIMIZER_ENABLE_EDITOR ) {
+				ewww_image_optimizer( $filename );
+			}
+			ewwwio_debug_message( "image editor (imagick) saved: $filename" );
+			$image_size = ewww_image_optimizer_filesize( $filename );
+			ewwwio_debug_message( "image editor size: $image_size" );
+		}
+
+		return array(
+			'path'      => $filename,
+			/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
+			'file'      => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
+			'width'     => $this->size['width'],
+			'height'    => $this->size['height'],
+			'mime-type' => $mime_type,
+			'filesize'  => wp_filesize( $filename ),
+		);
+	}
+
+	/**
+	 * Writes an image to a file or stream.
+	 *
+	 * @since 8.1.0
+	 *
+	 * @param Imagick $image An Imagick image object.
+	 * @param string  $filename The destination filename or stream URL.
+	 * @return true|WP_Error
+	 */
+	private function write_image( $image, $filename ) {
+		if ( wp_is_stream( $filename ) ) {
+			/*
+			 * Due to reports of issues with streams with `Imagick::writeImageFile()` and `Imagick::writeImage()`, copies the blob instead.
+			 * Checks for exact type due to: https://www.php.net/manual/en/function.file-put-contents.php
+			 */
+			if ( file_put_contents( $filename, $image->getImageBlob() ) === false ) {
+				return new WP_Error(
+					'image_save_error',
+					sprintf(
+						/* translators: %s: PHP function name. */
+						__( '%s failed while writing image to stream.', 'ewww-image-optimizer' ),
+						'<code>file_put_contents()</code>'
+					),
+					$filename
+				);
+			} else {
+				return true;
+			}
+		} else {
+			$dirname = dirname( $filename );
+
+			if ( ! wp_mkdir_p( $dirname ) ) {
+				return new WP_Error(
+					'image_save_error',
+					sprintf(
+						/* translators: %s: Directory path. */
+						__( 'Unable to create directory %s. Is its parent directory writable by the server?', 'ewww-image-optimizer' ),
+						esc_html( $dirname )
+					)
+				);
+			}
+
+			try {
+				return $image->writeImage( $filename );
+			} catch ( Exception $e ) {
+				return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
+			}
+		}
 	}
 }
