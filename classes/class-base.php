@@ -594,7 +594,7 @@ class Base {
 				$this->debug_message( 'sorry nope' );
 			}
 		}
-		return $this->imagick_supports_webp;
+		return apply_filters( 'ewwwio_imagick_supports_webp', $this->imagick_supports_webp );
 	}
 
 	/**

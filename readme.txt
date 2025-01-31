@@ -147,9 +147,15 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 8.0.1 =
 *Release Date - TBD*
 
+* added: Preserve Originals option to keep pre-scaled images for WebP and thumbnail generation
 * added: ability for 3rd party plugins to hook into Lazy Load and WebP HTML parsers
 * changed: improved performance of custom *_option functions on multisite
+* changed: Max Image Dimensions always override WP big_image threshold
+* changed: ImageMagick is default WebP conversion method on supported servers
+* changed: local image backups not removed on plugin deactivation
+* fixed: Sharpen Images not applied to new WebP Conversion process
 * fixed: WebP resizing overrides custom crop set by Crop Thumbnails
+* fixed: pre-scaled original cannot be found if attachment metadata is incomplete
 
 = 8.0.0 =
 *Release Date - December 11, 2024*
