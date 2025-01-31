@@ -8436,11 +8436,11 @@ function ewww_image_optimizer_attachment_check_variant_level( $id, $type, $meta 
  *
  * @global object $wpdb
  *
- * @param array $duplicates An array of records referencing the same image.
+ * @param array $duplicates An array of records referencing the same image or an array of record ids.
  * @return array|bool A single image record or false if something unexpected happens.
  */
 function ewww_image_optimizer_remove_duplicate_records( $duplicates ) {
-	if ( empty( $duplicates ) ) {
+	if ( empty( $duplicates ) || ! is_array( $duplicates ) ) {
 		return false;
 	}
 	global $wpdb;
@@ -8455,7 +8455,7 @@ function ewww_image_optimizer_remove_duplicate_records( $duplicates ) {
 			$duplicate_result = $wpdb->get_row(
 				$wpdb->prepare(
 					"SELECT * FROM $wpdb->ewwwio_images WHERE id = %d",
-					$duplicate['id']
+					$duplicate
 				),
 				ARRAY_A
 			);
