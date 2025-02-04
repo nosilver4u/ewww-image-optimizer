@@ -555,19 +555,21 @@ jQuery(document).ready(function($) {
 	});
 	$('#ewww_image_optimizer_lazy_load').on( 'click', function() {
 		if($(this).prop('checked')) {
-			$('#ewww_image_optimizer_ll_exclude_container').fadeIn();
 			$('#ewww_image_optimizer_ll_autoscale_container').fadeIn();
-			$('#ewww_image_optimizer_ll_all_things_container').fadeIn();
+			$('#ewww_image_optimizer_ll_abovethefold_container').fadeIn();
 			$('#ewww_image_optimizer_siip_container').fadeIn();
 			$('#ewww_image_optimizer_lqip_container').fadeIn();
 			$('#ewww_image_optimizer_dcip_container').fadeIn();
+			$('#ewww_image_optimizer_ll_all_things_container').fadeIn();
+			$('#ewww_image_optimizer_ll_exclude_container').fadeIn();
 		} else {
-			$('#ewww_image_optimizer_ll_exclude_container').fadeOut();
 			$('#ewww_image_optimizer_ll_autoscale_container').fadeOut();
-			$('#ewww_image_optimizer_ll_all_things_container').fadeOut();
+			$('#ewww_image_optimizer_ll_abovethefold_container').fadeOut();
 			$('#ewww_image_optimizer_siip_container').fadeOut();
 			$('#ewww_image_optimizer_lqip_container').fadeOut();
 			$('#ewww_image_optimizer_dcip_container').fadeOut();
+			$('#ewww_image_optimizer_ll_all_things_container').fadeOut();
+			$('#ewww_image_optimizer_ll_exclude_container').fadeOut();
 		}
 	});
 	$('#ewww_image_optimizer_webp_for_cdn, #ewww_image_optimizer_picture_webp').on(

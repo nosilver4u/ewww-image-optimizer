@@ -762,6 +762,156 @@ button.ewww-handlediv {
 .ui-tooltip ul.ewww-tooltip li/*, .ewww-recommend ul.ewww-tooltip li*/ {
 	margin-left: 1em;
 }
+/* option/pseudo-table layout */
+@media screen and (max-width: 782px) {
+	.wp-admin .form-table select {
+		min-height: 40px;
+		font-size: 16px;
+		line-height: 1.625; /* 26px */
+		padding: 5px 24px 5px 8px;
+	}
+	.form-table {
+		box-sizing: border-box;
+	}
+	.form-table th,
+	.form-table td,
+	.label-responsive {
+		display: block;
+		width: auto;
+		vertical-align: middle;
+	}
+	.form-table td input[type="text"],
+	.form-table td input[type="email"],
+	.form-table td input[type="password"],
+	.form-table td select,
+	.form-table td textarea,
+	.form-table span.description,
+	#profile-page .form-table textarea {
+		width: 100%;
+		display: block;
+		max-width: none;
+		box-sizing: border-box;
+	}
+	.form-table .form-required.form-invalid td:after {
+		float: right;
+		margin: -30px 3px 0 0;
+	}
+	.form-table input[type="text"].small-text {
+		width: auto;
+		max-width: 4.375em; /* 70px, enough for 4 digits to fit comfortably */
+		display: inline;
+		padding: 3px 6px;
+		margin: 0 3px;
+	}
+
+	.form-table .regular-text ~ input[type="text"].small-text {
+		margin-top: 5px;
+	}
+	.form-table span.description {
+		display: inline;
+		padding: 4px 0 0;
+		line-height: 1.4;
+		font-size: 14px;
+	}
+
+	.form-table th {
+		padding: 10px 0 0;
+		border-bottom: 0;
+	}
+
+	.form-table td {
+		margin-bottom: 0;
+		padding: 4px 0 6px;
+	}
+
+	.form-table.permalink-structure td code {
+		display: inline-block;
+	}
+
+	.form-table.permalink-structure .structure-selection {
+		margin-top: 8px;
+	}
+
+	.form-table.permalink-structure .structure-selection .row > div {
+		max-width: calc(100% - 36px);
+		width: 100%;
+	}
+
+	.form-table.permalink-structure td input[type="text"] {
+		margin-top: 4px;
+	}
+
+	.form-table input.regular-text {
+		width: 100%;
+	}
+
+	.form-table label {
+		font-size: 14px;
+	}
+
+	.form-table td > label:first-child {
+		display: inline-block;
+		margin-top: 0.35em;
+	}
+
+	.background-position-control .button-group > label {
+		font-size: 0;
+	}
+
+	.form-table fieldset label {
+		display: block;
+	}
+}
+/* is this needed for headers and details sections? */
+.ewww-settings-panel, .ewww-settings-panel p {
+	font-size: 14px;
+}
+
+.ewww-settings-panel + p.submit,
+.ewww-settings-panel + input + p.submit,
+.ewww-settings-panel + input + input + p.submit {
+	border-top: none;
+	padding-top: 0;
+}
+.ewww-settings-panel {
+	margin-top: 0.5em;
+	width: 100%;
+	clear: both;
+}
+
+.ewww-setting-detail {
+	padding: 15px 10px;
+	line-height: 1.3;
+	align-self: center;
+}
+
+.ewww-setting-header {
+	color: #1d2327;
+	text-shadow: none;
+	text-align: left;
+	padding: 20px 10px 20px 20px;
+	width: 200px;
+	line-height: 1.3;
+	font-weight: 600;
+}
+.ewww-setting-header p {
+	margin: 0;
+}
+
+.ewww-setting-detail p {
+	margin-top: 4px;
+	margin-bottom: 0;
+}
+.ewww-settings-section {
+	background-color: #fff;
+	border: 1px solid #e2e2e2;
+	margin-bottom: 10px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+.ewww-settings-row {
+	display: flex;
+}
+.ewww-setting-detail {}
 /* other settings UI */
 #ewww-rescue-mode {
 	margin: 10px 0;
@@ -840,16 +990,22 @@ p#ewww-webp-rewrite-status {
 #ewwwio-easy-activation-progressbar {
 	margin: 10px 0;
 }
-#ewww-webp-rewrite-result p {
-	/* margin: 0.5em 0; */
-}
 #ewww_image_optimizer_cloud_key_container th, #ewww_image_optimizer_exactdn_container th, #swis_promo_container th {
 	color: #3eadc9;
 }
-#ewww_image_optimizer_cloud_key_container td, #ewww_image_optimizer_exactdn_container td, #swis_promo_container td {
+#ewww-settings-form tbody.light-section {
 	background-color: white;
-	border: 1px solid #ccd0d4;
-	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	border-top: 1px solid #e2e2e2;
+	border-bottom: 1px solid #e2e2e2;
+}
+#ewww-settings-form tbody.shaded-section {
+	border-top: 1px solid #e2e2e2;
+	border-bottom: 1px solid #e2e2e2;
+}
+#ewww-settings-form tbody th {
+	padding-left: 20px;
+}
+#ewww_image_optimizer_cloud_key_container td, #ewww_image_optimizer_exactdn_container td, #swis_promo_container td {
 }
 #ewww_image_optimizer_cloud_key_container .dashicons-yes {
 	font-size: 30px;

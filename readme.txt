@@ -156,6 +156,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: Sharpen Images not applied to new WebP Conversion process
 * fixed: WebP resizing overrides custom crop set by Crop Thumbnails
 * fixed: pre-scaled original cannot be found if attachment metadata is incomplete
+* fixed: PHP error in bulk image scanner
 
 = 8.0.0 =
 *Release Date - December 11, 2024*
