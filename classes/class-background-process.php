@@ -381,15 +381,25 @@ abstract class Background_Process extends Async_Request {
 	 * Update the process lock so that other instances do not spawn.
 	 */
 	protected function update_lock() {
+		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( ! empty( $this->active_queue ) ) {
 			if ( empty( $this->lock_key ) ) {
 				$this->lock_key = \uniqid( $this->active_queue, true ) . $this->generate_key_suffix();
+				\ewwwio_debug_message( "no key, generated: $this->lock_key" );
+			} else {
+				\ewwwio_debug_message( "using existing key: $this->lock_key" );
 			}
 			if ( $this->lock_dir ) {
-				\file_put_contents( $this->process_lock_file(), $this->lock_key );
+				$written = \file_put_contents( $this->process_lock_file(), $this->lock_key );
+				if ( $written ) {
+					\ewwwio_debug_message( 'saved key to lock file' );
+				} else {
+					\ewwwio_debug_message( 'zero bytes written' );
+				}
 			} else {
 				$lock_duration = \apply_filters( $this->identifier . '_queue_lock_time', $this->queue_lock_time );
 				\set_transient( $this->identifier . '_process_lock', $this->lock_key, $lock_duration );
+				\ewwwio_debug_message( "transient locking, stored $this->lock_key in " . $this->identifier . "_process_lock for $lock_duration" );
 			}
 		}
 	}
@@ -431,6 +441,7 @@ abstract class Background_Process extends Async_Request {
 	 * @return array Return the first batch from the queue
 	 */
 	protected function get_batch() {
+		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		global $wpdb;
 		$batch = $wpdb->get_results( $wpdb->prepare( "SELECT id, attachment_id, scanned AS attempts, new, convert_once, force_reopt, force_smart, webp_only FROM $wpdb->ewwwio_queue WHERE gallery = %s ORDER BY id LIMIT %d", $this->active_queue, $this->limit ), ARRAY_A );
 		if ( empty( $batch ) ) {
