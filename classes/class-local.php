@@ -42,6 +42,13 @@ class Local extends Base {
 	protected $exec_enabled;
 
 	/**
+	 * Are any tools missing (if enabled)?
+	 *
+	 * @var bool $tools_missing
+	 */
+	public $tools_missing = false;
+
+	/**
 	 * Initialize the local properties we'll need later, since tools are late-initialized except on specific pages.
 	 */
 	public function __construct() {
@@ -308,22 +315,27 @@ class Local extends Base {
 			$this->debug_message( 'folder does not exist, creating...' );
 			if ( ! \wp_mkdir_p( $this->content_dir ) ) {
 				$this->debug_message( 'could not create folder' );
+				$this->tools_missing = true;
 				return;
 			}
 		} elseif ( \is_dir( $this->content_dir ) ) {
 			if ( ! \is_writable( $this->content_dir ) ) {
 				$this->debug_message( 'wp-content/ewww is not writable, not installing anything' );
+				$this->tools_missing = true;
 				return;
 			} elseif ( ! \is_executable( $this->content_dir ) && PHP_OS !== 'WINNT' ) {
 				$this->debug_message( 'wp-content/ewww is not executable (non-Windows), not installing anything' );
+				$this->tools_missing = true;
 				return;
 			} elseif ( ! \is_readable( $this->content_dir ) ) {
 				$this->debug_message( 'wp-content/ewww is not readable, not installing anything' );
+				$this->tools_missing = true;
 				return;
 			}
 			$ewww_perms = \substr( \sprintf( '%o', \fileperms( $this->content_dir ) ), -4 );
 			$this->debug_message( "wp-content/ewww permissions: $ewww_perms" );
 		} else {
+			$this->tools_missing = true;
 			$this->debug_message( \dirname( $this->content_dir ) . ' is not writable, and the ewww/ folder does not exist' );
 			return;
 		}
@@ -412,6 +424,7 @@ class Local extends Base {
 			}
 		}
 		if ( $toolfail ) {
+			$this->tools_missing = true;
 			\add_action( 'network_admin_notices', array( $this, 'tool_installation_failed_notice' ) );
 			\add_action( 'admin_notices', array( $this, 'tool_installation_failed_notice' ) );
 		}

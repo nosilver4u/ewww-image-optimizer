@@ -417,14 +417,7 @@ final class Plugin extends Base {
 			$this->local->skip_tools();
 			return;
 		}
-		if (
-			\defined( 'WPCOMSH_VERSION' ) ||
-			! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ||
-			\defined( 'WPE_PLUGIN_VERSION' ) ||
-			\defined( 'FLYWHEEL_CONFIG_DIR' ) ||
-			\defined( 'KINSTAMU_VERSION' ) ||
-			\defined( 'WPNET_INIT_PLUGIN_VERSION' )
-		) {
+		if ( $this->hosting_requires_api() ) {
 			if (
 				! $this->get_option( 'ewww_image_optimizer_cloud_key' ) &&
 				! \ewww_image_optimizer_easy_active() &&
@@ -972,7 +965,7 @@ final class Plugin extends Base {
 	/**
 	 * Outputs the script to dismiss the 'exec' notice.
 	 */
-	protected function display_exec_dismiss_script() {
+	public function display_exec_dismiss_script() {
 		?>
 		<script>
 			jQuery(document).on('click', '#ewww-image-optimizer-warning-exec .notice-dismiss', function() {
@@ -1039,7 +1032,8 @@ final class Plugin extends Base {
 				if ( 'cwebp' === $tool && ( $this->imagick_supports_webp() || $this->gd_supports_webp() ) ) {
 					continue;
 				}
-				$missing[] = $tool;
+				$this->local->tools_missing = true;
+				$missing[]                  = $tool;
 			}
 		}
 		// If there is a message, display the warning.
@@ -1123,18 +1117,28 @@ final class Plugin extends Base {
 	}
 
 	/**
+	 * Check if the web host disallows exec() and/or local optimization.
+	 *
+	 * @return bool True if this is a known host that disallows local optimization.
+	 */
+	public function hosting_requires_api() {
+		if (
+			\defined( 'WPCOMSH_VERSION' ) ||
+			! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ||
+			\defined( 'WPE_PLUGIN_VERSION' ) ||
+			\defined( 'FLYWHEEL_CONFIG_DIR' ) ||
+			\defined( 'KINSTAMU_VERSION' ) ||
+			\defined( 'WPNET_INIT_PLUGIN_VERSION' )
+		) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Let the user know the plugin requires API/ExactDN to operate at their webhost.
 	 */
 	public function notice_hosting_requires_api() {
-		if ( ! \function_exists( '\is_plugin_active_for_network' ) && \is_multisite() ) {
-			// Need to include the plugin library for the is_plugin_active function.
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
-		}
-		if ( \is_multisite() && \is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
-			$settings_url = \network_admin_url( 'settings.php?page=ewww-image-optimizer-options' );
-		} else {
-			$settings_url = \admin_url( 'options-general.php?page=ewww-image-optimizer-options' );
-		}
 		if ( \defined( 'WPCOMSH_VERSION' ) ) {
 			$webhost = 'WordPress.com';
 		} elseif ( ! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {

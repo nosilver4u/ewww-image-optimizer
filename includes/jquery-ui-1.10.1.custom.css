@@ -578,7 +578,7 @@ button.ewww-handlediv {
 	margin: 0px;
 	padding: 1em;
 }
-.ewww-settings-errors div.notice {
+.ewww-settings-notices div.notice {
 	margin-left: 0;
 	margin-right: 20px;
 }
@@ -812,9 +812,15 @@ div.ewww-status-detail {
 	margin: 0 -7px 10px;
 	padding: 3px 7px;
 }
-.ewww-status-detail .ewwwio-notice {
+.ewww-status-detail .ewwwio-notice, .ewww-status-detail .notice-warning {
 	border: none;
 	box-shadow: -4px 0px #ffb900, inset 0 -1px #e2e2e2;
+	margin: 0 -7px 10px;
+	padding: 3px 7px;
+}
+.ewww-status-detail .notice-error {
+	border: none;
+	box-shadow: -4px 0px #d63638, inset 0 -1px #e2e2e2;
 	margin: 0 -7px 10px;
 	padding: 3px 7px;
 }
