@@ -12734,6 +12734,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			if ( $exactdn->is_as3cf_cname_active() ) {
 				$show_as3cf_cname_notice = true;
 			}
+			if ( method_exists( 'HMWP_Classes_Tools', 'getOption' ) ) {
+				if ( HMWP_Classes_Tools::getOption( 'hmwp_hide_version' ) && ! HMWP_Classes_Tools::getOption( 'hmwp_hide_version_random' ) ) {
+					$speed_recommendations[] = __( 'Please enable the Random Static Number option in Hide My WP to ensure compatibility with Easy IO or disable the Hide Version option for best performance.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/50-exactdn-and-query-strings', '5a3d278a2c7d3a1943677b52' );
+				}
+			}
 		} elseif ( $exactdn->get_exactdn_domain() ) {
 			update_option( 'ewww_image_optimizer_exactdn', false );
 			update_site_option( 'ewww_image_optimizer_exactdn', false );
@@ -12744,6 +12749,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 			$speed_recommendations[] = __( 'Enable Easy IO for automatic resizing.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/44-introduction-to-exactdn', '59bc5ad6042863033a1ce370,5c0042892c7d3a31944e88a4' );
 		}
+	}
+	if ( class_exists( '\Bbpp_Animated_Gif' ) ) {
+		$speed_recommendations[] = __( 'GIF animations are preserved by EWWW Image Optimizer automatically. Please remove the Animated GIF Resize plugin.', 'ewww-image-optimizer' );
 	}
 	$exactdn_network_enabled = 0;
 	if ( $exactdn_enabled && is_multisite() && is_network_admin() && empty( $exactdn_sub_folder ) ) {
@@ -12912,7 +12920,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_hide_newsletter_signup' ) && ! apply_filters( 'ewwwio_whitelabel', false ) ) ||
 		$show_as3cf_cname_notice ||
 		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_tracking_notice' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_allow_tracking' ) && ! apply_filters( 'ewwwio_whitelabel', false ) ) ||
-		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_utf8' ) && false === strpos( $wpdb->charset, 'utf8' ) )
+		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_utf8' ) && false === strpos( $wpdb->charset, 'utf8' ) ) ||
+		! empty( $_GET['ewww_pngout'] ) || ! empty( $_GET['ewww_svgcleaner'] )
 	) {
 		$show_notices = true;
 	}
@@ -13038,6 +13047,12 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_enabled' ) ) : ?>
 		<?php ewww_image_optimizer_notice_webp_bulk(); ?>
 	<?php endif; ?>
+	<?php if ( ! empty( $_GET['ewww_pngout'] ) ) : ?>
+		<?php ewww_image_optimizer_pngout_installed(); ?>
+	<?php endif; ?>
+	<?php if ( ! empty( $_GET['ewww_svgcleaner'] ) ) : ?>
+		<?php ewww_image_optimizer_svgcleaner_installed(); ?>
+	<?php endif; ?>
 </div>
 <div id='ewww-settings-wrap'>
 	<h1 style="display:none;">EWWW Image Optimizer</h1>
@@ -13119,12 +13134,21 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<p class='ewww-short'>
 	<?php if ( defined( 'EWWW_DISABLE_ASYNC' ) && EWWW_DISABLE_ASYNC ) : ?>
 								<span><?php esc_html_e( 'Disabled by administrator', 'ewww-image-optimizer' ); ?></span>
+		<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) ) : ?>
+								<p><?php esc_html_e( 'Scheduled Optimization will not work without background/async mode.', 'ewww-image-optimizer' ); ?></p>
+		<?php endif; ?>
 	<?php elseif ( ! ewww_image_optimizer_function_exists( 'sleep' ) ) : ?>
 								<span style="color: orange; font-weight: bolder"><?php esc_html_e( 'Disabled, sleep function missing', 'ewww-image-optimizer' ); ?></span>
+		<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) ) : ?>
+								<p><?php esc_html_e( 'Scheduled Optimization will not work without background/async mode.', 'ewww-image-optimizer' ); ?></p>
+		<?php endif; ?>
 	<?php elseif ( $ewwwio_upgrading ) : ?>
 								<span><?php esc_html_e( 'Update detected, re-testing', 'ewww-image-optimizer' ); ?></span>
 	<?php elseif ( ewww_image_optimizer_detect_wpsf_location_lock() ) : ?>
 								<span style="color: orange; font-weight: bolder"><?php esc_html_e( "Disabled by Shield's Lock to Location feature", 'ewww-image-optimizer' ); ?></span>
+		<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) ) : ?>
+								<p><?php esc_html_e( 'Scheduled Optimization will not work without background/async mode.', 'ewww-image-optimizer' ); ?></p>
+		<?php endif; ?>
 	<?php elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_background_optimization' ) ) : ?>
 								<span style="color: orange; font-weight: bolder">
 									<?php esc_html_e( 'Disabled automatically, async requests blocked', 'ewww-image-optimizer' ); ?>
@@ -13133,6 +13157,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 									</a>
 								</span>
 								<?php ewwwio_help_link( 'https://docs.ewww.io/article/42-background-and-parallel-optimization-disabled', '598cb8be2c7d3a73488be237' ); ?>
+		<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) ) : ?>
+								<p><?php esc_html_e( 'Scheduled Optimization will not work without background/async mode.', 'ewww-image-optimizer' ); ?></p>
+		<?php endif; ?>
 	<?php else : ?>
 								<span><?php esc_html_e( 'Enabled', 'ewww-image-optimizer' ); ?>
 									- <a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_retest_background_optimization' ), 'ewww_image_optimizer_options-options' ) ); ?>">
