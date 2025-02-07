@@ -14373,7 +14373,7 @@ AddType image/webp .webp</pre>
 						</div>
 						<div class='ewww-setting-detail'>
 							<?php echo esc_html( $aux_paths_desc ); ?><br>
-							<textarea id='ewww_image_optimizer_aux_paths' name='ewww_image_optimizer_aux_paths' rows='3' cols='60'><?php echo esc_html( $aux_paths ); ?></textarea>
+							<textarea id='ewww_image_optimizer_aux_paths' name='ewww_image_optimizer_aux_paths' rows='3' cols='60' placeholder='<?php echo esc_attr( trailingslashit( WP_CONTENT_DIR ) ) . 'gallery/'; ?>'><?php echo esc_html( $aux_paths ); ?></textarea>
 							<p class='description'>
 								<?php esc_html_e( 'Provide paths containing images to be optimized using the Bulk Optimizer and Scheduled Optimization.', 'ewww-image-optimizer' ); ?>
 							</p>
@@ -14386,7 +14386,7 @@ AddType image/webp .webp</pre>
 						</div>
 						<div class='ewww-setting-detail'>
 							<?php esc_html_e( 'One exclusion per line, no wildcards (*) needed.', 'ewww-image-optimizer' ); ?><br>
-							<textarea id='ewww_image_optimizer_exclude_paths' name='ewww_image_optimizer_exclude_paths' rows='3' cols='60'><?php echo esc_html( $exclude_paths ); ?></textarea>
+							<textarea id='ewww_image_optimizer_exclude_paths' name='ewww_image_optimizer_exclude_paths' rows='3' cols='60' placeholder='public_html/wp-content/gallery/originals/'><?php echo esc_html( $exclude_paths ); ?></textarea>
 							<p class='description'>
 								<?php esc_html_e( 'Applies to optimization of local files, rather than front-end operations like Lazy Load or Easy IO. Thus exclusions must match filesystem paths instead of URLs.', 'ewww-image-optimizer' ); ?>
 							</p>
@@ -14899,24 +14899,72 @@ AddType image/webp .webp</pre>
 		<div id='ewww-plugin-listing'>
 			<noscript><h2><?php esc_html_e( 'Plugins', 'ewww-image-optimizer' ); ?></h2></noscript>
 			<div class='ewww-settings-panel'>
+				<div class='ewww-settings-section'>
+					<div class='ewww-settings-row'>
+						<div class='ewww-setting-header'>
+							<img height="64" width="64" src='<?php echo esc_url( plugins_url( '/images/frt-icon-128x128.jpg', __FILE__ ) ); ?>'>
+						</div>
+						<div class='ewww-setting-detail'>
+							<?php
+							printf(
+								/* translators: %s: Force Regenerate Thumbnails (link) */
+								esc_html__( 'Delete all old image sizes and regenerate thumbnails for your images with %s.', 'ewww-image-optimizer' ),
+								'<a href="https://wordpress.org/plugins/force-regenerate-thumbnails/">' . esc_html__( 'Force Regenerate Thumbnails', 'ewww-image-optimizer' ) . '</a>'
+							);
+							?>
+						</div>
+					</div>
+				</div><!-- end .ewww-settings-section -->
+				<div class='ewww-settings-section'>
+					<div class='ewww-settings-row'>
+						<div class='ewww-setting-header'>
+							<img height="64" width="64" src='<?php echo esc_url( plugins_url( '/images/imsanity-icon.svg', __FILE__ ) ); ?>'>
+						</div>
+						<div class='ewww-setting-detail'>
+							<?php
+							printf(
+								/* translators: %s: Imsanity (link) */
+								esc_html__( '%s automatically resizes huge uploads with more granular settings than the Maximum Image Dimensions.', 'ewww-image-optimizer' ),
+								'<a href="https://wordpress.org/plugins/imsanity/">' . esc_html__( 'Imsanity', 'ewww-image-optimizer' ) . '</a>'
+							);
+							?>
+						</div>
+					</div>
+				</div><!-- end .ewww-settings-section -->
 	<?php if ( ! class_exists( 'Amazon_S3_And_CloudFront' ) ) : ?>
 				<div class='ewww-settings-section'>
 					<div class='ewww-settings-row'>
 						<div class='ewww-setting-header'>
-							<img height="64" width="64" src='https://ps.w.org/s3-image-optimizer/assets/icon-128x128.jpg?rev=2816100'>
+							<img height="64" width="64" src='<?php echo esc_url( plugins_url( '/images/s3io-icon-128x128.jpg', __FILE__ ) ); ?>'>
 						</div>
 						<div class='ewww-setting-detail'>
-		<?php
+							<?php
 							printf(
 								/* translators: %s: S3 Image Optimizer (link) */
 								esc_html__( 'Optimize unlimited Amazon S3 buckets with our %s.', 'ewww-image-optimizer' ),
 								'<a href="https://wordpress.org/plugins/s3-image-optimizer/">' . esc_html__( 'S3 Image Optimizer', 'ewww-image-optimizer' ) . '</a>'
 							);
-		?>
+							?>
 						</div>
 					</div>
 				</div><!-- end .ewww-settings-section -->
 	<?php endif; ?>
+				<div class='ewww-settings-section'>
+					<div class='ewww-settings-row'>
+						<div class='ewww-setting-header'>
+							<img height="64" width="64" src='<?php echo esc_url( plugins_url( '/images/easyio-icon-128x128.png', __FILE__ ) ); ?>'>
+						</div>
+						<div class='ewww-setting-detail'>
+							<?php
+							printf(
+								/* translators: %s: Easy Image Optimizer (link) */
+								esc_html__( 'Get on the fast track with %s and get updates quicker than everyone else.', 'ewww-image-optimizer' ),
+								'<a href="https://wordpress.org/plugins/easy-image-optimizer/">' . esc_html__( 'Easy Image Optimizer', 'ewww-image-optimizer' ) . '</a>'
+							);
+							?>
+						</div>
+					</div>
+				</div><!-- end .ewww-settings-section -->
 			</div><!-- end .ewww-settings-panel -->
 		</div><!-- end #ewww-plugin-listing -->
 		<p class='submit'><input type='submit' class='button-primary' value='<?php esc_attr_e( 'Save Changes', 'ewww-image-optimizer' ); ?>' /></p>
