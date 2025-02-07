@@ -165,6 +165,13 @@ final class Plugin extends Base {
 	public $webp_only = false;
 
 	/**
+	 * A list of errors reported when saving the EWWW IO settings.
+	 *
+	 * @var array $settings_errors
+	 */
+	protected $settings_errors = array();
+
+	/**
 	 * Did we already run tool_init()?
 	 *
 	 * @var bool $tools_initialized
@@ -464,7 +471,7 @@ final class Plugin extends Base {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->tools_initialized = true;
 		// Make sure the bundled tools are installed.
-		if ( ! $this->get_option( 'ewww_image_optimizer_skip_bundle' ) ) {
+		if ( ! $this->get_option( 'ewww_image_optimizer_skip_bundle' ) && $this->local->exec_check() ) {
 			$this->local->install_tools();
 		}
 		if ( $this->cloud_mode ) {
@@ -845,6 +852,62 @@ final class Plugin extends Base {
 	}
 
 	/**
+	 * Check for settings errors and store them for future display.
+	 *
+	 * Removes EWWW IO settings errors from the global $wp_settings_errors to suppress standard error handling.
+	 */
+	public function get_settings_errors() {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		global $wp_settings_errors;
+		if ( empty( $wp_settings_errors ) || ! is_array( $wp_settings_errors ) ) {
+			$stored_errors = get_settings_errors();
+			if ( ! empty( $stored_errors ) && is_array( $stored_errors ) ) {
+				$this->settings_errors = $stored_errors;
+			}
+			return;
+		}
+		foreach ( $wp_settings_errors as $key => $error_details ) {
+			if ( ! empty( $error_details['setting'] ) && 0 === strpos( $error_details['setting'], 'ewww' ) ) {
+				$this->debug_message( "stashing {$error_details['setting']} error" );
+				$this->settings_errors[] = $error_details;
+				unset( $wp_settings_errors[ $key ] );
+			}
+		}
+	}
+
+	/**
+	 * Display any settings errors inside a div similar to the core settings_errors() function.
+	 */
+	public function settings_errors() {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( empty( $this->settings_errors ) || ! is_array( $this->settings_errors ) ) {
+			$this->debug_message( 'no errors!' );
+			return;
+		}
+		$error_total = count( $this->settings_errors );
+		$this->debug_message( "found $error_total errors to display, here we go!" );
+
+		foreach ( $this->settings_errors as $key => $details ) {
+			if ( empty( $details['type'] ) || empty( $details['code'] ) || empty( $details['message'] ) ) {
+				continue;
+			}
+			if ( 'updated' === $details['type'] ) {
+				$details['type'] = 'success';
+			}
+
+			if ( in_array( $details['type'], array( 'error', 'success', 'warning', 'info' ), true ) ) {
+				$details['type'] = 'notice-' . $details['type'];
+			}
+
+			?>
+			<div id='setting-error-<?php echo esc_attr( $details['code'] ); ?>' class='notice <?php echo \esc_attr( $details['type'] ); ?> is-dismissible inline'>
+				<p><strong><?php echo esc_html( $details['message'] ); ?></strong></p>
+			</div>
+			<?php
+		}
+	}
+
+	/**
 	 * Outputs the script to dismiss the 'utf8' notice.
 	 */
 	protected function display_utf8_dismiss_script() {
@@ -1172,7 +1235,7 @@ final class Plugin extends Base {
 			\wp_die( \esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 		}
 		$this->enable_free_exec();
-		die();
+		exit;
 	}
 
 	/**

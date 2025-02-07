@@ -3739,7 +3739,7 @@ class ExactDN extends Page_Parser {
 	 * @param array $directories List of directories.
 	 * @param array $media_ids Uploaded media IDs.
 	 *
-	 * @return array Modified list of diretories.
+	 * @return array Modified list of directories.
 	 */
 	public function buddyboss_media_directory_allow_access( $directories, $media_ids ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );

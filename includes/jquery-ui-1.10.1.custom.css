@@ -495,24 +495,75 @@ button.ewww-handlediv {
 	}
 }
 /* settings tabs */
-.ewww-tab span { font-size: 14px; font-weight: 600; color: #555; text-decoration: none; line-height: 36px; padding: 0 10px; }
-.ewww-tab span:hover { color: #464646; }
-.ewww-tab { margin: 0 0 0 5px; padding: 0px; border-width: 1px 1px 1px; border-style: solid solid none; border-image: none; border-color: #ccc; display: inline-block; background-color: #e4e4e4; cursor: pointer }
-.ewww-tab:hover { background-color: #fff }
-.ewww-selected { background-color: #f1f1f1; margin-bottom: -1px; border-bottom: 1px solid #f1f1f1 }
-.ewww-selected span { color: #000; }
-.ewww-selected:hover { background-color: #f1f1f1; }
-.ewww-tab-nav { list-style: none; margin: 10px 0 0; padding-left: 5px; border-bottom: 1px solid #ccc; }
-/* optimization status section */
-#ewww-widgets {
-	width: 100%;
-	/* max-width: 1400px; */
-	clear: right;
+.ewww-tab > span {
+	border-bottom: none;
+	box-shadow: none;
+	outline: none;
+	display: block;
+	font-size: 16px;
+	font-weight: 600;
+	text-align: center;
+	color: #555;
+	text-decoration: none;
+	padding: 18px 20px;
+	white-space: nowrap;
 }
-#ewww-status .inside {
+.ewww-tab {
+	display: flex;
+	align-items: flex-end;
+	margin: 0;
+	cursor: pointer;
+}
+.ewww-tab:hover { box-shadow: inset 0 -3px #777 }
+.ewww-selected, .ewww-selected:hover { box-shadow: inset 0 -3px #3eadc9 }
+.ewww-tab-nav {
+	display: flex;
+	flex-direction: row;
+	justify-content: left;
+	flex-wrap: wrap;
+	margin: 0;
+	gap: 8px;
+	list-style: none;
+}
+#ewwwio-settings-menu {
+	background-color: #fff;
+	box-shadow: inset 0 -3px #c3c4c7;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin: 0 0 10px -20px;
+	padding 0 20px;
+	z-index: 40;
+}
+#ewwwio-bulk-header {
+	border-top: none;
+}
+#ewwwio-bulk-header, #ewww-bulk-results {
+	background-color: #fff;
+	border-bottom: 1px solid #c3c4c7;
+	margin: 0 0 0 -20px;
+	padding: 14px 20px;
+	z-index: 40;
+}
+/* optimization status section */
+#ewww-status {
+	flex: 0 0 300px;
+	padding: 20px;
+	margin: 0 0 0 20px;
+	background-color: #fff;
+	border: 1px solid #e2e2e2;
+}
+#ewww-status h2:first-child {
+	margin-top: 0px;
+}
+#ewww-status h3 {
+	margin: 15px 0 5px;
+	font-size: 13px;
+}
+/*#ewww-status .inside {
 	margin: 0;
 	padding: 0;
-}
+}*/
 .ewww-blocks {
 	display: flex;
 	flex-direction: row;
@@ -526,6 +577,10 @@ button.ewww-handlediv {
 	border-top: 1px solid #e2e2e2;
 	margin: 0px;
 	padding: 1em;
+}
+.ewww-settings-errors div.notice {
+	margin-left: 0;
+	margin-right: 20px;
 }
 #ewww-optimize-local-images, .ewww-action-container {
 	display: flex;
@@ -600,10 +655,9 @@ button.ewww-handlediv {
 .ewww-size-desc .ewww-sort-desc {
 	color: #1d2327;
 }
-.ewww-blocks div.ewww-status-detail {
-	border-left: 1px solid #e2e2e2;
-	margin: 0px;
-	padding: 2em;
+div.ewww-status-detail {
+	margin-bottom: 10px;
+	/* border-bottom: 1px solid #e2e2e2; */
 }
 .ewww-blocks div.ewww-status-detail:first-child {
 	border-left: 0;
@@ -704,6 +758,7 @@ button.ewww-handlediv {
 	/* border: 1px solid #ccd0d4; */
 	border-radius: 6px;
 	/* box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04); */
+	margin: 8px 0;
 	height: 12px;
 	width: 100%;
 	overflow: hidden;
@@ -730,13 +785,14 @@ button.ewww-handlediv {
 }
 .ewww-bar-caption {
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
 }
 .ewww-bar-caption p {
-	margin: 0.5em 0;
 	flex: 1;
 	text-align: center;
+	margin: 0;
 }
 .ewww-bar-score {
 	font-size: 1.0rem;
@@ -750,11 +806,17 @@ button.ewww-handlediv {
 	color: #1d3c71;
 }
 .ewww-recommend {
-	display: none;
-	text-align: left;
-	border-top: 1px solid #ccd0d4;
-	border-bottom: 1px solid #ccd0d4;
-	margin-bottom: 10px;
+	/*border-top: 1px solid #ccd0d4;
+	border-bottom: 1px solid #ccd0d4;*/
+	box-shadow: -4px 0px #3eadc9, inset 0 -1px #e2e2e2;
+	margin: 0 -7px 10px;
+	padding: 3px 7px;
+}
+.ewww-status-detail .ewwwio-notice {
+	border: none;
+	box-shadow: -4px 0px #ffb900, inset 0 -1px #e2e2e2;
+	margin: 0 -7px 10px;
+	padding: 3px 7px;
 }
 .ui-tooltip ul.ewww-tooltip/*, .ewww-recommend ul.ewww-tooltip*/ {
 	list-style: disc outside none;
@@ -862,11 +924,9 @@ button.ewww-handlediv {
 		display: block;
 	}
 }
-/* is this needed for headers and details sections? */
 .ewww-settings-panel, .ewww-settings-panel p {
 	font-size: 14px;
 }
-
 .ewww-settings-panel + p.submit,
 .ewww-settings-panel + input + p.submit,
 .ewww-settings-panel + input + input + p.submit {
@@ -874,30 +934,25 @@ button.ewww-handlediv {
 	padding-top: 0;
 }
 .ewww-settings-panel {
-	margin-top: 0.5em;
-	width: 100%;
-	clear: both;
+	margin: 0;
 }
-
 .ewww-setting-detail {
-	padding: 15px 10px;
+	padding: 15px 20px 15px 10px;
 	line-height: 1.3;
 	align-self: center;
 }
-
 .ewww-setting-header {
 	color: #1d2327;
 	text-shadow: none;
 	text-align: left;
 	padding: 20px 10px 20px 20px;
-	width: 200px;
+	flex: 0 0 200px;
 	line-height: 1.3;
 	font-weight: 600;
 }
-.ewww-setting-header p {
+.ewww-setting-header p, p.ewww-short {
 	margin: 0;
 }
-
 .ewww-setting-detail p {
 	margin-top: 4px;
 	margin-bottom: 0;
@@ -911,7 +966,6 @@ button.ewww-handlediv {
 .ewww-settings-row {
 	display: flex;
 }
-.ewww-setting-detail {}
 /* other settings UI */
 #ewww-rescue-mode {
 	margin: 10px 0;
@@ -993,18 +1047,6 @@ p#ewww-webp-rewrite-status {
 #ewww_image_optimizer_cloud_key_container th, #ewww_image_optimizer_exactdn_container th, #swis_promo_container th {
 	color: #3eadc9;
 }
-#ewww-settings-form tbody.light-section {
-	background-color: white;
-	border-top: 1px solid #e2e2e2;
-	border-bottom: 1px solid #e2e2e2;
-}
-#ewww-settings-form tbody.shaded-section {
-	border-top: 1px solid #e2e2e2;
-	border-bottom: 1px solid #e2e2e2;
-}
-#ewww-settings-form tbody th {
-	padding-left: 20px;
-}
 #ewww_image_optimizer_cloud_key_container td, #ewww_image_optimizer_exactdn_container td, #swis_promo_container td {
 }
 #ewww_image_optimizer_cloud_key_container .dashicons-yes {
@@ -1074,12 +1116,37 @@ p#ewww-webp-rewrite-status {
 	width: 100%;
 	max-width: 300px;
 }
-.ewwwio-flex-space-between {
+.ewwwio-flex-space-between, .ewwwio-recommend-action-links {
 	display: flex;
 	justify-content: space-between;
 }
-#ewwwio-banner {
+.ewwwio-recommend-action-links {
+	align-items: center;
+}
+.ewww-recommend p:first-child, .ewww-status-detail .ewwwio-notice p:first-child {
+	margin-top: 0;
+}
+.ewww-recommend p, .ewww-status-detail .ewwwio-notice p {
+	margin: 0.5em 0;
+}
+.ewww-recommend code {
+	margin: 0.5em 0;
+	display: inline-block;	
+}
+#ewww-settings-wrap {
+	padding: 10px 20px 20px 0;
 	display: flex;
+	flex-direction: row-reverse;
+}
+#ewwwio-settings-header {
+	margin-left: -20px;
+	padding: 15px 0;
+	background-color: #3eadc9;
+}
+#ewwwio-header-branding {
+	padding: 0 20px;
+}
+#ewwwio-banner {
 	margin: 0px;
 	padding: 15px;
 	background-color: #3eadc9;
@@ -1117,8 +1184,10 @@ p#ewww-webp-rewrite-status {
 	width: 16px;
 	height: 16px;
 }
-#ewwwio-banner #ewww-news-button {
-	margin-top: 0;
+#ewww-news-actions {
+}
+#ewww-settings-form {
+	flex: 1 1 auto;
 }
 #ewww-settings-form a.ewww-orange-button {
 	background: #f18f07;
@@ -1161,9 +1230,6 @@ p#ewww-webp-rewrite-status {
 		width: 100%;
 		border-left: 0;
 	}
-	.ewww-overrides-nav {
-		display: none;
-	}
 }
 @media screen and (max-width: 600px) {
 	#ewwwio-banner img:first-child {
@@ -1173,7 +1239,7 @@ p#ewww-webp-rewrite-status {
 	.ewww-blocks div.ewww-status-detail {
 		padding: 1em;
 	}
-	.ewww-tab-nav {
+	/*.ewww-tab-nav {
 		border-style: none;
 	}
 	.ewww-tab {
@@ -1187,7 +1253,7 @@ p#ewww-webp-rewrite-status {
 		font-size: 12px;
 		padding: 2px 3px;
 
-	}
+	}*/
 }
 @media screen and (max-width: 782px) {
 	#ewwwio-banner .ewwwio-flex-space-between {
