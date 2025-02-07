@@ -12920,8 +12920,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_hide_newsletter_signup' ) && ! apply_filters( 'ewwwio_whitelabel', false ) ) ||
 		$show_as3cf_cname_notice ||
 		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_tracking_notice' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_allow_tracking' ) && ! apply_filters( 'ewwwio_whitelabel', false ) ) ||
-		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_utf8' ) && false === strpos( $wpdb->charset, 'utf8' ) ) ||
-		! empty( $_GET['ewww_pngout'] ) || ! empty( $_GET['ewww_svgcleaner'] )
+		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_utf8' ) && false === strpos( $wpdb->charset, 'utf8' ) )
 	) {
 		$show_notices = true;
 	}
