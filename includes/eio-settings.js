@@ -62,7 +62,7 @@ jQuery(document).ready(function($) {
 				action: 'ewww_dismiss_newsletter',
 				_wpnonce: ewww_vars._wpnonce,
 			};
-			jQuery.post(ajaxurl, ewww_dismiss_news_data, function(response) {
+			$.post(ajaxurl, ewww_dismiss_news_data, function(response) {
 				if (response) {
 						console.log(response);
 				}
@@ -78,7 +78,8 @@ jQuery(document).ready(function($) {
 				action: 'ewww_opt_into_tracking',
 				_wpnonce: ewww_vars.notice_nonce,
 			};
-			jQuery.post(ajaxurl, ewww_enable_reporting_data, function(response) {
+			$('#ewww_image_optimizer_allow_tracking').prop('checked', true);
+			$.post(ajaxurl, ewww_enable_reporting_data, function(response) {
 				if (response) {
 						console.log(response);
 				}
@@ -94,7 +95,7 @@ jQuery(document).ready(function($) {
 				action: 'ewww_opt_out_of_tracking',
 				_wpnonce: ewww_vars.notice_nonce,
 			};
-			jQuery.post(ajaxurl, ewww_enable_reporting_data, function(response) {
+			$.post(ajaxurl, ewww_enable_reporting_data, function(response) {
 				if (response) {
 						console.log(response);
 				}
@@ -646,56 +647,13 @@ jQuery(document).ready(function($) {
 	$('#ewww-support-settings').hide();
 	$('#ewww-contribute-settings').hide();
 	$('#ewww-plugin-listing').hide();
-	$('.ewww-webp-nav').on('click', function() {
-		$('.ewww-tab-nav li').removeClass('ewww-selected');
-		$('li.ewww-webp-nav').addClass('ewww-selected');
-		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').show();
-		$('#ewww-general-settings').hide();
-		$('#ewww-local-settings').hide();
-		$('#ewww-advanced-settings').hide();
-		$('#ewww-resize-settings').hide();
-		$('#ewww-conversion-settings').hide();
-		$('#ewww-support-settings').hide();
-		$('#ewww-contribute-settings').hide();
-		$('#ewww-plugin-listing').hide();
-	});
 	$('.ewww-general-nav').on('click', function() {
 		$('.ewww-tab-nav li').removeClass('ewww-selected');
 		$('li.ewww-general-nav').addClass('ewww-selected');
 		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').show();
 		$('#ewww-local-settings').hide();
 		$('#ewww-advanced-settings').hide();
-		$('#ewww-resize-settings').hide();
-		$('#ewww-conversion-settings').hide();
-		$('#ewww-support-settings').hide();
-		$('#ewww-contribute-settings').hide();
-		$('#ewww-plugin-listing').hide();
-	});
-	$('.ewww-exactdn-nav').on('click', function() {
-		$('.ewww-tab-nav li').removeClass('ewww-selected');
-		$('li.ewww-exactdn-nav').addClass('ewww-selected');
-		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
-		$('#ewww-general-settings').hide();
-		$('#ewww-exactdn-settings').show();
-		$('#ewww-optimization-settings').hide();
-		$('#ewww-resize-settings').hide();
-		$('#ewww-conversion-settings').hide();
-		$('#ewww-support-settings').hide();
-		$('#ewww-contribute-settings').hide();
-		$('#ewww-plugin-listing').hide();
-	});
-	$('.ewww-optimization-nav').on('click', function() {
-		$('.ewww-tab-nav li').removeClass('ewww-selected');
-		$('li.ewww-optimization-nav').addClass('ewww-selected');
-		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
-		$('#ewww-general-settings').hide();
-		$('#ewww-exactdn-settings').hide();
-		$('#ewww-optimization-settings').show();
 		$('#ewww-resize-settings').hide();
 		$('#ewww-conversion-settings').hide();
 		$('#ewww-support-settings').hide();
@@ -706,7 +664,6 @@ jQuery(document).ready(function($) {
 		$('.ewww-tab-nav li').removeClass('ewww-selected');
 		$('li.ewww-local-nav').addClass('ewww-selected');
 		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').hide();
 		$('#ewww-local-settings').show();
 		$('#ewww-advanced-settings').hide();
@@ -720,7 +677,6 @@ jQuery(document).ready(function($) {
 		$('.ewww-tab-nav li').removeClass('ewww-selected');
 		$('li.ewww-advanced-nav').addClass('ewww-selected');
 		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').hide();
 		$('#ewww-local-settings').hide();
 		$('#ewww-advanced-settings').show();
@@ -734,7 +690,6 @@ jQuery(document).ready(function($) {
 		$('.ewww-tab-nav li').removeClass('ewww-selected');
 		$('li.ewww-resize-nav').addClass('ewww-selected');
 		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').hide();
 		$('#ewww-local-settings').hide();
 		$('#ewww-advanced-settings').hide();
@@ -742,12 +697,12 @@ jQuery(document).ready(function($) {
 		$('#ewww-conversion-settings').hide();
 		$('#ewww-support-settings').hide();
 		$('#ewww-contribute-settings').hide();
+		$('#ewww-plugin-listing').hide();
 	});
 	$('.ewww-conversion-nav').on( 'click', function() {
 		$('.ewww-tab-nav li').removeClass('ewww-selected');
 		$('li.ewww-conversion-nav').addClass('ewww-selected');
 		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').hide();
 		$('#ewww-local-settings').hide();
 		$('#ewww-advanced-settings').hide();
@@ -761,7 +716,6 @@ jQuery(document).ready(function($) {
 		$('.ewww-tab-nav li').removeClass('ewww-selected');
 		$('li.ewww-support-nav').addClass('ewww-selected');
 		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').hide();
 		$('#ewww-local-settings').hide();
 		$('#ewww-advanced-settings').hide();
@@ -775,7 +729,6 @@ jQuery(document).ready(function($) {
 		$('.ewww-tab-nav li').removeClass('ewww-selected');
 		$('li.ewww-contribute-nav').addClass('ewww-selected');
 		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').hide();
 		$('#ewww-local-settings').hide();
 		$('#ewww-advanced-settings').hide();
@@ -789,7 +742,6 @@ jQuery(document).ready(function($) {
 		$('.ewww-tab-nav li').removeClass('ewww-selected');
 		$('li.ewww-plugins-nav').addClass('ewww-selected');
 		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').hide();
 		$('#ewww-local-settings').hide();
 		$('#ewww-advanced-settings').hide();
