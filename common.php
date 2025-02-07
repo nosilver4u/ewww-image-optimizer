@@ -12911,7 +12911,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	if (
 		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_hide_newsletter_signup' ) && ! apply_filters( 'ewwwio_whitelabel', false ) ) ||
 		$show_as3cf_cname_notice ||
-		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_tracking_notice' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_allow_tracking' ) && ! apply_filters( 'ewwwio_whitelabel', false ) )
+		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_tracking_notice' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_allow_tracking' ) && ! apply_filters( 'ewwwio_whitelabel', false ) ) ||
+		( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_utf8' ) && false === strpos( $wpdb->charset, 'utf8' ) )
 	) {
 		$show_notices = true;
 	}
@@ -13045,10 +13046,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			<h2><?php esc_html_e( 'Recommendations', 'ewww-image-optimizer' ); ?></h2>
 			<div class='ewww-status-detail'>
 		<?php if ( $display_exec_notice ) : ?>
-				<div id='ewww-image-optimizer-warning-exec' class='ewwwio-notice notice-warning'>
 			<?php if ( ewwwio()->hosting_requires_api() ) : ?>
 					<?php ewwwio()->notice_hosting_requires_api(); ?>
 			<?php else : ?>
+				<div id='ewww-image-optimizer-warning-exec' class='ewwwio-notice notice-warning'>
 					<?php
 					printf(
 						/* translators: %s: link to 'start your premium trial' */
@@ -13061,8 +13062,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<span>&nbsp;</span>
 						<a id="ewww-warning-exec-dismiss-link" href="#"><?php esc_html_e( 'Dismiss', 'ewww-image-optimizer' ); ?></a>
 					</p>
-			<?php endif; ?>
 				</div>
+			<?php endif; ?>
 		<?php elseif ( ewwwio()->local->tools_missing ) : ?>
 			<?php
 			if ( ! is_dir( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
@@ -13076,6 +13077,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<?php endif; ?>
 		<?php if ( $show_as3cf_cname_notice ) : ?>
 			<?php ewww_image_optimizer_notice_exactdn_as3cf_cname_active(); ?>
+		<?php endif; ?>
+		<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_utf8' ) && false === strpos( $wpdb->charset, 'utf8' ) ) : ?>
+			<?php ewwwio()->utf8_db_notice(); ?>
 		<?php endif; ?>
 		<?php foreach ( $speed_recommendations as $recommendation ) : ?>
 				<p class='ewww-recommend'><?php echo wp_kses( $recommendation, $allow_help_html ); ?></p>
