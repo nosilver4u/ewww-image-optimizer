@@ -14085,20 +14085,20 @@ AddType image/webp .webp</pre>
 					</div>
 					<div class='ewww_image_optimizer_webp_setting_container ewww-settings-row' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? '' : ' style="display:none"'; ?>>
 						<div class='ewww-setting-header'>
-							<label for='ewww_image_optimizer_webp_force'><?php esc_html_e( 'Force WebP', 'ewww-image-optimizer' ); ?></label>
-							<span><?php ewwwio_help_link( 'https://docs.ewww.io/article/16-ewww-io-and-webp-images', '5854745ac697912ffd6c1c89' ); ?></span>
 						</div>
 						<div class='ewww-setting-detail'>
 							<input type='checkbox' id='ewww_image_optimizer_webp_force' name='ewww_image_optimizer_webp_force' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) ); ?> />
-							<span><?php esc_html_e( 'WebP images will be generated and saved for all images regardless of their size. JS and Picture WebP rewriters will not check if a file exists, only that the domain matches the home url, or one of the provided WebP URLs.', 'ewww-image-optimizer' ); ?></span>
+							<label for='ewww_image_optimizer_webp_force'><strong><?php esc_html_e( 'Force WebP', 'ewww-image-optimizer' ); ?></strong></label>
+							<span><?php ewwwio_help_link( 'https://docs.ewww.io/article/16-ewww-io-and-webp-images', '5854745ac697912ffd6c1c89' ); ?></span><br>
+							<p class='description'><?php esc_html_e( 'WebP images will be generated and saved for all images regardless of their size. JS and Picture WebP rewriters will not check if a file exists, only that the domain matches the home url, or one of the provided WebP URLs.', 'ewww-image-optimizer' ); ?></p>
 			<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_force_gif2webp' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
-							<p>
+							<p class='description'>
 								<a href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_enable_force_gif2webp' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
 									<?php esc_html_e( 'Click to enable forced GIF rewriting once WebP version have been generated.', 'ewww-image-optimizer' ); ?>
 								</a>
 							</p>
 			<?php elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_force_gif2webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
-							<p>
+							<p class='description'>
 								<a href="https://ewww.io/plans/" target="_blank">
 									<?php esc_html_e( 'GIF to WebP conversion requires an API key.', 'ewww-image-optimizer' ); ?>
 								</a>
@@ -14770,8 +14770,8 @@ AddType image/webp .webp</pre>
 							<a class='ewww-docs-root' href='https://docs.ewww.io/'><?php esc_html_e( 'Documentation', 'ewww-image-optimizer' ); ?></a> |
 							<a class='ewww-docs-root' href='https://ewww.io/contact-us/'><?php esc_html_e( 'Contact Support', 'ewww-image-optimizer' ); ?></a> |
 							<a href='https://feedback.ewww.io/b/features'><?php esc_html_e( 'Submit Feedback', 'ewww-image-optimizer' ); ?></a>
-							<a style='float:right;' href='<?php echo esc_url( wp_nonce_url( admin_url( 'options-general.php?page=ewww-image-optimizer-options&uncomplete_wizard=1' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
-								<?php echo '.'; ?>
+							<a style='float:right;' class='button-secondary' href='<?php echo esc_url( wp_nonce_url( admin_url( 'options-general.php?page=ewww-image-optimizer-options&uncomplete_wizard=1' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
+								<?php esc_html_e( 'Run Wizard', 'ewww-image-optimizer' ); ?>
 							</a>
 						</p>
 					</div>

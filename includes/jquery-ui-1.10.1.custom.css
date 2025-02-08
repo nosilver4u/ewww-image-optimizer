@@ -548,6 +548,7 @@ button.ewww-handlediv {
 /* optimization status section */
 #ewww-status {
 	flex: 0 0 300px;
+	height: fit-content;
 	padding: 20px;
 	margin: 0 0 0 20px;
 	background-color: #fff;
@@ -831,105 +832,6 @@ div.ewww-status-detail {
 	margin-left: 1em;
 }
 /* option/pseudo-table layout */
-@media screen and (max-width: 782px) {
-	.wp-admin .form-table select {
-		min-height: 40px;
-		font-size: 16px;
-		line-height: 1.625; /* 26px */
-		padding: 5px 24px 5px 8px;
-	}
-	.form-table {
-		box-sizing: border-box;
-	}
-	.form-table th,
-	.form-table td,
-	.label-responsive {
-		display: block;
-		width: auto;
-		vertical-align: middle;
-	}
-	.form-table td input[type="text"],
-	.form-table td input[type="email"],
-	.form-table td input[type="password"],
-	.form-table td select,
-	.form-table td textarea,
-	.form-table span.description,
-	#profile-page .form-table textarea {
-		width: 100%;
-		display: block;
-		max-width: none;
-		box-sizing: border-box;
-	}
-	.form-table .form-required.form-invalid td:after {
-		float: right;
-		margin: -30px 3px 0 0;
-	}
-	.form-table input[type="text"].small-text {
-		width: auto;
-		max-width: 4.375em; /* 70px, enough for 4 digits to fit comfortably */
-		display: inline;
-		padding: 3px 6px;
-		margin: 0 3px;
-	}
-
-	.form-table .regular-text ~ input[type="text"].small-text {
-		margin-top: 5px;
-	}
-	.form-table span.description {
-		display: inline;
-		padding: 4px 0 0;
-		line-height: 1.4;
-		font-size: 14px;
-	}
-
-	.form-table th {
-		padding: 10px 0 0;
-		border-bottom: 0;
-	}
-
-	.form-table td {
-		margin-bottom: 0;
-		padding: 4px 0 6px;
-	}
-
-	.form-table.permalink-structure td code {
-		display: inline-block;
-	}
-
-	.form-table.permalink-structure .structure-selection {
-		margin-top: 8px;
-	}
-
-	.form-table.permalink-structure .structure-selection .row > div {
-		max-width: calc(100% - 36px);
-		width: 100%;
-	}
-
-	.form-table.permalink-structure td input[type="text"] {
-		margin-top: 4px;
-	}
-
-	.form-table input.regular-text {
-		width: 100%;
-	}
-
-	.form-table label {
-		font-size: 14px;
-	}
-
-	.form-table td > label:first-child {
-		display: inline-block;
-		margin-top: 0.35em;
-	}
-
-	.background-position-control .button-group > label {
-		font-size: 0;
-	}
-
-	.form-table fieldset label {
-		display: block;
-	}
-}
 .ewww-settings-panel, .ewww-settings-panel p {
 	font-size: 14px;
 }
@@ -995,9 +897,9 @@ p.debug-actions {
 #ewww-webp-rewrite #webp-rewrite-rules {
 	background-color: white;
 	border: 1px solid #ccd0d4;
-	clear: both;
 	padding: 10px;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	white-space: pre-wrap;
 }
 #ewww-webp-rewrite button {
 	margin-top: 1em;
@@ -1005,7 +907,6 @@ p.debug-actions {
 #ewww-webp-image {
 	float: right;
 	padding: 0 0 10px 10px;
-	/*padding: 0 1px 10px 10px;*/
 }
 div#ewww-webp-rewrite-status {
 	font-weight: bold;
@@ -1226,7 +1127,42 @@ p#ewww-webp-rewrite-status {
 .ewww-help-beacon-multi, .ewww-help-beacon-single, .ewww-help-external {
 	margin: 3px;
 }
-/* mobile rules */
+/* responsive rules */
+@media screen and (max-width: 1610px) {
+	#ewww-debug-info {
+		width: 500px;
+	}
+}
+@media screen and (max-width: 1280px) {
+	.ewww-setting-header {
+		flex: 0 0 150px;
+		padding: 10px;
+	}
+	.ewww-setting-detail {
+		padding: 10px;
+	}
+	#ewww-webp-rewrite #webp-rewrite-rules {
+	}
+	#ewww-debug-info {
+		width: 300px;
+		height: 200px;
+	}
+	.ewww-settings-panel .ewww-setting-detail textarea {
+		width: 100%;
+	}
+}
+@media screen and (max-width: 1100px) {
+	.ewww-settings-row {
+		flex-direction: column;
+	}
+	.ewww-setting-detail {
+		align-self: baseline;
+	}
+	.ewww-setting-header {
+		flex: 0 0 auto;
+		padding-bottom: 0px;
+	}
+}
 @media screen and (max-width: 868px) {
 	.ewww-blocks {
 		flex-wrap: wrap;
@@ -1240,6 +1176,13 @@ p#ewww-webp-rewrite-status {
 	.ewww-blocks #ewww-notices {
 		width: 100%;
 		border-left: 0;
+	}
+	#ewwwio-api-activate, #exactdn_site_url {
+		display: block;
+		margin-top: 10px;
+	}
+	#exactdn_site_url {
+		display: inline-block;
 	}
 }
 @media screen and (max-width: 600px) {
@@ -1273,12 +1216,13 @@ p#ewww-webp-rewrite-status {
 	#ewwwio-banner #ewww-review a:first-child {
 		padding-left: 0;
 	}
-	p.debug-actions {
-		margin-top: 30px;
-		clear: none;
+	#ewww-settings-wrap {
+		padding: 0 10px 0 0;
 	}
-	#ewww-debug-info {
-		width: auto;
+	#ewww-status {
+		flex: 0 0 auto;
+		padding: 10px;
+		margin: 0 0 10px 0;
 	}
 	#ewww-settings-disable-resizes th, #ewww-settings-disable-resizes td {
 		display: table-cell;
@@ -1288,5 +1232,75 @@ p#ewww-webp-rewrite-status {
 	}
 	#ewww_image_optimizer_cloud_key_container td, #ewww_image_optimizer_exactdn_container td, #swis_promo_container td {
 		padding: 10px;
+	}
+	.ewww-settings-panel select {
+		min-height: 40px;
+		font-size: 16px;
+		line-height: 1.625; /* 26px */
+		padding: 5px 24px 5px 8px;
+	}
+	.ewww-settings-panel {
+		/* box-sizing: border-box; */
+	}
+	#ewww-settings-wrap {
+		flex-direction: column;
+	}
+	.ewww-settings-row {
+		flex-direction: column;
+	}
+	.ewww-settings-panel .ewww-setting-header,
+	.ewww-settings-panel .ewww-setting-detail {
+		display: block;
+		width: auto;
+		vertical-align: middle;
+	}
+	.ewww-settings-panel .ewww-setting-detail input[type="text"],
+	.ewww-settings-panel .ewww-setting-detail input[type="email"],
+	.ewww-settings-panel .ewww-setting-detail input[type="password"],
+	.ewww-settings-panel .ewww-setting-detail select,
+	.ewww-settings-panel .ewww-setting-detail textarea,
+	.ewww-settings-panel span.description,
+	.ewww-settings-panel textarea {
+		width: 100%;
+		display: block;
+		max-width: none;
+		box-sizing: border-box;
+	}
+
+	.ewww-settings-panel input[type="text"].small-text {
+		width: auto;
+		max-width: 4.375em; /* 70px, enough for 4 digits to fit comfortably */
+		display: inline;
+		padding: 3px 6px;
+		margin: 0 3px;
+	}
+	#ewww_image_optimizer_jpg_background {
+		width: auto;
+		display: initial;
+	}
+	.ewww-settings-panel .regular-text ~ input[type="text"].small-text {
+		margin-top: 5px;
+	}
+	.ewww-settings-panel span.description {
+		display: inline;
+		padding: 4px 0 0;
+		line-height: 1.4;
+		font-size: 14px;
+	}
+	.ewww-settings-panel .ewww-setting-detail {
+		margin-bottom: 0;
+	}
+
+	.ewww-settings-panel input.regular-text {
+		width: 100%;
+	}
+
+	.ewww-settings-panel label {
+		font-size: 14px;
+	}
+
+	.ewww-settings-panel .ewww-setting-detail > label:first-child {
+		display: inline-block;
+		margin-top: 0.35em;
 	}
 }
