@@ -548,7 +548,6 @@ button.ewww-handlediv {
 /* optimization status section */
 #ewww-status {
 	flex: 0 0 300px;
-	height: fit-content;
 	padding: 20px;
 	margin: 0 0 0 20px;
 	background-color: #fff;

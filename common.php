@@ -122,6 +122,8 @@ add_action( 'wp_ajax_ewww_webp_rewrite', 'ewww_image_optimizer_webp_rewrite' );
 add_action( 'wp_ajax_ewww_webp_unwrite', 'ewww_image_optimizer_webp_unwrite' );
 // AJAX action hook to retrieve bulk info for the bulk optimization form.
 add_action( 'wp_ajax_ewww_get_bulk_info', 'ewww_image_optimizer_get_bulk_info' );
+// AJAX action hook to retrieve image savings HTML on the settings page.
+add_action( 'wp_ajax_ewww_get_image_savings', 'ewww_image_optimizer_get_image_savings' );
 // AJAX action hook for manually optimizing/converting an image.
 add_action( 'wp_ajax_ewww_manual_optimize', 'ewww_image_optimizer_manual' );
 // AJAX action hook for manually restoring a converted image.
@@ -12593,6 +12595,59 @@ function ewww_image_optimizer_get_bulk_info() {
 }
 
 /**
+ * Get the image savings HTML.
+ */
+function ewww_image_optimizer_get_image_savings() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
+	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' ) || ! current_user_can( $permissions ) ) {
+		ewwwio_ob_clean();
+		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
+	}
+	session_write_close();
+
+	$total_sizes   = ewww_image_optimizer_savings();
+	$total_savings = $total_sizes[1] - $total_sizes[0];
+
+	$exactdn_savings = 0;
+	if ( class_exists( 'EWWW\ExactDN' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
+		$exactdn_savings = $exactdn->savings();
+	}
+
+	$output = array();
+
+	ob_start();
+	?>
+	<?php if ( $total_savings > 0 ) : ?>
+			<h3><?php esc_html_e( 'Local Compression Savings', 'ewww-image-optimizer' ); ?></h3>
+			<div id='ewww-savings-container' class='ewww-bar-container'>
+				<div id='ewww-savings-fill' data-score='<?php echo intval( $total_savings / $total_sizes[1] * 100 ); ?>' class='ewww-bar-fill'></div>
+			</div>
+			<div id='ewww-savings-flex' class='ewww-bar-caption'>
+				<p class='ewww-bar-score'><?php echo esc_html( ewww_image_optimizer_size_format( $total_savings, 2 ) ); ?></p>
+			</div>
+	<?php endif; ?>
+	<?php if ( ! empty( $exactdn_savings ) && ! empty( $exactdn_savings['original'] ) && ! empty( $exactdn_savings['savings'] ) ) : ?>
+			<h3>
+				<?php esc_html_e( 'Easy IO Savings', 'ewww-image-optimizer' ); ?>
+				<?php ewwwio_help_link( 'https://docs.ewww.io/article/96-easy-io-is-it-working', '5f871dd2c9e77c0016217c4e' ); ?>
+			</h3>
+			<div id='easyio-savings-container' class='ewww-bar-container'>
+				<div id='easyio-savings-fill' data-score='<?php echo intval( $exactdn_savings['savings'] / $exactdn_savings['original'] * 100 ); ?>' class='ewww-bar-fill'></div>
+			</div>
+			<div id='easyio-savings-flex' class='ewww-bar-caption'>
+				<p class='ewww-bar-score'><?php echo esc_html( ewww_image_optimizer_size_format( $exactdn_savings['savings'], 2 ) ); ?></p>
+			</div>
+	<?php endif; ?>
+	<?php
+
+	$output['html'] = ob_get_clean();
+
+	ewwwio_ob_clean();
+	die( wp_json_encode( $output ) );
+}
+
+/**
  * Wrapper that displays the EWWW IO options in the multisite network admin.
  */
 function ewww_image_optimizer_network_options() {
@@ -12624,14 +12679,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	global $exactdn;
 	global $eio_alt_webp;
 	global $wpdb;
-	$total_savings = 0;
-	if ( 'network-multisite' === $network ) {
-		$total_sizes   = ewww_image_optimizer_savings();
-		$total_savings = $total_sizes[1] - $total_sizes[0];
-	} else {
-		$total_sizes   = ewww_image_optimizer_savings();
-		$total_savings = $total_sizes[1] - $total_sizes[0];
-	}
 
 	if ( ! ewwwio()->tools_initialized ) {
 		if ( ewwwio()->cloud_mode ) {
@@ -12788,11 +12835,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				$speed_score += 20;
 			}
 			$exactdn_enabled = true;
-			if ( is_multisite() && is_network_admin() && empty( $exactdn->sub_folder ) ) {
-				$exactdn_savings = 0;
-			} else {
-				$exactdn_savings = $exactdn->savings();
-			}
 			if ( $exactdn->is_as3cf_cname_active() ) {
 				$show_as3cf_cname_notice = true;
 			}
@@ -13200,29 +13242,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	<?php endif; ?>
 			</p>
 		</div><!-- end .ewww-status-detail -->
-		<div id='ewww-score-bars' class='ewww-status-detail'>
-	<?php if ( $total_savings > 0 ) : ?>
-			<h3><?php esc_html_e( 'Local Compression Savings', 'ewww-image-optimizer' ); ?></h3>
-			<div id='ewww-savings-container' class='ewww-bar-container'>
-				<div id='ewww-savings-fill' data-score='<?php echo intval( $total_savings / $total_sizes[1] * 100 ); ?>' class='ewww-bar-fill'></div>
-			</div>
-			<div id='ewww-savings-flex' class='ewww-bar-caption'>
-				<p class='ewww-bar-score'><?php echo esc_html( ewww_image_optimizer_size_format( $total_savings, 2 ) ); ?></p>
-			</div>
-	<?php endif; ?>
-	<?php if ( $exactdn_enabled && ! empty( $exactdn_savings ) && ! empty( $exactdn_savings['original'] ) && ! empty( $exactdn_savings['savings'] ) ) : ?>
-			<h3>
-				<?php esc_html_e( 'Easy IO Savings', 'ewww-image-optimizer' ); ?>
-				<?php ewwwio_help_link( 'https://docs.ewww.io/article/96-easy-io-is-it-working', '5f871dd2c9e77c0016217c4e' ); ?>
-			</h3>
-			<div id='easyio-savings-container' class='ewww-bar-container'>
-				<div id='easyio-savings-fill' data-score='<?php echo intval( $exactdn_savings['savings'] / $exactdn_savings['original'] * 100 ); ?>' class='ewww-bar-fill'></div>
-			</div>
-			<div id='easyio-savings-flex' class='ewww-bar-caption'>
-				<p class='ewww-bar-score'><?php echo esc_html( ewww_image_optimizer_size_format( $exactdn_savings['savings'], 2 ) ); ?></p>
-			</div>
-		<?php endif; ?>
-		</div>
+		<div id='ewww-score-bars' class='ewww-status-detail'></div>
 	</div>
 
 	<?php
