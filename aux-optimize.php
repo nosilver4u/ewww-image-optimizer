@@ -99,8 +99,14 @@ function ewww_image_optimizer_aux_images_table() {
 	$offset      = empty( $_POST['ewww_offset'] ) ? 0 : $per_page * (int) $_POST['ewww_offset'];
 	$search      = empty( $_POST['ewww_search'] ) ? '' : sanitize_text_field( wp_unslash( $_POST['ewww_search'] ) );
 	$pending     = empty( $_POST['ewww_pending'] ) ? 0 : 1;
-	$total       = empty( $_POST['ewww_total_pages'] ) ? 0 : (int) $_POST['ewww_total_pages'];
-	$output      = array();
+
+	$output = array();
+
+	$output['show_pending_button'] = false;
+	if ( ! $pending ) {
+		$output['show_pending_button'] = ewww_image_optimizer_aux_images_table_count_pending() > 0;
+	}
+
 	if ( $pending ) {
 		$sort_column     = 'id';
 		$sort_direction  = 'DESC';

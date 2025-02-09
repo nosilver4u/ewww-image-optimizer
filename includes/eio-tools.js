@@ -9,7 +9,6 @@ jQuery(document).ready(function($) {
 	var ewww_table_debug = 0;
 	function ewwwInitTable() {
 		ewww_pointer = 0;
-		ewww_total_pages = Math.ceil(ewww_vars.image_count / 50);
 		var ewww_search = $('.ewww-search-input').val();
 		$('#ewww-table-info').hide();
 		$('#ewww-show-table').hide();
@@ -20,7 +19,6 @@ jQuery(document).ready(function($) {
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
 			ewww_debug: ewww_table_debug,
-			ewww_total_pages: ewww_total_pages,
 			ewww_search: ewww_search,
 			ewww_pending: ewww_pending,
 			ewww_size_sort: ewww_size_sort,
@@ -44,6 +42,7 @@ jQuery(document).ready(function($) {
 
 			if ( ewww_response.total_pages > 0 ) {
 				ewww_search_total = ewww_response.total_pages;
+				ewww_total_pages  = ewww_response.total_pages;
 			}
 			if (ewww_response.total_images > 50) {
 				$('.next-page').removeClass('disabled');
@@ -54,10 +53,6 @@ jQuery(document).ready(function($) {
 			}
 			if (ewww_response.total_images_text) {
 				$('.ewww-tablenav-pages .displaying-num').text(ewww_response.total_images_text);
-			}
-
-			if (ewww_vars.image_count >= 50) {
-				//$('.tablenav').show(); ?do we need this?
 			}
 		});
 		$('.prev-page').addClass('disabled');
@@ -111,7 +106,6 @@ jQuery(document).ready(function($) {
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
 			ewww_debug: ewww_table_debug,
-			ewww_total_pages: ewww_total_pages,
 			ewww_search: ewww_search,
 			ewww_pending: ewww_pending,
 			ewww_size_sort: ewww_size_sort,
@@ -131,6 +125,7 @@ jQuery(document).ready(function($) {
 			$('#ewww-bulk-table').html(ewww_response.table);
 			$('.ewww-search-count').text(ewww_response.search_result);
 			ewww_search_total = ewww_response.total_pages;
+			ewww_total_pages  = ewww_response.total_pages;
 			if (ewww_response.total_images > 50) {
 				$('.next-page').removeClass('disabled');
 				$('.last-page').removeClass('disabled');
@@ -158,7 +153,6 @@ jQuery(document).ready(function($) {
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
 			ewww_debug: ewww_table_debug,
-			ewww_total_pages: ewww_total_pages,
 			ewww_search: ewww_search,
 			ewww_pending: ewww_pending,
 			ewww_size_sort: ewww_size_sort,
@@ -179,6 +173,7 @@ jQuery(document).ready(function($) {
 			$('.ewww-search-count').text(ewww_response.search_result);
 			if ( ewww_response.total_pages > 0 ) {
 				ewww_search_total = ewww_response.total_pages;
+				ewww_total_pages  = ewww_response.total_pages;
 			}
 			if (ewww_response.total_images <= ((ewww_pointer + 1) * 50)) {
 				$('.next-page').addClass('disabled');
@@ -204,7 +199,6 @@ jQuery(document).ready(function($) {
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
 			ewww_debug: ewww_table_debug,
-			ewww_total_pages: ewww_total_pages,
 			ewww_search: ewww_search,
 			ewww_pending: ewww_pending,
 			ewww_size_sort: ewww_size_sort,
@@ -225,6 +219,7 @@ jQuery(document).ready(function($) {
 			$('.ewww-search-count').text(ewww_response.search_result);
 			if ( ewww_response.total_pages > 0 ) {
 				ewww_search_total = ewww_response.total_pages;
+				ewww_total_pages  = ewww_response.total_pages;
 			}
 			$('.current-page').text(ewww_response.pagination);
 			if (ewww_response.total_images_text) {
@@ -253,7 +248,6 @@ jQuery(document).ready(function($) {
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
 			ewww_debug: ewww_table_debug,
-			ewww_total_pages: ewww_total_pages,
 			ewww_search: ewww_search,
 			ewww_pending: ewww_pending,
 			ewww_size_sort: ewww_size_sort,
@@ -274,6 +268,7 @@ jQuery(document).ready(function($) {
 			$('.ewww-search-count').text(ewww_response.search_result);
 			if ( ewww_response.total_pages > 0 ) {
 				ewww_search_total = ewww_response.total_pages;
+				ewww_total_pages  = ewww_response.total_pages;
 			}
 			$('.current-page').text(ewww_response.pagination);
 			if (ewww_response.total_images_text) {
@@ -297,7 +292,6 @@ jQuery(document).ready(function($) {
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
 			ewww_debug: ewww_table_debug,
-			ewww_total_pages: ewww_total_pages,
 			ewww_search: ewww_search,
 			ewww_pending: ewww_pending,
 			ewww_size_sort: ewww_size_sort,
@@ -318,6 +312,7 @@ jQuery(document).ready(function($) {
 			$('.ewww-search-count').text(ewww_response.search_result);
 			if ( ewww_response.total_pages > 0 ) {
 				ewww_search_total = ewww_response.total_pages;
+				ewww_total_pages  = ewww_response.total_pages;
 			}
 			if (ewww_response.total_images <= 50) {
 				$('.next-page').addClass('disabled');

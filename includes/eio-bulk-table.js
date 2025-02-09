@@ -34,6 +34,44 @@ jQuery(document).ready(function($) {
 			}
 		};
 	}
+	// If auto-poll is enabled, then the bulk process is already running, and this will not be needed.
+	if (! ewww_autopoll) {
+		// Populate the bulk information: media uploads, image sizes, dimensions, etc.
+		var ewww_get_bulk_info_data = {
+			action: 'ewww_get_bulk_info',
+			ewww_wpnonce: ewww_vars._wpnonce,
+		};
+		$.post(ajaxurl, ewww_get_bulk_info_data, function(response) {
+			var is_json = true;
+			try {
+				var ewww_response = JSON.parse(response);
+			} catch (err) {
+				is_json = false;
+			}
+			if ( ! is_json ) {
+				$('#ewww-bulk-queue-images').html('<span class="ewww-bulk-error"><b>' + ewww_vars.invalid_response + '</b></span>');
+				console.log( response );
+				return false;
+			}
+			if ( ewww_response.error ) {
+				$('#ewww-bulk-queue-images').html('<span class="ewww-bulk-error"><b>' + ewww_response.error + '</b></span>');
+			} else if ( ewww_response.html ) {
+				$('#ewww-bulk-queue-images').html( ewww_response.html );
+				if (ewww_response.show_bulk_controls) {
+					$('#ewww-bulk-controls').show();
+				} else {
+					$('#ewww-bulk-controls').remove();
+				}
+			}
+			if (ewww_vars.bulk_init) {
+				$('#ewww-optimize-local-images a.button-primary').trigger('click');
+			}
+		})
+		.fail(function() {
+			$('#ewww-bulk-queue-images').html('<span class="ewww-bulk-error"><b>' + ewww_vars.invalid_response + '</b></span>');
+		});
+	}
+	// Show the bulk interface when the button is clicked.
 	$('#ewww-optimize-local-images a.button-primary').on('click', function() {
 		ewww_table_visible = false;
 		$(this).hide();
@@ -45,10 +83,7 @@ jQuery(document).ready(function($) {
 		$('#ewww-hide-table').hide();
 		return false;
 	});
-	if (ewww_vars.bulk_init) {
-		$('#ewww-optimize-local-images a.button-primary').trigger('click');
-	}
-	$('#ewww-bulk-start-optimizing').on('click', function() {
+	$('#ewww-bulk-queue-images').on('click', '#ewww-bulk-start-optimizing', function() {
 		$('#ewww-bulk-queue-images').hide();
 		$('#ewww-bulk-controls').hide();
 		$('#ewww-bulk-queue-confirm').show();
@@ -208,7 +243,6 @@ jQuery(document).ready(function($) {
 	function ewwwUpdateTable() {
 		console.log('refreshing table/results');
 		ewww_pointer = 0;
-		ewww_total_pages = Math.ceil(ewww_vars.image_count / 50);
 		var ewww_search = $('.ewww-search-input').val();
 		$('#ewww-show-table').hide();
 		$('#ewww-hide-table').show();
@@ -220,7 +254,6 @@ jQuery(document).ready(function($) {
 			action: ewww_table_action,
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
-			ewww_total_pages: ewww_total_pages,
 			ewww_search: ewww_search,
 			ewww_pending: ewww_pending,
 			ewww_size_sort: ewww_size_sort,
@@ -244,6 +277,10 @@ jQuery(document).ready(function($) {
 
 			if ( ewww_response.total_pages > 0 ) {
 				ewww_search_total = ewww_response.total_pages;
+				ewww_total_pages  = ewww_response.total_pages;
+			}
+			if (ewww_pending == 0 && ewww_response.show_pending_button) {
+				$('#ewww-search-pending').show();
 			}
 			if (ewww_response.total_images > 50) {
 				$('.next-page').removeClass('disabled');
@@ -322,7 +359,6 @@ jQuery(document).ready(function($) {
 			action: ewww_table_action,
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
-			ewww_total_pages: ewww_total_pages,
 			ewww_search: ewww_search,
 			ewww_pending: ewww_pending,
 			ewww_size_sort: ewww_size_sort,
@@ -342,6 +378,7 @@ jQuery(document).ready(function($) {
 			$('#ewww-bulk-table').html(ewww_response.table);
 			$('.ewww-search-count').text(ewww_response.search_result);
 			ewww_search_total = ewww_response.total_pages;
+			ewww_total_pages  = ewww_response.total_pages;
 			if (ewww_response.total_images > 50) {
 				$('.next-page').removeClass('disabled');
 				$('.last-page').removeClass('disabled');
@@ -370,7 +407,6 @@ jQuery(document).ready(function($) {
 			action: ewww_table_action,
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
-			ewww_total_pages: ewww_total_pages,
 			ewww_search: ewww_search,
 			ewww_pending: ewww_pending,
 			ewww_size_sort: ewww_size_sort,
@@ -391,6 +427,7 @@ jQuery(document).ready(function($) {
 			$('.ewww-search-count').text(ewww_response.search_result);
 			if ( ewww_response.total_pages > 0 ) {
 				ewww_search_total = ewww_response.total_pages;
+				ewww_total_pages  = ewww_response.total_pages;
 			}
 			if (ewww_response.total_images <= ((ewww_pointer + 1) * 50)) {
 				$('.next-page').addClass('disabled');
@@ -417,7 +454,6 @@ jQuery(document).ready(function($) {
 			action: ewww_table_action,
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
-			ewww_total_pages: ewww_total_pages,
 			ewww_search: ewww_search,
 			ewww_pending: ewww_pending,
 			ewww_size_sort: ewww_size_sort,
@@ -438,6 +474,7 @@ jQuery(document).ready(function($) {
 			$('.ewww-search-count').text(ewww_response.search_result);
 			if ( ewww_response.total_pages > 0 ) {
 				ewww_search_total = ewww_response.total_pages;
+				ewww_total_pages  = ewww_response.total_pages;
 			}
 			$('.current-page').text(ewww_response.pagination);
 			if (ewww_response.total_images_text) {
@@ -471,7 +508,6 @@ jQuery(document).ready(function($) {
 			action: ewww_table_action,
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
-			ewww_total_pages: ewww_total_pages,
 			ewww_search: ewww_search,
 			ewww_pending: ewww_pending,
 			ewww_size_sort: ewww_size_sort,
@@ -492,6 +528,7 @@ jQuery(document).ready(function($) {
 			$('.ewww-search-count').text(ewww_response.search_result);
 			if ( ewww_response.total_pages > 0 ) {
 				ewww_search_total = ewww_response.total_pages;
+				ewww_total_pages  = ewww_response.total_pages;
 			}
 			$('.current-page').text(ewww_response.pagination);
 			if (ewww_response.total_images_text) {
@@ -514,7 +551,6 @@ jQuery(document).ready(function($) {
 			action: ewww_table_action,
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_offset: ewww_pointer,
-			ewww_total_pages: ewww_total_pages,
 			ewww_search: ewww_search,
 			ewww_pending: ewww_pending,
 			ewww_size_sort: ewww_size_sort,
@@ -535,6 +571,7 @@ jQuery(document).ready(function($) {
 			$('.ewww-search-count').text(ewww_response.search_result);
 			if ( ewww_response.total_pages > 0 ) {
 				ewww_search_total = ewww_response.total_pages;
+				ewww_total_pages  = ewww_response.total_pages;
 			}
 			if (ewww_response.total_images <= 50) {
 				$('.next-page').addClass('disabled');
