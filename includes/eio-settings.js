@@ -26,44 +26,40 @@ jQuery(document).ready(function($) {
 	function removeQueryArg(url) {
 		return url.split('?')[0];
 	}
+
 	$('.fade').fadeTo(5000,1).fadeOut(3000);
-		// Populate the bulk information: media uploads, image sizes, dimensions, etc.
-		var ewww_get_image_savings_data = {
-			action: 'ewww_get_image_savings',
-			ewww_wpnonce: ewww_vars._wpnonce,
-		};
-		$.post(ajaxurl, ewww_get_image_savings_data, function(response) {
-			var is_json = true;
-			try {
-				var ewww_response = JSON.parse(response);
-			} catch (err) {
-				is_json = false;
-			}
-			if ( ! is_json ) {
-				$('#ewww-score-bars').html('<span class="ewww-bulk-error"><b>' + ewww_vars.invalid_response + '</b></span>');
-				console.log( response );
-				return false;
-			}
-			if ( ewww_response.error ) {
-				$('#ewww-score-bars').html('<span class="ewww-bulk-error"><b>' + ewww_response.error + '</b></span>');
-			} else if ( ewww_response.html ) {
-				$('#ewww-score-bars').html( ewww_response.html );
-				var ewww_save_bar_width = $('#ewww-savings-fill').data('score');
-				$('#ewww-savings-fill').animate( {
-					width: ewww_save_bar_width + '%',
-				}, 1000 );
-				var easy_save_bar_width = $('#easyio-savings-fill').data('score');
-				$('#easyio-savings-fill').animate( {
-					width: easy_save_bar_width + '%',
-				}, 1000 );
-			}
-			if (ewww_vars.bulk_init) {
-				$('#ewww-optimize-local-images a.button-primary').trigger('click');
-			}
-		})
-		.fail(function() {
-			$('#ewww-bulk-queue-images').html('<span class="ewww-bulk-error"><b>' + ewww_vars.invalid_response + '</b></span>');
-		});
+	// Fetch image savings info and add it to the page.
+	var ewww_get_image_savings_data = {
+		action: 'ewww_get_image_savings',
+		ewww_wpnonce: ewww_vars._wpnonce,
+	};
+	$.post(ajaxurl, ewww_get_image_savings_data, function(response) {
+		var is_json = true;
+		try {
+			var ewww_response = JSON.parse(response);
+		} catch (err) {
+			is_json = false;
+		}
+		if ( ! is_json ) {
+			console.log( response );
+			return false;
+		}
+		if ( ewww_response.html ) {
+			$('#ewww-score-bars').html( ewww_response.html );
+			var ewww_save_bar_width = $('#ewww-savings-fill').data('score');
+			$('#ewww-savings-fill').animate( {
+				width: ewww_save_bar_width + '%',
+			}, 1000 );
+			var easy_save_bar_width = $('#easyio-savings-fill').data('score');
+			$('#easyio-savings-fill').animate( {
+				width: easy_save_bar_width + '%',
+			}, 1000 );
+		}
+	})
+	.fail(function() {
+		$('#ewww-bulk-queue-images').html('<span class="ewww-bulk-error"><b>' + ewww_vars.invalid_response + '</b></span>');
+	});
+
 	$('#ewww-warning-exec-dismiss-link').on(
 		'click',
 		function() {
