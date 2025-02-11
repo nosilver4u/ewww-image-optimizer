@@ -316,6 +316,10 @@ class Local extends Base {
 	public function install_tools() {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->debug_message( 'Checking/Installing tools in ' . $this->content_dir );
+		// If anything changed, we need to re-init the tools list. For instance, setting defaults
+		// and saving network settings, both of those change what tools should be installed.
+		// There may arise other circumstances that have similar impact, so better to be safe.
+		$this->skip_tools();
 		$toolfail = false;
 		if ( $this->function_exists( '\php_uname' ) ) {
 			$arch_type = \php_uname( 'm' );

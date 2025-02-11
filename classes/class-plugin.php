@@ -868,8 +868,6 @@ final class Plugin extends Base {
 		\add_site_option( 'exactdn_sub_folder', false );
 		\add_site_option( 'exactdn_prevent_db_queries', true );
 		\add_site_option( 'ewww_image_optimizer_ll_autoscale', true );
-		// If anything changed, need to re-init the tools list.
-		$this->local->skip_tools();
 	}
 
 	/**

@@ -707,7 +707,6 @@ function ewww_image_optimizer_save_network_settings() {
 			update_site_option( 'ewww_image_optimizer_enable_help', $ewww_image_optimizer_enable_help );
 			$ewww_image_optimizer_allow_tracking = empty( $_POST['ewww_image_optimizer_allow_tracking'] ) ? false : ewwwio()->tracking->check_for_settings_optin( (bool) $_POST['ewww_image_optimizer_allow_tracking'] );
 			update_site_option( 'ewww_image_optimizer_allow_tracking', $ewww_image_optimizer_allow_tracking );
-			ewwwio()->local->skip_tools();
 			add_action( 'network_admin_notices', 'ewww_image_optimizer_network_settings_saved' );
 			add_settings_error( 'general', 'settings_updated', __( 'Settings saved.' ), 'success' ); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 		} elseif (
