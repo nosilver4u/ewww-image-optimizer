@@ -14824,17 +14824,19 @@ AddType image/webp .webp</pre>
 			<noscript><h2><?php esc_html_e( 'Support', 'ewww-image-optimizer' ); ?></h2></noscript>
 			<div class='ewww-settings-panel'>
 				<div class='ewww-settings-section'>
-					<div class='ewww-settings-information'>
+					<div class='ewww-settings-information ewww-support-links ewwwio-flex-space-between'>
 						<p>
 							<a class='ewww-docs-root' href='https://docs.ewww.io/'><?php esc_html_e( 'Documentation', 'ewww-image-optimizer' ); ?></a> |
 							<a class='ewww-docs-root' href='https://ewww.io/contact-us/'><?php esc_html_e( 'Contact Support', 'ewww-image-optimizer' ); ?></a> |
 							<a href='https://feedback.ewww.io/b/features'><?php esc_html_e( 'Submit Feedback', 'ewww-image-optimizer' ); ?></a>
+						</p>
 	<?php if ( 'singlesite' === $network ) : ?>
-							<a style='float:right;' class='button-secondary' href='<?php echo esc_url( wp_nonce_url( admin_url( 'options-general.php?page=ewww-image-optimizer-options&uncomplete_wizard=1' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
+						<p>
+							<a class='button-secondary ewww-wizard-rerun' href='<?php echo esc_url( wp_nonce_url( admin_url( 'options-general.php?page=ewww-image-optimizer-options&uncomplete_wizard=1' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
 								<?php esc_html_e( 'Run Wizard', 'ewww-image-optimizer' ); ?>
-	<?php endif; ?>
 							</a>
 						</p>
+	<?php endif; ?>
 					</div>
 				</div>
 	<?php if ( ! empty( $frontend_functions ) ) : ?>

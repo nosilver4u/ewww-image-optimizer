@@ -135,6 +135,7 @@ class Tracking {
 
 		$data['cloud_api']     = \ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? true : false;
 		$data['keep_metadata'] = \ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ? false : true;
+		$data['jpg_only']      = \ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_only_mode' ) ? true : false;
 		$data['jpg_level']     = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' );
 		$data['png_level']     = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' );
 		$data['gif_level']     = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' );
