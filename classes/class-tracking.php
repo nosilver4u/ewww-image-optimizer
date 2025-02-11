@@ -394,11 +394,13 @@ class Tracking {
 			ewww_image_optimizer_set_option( 'ewww_image_optimizer_tracking_notice', 1 );
 		} else {
 			?>
-			<p><?php esc_html_e( 'Send anonymized usage data to help make the plugin better. Opt-in and get a 10% discount code.', 'ewww-image-optimizer' ); ?><?php ewwwio_help_link( 'https://docs.ewww.io/article/23-usage-tracking', '591f3a8e2c7d3a057f893d91' ); ?></p>
-			<p id='ewww-usage-tracking-link' class='ewwwio-recommend-action-links'>
-				<a id='ewww-enable-reporting' href='#' class='button-secondary'><?php esc_html_e( 'Allow', 'ewww-image-optimizer' ); ?></a>
-				<a id='ewww-dismiss-reporting' href='#'><?php esc_html_e( 'No Thanks', 'ewww-image-optimizer' ); ?></a>
-			</p>
+			<div id='ewww-anon-reporting-banner' class='ewww-recommend'>
+				<p><?php esc_html_e( 'Send anonymized usage data to help make the plugin better. Opt-in and get a 10% discount code.', 'ewww-image-optimizer' ); ?><?php ewwwio_help_link( 'https://docs.ewww.io/article/23-usage-tracking', '591f3a8e2c7d3a057f893d91' ); ?></p>
+				<p id='ewww-usage-tracking-link' class='ewwwio-recommend-action-links'>
+					<a id='ewww-enable-reporting' href='#' class='button-secondary'><?php esc_html_e( 'Allow', 'ewww-image-optimizer' ); ?></a>
+					<a id='ewww-dismiss-reporting' href='#'><?php esc_html_e( 'No Thanks', 'ewww-image-optimizer' ); ?></a>
+				</p>
+			</div>
 			<?php
 		}
 	}

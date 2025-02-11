@@ -75,10 +75,33 @@ class Local extends Base {
 	 * @return bool True if exec() is enabled.
 	 */
 	public function exec_check() {
-		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( isset( $this->exec_enabled ) ) {
 			return (bool) $this->exec_enabled;
 		}
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( $this->hosting_requires_api() ) {
+			$this->debug_message( 'exec cannot be used' );
+			$this->disable_tools();
+			$this->exec_enabled = false;
+			return false;
+		}
+		if ( $this->function_exists( '\exec' ) ) {
+			$this->debug_message( 'exec appears to be enabled' );
+			$this->exec_enabled = true;
+			return true;
+		}
+		$this->debug_message( 'exec appears to be disabled' );
+		$this->disable_tools();
+		$this->exec_enabled = false;
+		return false;
+	}
+
+	/**
+	 * Check if the web host disallows exec() and/or local optimization.
+	 *
+	 * @return bool True if this is a known host that disallows local optimization.
+	 */
+	public function hosting_requires_api() {
 		if (
 			\defined( 'WPCOMSH_VERSION' ) ||
 			! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ||
@@ -87,17 +110,8 @@ class Local extends Base {
 			\defined( 'KINSTAMU_VERSION' ) ||
 			\defined( 'WPNET_INIT_PLUGIN_VERSION' )
 		) {
-			$this->disable_tools();
-			$this->exec_enabled = false;
-			return false;
-		}
-		if ( $this->function_exists( '\exec' ) ) {
-			$this->exec_enabled = true;
 			return true;
 		}
-		$this->debug_message( 'exec appears to be disabled' );
-		$this->disable_tools();
-		$this->exec_enabled = false;
 		return false;
 	}
 
@@ -302,7 +316,6 @@ class Local extends Base {
 	public function install_tools() {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->debug_message( 'Checking/Installing tools in ' . $this->content_dir );
-		$this->skip_tools();
 		$toolfail = false;
 		if ( $this->function_exists( '\php_uname' ) ) {
 			$arch_type = \php_uname( 'm' );
@@ -735,6 +748,23 @@ class Local extends Base {
 			if ( $status['enabled'] && ! isset( $status['path'] ) ) {
 				$this->check_tool( $tool );
 			}
+		}
+		$jpegtran_missing = false;
+		$optipng_missing  = false;
+		if ( ! empty( $this->tools['jpegtran']['enabled'] ) && ! empty( $this->tools['jpegtran']['path'] ) ) {
+			\ewwwio()->toggle_jpg_only_mode( false );
+		}
+		if ( ! empty( $this->tools['optipng']['enabled'] ) && ! empty( $this->tools['optipng']['path'] ) ) {
+			\ewwwio()->toggle_jpg_only_mode( false );
+		}
+		if ( ! empty( $this->tools['jpegtran']['enabled'] ) && empty( $this->tools['jpegtran']['path'] ) ) {
+			$jpegtran_missing = true;
+		}
+		if ( empty( $this->tools['optipng']['enabled'] ) || empty( $this->tools['optipng']['path'] ) ) {
+			$optipng_missing = true;
+		}
+		if ( $jpegtran_missing && $optipng_missing ) {
+			\ewwwio()->toggle_jpg_only_mode( true );
 		}
 		return $this->tools;
 	}

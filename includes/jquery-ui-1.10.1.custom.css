@@ -954,6 +954,7 @@ p#ewww-webp-rewrite-status {
 }
 #ewwwio-easy-activation-progressbar {
 	margin: 10px 0;
+	width: 300px;
 }
 #ewww_image_optimizer_cloud_key_container th, #ewww_image_optimizer_exactdn_container th, #swis_promo_container th {
 	color: #3eadc9;

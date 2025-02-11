@@ -31,6 +31,7 @@ jQuery(document).ready(function($) {
 	// Fetch image savings info and add it to the page.
 	var ewww_get_image_savings_data = {
 		action: 'ewww_get_image_savings',
+		network_savings: ewww_vars.network_blog_ids.length,
 		ewww_wpnonce: ewww_vars._wpnonce,
 	};
 	$.post(ajaxurl, ewww_get_image_savings_data, function(response) {
@@ -207,6 +208,13 @@ jQuery(document).ready(function($) {
 			$('#ewww_image_optimizer_svg_level').val(10);
 		}
 	}
+	if (ewww_vars.easy_autoreg) {
+		$('.easyio-network-singlesite .easyio-manual-ui').hide();
+		$('.easyio-network-singlesite .easyio-cloud-key-ui').show();
+	} else {
+		$('.easyio-network-singlesite .easyio-manual-ui').show();
+		$('.easyio-network-singlesite .easyio-cloud-key-ui').hide();
+	}
 	var easyio_registration_error = '';
 	$('#ewwwio-easy-activate').on( 'click', function() {
 		$('#ewwwio-easy-activate').hide();
@@ -214,6 +222,7 @@ jQuery(document).ready(function($) {
 		$('#ewwwio-easy-activation-result').hide();
 		$('#ewwwio-easy-activation-processing').show();
 		if (! ewww_vars.easyio_site_registered && ewww_vars.easy_autoreg) {
+			console.log('site not yet registered, setting up CDN zone first');
 			var ewww_post_data = {
 				action: 'ewww_exactdn_register_site',
 				ewww_wpnonce: ewww_vars._wpnonce,

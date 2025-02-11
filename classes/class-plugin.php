@@ -411,13 +411,22 @@ final class Plugin extends Base {
 	public function exec_init() {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		global $exactdn;
+
+		// Initialize this, for if/when we setup JPG-only mode. If an API key is active, we'll toggle to false.
+		$default_jpg_only_mode = true;
+
 		// If cloud is fully enabled, we're going to skip all the checks related to the bundled tools.
 		if ( $this->cloud_mode ) {
 			$this->debug_message( 'cloud options enabled, shutting off binaries' );
 			$this->local->skip_tools();
+			$this->toggle_jpg_only_mode( false );
 			return;
+		} elseif ( $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+			$default_jpg_only_mode = false;
+			$this->toggle_jpg_only_mode( $default_jpg_only_mode );
 		}
-		if ( $this->hosting_requires_api() ) {
+		if ( $this->local->hosting_requires_api() ) {
+			$this->toggle_jpg_only_mode( $default_jpg_only_mode );
 			if (
 				! $this->get_option( 'ewww_image_optimizer_cloud_key' ) &&
 				! \ewww_image_optimizer_easy_active() &&
@@ -429,25 +438,31 @@ final class Plugin extends Base {
 			$this->debug_message( 'WPE/wp.com/pantheon/flywheel site, disabling tools' );
 			return;
 		}
-		// If they haven't completed the wizard yet, only display stuff on the bulk page, and short-circuit the rest of the checks elsewhere.
-		if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_wizard_complete' ) ) {
-			// Check if this is a supported OS (Linux, Mac OS, FreeBSD, or Windows).
-			if (
-				! $this->get_option( 'ewww_image_optimizer_cloud_key' ) &&
-				! \ewww_image_optimizer_easy_active() &&
-				$this->local->os_supported()
-			) {
-				\add_action( 'load-media_page_ewww-image-optimizer-bulk', array( $this, 'tool_init' ) );
-			}
-			return;
-		}
 		if ( ! $this->local->os_supported() ) {
-			// Register the function to display a notice.
-			\add_action( 'network_admin_notices', array( $this, 'notice_os' ) );
-			\add_action( 'admin_notices', array( $this, 'notice_os' ) );
+			$this->toggle_jpg_only_mode( $default_jpg_only_mode );
+			if ( $this->get_option( 'ewww_image_optimizer_wizard_complete' ) ) {
+				// Register the function to display a notice.
+				\add_action( 'network_admin_notices', array( $this, 'notice_os' ) );
+				\add_action( 'admin_notices', array( $this, 'notice_os' ) );
+			}
 			// Turn off all the tools.
 			$this->debug_message( 'unsupported OS, disabling tools: ' . PHP_OS );
 			$this->local->skip_tools();
+			return;
+		}
+		// Last check for JPG-only mode until we know whether jpegtran or optipng are functional.
+		if ( ! $this->local->exec_check() ) {
+			$this->toggle_jpg_only_mode( $default_jpg_only_mode );
+		}
+		// If they haven't completed the wizard yet, only display stuff on the bulk page, and short-circuit the rest of the checks elsewhere.
+		if ( ! $this->get_option( 'ewww_image_optimizer_wizard_complete' ) ) {
+			// Check if this is a supported OS (Linux, Mac OS, FreeBSD, or Windows).
+			if (
+				! $this->get_option( 'ewww_image_optimizer_cloud_key' ) &&
+				! \ewww_image_optimizer_easy_active()
+			) {
+				\add_action( 'load-media_page_ewww-image-optimizer-bulk', array( $this, 'tool_init' ) );
+			}
 			return;
 		}
 		\add_action( 'load-upload.php', array( $this, 'tool_init' ), 9 );
@@ -486,6 +501,8 @@ final class Plugin extends Base {
 		 * Require the files that migrate WebP images from extension replacement to extension appending.
 		 */
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'mwebp.php';
+
+		// Check if the plugin has been updated and any upgrade routines need to be run.
 		\ewww_image_optimizer_upgrade();
 
 		// Do settings validation for multi-site.
@@ -494,6 +511,8 @@ final class Plugin extends Base {
 		$this->register_settings();
 		$this->cloud_init();
 		$this->exec_init();
+
+		// Setup the cron job for scheduled optimization.
 		\ewww_image_optimizer_cron_setup( 'ewww_image_optimizer_auto' );
 
 		// Adds scripts to ajaxify the one-click actions on the media library, and register tooltips for conversion links.
@@ -513,6 +532,8 @@ final class Plugin extends Base {
 		if ( ! $this->get_option( 'ewww_image_optimizer_dismiss_utf8' ) && false === strpos( $wpdb->charset, 'utf8' ) ) {
 			\add_action( 'network_admin_notices', array( $this, 'utf8_db_notice' ) );
 			\add_action( 'admin_notices', array( $this, 'utf8_db_notice' ) );
+		} elseif ( ! $this->get_option( 'ewww_image_optimizer_dismiss_utf8' ) ) {
+			$this->set_option( 'ewww_image_optimizer_dismiss_utf8', true );
 		}
 		if ( \defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD_KEY' ) && \get_option( 'ewww_image_optimizer_cloud_key_invalid' ) ) {
 			\add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_invalid_key' );
@@ -553,7 +574,7 @@ final class Plugin extends Base {
 			! $this->get_option( 'ewww_image_optimizer_cloud_key' ) &&
 			\ewww_image_optimizer_easy_active()
 		) {
-			// Suppress the custom column in the media library if local mode is disabled and easy mode is active.
+			// Suppress the custom column in the media library if Easy IO CDN is enabled without an API key and Easy Mode is active.
 			\remove_filter( 'manage_media_columns', 'ewww_image_optimizer_columns' );
 		} else {
 			\add_action( 'admin_notices', 'ewww_image_optimizer_notice_media_listmode' );
@@ -639,8 +660,8 @@ final class Plugin extends Base {
 			\update_option( 'ewww_image_optimizer_ludicrous_mode', true );
 			\update_site_option( 'ewww_image_optimizer_ludicrous_mode', true );
 		} elseif ( isset( $_GET['enable-local'] ) && ! (bool) $_GET['enable-local'] && ! empty( $_REQUEST['_wpnonce'] ) && \wp_verify_nonce( \sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
-			\delete_option( 'ewww_image_optimizer_ludicrous_mode' );
-			\delete_site_option( 'ewww_image_optimizer_ludicrous_mode' );
+			\update_option( 'ewww_image_optimizer_ludicrous_mode', false );
+			\update_site_option( 'ewww_image_optimizer_ludicrous_mode', false );
 		}
 		if ( ! empty( $_GET['complete_wizard'] ) && ! empty( $_REQUEST['_wpnonce'] ) && \wp_verify_nonce( \sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
 			\update_option( 'ewww_image_optimizer_wizard_complete', true, false );
@@ -776,18 +797,23 @@ final class Plugin extends Base {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		// Set defaults for all options that need to be autoloaded.
 		\add_option( 'ewww_image_optimizer_background_optimization', false );
-		\add_option( 'ewww_image_optimizer_noauto', false );
+		\add_option( 'ewww_image_optimizer_noauto', false ); // Disables auto-opt.
+		\add_option( 'ewww_image_optimizer_auto', false ); // Scheduled opt (I know, poor naming).
+		\add_option( 'ewww_image_optimizer_ludicrous_mode', false );
+		\add_option( 'ewww_image_optimizer_jpg_only_mode', false );
 		\add_option( 'ewww_image_optimizer_disable_editor', false );
 		\add_option( 'ewww_image_optimizer_debug', false );
 		\add_option( 'ewww_image_optimizer_metadata_remove', true );
 		\add_option( 'ewww_image_optimizer_maxmediawidth', 2560 );
 		\add_option( 'ewww_image_optimizer_maxmediaheight', 2560 );
+		\add_option( 'ewww_image_optimizer_cloud_key', false );
 		\add_option( 'ewww_image_optimizer_jpg_level', '10' );
 		\add_option( 'ewww_image_optimizer_png_level', '10' );
 		\add_option( 'ewww_image_optimizer_gif_level', '10' );
 		\add_option( 'ewww_image_optimizer_pdf_level', '0' );
 		\add_option( 'ewww_image_optimizer_svg_level', '0' );
 		\add_option( 'ewww_image_optimizer_webp_level', '0' );
+		\add_option( 'ewww_image_optimizer_webp', false );
 		\add_option( 'ewww_image_optimizer_jpg_quality', '' );
 		\add_option( 'ewww_image_optimizer_webp_quality', '' );
 		\add_option( 'ewww_image_optimizer_backup_files', '' );
@@ -1117,25 +1143,6 @@ final class Plugin extends Base {
 	}
 
 	/**
-	 * Check if the web host disallows exec() and/or local optimization.
-	 *
-	 * @return bool True if this is a known host that disallows local optimization.
-	 */
-	public function hosting_requires_api() {
-		if (
-			\defined( 'WPCOMSH_VERSION' ) ||
-			! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ||
-			\defined( 'WPE_PLUGIN_VERSION' ) ||
-			\defined( 'FLYWHEEL_CONFIG_DIR' ) ||
-			\defined( 'KINSTAMU_VERSION' ) ||
-			\defined( 'WPNET_INIT_PLUGIN_VERSION' )
-		) {
-			return true;
-		}
-		return false;
-	}
-
-	/**
 	 * Let the user know the plugin requires API/ExactDN to operate at their webhost.
 	 */
 	public function notice_hosting_requires_api() {
@@ -1265,5 +1272,21 @@ final class Plugin extends Base {
 		\update_option( 'ewww_image_optimizer_webp_level', 0 );
 		\update_option( 'ewww_image_optimizer_dismiss_exec_notice', 1 );
 		\update_site_option( 'ewww_image_optimizer_dismiss_exec_notice', 1 );
+	}
+
+	/**
+	 * Flip the ewww_image_optimizer_jpg_only_mode option, if it isn't already set to the desired config.
+	 *
+	 * @param bool $new_value The value that should be set for JPG-only mode.
+	 */
+	public function toggle_jpg_only_mode( $new_value ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		$current_value = (bool) $this->get_option( 'ewww_image_optimizer_jpg_only_mode' );
+		if ( $new_value && ! $current_value ) {
+			$this->set_option( 'ewww_image_optimizer_jpg_only_mode', 1 );
+		} elseif ( ! $new_value && $current_value ) {
+			$this->set_option( 'ewww_image_optimizer_jpg_only_mode', '' );
+		}
+		// Otherwise, JPG mode is already set to what it ought to be.
 	}
 }
