@@ -79,6 +79,7 @@ class Background_Process_Image extends Background_Process {
 	 */
 	protected function task( $item ) {
 		\session_write_close();
+		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		global $ewww_convert;
 		$id        = (int) $item['id'];
 		$record_id = (int) $item['attachment_id'];

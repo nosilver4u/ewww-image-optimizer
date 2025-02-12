@@ -26,19 +26,57 @@ jQuery(document).ready(function($) {
 	function removeQueryArg(url) {
 		return url.split('?')[0];
 	}
+
 	$('.fade').fadeTo(5000,1).fadeOut(3000);
-	var speed_bar_width = $('#ewww-speed-fill').data('score');
-	$('#ewww-speed-fill').animate( {
-		width: speed_bar_width + '%',
-	}, 1000 );
-	var ewww_save_bar_width = $('#ewww-savings-fill').data('score');
-	$('#ewww-savings-fill').animate( {
-		width: ewww_save_bar_width + '%',
-	}, 1000 );
-	var easy_save_bar_width = $('#easyio-savings-fill').data('score');
-	$('#easyio-savings-fill').animate( {
-		width: easy_save_bar_width + '%',
-	}, 1000 );
+	// Fetch image savings info and add it to the page.
+	var ewww_get_image_savings_data = {
+		action: 'ewww_get_image_savings',
+		network_savings: ewww_vars.network_blog_ids.length,
+		ewww_wpnonce: ewww_vars._wpnonce,
+	};
+	$.post(ajaxurl, ewww_get_image_savings_data, function(response) {
+		var is_json = true;
+		try {
+			var ewww_response = JSON.parse(response);
+		} catch (err) {
+			is_json = false;
+		}
+		if ( ! is_json ) {
+			console.log( response );
+			return false;
+		}
+		if ( ewww_response.html ) {
+			$('#ewww-score-bars').html( ewww_response.html );
+			var ewww_save_bar_width = $('#ewww-savings-fill').data('score');
+			$('#ewww-savings-fill').animate( {
+				width: ewww_save_bar_width + '%',
+			}, 1000 );
+			var easy_save_bar_width = $('#easyio-savings-fill').data('score');
+			$('#easyio-savings-fill').animate( {
+				width: easy_save_bar_width + '%',
+			}, 1000 );
+		}
+	})
+	.fail(function() {
+		$('#ewww-bulk-queue-images').html('<span class="ewww-bulk-error"><b>' + ewww_vars.invalid_response + '</b></span>');
+	});
+
+	$('#ewww-warning-exec-dismiss-link').on(
+		'click',
+		function() {
+			var ewww_dismiss_exec_data = {
+				action: 'ewww_dismiss_exec_notice',
+				_wpnonce: ewww_vars.notice_nonce,
+			};
+			jQuery.post(ajaxurl, ewww_dismiss_exec_data, function(response) {
+				if (response) {
+					console.log(response);
+				}
+				$('#ewww-image-optimizer-warning-exec').hide();
+			});
+			return false;
+		}
+	);
 	$('#ewww-news-dismiss-link').on(
 		'click',
 		function() {
@@ -46,11 +84,44 @@ jQuery(document).ready(function($) {
 				action: 'ewww_dismiss_newsletter',
 				_wpnonce: ewww_vars._wpnonce,
 			};
-			jQuery.post(ajaxurl, ewww_dismiss_news_data, function(response) {
+			$.post(ajaxurl, ewww_dismiss_news_data, function(response) {
 				if (response) {
 						console.log(response);
 				}
-				jQuery('#ewww-newsletter-banner').hide();
+				$('#ewww-newsletter-banner').hide();
+			});
+			return false;
+		}
+	);
+	$('#ewww-enable-reporting').on(
+		'click',
+		function() {
+			var ewww_enable_reporting_data = {
+				action: 'ewww_opt_into_tracking',
+				_wpnonce: ewww_vars.notice_nonce,
+			};
+			$('#ewww_image_optimizer_allow_tracking').prop('checked', true);
+			$.post(ajaxurl, ewww_enable_reporting_data, function(response) {
+				if (response) {
+						console.log(response);
+				}
+				$('#ewww-anon-reporting-banner').html('<code>SPEEDER1012</code>');
+			});
+			return false;
+		}
+	);
+	$('#ewww-dismiss-reporting').on(
+		'click',
+		function() {
+			var ewww_enable_reporting_data = {
+				action: 'ewww_opt_out_of_tracking',
+				_wpnonce: ewww_vars.notice_nonce,
+			};
+			$.post(ajaxurl, ewww_enable_reporting_data, function(response) {
+				if (response) {
+						console.log(response);
+				}
+				$('#ewww-anon-reporting-banner').hide();
 			});
 			return false;
 		}
@@ -137,6 +208,13 @@ jQuery(document).ready(function($) {
 			$('#ewww_image_optimizer_svg_level').val(10);
 		}
 	}
+	if (ewww_vars.easy_autoreg) {
+		$('.easyio-network-singlesite .easyio-manual-ui').hide();
+		$('.easyio-network-singlesite .easyio-cloud-key-ui').show();
+	} else {
+		$('.easyio-network-singlesite .easyio-manual-ui').show();
+		$('.easyio-network-singlesite .easyio-cloud-key-ui').hide();
+	}
 	var easyio_registration_error = '';
 	$('#ewwwio-easy-activate').on( 'click', function() {
 		$('#ewwwio-easy-activate').hide();
@@ -144,6 +222,7 @@ jQuery(document).ready(function($) {
 		$('#ewwwio-easy-activation-result').hide();
 		$('#ewwwio-easy-activation-processing').show();
 		if (! ewww_vars.easyio_site_registered && ewww_vars.easy_autoreg) {
+			console.log('site not yet registered, setting up CDN zone first');
 			var ewww_post_data = {
 				action: 'ewww_exactdn_register_site',
 				ewww_wpnonce: ewww_vars._wpnonce,
@@ -555,19 +634,21 @@ jQuery(document).ready(function($) {
 	});
 	$('#ewww_image_optimizer_lazy_load').on( 'click', function() {
 		if($(this).prop('checked')) {
-			$('#ewww_image_optimizer_ll_exclude_container').fadeIn();
 			$('#ewww_image_optimizer_ll_autoscale_container').fadeIn();
-			$('#ewww_image_optimizer_ll_all_things_container').fadeIn();
+			$('#ewww_image_optimizer_ll_abovethefold_container').fadeIn();
 			$('#ewww_image_optimizer_siip_container').fadeIn();
 			$('#ewww_image_optimizer_lqip_container').fadeIn();
 			$('#ewww_image_optimizer_dcip_container').fadeIn();
+			$('#ewww_image_optimizer_ll_all_things_container').fadeIn();
+			$('#ewww_image_optimizer_ll_exclude_container').fadeIn();
 		} else {
-			$('#ewww_image_optimizer_ll_exclude_container').fadeOut();
 			$('#ewww_image_optimizer_ll_autoscale_container').fadeOut();
-			$('#ewww_image_optimizer_ll_all_things_container').fadeOut();
+			$('#ewww_image_optimizer_ll_abovethefold_container').fadeOut();
 			$('#ewww_image_optimizer_siip_container').fadeOut();
 			$('#ewww_image_optimizer_lqip_container').fadeOut();
 			$('#ewww_image_optimizer_dcip_container').fadeOut();
+			$('#ewww_image_optimizer_ll_all_things_container').fadeOut();
+			$('#ewww_image_optimizer_ll_exclude_container').fadeOut();
 		}
 	});
 	$('#ewww_image_optimizer_webp_for_cdn, #ewww_image_optimizer_picture_webp').on(
@@ -586,39 +667,20 @@ jQuery(document).ready(function($) {
 			}
 		}
 	);
-	//$('#ewww-webp-settings').hide();
-	//$('#ewww-exactdn-settings').hide();
 	$('#ewww-general-settings').show();
-	$('li.ewww-general-nav').addClass('ewww-selected');
 	if($('#ewww_image_optimizer_debug').length){
 		$('#ewww-resize-settings').hide();
 	}
-	// New tabs.
 	$('#ewww-local-settings').hide();
 	$('#ewww-advanced-settings').hide();
-
-	//$('#ewww-optimization-settings').hide();
 	$('#ewww-conversion-settings').hide();
 	$('#ewww-support-settings').hide();
 	$('#ewww-contribute-settings').hide();
-	$('.ewww-webp-nav').on('click', function() {
-		$('.ewww-tab-nav li').removeClass('ewww-selected');
-		$('li.ewww-webp-nav').addClass('ewww-selected');
-		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').show();
-		$('#ewww-general-settings').hide();
-		$('#ewww-local-settings').hide();
-		$('#ewww-advanced-settings').hide();
-		$('#ewww-resize-settings').hide();
-		$('#ewww-conversion-settings').hide();
-		$('#ewww-support-settings').hide();
-		$('#ewww-contribute-settings').hide();
-	});
+	$('#ewww-plugin-listing').hide();
 	$('.ewww-general-nav').on('click', function() {
 		$('.ewww-tab-nav li').removeClass('ewww-selected');
 		$('li.ewww-general-nav').addClass('ewww-selected');
 		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').show();
 		$('#ewww-local-settings').hide();
 		$('#ewww-advanced-settings').hide();
@@ -626,38 +688,12 @@ jQuery(document).ready(function($) {
 		$('#ewww-conversion-settings').hide();
 		$('#ewww-support-settings').hide();
 		$('#ewww-contribute-settings').hide();
-	});
-	$('.ewww-exactdn-nav').on('click', function() {
-		$('.ewww-tab-nav li').removeClass('ewww-selected');
-		$('li.ewww-exactdn-nav').addClass('ewww-selected');
-		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
-		$('#ewww-general-settings').hide();
-		$('#ewww-exactdn-settings').show();
-		$('#ewww-optimization-settings').hide();
-		$('#ewww-resize-settings').hide();
-		$('#ewww-conversion-settings').hide();
-		$('#ewww-support-settings').hide();
-		$('#ewww-contribute-settings').hide();
-	});
-	$('.ewww-optimization-nav').on('click', function() {
-		$('.ewww-tab-nav li').removeClass('ewww-selected');
-		$('li.ewww-optimization-nav').addClass('ewww-selected');
-		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
-		$('#ewww-general-settings').hide();
-		$('#ewww-exactdn-settings').hide();
-		$('#ewww-optimization-settings').show();
-		$('#ewww-resize-settings').hide();
-		$('#ewww-conversion-settings').hide();
-		$('#ewww-support-settings').hide();
-		$('#ewww-contribute-settings').hide();
+		$('#ewww-plugin-listing').hide();
 	});
 	$('.ewww-local-nav').on( 'click', function() {
 		$('.ewww-tab-nav li').removeClass('ewww-selected');
 		$('li.ewww-local-nav').addClass('ewww-selected');
 		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').hide();
 		$('#ewww-local-settings').show();
 		$('#ewww-advanced-settings').hide();
@@ -665,12 +701,12 @@ jQuery(document).ready(function($) {
 		$('#ewww-conversion-settings').hide();
 		$('#ewww-support-settings').hide();
 		$('#ewww-contribute-settings').hide();
+		$('#ewww-plugin-listing').hide();
 	});
 	$('.ewww-advanced-nav').on( 'click', function() {
 		$('.ewww-tab-nav li').removeClass('ewww-selected');
 		$('li.ewww-advanced-nav').addClass('ewww-selected');
 		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').hide();
 		$('#ewww-local-settings').hide();
 		$('#ewww-advanced-settings').show();
@@ -678,12 +714,12 @@ jQuery(document).ready(function($) {
 		$('#ewww-conversion-settings').hide();
 		$('#ewww-support-settings').hide();
 		$('#ewww-contribute-settings').hide();
+		$('#ewww-plugin-listing').hide();
 	});
 	$('.ewww-resize-nav').on( 'click', function() {
 		$('.ewww-tab-nav li').removeClass('ewww-selected');
 		$('li.ewww-resize-nav').addClass('ewww-selected');
 		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').hide();
 		$('#ewww-local-settings').hide();
 		$('#ewww-advanced-settings').hide();
@@ -691,12 +727,12 @@ jQuery(document).ready(function($) {
 		$('#ewww-conversion-settings').hide();
 		$('#ewww-support-settings').hide();
 		$('#ewww-contribute-settings').hide();
+		$('#ewww-plugin-listing').hide();
 	});
 	$('.ewww-conversion-nav').on( 'click', function() {
 		$('.ewww-tab-nav li').removeClass('ewww-selected');
 		$('li.ewww-conversion-nav').addClass('ewww-selected');
 		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').hide();
 		$('#ewww-local-settings').hide();
 		$('#ewww-advanced-settings').hide();
@@ -704,12 +740,12 @@ jQuery(document).ready(function($) {
 		$('#ewww-conversion-settings').show();
 		$('#ewww-support-settings').hide();
 		$('#ewww-contribute-settings').hide();
+		$('#ewww-plugin-listing').hide();
 	});
 	$('.ewww-support-nav').on( 'click', function() {
 		$('.ewww-tab-nav li').removeClass('ewww-selected');
 		$('li.ewww-support-nav').addClass('ewww-selected');
 		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').hide();
 		$('#ewww-local-settings').hide();
 		$('#ewww-advanced-settings').hide();
@@ -717,12 +753,12 @@ jQuery(document).ready(function($) {
 		$('#ewww-conversion-settings').hide();
 		$('#ewww-support-settings').show();
 		$('#ewww-contribute-settings').hide();
+		$('#ewww-plugin-listing').hide();
 	});
 	$('.ewww-contribute-nav').on( 'click', function() {
 		$('.ewww-tab-nav li').removeClass('ewww-selected');
 		$('li.ewww-contribute-nav').addClass('ewww-selected');
 		$('.ewww-tab a').trigger('blur');
-		$('#ewww-webp-settings').hide();
 		$('#ewww-general-settings').hide();
 		$('#ewww-local-settings').hide();
 		$('#ewww-advanced-settings').hide();
@@ -730,5 +766,19 @@ jQuery(document).ready(function($) {
 		$('#ewww-conversion-settings').hide();
 		$('#ewww-support-settings').hide();
 		$('#ewww-contribute-settings').show();
+		$('#ewww-plugin-listing').hide();
+	});
+	$('.ewww-plugins-nav').on( 'click', function() {
+		$('.ewww-tab-nav li').removeClass('ewww-selected');
+		$('li.ewww-plugins-nav').addClass('ewww-selected');
+		$('.ewww-tab a').trigger('blur');
+		$('#ewww-general-settings').hide();
+		$('#ewww-local-settings').hide();
+		$('#ewww-advanced-settings').hide();
+		$('#ewww-resize-settings').hide();
+		$('#ewww-conversion-settings').hide();
+		$('#ewww-support-settings').hide();
+		$('#ewww-contribute-settings').hide();
+		$('#ewww-plugin-listing').show();
 	});
 });

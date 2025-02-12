@@ -35,10 +35,8 @@ class Tracking {
 	public function __construct() {
 		\add_action( 'admin_init', array( $this, 'schedule_send' ) );
 		\add_action( 'ewww_image_optimizer_site_report', array( $this, 'send_checkin' ) );
-		\add_action( 'admin_action_ewww_opt_into_tracking', array( $this, 'check_for_optin' ) );
-		\add_action( 'admin_action_ewww_opt_out_of_tracking', array( $this, 'check_for_optout' ) );
-		\add_action( 'admin_notices', array( $this, 'admin_notice' ) );
-		\add_action( 'network_admin_notices', array( $this, 'admin_notice' ) );
+		\add_action( 'wp_ajax_ewww_opt_into_tracking', array( $this, 'check_for_optin' ) );
+		\add_action( 'wp_ajax_ewww_opt_out_of_tracking', array( $this, 'check_for_optout' ) );
 		\register_deactivation_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, array( $this, 'unschedule_send' ) );
 	}
 
@@ -137,6 +135,7 @@ class Tracking {
 
 		$data['cloud_api']     = \ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? true : false;
 		$data['keep_metadata'] = \ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ? false : true;
+		$data['jpg_only']      = \ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_only_mode' ) ? true : false;
 		$data['jpg_level']     = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' );
 		$data['png_level']     = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' );
 		$data['gif_level']     = (int) \ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' );
@@ -282,16 +281,16 @@ class Tracking {
 	 * Check for a new opt-in via the admin notice
 	 */
 	public function check_for_optin() {
-		\check_admin_referer( 'ewww_image_optimizer_options-options' );
-		$permissions = \apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' );
-		if ( ! \current_user_can( $permissions ) ) {
+		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		ewwwio_ob_clean();
+		check_ajax_referer( 'ewww-image-optimizer-notice' );
+		// Verify that the user is properly authorized.
+		if ( ! \current_user_can( \apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ) ) ) {
 			\wp_die( \esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 		}
-		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		\ewww_image_optimizer_set_option( 'ewww_image_optimizer_allow_tracking', 1 );
 		$this->send_checkin( true );
 		\ewww_image_optimizer_set_option( 'ewww_image_optimizer_tracking_notice', 1 );
-		\wp_safe_redirect( \remove_query_arg( 'action', \wp_get_referer() ) );
 		exit;
 	}
 
@@ -299,16 +298,16 @@ class Tracking {
 	 * Check for a new opt-out via the admin notice
 	 */
 	public function check_for_optout() {
-		\check_admin_referer( 'ewww_image_optimizer_options-options' );
-		$permissions = \apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' );
-		if ( ! \current_user_can( $permissions ) ) {
+		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
+		ewwwio_ob_clean();
+		check_ajax_referer( 'ewww-image-optimizer-notice' );
+		// Verify that the user is properly authorized.
+		if ( ! \current_user_can( \apply_filters( 'ewww_image_optimizer_admin_permissions', 'manage_options' ) ) ) {
 			\wp_die( \esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 		}
-		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 		\delete_option( 'ewww_image_optimizer_allow_tracking' );
 		\delete_network_option( null, 'ewww_image_optimizer_allow_tracking' );
 		\ewww_image_optimizer_set_option( 'ewww_image_optimizer_tracking_notice', 1 );
-		\wp_safe_redirect( \remove_query_arg( 'action', \wp_get_referer() ) );
 		exit;
 	}
 
@@ -366,42 +365,27 @@ class Tracking {
 	}
 
 	/**
-	 * Display the admin notice to users that have not opted-in or out
+	 * Display the admin notice to users that have not opted-in or out. Only used on the settings sidebar.
 	 *
 	 * @access public
 	 * @return void
 	 */
 	public function admin_notice() {
-		return;
 		// If network-active and network notice is hidden, or single-active and single site notice has been hidden, don't show it again.
-		$hide_notice = ewww_image_optimizer_get_option( 'ewww_image_optimizer_tracking_notice' );
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_tracking_notice' ) ) {
+			return;
+		}
 		// But what if they allow overrides? Then the above was checking single-site settings, so we need to check the network admin.
 		if ( is_multisite() && get_site_option( 'ewww_image_optimizer_allow_multisite_override' ) && get_site_option( 'ewww_image_optimizer_tracking_notice' ) ) {
-			$hide_notice = true;
-		}
-
-		if ( $hide_notice ) {
 			return;
 		}
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_allow_tracking' ) ) {
 			return;
 		}
-
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
-		ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
 
-		if ( ! function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
-			// Need to include the plugin library for the is_plugin_active function.
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
-		}
-		if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) && ! current_user_can( 'manage_network_options' ) ) {
-			return;
-		}
-		if ( is_multisite() && ! is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) && is_network_admin() ) {
-			return;
-		}
 		if (
 			stristr( network_site_url( '/' ), '.local' ) !== false ||
 			stristr( network_site_url( '/' ), 'dev' ) !== false ||
@@ -410,14 +394,15 @@ class Tracking {
 		) {
 			ewww_image_optimizer_set_option( 'ewww_image_optimizer_tracking_notice', 1 );
 		} else {
-			$admin_email = '<strong>' . get_bloginfo( 'admin_email' ) . '</strong>';
-			echo '<div class="updated"><p>';
-				/* translators: %s: admin email as configured in settings */
-				printf( esc_html__( 'Allow EWWW Image Optimizer to track plugin usage? Opt-in to tracking and receive 500 free image credits in your admin email: %s. No sensitive data is tracked.', 'ewww-image-optimizer' ), wp_kses_post( $admin_email ) );
-				echo '&nbsp;<a href="https://docs.ewww.io/article/23-usage-tracking" target="_blank" data-beacon-article="591f3a8e2c7d3a057f893d91">' . esc_html__( 'Learn more.', 'ewww-image-optimizer' ) . '</a>';
-				echo '<a href="' . esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_opt_into_tracking' ), 'ewww_image_optimizer_options-options' ) ) . '" class="button-secondary" style="margin-left:5px;">' . esc_html__( 'Allow', 'ewww-image-optimizer' ) . '</a>';
-				echo '<a href="' . esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_opt_out_of_tracking' ), 'ewww_image_optimizer_options-options' ) ) . '" class="button-secondary" style="margin-left:5px">' . esc_html__( 'Do not allow', 'ewww-image-optimizer' ) . '</a>';
-			echo '</p></div>';
+			?>
+			<div id='ewww-anon-reporting-banner' class='ewww-recommend'>
+				<p><?php esc_html_e( 'Send anonymized usage data to help make the plugin better. Opt-in and get a 10% discount code.', 'ewww-image-optimizer' ); ?><?php ewwwio_help_link( 'https://docs.ewww.io/article/23-usage-tracking', '591f3a8e2c7d3a057f893d91' ); ?></p>
+				<p id='ewww-usage-tracking-link' class='ewwwio-recommend-action-links'>
+					<a id='ewww-enable-reporting' href='#' class='button-secondary'><?php esc_html_e( 'Allow', 'ewww-image-optimizer' ); ?></a>
+					<a id='ewww-dismiss-reporting' href='#'><?php esc_html_e( 'No Thanks', 'ewww-image-optimizer' ); ?></a>
+				</p>
+			</div>
+			<?php
 		}
 	}
 }

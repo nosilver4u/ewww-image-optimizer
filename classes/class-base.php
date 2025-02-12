@@ -34,6 +34,14 @@ class Base {
 	public static $temp_debug = false;
 
 	/**
+	 * System info, gathered from the debugger and debug_info() functions.
+	 *
+	 * @access public
+	 * @var string $system_info
+	 */
+	public static $system_info = '';
+
+	/**
 	 * Whether the site is multisite, network activated, and not configured for per-site settings.
 	 *
 	 * @access public

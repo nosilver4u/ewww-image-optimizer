@@ -1322,7 +1322,7 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 		return ewww_image_optimizer_webp_error_message( 4 );
 	}
 	if ( empty( $tool ) || 'image/gif' === $type ) {
-		if ( ewwwio()->imagick_supports_webp() ) {
+		if ( 'image/gif' !== $type && ewwwio()->imagick_supports_webp() ) {
 			ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile );
 		} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 			ewww_image_optimizer_cloud_optimizer( $file, $type, false, $webpfile, 'image/webp' );

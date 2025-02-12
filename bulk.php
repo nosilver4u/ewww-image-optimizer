@@ -208,7 +208,7 @@ function ewwwio_table_nav_controls( $location = 'top' ) {
 		</form>
 	<?php if ( 'top' === $location ) : ?>
 		<div class="ewww-search-controls">
-			<a id="ewww-search-pending" class="button button-secondary" <?php echo ! ewww_image_optimizer_aux_images_table_count_pending() ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'View Queued Images', 'ewww-image-optimizer' ); ?></a>
+			<a id="ewww-search-pending" class="button button-secondary" style="display:none;"><?php esc_html_e( 'View Queued Images', 'ewww-image-optimizer' ); ?></a>
 			<a id="ewww-search-optimized" class="button button-secondary" style="display: none;"><?php esc_html_e( 'View Optimized Images', 'ewww-image-optimizer' ); ?></a>
 		</div>
 	<?php endif; ?>
