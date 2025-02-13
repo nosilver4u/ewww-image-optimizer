@@ -3052,13 +3052,11 @@ function ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile ) {
 					$error_message = $editor->get_error_message();
 					ewwwio_debug_message( "could not get image editor: $error_message" );
 				} else {
-					$editor->set_quality( $quality );
 					$resized_image = $editor->resize( $webp_width, $webp_height, $webp_crop );
 					if ( is_wp_error( $resized_image ) ) {
 						$error_message = $resized_image->get_error_message();
 						ewwwio_debug_message( "error during resizing: $error_message" );
 					} else {
-						$editor->set_quality( $quality );
 						$saved = $editor->save( $webpfile, 'image/webp' );
 						if ( is_wp_error( $saved ) ) {
 							$error_message = $saved->get_error_message();
