@@ -60,6 +60,8 @@ add_filter( 'jpeg_quality', 'ewww_image_optimizer_set_jpg_quality', PHP_INT_MAX 
 add_filter( 'webp_quality', 'ewww_image_optimizer_set_webp_quality' );
 // Allows the user to override the default AVIF quality used by EWWW IO.
 add_filter( 'avif_quality', 'ewww_image_optimizer_set_avif_quality' );
+// Allows the user to override the default image editor quality used by WP_Image_Editor and friends.
+add_filter( 'wp_editor_set_quality', 'ewww_image_optimizer_editor_set_quality', 10, 2 );
 // Prevent WP from over-riding EWWW IO's resize settings.
 add_filter( 'big_image_size_threshold', '__return_false' );
 // Makes sure the plugin bypasses any files affected by the Folders to Ignore setting.
@@ -3050,11 +3052,13 @@ function ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile ) {
 					$error_message = $editor->get_error_message();
 					ewwwio_debug_message( "could not get image editor: $error_message" );
 				} else {
+					$editor->set_quality( $quality );
 					$resized_image = $editor->resize( $webp_width, $webp_height, $webp_crop );
 					if ( is_wp_error( $resized_image ) ) {
 						$error_message = $resized_image->get_error_message();
 						ewwwio_debug_message( "error during resizing: $error_message" );
 					} else {
+						$editor->set_quality( $quality );
 						$saved = $editor->save( $webpfile, 'image/webp' );
 						if ( is_wp_error( $saved ) ) {
 							$error_message = $saved->get_error_message();
@@ -3064,7 +3068,7 @@ function ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile ) {
 				}
 				$ewww_preempt_editor = $original_preempt;
 				if ( ewwwio_is_file( $webpfile ) ) {
-					ewwwio_debug_message( "$webpfile exists, calling it a day" );
+					ewwwio_debug_message( "$webpfile exists, generation via wp_image_editor succeeded" );
 					return;
 				}
 				ewwwio_debug_message( 'something unknown went wrong, try the normal process' );
@@ -3481,6 +3485,25 @@ function ewww_image_optimizer_avif_quality( $quality = null ) {
  */
 function ewww_image_optimizer_set_avif_quality( $quality ) {
 	$new_quality = ewww_image_optimizer_avif_quality();
+	if ( ! empty( $new_quality ) ) {
+		return min( 92, $new_quality );
+	}
+	return min( 92, $quality );
+}
+
+/**
+ * Overrides the default quality (if a user-defined value is set).
+ *
+ * @param int    $quality The default image editor quality level.
+ * @param string $mime_type The type of file being output.
+ * @return int The default quality, or the user configured level.
+ */
+function ewww_image_optimizer_editor_set_quality( $quality, $mime_type = '' ) {
+	if ( empty( $mime_type ) || 'image/jpeg' === $mime_type ) {
+		$new_quality = ewww_image_optimizer_jpg_quality();
+	} elseif ( 'image/webp' === $mime_type ) {
+		$new_quality = ewww_image_optimizer_webp_quality();
+	}
 	if ( ! empty( $new_quality ) ) {
 		return min( 92, $new_quality );
 	}

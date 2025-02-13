@@ -755,6 +755,10 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 					$this->image->setImageProfile( '*', null );
 					$profiles = array();
 				}
+				$quality = (int) apply_filters( 'webp_quality', 75, 'image/webp' );
+				\ewwwio_debug_message( "setting image/webp quality to $quality (post-color check)" );
+				$this->image->setImageCompressionQuality( $quality );
+				$this->image->setCompressionQuality( $quality );
 			}
 
 			$this->image->setImageFormat( strtoupper( $this->get_extension( $mime_type ) ) );
@@ -764,6 +768,10 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 					\ewwwio_debug_message( 'enabling sharp_yuv' );
 					$this->image->setOption( 'webp:use-sharp-yuv', 'true' );
 				}
+				$quality = (int) apply_filters( 'webp_quality', 75, 'image/webp' );
+				\ewwwio_debug_message( "setting image/webp quality to $quality (post-sharp)" );
+				$this->image->setImageCompressionQuality( $quality );
+				$this->image->setCompressionQuality( $quality );
 
 				if ( \ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
 					\ewwwio_debug_message( 'removing meta' );
@@ -773,6 +781,11 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 						$this->image->profileImage( 'icc', $profiles['icc'] );
 					}
 				}
+				$quality = (int) apply_filters( 'webp_quality', 75, 'image/webp' );
+				\ewwwio_debug_message( "setting image/webp quality to $quality (post-meta)" );
+				$this->image->setImageCompressionQuality( $quality );
+				$this->image->setCompressionQuality( $quality );
+
 			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
@@ -792,6 +805,12 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 			}
 		}
 
+		if ( 'image/webp' === $mime_type ) {
+			$quality = (int) apply_filters( 'webp_quality', 75, 'image/webp' );
+			\ewwwio_debug_message( "setting image/webp quality to $quality (pre-write)" );
+			$this->image->setImageCompressionQuality( $quality );
+			$this->image->setCompressionQuality( $quality );
+		}
 		$write_image_result = $this->write_image( $this->image, $filename );
 		if ( is_wp_error( $write_image_result ) ) {
 			return $write_image_result;
