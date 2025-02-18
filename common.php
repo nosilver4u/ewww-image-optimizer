@@ -1292,7 +1292,7 @@ function ewww_image_optimizer_install_table() {
 	ewwwio_debug_message( "current collation: $db_collation" );
 
 	$primary_key_definition = 'PRIMARY KEY  (id),';
-	// See if the path column exists, and what collation it uses to determine the column index size.
+	// Some upgrades cannot be handled by dbDelta(), or they are too slow, so we do them manually.
 	if ( $wpdb->get_var( "SHOW TABLES LIKE '$wpdb->ewwwio_images'" ) === $wpdb->ewwwio_images ) {
 		ewwwio_debug_message( 'upgrading table and checking collation for path, table exists' );
 		$mysql_version = 'unknown';
@@ -1400,6 +1400,28 @@ function ewww_image_optimizer_install_table() {
 		}
 	} // End if().
 
+	if ( $wpdb->get_var( "SHOW TABLES LIKE '$wpdb->ewwwio_queue'" ) === $wpdb->ewwwio_queue ) {
+		// Get the current table layout.
+		$suppress    = $wpdb->suppress_errors();
+		$tablefields = $wpdb->get_results( "DESCRIBE {$wpdb->ewwwio_queue};" );
+		$wpdb->suppress_errors( $suppress );
+		$id_upgrade_needed = true;
+		if ( ewww_image_optimizer_iterable( $tablefields ) ) {
+			foreach ( $tablefields as $tablefield ) {
+				if (
+					'id' === $tablefield->Field // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				) {
+					$id_upgrade_needed = false;
+					ewwwio_debug_message( 'id upgrade not needed' );
+				}
+			}
+		}
+		if ( $id_upgrade_needed ) {
+			ewwwio_debug_message( 'id field missing, add it now!' );
+			$wpdb->query( "ALTER TABLE $wpdb->ewwwio_queue ADD COLUMN id bigint unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST" );
+		}
+	} // End if().
+
 	// If the path column doesn't yet exist, and the default collation is utf8mb4, then we need to lower the column index size.
 	if ( empty( $path_index_size ) && strpos( $db_collation, 'utf8mb4' ) ) {
 		$path_index_size = 191;
@@ -1427,7 +1449,7 @@ function ewww_image_optimizer_install_table() {
 	 * trace: tracelog from the last optimization if debugging was enabled.
 	 */
 	$sql = "CREATE TABLE $wpdb->ewwwio_images (
-		id int unsigned NOT NULL AUTO_INCREMENT,
+		id bigint unsigned NOT NULL AUTO_INCREMENT,
 		attachment_id bigint unsigned,
 		gallery varchar(10),
 		resize varchar(75),
@@ -1466,7 +1488,7 @@ function ewww_image_optimizer_install_table() {
 	 * new: 1 if the image is a 'new' upload queued for optimization, 0 otherwise.
 	 */
 	$sql = "CREATE TABLE $wpdb->ewwwio_queue (
-		id int unsigned NOT NULL AUTO_INCREMENT,
+		id bigint unsigned NOT NULL AUTO_INCREMENT,
 		attachment_id bigint unsigned,
 		gallery varchar(20),
 		scanned tinyint NOT NULL DEFAULT 0,
