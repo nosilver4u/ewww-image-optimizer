@@ -1,3 +1,18 @@
+= 8.1.0 =
+*Release Date - February 18, 2025*
+
+* added: Preserve Originals option to keep pre-scaled images for WebP and thumbnail generation
+* added: ability for 3rd party plugins to hook into Lazy Load and WebP HTML parsers
+* changed: ImageMagick is default WebP conversion method on supported servers
+* changed: improved performance of custom *_option functions on multisite
+* changed: Max Image Dimensions always override WP big_image threshold
+* changed: local image backups not removed on plugin deactivation
+* fixed: Sharpen Images not applied to new WebP Conversion process
+* fixed: WebP Quality not applied to ImageMagick WebP Conversion for thumbnails
+* fixed: WebP resizing overrides custom crop set by Crop Thumbnails
+* fixed: pre-scaled original cannot be found if attachment metadata is incomplete
+* fixed: PHP error in bulk image scanner
+
 = 8.0.0 =
 *Release Date - December 11, 2024*
 
