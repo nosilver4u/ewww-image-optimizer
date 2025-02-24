@@ -132,6 +132,7 @@ function ewww_image_optimizer_display_tools() {
 		"</form>\n</div>\n";
 	echo "<div id='ewww-clean-converted-progressbar' style='display:none;'></div>";
 	echo "<div id='ewww-clean-converted-progress' style='display:none;'></div>";
+	echo "<div id='ewww-clean-converted-messages' style='display:none;'></div>";
 
 	echo '<hr class="ewww-tool-divider">';
 	echo "<div>\n<p id='ewww-clean-webp-info' class='ewww-tool-info'>" .
@@ -149,10 +150,23 @@ function ewww_image_optimizer_display_tools() {
 		</p>
 		<?php
 	}
-	echo "</div>\n";
-	echo "<div id='ewww-clean-webp-progressbar' style='display:none;'></div>";
-	echo "<div id='ewww-clean-webp-progress' style='display:none;'></div>";
+	?>
+	</div>
+	<div id='ewww-clean-webp-progressbar' style='display:none;'></div>
+	<div id='ewww-clean-webp-details'>
+		<div id='ewww-clean-webp-progress' style='display:none;'></div>
+		<div id='ewww-clean-webp-removed' style='display:none;'>
+			<?php
+			printf(
+				/* translators: %s: Number of images (wrapped in a span, to be updated via JS) */
+				esc_html__( 'Removed %s WebP images', 'ewww-image-optimizer' ),
+				"<span id='ewww-clean-webp-removed-total'>0</span>"
+			);
+			?>
+		</div>
+	</div>
 
+	<?php
 	$as3cf_remove = false;
 	if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
 		global $as3cf;
@@ -173,10 +187,11 @@ function ewww_image_optimizer_display_tools() {
 	}
 
 	global $wpdb;
+	$years_since_meta_migration = (int) gmdate( 'Y' ) - 2017;
 	echo '<hr class="ewww-tool-divider">';
 	echo "<div>\n<p id='ewww-clean-meta-info' class='ewww-tool-info'>" .
-		/* translators: 1: postmeta table name 2: ewwwio_images table name */
-		esc_html( sprintf( __( 'Sites using EWWW IO for 3+ years may have optimization data that still needs to be migrated between the %1$s and %2$s tables.', 'ewww-image-optimizer' ), $wpdb->postmeta, $wpdb->ewwwio_images ) ) . "</p>\n";
+		/* translators: 1: number of years 2: postmeta table name 3: ewwwio_images table name */
+		esc_html( sprintf( __( 'Sites using EWWW IO for more than %1$d years may have optimization data that still needs to be migrated between the %2$s and %3$s tables.', 'ewww-image-optimizer' ), $years_since_meta_migration, $wpdb->postmeta, $wpdb->ewwwio_images ) ) . "</p>\n";
 	echo "<form id='ewww-clean-meta' class='ewww-tool-form' method='post' action=''>\n" .
 		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Migrate Optimization Records', 'ewww-image-optimizer' ) . "' />\n" .
 		"</form>\n</div>\n";
@@ -279,6 +294,7 @@ function ewww_image_optimizer_tool_script( $hook ) {
 			'erase_warning'     => $erase_warning,
 			'tool_warning'      => esc_html__( 'Please be sure to backup your site before proceeding. Do you wish to continue?', 'ewww-image-optimizer' ),
 			'too_far'           => esc_html__( 'More images have been processed than expected. Unless you have added new images, you should refresh the page to stop the process and contact support.', 'ewww-image-optimizer' ),
+			'network_error'     => esc_html__( 'A network or server error has occurred, retrying automatically in 15 seconds.', 'ewww-image-optimizer' ),
 			'restorable_images' => $restorable_images,
 			'webp_cleanable'    => $webp_cleanable,
 		)
@@ -2259,12 +2275,7 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 	}
 	// Find out if our nonce is on it's last leg/tick.
 	if ( ! empty( $_REQUEST['ewww_wpnonce'] ) ) {
-		$tick = wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-bulk' );
-		if ( 2 === $tick ) {
-			$output['new_nonce'] = wp_create_nonce( 'ewww-image-optimizer-bulk' );
-		} else {
-			$output['new_nonce'] = '';
-		}
+		$output['new_nonce'] = ewwwio_maybe_get_new_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-bulk' );
 	}
 	$batch_image_limit = ( empty( $_REQUEST['ewww_batch_limit'] ) && ! ewww_image_optimizer_s3_uploads_enabled() ? 999 : 1 );
 	// Get the 'bulk attachments' with a list of IDs remaining.

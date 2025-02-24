@@ -480,6 +480,10 @@ button.ewww-handlediv {
 	display: inline-block;
 	margin-right: 5px;
 }
+#ewww-clean-webp-details {
+	display: flex;
+	justify-content: space-between;
+}
 /* settings tabs */
 .ewww-tab > span {
 	border-bottom: none;
