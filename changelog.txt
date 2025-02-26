@@ -1,3 +1,11 @@
+= 8.1.1 =
+*Release Date - February 26, 2025*
+
+* changed: added handling of HTTP errors to processes on Tools page
+* changed: added nonce-renewal for long-running processes on Tools page
+* changed: improved output for WebP Cleanup tool and Delete Converted Originals tool
+* fixed: queue table upgrade fails to add 'id' column
+
 = 8.1.0 =
 *Release Date - February 18, 2025*
 

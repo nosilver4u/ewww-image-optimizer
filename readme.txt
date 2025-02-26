@@ -5,7 +5,7 @@ Tags: compress, convert, webp, resize, lazy load
 Requires at least: 6.4
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 8.1.0
+Stable tag: 8.1.1
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -143,6 +143,14 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
+
+= 8.1.1 =
+*Release Date - February 26, 2025*
+
+* changed: added handling of HTTP errors to processes on Tools page
+* changed: added nonce-renewal for long-running processes on Tools page
+* changed: improved output for WebP Cleanup tool and Delete Converted Originals tool
+* fixed: queue table upgrade fails to add 'id' column
 
 = 8.1.0 =
 *Release Date - February 18, 2025*
