@@ -148,9 +148,6 @@ jQuery(document).ready(function($) {
 			} else if ( ewww_response.remaining ) {
 				$('.ewww-aux-table').hide();
 				$('#ewww-show-table').hide();
-				//if ( ! ewww_response.notice ) {
-				//	ewww_response.notice = '';
-				//}
 				$('#ewww-scanning').html( ewww_response.remaining );
 				if ( ewww_response.notice ) {
 					$('#ewww-scanning').append( '<br>' + ewww_response.notice );
@@ -161,7 +158,7 @@ jQuery(document).ready(function($) {
 					console.log( 'skipped some tiny images' );
 				}
 				if ( ewww_response.bad_attachment ) {
-		                	$('#ewww-scanning').append( '<br>' + ewww_vars.bad_attachment + ' ' + ewww_response.bad_attachment );
+					$('#ewww-scanning').append( '<br>' + ewww_vars.bad_attachment + ' ' + ewww_response.bad_attachment );
 				}
 				ewww_scan_failures = 0;
 				ewwwStartScan();

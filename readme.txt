@@ -148,6 +148,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 *Release Date - TBD*
 
 * fixed: background processes trigger notice from loading translations too early
+* fixed: WooCommerce thumb regen still runs when WC sizes are disabled
 
 = 8.1.1 =
 *Release Date - February 26, 2025*
