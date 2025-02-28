@@ -47,7 +47,7 @@ add_filter( 'intermediate_image_sizes_advanced', 'ewww_image_optimizer_image_siz
 // Ditto for PDF files (or anything non-image).
 add_filter( 'fallback_intermediate_image_sizes', 'ewww_image_optimizer_fallback_sizes' );
 // Check if any WooCommerce sizes are disabled and suppress the auto-regen function for those sizes.
-add_filter( 'woocommerce_image_sizes_to_resize', 'ewww_image_optimizer_woo_sizes_to_resize' );
+add_filter( 'woocommerce_image_sizes_to_resize', 'ewww_image_optimizer_woo_sizes_to_resize', 20 );
 // Check if WooCommerce should run an async/background thumb regen.
 add_filter( 'woocommerce_background_image_regeneration', 'ewww_image_optimizer_should_woo_regen' );
 // Disable core WebP generation since we already do that.
@@ -2522,6 +2522,8 @@ function ewww_image_optimizer_woo_sizes_to_resize( $sizes ) {
 				if ( ! empty( $disabled_sizes[ $size ] ) ) {
 					ewwwio_debug_message( "size disabled: $size" );
 					unset( $sizes[ $i ] );
+				} else {
+					ewwwio_debug_message( "size enabled: $size" );
 				}
 			}
 		}
@@ -11151,10 +11153,7 @@ function ewww_image_optimizer_settings_script( $hook ) {
 		ewww_image_optimizer_delete_queue_images();
 	}
 
-	remove_all_actions( 'admin_notices' );
-	remove_all_actions( 'network_admin_notices' );
-	ewwwio()->get_settings_errors();
-	add_filter( 'admin_footer_text', 'ewww_image_optimizer_footer_review_text' );
+	// Reset Easy IO bits before we remove the rest of the admin_notices.
 	delete_option( 'ewww_image_optimizer_exactdn_checkin' );
 	global $exactdn;
 	if ( is_object( $exactdn ) && has_action( 'admin_notices', 'ewww_image_optimizer_notice_exactdn_domain_mismatch' ) ) {
@@ -11166,6 +11165,12 @@ function ewww_image_optimizer_settings_script( $hook ) {
 		remove_action( 'admin_notices', 'ewww_image_optimizer_notice_exactdn_domain_mismatch' );
 		$exactdn->setup();
 	}
+
+	remove_all_actions( 'admin_notices' );
+	remove_all_actions( 'network_admin_notices' );
+	ewwwio()->get_settings_errors();
+	add_filter( 'admin_footer_text', 'ewww_image_optimizer_footer_review_text' );
+
 	$blog_ids = array();
 	if ( is_multisite() && is_network_admin() ) {
 		global $wpdb;
