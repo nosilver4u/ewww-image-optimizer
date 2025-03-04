@@ -1449,6 +1449,10 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt', false, true );
 
 	$supported_types = ewwwio()->get_supported_types();
+	$webp_types      = array( 'image/jpeg', 'image/png' );
+	if ( ewwwio()->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+		$webp_types[] = 'image/gif';
+	}
 
 	ewww_image_optimizer_debug_log();
 	$starting_memory_usage = memory_get_usage( true );
@@ -1528,6 +1532,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			} else {
 				$meta = maybe_unserialize( $attachment_meta[ $selected_id ]['meta'] );
 			}
+			$mime = '';
 			if ( ! empty( $attachment_meta[ $selected_id ]['type'] ) ) {
 				$mime = $attachment_meta[ $selected_id ]['type'];
 				ewwwio_debug_message( "got mime via db query: $mime" );
@@ -1620,11 +1625,16 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				continue;
 			}
 
-			$attachment_images['full'] = $file_path;
+			// NOTE: this logic could possibly be enhanced to match Background_Process_Media::should_optimize_size().
+			// While previous checks short-circuit an entire attachment (and all thumbs), some checks are size specific.
+			// For example, we can't convert a PDF to WebP, but PDF uploads may have JPG thumbs that can be converted.
+			if ( ( ewwwio()->webp_only && in_array( $mime, $webp_types, true ) ) || empty( ewwwio()->webp_only ) ) {
+				$attachment_images['full'] = $file_path;
 
-			$retina_path = ewww_image_optimizer_get_hidpi_path( $file_path );
-			if ( $retina_path ) {
-				$attachment_images['full-retina'] = $retina_path;
+				$retina_path = ewww_image_optimizer_get_hidpi_path( $file_path );
+				if ( $retina_path ) {
+					$attachment_images['full-retina'] = $retina_path;
+				}
 			}
 
 			// Resized versions available, see what we can find.
@@ -1675,6 +1685,13 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 						$base_dir = $base_ims_dir;
 					}
 
+					if ( empty( $data['mime-type'] ) ) {
+						$data['mime-type'] = ewww_image_optimizer_quick_mimetype( $data['file'] );
+					}
+					if ( ewwwio()->webp_only && ! in_array( $data['mime-type'], $webp_types, true ) ) {
+						continue;
+					}
+
 					// Check through all the sizes we've processed so far.
 					foreach ( $processed as $proc => $scan ) {
 						// If a previous resize had identical dimensions...
@@ -1716,8 +1733,11 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				ewwwio_debug_message( 'checking for original_image' );
 				// Meta sizes don't contain a path, so we calculate one.
 				$resize_path = trailingslashit( dirname( $file_path ) ) . $meta['original_image'];
-				if ( $remote_file || ewwwio_is_file( $resize_path ) ) {
-					$attachment_images['original_image'] = $resize_path;
+				$thumb_mime  = ewww_image_optimizer_quick_mimetype( $resize_path );
+				if ( ( ewwwio()->webp_only && in_array( $thumb_mime, $webp_types, true ) ) || empty( ewwwio()->webp_only ) ) {
+					if ( $remote_file || ewwwio_is_file( $resize_path ) ) {
+						$attachment_images['original_image'] = $resize_path;
+					}
 				}
 			}
 
@@ -1728,6 +1748,10 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				$imagemeta_resize_path     = '';
 				foreach ( $meta['image_meta']['resized_images'] as $index => $imagemeta_resize ) {
 					$imagemeta_resize_path = $imagemeta_resize_pathinfo['dirname'] . '/' . $imagemeta_resize_pathinfo['filename'] . '-' . $imagemeta_resize . '.' . $imagemeta_resize_pathinfo['extension'];
+					$thumb_mime            = ewww_image_optimizer_quick_mimetype( $imagemeta_resize_path );
+					if ( ewwwio()->webp_only && ! in_array( $thumb_mime, $webp_types, true ) ) {
+						continue;
+					}
 					if ( ewwwio_is_file( $imagemeta_resize_path ) ) {
 						$attachment_images[ 'resized-images-' . $index ] = $imagemeta_resize_path;
 					}
@@ -1741,6 +1765,10 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				$custom_size_path      = '';
 				foreach ( $meta['custom_sizes'] as $dimensions => $custom_size ) {
 					$custom_size_path = $custom_sizes_pathinfo['dirname'] . '/' . $custom_size['file'];
+					$thumb_mime       = ewww_image_optimizer_quick_mimetype( $custom_size_path );
+					if ( ewwwio()->webp_only && ! in_array( $thumb_mime, $webp_types, true ) ) {
+						continue;
+					}
 					if ( ewwwio_is_file( $custom_size_path ) ) {
 						$attachment_images[ 'custom-size-' . $dimensions ] = $custom_size_path;
 					}

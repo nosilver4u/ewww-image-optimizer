@@ -147,7 +147,14 @@ class Background_Process_Media extends Background_Process {
 			\ewwwio_debug_message( "file skipped due to filesize: $file_path" );
 			return false;
 		}
-		$mime = ewww_image_optimizer_quick_mimetype( $file_path );
+		$mime       = ewww_image_optimizer_quick_mimetype( $file_path );
+		$webp_types = array( 'image/jpeg', 'image/png' );
+		if ( ewwwio()->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+			$webp_types[] = 'image/gif';
+		}
+		if ( $item['webp_only'] && ! in_array( $mime, $webp_types, true ) ) {
+			return false;
+		}
 		if ( 'image/png' === $mime && \ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) && $image_size > \ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_png_size' ) ) {
 			\ewwwio_debug_message( "file skipped due to PNG filesize: $file_path" );
 			return false;
