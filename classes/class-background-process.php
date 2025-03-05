@@ -447,7 +447,7 @@ abstract class Background_Process extends Async_Request {
 		if ( empty( $batch ) ) {
 			return array();
 		}
-		\ewwwio_debug_message( 'selected items: ' . count( $batch ) );
+		\ewwwio_debug_message( "selected items for {$this->active_queue}: " . count( $batch ) );
 
 		$this->update_lock();
 		return $batch;

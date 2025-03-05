@@ -624,6 +624,10 @@ function ewww_image_optimizer_save_network_settings() {
 			update_site_option( 'ewww_image_optimizer_svg_level', $ewww_image_optimizer_svg_level );
 			$ewww_image_optimizer_webp_level = empty( $_POST['ewww_image_optimizer_webp_level'] ) ? '' : (int) $_POST['ewww_image_optimizer_webp_level'];
 			update_site_option( 'ewww_image_optimizer_webp_level', $ewww_image_optimizer_webp_level );
+			$ewww_image_optimizer_webp_conversion_method = ( empty( $_POST['ewww_image_optimizer_webp_conversion_method'] ) ? '' : sanitize_text_field( wp_unslash( $_POST['ewww_image_optimizer_webp_conversion_method'] ) ) );
+			update_site_option( 'ewww_image_optimizer_webp_conversion_method', $ewww_image_optimizer_webp_conversion_method );
+			$ewww_image_optimizer_backup_files = ( empty( $_POST['ewww_image_optimizer_backup_files'] ) ? '' : sanitize_text_field( wp_unslash( $_POST['ewww_image_optimizer_backup_files'] ) ) );
+			update_site_option( 'ewww_image_optimizer_backup_files', $ewww_image_optimizer_backup_files );
 			$ewww_image_optimizer_delete_originals = ( empty( $_POST['ewww_image_optimizer_delete_originals'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_delete_originals', $ewww_image_optimizer_delete_originals );
 			$ewww_image_optimizer_jpg_to_png = ( empty( $_POST['ewww_image_optimizer_jpg_to_png'] ) ? false : true );
@@ -648,8 +652,6 @@ function ewww_image_optimizer_save_network_settings() {
 			update_site_option( 'ewww_image_optimizer_avif_quality', ewww_image_optimizer_avif_quality( $ewww_image_optimizer_avif_quality ) );
 			$ewww_image_optimizer_disable_convert_links = ( empty( $_POST['ewww_image_optimizer_disable_convert_links'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_disable_convert_links', $ewww_image_optimizer_disable_convert_links );
-			$ewww_image_optimizer_backup_files = ( empty( $_POST['ewww_image_optimizer_backup_files'] ) ? '' : sanitize_text_field( wp_unslash( $_POST['ewww_image_optimizer_backup_files'] ) ) );
-			update_site_option( 'ewww_image_optimizer_backup_files', $ewww_image_optimizer_backup_files );
 			$ewww_image_optimizer_auto = ( empty( $_POST['ewww_image_optimizer_auto'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_auto', $ewww_image_optimizer_auto );
 			$ewww_image_optimizer_aux_paths = empty( $_POST['ewww_image_optimizer_aux_paths'] ) ? '' : sanitize_textarea_field( wp_unslash( $_POST['ewww_image_optimizer_aux_paths'] ) );
@@ -842,6 +844,12 @@ function ewww_image_optimizer_upgrade() {
 			if ( 'local' !== $backup_mode && 'cloud' !== $backup_mode ) {
 				ewww_image_optimizer_set_option( 'ewww_image_optimizer_backup_files', 'cloud' );
 			}
+		}
+		if (
+			get_option( 'ewww_image_optimizer_version' ) <= 812 &&
+			ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' )
+		) {
+			ewww_image_optimizer_set_option( 'ewww_image_optimizer_webp_conversion_method', 'cloud' );
 		}
 		if ( get_option( 'ewww_image_optimizer_local_mode' ) || get_site_option( 'ewww_image_optimizer_local_mode' ) ) {
 			update_option( 'ewww_image_optimizer_ludicrous_mode', true );
@@ -2553,6 +2561,9 @@ function ewww_image_optimizer_should_woo_regen( $run_regen ) {
 				}
 			}
 		}
+	} else {
+		// No sizes disabled, so go ahead!
+		return $run_regen;
 	}
 	if ( ! $have_woo_sizes ) {
 		ewwwio_debug_message( 'disabling woo regen' );
@@ -5135,6 +5146,7 @@ function ewww_image_optimizer_cloud_enable() {
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_pdf_level', 10 );
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_svg_level', 10 );
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_webp_level', 20 );
+	ewww_image_optimizer_set_option( 'ewww_image_optimizer_webp_conversion_method', 'cloud' );
 	if ( 'local' !== ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_backup_files', 'cloud' );
 	}
@@ -14436,6 +14448,27 @@ AddType image/webp .webp</pre>
 	<?php endif; ?>
 							<p class='description'>
 								<?php esc_html_e( 'All methods used by the EWWW Image Optimizer are intended to produce visually identical images.', 'ewww-image-optimizer' ); ?>
+							</p>
+						</div>
+					</div>
+				</div><!-- end .ewww-settings-section -->
+				<div class='ewww-settings-section'>
+					<div class='ewww-settings-row'>
+						<div class='ewww-setting-header'>
+							<label for='ewww_image_optimizer_webp_conversion_method'><?php esc_html_e( 'WebP Conversion Mode', 'ewww-image-optimizer' ); ?></label>
+							<?php ewwwio_help_link( 'https://docs.ewww.io/article/102-local-compression-options', '60c24b24a6d12c2cd643e9fb' ); ?>
+						</div>
+						<div class='ewww-setting-detail'>
+							<select id='ewww_image_optimizer_webp_conversion_method' name='ewww_image_optimizer_webp_conversion_method'>
+								<option value='local' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_conversion_method' ), 'local' ); ?>>
+									<?php esc_html_e( 'Local', 'ewww-image-optimizer' ); ?>
+								</option>
+								<option <?php disabled( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ); ?> value='cloud' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_conversion_method' ), 'cloud' ); ?>>
+									<?php esc_html_e( 'Cloud', 'ewww-image-optimizer' ); ?>
+								</option>
+							</select>
+							<p class='description'>
+								<?php esc_html_e( 'Local mode is faster, but uses 2x more CPU on your server.', 'ewww-image-optimizer' ); ?>
 							</p>
 						</div>
 					</div>

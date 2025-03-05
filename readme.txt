@@ -147,8 +147,13 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 8.1.2 =
 *Release Date - TBD*
 
+* changed: WebP Conversion mode configurable for API users
+* changed: combine metadata queries for faster async scanning
 * fixed: background processes trigger notice from loading translations too early
 * fixed: WooCommerce thumb regen still runs when WC sizes are disabled
+* fixed: Easy IO fails to refresh CDN domain when site URL has changed
+* fixed: Force and WebP Only options not applied when scanning additional folders in async mode
+* fixed: PDF and SVG images queued in WebP Only mode
 
 = 8.1.1 =
 *Release Date - February 26, 2025*
