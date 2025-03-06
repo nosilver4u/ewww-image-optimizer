@@ -5605,7 +5605,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	) {
 		$free_exec = true;
 	}
-	if ( ! $free_exec && $webp ) {
+	if ( ! $free_exec && $webp && 'image/jpeg' === $type ) {
 		$free_exec = true;
 	}
 	if ( empty( $api_key ) && ! $free_exec ) {
@@ -14043,6 +14043,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							</p>
 		<?php endif; ?>
 		<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
+			<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_only_mode' ) ) : ?>
+							<p class='description'>
+								*<?php esc_html_e( 'PNG to WebP conversion requires an active API key.', 'ewww-image-optimizer' ); ?>
+							</p>
+			<?php endif; ?>
 							<p class='description'>
 								*<?php esc_html_e( 'GIF to WebP conversion requires an active API key.', 'ewww-image-optimizer' ); ?>
 							</p>
@@ -14270,12 +14275,21 @@ AddType image/webp .webp</pre>
 									<?php esc_html_e( 'Click to enable forced GIF rewriting once WebP version have been generated.', 'ewww-image-optimizer' ); ?>
 								</a>
 							</p>
-			<?php elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_force_gif2webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
+			<?php elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
+				<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_only_mode' ) ) : ?>
 							<p class='description'>
 								<a href="https://ewww.io/plans/" target="_blank">
-									<?php esc_html_e( 'GIF to WebP conversion requires an API key.', 'ewww-image-optimizer' ); ?>
+									<?php esc_html_e( 'PNG to WebP conversion requires an active API key.', 'ewww-image-optimizer' ); ?>
 								</a>
 							</p>
+				<?php endif; ?>
+				<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_force_gif2webp' ) ) : ?>
+							<p class='description'>
+								<a href="https://ewww.io/plans/" target="_blank">
+									<?php esc_html_e( 'GIF to WebP conversion requires an active API key.', 'ewww-image-optimizer' ); ?>
+								</a>
+							</p>
+				<?php endif; ?>
 			<?php endif; ?>
 						</div>
 					</div>

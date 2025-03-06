@@ -638,6 +638,22 @@ class Base {
 	}
 
 	/**
+	 * Get a list of which image types can be converted to WebP with the current configuration.
+	 *
+	 * @return A list of mime-types suitable for WebP conversion.
+	 */
+	public function get_webp_types() {
+		$webp_types = array( 'image/jpeg' );
+		if ( $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+			$webp_types[] = 'image/png';
+			$webp_types[] = 'image/gif';
+		} elseif ( ! $this->get_option( 'ewww_image_optimizer_jpg_only_mode' ) ) {
+			$webp_types[] = 'image/png';
+		}
+		return $webp_types;
+	}
+
+	/**
 	 * Checks if the S3 Uploads plugin is installed and active.
 	 *
 	 * @return bool True if it is fully active and rewriting/offloading media, false otherwise.

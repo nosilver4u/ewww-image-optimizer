@@ -1759,10 +1759,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	}
 
 	$supported_types = ewwwio()->get_supported_types();
-	$webp_types      = array( 'image/jpeg', 'image/png' );
-	if ( ewwwio()->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-		$webp_types[] = 'image/gif';
-	}
+	$webp_types      = ewwwio()->get_webp_types();
 
 	foreach ( $iterator as $file ) {
 		if ( get_transient( 'ewww_image_optimizer_aux_iterator' ) && get_transient( 'ewww_image_optimizer_aux_iterator' ) > $file_counter ) {
