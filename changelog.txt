@@ -1,3 +1,15 @@
+= 8.1.2 =
+*Release Date - March 6, 2025*
+
+* changed: WebP Conversion mode configurable for API users
+* changed: combine metadata queries for faster async scanning
+* changed: Bulk Optimization no longer requires Force Re-optimization to create WebP images for previously optimized images
+* fixed: background processes trigger notice from loading translations too early
+* fixed: WooCommerce thumb regen still runs when WC sizes are disabled
+* fixed: Easy IO fails to refresh CDN domain when site URL has changed
+* fixed: Force and WebP Only options not applied when scanning additional folders in async mode
+* fixed: PDF and SVG images queued in WebP Only mode
+
 = 8.1.1 =
 *Release Date - February 26, 2025*
 

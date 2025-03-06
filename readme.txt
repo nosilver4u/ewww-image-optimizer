@@ -5,7 +5,7 @@ Tags: compress, convert, webp, resize, lazy load
 Requires at least: 6.4
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 8.1.1
+Stable tag: 8.1.2
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -145,10 +145,11 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 8.1.2 =
-*Release Date - TBD*
+*Release Date - March 6, 2025*
 
 * changed: WebP Conversion mode configurable for API users
 * changed: combine metadata queries for faster async scanning
+* changed: Bulk Optimization no longer requires Force Re-optimization to create WebP images for previously optimized images
 * fixed: background processes trigger notice from loading translations too early
 * fixed: WooCommerce thumb regen still runs when WC sizes are disabled
 * fixed: Easy IO fails to refresh CDN domain when site URL has changed
