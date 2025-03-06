@@ -1701,16 +1701,15 @@ function ewww_image_optimizer_notice_webp_bulk() {
 		$bulk_link = add_query_arg(
 			array(
 				'ewww_webp_only' => 1,
-				'ewww_force'     => 1,
 			),
 			$bulk_link
 		);
 		$bulk_link = wp_nonce_url( $bulk_link, 'ewww_image_optimizer_options-options' );
-		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-info is-dismissible'><p><a href='" .
+		echo "<div id='ewww-image-optimizer-webp-generate' class='notice notice-info is-dismissible'><p><a href='" .
 			esc_url( $bulk_link ) .
 			"'>" . esc_html__( 'It looks like you already started optimizing your images, you will need to generate WebP images via the Bulk Optimizer.', 'ewww-image-optimizer' ) . '</a></p></div>';
 	} else {
-		echo "<div id='ewww-image-optimizer-pngout-success' class='notice notice-info is-dismissible'><p><a href='" .
+		echo "<div id='ewww-image-optimizer-webp-generate' class='notice notice-info is-dismissible'><p><a href='" .
 			esc_url( $bulk_link ) .
 			"'>" . esc_html__( 'Use the Bulk Optimizer to generate WebP images for existing uploads.', 'ewww-image-optimizer' ) . '</a></p></div>';
 	}
@@ -13006,6 +13005,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$speed_recommendations[] = __( 'JPG quality level should be between 50 and 90 for optimal resizing.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/11-advanced-configuration', '58542afac697912ffd6c18c0,58543c69c697912ffd6c19a7' );
 	}
 	if ( ! ewww_image_optimizer_easy_active() ) {
+		// NOTE: we don't check cwebp here, because we allow WebP for pretty much everyone, with a fallback to the API if all else fails.
 		if ( $tools['jpegtran']['enabled'] && ewwwio()->local->exec_check() ) {
 			if ( ! empty( $tools['jpegtran']['path'] ) ) {
 				$speed_score += 5;
@@ -13041,10 +13041,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				$speed_recommendations[] = __( 'Install gifsicle.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/6-the-plugin-says-i-m-missing-something', '585371e3c697912ffd6c0ba1' );
 			}
 		}
-		// NOTE: we don't check cwebp here, because we allow WebP for pretty much everyone, with a fallback to the API if all else fails.
 		if ( $tools['svgcleaner']['enabled'] && ewww_image_optimizer_svgcleaner_installer_available() ) {
 			if ( empty( $tools['svgcleaner']['path'] ) ) {
-				$speed_recommendations[] = '<a href="' . admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' ) . '">' . __( 'Install svgcleaner', 'ewww-image-optimizer' ) . '</a>';
+				$speed_recommendations[] = '<a href="' . esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_install_svgcleaner' ), 'ewww_image_optimizer_options-options' ) ) . '">' . __( 'Install svgcleaner', 'ewww-image-optimizer' ) . '</a>';
 			}
 		}
 	}
