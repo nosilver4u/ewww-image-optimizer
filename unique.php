@@ -1289,7 +1289,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
  * @param int    $orig_size The filesize of the JPG/PNG file.
  * @param string $type The mime-type of the incoming file.
  * @param string $tool The path to the cwebp binary, if installed.
- * @param bool   $recreate True to keep the .webp image even if it is larger than the JPG/PNG.
+ * @param bool   $recreate True to re-generate the .webp image even if one exists, usually because the source image has been modified.
  * @return string Results of the WebP operation for display.
  */
 function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $recreate = false ) {
@@ -1322,17 +1322,29 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 		return ewww_image_optimizer_webp_error_message( 4 );
 	}
 	if ( empty( $tool ) || 'image/gif' === $type ) {
-		if ( 'image/gif' !== $type && ewwwio()->imagick_supports_webp() ) {
-			ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile );
-		} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+		$use_cloud_webp = false;
+		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+			$use_cloud_webp = true;
+			if (
+				'local' === ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_conversion_method' ) &&
+				'image/gif' !== $type &&
+				ewwwio()->imagick_supports_webp()
+			) {
+				$use_cloud_webp = false;
+			}
+		}
+		if ( $use_cloud_webp ) {
 			ewww_image_optimizer_cloud_optimizer( $file, $type, false, $webpfile, 'image/webp' );
+		} elseif ( ewwwio()->imagick_supports_webp() ) {
+			ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile );
 		} elseif ( ewwwio()->gd_supports_webp() ) {
 			ewww_image_optimizer_gd_create_webp( $file, $type, $webpfile );
 		} else {
 			ewww_image_optimizer_cloud_optimizer( $file, $type, false, $webpfile, 'image/webp' );
 		}
 	} elseif ( ewwwio()->imagick_supports_webp() ) {
-			ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile );
+		// Because we prefer Imagick for sharpening/quality over cwebp.
+		ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile );
 	} else {
 		$nice = '';
 		if ( PHP_OS !== 'WINNT' && ! ewwwio()->cloud_mode && ewwwio()->local->exec_check() ) {

@@ -1759,6 +1759,10 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 	}
 
 	$supported_types = ewwwio()->get_supported_types();
+	$webp_types      = array( 'image/jpeg', 'image/png' );
+	if ( ewwwio()->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+		$webp_types[] = 'image/gif';
+	}
 
 	foreach ( $iterator as $file ) {
 		if ( get_transient( 'ewww_image_optimizer_aux_iterator' ) && get_transient( 'ewww_image_optimizer_aux_iterator' ) > $file_counter ) {
@@ -1848,6 +1852,9 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 				$mime = ewww_image_optimizer_quick_mimetype( $path );
 			}
 			if ( ! in_array( $mime, $supported_types, true ) ) {
+				continue;
+			}
+			if ( ewwwio()->webp_only && ! in_array( $mime, $webp_types, true ) ) {
 				continue;
 			}
 			if ( apply_filters( 'ewww_image_optimizer_bypass', false, $path ) === true ) {
@@ -1995,6 +2002,22 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 	if ( ! get_transient( 'ewww_image_optimizer_skip_aux' ) ) {
 		update_option( 'ewww_image_optimizer_aux_resume', 'scanning' );
 		set_transient( 'ewww_image_optimizer_aux_lock', time(), 60 );
+		$scan_args = get_option( 'ewww_image_optimizer_scan_args' );
+		if ( is_array( $scan_args ) && ! empty( $scan_args ) ) {
+			ewwwio_debug_message( 'scan args saved to db' );
+			if ( ! empty( $scan_args['force_reopt'] ) ) {
+				ewwwio_debug_message( 'force re-opt enabled' );
+				ewwwio()->force = true;
+			}
+			if ( ! empty( $scan_args['force_smart'] ) ) {
+				ewwwio_debug_message( 'smart re-opt enabled' );
+				ewwwio()->force_smart = true;
+			}
+			if ( ! empty( $scan_args['webp_only'] ) ) {
+				ewwwio_debug_message( 'webp-only enabled' );
+				ewwwio()->webp_only = true;
+			}
+		}
 		ewwwio_debug_message( 'getting fresh list of files to optimize' );
 		// Collect a list of images from the current theme (and parent theme if applicable).
 		$child_path  = get_stylesheet_directory();
@@ -2114,6 +2137,7 @@ function ewww_image_optimizer_aux_images_script( $hook = '' ) {
 	$image_count = (int) ewww_image_optimizer_aux_images_table_count_pending();
 	ewwwio_debug_message( "found $image_count images to optimize while scanning" );
 	update_option( 'ewww_image_optimizer_aux_folders_completed', array(), false );
+	update_option( 'ewww_image_optimizer_scan_args', '' );
 	update_option( 'ewww_image_optimizer_aux_resume', '' );
 	update_option( 'ewww_image_optimizer_bulk_resume', '' );
 	delete_transient( 'ewww_image_optimizer_aux_lock' );
