@@ -2521,7 +2521,6 @@ function ewww_image_optimizer_fallback_sizes( $sizes ) {
  * @return array A list of Woo sizes, minus any the user wants disabled.
  */
 function ewww_image_optimizer_woo_sizes_to_resize( $sizes ) {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes', false, true );
 	if ( ! empty( $disabled_sizes ) ) {
 		if ( ewww_image_optimizer_iterable( $sizes ) && ewww_image_optimizer_iterable( $disabled_sizes ) ) {
@@ -2545,7 +2544,6 @@ function ewww_image_optimizer_woo_sizes_to_resize( $sizes ) {
  * @return bool True if any Woo sizes are still enabled, false if they are not.
  */
 function ewww_image_optimizer_should_woo_regen( $run_regen ) {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$woo_sizes      = array( 'woocommerce_thumbnail', 'woocommerce_gallery_thumbnail', 'woocommerce_single' );
 	$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes', false, true );
 	$have_woo_sizes = false;
@@ -14451,6 +14449,23 @@ AddType image/webp .webp</pre>
 						</div>
 					</div>
 				</div><!-- end .ewww-settings-section -->
+	<?php
+	$local_webp_available = false;
+	if (
+		( $tools['cwebp']['enabled'] && ! empty( $tools['cwebp']['path'] ) && ewwwio()->local->exec_check() ) ||
+		ewwwio()->imagick_supports_webp() ||
+		( ewwwio()->gd_supports_webp() && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) )
+	) {
+		$local_webp_available = true;
+	}
+	$cloud_webp_available   = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) || ! $local_webp_available;
+	$webp_conversion_method = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_conversion_method' );
+	if ( 'local' === $webp_conversion_method && ! $local_webp_available ) {
+		$webp_conversion_method = 'cloud';
+	} elseif ( 'cloud' === $webp_conversion_method && ! $cloud_webp_available ) {
+		$webp_conversion_method = 'local';
+	}
+	?>
 				<div class='ewww-settings-section'>
 					<div class='ewww-settings-row'>
 						<div class='ewww-setting-header'>
@@ -14459,16 +14474,22 @@ AddType image/webp .webp</pre>
 						</div>
 						<div class='ewww-setting-detail'>
 							<select id='ewww_image_optimizer_webp_conversion_method' name='ewww_image_optimizer_webp_conversion_method'>
-								<option value='local' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_conversion_method' ), 'local' ); ?>>
+								<option <?php disabled( ! $local_webp_available ); ?> value='local' <?php selected( $webp_conversion_method, 'local' ); ?>>
 									<?php esc_html_e( 'Local', 'ewww-image-optimizer' ); ?>
 								</option>
-								<option <?php disabled( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ); ?> value='cloud' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_conversion_method' ), 'cloud' ); ?>>
+								<option <?php disabled( ! $cloud_webp_available ); ?> value='cloud' <?php selected( $webp_conversion_method, 'cloud' ); ?>>
 									<?php esc_html_e( 'Cloud', 'ewww-image-optimizer' ); ?>
 								</option>
 							</select>
+	<?php if ( $local_webp_available ) : ?>
 							<p class='description'>
 								<?php esc_html_e( 'Local mode is faster, but uses 2x more CPU on your server.', 'ewww-image-optimizer' ); ?>
 							</p>
+	<?php else : ?>
+							<p class='description'>
+								<?php esc_html_e( 'Your web server does not meet the requirements for local WebP conversion.', 'ewww-image-optimizer' ); ?>
+							</p>
+	<?php endif; ?>
 						</div>
 					</div>
 				</div><!-- end .ewww-settings-section -->
@@ -15287,10 +15308,12 @@ function ewww_image_optimizer_easyio_network_activated() {
  */
 function ewww_image_optimizer_remove_cloud_key( $redirect = true ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	check_admin_referer( 'ewww_image_optimizer_options-options' );
-	$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
-	if ( 'none' !== $redirect && false === current_user_can( $permissions ) ) {
-		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
+	if ( 'none' !== $redirect ) {
+		check_admin_referer( 'ewww_image_optimizer_options-options' );
+		$permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
+		if ( 'none' !== $redirect && false === current_user_can( $permissions ) ) {
+			wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
+		}
 	}
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_key', '' );
 	$default_level = 10;
@@ -15314,6 +15337,16 @@ function ewww_image_optimizer_remove_cloud_key( $redirect = true ) {
 	}
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_exceeded', 0 );
 	delete_transient( 'ewww_image_optimizer_cloud_status' );
+	// We don't actually check if cwebp is available, because they may not have WebP conversion enabled, but might later.
+	// So we're only checking if local WebP conversion is feasible, given the presence of exec(), Imagick, or GD.
+	// The WebP function will do the proper checks regardless.
+	if (
+		ewwwio()->local->exec_check() ||
+		ewwwio()->imagick_supports_webp() ||
+		ewwwio()->gd_supports_webp()
+	) {
+		ewww_image_optimizer_set_option( 'ewww_image_optimizer_webp_conversion_method', 'local' );
+	}
 	if ( 'local' !== ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_backup_files', '' );
 	}

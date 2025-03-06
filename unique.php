@@ -423,7 +423,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 				if ( empty( ewwwio()->webp_only ) ) {
 					list( $file, $converted, $result, $new_size, $backup_hash ) = ewww_image_optimizer_cloud_optimizer( $file, $type );
 				}
-				$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, $type, null, $orig_size !== $new_size );
+				$webp_result = ewww_image_optimizer_webp_create( $file, $new_size, $type, $tools['cwebp'], $orig_size !== $new_size );
 				break;
 			}
 			// If we get this far, we are using local (jpegtran) optimization, so do an autorotate on the image.
