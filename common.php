@@ -13631,8 +13631,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					</div>
 				</div>
 	<?php endif; ?>
-				<div class='ewww-settings-section'>
 	<?php if ( ewwwio()->perfect_images_easyio_domain() ) : ?>
+				<div class='ewww-settings-section'>
 					<div id='ewww_image_optimizer_exactdn_container' class='ewww-settings-row ewwwio-premium-setup'>
 						<div class='ewww-setting-header'>
 							<span id='ewwwio-exactdn-anchor'></span>
@@ -13645,7 +13645,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						</div>
 					</div>
 	<?php elseif ( ! get_option( 'easyio_exactdn' ) ) : ?>
-		<?php ob_start(); ?>
+				<div class='ewww-settings-section'>
+		<?php ob_start(); // Intentionally after the ewww-settings-section, as this will be wrapped in a section later, if needed. ?>
 					<div id='ewww_image_optimizer_exactdn_container' class='ewww-settings-row ewwwio-premium-setup'>
 						<div class='ewww-setting-header'>
 							<span id='ewwwio-exactdn-anchor'></span>
@@ -13755,6 +13756,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					</div>
 		<?php $exactdn_settings_row = ob_get_contents(); ?>
 		<?php ob_end_flush(); ?>
+	<?php else : ?>
+				<div class='ewww-settings-section' style='display: none;'>
 	<?php endif; ?>
 					<div class='ewww-settings-row ewwwio-exactdn-options exactdn-easy-options' <?php echo $exactdn_enabled ? '' : 'style="display:none;"'; ?>>
 						<div class='ewww-setting-header'>&nbsp;</div>
@@ -13908,10 +13911,13 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<label for='ewww_image_optimizer_lazy_load'><?php esc_html_e( 'Lazy Load', 'ewww-image-optimizer' ); ?></label>
 							<?php ewwwio_help_link( 'https://docs.ewww.io/article/74-lazy-load', '5c6c36ed042863543ccd2d9b' ); ?>
 						</div>
-						<div class='ewww-setting-detail'>
 	<?php if ( function_exists( 'easyio_get_option' ) && easyio_get_option( 'easyio_lazy_load' ) ) : ?>
+						<div class='ewww-setting-detail'>
 							<p class='description'><?php esc_html_e( 'Lazy Load enabled in Easy Image Optimizer.', 'ewww-image-optimizer' ); ?></p>
+						</div>
+					</div>
 	<?php else : ?>
+						<div class='ewww-setting-detail'>
 							<input type='checkbox' id='ewww_image_optimizer_lazy_load' name='ewww_image_optimizer_lazy_load' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ); ?> />
 							<?php esc_html_e( 'Improves actual and perceived loading time as images will be loaded only as they enter (or are about to enter) the viewport.', 'ewww-image-optimizer' ); ?>
 		<?php if ( ewwwio_other_lazy_detected() ) : ?>
