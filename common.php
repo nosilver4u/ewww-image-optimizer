@@ -14043,13 +14043,17 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							</p>
 		<?php endif; ?>
 		<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
+							<p>&nbsp;</p>
 			<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_only_mode' ) ) : ?>
 							<p class='description'>
-								*<?php esc_html_e( 'PNG to WebP conversion requires an active API key.', 'ewww-image-optimizer' ); ?>
+								<?php esc_html_e( 'PNG to WebP conversion requires an API key because your web server does not meet the requirements for free PNG compression.', 'ewww-image-optimizer' ); ?>
+								<?php ewwwio_help_link( 'https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it', '592dd12d0428634b4a338c39' ); ?>
 							</p>
 			<?php endif; ?>
 							<p class='description'>
-								*<?php esc_html_e( 'GIF to WebP conversion requires an active API key.', 'ewww-image-optimizer' ); ?>
+								<a href="https://ewww.io/plans/" target="_blank">
+									<?php esc_html_e( 'GIF to WebP conversion requires an API key.', 'ewww-image-optimizer' ); ?>
+								</a>
 							</p>
 		<?php endif; ?>
 						</div>
@@ -14275,21 +14279,6 @@ AddType image/webp .webp</pre>
 									<?php esc_html_e( 'Click to enable forced GIF rewriting once WebP version have been generated.', 'ewww-image-optimizer' ); ?>
 								</a>
 							</p>
-			<?php elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
-				<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_only_mode' ) ) : ?>
-							<p class='description'>
-								<a href="https://ewww.io/plans/" target="_blank">
-									<?php esc_html_e( 'PNG to WebP conversion requires an active API key.', 'ewww-image-optimizer' ); ?>
-								</a>
-							</p>
-				<?php endif; ?>
-				<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_force_gif2webp' ) ) : ?>
-							<p class='description'>
-								<a href="https://ewww.io/plans/" target="_blank">
-									<?php esc_html_e( 'GIF to WebP conversion requires an active API key.', 'ewww-image-optimizer' ); ?>
-								</a>
-							</p>
-				<?php endif; ?>
 			<?php endif; ?>
 						</div>
 					</div>
