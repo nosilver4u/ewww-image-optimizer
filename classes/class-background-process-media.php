@@ -199,10 +199,7 @@ class Background_Process_Media extends Background_Process {
 			return false;
 		}
 		$mime       = ewww_image_optimizer_quick_mimetype( $file_path );
-		$webp_types = array( 'image/jpeg', 'image/png' );
-		if ( ewwwio()->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-			$webp_types[] = 'image/gif';
-		}
+		$webp_types = ewwwio()->get_webp_types();
 		if ( $item['webp_only'] && ! in_array( $mime, $webp_types, true ) ) {
 			\ewwwio_debug_message( "not eligible for WebP conversion: $file_path" );
 			return false;

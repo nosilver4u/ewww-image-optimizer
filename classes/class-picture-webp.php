@@ -565,6 +565,9 @@ class Picture_Webp extends Page_Parser {
 			return false;
 		}
 		if ( $this->get_option( 'ewww_image_optimizer_webp_force' ) && $this->is_iterable( $this->allowed_urls ) ) {
+			if ( $extension && 'png' === $extension && $this->get_option( 'ewww_image_optimizer_jpg_only_mode' ) ) {
+				return false;
+			}
 			// Check the image for configured CDN paths.
 			foreach ( $this->allowed_urls as $allowed_url ) {
 				if ( \strpos( $image, $allowed_url ) !== false ) {

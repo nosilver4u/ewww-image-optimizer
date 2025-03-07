@@ -5605,7 +5605,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	) {
 		$free_exec = true;
 	}
-	if ( ! $free_exec && $webp ) {
+	if ( ! $free_exec && $webp && 'image/jpeg' === $type ) {
 		$free_exec = true;
 	}
 	if ( empty( $api_key ) && ! $free_exec ) {
@@ -13631,8 +13631,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					</div>
 				</div>
 	<?php endif; ?>
-				<div class='ewww-settings-section'>
 	<?php if ( ewwwio()->perfect_images_easyio_domain() ) : ?>
+				<div class='ewww-settings-section'>
 					<div id='ewww_image_optimizer_exactdn_container' class='ewww-settings-row ewwwio-premium-setup'>
 						<div class='ewww-setting-header'>
 							<span id='ewwwio-exactdn-anchor'></span>
@@ -13645,7 +13645,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						</div>
 					</div>
 	<?php elseif ( ! get_option( 'easyio_exactdn' ) ) : ?>
-		<?php ob_start(); ?>
+				<div class='ewww-settings-section'>
+		<?php ob_start(); // Intentionally after the ewww-settings-section, as this will be wrapped in a section later, if needed. ?>
 					<div id='ewww_image_optimizer_exactdn_container' class='ewww-settings-row ewwwio-premium-setup'>
 						<div class='ewww-setting-header'>
 							<span id='ewwwio-exactdn-anchor'></span>
@@ -13755,6 +13756,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					</div>
 		<?php $exactdn_settings_row = ob_get_contents(); ?>
 		<?php ob_end_flush(); ?>
+	<?php else : ?>
+				<div class='ewww-settings-section' style='display: none;'>
 	<?php endif; ?>
 					<div class='ewww-settings-row ewwwio-exactdn-options exactdn-easy-options' <?php echo $exactdn_enabled ? '' : 'style="display:none;"'; ?>>
 						<div class='ewww-setting-header'>&nbsp;</div>
@@ -13908,10 +13911,13 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<label for='ewww_image_optimizer_lazy_load'><?php esc_html_e( 'Lazy Load', 'ewww-image-optimizer' ); ?></label>
 							<?php ewwwio_help_link( 'https://docs.ewww.io/article/74-lazy-load', '5c6c36ed042863543ccd2d9b' ); ?>
 						</div>
-						<div class='ewww-setting-detail'>
 	<?php if ( function_exists( 'easyio_get_option' ) && easyio_get_option( 'easyio_lazy_load' ) ) : ?>
+						<div class='ewww-setting-detail'>
 							<p class='description'><?php esc_html_e( 'Lazy Load enabled in Easy Image Optimizer.', 'ewww-image-optimizer' ); ?></p>
+						</div>
+					</div>
 	<?php else : ?>
+						<div class='ewww-setting-detail'>
 							<input type='checkbox' id='ewww_image_optimizer_lazy_load' name='ewww_image_optimizer_lazy_load' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ); ?> />
 							<?php esc_html_e( 'Improves actual and perceived loading time as images will be loaded only as they enter (or are about to enter) the viewport.', 'ewww-image-optimizer' ); ?>
 		<?php if ( ewwwio_other_lazy_detected() ) : ?>
@@ -14037,8 +14043,17 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							</p>
 		<?php endif; ?>
 		<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
+							<p>&nbsp;</p>
+			<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_only_mode' ) ) : ?>
 							<p class='description'>
-								*<?php esc_html_e( 'GIF to WebP conversion requires an active API key.', 'ewww-image-optimizer' ); ?>
+								<?php esc_html_e( 'PNG to WebP conversion requires an API key because your web server does not meet the requirements for free PNG compression.', 'ewww-image-optimizer' ); ?>
+								<?php ewwwio_help_link( 'https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it', '592dd12d0428634b4a338c39' ); ?>
+							</p>
+			<?php endif; ?>
+							<p class='description'>
+								<a href="https://ewww.io/plans/" target="_blank">
+									<?php esc_html_e( 'GIF to WebP conversion requires an API key.', 'ewww-image-optimizer' ); ?>
+								</a>
 							</p>
 		<?php endif; ?>
 						</div>
@@ -14262,12 +14277,6 @@ AddType image/webp .webp</pre>
 							<p class='description'>
 								<a href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_enable_force_gif2webp' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
 									<?php esc_html_e( 'Click to enable forced GIF rewriting once WebP version have been generated.', 'ewww-image-optimizer' ); ?>
-								</a>
-							</p>
-			<?php elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_force' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_force_gif2webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) : ?>
-							<p class='description'>
-								<a href="https://ewww.io/plans/" target="_blank">
-									<?php esc_html_e( 'GIF to WebP conversion requires an API key.', 'ewww-image-optimizer' ); ?>
 								</a>
 							</p>
 			<?php endif; ?>
