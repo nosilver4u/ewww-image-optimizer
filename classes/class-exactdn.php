@@ -194,6 +194,7 @@ class ExactDN extends Page_Parser {
 			return;
 		}
 
+		$this->validate_user_exclusions();
 		$this->request_uri = \add_query_arg( '', '' );
 		if ( false === \strpos( $this->request_uri, 'page=ewww-image-optimizer-options' ) ) {
 			$this->debug_message( "request uri is {$this->request_uri}" );
@@ -328,19 +329,21 @@ class ExactDN extends Page_Parser {
 		\add_filter( 'envira_gallery_output_item_data', array( $this, 'envira_gallery_output_item_data' ) );
 		\add_filter( 'envira_gallery_image_src', array( $this, 'plugin_get_image_url' ) );
 
-		// Filters for BuddyBoss image URLs.
-		\add_filter( 'bp_media_get_preview_image_url', array( $this, 'bp_media_get_preview_image_url' ), PHP_INT_MAX, 5 );
-		\add_filter( 'bb_video_get_thumb_url', array( $this, 'bb_video_get_thumb_url' ), PHP_INT_MAX, 5 );
-		\add_filter( 'bp_document_get_preview_url', array( $this, 'bp_document_get_preview_url' ), PHP_INT_MAX, 6 );
-		\add_filter( 'bb_video_get_symlink', array( $this, 'bb_video_get_symlink' ), PHP_INT_MAX, 4 );
-		// Filters for BuddyBoss URL symlinks.
-		\add_filter( 'bb_media_do_symlink', array( $this, 'buddyboss_do_symlink' ), PHP_INT_MAX );
-		\add_filter( 'bb_document_do_symlink', array( $this, 'buddyboss_do_symlink' ), PHP_INT_MAX );
-		\add_filter( 'bb_video_do_symlink', array( $this, 'buddyboss_do_symlink' ), PHP_INT_MAX );
-		\add_filter( 'bb_video_create_thumb_symlinks', array( $this, 'buddyboss_do_symlink' ), PHP_INT_MAX );
-		// Filters for BuddyBoss media access checks.
-		\add_filter( 'bb_media_check_default_access', '__return_true', PHP_INT_MAX );
-		\add_filter( 'bb_media_settings_callback_symlink_direct_access', array( $this, 'buddyboss_media_directory_allow_access' ), PHP_INT_MAX, 2 );
+		if ( ! $this->skip_page( false, 'buddyboss' ) && ! $this->exactdn_skip_user_exclusions( false, 'buddyboss' ) ) {
+			// Filters for BuddyBoss image URLs.
+			\add_filter( 'bp_media_get_preview_image_url', array( $this, 'bp_media_get_preview_image_url' ), PHP_INT_MAX, 5 );
+			\add_filter( 'bb_video_get_thumb_url', array( $this, 'bb_video_get_thumb_url' ), PHP_INT_MAX, 5 );
+			\add_filter( 'bp_document_get_preview_url', array( $this, 'bp_document_get_preview_url' ), PHP_INT_MAX, 6 );
+			\add_filter( 'bb_video_get_symlink', array( $this, 'bb_video_get_symlink' ), PHP_INT_MAX, 4 );
+			// Filters for BuddyBoss URL symlinks.
+			\add_filter( 'bb_media_do_symlink', array( $this, 'buddyboss_do_symlink' ), PHP_INT_MAX );
+			\add_filter( 'bb_document_do_symlink', array( $this, 'buddyboss_do_symlink' ), PHP_INT_MAX );
+			\add_filter( 'bb_video_do_symlink', array( $this, 'buddyboss_do_symlink' ), PHP_INT_MAX );
+			\add_filter( 'bb_video_create_thumb_symlinks', array( $this, 'buddyboss_do_symlink' ), PHP_INT_MAX );
+			// Filters for BuddyBoss media access checks.
+			\add_filter( 'bb_media_check_default_access', '__return_true', PHP_INT_MAX );
+			\add_filter( 'bb_media_settings_callback_symlink_direct_access', array( $this, 'buddyboss_media_directory_allow_access' ), PHP_INT_MAX, 2 );
+		}
 
 		// Filter for NextGEN image URLs within JS.
 		\add_filter( 'ngg_pro_lightbox_images_queue', array( $this, 'ngg_pro_lightbox_images_queue' ) );
@@ -431,7 +434,6 @@ class ExactDN extends Page_Parser {
 		$this->debug_message( 'allowed domains: ' . \implode( ',', $this->allowed_domains ) );
 		$this->debug_message( 'asset domains: ' . $this->asset_domains );
 		$this->get_allowed_paths();
-		$this->validate_user_exclusions();
 	}
 
 	/**
