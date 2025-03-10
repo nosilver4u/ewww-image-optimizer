@@ -1457,10 +1457,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt', false, true );
 
 	$supported_types = ewwwio()->get_supported_types();
-	$webp_types      = array( 'image/jpeg', 'image/png' );
-	if ( ewwwio()->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-		$webp_types[] = 'image/gif';
-	}
+	$webp_types      = ewwwio()->get_webp_types();
 
 	ewww_image_optimizer_debug_log();
 	$starting_memory_usage = memory_get_usage( true );
