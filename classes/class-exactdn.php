@@ -329,7 +329,7 @@ class ExactDN extends Page_Parser {
 		\add_filter( 'envira_gallery_output_item_data', array( $this, 'envira_gallery_output_item_data' ) );
 		\add_filter( 'envira_gallery_image_src', array( $this, 'plugin_get_image_url' ) );
 
-		if ( $this->skip_page( false, 'buddyboss' ) || $this->exactdn_skip_user_exclusions( false, 'buddyboss' ) ) {
+		if ( ! $this->skip_page( false, 'buddyboss' ) && ! $this->exactdn_skip_user_exclusions( false, 'buddyboss' ) ) {
 			// Filters for BuddyBoss image URLs.
 			\add_filter( 'bp_media_get_preview_image_url', array( $this, 'bp_media_get_preview_image_url' ), PHP_INT_MAX, 5 );
 			\add_filter( 'bb_video_get_thumb_url', array( $this, 'bb_video_get_thumb_url' ), PHP_INT_MAX, 5 );
