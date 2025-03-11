@@ -147,7 +147,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 8.1.3 =
 *Release Date - TBD*
 
+* added: exclude private BuddyBoss media from Easy IO with page:buddyboss exclusion
 * fixed: WebP rewriters alter PNG URLs when PNG to WebP conversion is unavailable
+* fixed: regression in compatibility with plugins that recreate images via WP_Image_Editor
 
 = 8.1.2 =
 *Release Date - March 6, 2025*
