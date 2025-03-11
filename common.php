@@ -31,6 +31,8 @@ add_action( 'current_screen', 'ewww_image_optimizer_current_screen', 10, 1 );
 add_filter( 'ewww_image_optimizer_resize_dimensions', 'ewww_image_optimizer_noresize', 10, 2 );
 // Makes sure the optimizer never optimizes it's own testing images.
 add_filter( 'ewww_image_optimizer_bypass', 'ewww_image_optimizer_ignore_self', 10, 2 );
+// Check to see if overwriting existing thumbs is allowed.
+add_filter( 'ewwwio_editor_prevent_overwrite', 'ewww_image_optimizer_allow_editor_overwrite' );
 // Adds a column to the media library list view to display optimization results.
 add_filter( 'manage_media_columns', 'ewww_image_optimizer_columns' );
 // Outputs the actual column information for each attachment.
@@ -294,6 +296,19 @@ function ewww_image_optimizer_ignore_self( $skip, $filename ) {
 		return true;
 	}
 	return $skip;
+}
+
+/**
+ * Allows overwriting via EWWWIO_EDITOR_OVERWRITE constant.
+ *
+ * @param bool $prevent_overwrite Defaults to true.
+ * @return bool False if EWWWIO_EDITOR_OVERWRITE is true.
+ */
+function ewww_image_optimizer_allow_editor_overwrite( $prevent_overwrite ) {
+	if ( defined( 'EWWWIO_EDITOR_OVERWRITE' ) && EWWWIO_EDITOR_OVERWRITE ) {
+		$prevent_overwrite = false;
+	}
+	return $prevent_overwrite;
 }
 
 /**
@@ -989,15 +1004,13 @@ function ewww_image_optimizer_ajax_compat_check() {
 		'hotspot_save' === $action
 	) {
 		ewwwio_debug_message( 'doing regeneratethumbnail' );
-		ewww_image_optimizer_image_sizes( false );
+		ewww_image_optimizer_image_sizes();
 		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 		return;
 	}
 	if ( 'mic_crop_image' === $action ) {
 		ewwwio_debug_message( 'doing Manual Image Crop' );
-		if ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) ) {
-			define( 'EWWWIO_EDITOR_OVERWRITE', true );
-		}
+		add_filter( 'ewwwio_editor_prevent_overwrite', '__return_false' );
 		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 		return;
 	}
@@ -1012,8 +1025,7 @@ function ewww_image_optimizer_ajax_compat_check() {
 	$iwaction = ! empty( $_REQUEST['iw-action'] ) ? sanitize_key( $_REQUEST['iw-action'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
 	if ( $iwaction ) {
 		ewwwio_debug_message( "doing $iwaction" );
-		global $ewww_preempt_editor;
-		$ewww_preempt_editor = true;
+		add_filter( 'ewwwio_editor_prevent_overwrite', '__return_false' );
 		if ( 'applywatermark' === $iwaction ) {
 			remove_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15 );
 			add_action( 'iw_after_apply_watermark', 'ewww_image_optimizer_single_size_optimize', 10, 2 );
@@ -1024,27 +1036,27 @@ function ewww_image_optimizer_ajax_compat_check() {
 	// Check for other MLP actions, including multi-regen.
 	if ( class_exists( 'MaxGalleriaMediaLib' ) && ( 'regen_mlp_thumbnails' === $action || 'move_media' === $action || 'copy_media' === $action || 'maxgalleria_rename_image' === $action ) ) {
 		ewwwio_debug_message( 'doing regen_mlp_thumbnails' );
-		ewww_image_optimizer_image_sizes( false );
+		ewww_image_optimizer_image_sizes();
 		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 		return;
 	}
 	// Check for MLP upload.
 	if ( class_exists( 'MaxGalleriaMediaLib' ) && ! empty( $_REQUEST['nonce'] ) && 'upload_attachment' === $action ) { // phpcs:ignore WordPress.Security.NonceVerification
 		ewwwio_debug_message( 'doing maxgalleria upload' );
-		ewww_image_optimizer_image_sizes( false );
+		ewww_image_optimizer_image_sizes();
 		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 		return;
 	}
 	// Check for Image Regenerate and Select Crop (better way).
 	if ( defined( 'DOING_SIRSC' ) && DOING_SIRSC ) {
 		ewwwio_debug_message( 'IRSC action/regen' );
-		ewww_image_optimizer_image_sizes( false );
+		ewww_image_optimizer_image_sizes();
 		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 		return;
 	} elseif ( 0 === strpos( $action, 'sirsc' ) ) {
 		// Image Regenerate and Select Crop (old check).
 		ewwwio_debug_message( 'IRSC action/regen (old)' );
-		ewww_image_optimizer_image_sizes( false );
+		ewww_image_optimizer_image_sizes();
 		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 		return;
 	}
@@ -1054,7 +1066,7 @@ function ewww_image_optimizer_ajax_compat_check() {
 		if ( check_ajax_referer( 'phoenix_media_rename', '_wpnonce', false ) ) {
 			ewwwio_debug_message( 'PMR verified' );
 			remove_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_resize_from_meta_data', 15 );
-			ewww_image_optimizer_image_sizes( false );
+			ewww_image_optimizer_image_sizes();
 			add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 			return;
 		}
@@ -1177,7 +1189,7 @@ function ewww_image_optimizer_restapi_compat_check() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( ! empty( $GLOBALS['wp']->query_vars['rest_route'] ) && false !== strpos( $GLOBALS['wp']->query_vars['rest_route'], '/regenerate-thumbnails' ) ) {
 		ewwwio_debug_message( 'doing regenerate-thumbnails via REST' );
-		ewww_image_optimizer_image_sizes( false );
+		ewww_image_optimizer_image_sizes();
 		add_filter( 'ewww_image_optimizer_allowed_reopt', '__return_true' );
 		return;
 	}
@@ -2301,13 +2313,14 @@ function ewww_image_optimizer_add_attachment() {
 /**
  * Removes the image editor filter, and adds a new filter that will restore it later.
  *
- * @param array $sizes A list of sizes to be generated by WordPress.
+ * @param array $sizes Optional. A list of sizes to be generated by WordPress.
  * @return array The unaltered list of sizes to be generated.
  */
-function ewww_image_optimizer_image_sizes( $sizes ) {
+function ewww_image_optimizer_image_sizes( $sizes = array() ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $ewww_preempt_editor;
 	$ewww_preempt_editor = true;
+	add_filter( 'ewwwio_editor_prevent_overwrite', '__return_false' );
 	// This happens right after thumbs and meta are generated.
 	add_filter( 'wp_generate_attachment_metadata', 'ewww_image_optimizer_restore_editor_hooks', 1 );
 	add_filter( 'mpp_generate_metadata', 'ewww_image_optimizer_restore_editor_hooks', 1 );
