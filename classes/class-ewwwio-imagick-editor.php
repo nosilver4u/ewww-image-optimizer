@@ -646,8 +646,7 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 			unset( $this->ewww_image );
 			return parent::_save( $image, $filename, $mime_type );
 		}
-		global $ewww_preempt_editor;
-		if ( ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) || ! EWWWIO_EDITOR_OVERWRITE ) && ewwwio_is_file( $filename ) && empty( $ewww_preempt_editor ) ) {
+		if ( apply_filters( 'ewwwio_editor_prevent_overwrite', true ) && ewwwio_is_file( $filename ) ) {
 			ewwwio_debug_message( "detected existing file: $filename" );
 			$current_size = wp_getimagesize( $filename );
 			if ( $current_size && (int) $this->size['width'] === (int) $current_size[0] && (int) $this->size['height'] === (int) $current_size[1] ) {
@@ -709,7 +708,7 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 		}
 		\ewwwio_debug_message( "saving $filename" );
 
-		if ( ( ! defined( 'EWWWIO_EDITOR_OVERWRITE' ) || ! EWWWIO_EDITOR_OVERWRITE ) && ewwwio_is_file( $filename ) ) {
+		if ( apply_filters( 'ewwwio_editor_prevent_overwrite', true ) && ewwwio_is_file( $filename ) ) {
 			ewwwio_debug_message( "detected existing file: $filename" );
 			$current_size = wp_getimagesize( $filename );
 			if ( $current_size && (int) $this->size['width'] === (int) $current_size[0] && (int) $this->size['height'] === (int) $current_size[1] ) {
