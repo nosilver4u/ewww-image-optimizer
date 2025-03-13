@@ -148,6 +148,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 *Release Date - TBD*
 
 * added: exclude private BuddyBoss media from Easy IO with page:buddyboss exclusion
+* changed: WebP Only mode no longer requires Force Re-optimize for already optimized images
+* fixed: Easy IO rewriting some URLs when full page exclusions are used
 * fixed: WebP rewriters alter PNG URLs when PNG to WebP conversion is unavailable
 * fixed: regression in compatibility with plugins that recreate images via WP_Image_Editor
 
