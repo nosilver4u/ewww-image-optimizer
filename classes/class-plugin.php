@@ -203,6 +203,10 @@ final class Plugin extends Base {
 			// For classes we need everywhere, front-end and back-end. Others are only included on admin_init (below).
 			self::$instance->requires();
 			self::$instance->load_children();
+			// Load async classes early, even though cron schedules use translations, and should not normally be loaded any earlier than init.
+			// The async classes have been modified to not use translations any earlier than init.
+			self::$instance->load_async_children();
+
 			// Load plugin compatibility functions for S3 Uploads, NextGEN, FlaGallery, and Nextcellent.
 			\add_action( 'plugins_loaded', array( self::$instance, 'plugins_compat' ) );
 			// Initializes the plugin for admin interactions, like saving network settings and scheduling cron jobs.
@@ -657,9 +661,6 @@ final class Plugin extends Base {
 	 */
 	public function init() {
 		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-
-		// Load async classes on 'init', as cron schedules use translations, and those should not be loaded any earlier than init.
-		$this->load_async_children();
 
 		// For the settings page, check for the enable-local param and take appropriate action.
 		if ( ! empty( $_GET['enable-local'] ) && ! empty( $_REQUEST['_wpnonce'] ) && \wp_verify_nonce( \sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {

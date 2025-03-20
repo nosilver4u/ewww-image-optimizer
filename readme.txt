@@ -152,6 +152,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: Easy IO rewriting some URLs when full page exclusions are used
 * fixed: WebP rewriters alter PNG URLs when PNG to WebP conversion is unavailable
 * fixed: regression in compatibility with plugins that recreate images via WP_Image_Editor
+* fixed: previous fix to avoid translation notices caused errors with other plugins calling background processes earlier than 'init'
 
 = 8.1.2 =
 *Release Date - March 6, 2025*
