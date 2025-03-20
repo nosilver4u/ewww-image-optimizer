@@ -14114,6 +14114,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						</div>
 						<div class='ewww-setting-detail'>
 		<?php
+		$nginx_server = ! empty( $_SERVER['SERVER_SOFTWARE'] ) && false !== strpos( strtolower( sanitize_text_field( wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) ) ), 'nginx' );
 		if (
 			! $cf_host &&
 			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) &&
@@ -14127,6 +14128,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				$header_error           = '';
 				if ( $cloudways_host ) :
 					$header_error = '<p class="ewww-webp-rewrite-info"><strong>' . esc_html__( 'In order to use server-based delivery, Cloudways sites must have WebP Redirection enabled in their Application Settings.', 'ewww-image-optimizer' ) . "</strong></p>\n";
+				elseif ( $nginx_server ) :
+					$header_error = '';
 				else :
 					if ( defined( 'PHP_SAPI' ) && false === strpos( PHP_SAPI, 'apache' ) && false === strpos( PHP_SAPI, 'litespeed' ) ) {
 						$false_positive_headers = esc_html__( 'This may be a false positive. If so, the warning should go away once you implement the rewrite rules.', 'ewww-image-optimizer' );
@@ -14157,7 +14160,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				?>
 							<div id='ewww-webp-rewrite'>
 								<div class="ewwwio-flex-space-between">
-									<div>
+									<div class="ewww-webp-rewrite-left-wrapper">
 										<p id='ewww-webp-rewrite-status'>
 											<?php esc_html_e( 'WebP Rules verified successfully', 'ewww-image-optimizer' ); ?>
 										</p>
@@ -14171,6 +14174,15 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							</div>
 			<?php else : ?>
 							<p class='ewww-webp-rewrite-info'>
+				<?php if ( $nginx_server ) : ?>
+								<?php
+								printf(
+									/* translators: %s: documentation */
+									esc_html__( 'The recommended delivery method is to use server-based rewrite rules. Nginx users may reference the %s for configuration instructions.', 'ewww-image-optimizer' ),
+									'<a class="ewww-help-beacon-single" href="https://docs.ewww.io/article/16-ewww-io-and-webp-images" target="_blank" data-beacon-article="5854745ac697912ffd6c1c89">' . esc_html__( 'documentation', 'ewww-image-optimizer' ) . '</a>'
+								);
+								?>
+				<?php else : ?>
 								<?php
 								printf(
 									/* translators: %s: documentation */
@@ -14178,8 +14190,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 									'<a class="ewww-help-beacon-single" href="https://docs.ewww.io/article/16-ewww-io-and-webp-images" target="_blank" data-beacon-article="5854745ac697912ffd6c1c89">' . esc_html__( 'documentation', 'ewww-image-optimizer' ) . '</a>'
 								);
 								?>
+				<?php endif; ?>
 							</p>
 							<div id='ewww-webp-rewrite'>
+				<?php if ( ! $nginx_server ) : ?>
 <pre id='webp-rewrite-rules'>&lt;IfModule mod_rewrite.c&gt;
 	RewriteEngine On
 	RewriteCond %{HTTP_ACCEPT} image/webp
@@ -14194,13 +14208,16 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	&lt;/FilesMatch&gt;
 &lt;/IfModule&gt;
 AddType image/webp .webp</pre>
+				<?php endif; ?>
 								<div class="ewwwio-flex-space-between">
-									<div>
+									<div class="ewww-webp-rewrite-left-wrapper">
 										<p id='ewww-webp-rewrite-status'>
 											<?php esc_html_e( 'The image to the right will display a WebP image with WEBP in white text, if your site is serving WebP images and your browser supports WebP.', 'ewww-image-optimizer' ); ?>
 										</p>
+				<?php if ( ! $nginx_server ) : ?>
 										<div id='ewww-webp-rewrite-result'></div>
 										<button type='button' id='ewww-webp-insert' class='button-secondary action'><?php esc_html_e( 'Insert Rewrite Rules', 'ewww-image-optimizer' ); ?></button>
+				<?php endif; ?>
 									</div>
 									<img id='ewww-webp-image' src='<?php echo esc_url( $test_png_image . '?m=' . time() ); ?>'>
 								</div>
