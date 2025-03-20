@@ -131,7 +131,7 @@ abstract class Background_Process extends Async_Request {
 		$this->cron_interval_identifier = $this->identifier . '_cron_interval';
 
 		add_action( $this->cron_hook_identifier, array( $this, 'handle_cron_healthcheck' ) );
-		add_filter( 'cron_schedules', array( $this, 'schedule_cron_healthcheck' ) );
+		add_filter( 'cron_schedules', array( $this, 'add_healthcheck_cron_schedule' ) );
 	}
 
 	/**
@@ -141,8 +141,12 @@ abstract class Background_Process extends Async_Request {
 	 * @return array The wp_remote_post response.
 	 */
 	public function dispatch() {
-		// Schedule the cron healthcheck.
-		$this->schedule_event();
+		if ( did_action( 'init' ) ) {
+			// Schedule the cron healthcheck.
+			$this->schedule_event();
+		} else {
+			add_action( 'init', array( $this, 'schedule_event' ) );
+		}
 
 		// Perform remote post.
 		return parent::dispatch();
@@ -586,14 +590,18 @@ abstract class Background_Process extends Async_Request {
 	 * @param mixed $schedules Schedules.
 	 * @return mixed
 	 */
-	public function schedule_cron_healthcheck( $schedules ) {
-		$interval = \apply_filters( $this->identifier . '_cron_interval', $this->cron_interval );
+	public function add_healthcheck_cron_schedule( $schedules ) {
+		$interval    = \apply_filters( $this->identifier . '_cron_interval', $this->cron_interval );
+		$description = \sprintf( 'Every %d Minutes', $interval );
+		if ( \did_action( 'init' ) || doing_action( 'init' ) ) {
+			/* translators: %d: number of minutes */
+			$description = \sprintf( __( 'Every %d Minutes', 'ewww-image-optimizer' ), $interval );
+		}
 
 		// Adds every X (default=5) minutes to the existing schedules.
 		$schedules[ $this->identifier . '_cron_interval' ] = array(
 			'interval' => MINUTE_IN_SECONDS * $interval,
-			/* translators: %d: number of minutes */
-			'display'  => sprintf( __( 'Every %d Minutes', 'ewww-image-optimizer' ), $interval ),
+			'display'  => $description,
 		);
 
 		return $schedules;
@@ -625,7 +633,7 @@ abstract class Background_Process extends Async_Request {
 	/**
 	 * Schedule event
 	 */
-	protected function schedule_event() {
+	public function schedule_event() {
 		if ( ! \wp_next_scheduled( $this->cron_hook_identifier ) ) {
 			\wp_schedule_event( time(), $this->cron_interval_identifier, $this->cron_hook_identifier );
 		}
