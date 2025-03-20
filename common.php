@@ -14157,11 +14157,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				?>
 							<div id='ewww-webp-rewrite'>
 								<img id='ewww-webp-image' src='<?php echo esc_url( $test_png_image . '?m=' . time() ); ?>'>
-								<div id='ewww-webp-rewrite-status'>
-									<p>
-										<?php esc_html_e( 'WebP Rules verified successfully', 'ewww-image-optimizer' ); ?>
-									</p>
-								</div>
+								<p id='ewww-webp-rewrite-status'>
+									<?php esc_html_e( 'WebP Rules verified successfully', 'ewww-image-optimizer' ); ?>
+								</p>
 				<?php if ( $webp_rewrite_verify ) : ?>
 								<div id='ewww-webp-rewrite-result'></div>
 								<button type='button' id='ewww-webp-remove' class='button-secondary action'><?php esc_html_e( 'Remove Rewrite Rules', 'ewww-image-optimizer' ); ?></button>
