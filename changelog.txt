@@ -1,3 +1,13 @@
+= 8.1.3 =
+*Release Date - March 26, 2025*
+
+* added: exclude private BuddyBoss media from Easy IO with page:buddyboss exclusion
+* changed: WebP Only mode no longer requires Force Re-optimize for already optimized images
+* fixed: Easy IO rewriting some URLs when full page exclusions are used
+* fixed: WebP rewriters alter PNG URLs when PNG to WebP conversion is unavailable
+* fixed: regression in compatibility with plugins that recreate images via WP_Image_Editor
+* fixed: previous fix to avoid translation notices caused errors with other plugins calling background processes earlier than 'init'
+
 = 8.1.2 =
 *Release Date - March 6, 2025*
 

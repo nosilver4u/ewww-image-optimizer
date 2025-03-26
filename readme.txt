@@ -5,7 +5,7 @@ Tags: compress, convert, webp, resize, lazy load
 Requires at least: 6.4
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 8.1.2
+Stable tag: 8.1.3
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -145,7 +145,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 8.1.3 =
-*Release Date - TBD*
+*Release Date - March 26, 2025*
 
 * added: exclude private BuddyBoss media from Easy IO with page:buddyboss exclusion
 * changed: WebP Only mode no longer requires Force Re-optimize for already optimized images
