@@ -9197,10 +9197,10 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		ewww_image_optimizer_remote_push( $meta, $id );
 		ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
 	}
-    if(isset($meta['sizes']) && is_array($meta['sizes']) && count($meta['sizes']) > 0) {
-        if (class_exists('Windows_Azure_Helper') && function_exists('windows_azure_storage_wp_generate_attachment_metadata')) {
+    if( isset( $meta['sizes'] ) && is_array( $meta['sizes'] ) && count( $meta['sizes'] ) > 0 ) {
+        if ( class_exists( 'Windows_Azure_Helper' ) && function_exists( 'windows_azure_storage_wp_generate_attachment_metadata' ) ) {
             $meta = windows_azure_storage_wp_generate_attachment_metadata($meta, $id);
-            if (Windows_Azure_Helper::delete_local_file() && function_exists('windows_azure_storage_delete_local_files')) {
+            if ( Windows_Azure_Helper::delete_local_file() && function_exists('windows_azure_storage_delete_local_files') ) {
                 windows_azure_storage_delete_local_files($meta, $id);
             }
         }
