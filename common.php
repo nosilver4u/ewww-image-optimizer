@@ -9197,12 +9197,14 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		ewww_image_optimizer_remote_push( $meta, $id );
 		ewwwio_debug_message( 're-uploading to S3(_Uploads)' );
 	}
-	if ( class_exists( 'Windows_Azure_Helper' ) && function_exists( 'windows_azure_storage_wp_generate_attachment_metadata' ) ) {
-		$meta = windows_azure_storage_wp_generate_attachment_metadata( $meta, $id );
-		if ( Windows_Azure_Helper::delete_local_file() && function_exists( 'windows_azure_storage_delete_local_files' ) ) {
-			windows_azure_storage_delete_local_files( $meta, $id );
-		}
-	}
+    if(isset($meta['sizes']) && is_array($meta['sizes']) && count($meta['sizes']) > 0) {
+        if (class_exists('Windows_Azure_Helper') && function_exists('windows_azure_storage_wp_generate_attachment_metadata')) {
+            $meta = windows_azure_storage_wp_generate_attachment_metadata($meta, $id);
+            if (Windows_Azure_Helper::delete_local_file() && function_exists('windows_azure_storage_delete_local_files')) {
+                windows_azure_storage_delete_local_files($meta, $id);
+            }
+        }
+    }
 	ewwwio_debug_message( 'optimize from meta complete' );
 	if ( $log ) {
 		ewww_image_optimizer_debug_log();
@@ -13593,7 +13595,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<?php elseif ( apply_filters( 'ewwwio_whitelabel', false ) && false !== strpos( $verify_cloud, 'exceeded' ) ) : ?>
 								<span style="color: orange; font-weight: bolder"><?php esc_html_e( 'Out of credits', 'ewww-image-optimizer' ); ?></span>
 		<?php elseif ( false !== strpos( $verify_cloud, 'exceeded subkey' ) ) : ?>
-								<span style="color: orange; font-weight: bolder"><?php esc_html_e( 'Out of credits', 'ewww-image-optimizer' ); ?></span>					
+								<span style="color: orange; font-weight: bolder"><?php esc_html_e( 'Out of credits', 'ewww-image-optimizer' ); ?></span>
 		<?php elseif ( false !== strpos( $verify_cloud, 'exceeded quota' ) ) : ?>
 								<span style="color: orange; font-weight: bolder"><a href="https://docs.ewww.io/article/101-soft-quotas-on-unlimited-plans" data-beacon-article="608ddf128996210f18bd95d3" target="_blank"><?php esc_html_e( 'Soft quota reached, contact us for more', 'ewww-image-optimizer' ); ?></a></span>
 		<?php elseif ( false !== strpos( $verify_cloud, 'exceeded' ) ) : ?>
