@@ -5655,8 +5655,18 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		'async'      => $async,
 		'backup'     => $hash,
 		'domain'     => $domain,
+		'site_url'   => get_home_url(),
 		// 'force_async' => 1, // for testing out async mode.
 	);
+
+	if ( 'application/pdf' === $type ) {
+		if ( defined( 'EWWW_IMAGE_OPTIMIZER_PDF_IMAGE_DPI' ) ) {
+			$post_fields['image_dpi'] = EWWW_IMAGE_OPTIMIZER_PDF_IMAGE_DPI;
+		}
+		if ( defined( 'EWWW_IMAGE_OPTIMIZER_PDF_IMAGE_QUALITY' ) ) {
+			$post_fields['quality'] = EWWW_IMAGE_OPTIMIZER_PDF_IMAGE_QUALITY;
+		}
+	}
 
 	if ( $webp && $fullsize_image && $webp_width && $webp_height ) {
 		$post_fields['width']  = $webp_width;
