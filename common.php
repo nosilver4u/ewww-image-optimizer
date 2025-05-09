@@ -5659,7 +5659,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		// 'force_async' => 1, // for testing out async mode.
 	);
 
-	if ( $type === 'application/pdf' ) {
+	if ( 'application/pdf' === $type ) {
 		if ( defined( 'EWWW_IMAGE_OPTIMIZER_PDF_IMAGE_DPI' ) ) {
 			$post_fields['image_dpi'] = EWWW_IMAGE_OPTIMIZER_PDF_IMAGE_DPI;
 		}
