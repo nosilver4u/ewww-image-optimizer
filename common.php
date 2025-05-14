@@ -3153,6 +3153,7 @@ function ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile ) {
 					$error_message = $editor->get_error_message();
 					ewwwio_debug_message( "could not get image editor: $error_message" );
 				} else {
+					$editor->maybe_exif_rotate();
 					$resized_image = $editor->resize( $webp_width, $webp_height, $webp_crop );
 					if ( is_wp_error( $resized_image ) ) {
 						$error_message = $resized_image->get_error_message();
@@ -5851,11 +5852,20 @@ function ewww_image_optimizer_get_webp_resize_params( $file ) {
 
 	$original_image = ewwwio_get_original_image_path_from_thumb( $file, $attachment_id );
 	if ( $original_image && ewwwio_is_file( $original_image ) ) {
+		ewww_image_optimizer_autorotate( $original_image );
+		$orientation = (int) ewww_image_optimizer_get_orientation( $original_image, 'image/jpeg' );
+		// If an image (still) has an orientation flag, bail out.
+		if ( ! empty( $orientation ) && 1 < $orientation ) {
+			ewwwio_debug_message( "orientation $orientation not allowed" );
+			return $params;
+		}
+
 		list( $full_width, $full_height ) = wp_getimagesize( $original_image );
 		if ( empty( $full_width ) || empty( $full_height ) ) {
 			ewwwio_debug_message( "no dims for $original_image" );
 			return $params;
 		}
+
 		// Then we do a calculation with the dimensions to see if the thumb was cropped.
 		$thumb_height_calc = $thumb_width / $full_width * $full_height;
 		if ( abs( $thumb_height_calc - $thumb_height ) > 5 ) {
