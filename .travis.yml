@@ -15,9 +15,10 @@ branches:
 
 php:
   - 7.4
-  - 8.0
   - 8.1
   - 8.2
+  - 8.3
+  - 8.4
 
 services:
   - mysql
@@ -29,10 +30,10 @@ jobs:
   include:
     - php: 7.4
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
-    - php: 8.2
+    - php: 8.4
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
-    - php: 8.0
-      env: WP_VERSION=6.0 WP_MULTISITE=0
+    - php: 8.1
+      env: WP_VERSION=6.5 WP_MULTISITE=0
 
 before_script:
   - export PATH="$HOME/.config/composer/vendor/bin:$PATH"
