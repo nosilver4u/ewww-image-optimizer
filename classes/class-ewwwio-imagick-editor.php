@@ -77,6 +77,10 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 		if ( 'image/png' !== $this->mime_type ) {
 			return;
 		}
+		if ( method_exists( $this->image, 'getImageProperty' ) ) {
+			$color_type = $this->image->getImageProperty( 'png:IHDR.color-type-orig' );
+			\ewwwio_debug_message( "original color type is $color_type" );
+		}
 		if ( wp_is_stream( $this->file ) ) {
 			return;
 		}
@@ -447,6 +451,10 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 					$this->image->setOption( 'png:include-chunk', 'tRNS' );
 				} else {
 					$this->image->setOption( 'png:exclude-chunk', 'all' );
+				}
+				if ( method_exists( $this->image, 'getImageProperty' ) ) {
+					$color_type = $this->image->getImageProperty( 'png:IHDR.color-type-orig' );
+					\ewwwio_debug_message( "current color type is $color_type" );
 				}
 			}
 
