@@ -226,6 +226,9 @@ final class Plugin extends Base {
 			// AJAX action hook to dismiss the exec notice and other related notices.
 			\add_action( 'wp_ajax_ewww_dismiss_exec_notice', array( self::$instance, 'dismiss_exec_notice' ) );
 
+			// Non-AJAX handler to disable debugging mode.
+			\add_action( 'admin_action_ewww_image_optimizer_disable_test_mode', array( self::$instance, 'disable_test_mode' ) );
+
 			// TODO: check PHP and WP compat here.
 			// TODO: setup anything that needs to run on init/plugins_loaded.
 			// TODO: add any custom option/setting hooks here (actions that need to be taken when certain settings are saved/updated).
@@ -649,11 +652,58 @@ final class Plugin extends Base {
 			\add_action( 'admin_notices', array( $this, 'php_warning' ) );
 			\add_action( 'network_admin_notices', array( $this, 'php_warning' ) );
 		}
-		if ( \get_option( 'ewww_image_optimizer_debug' ) ) {
-			\add_action( 'admin_notices', 'ewww_image_optimizer_debug_enabled_notice' );
-		} elseif ( \get_site_option( 'ewww_image_optimizer_debug' ) && \is_network_admin() ) {
-			\add_action( 'network_admin_notices', 'ewww_image_optimizer_debug_enabled_notice' );
+		if ( \is_network_admin() ) {
+			\add_action( 'network_admin_notices', array( $this, 'admin_notices' ) );
+		} else {
+			\add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 		}
+	}
+
+	/**
+	 * Delivers admin notices for various functions.
+	 */
+	public function admin_notices() {
+		$admin_permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
+		if ( current_user_can( $admin_permissions ) ) {
+			$this->test_mode_notice();
+			ewww_image_optimizer_debug_enabled_notice();
+		}
+	}
+
+	/**
+	 * Display admin notice for test mode.
+	 */
+	protected function test_mode_notice() {
+		if ( ! $this->get_option( 'ewww_image_optimizer_test_mode' ) ) {
+			return;
+		}
+		?>
+		<div class="notice notice-info">
+			<p>
+				<?php esc_html_e( 'EWWW Image Optimizer is currently in Test Mode. Please be sure to disable Test Mode when you are done troubleshooting.', 'ewww-image-optimizer' ); ?>
+				<a class='button button-secondary' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_disable_test_mode' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
+					<?php esc_html_e( 'Disable Test Mode', 'ewww-image-optimizer' ); ?>
+				</a>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Disables the test mode option.
+	 */
+	public function disable_test_mode() {
+		if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+			wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
+		}
+		if ( empty( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
+			wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
+		}
+		update_option( 'ewww_image_optimizer_test_mode', false );
+		update_site_option( 'ewww_image_optimizer_test_mode', false );
+		$sendback = wp_get_referer();
+		wp_safe_redirect( $sendback );
+		exit;
 	}
 
 	/**
@@ -679,6 +729,13 @@ final class Plugin extends Base {
 
 		if ( \defined( 'CROP_THUMBNAILS_VERSION' ) ) {
 			\add_filter( 'ewwwio_use_original_for_webp_thumbs', '__return_false', 9 ); // Early, so folks can turn it back on if they want for some reason.
+		}
+
+		if ( $this->test_mode_active() ) {
+			\add_filter( 'exactdn_skip_page', '__return_true' );
+			\add_filter( 'eio_do_lazyload', '__return_false' );
+			\add_filter( 'eio_do_js_webp', '__return_false' );
+			\add_filter( 'eio_do_picture_webp', '__return_false' );
 		}
 
 		if ( \defined( 'DOING_WPLR_REQUEST' ) && DOING_WPLR_REQUEST ) {
@@ -742,6 +799,7 @@ final class Plugin extends Base {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		// Register all the common EWWW IO settings and their sanitation functions.
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_debug', 'boolval' );
+		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_test_mode', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_metadata_remove', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_jpg_level', 'intval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_png_level', 'intval' );
@@ -811,6 +869,7 @@ final class Plugin extends Base {
 		\add_option( 'ewww_image_optimizer_jpg_only_mode', false );
 		\add_option( 'ewww_image_optimizer_disable_editor', false );
 		\add_option( 'ewww_image_optimizer_debug', false );
+		\add_option( 'ewww_image_optimizer_test_mode', false );
 		\add_option( 'ewww_image_optimizer_metadata_remove', true );
 		\add_option( 'ewww_image_optimizer_maxmediawidth', 2560 );
 		\add_option( 'ewww_image_optimizer_maxmediaheight', 2560 );

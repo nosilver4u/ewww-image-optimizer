@@ -420,6 +420,24 @@ class Base {
 	}
 
 	/**
+	 * Checks to see if test mode is enabled, and whether the current user is a logged-in admin.
+	 *
+	 * @return bool True if test mode should be effective and prevent optimizations for guest users. False otherwise.
+	 */
+	public function test_mode_active() {
+		if (
+			$this->get_option( $this->prefix . 'test_mode' ) &&
+			( ! is_user_logged_in() || ! current_user_can( 'manage_options' ) )
+		) {
+			if ( ! empty( $_GET['ewwwio_test_mode'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+				return false;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Escape any spaces in the filename.
 	 *
 	 * @param string $path The path to a binary file.
