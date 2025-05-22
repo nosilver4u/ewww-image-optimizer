@@ -7877,6 +7877,8 @@ function ewww_image_optimizer_better_resize( $file, $dst_x, $dst_y, $src_x, $src
  */
 function ewww_image_optimizer_pngquant_reduce_available() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	// From our testing, native IM reduction is generally fine, and file sizes are smaller.
+	// Thus, pngquant reduction (local or cloud) is only allowed if the user specifically defines the constant to 'true'.
 	if ( ! defined( 'EWWWIO_PNGQUANT_REDUCE' ) || ! EWWWIO_PNGQUANT_REDUCE ) {
 		return false;
 	}
