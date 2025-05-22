@@ -625,6 +625,8 @@ function ewww_image_optimizer_save_network_settings() {
 			ewwwio_debug_message( 'network-wide settings, no override' );
 			$ewww_image_optimizer_debug = ( empty( $_POST['ewww_image_optimizer_debug'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_debug', $ewww_image_optimizer_debug );
+			$ewww_image_optimizer_test_mode = ( empty( $_POST['ewww_image_optimizer_test_mode'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_test_mode', $ewww_image_optimizer_test_mode );
 			$ewww_image_optimizer_metadata_remove = ( empty( $_POST['ewww_image_optimizer_metadata_remove'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_metadata_remove', $ewww_image_optimizer_metadata_remove );
 			$ewww_image_optimizer_jpg_level = empty( $_POST['ewww_image_optimizer_jpg_level'] ) ? '' : (int) $_POST['ewww_image_optimizer_jpg_level'];
@@ -1896,7 +1898,7 @@ function ewww_image_optimizer_notice_exactdn_sp_conflict() {
  * Display a notice that debugging mode is enabled.
  */
 function ewww_image_optimizer_debug_enabled_notice() {
-	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 		return;
 	}
 	?>
@@ -11776,6 +11778,7 @@ function ewwwio_debug_info() {
 	global $ewwwio_upgrading;
 	global $content_width;
 	ewwwio_debug_version_info();
+	ewwwio_debug_message( 'test mode: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_test_mode' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'ABSPATH: ' . ABSPATH );
 	ewwwio_debug_message( 'WP_CONTENT_DIR: ' . WP_CONTENT_DIR );
 	ewwwio_debug_message( 'EWWWIO_CONTENT_DIR: ' . EWWWIO_CONTENT_DIR );
@@ -15097,6 +15100,15 @@ AddType image/webp .webp</pre>
 					</div>
 				</div>
 				<div class='ewww-settings-section'>
+					<div class='ewww-settings-row'>
+						<div class='ewww-setting-header'>
+							<label for='ewww_image_optimizer_test_mode'><?php esc_html_e( 'Test Mode', 'ewww-image-optimizer' ); ?></label>
+						</div>
+						<div class='ewww-setting-detail'>
+							<input type='checkbox' id='ewww_image_optimizer_test_mode' name='ewww_image_optimizer_test_mode' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_test_mode' ) ); ?> />
+							<span><?php esc_html_e( 'Limits front-end optimizations to logged-in admins to allow troubleshooting without affecting visitors and other users.', 'ewww-image-optimizer' ); ?></span>
+						</div>
+					</div>
 					<div class='ewww-settings-row'>
 						<div class='ewww-setting-header'>
 							<label for='ewww_image_optimizer_debug'><?php esc_html_e( 'Debugging', 'ewww-image-optimizer' ); ?></label>
