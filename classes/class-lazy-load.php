@@ -852,7 +852,11 @@ class Lazy_Load extends Page_Parser {
 								$this->set_attribute( $element, 'data-back-webp', $webp_image_urls );
 							}
 						} elseif ( ! empty( $bg_image_urls[0] ) ) {
+							$webp_image_url = \apply_filters( 'eio_image_url_to_webp', $bg_image_urls[0] );
 							$this->set_attribute( $element, 'data-back', $bg_image_urls[0] );
+							if ( $webp_image_url && $webp_image_url !== $bg_image_urls[0] ) {
+								$this->set_attribute( $element, 'data-back-webp', $webp_image_url );
+							}
 						}
 						$element = \str_replace( $style, $new_style, $element );
 					}
