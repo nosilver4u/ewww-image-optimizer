@@ -959,12 +959,12 @@ class JS_Webp extends Page_Parser {
 	 */
 	public function filter_image_url( $image_url ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-				$this->debug_message( "checking $image_url for a WebP variant" );
-				if ( ! empty( $image_url ) && $this->validate_image_url( $image_url ) ) {
-					$image_url = $this->generate_url( $image_url );
-					return $image_url;
-				}
-				return false;
+		$this->debug_message( "checking $image_url for a WebP variant" );
+		if ( ! empty( $image_url ) && $this->validate_image_url( $image_url ) ) {
+			$image_url = $this->generate_url( $image_url );
+			return $image_url;
+		}
+		return false;
 	}
 
 	/**
