@@ -464,7 +464,7 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 						$this->image->setOption( 'png:exclude-chunk', 'all' );
 					}
 					if ( ! empty( $this->indexed_max_colors ) && ! ewww_image_optimizer_pngquant_reduce_available() ) {
-						ewwwio_debug_message( "doing quantizeImage on $this->file ($dst_w,$dst_h) to reduce palette to $this->indexed_max_colors" );
+						ewwwio_debug_message( "doing quantizeImage on $this->file ($dst_w,$dst_h) to reduce colors from " . $this->image->getImageColors() . " to $this->indexed_max_colors" );
 						$this->image->quantizeImage( $this->indexed_max_colors, $this->image->getColorspace(), 0, false, false );
 						ewwwio_debug_message( "originally we had $current_colors colors, and now we have " . $this->image->getImageColors() );
 						/**
@@ -473,6 +473,7 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 						 * to ensure it stays indexed.
 						 */
 						if ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() ) {
+							ewwwio_debug_message( 'COLORSPACE_GRAY found, setting png:format = png8' );
 							$this->image->setOption( 'png:format', 'png8' );
 						}
 					}
