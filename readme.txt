@@ -148,6 +148,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 *Release Date - TBD*
 
 * changed: use native ImageMagick methods to detect, and correct, paletted PNG thumbnails
+* changed: use authoritative classmap via composer to speed up autoloader, props @nlemoine
 
 = 8.1.4 =
 *Release Date - May 15, 2025*
