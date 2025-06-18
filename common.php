@@ -7901,14 +7901,15 @@ function ewww_image_optimizer_pngquant_reduce_available() {
  *
  * @param string $file A PNG image file.
  * @param int    $max_colors The maximum number of colors.
+ * @param bool   $problematic_grayscale Optional. Whether a problematic grayscale image needs further reduction. Default false.
  */
-function ewww_image_optimizer_reduce_palette( $file, $max_colors ) {
+function ewww_image_optimizer_reduce_palette( $file, $max_colors, $problematic_grayscale = false ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( ! apply_filters( 'ewww_image_optimizer_reduce_palette', true ) ) {
 		ewwwio_debug_message( 'palette reduction disabled' );
 		return;
 	}
-	if ( ! defined( 'EWWWIO_PNGQUANT_REDUCE' ) || ! EWWWIO_PNGQUANT_REDUCE ) {
+	if ( ( ! $problematic_grayscale && ! defined( 'EWWWIO_PNGQUANT_REDUCE' ) ) || ( defined( 'EWWWIO_PNGQUANT_REDUCE' ) && ! EWWWIO_PNGQUANT_REDUCE ) ) {
 		return false;
 	}
 	ewwwio_debug_message( "reducing $file to $max_colors colors" );

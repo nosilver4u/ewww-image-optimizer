@@ -66,6 +66,14 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 	protected $indexed_max_colors = false;
 
 	/**
+	 * Whether an indexed grayscale image needs further processing to reduce the palette.
+	 *
+	 * @access protected
+	 * @var int
+	 */
+	protected $indexed_grayscale_alpha_problem = false;
+
+	/**
 	 * Gets the bit depth for PNG images and checks for indexed-color mode.
 	 *
 	 * Access the file directly, in case Imagick fails to identify the number of colors in an indexed image.
@@ -348,13 +356,15 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 		}
 
 		if ( 'image/png' === $this->mime_type ) {
-			$color_type = '6';
+			$png_color_type      = '6';
+			$png_has_alpha       = false;
+			$alpha_channel_depth = 1;
 			if ( method_exists( $this->image, 'getImageProperty' ) ) {
-				$color_type = $this->image->getImageProperty( 'png:IHDR.color-type-orig' );
+				$png_color_type = $this->image->getImageProperty( 'png:IHDR.color-type-orig' );
 			}
 			ewwwio_debug_message( 'this image is type: ' . $this->image->getImageType() );
-			ewwwio_debug_message( 'this image has color type: ' . $color_type );
-			if ( '3' === $color_type ) {
+			ewwwio_debug_message( 'this image has color type: ' . $png_color_type );
+			if ( '3' === $png_color_type ) {
 				$current_colors = 500; // Fail-safe for more than any indexed PNG could have.
 				if ( is_callable( array( $this->image, 'getImageColors' ) ) ) {
 					$current_colors = $this->image->getImageColors();
@@ -386,6 +396,14 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 						$max_colors = 255;
 				}
 				$this->indexed_max_colors = min( $max_colors, $current_colors );
+				if ( is_callable( array( $this->image, 'getImageAlphaChannel' ) ) && $this->image->getImageAlphaChannel() ) {
+					ewwwio_debug_message( 'image has alpha channel' );
+					$png_has_alpha = true;
+					if ( is_callable( array( $this->image, 'getImageChannelDepth' ) ) && defined( 'Imagick::CHANNEL_ALPHA' ) ) {
+						$alpha_channel_depth = $this->image->getImageChannelDepth( Imagick::CHANNEL_ALPHA );
+						ewwwio_debug_message( "alpha channel depth is $alpha_channel_depth" );
+					}
+				}
 				ewwwio_debug_message( "indexed image with pixel depth {$bit_depth} limiting to {$this->indexed_max_colors} colors" );
 			}
 		}
@@ -457,8 +475,8 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 				$this->image->setOption( 'png:compression-filter', '5' );
 				$this->image->setOption( 'png:compression-level', '9' );
 				$this->image->setOption( 'png:compression-strategy', '1' );
-				if ( '3' === $color_type ) {
-					if ( is_callable( array( $this->image, 'getImageAlphaChannel' ) ) && $this->image->getImageAlphaChannel() ) {
+				if ( '3' === $png_color_type ) {
+					if ( $png_has_alpha ) {
 						$this->image->setOption( 'png:include-chunk', 'tRNS' );
 					} else {
 						$this->image->setOption( 'png:exclude-chunk', 'all' );
@@ -472,7 +490,10 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 						 * So, if the colorspace has changed to 'gray', use the png8 format
 						 * to ensure it stays indexed.
 						 */
-						if ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() ) {
+						if ( $alpha_channel_depth > 1 && Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() ) {
+							ewwwio_debug_message( 'COLORSPACE_GRAY found, but alpha channel is too complicated for png8 mode' );
+							$this->indexed_grayscale_alpha_problem = true;
+						} elseif ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() ) {
 							ewwwio_debug_message( 'COLORSPACE_GRAY found, setting png:format = png8' );
 							$this->image->setOption( 'png:format', 'png8' );
 						}
@@ -829,7 +850,7 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 		if ( ewwwio_is_file( $filename ) ) {
 			if ( $this->indexed_max_colors ) {
 				ewwwio_debug_message( "reducing to $this->indexed_max_colors colors" );
-				ewww_image_optimizer_reduce_palette( $filename, $this->indexed_max_colors );
+				ewww_image_optimizer_reduce_palette( $filename, $this->indexed_max_colors, $this->indexed_grayscale_alpha_problem );
 			}
 
 			global $ewww_preempt_editor;
