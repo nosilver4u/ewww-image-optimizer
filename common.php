@@ -1895,25 +1895,6 @@ function ewww_image_optimizer_notice_exactdn_sp_conflict() {
 }
 
 /**
- * Display a notice that debugging mode is enabled.
- */
-function ewww_image_optimizer_debug_enabled_notice() {
-	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-		return;
-	}
-	?>
-	<div id="ewww-image-optimizer-notice-debug" class="notice notice-info">
-		<p>
-			<?php esc_html_e( 'Debug mode is enabled in the EWWW Image Optimizer settings. Please be sure to turn Debugging off when you are done troubleshooting.', 'ewww-image-optimizer' ); ?>
-			<a class='button button-secondary' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_disable_debugging' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
-				<?php esc_html_e( 'Disable Debugging', 'ewww-image-optimizer' ); ?>
-			</a>
-		</p>
-	</div>
-	<?php
-}
-
-/**
  * Lets the user know their network settings have been saved.
  */
 function ewww_image_optimizer_network_settings_saved() {
@@ -11806,7 +11787,7 @@ function ewwwio_debug_info() {
 			ewwwio()->local->skip_tools();
 		} else {
 			ewwwio()->tool_init();
-			ewwwio()->notice_utils( 'quiet' );
+			ewwwio()->notices->notice_utils( 'quiet' );
 		}
 	}
 	if ( wp_using_ext_object_cache() ) {
@@ -12842,7 +12823,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			ewwwio()->local->skip_tools();
 		} else {
 			ewwwio()->tool_init();
-			ewwwio()->notice_utils( 'quiet' );
+			ewwwio()->notices->notice_utils( 'quiet' );
 		}
 	}
 
@@ -13297,7 +13278,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<div class='ewww-status-detail'>
 		<?php if ( $display_exec_notice ) : ?>
 			<?php if ( ewwwio()->local->hosting_requires_api() ) : ?>
-					<?php ewwwio()->notice_hosting_requires_api(); ?>
+					<?php ewwwio()->notices->notice_hosting_requires_api(); ?>
 			<?php else : ?>
 			<div id='ewww-image-optimizer-warning-exec' class='ewwwio-notice notice-warning'>
 				<?php
@@ -13317,11 +13298,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<?php elseif ( ewwwio()->local->tools_missing ) : ?>
 			<?php
 			if ( ! is_dir( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
-				ewwwio()->tool_folder_notice();
+				ewwwio()->notices->tool_folder_notice();
 			} elseif ( ! is_writable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) || ! is_readable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
-				ewwwio()->tool_folder_permissions_notice();
+				ewwwio()->notices->tool_folder_permissions_notice();
 			} elseif ( ! is_executable( EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) && PHP_OS !== 'WINNT' ) {
-				ewwwio()->tool_folder_permissions_notice();
+				ewwwio()->notices->tool_folder_permissions_notice();
 			}
 			?>
 		<?php endif; ?>
