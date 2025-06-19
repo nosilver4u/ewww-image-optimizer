@@ -147,6 +147,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 8.1.5 =
 *Release Date - TBD*
 
+* added: JS WebP support for HTML elements/tags added via eio_allowed_background_image_elements filter
 * changed: use native ImageMagick methods to detect, and correct, paletted PNG thumbnails
 * changed: use authoritative classmap via composer to speed up autoloader, props @nlemoine
 * fixed: indexed PNG thumbnails with 8-bit alpha are distorted by quantization
