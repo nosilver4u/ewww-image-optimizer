@@ -278,6 +278,8 @@ class ExactDN extends Page_Parser {
 		// Core image retrieval.
 		if ( \defined( 'EIO_DISABLE_DEEP_INTEGRATION' ) && EIO_DISABLE_DEEP_INTEGRATION ) {
 			$this->debug_message( 'deep (image_downsize) integration disabled' );
+		} elseif ( \defined( 'WPCOMSH_VERSION' ) ) {
+			$this->debug_message( 'WordPress.com, image_downsize integration disabled for crop=1 functionality' );
 		} elseif ( ! \function_exists( '\aq_resize' ) ) {
 			\add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), 10, 3 );
 		} else {
@@ -2804,12 +2806,16 @@ class ExactDN extends Page_Parser {
 				continue;
 			}
 
-			$url = $source['url'];
+			$url  = $source['url'];
+			$args = array();
+			if ( false !== strpos( $image_src, 'crop=1' ) && false === strpos( $url, 'crop=1' ) ) {
+				$args['crop'] = 1;
+			}
 
 			list( $width, $height ) = $this->get_dimensions_from_filename( $url );
 			if ( ! $resize_existing && 'w' === $source['descriptor'] && (int) $source['value'] === (int) $width ) {
 				$this->debug_message( "preventing further processing for $url" );
-				$sources[ $i ]['url'] = $this->generate_url( $source['url'] );
+				$sources[ $i ]['url'] = $this->generate_url( $source['url'], $args );
 				continue;
 			}
 
@@ -2818,7 +2824,7 @@ class ExactDN extends Page_Parser {
 					( ! $height && ! $width && (int) $image_meta['width'] === (int) $source['value'] )
 				) {
 					$this->debug_message( "preventing further processing for (detected) full-size $url" );
-					$sources[ $i ]['url'] = $this->generate_url( $source['url'] );
+					$sources[ $i ]['url'] = $this->generate_url( $source['url'], $args );
 					continue;
 				}
 			}
