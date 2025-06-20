@@ -4257,6 +4257,11 @@ class ExactDN extends Page_Parser {
 			$more_args['sharp'] = 1;
 		}
 
+		// Support WordPress.com crop=1 query parameter.
+		if ( \strpos( $image_url, 'crop=1' ) ) {
+			$more_args['crop'] = 1;
+		}
+
 		// Merge given args with the automatic (option-based) args, and also makes sure args is an array if it was previously a string.
 		$args = \wp_parse_args( $args, $more_args );
 
