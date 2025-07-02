@@ -153,6 +153,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * changed: use authoritative classmap via composer to speed up autoloader, props @nlemoine
 * fixed: indexed PNG thumbnails with 8-bit alpha are distorted by quantization
 * fixed: PHP warnings related to HTML parsing
+* fixed: missing ImageMagick information on Site Health screen
 
 = 8.1.4 =
 *Release Date - May 15, 2025*
