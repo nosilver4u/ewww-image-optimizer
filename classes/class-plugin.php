@@ -1009,7 +1009,7 @@ final class Plugin extends Base {
 			if ( $imagick instanceof \Imagick ) {
 				$this->debug_message( print_r( $info, true ) );
 				if ( ! empty( $info['wp-media']['fields'] ) ) {
-					$not_available = __( 'Not available' );
+					$not_available = __( 'Not available' ); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 					if ( empty( $info['wp-media']['fields']['imagick_limits'] ) ) {
 						$limits = array(
 							'area'   => ( defined( 'imagick::RESOURCETYPE_AREA' ) ? size_format( $imagick->getResourceLimit( \imagick::RESOURCETYPE_AREA ) ) : $not_available ),
@@ -1019,7 +1019,7 @@ final class Plugin extends Base {
 							'memory' => ( defined( 'imagick::RESOURCETYPE_MEMORY' ) ? size_format( $imagick->getResourceLimit( \imagick::RESOURCETYPE_MEMORY ) ) : $not_available ),
 							'thread' => ( defined( 'imagick::RESOURCETYPE_THREAD' ) ? $imagick->getResourceLimit( \imagick::RESOURCETYPE_THREAD ) : $not_available ),
 							'time'   => ( defined( 'imagick::RESOURCETYPE_TIME' ) ? $imagick->getResourceLimit( \imagick::RESOURCETYPE_TIME ) : $not_available ),
-                        );
+						);
 
 						$limits_debug = array(
 							'imagick::RESOURCETYPE_AREA'   => ( defined( 'imagick::RESOURCETYPE_AREA' ) ? size_format( $imagick->getResourceLimit( \imagick::RESOURCETYPE_AREA ) ) : 'not available' ),
@@ -1032,7 +1032,7 @@ final class Plugin extends Base {
 						);
 
 						$info['wp-media']['fields']['imagick_limits'] = array(
-							'label' => __( 'Imagick Resource Limits' ),
+							'label' => __( 'Imagick Resource Limits' ), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 							'value' => $limits,
 							'debug' => $limits_debug,
 						);
@@ -1045,8 +1045,8 @@ final class Plugin extends Base {
 						}
 
 						$info['wp-media']['fields']['imagemagick_file_formats'] = array(
-							'label' => __( 'ImageMagick supported file formats' ),
-							'value' => ( empty( $formats ) ) ? __( 'Unable to determine' ) : implode( ', ', $formats ),
+							'label' => __( 'ImageMagick supported file formats' ), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
+							'value' => ( empty( $formats ) ) ? __( 'Unable to determine' ) : implode( ', ', $formats ), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 							'debug' => ( empty( $formats ) ) ? 'Unable to determine' : implode( ', ', $formats ),
 						);
 					}
