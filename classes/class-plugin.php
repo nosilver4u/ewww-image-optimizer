@@ -767,6 +767,8 @@ final class Plugin extends Base {
 				\add_action( 'wplr_presync_media', 'ewww_image_optimizer_image_sizes' );
 				// Enables direct integration to the editor's save function.
 				\add_filter( 'wp_image_editors', 'ewww_image_optimizer_load_editor', 60 );
+				// Add missing Imagick data to Site Health.
+				\add_filter( 'debug_information', array( $this, 'wp_media_debug_information' ) );
 			}
 			// Resizes and auto-rotates images.
 			\add_filter( 'wp_handle_upload', 'ewww_image_optimizer_handle_upload' );
@@ -993,6 +995,81 @@ final class Plugin extends Base {
 			</div>
 			<?php
 		}
+	}
+
+	/**
+	 * Fills in Imagick debug info for the Site Health screen, if core skips it.
+	 *
+	 * @param array $info All the Site Health Debug Info.
+	 * @return array The Debug Info with Imagick info filled in.
+	 */
+	public function wp_media_debug_information( $info ) {
+		if ( class_exists( '\Imagick' ) ) {
+			$imagick = new \Imagick();
+			if ( $imagick instanceof \Imagick ) {
+				$this->debug_message( print_r( $info, true ) );
+				if ( ! empty( $info['wp-media']['fields'] ) ) {
+					$not_available = __( 'Not available' ); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
+					if ( empty( $info['wp-media']['fields']['imagick_limits'] ) ) {
+						$limits = array(
+							'area'   => ( defined( 'imagick::RESOURCETYPE_AREA' ) ? size_format( $imagick->getResourceLimit( \imagick::RESOURCETYPE_AREA ) ) : $not_available ),
+							'disk'   => ( defined( 'imagick::RESOURCETYPE_DISK' ) ? $imagick->getResourceLimit( \imagick::RESOURCETYPE_DISK ) : $not_available ),
+							'file'   => ( defined( 'imagick::RESOURCETYPE_FILE' ) ? $imagick->getResourceLimit( \imagick::RESOURCETYPE_FILE ) : $not_available ),
+							'map'    => ( defined( 'imagick::RESOURCETYPE_MAP' ) ? size_format( $imagick->getResourceLimit( \imagick::RESOURCETYPE_MAP ) ) : $not_available ),
+							'memory' => ( defined( 'imagick::RESOURCETYPE_MEMORY' ) ? size_format( $imagick->getResourceLimit( \imagick::RESOURCETYPE_MEMORY ) ) : $not_available ),
+							'thread' => ( defined( 'imagick::RESOURCETYPE_THREAD' ) ? $imagick->getResourceLimit( \imagick::RESOURCETYPE_THREAD ) : $not_available ),
+							'time'   => ( defined( 'imagick::RESOURCETYPE_TIME' ) ? $imagick->getResourceLimit( \imagick::RESOURCETYPE_TIME ) : $not_available ),
+						);
+
+						$limits_debug = array(
+							'imagick::RESOURCETYPE_AREA'   => ( defined( 'imagick::RESOURCETYPE_AREA' ) ? size_format( $imagick->getResourceLimit( \imagick::RESOURCETYPE_AREA ) ) : 'not available' ),
+							'imagick::RESOURCETYPE_DISK'   => ( defined( 'imagick::RESOURCETYPE_DISK' ) ? $imagick->getResourceLimit( \imagick::RESOURCETYPE_DISK ) : 'not available' ),
+							'imagick::RESOURCETYPE_FILE'   => ( defined( 'imagick::RESOURCETYPE_FILE' ) ? $imagick->getResourceLimit( \imagick::RESOURCETYPE_FILE ) : 'not available' ),
+							'imagick::RESOURCETYPE_MAP'    => ( defined( 'imagick::RESOURCETYPE_MAP' ) ? size_format( $imagick->getResourceLimit( \imagick::RESOURCETYPE_MAP ) ) : 'not available' ),
+							'imagick::RESOURCETYPE_MEMORY' => ( defined( 'imagick::RESOURCETYPE_MEMORY' ) ? size_format( $imagick->getResourceLimit( \imagick::RESOURCETYPE_MEMORY ) ) : 'not available' ),
+							'imagick::RESOURCETYPE_THREAD' => ( defined( 'imagick::RESOURCETYPE_THREAD' ) ? $imagick->getResourceLimit( \imagick::RESOURCETYPE_THREAD ) : 'not available' ),
+							'imagick::RESOURCETYPE_TIME'   => ( defined( 'imagick::RESOURCETYPE_TIME' ) ? $imagick->getResourceLimit( \imagick::RESOURCETYPE_TIME ) : 'not available' ),
+						);
+
+						$info['wp-media']['fields']['imagick_limits'] = array(
+							'label' => __( 'Imagick Resource Limits' ), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
+							'value' => $limits,
+							'debug' => $limits_debug,
+						);
+					}
+					if ( empty( $info['wp-media']['fields']['imagemagick_file_formats'] ) ) {
+						try {
+							$formats = \Imagick::queryFormats( '*' );
+						} catch ( Exception $e ) {
+							$formats = array();
+						}
+
+						$info['wp-media']['fields']['imagemagick_file_formats'] = array(
+							'label' => __( 'ImageMagick supported file formats' ), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
+							'value' => ( empty( $formats ) ) ? __( 'Unable to determine' ) : implode( ', ', $formats ), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
+							'debug' => ( empty( $formats ) ) ? 'Unable to determine' : implode( ', ', $formats ),
+						);
+					}
+					// Then re-sort things back to their proper order...
+					if ( ! empty( $info['wp-media']['fields']['gd_version'] ) ) {
+						$gd_version = $info['wp-media']['fields']['gd_version'];
+						unset( $info['wp-media']['fields']['gd_version'] );
+						$info['wp-media']['fields']['gd_version'] = $gd_version;
+					}
+					if ( ! empty( $info['wp-media']['fields']['gd_formats'] ) ) {
+						$gd_formats = $info['wp-media']['fields']['gd_formats'];
+						unset( $info['wp-media']['fields']['gd_formats'] );
+						$info['wp-media']['fields']['gd_formats'] = $gd_formats;
+					}
+					if ( ! empty( $info['wp-media']['fields']['ghostscript_version'] ) ) {
+						$ghostscript_version = $info['wp-media']['fields']['ghostscript_version'];
+						unset( $info['wp-media']['fields']['ghostscript_version'] );
+						$info['wp-media']['fields']['ghostscript_version'] = $ghostscript_version;
+					}
+				}
+			}
+		}
+		return $info;
 	}
 
 	/**
