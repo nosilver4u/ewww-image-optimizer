@@ -154,6 +154,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: indexed PNG thumbnails with 8-bit alpha are distorted by quantization
 * fixed: PHP warnings related to HTML parsing
 * fixed: missing ImageMagick information on Site Health screen
+* fixed: PHP warnings when link URLs contain special regex characters
 
 = 8.1.4 =
 *Release Date - May 15, 2025*

@@ -1465,7 +1465,7 @@ class ExactDN extends Page_Parser {
 						// If present, replace the link href with an ExactDN URL for the full-size image.
 						if ( \defined( 'EIO_PRESERVE_LINKED_IMAGES' ) && EIO_PRESERVE_LINKED_IMAGES && ! empty( $images['link_url'][ $index ] ) && $this->validate_image_url( $images['link_url'][ $index ] ) ) {
 							$new_tag = \preg_replace(
-								'#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i',
+								'#(href=["|\'])' . preg_quote( $images['link_url'][ $index ], '#' ) . '(["|\'])#i',
 								'\1' . $this->generate_url(
 									$images['link_url'][ $index ],
 									array(
@@ -1478,7 +1478,7 @@ class ExactDN extends Page_Parser {
 							);
 						} elseif ( ! empty( $images['link_url'][ $index ] ) && $this->validate_image_url( $images['link_url'][ $index ] ) ) {
 							$new_tag = \preg_replace(
-								'#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i',
+								'#(href=["|\'])' . preg_quote( $images['link_url'][ $index ], '#' ) . '(["|\'])#i',
 								'\1' . $this->generate_url( $images['link_url'][ $index ], array( 'w' => 2560 ) ) . '\2',
 								$new_tag,
 								1
