@@ -65,6 +65,9 @@ class Page_Parser extends Base {
 		$images          = array();
 		$unquoted_images = array();
 
+		if ( empty( $content ) ) {
+			return $images;
+		}
 		$unquoted_pattern = '';
 		$search_pattern   = '#(?P<img_tag><img\s[^\\\\>]*?>)#is';
 		if ( $hyperlinks ) {
@@ -127,7 +130,7 @@ class Page_Parser extends Base {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$images = array();
 
-		if ( \preg_match_all( '#(?P<noscript_tag><noscript[^>]*?>\s*)(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'][^>]*?>){1}(?:\s*</noscript>)?#is', $content, $images ) ) {
+		if ( ! empty( $content ) && \preg_match_all( '#(?P<noscript_tag><noscript[^>]*?>\s*)(?P<img_tag><img[^>]*?\s+?src\s*=\s*["\'](?P<img_url>[^\s]+?)["\'][^>]*?>){1}(?:\s*</noscript>)?#is', $content, $images ) ) {
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible, mostly for confirming test results.
 				if ( \is_numeric( $key ) && $key > 0 ) {
@@ -148,7 +151,7 @@ class Page_Parser extends Base {
 	public function get_picture_tags_from_html( $content ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$pictures = array();
-		if ( \preg_match_all( '#(?:<picture[^>]*?>\s*)(?:<source[^>]*?>)+(?:.*?</picture>)?#is', $content, $pictures ) ) {
+		if ( ! empty( $content ) && \preg_match_all( '#(?:<picture[^>]*?>\s*)(?:<source[^>]*?>)+(?:.*?</picture>)?#is', $content, $pictures ) ) {
 			return $pictures[0];
 		}
 		return array();
@@ -163,7 +166,7 @@ class Page_Parser extends Base {
 	public function get_style_tags_from_html( $content ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$styles = array();
-		if ( \preg_match_all( '#<style[^>]*?>.*?</style>#is', $content, $styles ) ) {
+		if ( ! empty( $content ) && \preg_match_all( '#<style[^>]*?>.*?</style>#is', $content, $styles ) ) {
 			return $styles[0];
 		}
 		return array();
@@ -215,7 +218,7 @@ class Page_Parser extends Base {
 		if ( ! \ctype_alpha( str_replace( '-', '', $tag_name ) ) ) {
 			return array();
 		}
-		if ( \preg_match_all( '#<' . $tag_name . '\s[^\\\\>]+?>#is', $content, $elements ) ) {
+		if ( ! empty( $content ) && \preg_match_all( '#<' . $tag_name . '\s[^\\\\>]+?>#is', $content, $elements ) ) {
 			return $elements[0];
 		}
 		return array();
