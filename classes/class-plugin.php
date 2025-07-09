@@ -228,11 +228,6 @@ final class Plugin extends Base {
 			// TODO: the functions registered could (should?) become class members, which is why it may make more sense as a separate class.
 			self::$instance->register_integration_hooks();
 
-			// AJAX action hook to dismiss the UTF-8 notice.
-			\add_action( 'wp_ajax_ewww_dismiss_utf8_notice', array( self::$instance, 'dismiss_utf8_notice' ) );
-			// AJAX action hook to dismiss the exec notice and other related notices.
-			\add_action( 'wp_ajax_ewww_dismiss_exec_notice', array( self::$instance, 'dismiss_exec_notice' ) );
-
 			// Non-AJAX handler to disable debugging mode.
 			\add_action( 'admin_action_ewww_image_optimizer_disable_test_mode', array( self::$instance, 'disable_test_mode' ) );
 
@@ -512,52 +507,8 @@ final class Plugin extends Base {
 		// Queue the function that contains custom styling for our progressbars.
 		\add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_progressbar_style' );
 
-		if ( false !== \strpos( \add_query_arg( '', '' ), 'site-new.php' ) ) {
-			if ( \is_multisite() && \is_network_admin() && isset( $_GET['update'] ) && 'added' === $_GET['update'] && ! empty( $_GET['id'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-				\add_action( 'network_admin_notices', 'ewww_image_optimizer_easyio_site_initialized' );
-				\add_action( 'admin_notices', 'ewww_image_optimizer_easyio_site_initialized' );
-			}
-		}
-		global $wpdb;
-		if ( ! $this->get_option( 'ewww_image_optimizer_dismiss_utf8' ) && false === strpos( $wpdb->charset, 'utf8' ) ) {
-			\add_action( 'network_admin_notices', array( $this, 'utf8_db_notice' ) );
-			\add_action( 'admin_notices', array( $this, 'utf8_db_notice' ) );
-		} elseif ( ! $this->get_option( 'ewww_image_optimizer_dismiss_utf8' ) ) {
-			$this->set_option( 'ewww_image_optimizer_dismiss_utf8', true );
-		}
-		if ( \defined( 'EWWW_IMAGE_OPTIMIZER_CLOUD_KEY' ) && \get_option( 'ewww_image_optimizer_cloud_key_invalid' ) ) {
-			\add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_invalid_key' );
-			\add_action( 'admin_notices', 'ewww_image_optimizer_notice_invalid_key' );
-		}
-		if ( $this->get_option( 'ewww_image_optimizer_webp_enabled' ) ) {
-			\add_action( 'admin_notices', 'ewww_image_optimizer_notice_webp_bulk' );
-			if ( \ewww_image_optimizer_cloud_based_media() ) {
-				\ewww_image_optimizer_set_option( 'ewww_image_optimizer_webp_force', true );
-			}
-		}
-		if ( $this->get_option( 'ewww_image_optimizer_auto' ) && ! \ewww_image_optimizer_background_mode_enabled() ) {
-			\add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_schedule_noasync' );
-			\add_action( 'admin_notices', 'ewww_image_optimizer_notice_schedule_noasync' );
-		}
 		if ( $this->get_option( 'ewww_image_optimizer_webp_force' ) && $this->get_option( 'ewww_image_optimizer_force_gif2webp' ) && ! $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 			$this->set_option( 'ewww_image_optimizer_force_gif2webp', false );
-		}
-		// Prevent ShortPixel AIO messiness.
-		\remove_action( 'admin_notices', 'autoptimizeMain::notice_plug_imgopt' );
-		if ( \class_exists( '\autoptimizeExtra' ) || \defined( 'AUTOPTIMIZE_PLUGIN_VERSION' ) ) {
-			$ao_extra = \get_option( 'autoptimize_imgopt_settings' );
-			if ( $this->get_option( 'ewww_image_optimizer_exactdn' ) && ! empty( $ao_extra['autoptimize_imgopt_checkbox_field_1'] ) ) {
-				$this->debug_message( 'detected ExactDN + SP conflict' );
-				$ao_extra['autoptimize_imgopt_checkbox_field_1'] = 0;
-				\update_option( 'autoptimize_imgopt_settings', $ao_extra );
-				\add_action( 'admin_notices', 'ewww_image_optimizer_notice_exactdn_sp_conflict' );
-			}
-		}
-		if ( \method_exists( '\HMWP_Classes_Tools', 'getOption' ) ) {
-			if ( $this->get_option( 'ewww_image_optimizer_exactdn' ) && \HMWP_Classes_Tools::getOption( 'hmwp_hide_version' ) && ! \HMWP_Classes_Tools::getOption( 'hmwp_hide_version_random' ) ) {
-				$this->debug_message( 'detected HMWP Hide Version' );
-				\add_action( 'admin_notices', array( $this, 'notice_exactdn_hmwp' ) );
-			}
 		}
 		if (
 			! $this->get_option( 'ewww_image_optimizer_ludicrous_mode' ) &&
@@ -566,71 +517,19 @@ final class Plugin extends Base {
 		) {
 			// Suppress the custom column in the media library if Easy IO CDN is enabled without an API key and Easy Mode is active.
 			\remove_filter( 'manage_media_columns', 'ewww_image_optimizer_columns' );
-		} else {
-			\add_action( 'admin_notices', 'ewww_image_optimizer_notice_media_listmode' );
 		}
 		if ( \ewww_image_optimizer_easy_active() ) {
 			$this->set_option( 'ewww_image_optimizer_webp', false );
 			$this->set_option( 'ewww_image_optimizer_webp_force', false );
 		}
-
 		// Alert user if multiple re-optimizations detected.
 		if ( false && ! \defined( 'EWWWIO_DISABLE_REOPT_NOTICE' ) ) {
 			\add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
 			\add_action( 'admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
 		}
-		// Let the admin know a db upgrade is needed.
-		if ( \is_super_admin() && \get_transient( 'ewww_image_optimizer_620_upgrade_needed' ) ) {
-			\add_action( 'admin_notices', 'ewww_image_optimizer_620_upgrade_needed' );
-		}
-		if (
-			\is_super_admin() &&
-			$this->get_option( 'ewww_image_optimizer_review_time' ) &&
-			$this->get_option( 'ewww_image_optimizer_review_time' ) < \time() &&
-			! $this->get_option( 'ewww_image_optimizer_dismiss_review_notice' )
-		) {
-			\add_action( 'admin_notices', 'ewww_image_optimizer_notice_review' );
-			\add_action( 'admin_footer', 'ewww_image_optimizer_notice_review_script' );
-		}
-		if ( ! empty( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-			if ( 'regenerate-thumbnails' === $_GET['page'] // phpcs:ignore WordPress.Security.NonceVerification
-				|| 'force-regenerate-thumbnails' === $_GET['page'] // phpcs:ignore WordPress.Security.NonceVerification
-				|| 'ajax-thumbnail-rebuild' === $_GET['page'] // phpcs:ignore WordPress.Security.NonceVerification
-				|| 'regenerate_thumbnails_advanced' === $_GET['page'] // phpcs:ignore WordPress.Security.NonceVerification
-				|| 'rta_generate_thumbnails' === $_GET['page'] // phpcs:ignore WordPress.Security.NonceVerification
-			) {
-				// Add a notice for thumb regeneration.
-				\add_action( 'admin_notices', 'ewww_image_optimizer_thumbnail_regen_notice' );
-			}
-		}
-		if ( ! empty( $_GET['ewww_pngout'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-			\add_action( 'admin_notices', 'ewww_image_optimizer_pngout_installed' );
-			\add_action( 'network_admin_notices', 'ewww_image_optimizer_pngout_installed' );
-		}
-		if ( ! empty( $_GET['ewww_svgcleaner'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-			\add_action( 'admin_notices', 'ewww_image_optimizer_svgcleaner_installed' );
-			\add_action( 'network_admin_notices', 'ewww_image_optimizer_svgcleaner_installed' );
-		}
 		if ( ! \defined( 'EIO_PHPUNIT' ) && ( ! \defined( 'WP_CLI' ) || ! WP_CLI ) ) {
 			\ewww_image_optimizer_privacy_policy_content();
 			\ewww_image_optimizer_ajax_compat_check();
-		}
-		if ( \class_exists( '\WooCommerce' ) && $this->get_option( 'ewww_image_optimizer_wc_regen' ) ) {
-			\add_action( 'admin_notices', 'ewww_image_optimizer_notice_wc_regen' );
-			\add_action( 'admin_footer', 'ewww_image_optimizer_wc_regen_script' );
-		}
-		if ( \class_exists( '\Meow_WPLR_Sync_Core' ) && $this->get_option( 'ewww_image_optimizer_lr_sync' ) ) {
-			\add_action( 'admin_notices', 'ewww_image_optimizer_notice_lr_sync' );
-			\add_action( 'admin_footer', 'ewww_image_optimizer_lr_sync_script' );
-		}
-		if ( \class_exists( '\Bbpp_Animated_Gif' ) ) {
-			\add_action( 'admin_notices', 'ewww_image_optimizer_notice_agr' );
-			\add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_agr' );
-		}
-		// Increase the version when the next bump is coming.
-		if ( \defined( 'PHP_VERSION_ID' ) && PHP_VERSION_ID < 70400 ) {
-			\add_action( 'admin_notices', array( $this, 'php_warning' ) );
-			\add_action( 'network_admin_notices', array( $this, 'php_warning' ) );
 		}
 	}
 
@@ -924,97 +823,6 @@ final class Plugin extends Base {
 	}
 
 	/**
-	 * Outputs the script to dismiss the 'utf8' notice.
-	 */
-	protected function display_utf8_dismiss_script() {
-		?>
-		<script>
-			jQuery(document).on('click', '#ewww-image-optimizer-warning-utf8-db-connection .notice-dismiss', function() {
-				var ewww_dismiss_utf8_data = {
-					action: 'ewww_dismiss_utf8_notice',
-					_wpnonce: <?php echo wp_json_encode( wp_create_nonce( 'ewww-image-optimizer-notice' ) ); ?>,
-				};
-				jQuery.post(ajaxurl, ewww_dismiss_utf8_data, function(response) {
-					if (response) {
-						console.log(response);
-					}
-				});
-			});
-		</script>
-		<?php
-	}
-
-	/**
-	 * Alert the user when the database connection does not appear to be using utf8.
-	 */
-	public function utf8_db_notice() {
-		?>
-		<div id='ewww-image-optimizer-warning-utf8-db-connection' class='notice notice-warning is-dismissible'>
-			<p>
-				<strong><?php \esc_html_e( 'The database connection for your site does not appear to be using UTF-8.', 'ewww-image-optimizer' ); ?></strong>
-				<?php \esc_html_e( 'EWWW Image Optimizer may not properly process images with non-English filenames.', 'ewww-image-optimizer' ); ?>
-			</p>
-		</div>
-		<?php
-		$this->display_utf8_dismiss_script();
-	}
-
-	/**
-	 * Disables UTF-8 notice after being dismissed.
-	 */
-	public function dismiss_utf8_notice() {
-		$this->ob_clean();
-		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		check_ajax_referer( 'ewww-image-optimizer-notice' );
-		// Verify that the user is properly authorized.
-		if ( ! \current_user_can( \apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
-			\wp_die( \esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
-		}
-		\update_option( 'ewww_image_optimizer_dismiss_utf8', 1 );
-		\update_site_option( 'ewww_image_optimizer_dismiss_utf8', 1 );
-		die();
-	}
-
-	/**
-	 * Display a notice that PHP version 8.1 will be required in a future version.
-	 */
-	public function php_warning() {
-		if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
-			return;
-		}
-		echo '<div id="ewww-image-optimizer-notice-php" class="notice notice-info"><p><a href="https://docs.ewww.io/article/55-upgrading-php" target="_blank" data-beacon-article="5ab2baa6042863478ea7c2ae">' . esc_html__( 'The next release of EWWW Image Optimizer will require PHP 8.1 or greater. Newer versions of PHP are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</a></p></div>';
-	}
-
-	/**
-	 * Tell the user to disable Hide my WP function that removes query strings.
-	 */
-	public function notice_exactdn_hmwp() {
-		?>
-		<div id='ewww-image-optimizer-warning-hmwp-hide-version' class='notice notice-warning'>
-			<p>
-				<?php \esc_html_e( 'Please enable the Random Static Number option in Hide My WP to ensure compatibility with Easy IO or disable the Hide Version option for best performance.', 'ewww-image-optimizer' ); ?>
-				<?php \ewwwio_help_link( 'https://docs.ewww.io/article/50-exactdn-and-query-strings', '5a3d278a2c7d3a1943677b52' ); ?>
-			</p>
-		</div>
-		<?php
-	}
-
-	/**
-	 * Disables local compression when exec notice is dismissed.
-	 */
-	public function dismiss_exec_notice() {
-		$this->ob_clean();
-		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		check_ajax_referer( 'ewww-image-optimizer-notice' );
-		// Verify that the user is properly authorized.
-		if ( ! \current_user_can( \apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
-			\wp_die( \esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
-		}
-		$this->enable_free_exec();
-		exit;
-	}
-
-	/**
 	 * Sync the cloud_mode property with the cloud_key option.
 	 *
 	 * @param mixed $old_setting The old value.
@@ -1022,21 +830,6 @@ final class Plugin extends Base {
 	 */
 	public function updated_cloud_key( $old_setting, $new_setting ) {
 		$this->cloud_mode = ! empty( $new_setting );
-	}
-
-	/**
-	 * Put site in "free exec" mode with JPG-only API compression, and suppress the exec() notice.
-	 */
-	public function enable_free_exec() {
-		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		\update_option( 'ewww_image_optimizer_jpg_level', 10 );
-		\update_option( 'ewww_image_optimizer_png_level', 0 );
-		\update_option( 'ewww_image_optimizer_gif_level', 0 );
-		\update_option( 'ewww_image_optimizer_pdf_level', 0 );
-		\update_option( 'ewww_image_optimizer_svg_level', 0 );
-		\update_option( 'ewww_image_optimizer_webp_level', 0 );
-		\update_option( 'ewww_image_optimizer_dismiss_exec_notice', 1 );
-		\update_site_option( 'ewww_image_optimizer_dismiss_exec_notice', 1 );
 	}
 
 	/**
