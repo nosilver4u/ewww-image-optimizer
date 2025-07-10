@@ -899,7 +899,7 @@ final class Plugin extends Base {
 		return $info;
 	}
 
-	/*
+	/**
 	 * Sync the cloud_mode property with the cloud_key option.
 	 *
 	 * @param mixed $old_setting The old value.
