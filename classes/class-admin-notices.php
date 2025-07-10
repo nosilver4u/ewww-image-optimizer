@@ -28,6 +28,7 @@ final class Admin_Notices extends Base {
 		\add_action( 'load-media-new.php', array( $this, 'load_notices' ) );
 		\add_action( 'load-media_page_ewww-image-optimizer-bulk', array( $this, 'load_notices' ) );
 		\add_action( 'load-plugins.php', array( $this, 'load_notices' ) );
+		\add_action( 'admin-notices', array( $this, 'thumbnail_regen_notice' ) );
 
 		// Prevent Autoptimize from displaying its image optimization notice.
 		\remove_action( 'admin_notices', 'autoptimizeMain::notice_plug_imgopt' );
