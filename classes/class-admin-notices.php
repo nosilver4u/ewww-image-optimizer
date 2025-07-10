@@ -60,6 +60,11 @@ final class Admin_Notices extends Base {
 		\add_action( 'wp_ajax_ewww_dismiss_review_notice', array( $this, 'dismiss_review_notice' ) );
 		// AJAX action hook to disable the newsletter signup banner.
 		\add_action( 'wp_ajax_ewww_dismiss_newsletter', array( $this, 'dismiss_newsletter_signup_notice' ) );
+		// Non-AJAX handler to disable debugging mode.
+		\add_action( 'admin_action_disable_debugging', 'disable_debugging' );
+		// Non-AJAX handler to disable debugging mode.
+		\add_action( 'admin_action_ewww_image_optimizer_disable_test_mode', array( $this, 'disable_test_mode' ) );
+
 	}
 
 	/**
@@ -129,12 +134,29 @@ final class Admin_Notices extends Base {
 		<div id="ewww-image-optimizer-notice-debug" class="notice notice-info">
 			<p>
 				<?php esc_html_e( 'Debug mode is enabled in the EWWW Image Optimizer settings. Please be sure to turn Debugging off when you are done troubleshooting.', 'ewww-image-optimizer' ); ?>
-				<a class='button button-secondary' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_disable_debugging' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
+				<a class='button button-secondary' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=disable_debugging' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
 					<?php esc_html_e( 'Disable Debugging', 'ewww-image-optimizer' ); ?>
 				</a>
 			</p>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Disables the debugging option.
+	 */
+	public function disable_debugging() {
+		if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+			wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
+		}
+		if ( empty( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
+			wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
+		}
+		update_option( 'ewww_image_optimizer_debug', false );
+		update_site_option( 'ewww_image_optimizer_debug', false );
+		$sendback = wp_get_referer();
+		wp_safe_redirect( $sendback );
+		exit;
 	}
 
 	/**

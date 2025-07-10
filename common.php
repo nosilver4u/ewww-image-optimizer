@@ -154,8 +154,6 @@ add_action( 'admin_action_ewww_image_optimizer_network_remove_easyio', 'ewww_ima
 add_action( 'admin_action_ewww_image_optimizer_enable_force_gif2webp', 'ewww_image_optimizer_enable_force_gif2webp' );
 // Non-AJAX handler to retest async/background mode.
 add_action( 'admin_action_ewww_image_optimizer_retest_background_optimization', 'ewww_image_optimizer_retest_background_optimization' );
-// Non-AJAX handler to disable debugging mode.
-add_action( 'admin_action_ewww_image_optimizer_disable_debugging', 'ewww_image_optimizer_disable_debugging' );
 // Non-AJAX handler to view the debug log, and display it.
 add_action( 'admin_action_ewww_image_optimizer_view_debug_log', 'ewww_image_optimizer_view_debug_log' );
 // Non-AJAX handler to delete the debug log, and reroute back to the settings page.
@@ -15230,23 +15228,6 @@ function ewwwio_is_whitelabel( $whitelabeled ) {
 		return true;
 	}
 	return $whitelabeled;
-}
-
-/**
- * Disables the debugging option.
- */
-function ewww_image_optimizer_disable_debugging() {
-	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
-		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
-	}
-	if ( empty( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
-		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
-	}
-	update_option( 'ewww_image_optimizer_debug', false );
-	update_site_option( 'ewww_image_optimizer_debug', false );
-	$sendback = wp_get_referer();
-	wp_safe_redirect( $sendback );
-	exit;
 }
 
 /**

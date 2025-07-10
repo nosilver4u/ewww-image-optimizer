@@ -228,9 +228,6 @@ final class Plugin extends Base {
 			// TODO: the functions registered could (should?) become class members, which is why it may make more sense as a separate class.
 			self::$instance->register_integration_hooks();
 
-			// Non-AJAX handler to disable debugging mode.
-			\add_action( 'admin_action_ewww_image_optimizer_disable_test_mode', array( self::$instance, 'disable_test_mode' ) );
-
 			// TODO: check PHP and WP compat here.
 			// TODO: setup anything that needs to run on init/plugins_loaded.
 			// TODO: add any custom option/setting hooks here (actions that need to be taken when certain settings are saved/updated).
