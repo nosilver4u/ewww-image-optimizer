@@ -31,7 +31,7 @@ final class Admin_Notices extends Base {
 
 		// Prevent Autoptimize from displaying its image optimization notice.
 		\remove_action( 'admin_notices', 'autoptimizeMain::notice_plug_imgopt' );
-		
+
 		$this->register_action_handlers();
 	}
 
