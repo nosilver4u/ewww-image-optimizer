@@ -12865,7 +12865,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<?php ewwwio()->notices->pngout_installed_notice(); ?>
 	<?php endif; ?>
 	<?php if ( ! empty( $_GET['ewww_svgcleaner'] ) ) : ?>
-		<?php ewwwio->notices->svgcleaner_installed_notice(); ?>
+		<?php ewwwio()->notices->svgcleaner_installed_notice(); ?>
 	<?php endif; ?>
 </div>
 <div id='ewww-settings-wrap'>
