@@ -65,7 +65,6 @@ final class Admin_Notices extends Base {
 		\add_action( 'admin_action_ewww_disable_debugging', array( $this, 'disable_debugging' ) );
 		// Non-AJAX handler to disable debugging mode.
 		\add_action( 'admin_action_ewww_disable_test_mode', array( $this, 'disable_test_mode' ) );
-
 	}
 
 	/**
@@ -371,10 +370,10 @@ final class Admin_Notices extends Base {
 			return;
 		}
 		$current_screen = get_current_screen();
-		if ( 'upload' === $current_screen->id && ! ewww_image_optimizer_get_option( 'dismiss_media_notice' ) ) {
+		if ( 'upload' === $current_screen->id && ! $this->get_option( 'ewww_image_optimizer_dismiss_media_notice' ) ) {
 			if ( 'list' === get_user_option( 'media_library_mode', get_current_user_id() ) ) {
-				\update_option( 'dismiss_media_notice', true, false );
-				\update_site_option( 'dismiss_media_notice', true );
+				\update_option( 'ewww_image_optimizer_dismiss_media_notice', true, false );
+				\update_site_option( 'ewww_image_optimizer_dismiss_media_notice', true );
 				return;
 			}
 			?>
@@ -396,7 +395,7 @@ final class Admin_Notices extends Base {
 			! \is_super_admin() ||
 			! $this->get_option( 'ewww_image_optimizer_review_time' ) ||
 			$this->get_option( 'ewww_image_optimizer_review_time' ) > \time() ||
-			$this->get_option( 'dismiss_review_notice' )
+			$this->get_option( 'ewww_image_optimizer_dismiss_review_notice' )
 		) {
 			return;
 		}
@@ -976,8 +975,8 @@ final class Admin_Notices extends Base {
 		if ( ! \current_user_can( \apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 			\wp_die( \esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 		}
-		\update_option( 'dismiss_media_notice', true, false );
-		\update_site_option( 'dismiss_media_notice', true );
+		\update_option( 'ewww_image_optimizer_dismiss_media_notice', true, false );
+		\update_site_option( 'ewww_image_optimizer_dismiss_media_notice', true );
 		die();
 	}
 
@@ -992,8 +991,8 @@ final class Admin_Notices extends Base {
 		if ( ! \current_user_can( \apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 			\wp_die( \esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 		}
-		\update_option( 'dismiss_review_notice', true, false );
-		\update_site_option( 'dismiss_review_notice', true );
+		\update_option( 'ewww_image_optimizer_dismiss_review_notice', true, false );
+		\update_site_option( 'ewww_image_optimizer_dismiss_review_notice', true );
 		die();
 	}
 

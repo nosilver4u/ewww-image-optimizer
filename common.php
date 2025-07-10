@@ -1772,7 +1772,7 @@ function ewww_image_optimizer_network_settings_saved() {
  * @return string The modified footer text.
  */
 function ewww_image_optimizer_footer_review_text( $footer_text ) {
-	if ( ewww_image_optimizer_get_option( 'dismiss_review_notice' ) ) {
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_review_notice' ) ) {
 		return $footer_text;
 	}
 	$review_text = esc_html__( 'Thank you for using EWWW Image Optimizer!', 'ewww-image-optimizer' ) . ' <a target="_blank" href="https://wordpress.org/support/plugin/ewww-image-optimizer/reviews/#new-post">' . esc_html__( 'Please rate us on WordPress.org', 'ewww-image-optimizer' ) . '</a>';
