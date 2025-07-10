@@ -17,29 +17,30 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class Admin_Notices extends Base {
 
-    /**
+	/**
 	 * Register the loader for the admin notices.
 	 */
-    public function __construct() {
+	public function __construct() {
 		parent::__construct();
 
-        \add_action( 'load-index.php', array( $this, 'load_notices' ) );
-        \add_action( 'load-upload.php', array( $this, 'load_notices' ), 9 );
+		\add_action( 'load-index.php', array( $this, 'load_notices' ) );
+		\add_action( 'load-upload.php', array( $this, 'load_notices' ), 9 );
 		\add_action( 'load-media-new.php', array( $this, 'load_notices' ) );
 		\add_action( 'load-media_page_ewww-image-optimizer-bulk', array( $this, 'load_notices' ) );
 		\add_action( 'load-plugins.php', array( $this, 'load_notices' ) );
-		
+		\add_action( 'admin_notices', array( $this, 'thumbnail_regen_notice' ) );
+
 		// Prevent Autoptimize from displaying its image optimization notice.
 		\remove_action( 'admin_notices', 'autoptimizeMain::notice_plug_imgopt' );
-    }
+	}
 
-    /**
+	/**
 	 * Register the admin notices, and add the actions to display them.
 	 */
-    public function load_notices() {
-        \add_action( 'network_admin_notices', array( $this, 'display_notices' ) );
-        \add_action( 'admin_notices', array( $this, 'display_notices' ) );
-    }
+	public function load_notices() {
+		\add_action( 'network_admin_notices', array( $this, 'display_notices' ) );
+		\add_action( 'admin_notices', array( $this, 'display_notices' ) );
+	}
 
 	/**
 	 * Register the handlers for dismissing notices.
@@ -60,18 +61,18 @@ final class Admin_Notices extends Base {
 		// AJAX action hook to disable the newsletter signup banner.
 		\add_action( 'wp_ajax_ewww_dismiss_newsletter', array( $this, 'dismiss_newsletter_signup_notice' ) );
 	}
-    
-    /**
-     * Hook to display notices on the admin pages.
-     */
-    public function display_notices() {
-        $admin_permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
+
+	/**
+	 * Hook to display notices on the admin pages.
+	 */
+	public function display_notices() {
+		$admin_permissions = apply_filters( 'ewww_image_optimizer_admin_permissions', '' );
 		if ( current_user_can( $admin_permissions ) ) {
 			$this->test_mode_notice();
 			$this->debug_mode_notice();
-            $this->utils_notice();
-            $this->os_notice();
-            $this->hosting_requires_api_notice();
+			$this->utils_notice();
+			$this->os_notice();
+			$this->hosting_requires_api_notice();
 			$this->utf8_db_notice();
 			$this->upgrade_620_notice();
 			$this->invalid_key_notice();
@@ -79,27 +80,26 @@ final class Admin_Notices extends Base {
 			$this->php_notice();
 			$this->exactdn_hmwp_notice();
 			$this->review_appreciated_notice();
-			$this->thumbnail_regen_notice();
 			$this->pngout_installed_notice();
 			$this->svgcleaner_installed_notice();
 			$this->agr_notice();
-            if ( is_network_admin() ) {
-                // If we are on the network admin, display network notices.
-                $this->easyio_site_initialized_notice();
+			if ( is_network_admin() ) {
+				// If we are on the network admin, display network notices.
+				$this->easyio_site_initialized_notice();
 				\do_action( 'ewwwio_network_admin_notices' );
 			} else {
-                // Otherwise, display regular admin notices.
+				// Otherwise, display regular admin notices.
 				$this->webp_bulk_notice();
 				$this->exactdn_sp_conflict_notice();
 				$this->media_listmode_notice();
 				$this->wc_regen_notice();
 				$this->lightroom_sync_notice();
-                \do_action( 'ewwwio_admin_notices' );
-            }
-        }
-    }
+				\do_action( 'ewwwio_admin_notices' );
+			}
+		}
+	}
 
-    /**
+	/**
 	 * Display admin notice for test mode.
 	 */
 	protected function test_mode_notice() {
@@ -118,24 +118,24 @@ final class Admin_Notices extends Base {
 		<?php
 	}
 
-    /**
-     * Display a notice that debugging mode is enabled.
-     */
-    protected function debug_mode_notice() {
-	    if ( ! $this->get_option( 'ewww_image_optimizer_debug' ) ) {
-	    	return;
-        }
-        ?>
-        <div id="ewww-image-optimizer-notice-debug" class="notice notice-info">
-            <p>
-                <?php esc_html_e( 'Debug mode is enabled in the EWWW Image Optimizer settings. Please be sure to turn Debugging off when you are done troubleshooting.', 'ewww-image-optimizer' ); ?>
-                <a class='button button-secondary' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_disable_debugging' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
-                    <?php esc_html_e( 'Disable Debugging', 'ewww-image-optimizer' ); ?>
-                </a>
-            </p>
-        </div>
-        <?php
-    }
+	/**
+	 * Display a notice that debugging mode is enabled.
+	 */
+	protected function debug_mode_notice() {
+		if ( ! $this->get_option( 'ewww_image_optimizer_debug' ) ) {
+			return;
+		}
+		?>
+		<div id="ewww-image-optimizer-notice-debug" class="notice notice-info">
+			<p>
+				<?php esc_html_e( 'Debug mode is enabled in the EWWW Image Optimizer settings. Please be sure to turn Debugging off when you are done troubleshooting.', 'ewww-image-optimizer' ); ?>
+				<a class='button button-secondary' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_disable_debugging' ), 'ewww_image_optimizer_options-options' ) ); ?>'>
+					<?php esc_html_e( 'Disable Debugging', 'ewww-image-optimizer' ); ?>
+				</a>
+			</p>
+		</div>
+		<?php
+	}
 
 	/**
 	 * Disables the test mode option.
@@ -547,7 +547,7 @@ final class Admin_Notices extends Base {
 		?>
 		<div id='ewww-image-optimizer-wc-regen' class='notice notice-info is-dismissible'>
 			<p>
-			 	<?php \esc_html_e( 'EWWW Image Optimizer has detected a WooCommerce thumbnail regeneration. To optimize new thumbnails, you may run the Bulk Optimizer from the Media menu. This notice may be dismissed after the regeneration is complete.', 'ewww-image-optimizer' ); ?>
+				<?php \esc_html_e( 'EWWW Image Optimizer has detected a WooCommerce thumbnail regeneration. To optimize new thumbnails, you may run the Bulk Optimizer from the Media menu. This notice may be dismissed after the regeneration is complete.', 'ewww-image-optimizer' ); ?>
 			</p>
 		</div>
 		<?php
@@ -635,7 +635,7 @@ final class Admin_Notices extends Base {
 		<?php
 	}
 
-    /**
+	/**
 	 * Checks for exec() and availability of local optimizers, then displays an error if needed.
 	 *
 	 * @param string $quiet Optional. Use 'quiet' to suppress output.
@@ -643,10 +643,10 @@ final class Admin_Notices extends Base {
 	public function utils_notice( $quiet = null ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( ewwwio()->cloud_mode ) {
-            return;
-        }
-        // Check if exec is disabled.
-        if ( ! ewwwio()->local->exec_check() ) {
+			return;
+		}
+		// Check if exec is disabled.
+		if ( ! ewwwio()->local->exec_check() ) {
 			// Don't bother if we're in quiet mode, or they already dismissed the notice.
 			if ( 'quiet' !== $quiet && ! $this->get_option( 'ewww_image_optimizer_dismiss_exec_notice' ) ) {
 				\ob_start();
@@ -771,7 +771,7 @@ final class Admin_Notices extends Base {
 		}
 	}
 
-    /**
+	/**
 	 * Outputs the script to dismiss the 'exec' notice.
 	 */
 	public function display_exec_dismiss_script() {
@@ -817,14 +817,14 @@ final class Admin_Notices extends Base {
 	public function hosting_requires_api_notice() {
 		if ( ! ewwwio()->local->hosting_requires_api() ) {
 			return;
-        }
-        if (
+		}
+		if (
 			$this->get_option( 'ewww_image_optimizer_cloud_key' ) ||
 			\ewww_image_optimizer_easy_active()
 		) {
-            return;
-        }
-        if ( \defined( 'WPCOMSH_VERSION' ) ) {
+			return;
+		}
+		if ( \defined( 'WPCOMSH_VERSION' ) ) {
 			$webhost = 'WordPress.com';
 		} elseif ( ! empty( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {
 			$webhost = 'Pantheon';
@@ -861,9 +861,9 @@ final class Admin_Notices extends Base {
 		if ( $this->get_option( 'ewww_image_optimizer_dismiss_exec_notice' ) ) {
 			return;
 		}
-        if ( ewwwio()->local->os_supported() ) {
-            return;
-        }
+		if ( ewwwio()->local->os_supported() ) {
+			return;
+		}
 		// If they are already using our services, or haven't gone through the wizard, exit now!
 		if (
 			$this->get_option( 'ewww_image_optimizer_cloud_key' ) ||
