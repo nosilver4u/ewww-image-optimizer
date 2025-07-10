@@ -685,6 +685,7 @@ final class Admin_Notices extends Base {
 						"<a href='https://ewww.io/plans/'>" . \esc_html__( 'start your premium trial', 'ewww-image-optimizer' ) . '</a>'
 					);
 				}
+				echo '&nbsp;';
 				\ewwwio_help_link( 'https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it', '592dd12d0428634b4a338c39' );
 				echo '</p></div>';
 				$this->display_exec_dismiss_script();
@@ -871,6 +872,7 @@ final class Admin_Notices extends Base {
 			'<br><strong>' .
 			/* translators: %s: link to 'start your free trial' */
 			\sprintf( \esc_html__( 'Dismiss this notice to continue with free cloud-based JPG compression or %s.', 'ewww-image-optimizer' ), "<a href='https://ewww.io/plans/'>" . \esc_html__( 'start your premium trial', 'ewww-image-optimizer' ) . '</a>' );
+		echo '&nbsp;';
 		\ewwwio_help_link( 'https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it', '592dd12d0428634b4a338c39' );
 		echo '</strong></p></div>';
 		$this->display_exec_dismiss_script();
@@ -899,6 +901,7 @@ final class Admin_Notices extends Base {
 			'<br><strong>' .
 			/* translators: %s: link to 'start your free trial' */
 			\sprintf( \esc_html__( 'Dismiss this notice to continue with free cloud-based JPG compression or %s.', 'ewww-image-optimizer' ), "<a href='https://ewww.io/plans/'>" . \esc_html__( 'start your premium trial', 'ewww-image-optimizer' ) . '</a>' );
+		echo '&nbsp;';
 		\ewwwio_help_link( 'https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it', '592dd12d0428634b4a338c39' );
 		echo '</strong></p></div>';
 		$this->display_exec_dismiss_script();
