@@ -121,10 +121,6 @@ if ( ! defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID < 70400 ) {
 	 */
 	require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-plugin.php';
 	/**
-	 * Class for local optimization tool installation/valication.
-	 */
-	require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-local.php';
-	/**
 	 * The main function to return a single EWWW\Plugin object to functions elsewhere.
 	 *
 	 * @return object object|EWWW\Plugin The one true EWWW\Plugin instance.
