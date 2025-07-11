@@ -29,6 +29,7 @@ final class Admin_Notices extends Base {
 		\add_action( 'load-media_page_ewww-image-optimizer-bulk', array( $this, 'load_notices' ) );
 		\add_action( 'load-plugins.php', array( $this, 'load_notices' ) );
 		\add_action( 'admin_notices', array( $this, 'thumbnail_regen_notice' ) );
+		\add_action( 'network_admin_notices', array( $this, 'easyio_site_initialized_notice' ) );
 
 		// Prevent Autoptimize from displaying its image optimization notice.
 		\remove_action( 'admin_notices', 'autoptimizeMain::notice_plug_imgopt' );
@@ -91,7 +92,6 @@ final class Admin_Notices extends Base {
 			$this->agr_notice();
 			if ( is_network_admin() ) {
 				// If we are on the network admin, display network notices.
-				$this->easyio_site_initialized_notice();
 				\do_action( 'ewwwio_network_admin_notices' );
 			} else {
 				// Otherwise, display regular admin notices.
