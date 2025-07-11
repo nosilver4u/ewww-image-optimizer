@@ -536,19 +536,17 @@ final class Admin_Notices extends Base {
 	public function easyio_site_initialized_notice() {
 		if (
 			! \str_contains( \add_query_arg( '', '' ), 'site-new.php' ) ||
-			empty( $_GET['update'] ) || // phpcs:ignore WordPress.Security.NonceVerification
-			'added' !== $_GET['update'] || // phpcs:ignore WordPress.Security.NonceVerification
-			empty( $_GET['id'] ) // phpcs:ignore WordPress.Security.NonceVerification
+			empty( $_GET['id'] )// phpcs:ignore WordPress.Security.NonceVerification
 		) {
 			return;
 		}
-		if ( defined( 'EASYIO_NEW_SITE_AUTOREG' ) && EASYIO_NEW_SITE_AUTOREG ) {
+		if ( defined( 'EASYIO_NEW_SITE_AUTOREG' ) && EASYIO_NEW_SITE_AUTOREG && ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 			?>
 			<div id="ewww-image-optimizer-notice-exactdn-success" class="notice notice-info"><p>
 				<?php esc_html_e( 'Easy IO registration is complete. Visit the plugin settings to activate your new site.', 'ewww-image-optimizer' ); ?>
 			</div>
 			<?php
-		} else {
+		} elseif ( get_option( 'ewww_image_optimizer_exactdn' ) ) {
 			?>
 			<div id="ewww-image-optimizer-notice-exactdn-success" class="notice notice-info"><p>
 				<?php esc_html_e( 'Please visit the EWWW Image Optimizer plugin settings to activate Easy IO on your new site.', 'ewww-image-optimizer' ); ?>
@@ -666,6 +664,12 @@ final class Admin_Notices extends Base {
 	public function utils_notice( $quiet = null ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( ewwwio()->cloud_mode ) {
+			return;
+		}
+		if ( ewwwio()->local->hosting_requires_api() ) {
+			return;
+		}
+		if ( ! ewwwio()->local->os_supported() ) {
 			return;
 		}
 		// Check if exec is disabled.
