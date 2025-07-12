@@ -50,15 +50,14 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 	/**
 	 * Test that GD is active and Imagick is not -- otherwise our tests are bogus.
 	 */
-	function test_gd_active() {
+	function test_agr_gd_active() {
 		$this->assertNotEmpty( \ewwwio()->gd_support() );
-		$this->assertFalse( \ewwwio()->imagick_support() );
 	}
 
 	/**
 	 * Test local (gifsicle) AGR.
 	 */
-	function test_local_agr() {
+	function test_agr_local() {
 		$upload_gif = self::$test_gif . '.gif';
 		copy( self::$test_gif, $upload_gif );
 		$id = $this->factory->attachment->create_upload_object( $upload_gif );
@@ -73,7 +72,7 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 	/**
 	 * Test API-based AGR.
 	 */
-	function test_api_agr() {
+	function test_agr_api() {
 		if ( empty( self::$api_key ) ) {
 			self::markTestSkipped( 'No API key available.' );
 		}

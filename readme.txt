@@ -2,10 +2,8 @@
 Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: compress, convert, webp, resize, lazy load
-Requires at least: 6.5
 Tested up to: 6.8
-Requires PHP: 7.4
-Stable tag: 8.1.4
+Stable tag: 8.1.4.5
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.

@@ -227,7 +227,10 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 		}
 		$return_parent = false; // An indicator for whether we should short-circuit and use the parent thumbnail_image method.
 		$ewww_status   = get_transient( 'ewww_image_optimizer_cloud_status' );
-		if ( 'image/gif' === $this->mime_type && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+		if (
+			'image/gif' === $this->mime_type &&
+			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' )
+		) {
 			$gifsicle_path = ewwwio()->local->get_path( 'gifsicle' );
 			if ( empty( $gifsicle_path ) ) {
 				ewwwio_debug_message( 'no gifsicle to resize an animated GIF' );
@@ -239,7 +242,8 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 			'image/gif' === $this->mime_type &&
 			empty( $gifsicle_path ) &&
 			false === strpos( $ewww_status, 'great' ) &&
-			ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' )
+			ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) &&
+			! ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) )
 		) {
 			ewwwio_debug_message( 'no API key to resize an animated GIF' );
 			$return_parent = true;

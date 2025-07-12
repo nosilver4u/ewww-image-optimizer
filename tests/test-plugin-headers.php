@@ -1,25 +1,22 @@
 <?php
 /**
- * Test Plugin Readme and PHP Headers
+ * Test Plugin Readme and PHP Headers. Adapted from @peterwilsoncc's plugin template.
  *
- * @package PWCC\WpPluginTemplate\Tests
+ * @link https://ewww.io
+ * @package Ewww_Image_Optimizer
  */
-
-namespace PWCC\WpPluginTemplate\Tests;
-
-use WP_UnitTestCase;
 
 const OPTIONAL  = 0;
 const REQUIRED  = 1;
 const FORBIDDEN = 2;
 
 /**
- * Test Plugin Readme and PHP Headers
+ * Test Plugin Readme and PHP Headers.
  */
-class Test_Plugin_Headers extends WP_UnitTestCase {
+class EWWWIO_Test_Plugin_Headers extends WP_UnitTestCase {
 
 	/**
-	 * Readme headers specification
+	 * Readme headers specification.
 	 *
 	 * @var array<string,int> Headers defined in the readme spec. Key: Header; Value: OPTIONAL, REQUIRED, FORBIDDEN.
 	 */
