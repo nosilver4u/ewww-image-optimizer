@@ -142,13 +142,14 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
-= 8.1.5 =
-*Release Date - TBD*
+= 8.2.0 =
+*Release Date - July 15, 2025*
 
 * added: JS WebP support for HTML elements/tags added via eio_allowed_background_image_elements filter
 * added: Easy IO support for dynamic cropping (crop=1) on WordPress.com sites
 * changed: use native ImageMagick methods to detect, and correct, paletted PNG thumbnails
 * changed: use authoritative classmap via composer to speed up autoloader, props @nlemoine
+* changed: streamlined admin notices
 * fixed: indexed PNG thumbnails with 8-bit alpha are distorted by quantization
 * fixed: PHP warnings related to HTML parsing
 * fixed: missing ImageMagick information on Site Health screen
