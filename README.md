@@ -5,7 +5,7 @@
 [![WordPress Plugin Rating](https://img.shields.io/wordpress/plugin/r/ewww-image-optimizer.svg)](https://wordpress.org/support/plugin/ewww-image-optimizer/reviews/)
 [![WordPress Plugin Version](https://img.shields.io/wordpress/plugin/v/ewww-image-optimizer.svg)](https://wordpress.org/plugins/ewww-image-optimizer/)
 [![WordPress Tested Up To](https://img.shields.io/wordpress/v/ewww-image-optimizer.svg)](https://wordpress.org/plugins/ewww-image-optimizer/)
-[![Required WP Version](https://img.shields.io/wordpress/plugin/wp-version/ewww-image-optimizer.svg)](https://wordpress.org/plugins/ewww-image-optimizer/)
+[![Required WP Version](https://img.shields.io/wordpress/plugin/wp-version/ewww-image-optimizer.svg?label=wordpress%20%3E%3D)](https://wordpress.org/plugins/ewww-image-optimizer/)
 [![Required PHP Version](https://img.shields.io/wordpress/plugin/required-php/ewww-image-optimizer.svg)](https://wordpress.org/plugins/ewww-image-optimizer/)
 [![GNU General Public License 3.0](https://img.shields.io/github/license/nosilver4u/ewww-image-optimizer.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
