@@ -1,13 +1,12 @@
 # EWWW Image Optimizer
-**Donate link:** https://ewww.io/donate/
-**Minimum WordPress:** 6.0
-**Minimum PHP:** 7.4
 
 [![Build Status](https://app.travis-ci.com/nosilver4u/ewww-image-optimizer.svg?token=zGnxvNC5WNTFcN8zwNGG&branch=master)](https://app.travis-ci.com/github/nosilver4u/ewww-image-optimizer)
 [![WordPress Plugin Downloads](https://img.shields.io/wordpress/plugin/dt/ewww-image-optimizer.svg)](https://wordpress.org/plugins/ewww-image-optimizer/)
 [![WordPress Plugin Rating](https://img.shields.io/wordpress/plugin/r/ewww-image-optimizer.svg)](https://wordpress.org/support/plugin/ewww-image-optimizer/reviews/)
 [![WordPress Plugin Version](https://img.shields.io/wordpress/plugin/v/ewww-image-optimizer.svg)](https://wordpress.org/plugins/ewww-image-optimizer/)
 [![WordPress Tested Up To](https://img.shields.io/wordpress/v/ewww-image-optimizer.svg)](https://wordpress.org/plugins/ewww-image-optimizer/)
+[![Required WP Version](https://img.shields.io/wordpress/plugin/wp-version/ewww-image-optimizer.svg)](https://wordpress.org/plugins/ewww-image-optimizer/)
+[![Required PHP Version](https://img.shields.io/wordpress/plugin/required-php/ewww-image-optimizer.svg)](https://wordpress.org/plugins/ewww-image-optimizer/)
 [![GNU General Public License 3.0](https://img.shields.io/github/license/nosilver4u/ewww-image-optimizer.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
 Speed up your website and improve your visitors' experience by automatically compressing and resizing images and PDFs. Boost SEO and improve sales.
