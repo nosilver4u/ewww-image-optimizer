@@ -1,6 +1,6 @@
 # EWWW Image Optimizer
 
-[![Build Status](https://app.travis-ci.com/nosilver4u/ewww-image-optimizer.svg?token=zGnxvNC5WNTFcN8zwNGG&branch=master)](https://app.travis-ci.com/github/nosilver4u/ewww-image-optimizer)
+[![Build Status](https://app.travis-ci.com/nosilver4u/ewww-image-optimizer.svg?branch=master)](https://app.travis-ci.com/github/nosilver4u/ewww-image-optimizer)
 [![WordPress Plugin Downloads](https://img.shields.io/wordpress/plugin/dt/ewww-image-optimizer.svg)](https://wordpress.org/plugins/ewww-image-optimizer/)
 [![WordPress Plugin Rating](https://img.shields.io/wordpress/plugin/r/ewww-image-optimizer.svg)](https://wordpress.org/support/plugin/ewww-image-optimizer/reviews/)
 [![WordPress Plugin Version](https://img.shields.io/wordpress/plugin/v/ewww-image-optimizer.svg)](https://wordpress.org/plugins/ewww-image-optimizer/)
