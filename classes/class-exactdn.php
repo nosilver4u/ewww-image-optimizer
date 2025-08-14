@@ -170,6 +170,14 @@ class ExactDN extends Page_Parser {
 	private $replaced_google_fonts = '';
 
 	/**
+	 * Keep track of images that have been replaced with ExactDN URLs.
+	 *
+	 * @access private
+	 * @var array $replaced_images
+	 */
+	private $replaced_images = array();
+
+	/**
 	 * Request URI.
 	 *
 	 * @var string $request_uri
@@ -1573,6 +1581,14 @@ class ExactDN extends Page_Parser {
 					if ( $new_tag && $new_tag !== $tag ) {
 						// Replace original tag with modified version.
 						$content = \str_replace( $tag, $new_tag, $content );
+						// Check through previous replacements to see if the ExactDN URL needs to be updated.
+						foreach ( $this->replaced_images as $replaced_index => $replaced_image ) {
+							if ( $replaced_image['new'] === $src ) {
+								$this->debug_message( "updating replaced image {$replaced_image['new']} with $new_src" );
+								$this->replaced_images[ $replaced_index ]['new'] = $new_src;
+								break;
+							}
+						}
 					}
 				} elseif ( $lazy && ! empty( $placeholder_src ) && $this->validate_image_url( $placeholder_src ) ) {
 					$this->debug_message( "parsing $placeholder_src for $src" );
@@ -1649,6 +1665,9 @@ class ExactDN extends Page_Parser {
 			} // End foreach() -- of all images found in the page.
 		} // End if() -- we found images in the page at all.
 
+		// Check our preloads and see if we need to update any of them.
+		$content = $this->update_preload_images( $content );
+
 		// Process <a> elements in the page for image URLs.
 		$content = $this->filter_image_links( $content );
 
@@ -1675,7 +1694,7 @@ class ExactDN extends Page_Parser {
 		$this->debug_message( 'done parsing page' );
 		$this->filtering_the_content = false;
 
-		foreach ( $this->preload_images as $preload_index => $preload_image ) {
+		foreach ( $this->preload_images as $preload_image ) {
 			if ( ! empty( $preload_image['found'] ) ) {
 				continue;
 			}
@@ -1691,6 +1710,32 @@ class ExactDN extends Page_Parser {
 		}
 		if ( $this->filtering_the_page && $this->get_option( $this->prefix . 'debug' ) && 0 !== \strpos( $content, '{' ) && false === \strpos( '$content', '<loc>' ) ) {
 			$content .= '<!-- Easy IO processing time: ' . $this->elapsed_time . ' seconds -->';
+		}
+		return $content;
+	}
+
+	/**
+	 * Check the HTML to see if any <link> preload tags need to be updated still.
+	 *
+	 * @param string $content The HTML content to parse.
+	 * @return string The filtered HTML content.
+	 */
+	public function update_preload_images( $content ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		foreach ( $this->preload_images as $index => $preload_image ) {
+			if ( empty( $preload_image['found'] ) ) {
+				foreach ( $this->replaced_images as $replaced_image ) {
+					if ( $replaced_image['orig'] === $preload_image['url'] ) {
+						$this->preload_images[ $index ]['found'] = true;
+						$this->debug_message( "replacing {$preload_image['url']} with {$replaced_image['new']}" );
+						$new_preload_tag = $preload_image['tag'];
+						$this->set_attribute( $new_preload_tag, 'href', \esc_url( $replaced_image['new'] ), true );
+						if ( $preload_image['tag'] !== $new_preload_tag ) {
+							$content = \str_replace( $preload_image['tag'], $new_preload_tag, $content );
+						}
+					}
+				}
+			}
 		}
 		return $content;
 	}
@@ -1972,6 +2017,17 @@ class ExactDN extends Page_Parser {
 									$this->debug_message( "replacing bg url with $bg_image" );
 									$element = \str_replace( $bg_images[ $bindex ], $bg_image, $element );
 								}
+								$preload_image = $this->is_image_preloaded( $exactdn_bg_image_url, $bg_image_url );
+								if ( $preload_image ) {
+									if ( $exactdn_bg_image_url !== $preload_image['url'] ) {
+										$this->debug_message( "replacing {$preload_image['url']} with $exactdn_bg_image_url" );
+										$new_preload_tag = $preload_image['tag'];
+										$this->set_attribute( $new_preload_tag, 'href', \esc_url( $exactdn_bg_image_url ), true );
+										if ( $preload_image['tag'] !== $new_preload_tag ) {
+											$content = \str_replace( $preload_image['tag'], $new_preload_tag, $content );
+										}
+									}
+								}
 							}
 						}
 					}
@@ -2000,7 +2056,11 @@ class ExactDN extends Page_Parser {
 		if ( $prz_match && ! empty( $prz_detail_matches[1] ) && $this->validate_image_url( $prz_detail_matches[1] ) ) {
 			$prz_thumb = $this->generate_url( $prz_detail_matches[1], \apply_filters( 'exactdn_personalizationdotcom_thumb_args', '', $prz_detail_matches[1] ) );
 			if ( $prz_thumb !== $prz_detail_matches ) {
-				$content = \str_replace( "thumbnailUrl:'{$prz_detail_matches[1]}'", "thumbnailUrl:'$prz_thumb'", $content );
+				$this->replaced_images[] = array(
+					'orig' => $prz_detail_matches[1],
+					'new'  => $prz_thumb,
+				);
+				$content                 = \str_replace( "thumbnailUrl:'{$prz_detail_matches[1]}'", "thumbnailUrl:'$prz_thumb'", $content );
 			}
 		}
 		return $content;
@@ -2627,6 +2687,12 @@ class ExactDN extends Page_Parser {
 					$has_size_meta ? $image_args['height'] : false,
 					$intermediate,
 				);
+				if ( ! $resize_existing ) {
+					$this->replaced_images[] = array(
+						'orig' => $image_url,
+						'new'  => $image[0],
+					);
+				}
 			} elseif ( \is_array( $size ) ) {
 				// Pull width and height values from the provided array, if possible.
 				$width  = isset( $size[0] ) && $size[0] < 9999 ? (int) $size[0] : false;
