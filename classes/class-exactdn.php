@@ -1715,6 +1715,26 @@ class ExactDN extends Page_Parser {
 	}
 
 	/**
+	 * Add an images to the replaced images list. Checks to see if the image is already in the list.
+	 *
+	 * @param string $orig_image The original image URL.
+	 * @param string $new_image The new image URL.
+	 */
+	public function add_image_to_replacements( $orig_image, $new_image ) {
+		if ( ! empty( $orig_image ) && ! empty( $new_image ) && $orig_image !== $new_image ) {
+			foreach ( $this->replaced_images as $replaced_image ) {
+				if ( $replaced_image['orig'] === $orig_image ) {
+					return;
+				}
+			}
+			$this->replaced_images[] = array(
+				'orig' => $orig_image,
+				'new'  => $new_image,
+			);
+		}
+	}
+
+	/**
 	 * Check the HTML to see if any <link> preload tags need to be updated still.
 	 *
 	 * @param string $content The HTML content to parse.
@@ -1724,6 +1744,7 @@ class ExactDN extends Page_Parser {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		foreach ( $this->preload_images as $index => $preload_image ) {
 			if ( empty( $preload_image['found'] ) ) {
+				$this->debug_message( "looking for preload image {$preload_image['url']} in replaced image list" );
 				foreach ( $this->replaced_images as $replaced_image ) {
 					if ( $replaced_image['orig'] === $preload_image['url'] ) {
 						$this->preload_images[ $index ]['found'] = true;
@@ -2056,11 +2077,8 @@ class ExactDN extends Page_Parser {
 		if ( $prz_match && ! empty( $prz_detail_matches[1] ) && $this->validate_image_url( $prz_detail_matches[1] ) ) {
 			$prz_thumb = $this->generate_url( $prz_detail_matches[1], \apply_filters( 'exactdn_personalizationdotcom_thumb_args', '', $prz_detail_matches[1] ) );
 			if ( $prz_thumb !== $prz_detail_matches ) {
-				$this->replaced_images[] = array(
-					'orig' => $prz_detail_matches[1],
-					'new'  => $prz_thumb,
-				);
-				$content                 = \str_replace( "thumbnailUrl:'{$prz_detail_matches[1]}'", "thumbnailUrl:'$prz_thumb'", $content );
+				$this->add_image_to_replacements( $prz_detail_matches[1], $prz_thumb );
+				$content = \str_replace( "thumbnailUrl:'{$prz_detail_matches[1]}'", "thumbnailUrl:'$prz_thumb'", $content );
 			}
 		}
 		return $content;
@@ -2657,7 +2675,7 @@ class ExactDN extends Page_Parser {
 					} else {
 						$resize_existing = true;
 					}
-				} else {
+				} elseif ( 'full' !== $size ) {
 					$resize_existing = true;
 				}
 
@@ -2688,10 +2706,7 @@ class ExactDN extends Page_Parser {
 					$intermediate,
 				);
 				if ( ! $resize_existing ) {
-					$this->replaced_images[] = array(
-						'orig' => $image_url,
-						'new'  => $image[0],
-					);
+					$this->add_image_to_replacements( $image_url, $image[0] );
 				}
 			} elseif ( \is_array( $size ) ) {
 				// Pull width and height values from the provided array, if possible.
