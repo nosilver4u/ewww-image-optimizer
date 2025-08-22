@@ -145,6 +145,7 @@ class Backup extends Base {
 	public function get_backup_location( $file ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( \ewww_image_optimizer_stream_wrapped( $file ) || 'local' !== $this->backup_mode ) {
+			$this->debug_message( "$file is stream wrapped or {$this->backup_mode} backup_mode !== local" );
 			return '';
 		}
 		$upload_dir = \wp_get_upload_dir();
@@ -153,16 +154,19 @@ class Backup extends Base {
 			$this->debug_message( 'using ' . $this->backup_uploads_dir );
 			return \str_replace( $upload_dir, $this->backup_uploads_dir, $file );
 		}
+		$this->debug_message( "$file is not in upload dir ($upload_dir)" );
 		$content_dir = \trailingslashit( \realpath( WP_CONTENT_DIR ) );
 		if ( $content_dir && \strpos( $file, $content_dir ) === 0 ) {
 			$this->debug_message( 'using ' . $this->backup_dir );
 			return \str_replace( $content_dir, $this->backup_dir, $file );
 		}
+		$this->debug_message( "$file is not in content dir ($content_dir)" );
 		$wp_dir = \trailingslashit( \realpath( ABSPATH ) );
 		if ( $wp_dir && \strpos( $file, $wp_dir ) === 0 ) {
 			$this->debug_message( 'using ' . $this->backup_root_dir );
 			return \str_replace( $wp_dir, $this->backup_root_dir, $file );
 		}
+		$this->debug_message( "$file is not in root dir/ABSPATH ($wp_dir)" );
 		return '';
 	}
 
@@ -228,9 +232,11 @@ class Backup extends Base {
 	public function store_local_backup( $file ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( 'local' !== $this->backup_mode ) {
+			$this->debug_message( 'not using local backups' );
 			return;
 		}
 		if ( ! $this->is_file( $file ) || ! $this->is_readable( $file ) ) {
+			$this->debug_message( "$file is not a file or not readable" );
 			return;
 		}
 		// Even though these are checked in Backup::backup_file(), this method can be run directly, which bypasses that check.
@@ -241,19 +247,23 @@ class Backup extends Base {
 			}
 		}
 		if ( apply_filters( 'ewww_image_optimizer_skip_local_backup', false, $file ) ) {
+			$this->debug_message( 'skipping local backup due to filter' );
 			return;
 		}
 		$backup_file = $this->get_backup_location( $file );
 		if ( ! $backup_file || $backup_file === $file ) {
+			$this->debug_message( "$backup_file is not a valid backup location for $file" );
 			return;
 		}
 		\clearstatcache();
 		if ( $this->is_file( $backup_file ) ) {
+			$this->debug_message( "$backup_file already exists, not overwriting" );
 			return;
 		}
 		\wp_mkdir_p( \dirname( $backup_file ) );
 		\clearstatcache();
 		if ( ! \is_writable( \dirname( $backup_file ) ) ) {
+			$this->debug_message( \dirname( $backup_file ) . ' is not writable' );
 			return;
 		}
 		$this->debug_message( "backing up $file to $backup_file" );
