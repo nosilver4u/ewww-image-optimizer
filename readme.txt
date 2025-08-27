@@ -3,7 +3,7 @@ Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: compress, convert, webp, resize, lazy load
 Tested up to: 6.8
-Stable tag: 8.2.0.1
+Stable tag: 8.2.1
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -143,9 +143,11 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 8.2.1 =
-*Release Date - TBD*
+*Release Date - August 27, 2025*
 
+* added: filters for cloud storage plugin integration
 * fixed: Easy IO misses some preload links
+* fixed: PHP error when API quota is exhausted during single image optimization
 
 = 8.2.0 =
 *Release Date - July 15, 2025*

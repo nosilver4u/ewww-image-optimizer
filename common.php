@@ -1069,12 +1069,12 @@ function ewww_image_optimizer_ajax_compat_check() {
  * Note that this is just a suggestion, it should be customized for your site.
  */
 function ewww_image_optimizer_privacy_policy_content() {
-	if ( ! function_exists( 'wp_add_privacy_policy_content' ) || ! function_exists( 'wp_kses_post' ) ) {
+	if ( ! function_exists( 'wp_add_privacy_policy_content' ) ) {
 		return;
 	}
 	$content  = '<p class="privacy-policy-tutorial">';
-	$content .= wp_kses_post( __( 'By default, the EWWW Image Optimizer does not store any personal data nor share it with anyone.', 'ewww-image-optimizer' ) ) . '</p><p>';
-	$content .= wp_kses_post( __( 'If you accept user-submitted images and use the API or Easy IO, those images may be transmitted to third-party servers in foreign countries. If Backup Originals is enabled, images are stored for 30 days. Otherwise, no images are stored on the API for longer than 30 minutes.', 'ewww-image-optimizer' ) ) . '</p>';
+	$content .= esc_html__( 'By default, the EWWW Image Optimizer does not store any personal data nor share it with anyone.', 'ewww-image-optimizer' ) . '</p><p class="privacy-policy-tutorial">';
+	$content .= esc_html__( 'If you accept user-submitted images and use the API or Easy IO, those images may be transmitted to third-party servers in foreign countries. If Backup Originals is enabled, images are stored for 30 days. Otherwise, no images are stored on the API for longer than 30 minutes.', 'ewww-image-optimizer' ) . '</p>';
 	$content .= '<p><strong>' . esc_html__( 'Suggested API Text:', 'ewww-image-optimizer' ) . '</strong> <i>' . esc_html__( 'User-submitted images may be transmitted to image compression servers in the United States and stored there for up to 30 days.', 'ewww-image-optimizer' ) . '</i></p>';
 	$content .= '<p><strong>' . esc_html__( 'Suggested Easy IO Text:', 'ewww-image-optimizer' ) . '</strong> <i>' . esc_html__( 'User-submitted images that are displayed on this site will be transmitted and stored on a global network of third-party servers (a CDN).', 'ewww-image-optimizer' ) . '</i></p>';
 	wp_add_privacy_policy_content( 'EWWW Image Optimizer', $content );
@@ -3570,7 +3570,7 @@ function ewww_image_optimizer_manual() {
 	}
 	if ( 'exceeded' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
 		if ( ! wp_doing_ajax() ) {
-			wp_die( wp_kses( ewww_image_optimizer_credits_exceeded() ) );
+			wp_die( wp_kses_post( ewww_image_optimizer_credits_exceeded() ) );
 		}
 		ewwwio_ob_clean();
 		wp_die(
@@ -3582,7 +3582,7 @@ function ewww_image_optimizer_manual() {
 		);
 	} elseif ( 'exceeded subkey' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
 		if ( ! wp_doing_ajax() ) {
-			wp_die( wp_kses( __( 'Out of credits', 'ewww-image-optimizer' ) ) );
+			wp_die( esc_html__( 'Out of credits', 'ewww-image-optimizer' ) );
 		}
 		ewwwio_ob_clean();
 		wp_die(
@@ -3594,7 +3594,7 @@ function ewww_image_optimizer_manual() {
 		);
 	} elseif ( 'exceeded quota' === get_transient( 'ewww_image_optimizer_cloud_status' ) ) {
 		if ( ! wp_doing_ajax() ) {
-			wp_die( wp_kses( ewww_image_optimizer_soft_quota_exceeded() ) );
+			wp_die( wp_kses_post( ewww_image_optimizer_soft_quota_exceeded() ) );
 		}
 		ewwwio_ob_clean();
 		wp_die(
@@ -7358,6 +7358,7 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 			}
 		} // End if().
 	} // End if().
+	$filename = apply_filters( 'ewww_image_optimizer_remote_fetched', $filename, $id, $meta );
 	clearstatcache();
 	if ( ! empty( $filename ) && ewwwio_is_file( $filename ) ) {
 		ewwwio_debug_message( "$filename found, success!" );
@@ -8484,7 +8485,7 @@ function ewwwio_get_original_image_path( $id, $image_file = '', $meta = null ) {
 	if ( ! $image_file || ! ewww_image_optimizer_iterable( $meta ) || empty( $meta['original_image'] ) ) {
 		if ( $image_file && apply_filters( 'ewwwio_find_original_image_no_meta', false, $image_file ) && strpos( $image_file, '-scaled.' ) ) {
 			ewwwio_debug_message( "constructing path with $image_file alone" );
-			$original_image = trailingslashit( dirname( $image_file ) ) . wp_basename( str_replace( '-scaled.', '.', $original_image ) );
+			$original_image = trailingslashit( dirname( $image_file ) ) . wp_basename( str_replace( '-scaled.', '.', $image_file ) );
 			if ( $original_image !== $image_file ) {
 				ewwwio_debug_message( "found $original_image" );
 				return $original_image;

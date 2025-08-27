@@ -1,3 +1,10 @@
+= 8.2.1 =
+*Release Date - August 27, 2025*
+
+* added: filters for cloud storage plugin integration
+* fixed: Easy IO misses some preload links
+* fixed: PHP error when API quota is exhausted during single image optimization
+
 = 8.2.0 =
 *Release Date - July 15, 2025*
 
