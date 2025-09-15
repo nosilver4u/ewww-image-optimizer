@@ -1151,12 +1151,15 @@ class Lazy_Load extends Page_Parser {
 			'eio_lazy_iframe_exclusions',
 			\array_merge(
 				array(
+					'about:blank',
 					'data-no-lazy=',
+					'display:none',
+					'display: none',
+					'googletagmanager',
 					'lazyload',
 					'skip-lazy',
+					'wprus/',
 					'vimeo',
-					'about:blank',
-					'googletagmanager',
 				),
 				$this->user_exclusions
 			),
