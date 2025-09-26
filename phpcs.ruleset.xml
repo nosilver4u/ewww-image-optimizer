@@ -33,6 +33,7 @@
 				<element value="formatOutput"/>
 				<element value="imgQuality"/>
 				<element value="parentNode"/>
+				<element value="nodeName"/>
 				<element value="nextSibling"/>
 				<element value="documentElement"/>
 				<element value="imagePath"/>
