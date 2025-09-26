@@ -1047,6 +1047,7 @@ class Lazy_Load extends Page_Parser {
 		$html = str_replace( ' />', '>', $html );
 		$html = str_replace( "'", '"', $html );
 		$html = preg_replace( '/\s\s+/', ' ', $html );
+		$html = preg_replace( '/\s*=\s*/', '=', $html );
 		return $html;
 	}
 
