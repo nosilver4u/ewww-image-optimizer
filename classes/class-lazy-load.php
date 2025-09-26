@@ -102,6 +102,20 @@ class Lazy_Load extends Page_Parser {
 	public $request_uri = '';
 
 	/**
+	 * DOM Document for parsing HTML.
+	 * 
+	 * @var \DOMDocument $doc
+	 */
+	private $doc;
+
+	/**
+	 * List of img nodes from the DOMDocument.
+	 * 
+	 * @var \DOMNodeList $img_nodes
+	 */
+	private $img_nodes;
+
+	/**
 	 * Register (once) actions and filters for Lazy Load.
 	 */
 	public function __construct() {
@@ -1128,7 +1142,10 @@ class Lazy_Load extends Page_Parser {
 
 		foreach ( $this->img_nodes as $img_node ) {
 			$img_html = $this->doc->saveHTML( $img_node );
-			$this->debug_message( "comparing to node value: " . $this->normalize_html( $img_html ) . ' to ' . $this->normalize_html( $image ) );
+			if ( defined( 'EIO_IMGNODE_DEBUG' ) && EIO_IMGNODE_DEBUG ) {
+				$this->debug_message( "comparing to node value: " . $this->normalize_html( $img_html ) . ' to ' . $this->normalize_html( $image ) );
+			}
+			// Normalize the HTML before comparing to avoid issues with different quote styles or spacing.
 			if ( $this->normalize_html( $img_html ) === $this->normalize_html( $image ) ) {
 				$parent = $img_node->parentNode;
 				if ( $parent && $parent->nodeName !== 'body' && $parent->hasAttributes() ) {
