@@ -102,6 +102,20 @@ class Lazy_Load extends Page_Parser {
 	public $request_uri = '';
 
 	/**
+	 * DOM Document for parsing HTML.
+	 *
+	 * @var \DOMDocument $doc
+	 */
+	private $doc;
+
+	/**
+	 * List of img nodes from the DOMDocument.
+	 *
+	 * @var \DOMNodeList $img_nodes
+	 */
+	private $img_nodes;
+
+	/**
 	 * Register (once) actions and filters for Lazy Load.
 	 */
 	public function __construct() {
@@ -397,6 +411,12 @@ class Lazy_Load extends Page_Parser {
 		// Clean the buffer of incompatible sections.
 		$search_buffer = \preg_replace( '/<div id="footer_photostream".*?\/div>/s', '', $buffer );
 		$search_buffer = \preg_replace( '/<(picture|noscript|script).*?\/\1>/s', '', $search_buffer );
+
+		$this->doc = new \DOMDocument();
+		libxml_use_internal_errors( true );
+		$this->doc->loadHTML( $buffer );
+		libxml_clear_errors();
+		$this->img_nodes = $this->doc->getElementsByTagName( 'img' );
 
 		$images = $this->get_images_from_html( $search_buffer, false );
 		if ( ! empty( $images[0] ) && $this->is_iterable( $images[0] ) ) {
@@ -1017,6 +1037,23 @@ class Lazy_Load extends Page_Parser {
 	}
 
 	/**
+	 * Normalize HTML for comparison.
+	 *
+	 * @param string $html The HTML to normalize.
+	 * @return string The normalized HTML.
+	 */
+	public function normalize_html( $html ) {
+		$html = str_replace( '&amp;', '&', $html );
+		$html = str_replace( '&#038;', '&', $html );
+		$html = str_replace( '%2C', ',', $html );
+		$html = str_replace( ' />', '>', $html );
+		$html = str_replace( "'", '"', $html );
+		$html = preg_replace( '/\s\s+/', ' ', $html );
+		$html = preg_replace( '/\s*=\s*/', '=', $html );
+		return $html;
+	}
+
+	/**
 	 * Checks if the tag is allowed to be lazy loaded.
 	 *
 	 * @param string $image The image (img) tag.
@@ -1055,7 +1092,7 @@ class Lazy_Load extends Page_Parser {
 				return false;
 			}
 		}
-
+		// Check for exclusions.
 		$exclusions = \apply_filters(
 			'eio_lazy_exclusions',
 			\array_merge(
@@ -1105,6 +1142,30 @@ class Lazy_Load extends Page_Parser {
 				return false;
 			}
 		}
+
+		foreach ( $this->img_nodes as $img_node ) {
+			$img_html = $this->doc->saveHTML( $img_node );
+			if ( defined( 'EIO_IMGNODE_DEBUG' ) && EIO_IMGNODE_DEBUG ) {
+				$this->debug_message( 'comparing to node value: ' . $this->normalize_html( $img_html ) . ' to ' . $this->normalize_html( $image ) );
+			}
+			// Normalize the HTML before comparing to avoid issues with different quote styles or spacing.
+			if ( $this->normalize_html( $img_html ) === $this->normalize_html( $image ) ) {
+				$parent = $img_node->parentNode;
+				if ( $parent && 'body' !== $parent->nodeName && $parent->hasAttributes() ) {
+					$class = trim( $parent->getAttribute( 'class' ) );
+					$this->debug_message( "Parent class: $class" );
+					if ( str_contains( $class, 'skip-lazy' ) ) {
+						$this->debug_message( "Skipping lazy load due to 'skip-lazy' class on parent" );
+						return false;
+					}
+					if ( $parent->hasAttribute( 'data-skip-lazy' ) ) {
+						$this->debug_message( "Skipping lazy load due to 'data-skip-lazy' attribute on parent" );
+						return false;
+					}
+				}
+			}
+		}
+
 		return true;
 	}
 
