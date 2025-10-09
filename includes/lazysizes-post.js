@@ -27,7 +27,7 @@
 		addEventListener('lazybeforeunveil', function(e){
 			if(e.detail.instance != lazySizes){return;}
 
-			var bg, bgWebP;
+			var bg, bgWebP,swisLazyId;
 			if(!e.defaultPrevented) {
 
 				if(e.target.preload == 'none'){
@@ -35,11 +35,13 @@
 				}
 
 				// handle data-back (so as not to conflict with the stock data-bg)
-				bg = e.target.getAttribute('data-back');
+				bg = e.target.dataset.back;
+				// Was getAttribute('data-back');
 				if (bg) {
         				if(ewww_webp_supported) {
 						console.log('checking for data-back-webp');
-						bgWebP = e.target.getAttribute('data-back-webp');
+						bgWebP = e.target.dataset.backWebp;
+						// Was bgWebP = e.target.getAttribute('data-back-webp');
 						if (bgWebP) {
 							console.log('replacing data-back with data-back-webp');
 							bg = bgWebP;
@@ -112,6 +114,24 @@
 							e.target.style.backgroundImage = 'url(' + (regBgUrlEscape.test(bg) ? JSON.stringify(bg) : bg ) + ')';
 						}
 					}
+				}
+				// Handle CSS images from SWIS.
+				swisLazyId = e.target.dataset.swisLazyId;
+				if (swisLazyId && swisLazyId in swis_lazy_css_images) {
+					console.log('fetching CSS images for swisLazyId ' + swisLazyId);
+					var css_images = swis_lazy_css_images[swisLazyId];
+					var swisStyle  = document.querySelector('style#swis-lazy-css-styles');
+					css_images.forEach(
+						function(css_image){
+							if (!css_image.url) {
+								return;
+							}
+							console.log('processing CSS image: ' + css_image.url + ' with hash ' + css_image.hash);
+							var cssRule = css_image.selector + ' {--swis-bg-' + css_image.hash + ': url(' + css_image.url + '); }';
+							swisStyle.sheet.insertRule(cssRule);
+							//e.target.style.setProperty('--' + css_image.hash, 'url(' + css_image.url + ')');
+						}
+					);
 				}
 			}
 		}, false);
