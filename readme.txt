@@ -145,6 +145,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 8.2.2 =
 *Release Date - TBD*
 
+* changed: Lazy Load checks parent element for skip-lazy class
 * fixed: Lazy Load for iframes breaks WP Remote Users Sync plugin
 
 = 8.2.1 =
