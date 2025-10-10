@@ -211,6 +211,10 @@ class Lazy_Load extends Page_Parser {
 			// Load the minified, combined version of the lazy load script.
 			\add_action( 'wp_enqueue_scripts', array( $this, 'min_script' ), 1 );
 		}
+
+		// Allow other plugins to get the background image exclusions via filter.
+		\add_filter( 'eio_get_lazy_bg_image_exclusions', array( $this, 'get_bgimage_exclusions' ), 10 );
+
 		$this->inline_script_attrs = (array) \apply_filters( 'ewwwio_inline_script_attrs', $this->inline_script_attrs );
 		$this->validate_user_exclusions();
 		$this->validate_css_element_inclusions();
@@ -1125,8 +1129,7 @@ class Lazy_Load extends Page_Parser {
 					'wpcf7_captcha/',
 				),
 				$this->user_exclusions
-			),
-			$image
+			)
 		);
 		foreach ( $exclusions as $exclusion ) {
 			if ( false !== \strpos( $image, $exclusion ) ) {
@@ -1170,13 +1173,15 @@ class Lazy_Load extends Page_Parser {
 	}
 
 	/**
-	 * Checks if a tag with a background image is allowed to be lazy loaded.
+	 * Gets the exclusion list for lazy loading background images.
 	 *
-	 * @param string $tag The tag.
-	 * @return bool True if the tag is allowed, false otherwise.
+	 * @param array $exclusions The current list of exclusions. Optional.
+	 * @return array The modified list of exclusions.
 	 */
-	public function validate_bgimage_tag( $tag ) {
-		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+	public function get_bgimage_exclusions( $exclusions = array() ) {
+		if ( ! \is_array( $exclusions ) ) {
+			$exclusions = array();
+		}
 		$exclusions = \apply_filters(
 			'eio_lazy_bg_image_exclusions',
 			\array_merge(
@@ -1187,11 +1192,24 @@ class Lazy_Load extends Page_Parser {
 					'lazyload',
 					'skip-lazy',
 					'avia-bg-style-fixed',
+					'trustindex',
 				),
-				$this->user_exclusions
-			),
-			$tag
+				$this->user_exclusions,
+				$exclusions
+			)
 		);
+		return $exclusions;
+	}
+
+	/**
+	 * Checks if a tag with a background image is allowed to be lazy loaded.
+	 *
+	 * @param string $tag The tag.
+	 * @return bool True if the tag is allowed, false otherwise.
+	 */
+	public function validate_bgimage_tag( $tag ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		$exclusions = $this->get_bgimage_exclusions( array() );
 		foreach ( $exclusions as $exclusion ) {
 			if ( false !== \strpos( $tag, $exclusion ) ) {
 				return false;

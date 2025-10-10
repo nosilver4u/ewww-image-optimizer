@@ -38,7 +38,7 @@
 				bg = e.target.dataset.back;
 				// Was getAttribute('data-back');
 				if (bg) {
-        				if(ewww_webp_supported) {
+					if(ewww_webp_supported) {
 						console.log('checking for data-back-webp');
 						bgWebP = e.target.dataset.backWebp;
 						// Was bgWebP = e.target.getAttribute('data-back-webp');
@@ -126,10 +126,13 @@
 							if (!css_image.url) {
 								return;
 							}
+							if(ewww_webp_supported && css_image.webp_url) {
+								console.log('webp supported, using webp url for css image');
+								css_image.url = css_image.webp_url;
+							}
 							console.log('processing CSS image: ' + css_image.url + ' with hash ' + css_image.hash);
 							var cssRule = css_image.selector + ' {--swis-bg-' + css_image.hash + ': url(' + css_image.url + '); }';
 							swisStyle.sheet.insertRule(cssRule);
-							//e.target.style.setProperty('--' + css_image.hash, 'url(' + css_image.url + ')');
 						}
 					);
 				}
