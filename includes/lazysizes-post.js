@@ -47,37 +47,7 @@
 							bg = bgWebP;
 						}
 					}
-					var dPR = getdPR();
-					var targetWidth  = Math.round(e.target.offsetWidth * dPR);
-					var targetHeight = Math.round(e.target.offsetHeight * dPR);
-					if ( 0 === bg.search(/\[/) ) {
-					} else if (!shouldAutoScale(e.target)){
-					} else if (lazySizes.hC(e.target,'wp-block-cover')) {
-						console.log('found wp-block-cover with data-back');
-						if (lazySizes.hC(e.target,'has-parallax')) {
-							console.log('also has-parallax with data-back');
-							targetWidth  = Math.round(window.screen.width * dPR);
-							targetHeight = Math.round(window.screen.height * dPR);
-						} else if (targetHeight<300) {
-							targetHeight = 430;
-						}
-						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
-					} else if (lazySizes.hC(e.target,'cover-image')){
-						console.log('found .cover-image with data-back');
-						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
-					} else if (lazySizes.hC(e.target,'elementor-bg')){
-						console.log('found elementor-bg with data-back');
-						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
-					} else if (lazySizes.hC(e.target,'et_parallax_bg')){
-						console.log('found et_parallax_bg with data-back');
-						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
-					} else if (lazySizes.hC(e.target,'bg-image-crop')){
-						console.log('found bg-image-crop with data-back');
-						bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
-					} else {
-						console.log('found other data-back');
-						bg = constrainSrc(bg,targetWidth,targetHeight,'bg');
-					}
+					bg = constrainBg(bg,e.target);
 					if ( e.target.style.backgroundImage && -1 === e.target.style.backgroundImage.search(/^initial/) ) {
 						// Convert JSON for multiple URLs.
 						if ( 0 === bg.search(/\[/) ) {
@@ -130,6 +100,7 @@
 								console.log('webp supported, using webp url for css image');
 								css_image.url = css_image.webp_url;
 							}
+							css_image.url = constrainBg(css_image.url,e.target);
 							console.log('processing CSS image: ' + css_image.url + ' with hash ' + css_image.hash);
 							var cssRule = css_image.selector + ' {--swis-bg-' + css_image.hash + ': url(' + css_image.url + '); }';
 							swisStyle.sheet.insertRule(cssRule);
@@ -139,6 +110,46 @@
 			}
 		}, false);
 	}
+
+	var constrainBg = function(bg,target){
+		var dPR = getdPR();
+		if ( dPR < eio_lazy_vars.bg_min_dpr ) {
+			dPR = eio_lazy_vars.bg_min_dpr;
+		}
+		var targetWidth  = Math.round(target.offsetWidth * dPR);
+		var targetHeight = Math.round(target.offsetHeight * dPR);
+		if ( 0 === bg.search(/\[/) ) {
+			console.log('multiple URLs, not autoscaling background image');
+		} else if (!shouldAutoScale(target)){
+			console.log('not autoscaling background image');
+		} else if (lazySizes.hC(target,'wp-block-cover')) {
+			console.log('found wp-block-cover with data-back');
+			if (lazySizes.hC(target,'has-parallax')) {
+				console.log('also has-parallax with data-back');
+				targetWidth  = Math.round(window.screen.width * dPR);
+				targetHeight = Math.round(window.screen.height * dPR);
+			} else if (targetHeight<300) {
+				targetHeight = 430;
+			}
+			bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
+		} else if (lazySizes.hC(target,'cover-image')){
+			console.log('found .cover-image with data-back');
+			bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
+		} else if (lazySizes.hC(target,'elementor-bg')){
+			console.log('found elementor-bg with data-back');
+			bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
+		} else if (lazySizes.hC(target,'et_parallax_bg')){
+			console.log('found et_parallax_bg with data-back');
+			bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
+		} else if (lazySizes.hC(target,'bg-image-crop')){
+			console.log('found bg-image-crop with data-back');
+			bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
+		} else {
+			console.log('found other data-back');
+			bg = constrainSrc(bg,targetWidth,targetHeight,'bg');
+		}
+		return bg;
+	};
 
 	var shouldAutoScale = function(target){
 		if (eio_lazy_vars.skip_autoscale == 1) {
@@ -433,12 +444,17 @@
 			}
 		}
 		if (e.target._lazysizesWidth === undefined) {
+			console.log('_lazysizesWidth not yet defined!');
 			return;
 		}
 		console.log('previous width was ' + e.target._lazysizesWidth);
 		if (e.detail.width < e.target._lazysizesWidth) {
 			console.log('no way! ' + e.detail.width + ' is smaller than ' + e.target._lazysizesWidth);
 			e.detail.width = e.target._lazysizesWidth;
+		}
+		if (!eio_lazy_vars.use_dpr && window.devicePixelRatio > 1) {
+			console.log('use_dpr is disabled, reversing auto-sizes by dpr ' + window.devicePixelRatio);
+			e.detail.width = Math.ceil(e.detail.width / window.devicePixelRatio);
 		}
 	});
 
