@@ -112,30 +112,22 @@
 	}
 
 	var constrainBg = function(bg,target){
+		if ( 0 === bg.search(/\[/) ) {
+			console.log('multiple URLs, not autoscaling background image');
+			return bg;
+		}
+		if (!shouldAutoScale(target)){
+			console.log('not autoscaling background image');
+			return bg;
+		}
 		var dPR = getdPR();
 		if ( dPR < eio_lazy_vars.bg_min_dpr ) {
 			dPR = eio_lazy_vars.bg_min_dpr;
 		}
 		var targetWidth  = Math.round(target.offsetWidth * dPR);
 		var targetHeight = Math.round(target.offsetHeight * dPR);
-		var imgAspect    = getAspectRatio(target);
-		if (targetHeight > 1 && imgAspect > 0) {
-			var minimum_width = Math.ceil(imgAspect * targetHeight);
-			console.log('minimum_width = ' + minimum_width);
-			if (targetWidth+2 < minimum_width) {
-				targetWidth = minimum_width;
-			}
-			var realDims = getRealDimensionsFromImg(target);
-			if (Math.abs(realDims.w - targetWidth) < 5 || Math.abs(realDims.h - targetHeight) < 5) {
-				console.log('real dimensions within 5px of target sizes, no scaling');
-				return bg;
-			}
-		}
-		if ( 0 === bg.search(/\[/) ) {
-			console.log('multiple URLs, not autoscaling background image');
-		} else if (!shouldAutoScale(target)){
-			console.log('not autoscaling background image');
-		} else if (lazySizes.hC(target,'wp-block-cover')||lazySizes.hC(target,'wp-block-cover__image-background')){
+		var bgType       = 'bg';
+		if (lazySizes.hC(target,'wp-block-cover')||lazySizes.hC(target,'wp-block-cover__image-background')){
 			console.log('found wp-block-cover with data-back');
 			if (lazySizes.hC(target,'has-parallax')) {
 				console.log('also has-parallax with data-back');
@@ -144,23 +136,41 @@
 			} else if (targetHeight<300) {
 				targetHeight = 430;
 			}
-			bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
+			bgType = 'bg-cover';
 		} else if (lazySizes.hC(target,'cover-image')){
 			console.log('found .cover-image with data-back');
-			bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
+			bgType = 'bg-cover';
 		} else if (lazySizes.hC(target,'elementor-bg')){
 			console.log('found elementor-bg with data-back');
-			bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
+			bgType = 'bg-cover';
 		} else if (lazySizes.hC(target,'et_parallax_bg')){
 			console.log('found et_parallax_bg with data-back');
-			bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
+			bgType = 'bg-cover';
 		} else if (lazySizes.hC(target,'bg-image-crop')){
+			bgType = 'bg-cover';
 			console.log('found bg-image-crop with data-back');
-			bg = constrainSrc(bg,targetWidth,targetHeight,'bg-cover');
 		} else {
 			console.log('found other data-back');
-			bg = constrainSrc(bg,targetWidth,targetHeight,'bg');
 		}
+		var imgAspect = getAspectRatio(target);
+		if ('bg' == bgType && targetHeight > 1 && targetWidth > 1 && imgAspect > 0) {
+			var minimum_width  = Math.ceil(targetHeight * imgAspect);
+			var minimum_height = Math.ceil(targetWidth / imgAspect);
+			console.log('minimum_width = ' + minimum_width + ', targetWidth = ' + targetWidth);
+			console.log('minimum_height = ' + minimum_height + ', targetHeight = ' + targetHeight);
+			if (targetWidth+2 < minimum_width) {
+				targetWidth = minimum_width;
+			}
+			if (targetHeight+2 < minimum_height) {
+				targetHeight = minimum_height;
+			}
+			var realDims = getRealDimensionsFromImg(target);
+			if (Math.abs(realDims.w - targetWidth) < 5 || Math.abs(realDims.h - targetHeight) < 5) {
+				console.log('real dimensions within 5px of target sizes, no scaling');
+				return bg;
+			}
+		}
+		bg = constrainSrc(bg,targetWidth,targetHeight,bgType);
 		return bg;
 	};
 
