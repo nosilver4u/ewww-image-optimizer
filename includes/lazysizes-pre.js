@@ -28,6 +28,10 @@ for ( const [css_index, css_image] of Object.entries(swis_lazy_css_images)){
 				console.log('adding lazyload to css image ' + css_index + ': ' + css_image[0].url);
 				el.classList.add('lazyload');
 				el.dataset.swisLazyId = css_index;
+				if (css_image[0].rwidth > 5 && css_image[0].rheight > 5) {
+					el.dataset.eioRwidth = css_image[0].rwidth;
+					el.dataset.eioRheight = css_image[0].rheight;
+				}
 			}
 		});
 	} catch (e) {

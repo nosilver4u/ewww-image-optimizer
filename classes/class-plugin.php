@@ -357,7 +357,7 @@ final class Plugin extends Base {
 	public function plugins_compat() {
 		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 
-		if ( $this->get_option( $this->prefix . 'll_external_bg' ) ) {
+		if ( $this->get_option( 'ewww_image_optimizer_lazy_load' ) && $this->get_option( 'ewww_image_optimizer_ll_external_bg' ) ) {
 			$this->debug_message( 'requesting external parsing of CSS for background images via SWIS' );
 			add_filter( 'eio_lazify_external_css', '__return_true' );
 		}

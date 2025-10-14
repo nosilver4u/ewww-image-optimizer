@@ -118,11 +118,24 @@
 		}
 		var targetWidth  = Math.round(target.offsetWidth * dPR);
 		var targetHeight = Math.round(target.offsetHeight * dPR);
+		var imgAspect    = getAspectRatio(target);
+		if (targetHeight > 1 && imgAspect > 0) {
+			var minimum_width = Math.ceil(imgAspect * targetHeight);
+			console.log('minimum_width = ' + minimum_width);
+			if (targetWidth+2 < minimum_width) {
+				targetWidth = minimum_width;
+			}
+			var realDims = getRealDimensionsFromImg(target);
+			if (Math.abs(realDims.w - targetWidth) < 5 || Math.abs(realDims.h - targetHeight) < 5) {
+				console.log('real dimensions within 5px of target sizes, no scaling');
+				return bg;
+			}
+		}
 		if ( 0 === bg.search(/\[/) ) {
 			console.log('multiple URLs, not autoscaling background image');
 		} else if (!shouldAutoScale(target)){
 			console.log('not autoscaling background image');
-		} else if (lazySizes.hC(target,'wp-block-cover')) {
+		} else if (lazySizes.hC(target,'wp-block-cover')||lazySizes.hC(target,'wp-block-cover__image-background')){
 			console.log('found wp-block-cover with data-back');
 			if (lazySizes.hC(target,'has-parallax')) {
 				console.log('also has-parallax with data-back');
@@ -327,8 +340,8 @@
 	};
 
 	var getRealDimensionsFromImg = function(img){
-		var realWidth = img.getAttribute('data-eio-rwidth');
-		var realHeight = img.getAttribute('data-eio-rheight');
+		var realWidth = img.dataset.eioRwidth;
+		var realHeight = img.dataset.eioRheight;
 		if (realWidth > 1 && realHeight > 1) {
 			return {w:realWidth,h:realHeight};
 		}
@@ -444,7 +457,10 @@
 			}
 		}
 		if (e.target._lazysizesWidth === undefined) {
-			console.log('_lazysizesWidth not yet defined!');
+			if (!eio_lazy_vars.use_dpr && window.devicePixelRatio > 1) {
+				console.log('use_dpr is disabled, reversing auto-sizes by dpr ' + window.devicePixelRatio);
+				e.detail.width = Math.ceil(e.detail.width / window.devicePixelRatio);
+			}
 			return;
 		}
 		console.log('previous width was ' + e.target._lazysizesWidth);
