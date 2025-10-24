@@ -520,11 +520,11 @@ final class Plugin extends Base {
 			// Suppress the custom column in the media library if Easy IO CDN is enabled without an API key and Easy Mode is active.
 			\remove_filter( 'manage_media_columns', 'ewww_image_optimizer_columns' );
 		}
-		if ( \ewww_image_optimizer_easy_active() ) {
+		if ( \ewww_image_optimizer_easy_active() && $this->get_option( 'ewww_image_optimizer_webp' ) ) {
 			$this->set_option( 'ewww_image_optimizer_webp', false );
 			$this->set_option( 'ewww_image_optimizer_webp_force', false );
 		}
-		// Alert user if multiple re-optimizations detected.
+		// Alert user if multiple re-optimizations detected. But not really, currently disabled.
 		if ( false && ! \defined( 'EWWWIO_DISABLE_REOPT_NOTICE' ) ) {
 			\add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
 			\add_action( 'admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
