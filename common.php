@@ -683,6 +683,8 @@ function ewww_image_optimizer_save_network_settings() {
 			update_site_option( 'ewww_image_optimizer_use_lqip', $ewww_image_optimizer_use_lqip );
 			$ewww_image_optimizer_use_dcip = ( empty( $_POST['ewww_image_optimizer_use_dcip'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_use_dcip', $ewww_image_optimizer_use_dcip );
+			$ewww_image_optimizer_ll_external_bg = empty( $_POST['ewww_image_optimizer_ll_external_bg'] ) ? false : true;
+			update_site_option( 'ewww_image_optimizer_ll_external_bg', $ewww_image_optimizer_ll_external_bg );
 			// Using sanitize_text_field instead of textarea on purpose.
 			$ewww_image_optimizer_ll_all_things = empty( $_POST['ewww_image_optimizer_ll_all_things'] ) ? '' : sanitize_text_field( wp_unslash( $_POST['ewww_image_optimizer_ll_all_things'] ) );
 			update_site_option( 'ewww_image_optimizer_ll_all_things', $ewww_image_optimizer_ll_all_things );
@@ -11437,6 +11439,7 @@ function ewwwio_debug_info() {
 	ewwwio_debug_message( 'LQIP: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_lqip' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'DCIP: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_dcip' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'S(VG)IIP: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_siip' ) ? 'on' : 'off' ) );
+	ewwwio_debug_message( 'external CSS background (automatic): ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_external_bg' ) ? 'on' : 'off' );
 	ewwwio_debug_message( 'external CSS background (all things): ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_all_things' ) );
 	ewwwio_debug_message( 'LL exclusions:' );
 	$ll_exclude_paths = ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_exclude' ) ? esc_html( implode( "\n", (array) ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_exclude' ) ) ) : '';
@@ -13591,6 +13594,29 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							</p>
 						</div>
 					</div>
+		<?php if ( function_exists( 'swis' ) ) : ?>	
+					<div id='ewww_image_optimizer_ll_external_bg_container' class='ewww-settings-row' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? '' : ' style="display:none"'; ?>>
+						<div class='ewww-setting-header'>&nbsp;</div>
+						<div class='ewww-setting-detail'>
+							<input type='checkbox' name='ewww_image_optimizer_ll_external_bg' value='true' id='ewww_image_optimizer_ll_external_bg' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_external_bg' ) && function_exists( 'swis' ) ); ?> />
+							<label for='ewww_image_optimizer_ll_external_bg'><strong><?php esc_html_e( 'External Background Images', 'ewww-image-optimizer' ); ?></strong></label>
+							<?php ewwwio_help_link( 'https://docs.ewww.io/article/74-lazy-load', '5c6c36ed042863543ccd2d9b' ); ?>
+						</div>
+					</div>
+					<div id='ewww_image_optimizer_ll_all_things_container' class='ewww-settings-row' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_all_things' ) ? '' : ' style="display:none"'; ?>>
+						<div class='ewww-setting-header'>&nbsp;</div>
+						<div class='ewww-setting-detail'>
+							<label for='ewww_image_optimizer_ll_all_things'><strong><?php esc_html_e( 'External Background Images (Manual)', 'ewww-image-optimizer' ); ?></strong></label>
+							<?php ewwwio_help_link( 'https://docs.ewww.io/article/74-lazy-load', '5c6c36ed042863543ccd2d9b' ); ?><br>
+							<textarea id='ewww_image_optimizer_ll_all_things' name='ewww_image_optimizer_ll_all_things' rows='3' cols='60' placeholder='<?php echo "widget-container \nid=\"news-image-overlay\""; ?>'><?php echo esc_html( ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_all_things' ) ); ?></textarea>
+							<p class='description'>
+								<?php esc_html_e( 'Specify class/id values of elements with CSS background images (comma-separated).', 'ewww-image-optimizer' ); ?>
+								<?php esc_html_e( 'Can match any text within the target element, like elementor-widget-container or et_pb_column.', 'ewww-image-optimizer' ); ?>
+								<br>*<?php esc_html_e( 'Background images directly attached via inline style attributes will be lazy loaded by default.', 'ewww-image-optimizer' ); ?>
+							</p>
+						</div>
+					</div>
+		<?php else : ?>
 					<div id='ewww_image_optimizer_ll_all_things_container' class='ewww-settings-row' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? '' : ' style="display:none"'; ?>>
 						<div class='ewww-setting-header'>&nbsp;</div>
 						<div class='ewww-setting-detail'>
@@ -13601,9 +13627,12 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 								<?php esc_html_e( 'Specify class/id values of elements with CSS background images (comma-separated).', 'ewww-image-optimizer' ); ?>
 								<?php esc_html_e( 'Can match any text within the target element, like elementor-widget-container or et_pb_column.', 'ewww-image-optimizer' ); ?>
 								<br>*<?php esc_html_e( 'Background images directly attached via inline style attributes will be lazy loaded by default.', 'ewww-image-optimizer' ); ?>
+								<br><a href='https://ewww.io/swis/'><?php esc_html_e( 'Install SWIS Performance for automatic detection of all background images.', 'ewww-image-optimizer' ); ?></a>
 							</p>
+							<input type='hidden' name='ewww_image_optimizer_ll_external_bg' id='ewww_image_optimizer_ll_external_bg' value='<?php echo (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_external_bg' ); ?>' />
 						</div>
 					</div>
+		<?php endif; ?>
 					<div id='ewww_image_optimizer_ll_exclude_container' class='ewww-settings-row' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? '' : ' style="display:none"'; ?>>
 						<div class='ewww-setting-header'>&nbsp;</div>
 						<div class='ewww-setting-detail'>

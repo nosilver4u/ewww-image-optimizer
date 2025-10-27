@@ -357,6 +357,11 @@ final class Plugin extends Base {
 	public function plugins_compat() {
 		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 
+		if ( $this->get_option( 'ewww_image_optimizer_lazy_load' ) && $this->get_option( 'ewww_image_optimizer_ll_external_bg' ) ) {
+			$this->debug_message( 'requesting external parsing of CSS for background images via SWIS' );
+			add_filter( 'eio_lazify_external_css', '__return_true' );
+		}
+
 		if ( $this->s3_uploads_enabled() ) {
 			$this->debug_message( 's3-uploads detected, deferring resize_upload' );
 			\add_filter( 'ewww_image_optimizer_defer_resizing', '__return_true' );
@@ -515,11 +520,11 @@ final class Plugin extends Base {
 			// Suppress the custom column in the media library if Easy IO CDN is enabled without an API key and Easy Mode is active.
 			\remove_filter( 'manage_media_columns', 'ewww_image_optimizer_columns' );
 		}
-		if ( \ewww_image_optimizer_easy_active() ) {
+		if ( \ewww_image_optimizer_easy_active() && $this->get_option( 'ewww_image_optimizer_webp' ) ) {
 			$this->set_option( 'ewww_image_optimizer_webp', false );
 			$this->set_option( 'ewww_image_optimizer_webp_force', false );
 		}
-		// Alert user if multiple re-optimizations detected.
+		// Alert user if multiple re-optimizations detected. But not really, currently disabled.
 		if ( false && ! \defined( 'EWWWIO_DISABLE_REOPT_NOTICE' ) ) {
 			\add_action( 'network_admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
 			\add_action( 'admin_notices', 'ewww_image_optimizer_notice_reoptimization' );
@@ -656,6 +661,7 @@ final class Plugin extends Base {
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_ll_abovethefold', 'intval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_use_lqip', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_use_dcip', 'boolval' );
+		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_ll_external_bg', 'boolval' );
 		// Using sanitize_text_field instead of textarea on purpose.
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_ll_all_things', 'sanitize_text_field' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_ll_exclude', array( $this, 'exclude_paths_sanitize' ) );
@@ -726,6 +732,7 @@ final class Plugin extends Base {
 		\add_option( 'ewww_image_optimizer_use_siip', false );
 		\add_option( 'ewww_image_optimizer_use_lqip', false );
 		\add_option( 'ewww_image_optimizer_use_dcip', false );
+		\add_option( 'ewww_image_optimizer_ll_external_bg', false );
 		\add_option( 'ewww_image_optimizer_ll_exclude', '' );
 		\add_option( 'ewww_image_optimizer_ll_all_things', '' );
 		\add_option( 'ewww_image_optimizer_disable_pngout', true );

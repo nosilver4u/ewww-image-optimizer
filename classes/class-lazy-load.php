@@ -211,6 +211,10 @@ class Lazy_Load extends Page_Parser {
 			// Load the minified, combined version of the lazy load script.
 			\add_action( 'wp_enqueue_scripts', array( $this, 'min_script' ), 1 );
 		}
+
+		// Allow other plugins to get the background image exclusions via filter.
+		\add_filter( 'eio_get_lazy_bg_image_exclusions', array( $this, 'get_bgimage_exclusions' ), 10 );
+
 		$this->inline_script_attrs = (array) \apply_filters( 'ewwwio_inline_script_attrs', $this->inline_script_attrs );
 		$this->validate_user_exclusions();
 		$this->validate_css_element_inclusions();
@@ -872,8 +876,13 @@ class Lazy_Load extends Page_Parser {
 								$this->set_attribute( $element, 'data-back-webp', $webp_image_urls );
 							}
 						} elseif ( ! empty( $bg_image_urls[0] ) ) {
-							$webp_image_url = \apply_filters( 'eio_image_url_to_webp', $bg_image_urls[0] );
+							list( $physical_width, $physical_height ) = $this->get_image_dimensions_by_url( $bg_image_urls[0] );
 							$this->set_attribute( $element, 'data-back', $bg_image_urls[0] );
+							if ( $physical_width && $physical_height ) {
+								$this->set_attribute( $element, 'data-eio-rwidth', $physical_width, true );
+								$this->set_attribute( $element, 'data-eio-rheight', $physical_height, true );
+							}
+							$webp_image_url = \apply_filters( 'eio_image_url_to_webp', $bg_image_urls[0] );
 							if ( $webp_image_url && $webp_image_url !== $bg_image_urls[0] ) {
 								$this->set_attribute( $element, 'data-back-webp', $webp_image_url );
 							}
@@ -1125,8 +1134,7 @@ class Lazy_Load extends Page_Parser {
 					'wpcf7_captcha/',
 				),
 				$this->user_exclusions
-			),
-			$image
+			)
 		);
 		foreach ( $exclusions as $exclusion ) {
 			if ( false !== \strpos( $image, $exclusion ) ) {
@@ -1170,13 +1178,15 @@ class Lazy_Load extends Page_Parser {
 	}
 
 	/**
-	 * Checks if a tag with a background image is allowed to be lazy loaded.
+	 * Gets the exclusion list for lazy loading background images.
 	 *
-	 * @param string $tag The tag.
-	 * @return bool True if the tag is allowed, false otherwise.
+	 * @param array $exclusions The current list of exclusions. Optional.
+	 * @return array The modified list of exclusions.
 	 */
-	public function validate_bgimage_tag( $tag ) {
-		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+	public function get_bgimage_exclusions( $exclusions = array() ) {
+		if ( ! \is_array( $exclusions ) ) {
+			$exclusions = array();
+		}
 		$exclusions = \apply_filters(
 			'eio_lazy_bg_image_exclusions',
 			\array_merge(
@@ -1187,11 +1197,24 @@ class Lazy_Load extends Page_Parser {
 					'lazyload',
 					'skip-lazy',
 					'avia-bg-style-fixed',
+					'trustindex',
 				),
-				$this->user_exclusions
-			),
-			$tag
+				$this->user_exclusions,
+				$exclusions
+			)
 		);
+		return $exclusions;
+	}
+
+	/**
+	 * Checks if a tag with a background image is allowed to be lazy loaded.
+	 *
+	 * @param string $tag The tag.
+	 * @return bool True if the tag is allowed, false otherwise.
+	 */
+	public function validate_bgimage_tag( $tag ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		$exclusions = $this->get_bgimage_exclusions( array() );
 		foreach ( $exclusions as $exclusion ) {
 			if ( false !== \strpos( $tag, $exclusion ) ) {
 				return false;
@@ -1445,6 +1468,7 @@ class Lazy_Load extends Page_Parser {
 					array(
 						'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
 						'skip_autoscale' => ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
+						'bg_min_dpr'     => ( \defined( 'EIO_LL_BG_MIN_DPR' ) && EIO_LL_BG_MIN_DPR ? EIO_LL_BG_MIN_DPR : 1.1 ),
 						'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
 						'use_dpr'        => (int) $this->get_option( 'exactdn_hidpi' ),
 					)
@@ -1486,6 +1510,7 @@ class Lazy_Load extends Page_Parser {
 					array(
 						'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
 						'skip_autoscale' => ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
+						'bg_min_dpr'     => ( \defined( 'EIO_LL_BG_MIN_DPR' ) && EIO_LL_BG_MIN_DPR ? EIO_LL_BG_MIN_DPR : 1.1 ),
 						'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
 						'use_dpr'        => (int) $this->get_option( 'exactdn_hidpi' ),
 					)

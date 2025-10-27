@@ -15,7 +15,6 @@ branches:
 
 php:
   - 7.4
-  - 8.1
   - 8.2
   - 8.3
 
@@ -31,7 +30,7 @@ jobs:
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
     - php: 8.3
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
-    - php: 8.1
+    - php: 8.2
       env: WP_VERSION=6.5 WP_MULTISITE=0
 
 before_script:

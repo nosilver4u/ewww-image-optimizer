@@ -1632,10 +1632,10 @@ class Base {
 		if ( empty( $url ) ) {
 			return false;
 		}
-		if ( 0 === \strpos( $url, '//' ) ) {
+		if ( \str_starts_with( $url, '//' ) ) {
 			$url = ( \is_ssl() ? 'https:' : 'http:' ) . $url;
 		}
-		if ( false === \strpos( $url, 'http' ) && '/' !== \substr( $url, 0, 1 ) ) {
+		if ( ! \str_starts_with( $url, 'http' ) && ! \str_starts_with( $url, '/' ) && ! \str_starts_with( $url, '.' ) ) {
 			$url = ( \is_ssl() ? 'https://' : 'http://' ) . $url;
 		}
 		// Because encoded ampersands in the filename break things.
