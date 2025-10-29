@@ -2951,7 +2951,7 @@ class ExactDN extends Page_Parser {
 		 *
 		 * @param array|bool $multipliers Array of multipliers to use or false to bypass.
 		 */
-		$multipliers = \apply_filters( 'exactdn_srcset_multipliers', array( .2, .4, .6, .8, 1 ) );
+		$multipliers = \apply_filters( 'exactdn_srcset_multipliers', array( .2, .4, .6, .8, 1, 450 ) );
 
 		if ( empty( $url ) || empty( $multipliers ) ) {
 			// No URL, or no multipliers, bail!
@@ -3038,9 +3038,9 @@ class ExactDN extends Page_Parser {
 			foreach ( $multipliers as $multiplier ) {
 
 				$newwidth = \intval( $base * $multiplier );
-				if ( 1920 === (int) $multiplier ) {
-					$newwidth = 1920;
-					if ( ! $w_descriptor || 1920 >= $reqwidth || 'soft' !== $crop ) {
+				if ( $multiplier > 50 ) { // Not a true multiplier, but a hard-coded width.
+					$newwidth = $multiplier;
+					if ( ! $w_descriptor || $multiplier >= $reqwidth || 'soft' !== $crop ) {
 						$this->debug_message( "skipping $multiplier due to no w descriptor, larger than $reqwidth, or $crop !== soft" );
 						continue;
 					}
@@ -3149,7 +3149,7 @@ class ExactDN extends Page_Parser {
 		 *
 		 * @param array|bool $multipliers Array of multipliers to use or false to bypass.
 		 */
-		$multipliers = \apply_filters( 'exactdn_srcset_multipliers', array( .2, .4, .6, .8, 1 ) );
+		$multipliers = \apply_filters( 'exactdn_srcset_multipliers', array( .2, .4, .6, .8, 1, 450 ) );
 		/**
 		 * Filter the width ExactDN will use to create srcset attribute.
 		 * Return a falsy value to short-circuit and bypass srcset fill.
@@ -3174,11 +3174,11 @@ class ExactDN extends Page_Parser {
 
 			foreach ( $multipliers as $multiplier ) {
 				$newwidth = \intval( $width * $multiplier );
-				if ( 1920 === (int) $multiplier ) {
+				if ( $multiplier > 50 ) { // Not a true multiplier, but a hard-coded width.
 					if ( $multiplier >= $width ) {
 						continue;
 					}
-					$newwidth = 1920;
+					$newwidth = $multiplier;
 				}
 				if ( $newwidth < 50 ) {
 					continue;
@@ -3568,7 +3568,9 @@ class ExactDN extends Page_Parser {
 	public function add_hidpi_srcset_multipliers( $multipliers ) {
 		if ( $this->get_option( 'exactdn_hidpi' ) ) {
 			$this->debug_message( 'adding hidpi multipliers' );
-			return array( .2, .4, .6, .8, 1, 2, 3, 1920 );
+			$multipliers[] = 2;
+			$multipliers[] = 3;
+			$multipliers[] = 1920;
 		}
 		return $multipliers;
 	}

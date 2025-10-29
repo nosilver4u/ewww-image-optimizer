@@ -148,6 +148,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * added: Lazy Load support for background images in external CSS files
 * changed: Lazy Load checks parent element for skip-lazy class
 * changed: Lazy Load auto-sizing honors High DPI setting
+* changed: Easy IO fills in 450px wide image when responsive (srcset) images have a gap
 * fixed: Lazy Load for iframes breaks WP Remote Users Sync plugin
 
 = 8.2.1 =
