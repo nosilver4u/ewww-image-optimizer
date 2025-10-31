@@ -56,11 +56,12 @@ class Page_Parser extends Base {
 	 * @param string $content Some HTML.
 	 * @param bool   $hyperlinks Default true. Should we include encasing hyperlinks in our search.
 	 * @param bool   $src_required Default true. Should we look only for images with src attributes.
+	 * @param int    $flags Optional. Flags passed to preg_match_all. Default 0.
 	 * @return array An array of $images matches, where $images[0] is
 	 *         an array of full matches, and the link_url, img_tag,
 	 *         and img_url keys are arrays of those matches.
 	 */
-	public function get_images_from_html( $content, $hyperlinks = true, $src_required = true ) {
+	public function get_images_from_html( $content, $hyperlinks = true, $src_required = true, $flags = 0 ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$images          = array();
 		$unquoted_images = array();
@@ -79,7 +80,7 @@ class Page_Parser extends Base {
 			$search_pattern   = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*("|\')(?P<img_url>(?!\2)[^\\\\]+?)\2[^>]*?>)#is';
 			$unquoted_pattern = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*(?P<img_url>[^"\'\\\\<>][^\s\\\\<>]+)(?:\s[^>]*?)?>)#is';
 		}
-		if ( \preg_match_all( $search_pattern, $content, $images ) ) {
+		if ( \preg_match_all( $search_pattern, $content, $images, $flags ) ) {
 			$this->debug_message( 'found ' . \count( $images[0] ) . ' image elements with quoted pattern' );
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible.
@@ -90,7 +91,7 @@ class Page_Parser extends Base {
 			/* $this->debug_message( print_r( $images, true ) ); */
 		}
 		$images = \array_filter( $images );
-		if ( $unquoted_pattern && \preg_match_all( $unquoted_pattern, $content, $unquoted_images ) ) {
+		if ( $unquoted_pattern && \preg_match_all( $unquoted_pattern, $content, $unquoted_images, $flags ) ) {
 			$this->debug_message( 'found ' . \count( $unquoted_images[0] ) . ' image elements with unquoted pattern' );
 			foreach ( $unquoted_images as $key => $unused ) {
 				// Simplify the output as much as possible.

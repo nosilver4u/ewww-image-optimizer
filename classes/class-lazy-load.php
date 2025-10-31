@@ -408,13 +408,21 @@ class Lazy_Load extends Page_Parser {
 			$this->get_preload_images( $buffer );
 		}
 
+		$started_time     = \microtime( true );
 		$above_the_fold   = (int) \apply_filters( 'eio_lazy_fold', $this->get_option( $this->prefix . 'll_abovethefold' ) );
 		$images_processed = 0;
 		$replacements     = array();
 
 		// Clean the buffer of incompatible sections.
-		$search_buffer = \preg_replace( '/<div id="footer_photostream".*?\/div>/s', '', $buffer );
-		$search_buffer = \preg_replace( '/<(picture|noscript|script).*?\/\1>/s', '', $search_buffer );
+		// TODO: use preg_match_all to find positions of these sections via PREG_OFFSET_CAPTURE.
+		// Then, instead of removing them, use the lengths/positions to exclude img elements within those sections.
+		\preg_match_all( '/<div id="footer_photostream".*?\/div>/s', $buffer, $forbidden_blocks, PREG_OFFSET_CAPTURE );
+		\preg_match_all( '/<(picture|noscript|script).*?\/\1>/s', $buffer, $more_forbidden_blocks, PREG_OFFSET_CAPTURE );
+		if ( ! empty( $forbidden_blocks[0] ) && ! empty( $more_forbidden_blocks[0] ) ) {
+			$forbidden_blocks[0] = \array_merge( $forbidden_blocks[0], $more_forbidden_blocks[0] );
+		} elseif ( ! empty( $more_forbidden_blocks[0] ) ) {
+			$forbidden_blocks = $more_forbidden_blocks;
+		}
 
 		$this->doc = new \DOMDocument();
 		libxml_use_internal_errors( true );
@@ -422,27 +430,32 @@ class Lazy_Load extends Page_Parser {
 		libxml_clear_errors();
 		$this->img_nodes = $this->doc->getElementsByTagName( 'img' );
 
-		$images = $this->get_images_from_html( $search_buffer, false );
+		$images = $this->get_images_from_html( $buffer, false, true, PREG_OFFSET_CAPTURE );
 		if ( ! empty( $images[0] ) && $this->is_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
-				$file = $images['img_url'][ $index ];
+				$file = $images['img_url'][ $index ][0];
 				$this->debug_message( "parsing an image: $file" );
-				if ( $this->validate_image_tag( $image ) ) {
+				if ( empty( $image[0] ) || empty( $image[1] ) ) {
+					$this->debug_message( 'missing image tag or position' );
+					continue;
+				}
+				$image_tag = $image[0];
+				$position  = $image[1];
+				if ( $this->validate_image_tag( $image_tag ) ) {
 					$this->debug_message( 'found a valid image tag' );
-					$this->debug_message( "original image tag: $image" );
-					$orig_img = $image;
-					$ns_img   = $image;
-					$image    = $this->parse_img_tag( $image, $file );
+					$this->debug_message( "original image tag: $image_tag" );
+					$orig_img  = $image_tag;
+					$ns_img    = $image_tag;
+					$image_tag = $this->parse_img_tag( $image_tag, $file );
 					$this->set_attribute( $ns_img, 'data-eio', 'l', true );
 					$noscript = '<noscript>' . $ns_img . '</noscript>';
-					$position = \strpos( $buffer, $orig_img );
-					if ( $position && $orig_img !== $image ) {
+					if ( $position && $orig_img !== $image_tag ) {
+						$this->debug_message( "lazified image at position $position" );
 						$replacements[ $position ] = array(
 							'orig' => $orig_img,
-							'lazy' => $image . $noscript,
+							'lazy' => $image_tag . $noscript,
 						);
 					}
-					/* $buffer   = str_replace( $orig_img, $image . $noscript, $buffer ); */
 				}
 			} // End foreach().
 		} // End if().
@@ -519,8 +532,9 @@ class Lazy_Load extends Page_Parser {
 		if ( \in_array( 'iframe', $this->user_element_exclusions, true ) ) {
 			$frames = '';
 		} else {
-			$frames = $this->get_elements_from_html( $search_buffer, 'iframe' );
+			$frames = $this->get_elements_from_html( $buffer, 'iframe' );
 		}
+		// TODO: make sure to bypass iframes inside of forbidden blocks.
 		if ( $this->is_iterable( $frames ) ) {
 			foreach ( $frames as $index => $frame ) {
 				$this->debug_message( 'parsing an iframe element' );
@@ -557,7 +571,8 @@ class Lazy_Load extends Page_Parser {
 				$buffer = \str_replace( $replacement['orig'], $replacement['lazy'], $buffer );
 			}
 		}
-		$this->debug_message( 'all done parsing page for lazy' );
+		$elapsed_time = \microtime( true ) - $started_time;
+		$this->debug_message( "all done parsing page for lazy in $elapsed_time seconds" );
 		return $buffer;
 	}
 
