@@ -147,12 +147,13 @@ class Page_Parser extends Base {
 	 * Match all sources wrapped in <picture> tags in a block of HTML.
 	 *
 	 * @param string $content Some HTML.
+	 * @param int    $flags Optional. Flags passed to preg_match_all. Default 0.
 	 * @return array An array of $pictures matches, containing full elements with ending tags.
 	 */
-	public function get_picture_tags_from_html( $content ) {
+	public function get_picture_tags_from_html( $content, $flags = 0 ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$pictures = array();
-		if ( ! empty( $content ) && \preg_match_all( '#(?:<picture[^>]*?>\s*)(?:<source[^>]*?>)+(?:.*?</picture>)?#is', $content, $pictures ) ) {
+		if ( ! empty( $content ) && \preg_match_all( '#(?:<picture[^>]*?>\s*)(?:<source[^>]*?>)+(?:.*?</picture>)?#is', $content, $pictures, $flags ) ) {
 			return $pictures[0];
 		}
 		return array();
@@ -212,14 +213,15 @@ class Page_Parser extends Base {
 	 *
 	 * @param string $content Some HTML.
 	 * @param string $tag_name The name of the elements to retrieve.
+	 * @param int    $flags Optional. Flags passed to preg_match_all. Default 0.
 	 * @return array An array of $elements.
 	 */
-	public function get_elements_from_html( $content, $tag_name ) {
+	public function get_elements_from_html( $content, $tag_name, $flags = 0 ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( ! \ctype_alpha( \str_replace( '-', '', $tag_name ) ) ) {
 			return array();
 		}
-		if ( ! empty( $content ) && \preg_match_all( '#<' . $tag_name . '\s[^\\\\>]+?>#is', $content, $elements ) ) {
+		if ( ! empty( $content ) && \preg_match_all( '#<' . $tag_name . '\s[^\\\\>]+?>#is', $content, $elements, $flags ) ) {
 			return $elements[0];
 		}
 		return array();
