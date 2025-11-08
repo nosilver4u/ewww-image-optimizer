@@ -582,7 +582,6 @@ class ExactDN extends Page_Parser {
 				}
 				if ( \get_option( 'exactdn_never_been_active' ) ) {
 					$this->set_option( $this->prefix . 'lazy_load', true );
-					$this->set_option( 'exactdn_lossy', true );
 					$this->set_option( 'exactdn_all_the_things', true );
 					\delete_option( 'exactdn_never_been_active' );
 				}
@@ -4318,7 +4317,7 @@ class ExactDN extends Page_Parser {
 		$avif_quality = \apply_filters( 'avif_quality', 60, 'image/avif' );
 
 		$more_args = array();
-		if ( false === \strpos( $image_url, 'strip=all' ) && $this->get_option( $this->prefix . 'metadata_remove' ) ) {
+		if ( ! \str_contains( $image_url, 'strip=all' ) && $this->get_option( $this->prefix . 'metadata_remove' ) ) {
 			$more_args['strip'] = 'all';
 		}
 		if ( false !== \strpos( $image_url, 'lossy=1' ) && isset( $args['lossy'] ) && 0 === $args['lossy'] ) {
@@ -4326,10 +4325,6 @@ class ExactDN extends Page_Parser {
 			unset( $args['lossy'] );
 		} elseif ( isset( $args['lossy'] ) && false !== \strpos( $image_url, 'lossy=0' ) ) {
 			unset( $args['lossy'] );
-		} elseif ( false === \strpos( $image_url, 'lossy=' ) && ! $this->get_option( 'exactdn_lossy' ) ) {
-			$more_args['lossy'] = 0;
-		} elseif ( false === \strpos( $image_url, 'lossy=' ) && $this->get_option( 'exactdn_lossy' ) ) {
-			$more_args['lossy'] = \is_numeric( $this->get_option( 'exactdn_lossy' ) ) ? (int) $this->get_option( 'exactdn_lossy' ) : 1;
 		}
 		if ( false === \strpos( $image_url, 'quality=' ) && ! \is_null( $jpg_quality ) && 82 !== (int) $jpg_quality ) {
 			$more_args['quality'] = $jpg_quality;
@@ -4377,10 +4372,6 @@ class ExactDN extends Page_Parser {
 		}
 
 		if ( isset( $image_url_parts['scheme'] ) && 'https' === $image_url_parts['scheme'] ) {
-			if ( \is_array( $args ) && false === \strpos( $image_url, 'ssl=' ) ) {
-				$this->debug_message( 'adding ssl=1' );
-				$args['ssl'] = 1;
-			}
 			$this->debug_message( 'setting scheme to https' );
 			$scheme = 'https';
 		}
@@ -4398,7 +4389,8 @@ class ExactDN extends Page_Parser {
 			// Convert values that are arrays into strings.
 			foreach ( $args as $arg => $value ) {
 				if ( \is_array( $value ) ) {
-					$args[ $arg ] = \implode( ',', $value );
+					$value        = \implode( ',', $value );
+					$args[ $arg ] = $value;
 				}
 			}
 
