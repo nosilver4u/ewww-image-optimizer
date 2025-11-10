@@ -12548,7 +12548,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' )
 	) {
 		if ( $exactdn->get_exactdn_domain() && $exactdn->verify_domain( $exactdn->get_exactdn_domain() ) ) {
-			$speed_score += 55;
+			$speed_score    += 55;
 			$exactdn_enabled = true;
 			if ( $exactdn->is_as3cf_cname_active() ) {
 				$show_as3cf_cname_notice = true;
