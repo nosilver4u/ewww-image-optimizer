@@ -100,8 +100,6 @@ class HS_Beacon extends Base {
 		) {
 			return;
 		}
-		if ( \strpos( __FILE__, 'plugins/easy' ) ) {
-			\easyio_notice_beacon();
-		}
+		\do_action( strtolower( __NAMESPACE__ ) . '_beacon_notice' );
 	}
 }
