@@ -56,11 +56,12 @@ class Page_Parser extends Base {
 	 * @param string $content Some HTML.
 	 * @param bool   $hyperlinks Default true. Should we include encasing hyperlinks in our search.
 	 * @param bool   $src_required Default true. Should we look only for images with src attributes.
+	 * @param int    $flags Optional. Flags passed to preg_match_all. Default 0.
 	 * @return array An array of $images matches, where $images[0] is
 	 *         an array of full matches, and the link_url, img_tag,
 	 *         and img_url keys are arrays of those matches.
 	 */
-	public function get_images_from_html( $content, $hyperlinks = true, $src_required = true ) {
+	public function get_images_from_html( $content, $hyperlinks = true, $src_required = true, $flags = 0 ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$images          = array();
 		$unquoted_images = array();
@@ -79,7 +80,7 @@ class Page_Parser extends Base {
 			$search_pattern   = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*("|\')(?P<img_url>(?!\2)[^\\\\]+?)\2[^>]*?>)#is';
 			$unquoted_pattern = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*(?P<img_url>[^"\'\\\\<>][^\s\\\\<>]+)(?:\s[^>]*?)?>)#is';
 		}
-		if ( \preg_match_all( $search_pattern, $content, $images ) ) {
+		if ( \preg_match_all( $search_pattern, $content, $images, $flags ) ) {
 			$this->debug_message( 'found ' . \count( $images[0] ) . ' image elements with quoted pattern' );
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible.
@@ -90,7 +91,7 @@ class Page_Parser extends Base {
 			/* $this->debug_message( print_r( $images, true ) ); */
 		}
 		$images = \array_filter( $images );
-		if ( $unquoted_pattern && \preg_match_all( $unquoted_pattern, $content, $unquoted_images ) ) {
+		if ( $unquoted_pattern && \preg_match_all( $unquoted_pattern, $content, $unquoted_images, $flags ) ) {
 			$this->debug_message( 'found ' . \count( $unquoted_images[0] ) . ' image elements with unquoted pattern' );
 			foreach ( $unquoted_images as $key => $unused ) {
 				// Simplify the output as much as possible.
@@ -146,12 +147,13 @@ class Page_Parser extends Base {
 	 * Match all sources wrapped in <picture> tags in a block of HTML.
 	 *
 	 * @param string $content Some HTML.
+	 * @param int    $flags Optional. Flags passed to preg_match_all. Default 0.
 	 * @return array An array of $pictures matches, containing full elements with ending tags.
 	 */
-	public function get_picture_tags_from_html( $content ) {
+	public function get_picture_tags_from_html( $content, $flags = 0 ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$pictures = array();
-		if ( ! empty( $content ) && \preg_match_all( '#(?:<picture[^>]*?>\s*)(?:<source[^>]*?>)+(?:.*?</picture>)?#is', $content, $pictures ) ) {
+		if ( ! empty( $content ) && \preg_match_all( '#(?:<picture[^>]*?>\s*)(?:<source[^>]*?>)+(?:.*?</picture>)?#is', $content, $pictures, $flags ) ) {
 			return $pictures[0];
 		}
 		return array();
@@ -211,14 +213,15 @@ class Page_Parser extends Base {
 	 *
 	 * @param string $content Some HTML.
 	 * @param string $tag_name The name of the elements to retrieve.
+	 * @param int    $flags Optional. Flags passed to preg_match_all. Default 0.
 	 * @return array An array of $elements.
 	 */
-	public function get_elements_from_html( $content, $tag_name ) {
+	public function get_elements_from_html( $content, $tag_name, $flags = 0 ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( ! \ctype_alpha( \str_replace( '-', '', $tag_name ) ) ) {
 			return array();
 		}
-		if ( ! empty( $content ) && \preg_match_all( '#<' . $tag_name . '\s[^\\\\>]+?>#is', $content, $elements ) ) {
+		if ( ! empty( $content ) && \preg_match_all( '#<' . $tag_name . '\s[^\\\\>]+?>#is', $content, $elements, $flags ) ) {
 			return $elements[0];
 		}
 		return array();

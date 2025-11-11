@@ -665,8 +665,6 @@ function ewww_image_optimizer_save_network_settings() {
 			update_site_option( 'ewww_image_optimizer_exclude_paths', ewww_image_optimizer_exclude_paths_sanitize( $ewww_image_optimizer_exclude_paths ) );
 			$exactdn_all_the_things = ( empty( $_POST['exactdn_all_the_things'] ) ? false : true );
 			update_site_option( 'exactdn_all_the_things', $exactdn_all_the_things );
-			$exactdn_lossy = ( empty( $_POST['exactdn_lossy'] ) ? false : true );
-			update_site_option( 'exactdn_lossy', $exactdn_lossy );
 			$exactdn_hidpi = ( empty( $_POST['exactdn_hidpi'] ) ? false : true );
 			update_site_option( 'exactdn_hidpi', $exactdn_hidpi );
 			$exactdn_exclude = empty( $_POST['exactdn_exclude'] ) ? '' : sanitize_textarea_field( wp_unslash( $_POST['exactdn_exclude'] ) );
@@ -834,14 +832,6 @@ function ewww_image_optimizer_upgrade() {
 		) {
 			ewwwio_debug_message( 'removing old version of pngout' );
 			ewwwio_delete_file( EWWW_IMAGE_OPTIMIZER_TOOL_PATH . '/pngout-static' );
-		}
-		if (
-			get_option( 'ewww_image_optimizer_version' ) < 661 &&
-			get_option( 'ewww_image_optimizer_exactdn' ) &&
-			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_ludicrous_mode' ) &&
-			! ewww_image_optimizer_get_option( 'exactdn_lossy' )
-		) {
-			ewww_image_optimizer_set_option( 'exactdn_lossy', true );
 		}
 		if (
 			get_option( 'ewww_image_optimizer_version' ) <= 670 &&
@@ -6701,20 +6691,6 @@ function ewww_image_optimizer_image_results( $orig_size, $opt_size, $prev_string
 }
 
 /**
- * Wrapper around size_format to remove the decimal from sizes in bytes.
- *
- * @param int $size A filesize in bytes.
- * @param int $precision Number of places after the decimal separator.
- * @return string Human-readable filesize.
- */
-function ewww_image_optimizer_size_format( $size, $precision = 1 ) {
-		// Convert it to human readable format.
-		$size_str = size_format( $size, $precision );
-		// Remove spaces and extra decimals when measurement is in bytes.
-		return preg_replace( '/\.0+ B ?/', ' B', $size_str );
-}
-
-/**
  * Called to process each image during scheduled optimization.
  *
  * @global object $wpdb
@@ -11420,7 +11396,6 @@ function ewwwio_debug_info() {
 	ewwwio_debug_message( 'backup mode: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) );
 	ewwwio_debug_message( 'ExactDN enabled: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'ExactDN all the things: ' . ( ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ? 'on' : 'off' ) );
-	ewwwio_debug_message( 'ExactDN lossy: ' . intval( ewww_image_optimizer_get_option( 'exactdn_lossy' ) ) );
 	ewwwio_debug_message( 'ExactDN hidpi: ' . intval( ewww_image_optimizer_get_option( 'exactdn_hidpi' ) ) );
 	ewwwio_debug_message( 'ExactDN resize existing: ' . ( ewww_image_optimizer_get_option( 'exactdn_resize_existing' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'ExactDN attachment queries: ' . ( ewww_image_optimizer_get_option( 'exactdn_prevent_db_queries' ) ? 'off' : 'on' ) );
@@ -11779,7 +11754,7 @@ function ewww_image_optimizer_intro_wizard() {
 		<?php if ( empty( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) ) : ?>
 							<input type='text' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='' />
 							<span id='ewwwio-api-activate'><a href='#' class='button-secondary'><?php esc_html_e( 'Activate', 'ewww-image-optimizer' ); ?></a></span>
-							<span id='ewwwio-api-activation-processing'><img src='<?php echo esc_url( $loading_image_url ); ?>' alt='loading'/></span>
+							<span id='ewwwio-api-activation-processing'><img src='<?php echo esc_url( $loading_image_url ); ?>' alt='loading' /></span>
 		<?php else : ?>
 							<input type='text' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='****************<?php echo esc_attr( substr( $cloud_key, 28 ) ); ?>' readonly />
 							<span class="dashicons dashicons-yes"></span>
@@ -12553,27 +12528,13 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		update_option( 'ewww_image_optimizer_webp_for_cdn', false );
 		update_option( 'ewww_image_optimizer_picture_webp', false );
 		$speed_score += 55;
-		if ( get_option( 'exactdn_lossy' ) ) {
-			$speed_score += 20;
-		} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) < 30 ) {
-			$speed_recommendations[] = __( 'Enable premium compression.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/47-getting-more-from-exactdn', '59de6631042863379ddc953c' );
-		} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) > 20 ) {
-				$speed_score += 20;
-		}
 	} elseif (
 		( ! class_exists( 'Jetpack' ) || ! method_exists( 'Jetpack', 'is_module_active' ) || ! Jetpack::is_module_active( 'photon' ) ) &&
 		class_exists( 'EWWW\ExactDN' ) &&
 		ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' )
 	) {
 		if ( $exactdn->get_exactdn_domain() && $exactdn->verify_domain( $exactdn->get_exactdn_domain() ) ) {
-			$speed_score += 55;
-			if ( ewww_image_optimizer_get_option( 'exactdn_lossy' ) ) {
-				$speed_score += 20;
-			} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) < 30 ) {
-				$speed_recommendations[] = __( 'Enable premium compression.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/47-getting-more-from-exactdn', '59de6631042863379ddc953c' );
-			} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) > 20 ) {
-				$speed_score += 20;
-			}
+			$speed_score    += 55;
 			$exactdn_enabled = true;
 			if ( $exactdn->is_as3cf_cname_active() ) {
 				$show_as3cf_cname_notice = true;
@@ -13017,8 +12978,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		$frontend_functions[] = __( 'Easy IO', 'ewww-image-optimizer' );
 	}
 	$easyio_site_url      = ewwwio()->content_url();
-	$exactdn_los_che      = ewww_image_optimizer_get_option( 'exactdn_lossy' );
-	$exactdn_los_id       = $exactdn_enabled ? 'exactdn_lossy_disabled' : 'exactdn_lossy';
 	$exactdn_los_dis      = false;
 	$exactdn_hidpi_che    = ewww_image_optimizer_get_option( 'exactdn_hidpi' );
 	$eio_exclude_paths    = ewww_image_optimizer_get_option( 'exactdn_exclude' ) ? implode( "\n", (array) ewww_image_optimizer_get_option( 'exactdn_exclude' ) ) : '';
@@ -13379,6 +13338,18 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	<?php else : ?>
 				<div class='ewww-settings-section' style='display: none;'>
 	<?php endif; ?>
+	<?php if ( ! apply_filters( 'ewwwio_whitelabel', false ) ) : ?>
+					<div class='ewww-settings-row ewwwio-exactdn-options' <?php echo $exactdn_enabled ? '' : 'style="display:none;"'; ?>>
+						<div class='ewww-setting-header'>&nbsp;</div>
+						<div class='ewww-setting-detail'>
+							<p class='description'>
+								<a href='https://ewww.io/manage-sites/' target='_blank'>
+									<?php esc_html_e( 'Manage Premium Compression and WebP/AVIF Conversion in the site settings at ewww.io.', 'ewww-image-optimizer' ); ?>
+								</a>
+							</p>
+						</div>
+					</div>
+	<?php endif; ?>
 					<div class='ewww-settings-row ewwwio-exactdn-options exactdn-easy-options' <?php echo $exactdn_enabled ? '' : 'style="display:none;"'; ?>>
 						<div class='ewww-setting-header'>&nbsp;</div>
 						<div class='ewww-setting-detail'>
@@ -13387,22 +13358,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<?php ewwwio_help_link( 'https://docs.ewww.io/article/47-getting-more-from-exactdn', '59de6631042863379ddc953c' ); ?>
 							<p class='description'>
 								<?php esc_html_e( 'Use Easy IO for all resources in wp-includes/ and wp-content/, including JavaScript, CSS, fonts, etc.', 'ewww-image-optimizer' ); ?>
-							</p>
-						</div>
-					</div>
-					<div class='ewww-settings-row ewwwio-exactdn-options' <?php echo $exactdn_enabled && ! $easymode ? '' : 'style="display:none;"'; ?>>
-						<div class='ewww-setting-header'>&nbsp;</div>
-						<div class='ewww-setting-detail'>
-							<input type='checkbox' name='exactdn_lossy' value='true' id='<?php echo esc_attr( $exactdn_los_id ); ?>' <?php checked( $exactdn_los_che ); ?> />
-							<label for='exactdn_lossy'><strong><?php esc_html_e( 'Premium Compression', 'ewww-image-optimizer' ); ?></strong></label>
-							<?php ewwwio_help_link( 'https://docs.ewww.io/article/47-getting-more-from-exactdn', '59de6631042863379ddc953c' ); ?>
-							<p class='description'>
-								<?php esc_html_e( 'Enable high quality compression and WebP/AVIF conversion for all images on Easy IO. Disable to use Pixel Perfect mode instead.', 'ewww-image-optimizer' ); ?><br>
-	<?php if ( ! apply_filters( 'ewwwio_whitelabel', false ) ) : ?>
-								<a href='https://ewww.io/manage-sites/' target='_blank'>
-									<?php esc_html_e( 'Manage WebP/AVIF in the site settings at ewww.io.', 'ewww-image-optimizer' ); ?>
-								</a>
-	<?php endif; ?>
 							</p>
 						</div>
 					</div>

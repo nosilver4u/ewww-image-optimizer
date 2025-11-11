@@ -458,7 +458,7 @@ class JS_Webp extends Page_Parser {
 			false !== \strpos( $body_tags[0], '<body' ) &&
 			false === strpos( $body_tags[0], 'x-init' ) &&
 			false === strpos( $body_tags[0], 'x-data' ) &&
-			! $this->str_ends_with( $body_tags[0], '=>' )
+			\str_ends_with( $body_tags[0], '=>' )
 		) {
 			// Add the WebP script right after the opening tag.
 			$buffer = \str_replace( $body_tags[0], $body_tags[0] . "\n" . $body_webp_script, $buffer );
