@@ -499,7 +499,7 @@ class ExactDN extends Page_Parser {
 	 * @param bool $schedule True to add event, false to remove/unschedule it.
 	 */
 	public function cron_setup( $schedule = true ) {
-		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$event = 'easyio_verification_checkin';
 		// Setup scheduled optimization if the user has enabled it, and it isn't already scheduled.
 		if ( $schedule && ! \wp_next_scheduled( $event ) ) {

@@ -6691,20 +6691,6 @@ function ewww_image_optimizer_image_results( $orig_size, $opt_size, $prev_string
 }
 
 /**
- * Wrapper around size_format to remove the decimal from sizes in bytes.
- *
- * @param int $size A filesize in bytes.
- * @param int $precision Number of places after the decimal separator.
- * @return string Human-readable filesize.
- */
-function ewww_image_optimizer_size_format( $size, $precision = 1 ) {
-		// Convert it to human readable format.
-		$size_str = size_format( $size, $precision );
-		// Remove spaces and extra decimals when measurement is in bytes.
-		return preg_replace( '/\.0+ B ?/', ' B', $size_str );
-}
-
-/**
  * Called to process each image during scheduled optimization.
  *
  * @global object $wpdb
@@ -11768,7 +11754,7 @@ function ewww_image_optimizer_intro_wizard() {
 		<?php if ( empty( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) ) : ?>
 							<input type='text' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='' />
 							<span id='ewwwio-api-activate'><a href='#' class='button-secondary'><?php esc_html_e( 'Activate', 'ewww-image-optimizer' ); ?></a></span>
-							<span id='ewwwio-api-activation-processing'><img src='<?php echo esc_url( $loading_image_url ); ?>' alt='loading'/></span>
+							<span id='ewwwio-api-activation-processing'><img src='<?php echo esc_url( $loading_image_url ); ?>' alt='loading' /></span>
 		<?php else : ?>
 							<input type='text' id='ewww_image_optimizer_cloud_key' name='ewww_image_optimizer_cloud_key' value='****************<?php echo esc_attr( substr( $cloud_key, 28 ) ); ?>' readonly />
 							<span class="dashicons dashicons-yes"></span>

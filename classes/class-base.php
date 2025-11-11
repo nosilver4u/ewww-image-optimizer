@@ -326,7 +326,7 @@ class Base {
 			$potential_logs = \scandir( $this->content_dir );
 			if ( $this->is_iterable( $potential_logs ) ) {
 				foreach ( $potential_logs as $potential_log ) {
-					if ( $this->str_ends_with( $potential_log, '.log' ) && false !== strpos( $potential_log, strtolower( __NAMESPACE__ ) . '-debug-' ) && is_file( $this->content_dir . $potential_log ) ) {
+					if ( \str_ends_with( $potential_log, '.log' ) && false !== strpos( $potential_log, strtolower( __NAMESPACE__ ) . '-debug-' ) && is_file( $this->content_dir . $potential_log ) ) {
 						return $this->content_dir . $potential_log;
 					}
 				}
@@ -1348,21 +1348,17 @@ class Base {
 	}
 
 	/**
-	 * Performs a case-sensitive check indicating if
-	 * the haystack ends with needle.
+	 * Wrapper around size_format to remove the decimal from sizes in bytes.
 	 *
-	 * @param string $haystack The string to search in.
-	 * @param string $needle   The substring to search for in the `$haystack`.
-	 * @return bool True if `$haystack` ends with `$needle`, otherwise false.
+	 * @param int $size A filesize in bytes.
+	 * @param int $precision Number of places after the decimal separator.
+	 * @return string Human-readable filesize.
 	 */
-	public function str_ends_with( $haystack, $needle ) {
-		if ( '' === $haystack && '' !== $needle ) {
-			return false;
-		}
-
-		$len = \strlen( $needle );
-
-		return 0 === \substr_compare( $haystack, $needle, -$len, $len );
+	public function size_format( $size, $precision = 1 ) {
+			// Convert it to human readable format.
+			$size_str = \size_format( $size, $precision );
+			// Remove spaces and extra decimals when measurement is in bytes.
+			return \preg_replace( '/\.0+ B ?/', ' B', $size_str );
 	}
 
 	/**

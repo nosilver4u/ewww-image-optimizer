@@ -130,6 +130,17 @@ function ewww_image_optimizer_iterable( $value ) {
 }
 
 /**
+ * Wrapper around size_format to remove the decimal from sizes in bytes.
+ *
+ * @param int $size A filesize in bytes.
+ * @param int $precision Number of places after the decimal separator.
+ * @return string Human-readable filesize.
+ */
+function ewww_image_optimizer_size_format( $size, $precision = 1 ) {
+		return ewwwio()->size_format( $size, $precision );
+}
+
+/**
  * Checks if the S3 Uploads plugin is installed and active.
  *
  * @return bool True if it is fully active and rewriting/offloding media, false otherwise.
