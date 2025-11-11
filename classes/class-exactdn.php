@@ -66,6 +66,14 @@ class ExactDN extends Page_Parser {
 	public $full_width = false;
 
 	/**
+	 * Indicates the local domain has changed, and Easy IO should be re-initialized.
+	 *
+	 * @access public
+	 * @var bool $domain_mismatch
+	 */
+	public $domain_mismatch = false;
+
+	/**
 	 * List of permitted domains for ExactDN rewriting.
 	 *
 	 * @access public
@@ -398,10 +406,7 @@ class ExactDN extends Page_Parser {
 		// Configure Autoptimize with our CDN domain.
 		\add_filter( 'autoptimize_filter_cssjs_multidomain', array( $this, 'add_cdn_domain' ) );
 
-		if ( $this->is_as3cf_cname_active() ) {
-			\add_action( 'admin_notices', $this->prefix . 'notice_exactdn_as3cf_cname_active' );
-			return;
-		}
+		\add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 
 		$upload_url_parts = $this->parse_url( $this->site_url );
 		if ( empty( $upload_url_parts ) ) {
@@ -413,12 +418,10 @@ class ExactDN extends Page_Parser {
 		if ( empty( $stored_local_domain ) ) {
 			$this->set_exactdn_option( 'local_domain', \base64_encode( $this->upload_domain ) );
 			$stored_local_domain = $this->upload_domain;
-		} elseif ( false !== \strpos( $stored_local_domain, '.' ) ) {
+		} elseif ( \str_contains( $stored_local_domain, '.' ) ) {
 			$this->set_exactdn_option( 'local_domain', \base64_encode( $stored_local_domain ) );
-		} else {
-			$stored_local_domain = \base64_decode( $stored_local_domain );
 		}
-		$this->debug_message( "saved domain is $stored_local_domain" );
+		$this->debug_message( "saved (local) domain is $stored_local_domain" );
 
 		$this->debug_message( "allowing images from here: $this->upload_domain" );
 		if (
@@ -431,13 +434,6 @@ class ExactDN extends Page_Parser {
 		) {
 			$this->remove_path = \rtrim( $upload_url_parts['path'], '/' );
 			$this->debug_message( "removing this from urls: $this->remove_path" );
-		}
-		if (
-			$stored_local_domain !== $this->upload_domain &&
-			! $this->allow_image_domain( $stored_local_domain ) &&
-			\is_admin()
-		) {
-			\add_action( 'admin_notices', $this->prefix . 'notice_exactdn_domain_mismatch' );
 		}
 		$this->allowed_domains[] = $this->exactdn_domain;
 		$this->allowed_domains   = \apply_filters( 'exactdn_allowed_domains', $this->allowed_domains );
@@ -529,6 +525,16 @@ class ExactDN extends Page_Parser {
 	}
 
 	/**
+	 * Sends the useragent through filters for http requests to the EWWW IO API.
+	 *
+	 * @param string $useragent The current useragent used in http requests.
+	 * @return string The filtered useragent.
+	 */
+	public function api_useragent( $useragent ) {
+		return apply_filters( 'exactdn_api_request_useragent', $useragent );
+	}
+
+	/**
 	 * Use the Site URL to get the zone domain.
 	 */
 	public function activate_site() {
@@ -537,7 +543,6 @@ class ExactDN extends Page_Parser {
 		if ( $this->is_as3cf_cname_active() ) {
 			global $exactdn_activate_error;
 			$exactdn_activate_error = 'as3cf_cname_active';
-			\add_action( 'admin_notices', $this->prefix . 'notice_exactdn_as3cf_cname_active' );
 			return false;
 		}
 		$site_url = $this->content_url();
@@ -547,7 +552,7 @@ class ExactDN extends Page_Parser {
 		if ( $ssl ) {
 			$url = \set_url_scheme( $url, 'https' );
 		}
-		\add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', PHP_INT_MAX );
+		\add_filter( 'http_headers_useragent', array( $this, 'api_useragent' ), PHP_INT_MAX );
 		$result = \wp_remote_post(
 			$url,
 			array(
@@ -563,7 +568,6 @@ class ExactDN extends Page_Parser {
 			$this->debug_message( "exactdn activation request failed: $error_message" );
 			global $exactdn_activate_error;
 			$exactdn_activate_error = $error_message;
-			\add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_error' );
 			return false;
 		} elseif ( ! empty( $result['body'] ) && \strpos( $result['body'], 'domain' ) !== false ) {
 			$response = \json_decode( $result['body'], true );
@@ -596,7 +600,6 @@ class ExactDN extends Page_Parser {
 			$this->debug_message( "exactdn activation request failed: $error_message" );
 			global $exactdn_activate_error;
 			$exactdn_activate_error = $error_message;
-			\add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_error' );
 			return false;
 		}
 		return false;
@@ -647,7 +650,7 @@ class ExactDN extends Page_Parser {
 			$local_domain = $this->parse_url( $test_url, PHP_URL_HOST );
 			$test_url     = \str_replace( $local_domain, $domain, $test_url );
 			$this->debug_message( "test url is $test_url" );
-			\add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', PHP_INT_MAX );
+			\add_filter( 'http_headers_useragent', array( $this, 'api_useragent' ), PHP_INT_MAX );
 			$test_result = \wp_remote_post(
 				$api_url,
 				array(
@@ -663,7 +666,6 @@ class ExactDN extends Page_Parser {
 				$error_message = $test_result->get_error_message();
 				$this->debug_message( "exactdn (1) verification request failed: $error_message" );
 				$exactdn_activate_error = $error_message;
-				\add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_error' );
 				return false;
 			} elseif ( ! empty( $test_result['body'] ) && false === \strpos( $test_result['body'], 'error' ) ) {
 				$response = \json_decode( $test_result['body'], true );
@@ -675,7 +677,6 @@ class ExactDN extends Page_Parser {
 						$this->set_exactdn_option( 'asset_domains', $response['asset_domains'] );
 						$this->asset_domains = $response['asset_domains'];
 					}
-					\add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_success' );
 					return true;
 				}
 			} elseif ( ! empty( $test_result['body'] ) ) {
@@ -687,18 +688,16 @@ class ExactDN extends Page_Parser {
 					\delete_option( $this->prefix . 'exactdn_domain' );
 					\delete_site_option( $this->prefix . 'exactdn_domain' );
 				}
-				\add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_error' );
 				return false;
 			}
 			if ( ! empty( $test_result['response']['code'] ) && 200 !== (int) $test_result['response']['code'] ) {
 				$this->debug_message( 'received response code: ' . $test_result['response']['code'] );
 			}
-			\add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_error' );
 			return false;
 		}
 
 		// Secondary test against the API db.
-		\add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', PHP_INT_MAX );
+		\add_filter( 'http_headers_useragent', array( $this, 'api_useragent' ), PHP_INT_MAX );
 		$result = \wp_remote_post(
 			$api_url,
 			array(
@@ -713,7 +712,6 @@ class ExactDN extends Page_Parser {
 			$error_message = $result->get_error_message();
 			$this->debug_message( "exactdn verification request failed: $error_message" );
 			$exactdn_activate_error = $error_message;
-			\add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_error' );
 			return false;
 		} elseif ( ! empty( $result['body'] ) && false === \strpos( $result['body'], 'error' ) ) {
 			$response = \json_decode( $result['body'], true );
@@ -728,9 +726,6 @@ class ExactDN extends Page_Parser {
 				}
 				$this->debug_message( 'exactdn verification via API succeeded' );
 				$this->set_exactdn_option( 'verified', 1, false );
-				if ( empty( $last_checkin ) ) {
-					\add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_success' );
-				}
 				return true;
 			}
 		} elseif ( ! empty( $result['body'] ) ) {
@@ -742,13 +737,11 @@ class ExactDN extends Page_Parser {
 				\delete_option( $this->prefix . 'exactdn_domain' );
 				\delete_site_option( $this->prefix . 'exactdn_domain' );
 			}
-			\add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_error' );
 			return false;
 		}
 		if ( ! empty( $result['response']['code'] ) && 200 !== (int) $result['response']['code'] ) {
 			$this->debug_message( 'received response code: ' . $result['response']['code'] );
 		}
-		\add_action( 'admin_notices', $this->prefix . 'notice_exactdn_activation_error' );
 		return false;
 	}
 
@@ -760,7 +753,7 @@ class ExactDN extends Page_Parser {
 			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 			// Prelim test with a known valid image to ensure http(s) connectivity.
 			$sim_url = 'https://optimize.exactdn.com/exactdn/testorig.jpg';
-			\add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', PHP_INT_MAX );
+			\add_filter( 'http_headers_useragent', array( $this, 'api_useragent' ), PHP_INT_MAX );
 			$sim_result = \wp_remote_get( $sim_url );
 			if ( \is_wp_error( $sim_result ) ) {
 				$error_message = $sim_result->get_error_message();
@@ -898,6 +891,24 @@ class ExactDN extends Page_Parser {
 			}
 		}
 		return \update_option( $this->prefix . 'exactdn_' . $option_name, $option_value, $autoload );
+	}
+
+	/**
+	 * Check for conditions that need to trigger an admin notice (action).
+	 */
+	public function admin_notices() {
+		if ( $this->is_as3cf_cname_active() ) {
+			\do_action( 'exactdn_as3cf_cname_active' );
+		}
+		$stored_local_domain = $this->get_exactdn_option( 'local_domain' );
+		$stored_local_domain = \base64_decode( $stored_local_domain );
+		if (
+			$stored_local_domain !== $this->upload_domain &&
+			! $this->allow_image_domain( $stored_local_domain )
+		) {
+			$this->domain_mismatch = true;
+			\do_action( 'exactdn_domain_mismatch' );
+		}
 	}
 
 	/**
@@ -4559,7 +4570,7 @@ class ExactDN extends Page_Parser {
 		if ( $ssl ) {
 			$url = \set_url_scheme( $url, 'https' );
 		}
-		\add_filter( 'http_headers_useragent', $this->prefix . 'cloud_useragent', PHP_INT_MAX );
+		\add_filter( 'http_headers_useragent', array( $this, 'api_useragent' ), PHP_INT_MAX );
 		$result = \wp_remote_post(
 			$url,
 			array(

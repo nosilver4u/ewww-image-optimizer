@@ -169,6 +169,8 @@ add_action( 'update_option_ewww_image_optimizer_auto', 'ewww_image_optimizer_sch
 // Check if image resize dimensions have been changed.
 add_action( 'update_option_ewww_image_optimizer_maxmediawidth', 'ewww_image_optimizer_resize_dimensions_changed', 10, 2 );
 add_action( 'update_option_ewww_image_optimizer_maxmediaheight', 'ewww_image_optimizer_resize_dimensions_changed', 10, 2 );
+// Modify the user agent for ExactDN API requests.
+add_filter( 'exactdn_api_request_useragent', 'ewww_image_optimizer_cloud_useragent' );
 // Makes sure to flush out any scheduled jobs on deactivation.
 register_deactivation_hook( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE, 'ewww_image_optimizer_network_deactivate' );
 // add_action( 'shutdown', 'ewwwio_memory_output' );.
@@ -1690,64 +1692,6 @@ function ewww_image_optimizer_notice_exactdn_activation_error() {
  */
 function ewww_image_optimizer_notice_exactdn_activation_success() {
 	return;
-}
-
-/**
- * Let the user know the local domain appears to have changed from what Easy IO has recorded in the db.
- */
-function ewww_image_optimizer_notice_exactdn_domain_mismatch() {
-	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
-		return;
-	}
-	global $exactdn;
-	if ( ! isset( $exactdn->upload_domain ) ) {
-		return;
-	}
-	$stored_local_domain = $exactdn->get_exactdn_option( 'local_domain' );
-	if ( empty( $stored_local_domain ) ) {
-		return;
-	}
-	if ( false === strpos( $stored_local_domain, '.' ) ) {
-		$stored_local_domain = base64_decode( $stored_local_domain );
-	}
-	?>
-	<div id="ewww-image-optimizer-notice-exactdn-domain-mismatch" class="notice notice-warning">
-		<p>
-	<?php
-			printf(
-				/* translators: 1: old domain name, 2: current domain name */
-				esc_html__( 'Easy IO detected that the Site URL has changed since the initial activation (previously %1$s, currently %2$s).', 'ewww-image-optimizer' ),
-				'<strong>' . esc_html( $stored_local_domain ) . '</strong>',
-				'<strong>' . esc_html( $exactdn->upload_domain ) . '</strong>'
-			);
-	?>
-			<br>
-	<?php
-			printf(
-				/* translators: %s: settings page */
-				esc_html__( 'Please visit the %s to refresh the Easy IO settings and verify activation status.', 'ewww-image-optimizer' ),
-				'<a href="' . esc_url( ewww_image_optimizer_get_settings_link() ) . '">' . esc_html__( 'settings page', 'ewww-image-optimizer' ) . '</a>'
-			);
-	?>
-		</p>
-	</div>
-	<?php
-}
-
-/**
- * Let the user know they need to disable the WP Offload Media CNAME.
- */
-function ewww_image_optimizer_notice_exactdn_as3cf_cname_active() {
-	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
-		return;
-	}
-	?>
-	<div id="ewww-image-optimizer-notice-exactdn-as3cf-cname-active" class="notice notice-error">
-		<p>
-			<?php esc_html_e( 'Easy IO cannot optimize your images while using a custom domain (CNAME) in WP Offload Media. Please disable the custom domain in the WP Offload Media settings.', 'ewww-image-optimizer' ); ?>
-		</p>
-	</div>
-	<?php
 }
 
 /**
@@ -10758,13 +10702,12 @@ function ewww_image_optimizer_settings_script( $hook ) {
 	// Reset Easy IO bits before we remove the rest of the admin_notices.
 	delete_option( 'ewww_image_optimizer_exactdn_checkin' );
 	global $exactdn;
-	if ( is_object( $exactdn ) && has_action( 'admin_notices', 'ewww_image_optimizer_notice_exactdn_domain_mismatch' ) ) {
+	if ( is_object( $exactdn ) && ! empty( $exactdn->domain_mismatch ) ) {
 		delete_option( 'ewww_image_optimizer_exactdn_domain' );
 		delete_option( 'ewww_image_optimizer_exactdn_local_domain' );
 		delete_option( 'ewww_image_optimizer_exactdn_plan_id' );
 		delete_option( 'ewww_image_optimizer_exactdn_failures' );
 		delete_option( 'ewww_image_optimizer_exactdn_verified' );
-		remove_action( 'admin_notices', 'ewww_image_optimizer_notice_exactdn_domain_mismatch' );
 		$exactdn->setup();
 	}
 
@@ -12867,7 +12810,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			?>
 		<?php endif; ?>
 		<?php if ( $show_as3cf_cname_notice ) : ?>
-			<?php ewww_image_optimizer_notice_exactdn_as3cf_cname_active(); ?>
+			<?php ewwwio()->notices->exactdn_as3cf_cname_active_notice(); ?>
 		<?php endif; ?>
 		<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_dismiss_utf8' ) && false === strpos( $wpdb->charset, 'utf8' ) ) : ?>
 			<?php ewwwio()->notices->utf8_db_notice(); ?>

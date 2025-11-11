@@ -30,6 +30,8 @@ final class Admin_Notices extends Base {
 		\add_action( 'load-plugins.php', array( $this, 'load_notices' ) );
 		\add_action( 'admin_notices', array( $this, 'thumbnail_regen_notice' ) );
 		\add_action( 'network_admin_notices', array( $this, 'easyio_site_initialized_notice' ) );
+		\add_action( 'exactdn_as3cf_cname_active', array( $this, 'exactdn_as3cf_cname_active_notice' ) );
+		\add_action( 'exactdn_domain_mismatch', array( $this, 'exactdn_domain_mismatch_notice' ) );
 
 		// Prevent Autoptimize from displaying its image optimization notice.
 		\remove_action( 'admin_notices', 'autoptimizeMain::notice_plug_imgopt' );
@@ -553,6 +555,64 @@ final class Admin_Notices extends Base {
 			</div>
 			<?php
 		}
+	}
+
+	/**
+	 * Let the user know they need to disable the WP Offload Media CNAME.
+	 */
+	public function exactdn_as3cf_cname_active_notice() {
+		if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+			return;
+		}
+		?>
+		<div id="ewww-image-optimizer-notice-exactdn-as3cf-cname-active" class="notice notice-error">
+			<p>
+				<?php esc_html_e( 'Easy IO cannot optimize your images while using a custom domain (CNAME) in WP Offload Media. Please disable the custom domain in the WP Offload Media settings.', 'ewww-image-optimizer' ); ?>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Let the user know the local domain appears to have changed from what Easy IO has recorded in the db.
+	 */
+	public function exactdn_domain_mismatch_notice() {
+		if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+			return;
+		}
+		global $exactdn;
+		if ( ! isset( $exactdn->upload_domain ) ) {
+			return;
+		}
+		$stored_local_domain = $exactdn->get_exactdn_option( 'local_domain' );
+		if ( empty( $stored_local_domain ) ) {
+			return;
+		}
+		if ( false === strpos( $stored_local_domain, '.' ) ) {
+			$stored_local_domain = base64_decode( $stored_local_domain );
+		}
+		?>
+		<div id="ewww-image-optimizer-notice-exactdn-domain-mismatch" class="notice notice-warning">
+			<p>
+				<?php
+				printf(
+					/* translators: 1: old domain name, 2: current domain name */
+					esc_html__( 'Easy IO detected that the Site URL has changed since the initial activation (previously %1$s, currently %2$s).', 'ewww-image-optimizer' ),
+					'<strong>' . esc_html( $stored_local_domain ) . '</strong>',
+					'<strong>' . esc_html( $exactdn->upload_domain ) . '</strong>'
+				);
+				?>
+				<br>
+				<?php
+				printf(
+					/* translators: %s: settings page */
+					esc_html__( 'Please visit the %s to refresh the Easy IO settings and verify activation status.', 'ewww-image-optimizer' ),
+					'<a href="' . esc_url( ewww_image_optimizer_get_settings_link() ) . '">' . esc_html__( 'settings page', 'ewww-image-optimizer' ) . '</a>'
+				);
+				?>
+			</p>
+		</div>
+		<?php
 	}
 
 	/**
