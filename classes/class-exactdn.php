@@ -667,7 +667,7 @@ class ExactDN extends Page_Parser {
 				$this->debug_message( "exactdn (1) verification request failed: $error_message" );
 				$exactdn_activate_error = $error_message;
 				return false;
-			} elseif ( ! empty( $test_result['body'] ) && false === \strpos( $test_result['body'], 'error' ) ) {
+			} elseif ( ! empty( $test_result['body'] ) && ! \str_contains( $test_result['body'], 'error' ) ) {
 				$response = \json_decode( $test_result['body'], true );
 				if ( ! empty( $response['success'] ) ) {
 					$this->debug_message( 'exactdn (real-world) verification succeeded' );
@@ -713,7 +713,7 @@ class ExactDN extends Page_Parser {
 			$this->debug_message( "exactdn verification request failed: $error_message" );
 			$exactdn_activate_error = $error_message;
 			return false;
-		} elseif ( ! empty( $result['body'] ) && false === \strpos( $result['body'], 'error' ) ) {
+		} elseif ( ! empty( $result['body'] ) && ! \str_contains( $result['body'], 'error' ) ) {
 			$response = \json_decode( $result['body'], true );
 			if ( ! empty( $response['success'] ) ) {
 				if ( ! empty( $response['plan_id'] ) ) {

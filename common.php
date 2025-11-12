@@ -124,6 +124,8 @@ add_action( 'wp_ajax_ewww_exactdn_activate_site', 'ewww_image_optimizer_exactdn_
 add_action( 'wp_ajax_ewww_exactdn_register_site', 'ewww_image_optimizer_exactdn_register_site_ajax' );
 // AJAX action hook to remove a specific site from Easy IO.
 add_action( 'wp_ajax_ewww_exactdn_deregister_site', 'ewww_image_optimizer_exactdn_deregister_site_ajax' );
+// AJAX action hook to fetch Easy IO stats.
+add_action( 'wp_ajax_exactdn_get_site_stats', 'ewww_image_optimizer_exactdn_get_site_stats_ajax' );
 // AJAX action hook for inserting WebP rewrite rules into .htaccess.
 add_action( 'wp_ajax_ewww_webp_rewrite', 'ewww_image_optimizer_webp_rewrite' );
 // AJAX action hook for removing WebP rewrite rules from .htaccess.
@@ -4647,6 +4649,43 @@ function ewww_image_optimizer_easy_site_registered( $site_url ) {
 		}
 	}
 	return false;
+}
+
+/**
+ * Retrieves the Easy IO stats via AJAX.
+ */
+function ewww_image_optimizer_exactdn_get_site_stats_ajax() {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( false === current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		// Display error message if insufficient permissions.
+		ewwwio_ob_clean();
+		wp_die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
+	}
+	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' ) ) {
+		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
+	}
+	if ( empty( $_REQUEST['site_id'] ) ) {
+		die( wp_json_encode( array( 'error' => esc_html__( 'Site ID unknown.', 'ewww-image-optimizer' ) ) ) );
+	}
+	$site_id = (int) $_REQUEST['site_id'];
+	$url     = "https://masterdb.exactlywww.com/stats/easyio-zone.php?site_id=$site_id&format=json";
+	if ( ! empty( $_POST['require_extra'] ) ) {
+		$url .= '&require_extra=1';
+	}
+
+	$result = wp_remote_get(
+		$url,
+		array(
+			'timeout' => 55,
+		)
+	);
+	if ( ! is_wp_error( $result ) && ! empty( $result['body'] ) ) {
+		$response = json_decode( $result['body'], true );
+		die( wp_json_encode( $response ) );
+	}
+	if ( is_wp_error( $result ) ) {
+		die( wp_json_encode( array( 'error' => $result->get_error_message() ) ) );
+	}
 }
 
 /**
@@ -10738,6 +10777,7 @@ function ewww_image_optimizer_settings_script( $hook ) {
 	wp_enqueue_script( 'ewww-beacon-script', plugins_url( '/includes/eio-beacon.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION, true );
 	wp_enqueue_script( 'ewww-settings-script', plugins_url( '/includes/eio-settings.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION, true );
 	wp_enqueue_script( 'ewww-bulk-table-script', plugins_url( '/includes/eio-bulk-table.js', __FILE__ ), array( 'jquery', 'jquery-ui-slider' ), EWWW_IMAGE_OPTIMIZER_VERSION, true );
+	wp_enqueue_script( 'ewww-chart-script', plugins_url( '/includes/chart.min.js', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION, true );
 	wp_enqueue_style( 'jquery-ui-tooltip-custom', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
 	wp_localize_script(
 		'ewww-settings-script',
@@ -10764,6 +10804,7 @@ function ewww_image_optimizer_settings_script( $hook ) {
 			'easy_autoreg'              => ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ? true : false,
 			'easyio_site_id'            => (int) $easyio_site_id,
 			'easyio_site_registered'    => (bool) $easyio_site_registered,
+			'easyio_extra_stats_failed' => esc_html__( 'Additional stats unavailable, please try again later.', 'ewww-image-optimizer' ),
 			'easymode'                  => ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_ludicrous_mode' ),
 			'scan_only_mode'            => get_option( 'ewww_image_optimizer_pause_image_queue' ) ? true : false,
 			'bulk_init'                 => ! empty( $_GET['bulk_optimize'] ) ? true : false,
@@ -12267,6 +12308,21 @@ function ewww_image_optimizer_get_image_savings() {
 		}
 	}
 
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
+		$api_quota = ewww_image_optimizer_cloud_quota( true );
+		if ( is_array( $api_quota ) && isset( $api_quota['consumed'] ) && empty( $api_quota['sites'] ) ) {
+			if ( $exactdn_savings['bandwidth'] < $exactdn_savings['quota'] ) {
+				$exactdn_savings['quota'] = $exactdn_savings['bandwidth'] * 1.25;
+			}
+		}
+	} else {
+		if ( $exactdn_savings['bandwidth'] < $exactdn_savings['quota'] ) {
+			$exactdn_savings['quota'] = $exactdn_savings['bandwidth'] * 1.25;
+		}
+	}
+
+	$site_id = ! empty( $exactdn_savings['site_id'] ) ? $exactdn_savings['site_id'] : 0;
+
 	$output = array();
 
 	ob_start();
@@ -12286,10 +12342,21 @@ function ewww_image_optimizer_get_image_savings() {
 				<?php ewwwio_help_link( 'https://docs.ewww.io/article/96-easy-io-is-it-working', '5f871dd2c9e77c0016217c4e' ); ?>
 			</h3>
 			<div id='easyio-savings-container' class='ewww-bar-container'>
-				<div id='easyio-savings-fill' data-score='<?php echo intval( $exactdn_savings['savings'] / $exactdn_savings['original'] * 100 ); ?>' class='ewww-bar-fill'></div>
+				<div id='easyio-savings-fill' data-score='<?php echo esc_attr( intval( $exactdn_savings['savings'] / $exactdn_savings['original'] * 100 ) ); ?>' class='ewww-bar-fill'></div>
 			</div>
 			<div id='easyio-savings-flex' class='ewww-bar-caption'>
 				<p class='ewww-bar-score'><?php echo esc_html( ewww_image_optimizer_size_format( $exactdn_savings['savings'], 2 ) ); ?></p>
+			</div>
+	<?php endif; ?>
+	<?php if ( ! empty( $exactdn_savings['bandwidth'] ) ) : ?>
+			<h3>
+				<?php esc_html_e( 'Easy IO Bandwidth', 'ewww-image-optimizer' ); ?>
+			</h3>
+			<div id='easyio-bandwidth-container' class='ewww-bar-container'>
+				<div id='easyio-bandwidth-fill' data-score='<?php echo esc_attr( min( 100, max( 1, intval( $exactdn_savings['bandwidth'] / $exactdn_savings['quota'] * 100 ) ) ) ); ?>' class='ewww-bar-fill'></div>
+			</div>
+			<div id='easyio-bandwidth-flex' class='ewww-bar-caption'>
+				<p class='ewww-bar-score'><a href='#' id='easyio-show-stats' data-site-id='<?php echo (int) $site_id; ?>'><?php echo esc_html( ewww_image_optimizer_size_format( $exactdn_savings['bandwidth'], 2 ) ); ?></a></p>
 			</div>
 	<?php endif; ?>
 	<?php

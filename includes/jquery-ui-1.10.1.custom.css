@@ -359,11 +359,11 @@ body .ui-tooltip {
         width: 25px;
         height: 25px;
         background-color: #FFF;
+        transform: rotate(45deg);
         -webkit-transform: rotate(45deg);
         -moz-transform: rotate(45deg);
         -ms-transform: rotate(45deg);
         -o-transform: rotate(45deg);
-        tranform: rotate(45deg);
 }
 .arrow.top:after {
         bottom: -20px;
@@ -526,7 +526,7 @@ button.ewww-handlediv {
 	justify-content: space-between;
 	align-items: center;
 	margin: 0 0 10px -20px;
-	padding 0 20px;
+	padding: 0 20px;
 	z-index: 40;
 }
 #ewwwio-bulk-header {
@@ -667,6 +667,9 @@ div.ewww-status-detail {
 #easyio-savings-container .ewww-bar-fill {
 	background-color: #1d3c71;
 }
+#easyio-bandwidth-container .ewww-bar-fill {
+	background-color: #1abc9c;
+}
 .ewww-bar-caption p {
 	text-align: center;
 	margin: 0;
@@ -681,6 +684,9 @@ div.ewww-status-detail {
 }
 #easyio-savings-flex .ewww-bar-score {
 	color: #1d3c71;
+}
+#easyio-bandwidth-flex .ewww-bar-score, #easyio-bandwidth-flex a {
+	color: #1abc9c;
 }
 .ewww-recommend {
 	box-shadow: -4px 0px #3eadc9, inset 0 -1px #e2e2e2;
@@ -698,6 +704,52 @@ div.ewww-status-detail {
 	box-shadow: -4px 0px #d63638, inset 0 -1px #e2e2e2;
 	margin: 0 -7px 10px;
 	padding: 3px 7px;
+}
+/* Easy IO stats modal */
+.exactdn-stats-modal {
+	height: 100%;
+	width: 100%;
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	overflow: scroll;
+	margin: auto;
+	padding: 0px; 
+	background: #fff;
+	z-index: 99999;
+}
+.exactdn-stats-modal-charts {
+	padding: 30px;
+}
+.exactdn-stats-modal-close {
+	position: fixed;
+	top: 25px;
+	right: 40px;
+	z-index: 999;
+	cursor: pointer;
+}
+.exactdn-stats-modal-close svg {
+	cursor: pointer;
+	fill: #111226;
+	height: 16px;
+	vertical-align: -0.125em;
+}
+.exactdn-stats-modal {  
+        color: #111226;
+}
+.exactdn-stats-modal p {
+	font-weight: 400;
+	line-height: 1.5;
+	font-size: 16px;
+}
+.exactdn-stats-modal h2 {
+	font-size: 28px;
+	padding: 20px 0 10px;
+}
+.exactdn-body-unscroll {
+	overflow: hidden;
 }
 /* option/pseudo-table layout */
 .ewww-settings-panel, .ewww-settings-panel p {
@@ -823,9 +875,6 @@ p.ewww-webp-rewrite-info {
 	margin: 10px 10px 15px 0;
 	padding: 12px;
 	font-weight: bold;
-}
-#ewww-webp-rewrite-result {
-	/*margin-right: 110px;*/
 }
 #ewwwio-api-activation-result.error, #ewwwio-easy-activation-result.error, #ewww-webp-rewrite-result.error {
 	border-left-color: #dc3232;
@@ -1059,7 +1108,6 @@ p.ewww-webp-rewrite-info {
 	.ewww-settings-panel .ewww-setting-detail {
 		display: block;
 		width: auto;
-		vertical-align: middle;
 	}
 	.ewww-settings-panel .ewww-setting-detail input[type="text"],
 	.ewww-settings-panel .ewww-setting-detail input[type="email"],
