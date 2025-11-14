@@ -146,11 +146,14 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 *Release Date - TBD*
 
 * added: Lazy Load support for background images in external CSS files
+* added: View CDN bandwidth usage on settings page
 * changed: Lazy Load checks parent element for skip-lazy class
 * changed: Lazy Load auto-sizing honors High DPI setting
 * changed: Easy IO fills in 450px wide image when responsive (srcset) images have a gap
 * improved: Lazy Load performance when searching for img elements
+* improved: Lazy Load placeholder generation is faster and works better with Safari
 * fixed: Lazy Load for iframes breaks WP Remote Users Sync plugin
+* fixed: PHP warning when attempting conversion of custom thumbnails from certain themes
 
 = 8.2.1 =
 *Release Date - August 27, 2025*

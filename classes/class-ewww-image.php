@@ -500,7 +500,7 @@ class EWWW_Image {
 		// and another custom theme.
 		if ( isset( $meta['custom_sizes'] ) && ewww_image_optimizer_iterable( $meta['custom_sizes'] ) ) {
 			ewwwio_debug_message( 'next up for conversion search: custom_sizes' );
-			$custom_sizes_pathinfo = pathinfo( $file_path );
+			$custom_sizes_pathinfo = pathinfo( $this->file );
 			$custom_size_path      = '';
 			foreach ( $meta['custom_sizes'] as $dimensions => $custom_size ) {
 				if ( isset( $sizes[ 'custom-size-' . $dimensions ] ) ) {

@@ -1373,14 +1373,27 @@ class Lazy_Load extends Page_Parser {
 			global $exactdn;
 			return $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $width . 'x' . $height . '.png' );
 		} elseif ( ! is_file( $piip_path ) ) {
-			// First try PIP generation via Imagick, as it is pretty efficient.
-			if ( $this->imagick_support() ) {
-				$placeholder = new \Imagick();
-				$placeholder->newimage( $width, $height, 'transparent' );
-				$placeholder->setimageformat( 'PNG' );
-				$placeholder->stripimage();
-				$placeholder->writeimage( $piip_path );
-				$placeholder->clear();
+			// First, try GD and then optimize it with optipng/pngout if available.
+			// This is now the first attempt, as the Imagick placeholders are grayscale and may not work in Safari, and GD is somehow faster.
+			if (
+				$this->gd_support() &&
+				$this->check_memory_available( $width * $height * 4.8 ) // 4.8 = 24-bit or 3 bytes per pixel multiplied by a factor of 1.6 for extra wiggle room.
+			) {
+				$img   = \imagecreatetruecolor( $width, $height );
+				$color = \imagecolorallocatealpha( $img, 0, 0, 0, 127 );
+				\imagefill( $img, 0, 0, $color );
+				\imagesavealpha( $img, true );
+				\imagecolortransparent( $img, \imagecolorat( $img, 0, 0 ) );
+				\imagetruecolortopalette( $img, false, 1 );
+				\imagepng( $img, $piip_path, 9 );
+				if (
+					\function_exists( '\ewww_image_optimizer' ) &&
+					\function_exists( '\ewwwio' ) &&
+					! \ewwwio()->get_option( 'ewww_image_optimizer_cloud_key' ) &&
+					\ewwwio()->local->exec_check()
+				) {
+					\ewww_image_optimizer( $piip_path );
+				}
 			}
 			// If that didn't work, and we have a premium service, use the API to generate the slimmest PIP available.
 			if (
@@ -1396,22 +1409,17 @@ class Lazy_Load extends Page_Parser {
 					\clearstatcache();
 				}
 			}
-			// Last shot, use GD and then optimize it with optipng/pngout if available.
+			// Last resort, do PIP generation via Imagick, as it is pretty efficient even though Safari doesn't like the grayscale images it produces.
 			if (
 				! \is_file( $piip_path ) &&
-				$this->gd_support() &&
-				$this->check_memory_available( $width * $height * 4.8 ) // 4.8 = 24-bit or 3 bytes per pixel multiplied by a factor of 1.6 for extra wiggle room.
+				$this->imagick_support()
 			) {
-				$img   = \imagecreatetruecolor( $width, $height );
-				$color = \imagecolorallocatealpha( $img, 0, 0, 0, 127 );
-				\imagefill( $img, 0, 0, $color );
-				\imagesavealpha( $img, true );
-				\imagecolortransparent( $img, \imagecolorat( $img, 0, 0 ) );
-				\imagetruecolortopalette( $img, false, 1 );
-				\imagepng( $img, $piip_path, 9 );
-				if ( \function_exists( '\ewww_image_optimizer' ) ) {
-					\ewww_image_optimizer( $piip_path );
-				}
+				$placeholder = new \Imagick();
+				$placeholder->newimage( $width, $height, 'transparent' );
+				$placeholder->setimageformat( 'PNG' );
+				$placeholder->stripimage();
+				$placeholder->writeimage( $piip_path );
+				$placeholder->clear();
 			}
 		}
 		\clearstatcache();

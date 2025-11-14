@@ -11568,7 +11568,6 @@ function ewww_image_optimizer_intro_wizard() {
 	$easyio_site_url      = ewwwio()->content_url();
 	$no_tracking          = false;
 	$webp_available       = ewww_image_optimizer_webp_available();
-	$bulk_available       = false;
 	$tools_available      = true;
 	$backup_mode          = 'local';
 	if ( ewww_image_optimizer_background_mode_enabled() ) {
@@ -11616,13 +11615,6 @@ function ewww_image_optimizer_intro_wizard() {
 		$tools_missing_notice = true;
 		// Expand the missing utilities list for use in the error message.
 		$tools_missing_message = implode( ', ', $tools_missing );
-	}
-	if (
-		! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ||
-		ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ||
-		ewwwio()->local->exec_check()
-	) {
-		$bulk_available = true;
 	}
 	if (
 		stristr( network_site_url( '/' ), '.local' ) !== false ||
