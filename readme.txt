@@ -2,8 +2,8 @@
 Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: compress, convert, webp, resize, lazy load
-Tested up to: 6.8
-Stable tag: 8.2.1.4
+Tested up to: 6.9
+Stable tag: 8.3.0
 License: GPLv3
 
 Smaller Images, Faster Sites, Happier Visitors. Comprehensive image optimization that doesn't require a degree in rocket science.
@@ -143,13 +143,14 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 8.3.0 =
-*Release Date - TBD*
+*Release Date - November 19, 2025*
 
 * added: Lazy Load support for background images in external CSS files
 * added: View CDN bandwidth usage on settings page
 * changed: Lazy Load checks parent element for skip-lazy class
 * changed: Lazy Load auto-sizing honors High DPI setting
 * changed: Easy IO fills in 450px wide image when responsive (srcset) images have a gap
+* changed: Easy IO premium setting moved to zone configuration at https://ewww.io/manage-sites/
 * improved: Lazy Load performance when searching for img elements
 * improved: Lazy Load placeholder generation is faster and works better with Safari
 * fixed: Lazy Load for iframes breaks WP Remote Users Sync plugin
