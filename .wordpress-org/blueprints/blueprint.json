@@ -5,6 +5,9 @@
     "wp": "latest",
     "php": "8.3"
   },
+  "features": {
+    "networking": true
+  },
   "steps": [
     {
       "step": "login",
