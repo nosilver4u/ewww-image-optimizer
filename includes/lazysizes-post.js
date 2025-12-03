@@ -474,13 +474,13 @@
 			return;
 		}
 		console.log('previous width was ' + e.target._lazysizesWidth);
-		if (e.detail.width < e.target._lazysizesWidth) {
-			console.log('no way! ' + e.detail.width + ' is smaller than ' + e.target._lazysizesWidth);
-			e.detail.width = e.target._lazysizesWidth;
-		}
 		if (!eio_lazy_vars.use_dpr && window.devicePixelRatio > 1) {
 			console.log('use_dpr is disabled, reversing auto-sizes by dpr ' + window.devicePixelRatio);
 			e.detail.width = Math.ceil(e.detail.width / window.devicePixelRatio);
+		}
+		if (e.detail.width < e.target._lazysizesWidth) {
+			console.log('no way! ' + e.detail.width + ' is smaller than ' + e.target._lazysizesWidth);
+			e.detail.width = e.target._lazysizesWidth;
 		}
 	});
 
