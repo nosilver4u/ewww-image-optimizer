@@ -1895,13 +1895,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 							continue;
 						}
 					}
-					if ( seems_utf8( $file_path ) ) {
-						ewwwio_debug_message( 'file seems utf8' );
-						$utf8_file_path = $file_path;
-					} else {
-						ewwwio_debug_message( 'file will become utf8' );
-						$utf8_file_path = mb_convert_encoding( $file_path, 'UTF-8' );
-					}
+					$utf8_file_path = ewwwio()->ensure_utf8_path( $file_path );
 					ewww_image_optimizer_debug_log();
 					$images[ $file_path ] = array(
 						'path'          => ewww_image_optimizer_relativize_path( $utf8_file_path ),

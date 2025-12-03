@@ -465,6 +465,25 @@ class Base {
 	}
 
 	/**
+	 * Ensures a file path is UTF-8 encoded.
+	 *
+	 * @param string $path The file path to check.
+	 * @return string The UTF-8 encoded file path.
+	 */
+	public function ensure_utf8_path( $path ) {
+		if ( ! \function_exists( '\mb_convert_encoding' ) ) {
+			return $path;
+		}
+		if (
+			( \function_exists( '\wp_is_valid_utf8' ) && ! \wp_is_valid_utf8( $path ) ) ||
+			( ! \function_exists( '\wp_is_valid_utf8' ) && ! \seems_utf8( $path ) )
+		) {
+			$path = \mb_convert_encoding( $path, 'UTF-8' );
+		}
+		return $path;
+	}
+
+	/**
 	 * Checks if a function is disabled or does not exist.
 	 *
 	 * @param string $function_name The name of a function to test.
@@ -797,7 +816,7 @@ class Base {
 		}
 		if ( \is_null( self::$use_network_options ) ) {
 			self::$use_network_options = false;
-			if ( ! \function_exists( 'is_plugin_active_for_network' ) && \is_multisite() ) {
+			if ( ! \function_exists( '\is_plugin_active_for_network' ) && \is_multisite() ) {
 				// Need to include the plugin library for the is_plugin_active function.
 				require_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
@@ -1313,7 +1332,7 @@ class Base {
 	public function memory_limit() {
 		if ( \defined( 'EIO_MEMORY_LIMIT' ) && EIO_MEMORY_LIMIT ) {
 			$memory_limit = EIO_MEMORY_LIMIT;
-		} elseif ( \function_exists( 'ini_get' ) ) {
+		} elseif ( \function_exists( '\ini_get' ) ) {
 			$memory_limit = \ini_get( 'memory_limit' );
 		} else {
 			if ( ! \defined( 'EIO_MEMORY_LIMIT' ) ) {

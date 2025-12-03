@@ -1906,13 +1906,9 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 					continue;
 				}
 				ewwwio_debug_message( "queuing $path" );
-				$path = ewww_image_optimizer_relativize_path( $path );
-				if ( seems_utf8( $path ) ) {
-					$utf8_file_path = $path;
-				} else {
-					$utf8_file_path = mb_convert_encoding( $path, 'UTF-8' );
-				}
-				$images[] = array(
+				$path           = ewww_image_optimizer_relativize_path( $path );
+				$utf8_file_path = ewwwio()->ensure_utf8_path( $path );
+				$images[]       = array(
 					'path'      => $utf8_file_path,
 					'orig_size' => $image_size,
 					'pending'   => 1,

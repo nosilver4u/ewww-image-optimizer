@@ -6168,14 +6168,10 @@ function ewww_image_optimizer_single_insert( $path, $gallery = '', $attachment_i
 		return $already_optimized['id'];
 	} else {
 		ewwwio_debug_message( "queuing $path" );
-		$orig_size = ewww_image_optimizer_filesize( $path );
-		$path      = ewww_image_optimizer_relativize_path( $path );
-		if ( seems_utf8( $path ) ) {
-			$utf8_file_path = $path;
-		} else {
-			$utf8_file_path = mb_convert_encoding( $path, 'UTF-8' );
-		}
-		$to_insert = array(
+		$orig_size      = ewww_image_optimizer_filesize( $path );
+		$path           = ewww_image_optimizer_relativize_path( $path );
+		$utf8_file_path = ewwwio()->ensure_utf8_path( $path );
+		$to_insert      = array(
 			'path'      => $utf8_file_path,
 			'converted' => '',
 			'orig_size' => $orig_size,
@@ -6451,9 +6447,8 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 		'updates'    => 1,
 		'backup'     => preg_replace( '/[^\w]/', '', $backup_hash ),
 	);
-	if ( ! seems_utf8( $updates['path'] ) ) {
-		$updates['path'] = mb_convert_encoding( $updates['path'], 'UTF-8' );
-	}
+
+	$updates['path'] = ewwwio()->ensure_utf8_path( $updates['path'] );
 	// Store info on the current image for future reference.
 	if ( empty( $already_optimized ) || ! is_array( $already_optimized ) ) {
 		ewwwio_debug_message( "creating new record, path: $attachment, size: $opt_size" );
@@ -6545,9 +6540,8 @@ function ewww_image_optimizer_update_webp_results( $attachment, $webp_size, $web
 		'webp_size'  => (int) $webp_size,
 		'webp_error' => (int) $webp_error,
 	);
-	if ( ! seems_utf8( $updates['path'] ) ) {
-		$updates['path'] = mb_convert_encoding( $updates['path'], 'UTF-8' );
-	}
+
+	$updates['path'] = ewwwio()->ensure_utf8_path( $updates['path'] );
 	if ( is_object( $ewww_image ) && $ewww_image instanceof EWWW_Image && $attachment === $ewww_image->file ) {
 		$ewww_image->webp_size  = (int) $webp_size;
 		$ewww_image->webp_error = (int) $webp_error;
@@ -6603,9 +6597,8 @@ function ewww_image_optimizer_update_resize_results( $attachment, $resized_width
 		'resized_height' => (int) $resized_height,
 		'resize_error'   => (int) $resize_error,
 	);
-	if ( ! seems_utf8( $updates['path'] ) ) {
-		$updates['path'] = mb_convert_encoding( $updates['path'], 'UTF-8' );
-	}
+
+	$updates['path'] = ewwwio()->ensure_utf8_path( $updates['path'] );
 	if ( is_object( $ewww_image ) && $ewww_image instanceof EWWW_Image && $attachment === $ewww_image->file ) {
 		$ewww_image->resized_width  = (int) $resized_width;
 		$ewww_image->resized_height = (int) $resized_height;
