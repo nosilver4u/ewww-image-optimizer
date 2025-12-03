@@ -147,6 +147,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 * changed: prevent use of deprecated seems_utf8() function on WP 6.9+
 * fixed: Lazy Load auto-sizing makes images too small when screen size changes
+* fixed: Lazy Load fails to decode background images contained in encoded quotes (&apos;)
 
 = 8.3.0 =
 *Release Date - November 19, 2025*
