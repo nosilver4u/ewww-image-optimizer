@@ -32,7 +32,7 @@ jobs:
     - php: 8.4
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
     - php: 8.2
-      env: WP_VERSION=6.5 WP_MULTISITE=0
+      env: WP_VERSION=6.6 WP_MULTISITE=0
 
 before_script:
   - export PATH="$HOME/.config/composer/vendor/bin:$PATH"

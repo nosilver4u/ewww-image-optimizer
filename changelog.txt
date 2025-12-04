@@ -1,3 +1,10 @@
+= 8.3.1 =
+*Release Date - December 4, 2025*
+
+* changed: prevent use of deprecated seems_utf8() function on WP 6.9+
+* fixed: Lazy Load auto-sizing makes images too small when screen size changes
+* fixed: failure to decode CSS background images contained in encoded quotes (&apos;)
+
 = 8.3.0 =
 *Release Date - November 19, 2025*
 
