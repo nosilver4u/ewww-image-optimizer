@@ -11830,7 +11830,7 @@ function ewww_image_optimizer_intro_wizard() {
 					<label for='ewww_image_optimizer_jpg_quality'><?php esc_html_e( 'JPG Quality Level', 'ewww-image-optimizer' ); ?></label>
 				</p>
 		<?php endif; ?>
-		<?php if ( function_exists( 'easyio_get_option' ) && easyio_get_option( 'easyio_lazy_load' ) ) : ?>
+		<?php if ( function_exists( 'easyio' ) && method_exists( easyio(), 'get_option' ) && easyio()->get_option( 'easyio_lazy_load' ) ) : ?>
 				<p>
 					<input type='checkbox' id='ewww_image_optimizer_easy_lazy' name='ewww_image_optimizer_easy_lazy' value='true' checked disabled />
 					<label for='ewww_image_optimizer_easy_lazy'><?php esc_html_e( 'Lazy Load (enabled in Easy IO)', 'ewww-image-optimizer' ); ?></label><br>
@@ -13462,7 +13462,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							</label>
 						</div>
 						<div class='ewww-setting-detail'>
-	<?php if ( function_exists( 'easyio_get_option' ) && easyio_get_option( 'easyio_lazy_load' ) ) : ?>
+	<?php if ( function_exists( 'easyio' ) && method_exists( easyio(), 'get_option' ) && easyio()->get_option( 'easyio_lazy_load' ) ) : ?>
 							<p class='description'><?php esc_html_e( 'Setting managed in Easy Image Optimizer.', 'ewww-image-optimizer' ); ?></p>
 							<input type='hidden' id='ewww_image_optimizer_add_missing_dims' name='ewww_image_optimizer_add_missing_dims' <?php echo ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_add_missing_dims' ) ? "value='1'" : "value='0'" ); ?> />
 	<?php else : ?>
@@ -13481,7 +13481,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<label for='ewww_image_optimizer_lazy_load'><?php esc_html_e( 'Lazy Load', 'ewww-image-optimizer' ); ?></label>
 							<?php ewwwio_help_link( 'https://docs.ewww.io/article/74-lazy-load', '5c6c36ed042863543ccd2d9b' ); ?>
 						</div>
-	<?php if ( function_exists( 'easyio_get_option' ) && easyio_get_option( 'easyio_lazy_load' ) ) : ?>
+	<?php if ( function_exists( 'easyio' ) && method_exists( easyio(), 'get_option' ) && easyio()->get_option( 'easyio_lazy_load' ) ) : ?>
 						<div class='ewww-setting-detail'>
 							<p class='description'><?php esc_html_e( 'Lazy Load enabled in Easy Image Optimizer.', 'ewww-image-optimizer' ); ?></p>
 						</div>

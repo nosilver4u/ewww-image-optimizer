@@ -310,7 +310,7 @@ class ExactDN extends Page_Parser {
 		// Check REST API requests to see if ExactDN should be running.
 		\add_filter( 'rest_request_before_callbacks', array( $this, 'parse_restapi_maybe' ), 10, 3 );
 
-		\add_filter( 'exactdn_srcset_multipliers', array( $this, 'add_hidpi_srcset_multipliers' ) );
+		\add_filter( 'exactdn_srcset_multipliers', array( $this, 'add_hidpi_srcset_multipliers' ), 9 );
 
 		// Overrides for admin-ajax images.
 		\add_filter( 'exactdn_admin_allow_image_downsize', array( $this, 'allow_admin_image_downsize' ), 10, 2 );
@@ -3576,7 +3576,7 @@ class ExactDN extends Page_Parser {
 	 * @return array The modified list of multipliers.
 	 */
 	public function add_hidpi_srcset_multipliers( $multipliers ) {
-		if ( $this->get_option( 'exactdn_hidpi' ) ) {
+		if ( $this->get_option( 'exactdn_hidpi' ) && $this->is_iterable( $multipliers ) ) {
 			$this->debug_message( 'adding hidpi multipliers' );
 			$multipliers[] = 2;
 			$multipliers[] = 3;

@@ -142,6 +142,12 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 8.3.2 =
+*Release Date - TBD*
+
+* fixed: PHP notice for boolean to array conversion
+* fixed: Lazy Load setting does not detect presence of Easy IO plugin
+
 = 8.3.1 =
 *Release Date - December 4, 2025*
 
