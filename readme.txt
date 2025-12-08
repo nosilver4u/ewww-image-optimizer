@@ -147,6 +147,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 * fixed: PHP notice for boolean to array conversion
 * fixed: Lazy Load setting does not detect presence of Easy IO plugin
+* fixed: Easy IO domain not reset after site URL is updated
 
 = 8.3.1 =
 *Release Date - December 4, 2025*

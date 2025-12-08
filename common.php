@@ -10734,13 +10734,20 @@ function ewww_image_optimizer_settings_script( $hook ) {
 	// Reset Easy IO bits before we remove the rest of the admin_notices.
 	delete_option( 'ewww_image_optimizer_exactdn_checkin' );
 	global $exactdn;
-	if ( is_object( $exactdn ) && ! empty( $exactdn->domain_mismatch ) ) {
-		delete_option( 'ewww_image_optimizer_exactdn_domain' );
-		delete_option( 'ewww_image_optimizer_exactdn_local_domain' );
-		delete_option( 'ewww_image_optimizer_exactdn_plan_id' );
-		delete_option( 'ewww_image_optimizer_exactdn_failures' );
-		delete_option( 'ewww_image_optimizer_exactdn_verified' );
-		$exactdn->setup();
+	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) && is_object( $exactdn ) ) {
+		if ( method_exists( $exactdn, 'admin_notices' ) ) {
+			remove_all_actions( 'exactdn_as3cf_cname_active' );
+			remove_all_actions( 'exactdn_domain_mismatch' );
+			$exactdn->admin_notices();
+		}
+		if ( ! empty( $exactdn->domain_mismatch ) ) {
+			delete_option( 'ewww_image_optimizer_exactdn_domain' );
+			delete_option( 'ewww_image_optimizer_exactdn_local_domain' );
+			delete_option( 'ewww_image_optimizer_exactdn_plan_id' );
+			delete_option( 'ewww_image_optimizer_exactdn_failures' );
+			delete_option( 'ewww_image_optimizer_exactdn_verified' );
+			$exactdn->setup();
+		}
 	}
 
 	remove_all_actions( 'admin_notices' );

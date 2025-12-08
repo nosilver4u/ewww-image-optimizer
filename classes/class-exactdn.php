@@ -420,6 +420,8 @@ class ExactDN extends Page_Parser {
 			$stored_local_domain = $this->upload_domain;
 		} elseif ( \str_contains( $stored_local_domain, '.' ) ) {
 			$this->set_exactdn_option( 'local_domain', \base64_encode( $stored_local_domain ) );
+		} else {
+			$stored_local_domain = \base64_decode( $stored_local_domain );
 		}
 		$this->debug_message( "saved (local) domain is $stored_local_domain" );
 
@@ -898,6 +900,7 @@ class ExactDN extends Page_Parser {
 	 */
 	public function admin_notices() {
 		if ( $this->is_as3cf_cname_active() ) {
+			$this->debug_message( 'AS3CF CNAME detected' );
 			\do_action( 'exactdn_as3cf_cname_active' );
 		}
 		$stored_local_domain = $this->get_exactdn_option( 'local_domain' );
@@ -906,6 +909,7 @@ class ExactDN extends Page_Parser {
 			$stored_local_domain !== $this->upload_domain &&
 			! $this->allow_image_domain( $stored_local_domain )
 		) {
+			$this->debug_message( 'domain mismatch detected' );
 			$this->domain_mismatch = true;
 			\do_action( 'exactdn_domain_mismatch' );
 		}
