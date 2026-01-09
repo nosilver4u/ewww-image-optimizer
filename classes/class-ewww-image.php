@@ -847,16 +847,16 @@ class EWWW_Image {
 						$imagick->setImageCompressionQuality( $quality );
 						$imagick->writeImage( $newfile );
 					} catch ( Exception $imagick_error ) {
-						ewwwio_debug_message( $imagick_error->getMessage() );
+						\ewwwio_debug_message( $imagick_error->getMessage() );
 					}
 					$jpg_size = ewww_image_optimizer_filesize( $newfile );
 				}
 				if ( ! $jpg_size && \ewwwio()->gd_support() ) {
-					ewwwio_debug_message( 'converting with GD' );
+					\ewwwio_debug_message( 'converting with GD' );
 					// Retrieve the data from the PNG.
 					$input = imagecreatefrompng( $file );
 					// Retrieve the dimensions of the PNG.
-					list( $width, $height ) = wp_getimagesize( $file );
+					list( $width, $height ) = \ewwwio()->getimagesize( $file );
 					// Create a new image with those dimensions.
 					$output = imagecreatetruecolor( $width, $height );
 					if ( '' === $r ) {

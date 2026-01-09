@@ -1081,6 +1081,26 @@ class Base {
 	}
 
 	/**
+	 * Get the dimensions of an image.
+	 *
+	 * Differs from the core wp_getimagesize() in that it always returns an array with two values.
+	 *
+	 * @param string $filename The filename of an image.
+	 * @return array Array of width and height, both set to false on failure.
+	 */
+	public function getimagesize( $filename ) {
+		$width  = false;
+		$height = false;
+
+		$image_data = \wp_getimagesize( $filename );
+		if ( \is_array( $image_data ) && ! empty( $image_data[0] ) && ! empty( $image_data[1] ) ) {
+			$width  = (int) $image_data[0];
+			$height = (int) $image_data[1];
+		}
+		return array( $width, $height );
+	}
+
+	/**
 	 * Check the mimetype of the given file with magic mime strings/patterns.
 	 *
 	 * @param string $path The absolute path to the file.

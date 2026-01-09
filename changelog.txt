@@ -248,6 +248,8 @@
 * fixed: prevent WP Offload Media from prematurely re-offloading when using bulk optimizer
 
 = 7.0.2 =
+*Release Date - June 6, 2023*
+
 * fixed: background optimization incorrectly displays as disabled on fresh installs with object caching
 * fixed: Easy IO registration state not detected on multi-site
 * fixed: duplicate queries in wp-admin when used with WP Offload Media
@@ -255,10 +257,14 @@
 * fixed: error when checking a corrupted PNG for transparency
 
 = 7.0.1 =
+*Release Date - May 24, 2023*
+
 * fixed: Easy IO instructions display incorrect URL when images are on cloud storage (S3, GCS, etc.)
 * fixed: fatal error calling undefined method supports_webp
 
 = 7.0.0 =
+*Release Date - May 11, 2023*
+
 * breaking: namespaced and reorganized several classes, third party integrations should check for compatibility
 * added: allow video files to go through Easy IO CDN (pass through)
 * added: support for WP_Image_Editor_Imagick::set_imagick_time_limit() method added in WP 6.2
@@ -282,6 +288,8 @@
 * fixed: clearing debug log does not redirect back to settings page in rare cases
 
 = 6.9.3 =
+*Release Date - December 14, 2022*
+
 * changed: improved Brizy Builder compatibility
 * changed: async optimization defers processing by WP Offload Media until after optimization is complete, fixes issues with WP Offload Media 3.1+
 * fixed: converting an image with the same base name as a previous upload (image.png vs. image.jpg) could cause naming conflict when using WP Offload Media with Remove Local Media option
@@ -293,6 +301,8 @@
 * improved: ensure originals are queued for removal from remote storage after conversion and subsequent deletion when using WP Offload Media
 
 = 6.9.2 =
+*Release Date - October 25, 2022*
+
 * changed: improved Easy IO detection for site URL changes
 * changed: load backup class earlier to prevent issues with custom image uploaders
 * fixed: and improved the ewwwio_translated_media_ids filter, props @ocean90
@@ -300,12 +310,16 @@
 * fixed: Easy IO + Lazy Load auto-scale produces invalid URL if an image with no query string is constrained by height
 
 = 6.9.1 =
+*Release Date - October 5, 2022*
+
 * changed: default syntax for MySQL 8.x to use faster upgrade query
 * fixed: bulk action parameter was not validated properly when selecting attachments for optimization
 * fixed: undefined function ewww_image_optimizer_get_primary_wpml_id
 * fixed: PHP notices when Easy IO filters srcset URLs
 
 = 6.9.0 =
+*Release Date - September 28, 2022*
+
 * added: allow translation plugins to filter attachment IDs for retrieving Media Library results via ewwwio_primary_translated_media_id/ewwwio_translated_media_ids
 * changed: include upstream lazysizes unveilhooks for use by developers, props @saas786
 * fixed: Easy IO compatibility with S3 Uploads 3.x
@@ -1795,6 +1809,8 @@ You can find more information about overriding options in the [Documentation](ht
 * fixed: Scan & Optimize fails when it encounters a permissions error
 
 = 2.4.0 =
+*Release Date - May 9, 2015*
+
 * added: advanced option to disable specific resizes or just exclude them from optimization
 * added: Turkish and Swedish translations (with updates of most other translations)
 * added: protection to prevent corruption of images in case of broken mimetype detection
@@ -1805,6 +1821,8 @@ You can find more information about overriding options in the [Documentation](ht
 * fixed: some NextGen bulk optimize functions were broken when using various translations
 
 = 2.3.2 =
+*Release Date - April 14, 2015*
+
 * fixed: sql error for duplicate key name during plugin upgrade
 * fixed: is_plugin_active undefined during scheduled optimization
 * fixed: webp rewriting strips </body> and </html>
@@ -1817,6 +1835,8 @@ You can find more information about overriding options in the [Documentation](ht
 * changed: added checks to prevent redeclaring ewwwngg and ewwwflag classes
 
 = 2.3.1 =
+*Release Date - April 8, 2015*
+
 * fixed: load_webp.js was being inserted regardless of the associated Alternative WebP Rewrites option
 * fixed: wrong slash in plugin path for Windows users with NextGEN and FlaGallery
 * fixed: extra comma in table upgrade sql
@@ -1825,6 +1845,8 @@ You can find more information about overriding options in the [Documentation](ht
 * changed: progressbar color updated to match new colors in 4.2 for default theme
 
 = 2.3.0 =
+*Release Date - April 7, 2015*
+
 * fixed: bug in GIF processing rendered Gifsicle impotent (no savings possible), non Cloud users should re-optimize all their GIFs in Force mode
 * added: WebP url rewriting for sites using CDNs, requires output buffering and libxml in PHP, and may require modifications for some themes
 * added: option to include last two months of Media Library images in Scheduled Optimization (for those that have disabled Automatic Optimization)
@@ -1857,12 +1879,18 @@ You can find more information about overriding options in the [Documentation](ht
 * updated: translations for Portuguese, Romanian, and Polish
 
 = 2.2.2 =
+*Release Date - January 10, 2015*
+
 * fixed: previous fix for deleting webp images was not working properly
 
 = 2.2.1 =
+*Release Date - January 7, 2015*
+
 * fixed: infinite loop on hosts where set_time_limit does not work
 
 = 2.2.0 =
+*Release Date - January 6, 2015*
+
 * added: wp-cli command to optimize via command-line, 'wp-cli help ewwwio optimize' for more details
 * added: Unoptimized Images page to show ONLY images that have not been processed by EWWW (under Media Library)
 * added: advanced option to preserve metadata for full-size originals
@@ -1874,9 +1902,13 @@ You can find more information about overriding options in the [Documentation](ht
 * FlaGallery 4.27 resolves the optimize on upload issue, and fixes problems with the new wp-cli functions
 
 = 2.1.2 =
+*Release Date - December 15, 2014*
+
 *fixed: post-processing call to Amazon S3 and Cloudfront was broken when upgrading it to .7 or higher, fixed to allow both .6 and .7 to work with EWWW IO
 
 = 2.1.1 =
+*Release Date - December 10, 2014*
+
 * broken: optimize on upload currently broken for flagallery
 * deprecated: NextGEN legacy support will be removed in 2.2 unless I hear from anyone still using it, Nextcellent will continue to be supported
 * changed: all image types are enabled when cloud API key is validated (but only if you do not choose individual options)
@@ -1893,6 +1925,8 @@ You can find more information about overriding options in the [Documentation](ht
 * added: Portuguese translation (pt_BR), props to Pedro Marcelo de Sá Alves
 
 = 2.1.0 =
+*Release Date - October 28, 2014*
+
 * security: ssl strengthened for cloud users, no more SSLv3 (thanks POODLE), and other additional encryption tweaks, please report related errors ASAP
 * fixed: warning when scheduled scanner doesn't have any images to optimize
 * added: option to skip PNG images over a certain size since PNG images are prone to timeouts
@@ -1905,6 +1939,8 @@ You can find more information about overriding options in the [Documentation](ht
 * updated: all translations have been updated
 
 = 2.0.2 =
+*Release Date - September 24, 2014*
+
 * security: pngout error message properly sanitized to prevent XSS attack
 * changed: changed priority for processing Media Library images to run before Amazon Cloudfront plugin, this could affect other plugins that hook on wp_generate_attachment_metadata
 * fixed: cloud users seeing 'needs attention' incorrectly
@@ -1915,6 +1951,8 @@ You can find more information about overriding options in the [Documentation](ht
 * fixed: Image Store resizes were being double-optimized due to filename changes
 
 = 2.0.1 =
+*Release Date - September 8, 2014*
+
 * fixed: naming conflict with webp when jpg/png files have identical names, read NOTE above
 * fixed: folders to optimize are not retrieved properly on settings page
 * fixed: undefined variable in permissions check for cwebp on Mac OSX
@@ -1930,6 +1968,8 @@ You can find more information about overriding options in the [Documentation](ht
 * changed: settings tabs have been moved below the status section (directly above the settings area) to enhance usability
 
 = 2.0.0 =
+*Release Date - August 26, 2014*
+
 * NOTE: while this is a release with new features, it is not a rewrite, only the next number in the decimal system, just like the WP numbering scheme
 * added: webp generation (wahooooooooo)
 * added: jpegmini support (more wahooooo, but requires a cloud subscription)
@@ -1951,11 +1991,15 @@ You can find more information about overriding options in the [Documentation](ht
 * fixed: import failed if nextgen classes aren't available during import
 
 = 1.9.3 =
+*Release Date - June 25, 2014*
+
 * added: fallback mode when totals for resizes and unoptimized images cannot be determined by the bulk optimize tool
 * added: up to 30 second retry when import is interrupted on bulk optimize page
 * fixed: suppress 'empty server response' messages for cloud users, instead correctly report No Savings
 
 = 1.9.2 =
+*Release Date - June 13, 2014*
+
 * fixed: memory limit exceeded when counting total savings on settings page
 * fixed: application/octet-stream is accepted as valid output for mimetype check on executables
 * added: PngOptimizerCL for even better optimization of PNG images on cloud service
@@ -1965,6 +2009,8 @@ You can find more information about overriding options in the [Documentation](ht
 * changed: more efficient verification of cloud api keys
 
 = 1.9.1 =
+*Release Date - May 30, 2014*
+
 * fixed: escapeshellarg command breaks Windows filenames
 * fixed: newer versions of pngquant not detected
 * fixed: properly check paletted/indexed PNG files for transparency (requires GD)
@@ -1976,6 +2022,8 @@ You can find more information about overriding options in the [Documentation](ht
 * added: use nextgen2 hook for adding action link in gallery management pages
 
 = 1.9.0 =
+*Release Date - May 6, 2014*
+
 * changed: verification results for cloud optimization are still cached, but actual optimization requires pre-verification to maintain load-balancing
 * added: NextCellent Gallery support - no future development will be done for NextGEN 1.9.13, all future development will be on NextCellent.
 * updated translations for Romanian and Dutch
@@ -1986,6 +2034,8 @@ You can find more information about overriding options in the [Documentation](ht
 * added: option to bypass optimization for small images
 
 = 1.8.5 =
+*Release Date - March 29, 2014*
+
 * fixed: images with empty metadata count as unoptimized images on Bulk Optimize
 * changed: Import process split into batches via AJAX to make it less likely to timeout and use less memory
 * changed: Bulk Optimize page uses less memory and is quicker to load
@@ -1997,9 +2047,13 @@ You can find more information about overriding options in the [Documentation](ht
 * fixed: gifsicle sometimes generates slightly larger images (not anymore)
 
 = 1.8.4 =
+*Release Date - March 8, 2014*
+
 * fixed: Import process is much faster by about 50x
 
 = 1.8.3 =
+*Release Date - March 1, 2014*
+
 * fixed: tools cannot be found if there are spaces in the WP paths
 * changed: API key validation is now cached to greatly reduce page load time, mostly on the admin side, but also for any sites that generate or allow uploading images on the front-end
 * fixed: a few WP Retina @2x images were not being optimized, and none of them were stored in the ewwwio_images table properly
@@ -2008,14 +2062,20 @@ You can find more information about overriding options in the [Documentation](ht
 * changed: Bulk Optimize loads much quicker (mostly noticable on sites with thousands of images)
 
 = 1.8.2 =
+*Release Date - February 19, 2014*
+
 * updated Romanian translation
 * removed: potentially long-running query from upgrade
 * fixed: cloud queries were using the wrong hostname, all cloud users must apply this update to avoid service degradation
 
 = 1.8.1 =
+*Release Date - February 14, 2014*
+
 * fixed: ewww_image_optimizer_aux_images_loop() undefined causes any calls to WP_Image_Editor to fail (breaks lots of stuff)
 
 = 1.8.0 =
+*Release Date - February 13, 2014*
+
 * fixed: debug output not working properly on bulk optimize
 * changed: when cloud license has been exceeded, the optimizer will not attempt to upload images, and bulk operations will stop immediately
 * fixed: unnecessary decimals will not be displayed for file-sizes in bytes
@@ -2036,6 +2096,8 @@ You can find more information about overriding options in the [Documentation](ht
 * fixed: attempt to convert PNGs with empty alpha channels after optimization on first pass, instead of on re-optimization
 
 = 1.7.6 =
+*Release Date - January 8, 2014*
+
 * fixed: color of progress bar for 4 more admin themes in WP 3.8
 * changed: metadata stripping now applies to PNG images, but only if using optipng 0.7.x
 * added: ability to remove individual images from the Optimize More table
@@ -2045,6 +2107,8 @@ You can find more information about overriding options in the [Documentation](ht
 * fixed: weirdness with paths preventing Windows servers from activating, and cleanup of plugin path code
 
 = 1.7.5 =
+*Release Date - December 10, 2013*
+
 * new version of gifsicle (1.78), for more detail, see http://www.lcdf.org/gifsicle/changes.html
 * proper detection of Cloudinary images instead of error message
 * plays nicer with Imsanity, detect when a newly uploaded image has been modified and optimized already (instead of re-optimizing)
@@ -2057,17 +2121,23 @@ You can find more information about overriding options in the [Documentation](ht
 * better checking for safe_mode
 
 = 1.7.4 =
+*Release Date - November 30, 2013*
+
 * fixed: some settings were set to incorrect defaults after enabling and disabling cloud features
 * fixed: invalid status on some systems for 'tar' command
 * new: SunOS support - OpenIndiana and Solaris
 * fixed: resizes not properly checking for re-optimization prevention
 
 = 1.7.3 =
+*Release Date - November 18, 2013*
+
 * fixed: some security plugins disable Optimize More - use install_themes permission instead of edit_themes
 * fixed: table schema changes not firing on upgrade
 * changed: bulk_attachment variables are not autoloaded to improve performance
 
 = 1.7.2 =
+*Release Date - November 12, 2013*
+
 * added: internationalization - need volunteers to provide translations.
 * fixed: Import button not shown on Optimize More in some cases
 * fixed: Bulk Optimize for Nextgen was broken
@@ -2079,9 +2149,13 @@ You can find more information about overriding options in the [Documentation](ht
 * fixed: debug log created if it does not exist already
 
 = 1.7.1 =
+*Release Date - October 30, 2013*
+
 * fixed: syntax error causing white screen of death for Nextgen v2
 
 = 1.7.0 =
+*Release Date - October 30, 2013*
+
 * added: ability to optimize specified folders within your wordpress install
 * added: option to optimize on a schedule for images that cannot be automatically optimized on upload (buddypress, symposium, metaslider, user-specified folders)
 * added: WP Symposium support via 'Optimize More' in Tools menu
@@ -2102,6 +2176,8 @@ You can find more information about overriding options in the [Documentation](ht
 * added: screencasts on plugin Installation page
 
 = 1.6.3 =
+*Release Date - October 3, 2013*
+
 * plugin will failover gracefully if one of the cloud optimization servers is offline
 * prevent excess database calls when optimizing theme images
 * fixed plugin mangles metadata for Image Store plugin
@@ -2110,20 +2186,28 @@ You can find more information about overriding options in the [Documentation](ht
 * cleaned up settings page (mostly) for cloud users
 
 = 1.6.2 =
+*Release Date - September 24, 2013*
+
 * added license exceeded status into status message so users know if they've gone over
 * prevent tool checks and cloud verification from firing on every page load, yikes...
 
 = 1.6.1 =
+*Release Date - September 21, 2013*
+
 * fixed: temporary jpgs were not being deleted (leftovers from testing for last release)
 * fixed: jpgs would not be converted to pngs if jpgs had already been optimized
 * fixed: cloud service not converting gif to png
 
 = 1.6.0 =
+*Release Date - September 20, 2013*
+
 * Cloud Optimization option (BETA: get your free API key at http://www.exactlywww.com/cloud/)
 * fixed if exec() is disabled or safe mode is on, don't bother testing local tools
 * more tweaks for exec() detection, including suhosin extension
 
 = 1.5.0 =
+*Release Date - September 10, 2013*
+
 * BuddyPress integration to optimize avatars
 * added function to optimize all images in currently active theme
 * full compatibility with NextGEN 2.0.x
@@ -2132,10 +2216,14 @@ You can find more information about overriding options in the [Documentation](ht
 * use internal wordpress functions for retrieving image path, displaying filesize, building redirect urls, and downloading pngout
 
 = 1.4.4 =
+*Release Date - June 14, 2013*
+
 * fixed bulk optimization functions for non-English users in NextGEN
 * fixed bulk action conflict in NextGEN
 
 = 1.4.3 =
+*Release Date - May 10, 2013*
+
 * global configuration for multi-site/network installs
 * prevent loading of bundled jquery on WP versions that don't need it to avoid conflicts with other plugins not doing the 'right thing'
 * removed enqueueing of common.js to make things run quicker
@@ -2145,10 +2233,14 @@ You can find more information about overriding options in the [Documentation](ht
 * no longer alert users of jpegtran update if they are using version 8
 
 = 1.4.2 =
+*Release Date - April 17, 2013*
+
 * fixed fatal errors when posix_getpwuid() is missing from server
 * removed path restrictions, and fixed path detection for old blogs where upload path was modified
 
 = 1.4.1 =
+*Release Date - April 10, 2013*
+
 * FlaGallery and NextGEN Bulk functions are now using ajax functions with nicer progress bars and such
 * NextGEN now has ability to optimize selected galleries, or selected images in bulk (FlaGallery already had it)
 * NextGEN users can now click a button to optimize thumbnails after uploading new images
@@ -2160,6 +2252,8 @@ You can find more information about overriding options in the [Documentation](ht
 * increased compatibility back to 2.8 - hope no one is actually using that, but just in case...
 
 = 1.4.0 =
+*Release Date - March 20, 2013*
+
 * fixed bug with missing 'nice' not detected properly
 * added: Windows support, includes gifsicle, optipng, and jpegtran executables
 * added: FreeBSD support, includes gifsicle, optipng, and jpegtran executables
@@ -2175,6 +2269,8 @@ You can find more information about overriding options in the [Documentation](ht
 * added: 64-bit jpegtran binary for linux servers missing compatibility libraries
 
 = 1.3.8 =
+*Release Date - January 27, 2013*
+
 * fixed: finfo library doesn't work on PHP versions below 5.3.0 due to missing constant
 * fixed: resume button doesn't resume when the running the bulk action on groups of images
 * shell_exec() and exec() detection is more robust
@@ -2182,9 +2278,13 @@ You can find more information about overriding options in the [Documentation](ht
 * added finfo functionality to nextgen and flagallery
 
 = 1.3.7 =
+*Release Date - January 10, 2013*
+
 * re-compiled bundled optipng and gifsicle on CentOS 5 for wider compatibility
 
 = 1.3.6 =
+*Release Date - January 5, 2013*
+
 * fixed: servers with gzip still failed on bulk operations, forgot to delete a line I was testing for alternatives
 * fixed: some servers with shell_exec() disabled were not detected due to whitespace issues
 * fixed: shell_exec() was not used in PNGtoJPG conversion
@@ -2193,28 +2293,40 @@ You can find more information about overriding options in the [Documentation](ht
 * code cleanup
 
 = 1.3.5 =
+*Release Date - January 3, 2013*
+
 * fixed: resuming a bulk optimize on FlAGallery was broken
 * added resume button when running the bulk optimize operation to make it easier to resume a bulk optimize
 
 = 1.3.4 =
+*Release Date - January 2, 2013*
+
 * fixed optipng check for older versions (0.6.x)
 * look in system paths for pngout and pngout-static
 * added option for ignoring bundled binaries and using binaries located in system paths instead
 * added notices on options page for out-of-date binaries
 
 = 1.3.3 =
+*Release Date - December 31, 2012*
+
 * use finfo functions in PHP 5.3+ instead of deprecated mime_content_type
 * use shell_exec() to make calls to jpegtran more secure and avoid output redirection
 * added bulk action to optimize multiple galleries on the manage galleries page - FlAGallery
 * added bulk action to optimize multiple images on the manage images page - FlAGallery
 
 = 1.3.2 =
+*Release Date - December 29, 2012*
+
 * fixed: forgot to apply gzip fix to NextGEN and FlAGallery
 
 = 1.3.1 =
+*Release Date - December 29, 2012*
+
 * fixed: turning off gzip for Apache broke bulk operations
 
 = 1.3.0 =
+*Release Date - December 28, 2012*
+
 * support for GRAND FlAGallery (flash album gallery)
 * added ability to restore originals after a conversion (we were already storing the original paths in the database)
 * fixed: resized converted images had the wrong original path stored
@@ -2236,6 +2348,8 @@ You can find more information about overriding options in the [Documentation](ht
 * when a converted attachment is deleted from wordpress, original images are also cleaned up
 
 = 1.2.2 =
+*Release Date - November 12, 2012*
+
 * fixed: uninitialized variables
 * update links in posts for converted images
 * fixed: png2jpg sometimes fills with black instead of chosen color
@@ -2243,9 +2357,13 @@ You can find more information about overriding options in the [Documentation](ht
 * added pngout version to debug
 
 = 1.2.1 =
+*Release Date - November 5, 2012*
+
 * fixed: wordpress plugin installer removes executable bit from bundled tools
 
 = 1.2.0 =
+*Release Date - November 5, 2012*
+
 * SECURITY: bundled optipng updated to 0.7.4
 * deprecated manual path settings, please put binaries in the plugin folder instead
 * new one-click install option for jpegtran
@@ -2261,25 +2379,37 @@ You can find more information about overriding options in the [Documentation](ht
 * utilities have a 'niceness' value of 10 added to give them lower priority
 
 = 1.1.1 =
+*Release Date - October 9, 2012*
+
 * fixed not returning results of resized version of image
 
 = 1.1.0 =
+*Release Date - September 21, 2012*
+
 * added pngout functionality for even better PNG optimization (disabled by default)
 * added options to disable/bypass each tool
 * pre-compiled binaries are now available via links on the settings page - try them out and let me know if there are problems
 
 = 1.0.11 =
+*Release Date - September 19, 2012*
+
 * path validation was broken for nextgen in previous version, now fixed
 
 = 1.0.10 =
+*Release Date - September 19, 2012*
+
 * added the ability to resume a bulk optimization that doesn't complete
 * changed path validation for images from wordpress folder to wordpress uploads folder to accomodate users who have located this elsewhere
 * minor code cleanup
 
 = 1.0.9 =
+*Release Date - July 8, 2012*
+
 * fixed parse error due to php short tags (old habits die hard)
 
 = 1.0.8 =
+*Release Date - July 7, 2012*
+
 * added extra progress and time indicators on Bulk Optimize
 * allow each image in Bulk Optimize 50 seconds to help prevent timeouts (doesn't work if PHP's Safe Mode is turned on)
 * added check for safe mode (because we can't function that way)
@@ -2287,6 +2417,8 @@ You can find more information about overriding options in the [Documentation](ht
 * restored calls to flush output buffers for php 5.3
 
 = 1.0.7 =
+*Release Date - June 25, 2012*
+
 * added bulk optimize to Tools menu and re-optimize for individual images with NextGEN
 * fixed optimizer function to skip images where the utilities are missing
 * added check to ensure user doesn't pass arguments in utility paths
@@ -2295,6 +2427,8 @@ You can find more information about overriding options in the [Documentation](ht
 * more code cleanup
 
 = 1.0.6 =
+*Release Date - June 18, 2012*
+
 * ported basic NextGEN integration from WP Smush.it (no bulk or re-optimize... yet)
 * added extra output for bulk operations
 * if the jpeg optimization produces an empty file, it will be discarded (instead of overwriting your originals)
@@ -2302,24 +2436,36 @@ You can find more information about overriding options in the [Documentation](ht
 * fixed various PHP notices/warnings
 
 = 1.0.5 =
+*Release Date - June 18, 2012*
+
 * missed documentation updates in 1.0.4 - sorry
 
 = 1.0.4 =
+*Release Date - June 12, 2012*
+
 * Added trial with -progressive switch for JPGs (jpegtran), thanks to Alex Vojacek for noticing something was missing. We still check to make sure the progressive option is better, just in case.
 * tested against 3.4-RC3
 
 = 1.0.3 =
+*Release Date - June 11, 2012*
+
 * Allow user to specify PNG optimization level
 * Code and screenshot cleanup
 * Settings page beautification (if you can think of further improvements, feel free to use the support link)
 * Bulk Optimize action drop-down on Media Library - ported from Regenerate Thumbnails plugin
 
 = 1.0.2 =
+*Release Date - June 7, 2012*
+
 * Forgot to add Settings link to warning message when tools are missing
 
 = 1.0.1 =
+*Release Date - June 7, 2012*
+
 * Fixed optimization level for optipng (-o3)
 * Added Installation and Support links to Settings page, and a link to Settings from the Plugin page.
 
 = 1.0.0 =
+*Release Date - June 7, 2012*
+
 * First release (forked from CW Image Optimizer)

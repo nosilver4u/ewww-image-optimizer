@@ -250,10 +250,14 @@ final class Plugin extends Base {
 
 	/**
 	 * Disable unserializing of the class.
+	 *
+	 * @param array $data The data to unserialize.
+	 * @return array The original data, unaltered. We don't support unserializing.
 	 */
-	public function __wakeup() {
+	public function __unserialize( $data ) {
 		// Unserializing instances of the class is forbidden.
 		\_doing_it_wrong( __METHOD__, \esc_html__( 'Cannot unserialize (wakeup) the core object.', 'ewww-image-optimizer' ), \esc_html( EWWW_IMAGE_OPTIMIZER_VERSION ) );
+		return $data;
 	}
 
 	/**

@@ -35,7 +35,7 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 	/**
 	 * The API key used for API-based tests.
 	 *
-	 * @var stringg $api_key
+	 * @var string $api_key
 	 */
 	public static $api_key = '';
 
@@ -77,8 +77,8 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherheight', 1024 );
 		$id = $this->factory->attachment->create_upload_object( self::$test_jpg );
 		$meta = wp_get_attachment_metadata( $id );
-		list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
-		list( $width, $height ) = wp_getimagesize( $file_path );
+		list( $file_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
+		list( $width, $height ) = ewwwio()->getimagesize( $file_path );
 		$this->assertEquals( 576, $width );
 		$this->assertEquals( 1024, $height );
 	}
@@ -97,8 +97,8 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 		$id = $this->factory->attachment->create_upload_object( self::$test_jpg );
 		remove_filter( 'ewww_image_optimizer_crop_image', '__return_true' );
 		$meta = wp_get_attachment_metadata( $id );
-		list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
-		list( $width, $height ) = wp_getimagesize( $file_path );
+		list( $file_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
+		list( $width, $height ) = ewwwio()->getimagesize( $file_path );
 		$this->assertEquals( 1024, $width );
 		$this->assertEquals( 1024, $height );
 	}
@@ -120,8 +120,8 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherheight', 1024 );
 		$id = $this->factory->attachment->create_upload_object( self::$test_jpg );
 		$meta = wp_get_attachment_metadata( $id );
-		list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
-		list( $width, $height ) = wp_getimagesize( $file_path );
+		list( $file_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
+		list( $width, $height ) = ewwwio()->getimagesize( $file_path );
 		$this->assertEquals( 576, $width );
 		$this->assertEquals( 1024, $height );
 	}
@@ -145,8 +145,8 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 		$id = $this->factory->attachment->create_upload_object( self::$test_jpg );
 		remove_filter( 'ewww_image_optimizer_crop_image', '__return_true' );
 		$meta = wp_get_attachment_metadata( $id );
-		list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
-		list( $width, $height ) = wp_getimagesize( $file_path );
+		list( $file_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
+		list( $width, $height ) = ewwwio()->getimagesize( $file_path );
 		$this->assertEquals( 1024, $width );
 		$this->assertEquals( 1024, $height );
 	}

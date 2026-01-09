@@ -1363,7 +1363,7 @@ function ewww_image_optimizer_should_resize( $file, $media = false ) {
 		$maxwidth  = ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' );
 		$maxheight = ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' );
 	}
-	list( $oldwidth, $oldheight ) = wp_getimagesize( $file );
+	list( $oldwidth, $oldheight ) = ewwwio()->getimagesize( $file );
 	if ( ( $maxwidth && $oldwidth > $maxwidth ) || ( $maxheight && $oldheight > $maxheight ) ) {
 		$already_optimized = false;
 		if ( empty( $optimized_list ) || ! is_array( $optimized_list ) ) {
@@ -1559,7 +1559,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 			ewwwio_debug_message( "id: $selected_id and type: $mime" );
 			$attached_file = ( ! empty( $attachments_meta[ $selected_id ]['_wp_attached_file'] ) ? $attachments_meta[ $selected_id ]['_wp_attached_file'] : '' );
 
-			list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $selected_id, $attached_file, false );
+			list( $file_path ) = ewww_image_optimizer_attachment_path( $meta, $selected_id, $attached_file, false );
 
 			if ( ! empty( $file_path ) && false !== strpos( $file_path, 'https://images-na.ssl-images-amazon.com' ) ) {
 				ewwwio_debug_message( "Cannot compress externally-hosted Amazon image $selected_id" );

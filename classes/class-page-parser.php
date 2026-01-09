@@ -299,7 +299,7 @@ class Page_Parser extends Base {
 				$file = $this->url_to_path_exists( $url );
 			}
 			if ( $file && $this->is_file( $file ) ) {
-				list( $width, $height ) = \wp_getimagesize( $file );
+				list( $width, $height ) = $this->getimagesize( $file );
 			}
 		}
 		$width  = $width && \is_numeric( $width ) ? (int) $width : false;

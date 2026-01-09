@@ -538,43 +538,6 @@ function ewww_image_optimizer_superadmin_permissions( $permissions ) {
 	return $permissions;
 }
 
-if ( ! function_exists( 'wp_getimagesize' ) ) {
-	/**
-	 * Stub for WP prior to 5.7.
-	 *
-	 * @param string $filename The file path.
-	 * @return array|false Array of image information or false on failure.
-	 */
-	function wp_getimagesize( $filename ) {
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors
-		return @getimagesize( $filename );
-	}
-}
-
-if ( ! function_exists( 'str_ends_with' ) ) {
-	/**
-	 * Polyfill for `str_ends_with()` function added in WP 5.9 or PHP 8.0.
-	 *
-	 * Performs a case-sensitive check indicating if
-	 * the haystack ends with needle.
-	 *
-	 * @since 6.8.1
-	 *
-	 * @param string $haystack The string to search in.
-	 * @param string $needle   The substring to search for in the `$haystack`.
-	 * @return bool True if `$haystack` ends with `$needle`, otherwise false.
-	 */
-	function str_ends_with( $haystack, $needle ) {
-		if ( '' === $haystack && '' !== $needle ) {
-			return false;
-		}
-
-		$len = strlen( $needle );
-
-		return 0 === substr_compare( $haystack, $needle, -$len, $len );
-	}
-}
-
 /**
  * Find out if set_time_limit() is allowed.
  */
@@ -1104,9 +1067,10 @@ function ewww_image_optimizer_current_screen( $screen ) {
 function ewww_image_optimizer_single_size_optimize( $id, $size ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	session_write_close();
+
 	$meta = wp_get_attachment_metadata( $id );
-	global $wpdb;
-	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
+
+	list( $file_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
 	ewwwio_debug_message( "retrieved file path: $file_path" );
 	$supported_types = ewwwio()->get_supported_types();
 	$type            = ewww_image_optimizer_mimetype( $file_path );
@@ -2310,7 +2274,7 @@ function ewww_image_optimizer_handle_upload( $params ) {
  */
 function ewww_image_optimizer_w3tc_update_files( $files ) {
 	global $ewww_attachment;
-	list( $file, $upload_path ) = ewww_image_optimizer_attachment_path( $ewww_attachment['meta'], $ewww_attachment['id'] );
+	list( $file ) = ewww_image_optimizer_attachment_path( $ewww_attachment['meta'], $ewww_attachment['id'] );
 	if ( function_exists( 'w3_upload_info' ) ) {
 		$upload_info = w3_upload_info();
 	} else {
@@ -2381,24 +2345,6 @@ function ewww_image_optimizer_auto() {
 		)->dispatch();
 	} // End if().
 	return;
-}
-
-/**
- * Simulates regenerating a resize for an attachment.
- */
-function ewww_image_optimizer_resize_dup_check() {
-	$meta = wp_get_attachment_metadata( 34 );
-
-	list( $file, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, 34 );
-
-	$editor        = wp_get_image_editor( $file );
-	$resized_image = $editor->resize( 150, 150, true );
-	$new_file      = $editor->generate_filename();
-	echo esc_html( $new_file );
-	if ( ewwwio_is_file( $new_file ) ) {
-		echo '<br>file already exists<br>';
-	}
-	$saved = $editor->save( $new_file );
 }
 
 /**
@@ -3640,7 +3586,7 @@ function ewww_image_optimizer_restore_from_meta_data( $meta, $id ) {
 	);
 	if ( empty( $db_image ) || ! is_array( $db_image ) || empty( $db_image['path'] ) ) {
 		// Get the filepath based on the meta and id.
-		list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
+		list( $file_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
 
 		$db_image = ewww_image_optimizer_find_already_optimized( $file_path );
 		if ( empty( $db_image ) || ! is_array( $db_image ) || empty( $db_image['path'] ) ) {
@@ -3679,7 +3625,7 @@ function ewww_image_optimizer_cloud_restore_from_meta_data( $id, $gallery = 'med
 		}
 		ewww_image_optimizer_cloud_restore_single_image( $image );
 		if ( 'media' === $gallery && 'full' === $image['resize'] && ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
-			list( $width, $height ) = wp_getimagesize( $image['path'] );
+			list( $width, $height ) = ewwwio()->getimagesize( $image['path'] );
 			if ( (int) $width !== (int) $meta['width'] || (int) $height !== (int) $meta['height'] ) {
 				$meta['height'] = $height;
 				$meta['width']  = $width;
@@ -4126,7 +4072,7 @@ function ewww_image_optimizer_media_replace( $attachment ) {
 		}
 		$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
 	}
-	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
+	list( $file_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
 	// If the attachment has an original file set.
 	if ( ! empty( $meta['original_image'] ) ) {
 		// One way or another, $file_path is now set, and we can get the base folder name.
@@ -4146,7 +4092,7 @@ function ewww_image_optimizer_media_replace( $attachment ) {
 	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 		// One way or another, $file_path is now set, and we can get the base folder name.
 		$base_dir = dirname( $file_path ) . '/';
-		foreach ( $meta['sizes'] as $size => $data ) {
+		foreach ( $meta['sizes'] as $data ) {
 			// Delete any residual webp versions.
 			$webpfile    = $base_dir . $data['file'] . '.webp';
 			$webpfileold = preg_replace( '/\.\w+$/', '.webp', $base_dir . $data['file'] );
@@ -4159,8 +4105,6 @@ function ewww_image_optimizer_media_replace( $attachment ) {
 			$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['file'] ) ) );
 			// If the original resize is set, and still exists.
 			if ( ! empty( $data['orig_file'] ) ) {
-				// Retrieve the filename from the metadata.
-				$filename = $data['orig_file'];
 				$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['orig_file'] ) ) );
 			}
 		}
@@ -5469,7 +5413,7 @@ function ewww_image_optimizer_get_webp_resize_params( $file ) {
 		ewwwio_debug_message( "$file not a thumb or not from media lib" );
 		return $params;
 	}
-	list( $thumb_width, $thumb_height ) = wp_getimagesize( $file );
+	list( $thumb_width, $thumb_height ) = ewwwio()->getimagesize( $file );
 	if ( empty( $thumb_width ) || empty( $thumb_height ) ) {
 		ewwwio_debug_message( "no dims for $file" );
 		return $params;
@@ -5491,7 +5435,7 @@ function ewww_image_optimizer_get_webp_resize_params( $file ) {
 			return $params;
 		}
 
-		list( $full_width, $full_height ) = wp_getimagesize( $original_image );
+		list( $full_width, $full_height ) = ewwwio()->getimagesize( $original_image );
 		if ( empty( $full_width ) || empty( $full_height ) ) {
 			ewwwio_debug_message( "no dims for $original_image" );
 			return $params;
@@ -6712,6 +6656,11 @@ function ewww_image_optimizer_aux_images_loop( $attachment = null, $auto = false
 	}
 	// Get the next image in the queue.
 	if ( empty( $attachment ) ) {
+		$image_record = $wpdb->get_row( "SELECT id,path FROM $wpdb->ewwwio_images WHERE pending=1 LIMIT 1", ARRAY_N );
+		if ( is_array( $image_record ) && 2 === count( $image_record ) ) {
+			$id         = $image_record[0];
+			$attachment = $image_record[1];
+		}
 		list( $id, $attachment ) = $wpdb->get_row( "SELECT id,path FROM $wpdb->ewwwio_images WHERE pending=1 LIMIT 1", ARRAY_N );
 	} else {
 		$id         = $attachment['id'];
@@ -7798,7 +7747,7 @@ function ewww_image_optimizer_resize_upload( $file ) {
 		return false;
 	}
 	// Check file size (dimensions).
-	list( $oldwidth, $oldheight ) = wp_getimagesize( $file );
+	list( $oldwidth, $oldheight ) = ewwwio()->getimagesize( $file );
 	if ( $oldwidth <= $maxwidth && $oldheight <= $maxheight ) {
 		// NOTE: For now, we aren't storing this condition in the db. But if needed, we can store this as error=0.
 		ewwwio_debug_message( 'image too small for resizing' );
@@ -8022,7 +7971,7 @@ function ewww_image_optimizer_update_scaled_metadata( $meta, $attachment_id ) {
 	if ( empty( $meta['file'] ) ) {
 		return $meta;
 	}
-	list( $file, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $attachment_id );
+	list( $file ) = ewww_image_optimizer_attachment_path( $meta, $attachment_id );
 	if ( strpos( $file, '-scaled' ) ) {
 		ewwwio_debug_message( 'Image already has -scaled' );
 		$dir  = realpath( pathinfo( $file, PATHINFO_DIRNAME ) );
@@ -8038,8 +7987,8 @@ function ewww_image_optimizer_update_scaled_metadata( $meta, $attachment_id ) {
 			ewwwio_debug_message( "$original_file does not exist" );
 			return $meta;
 		}
-		$scaled_image = $file;
-		$file         = $original_file;
+		$scaled_file = $file;
+		$file        = $original_file;
 	}
 	if ( ewww_image_optimizer_stream_wrapped( $file ) ) {
 		ewwwio_debug_message( "$file is stream wrapped" );
@@ -8054,7 +8003,7 @@ function ewww_image_optimizer_update_scaled_metadata( $meta, $attachment_id ) {
 		// Update the attached file meta.
 		update_attached_file( $attachment_id, $scaled_file );
 
-		list( $width, $height ) = wp_getimagesize( $scaled_file );
+		list( $width, $height ) = ewwwio()->getimagesize( $scaled_file );
 		// Width and height of the new image.
 		$meta['width']  = $width;
 		$meta['height'] = $height;
@@ -9373,7 +9322,7 @@ function ewww_image_optimizer_png_alpha( $filename ) {
 	if ( false !== strpos( $filename, '../' ) ) {
 		return false;
 	}
-	list( $width, $height ) = wp_getimagesize( $filename );
+	list( $width, $height ) = ewwwio()->getimagesize( $filename );
 	ewwwio_debug_message( "image dimensions: $width x $height" );
 	if ( ! ewwwio()->gd_support() || ! ewwwio_check_memory_available( ( $width * $height ) * 4.8 ) ) { // 4.8 = 24-bit or 3 bytes per pixel multiplied by a factor of 1.6 for extra wiggle room.
 		global $eio_filesystem;
@@ -10254,7 +10203,7 @@ function ewww_image_optimizer_resize_results_message( $file, $resize_code = 0 ) 
 		case 0:
 			$full_path = ewww_image_optimizer_absolutize_path( $file );
 			if ( ewwwio_is_file( $full_path ) ) {
-				list( $width, $height ) = wp_getimagesize( $full_path );
+				list( $width, $height ) = ewwwio()->getimagesize( $full_path );
 				/* translators: 1: width in pixels 2: height in pixels */
 				return sprintf( __( 'Resized to %1$s(w) x %2$s(h)', 'ewww-image-optimizer' ), $width, $height );
 			}
@@ -10515,7 +10464,7 @@ function ewww_image_optimizer_migrate_meta_to_db( $id, $meta, $bail_early = fals
 		ewwwio_debug_message( "empty meta for $id" );
 		return $meta;
 	}
-	list( $file_path, $upload_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
+	list( $file_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
 	if ( ! ewwwio_is_file( $file_path ) && ( class_exists( 'WindowsAzureStorageUtil' ) || class_exists( 'Amazon_S3_And_CloudFront' ) ) ) {
 		// Construct a $file_path and proceed IF a supported CDN plugin is installed.
 		$file_path = get_attached_file( $id );
@@ -10695,7 +10644,7 @@ function ewww_image_optimizer_level_mismatch( $old_level, $new_level ) {
  * @return array {
  *     Information regarding attachments with broken metadata that could not be rebuilt.
  *
- *     @type array A list of all know 'bad' attachments.
+ *     @type array A list of all known 'bad' attachments.
  *     @type string The most recent 'bad' attachment.
  * }
  */
@@ -12292,7 +12241,12 @@ function ewww_image_optimizer_get_image_savings() {
 	$total_sizes   = ewww_image_optimizer_savings( ! empty( $_REQUEST['network_savings'] ) );
 	$total_savings = $total_sizes[1] - $total_sizes[0];
 
-	$exactdn_savings = 0;
+	$exactdn_savings = array(
+		'bandwidth' => 0,
+		'original'  => 0,
+		'quota'     => 0,
+		'savings'   => 0,
+	);
 	if ( empty( $_REQUEST['network_savings'] ) && class_exists( 'EWWW\ExactDN' ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		global $exactdn;
 		if ( isset( $exactdn ) && is_object( $exactdn ) ) {
