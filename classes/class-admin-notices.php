@@ -580,6 +580,9 @@ final class Admin_Notices extends Base {
 		if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 			return;
 		}
+		if ( ! $this->get_option( 'ewww_image_optimizer_exactdn' ) ) {
+			return;
+		}
 		global $exactdn;
 		if ( ! isset( $exactdn->upload_domain ) ) {
 			return;
