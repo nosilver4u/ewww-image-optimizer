@@ -349,7 +349,7 @@ function ewww_image_optimizer_aux_images_table() {
 		$webp_info  = '';
 		$webp_error = '';
 		$webpurl    = '';
-		$webpfile   = $file . '.webp';
+		$webpfile   = ewww_image_optimizer_get_webp_path( $file );
 		$webp_size  = ewww_image_optimizer_filesize( $webpfile );
 		if ( ! $webp_size ) {
 			if ( ! empty( $optimized_image['webp_size'] ) ) {
@@ -1125,6 +1125,17 @@ function ewww_image_optimizer_delete_webp( $id ) {
 			++$removed;
 		}
 	}
+	//remove WebP notification from displaying in media library
+	$wpdb->update(
+		$wpdb->ewwwio_images,
+		array(
+			'webp_size'  => 0,
+			'webp_error' => 0,
+		),
+		array(
+			'attachment_id' => $id,
+		)
+	);
 	return $removed;
 }
 
