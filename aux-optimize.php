@@ -1006,8 +1006,13 @@ function ewww_image_optimizer_delete_webp( $id ) {
 	if ( ewww_image_optimizer_s3_uploads_enabled() ) {
 		$s3_path = get_attached_file( $id );
 		if ( 0 === strpos( $s3_path, 's3://' ) ) {
-			ewwwio_debug_message( 'removing: ' . $s3_path . '.webp' );
-			unlink( $s3_path . '.webp' );
+			$webp_paths = ewww_image_optimizer_get_all_webp_paths( $s3_path );
+			foreach ( $webp_paths as $webp_path ) {
+				if ( ewwwio_is_file( $webp_path ) ) {
+					ewwwio_debug_message( 'removing: ' . $webp_path );
+					unlink( $webp_path );
+				}
+			}
 		}
 		$s3_dir = trailingslashit( dirname( $s3_path ) );
 	}

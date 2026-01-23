@@ -1849,6 +1849,20 @@ function ewww_image_optimizer_cloud_based_media() {
 	return false;
 }
 
+function ewww_image_optimizer_offloaded_media() {
+	if (
+		class_exists( 'WindowsAzureStorageUtil' ) ||
+		class_exists( 'Amazon_S3_And_CloudFront' ) ||
+		ewww_image_optimizer_s3_uploads_enabled() ||
+		class_exists( 'wpCloud\StatelessMedia\EWWW' ) ||
+		function_exists( 'ilab_get_image_sizes' ) ||
+		apply_filters( 'ewww_image_optimizer_offloaded_media', false )
+	) {
+		return true;
+	}
+	return false;
+}
+
 /**
  * Loads the class to extend WP_Image_Editor for automatic optimization of generated images.
  *
@@ -13757,7 +13771,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<p class='description'><?php esc_html_e( 'WebP images are served automatically by Easy IO.', 'ewww-image-optimizer' ); ?></p>
 						</div>
 					</div>
-					<div class='ewww-settings-row'>
+		<?php if ( $easymode || ewww_image_optimizer_offloaded_media() ) : ?>
+					<input type='hidden' id='ewww_image_optimizer_webp_naming_mode' name='ewww_image_optimizer_webp_naming_mode' value='<?php echo esc_attr( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode' ) ); ?>' />
+		<?php else : ?>
+					<div class='ewww_image_optimizer_webp_setting_container ewww-settings-row' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? '' : ' style="display:none"'; ?>>
 						<div class='ewww-setting-header'>
 							<label for='ewww_image_optimizer_webp_naming_mode'><?php esc_html_e( 'WebP Naming Mode', 'ewww-image-optimizer' ); ?></label>
 							<span><?php ewwwio_help_link( 'https://docs.ewww.io/article/16-ewww-io-and-webp-images#webp-naming-modes', '5854745ac697912ffd6c1c89' ); ?></span>
@@ -13772,13 +13789,14 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 									<?php esc_html_e( 'Replace (.webp)', 'ewww-image-optimizer' ); ?>
 								</option>
 							</select>
-		<?php if ( $webp_rewrite_verify ) : ?>
+			<?php if ( $webp_rewrite_verify ) : ?>
 							<p class='description'>
 								<?php esc_html_e( 'In order to change WebP naming modes, you must first remove the rewrite rules below.', 'ewww-image-optimizer' ); ?>
 							</p>
-		<?php endif; ?>
+			<?php endif; ?>
 						</div>
 					</div>
+		<?php endif; ?>
 					<div class='ewww_image_optimizer_webp_setting_container ewww-settings-row' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? '' : ' style="display:none"'; ?>>
 						<div class='ewww-setting-header'>
 							<?php esc_html_e( 'WebP Delivery Method', 'ewww-image-optimizer' ); ?>
