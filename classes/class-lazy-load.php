@@ -95,11 +95,33 @@ class Lazy_Load extends Page_Parser {
 	);
 
 	/**
+	 * A list of image tags/sections where lazy loading should not be applied.
+	 *
+	 * @access private
+	 * @var array $forbidden_blocks
+	 */
+	private $forbidden_blocks = array();
+
+	/**
 	 * Request URI.
 	 *
 	 * @var string $request_uri
 	 */
 	public $request_uri = '';
+
+	/**
+	 * DOM Document for parsing HTML.
+	 *
+	 * @var \DOMDocument $doc
+	 */
+	private $doc;
+
+	/**
+	 * List of img nodes from the DOMDocument.
+	 *
+	 * @var \DOMNodeList $img_nodes
+	 */
+	private $img_nodes;
 
 	/**
 	 * Register (once) actions and filters for Lazy Load.
@@ -197,6 +219,10 @@ class Lazy_Load extends Page_Parser {
 			// Load the minified, combined version of the lazy load script.
 			\add_action( 'wp_enqueue_scripts', array( $this, 'min_script' ), 1 );
 		}
+
+		// Allow other plugins to get the background image exclusions via filter.
+		\add_filter( 'eio_get_lazy_bg_image_exclusions', array( $this, 'get_bgimage_exclusions' ), 10 );
+
 		$this->inline_script_attrs = (array) \apply_filters( 'ewwwio_inline_script_attrs', $this->inline_script_attrs );
 		$this->validate_user_exclusions();
 		$this->validate_css_element_inclusions();
@@ -353,6 +379,32 @@ class Lazy_Load extends Page_Parser {
 	}
 
 	/**
+	 * Check if an img/iframe tag should be excluded because it falls within a forbidden block.
+	 *
+	 * @param string $tag The img or iframe tag to check.
+	 * @param int    $position The position of the tag within the HTML.
+	 * @return bool True if it is within a forbidden block, false otherwise.
+	 */
+	private function is_in_forbidden_block( $tag, $position ) {
+		if ( empty( $tag ) || empty( $position ) ) {
+			return false;
+		}
+		if ( $this->is_iterable( $this->forbidden_blocks ) ) {
+			foreach ( $this->forbidden_blocks as $forbidden_block ) {
+				if ( empty( $forbidden_block[0] ) || empty( $forbidden_block[1] ) ) {
+					continue;
+				}
+				$start = $forbidden_block[1];
+				$end   = $start + \strlen( $forbidden_block[0] );
+				if ( $position > $start && $position < $end ) {
+					$this->debug_message( 'tag is within a forbidden block' );
+					return true;
+				}
+			}
+		}
+	}
+
+	/**
 	 * Search for img elements and rewrite them for Lazy Load with fallback to noscript elements.
 	 *
 	 * @param string $buffer The full HTML page generated since the output buffer was started.
@@ -390,38 +442,61 @@ class Lazy_Load extends Page_Parser {
 			$this->get_preload_images( $buffer );
 		}
 
+		$started_time     = \microtime( true );
 		$above_the_fold   = (int) \apply_filters( 'eio_lazy_fold', $this->get_option( $this->prefix . 'll_abovethefold' ) );
 		$images_processed = 0;
 		$replacements     = array();
 
-		// Clean the buffer of incompatible sections.
-		$search_buffer = \preg_replace( '/<div id="footer_photostream".*?\/div>/s', '', $buffer );
-		$search_buffer = \preg_replace( '/<(picture|noscript|script).*?\/\1>/s', '', $search_buffer );
+		// Find all incompatible sections, and store them with their offsets.
+		$this->forbidden_blocks = array();
+		\preg_match_all( '/<div id="footer_photostream".*?\/div>/s', $buffer, $forbidden_blocks, PREG_OFFSET_CAPTURE );
+		\preg_match_all( '/<(picture|noscript|script).*?\/\1>/s', $buffer, $more_forbidden_blocks, PREG_OFFSET_CAPTURE );
+		if ( ! empty( $forbidden_blocks[0] ) && ! empty( $more_forbidden_blocks[0] ) ) {
+			$forbidden_blocks[0] = \array_merge( $forbidden_blocks[0], $more_forbidden_blocks[0] );
+		} elseif ( ! empty( $more_forbidden_blocks[0] ) ) {
+			$forbidden_blocks = $more_forbidden_blocks;
+		}
+		$this->forbidden_blocks = ! empty( $forbidden_blocks[0] ) ? $forbidden_blocks[0] : array();
 
-		$images = $this->get_images_from_html( $search_buffer, false );
+		$this->doc = new \DOMDocument();
+		libxml_use_internal_errors( true );
+		$this->doc->loadHTML( $buffer );
+		libxml_clear_errors();
+		$this->img_nodes = $this->doc->getElementsByTagName( 'img' );
+
+		$images = $this->get_images_from_html( $buffer, false, true, PREG_OFFSET_CAPTURE );
 		if ( ! empty( $images[0] ) && $this->is_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
-				$file = $images['img_url'][ $index ];
+				$file = $images['img_url'][ $index ][0];
 				$this->debug_message( "parsing an image: $file" );
-				if ( $this->validate_image_tag( $image ) ) {
+				if ( empty( $image[0] ) || empty( $image[1] ) ) {
+					$this->debug_message( 'missing image tag or position' );
+					continue;
+				}
+				$image_tag = $image[0];
+				$position  = $image[1];
+				if ( $this->is_in_forbidden_block( $image_tag, $position ) ) {
+					continue;
+				}
+				if ( $this->validate_image_tag( $image_tag ) ) {
 					$this->debug_message( 'found a valid image tag' );
-					$this->debug_message( "original image tag: $image" );
-					$orig_img = $image;
-					$ns_img   = $image;
-					$image    = $this->parse_img_tag( $image, $file );
+					$this->debug_message( "original image tag: $image_tag" );
+					$orig_img  = $image_tag;
+					$ns_img    = $image_tag;
+					$image_tag = $this->parse_img_tag( $image_tag, $file );
 					$this->set_attribute( $ns_img, 'data-eio', 'l', true );
 					$noscript = '<noscript>' . $ns_img . '</noscript>';
-					$position = \strpos( $buffer, $orig_img );
-					if ( $position && $orig_img !== $image ) {
+					if ( $position && $orig_img !== $image_tag ) {
+						$this->debug_message( "lazified image at position $position" );
 						$replacements[ $position ] = array(
 							'orig' => $orig_img,
-							'lazy' => $image . $noscript,
+							'lazy' => $image_tag . $noscript,
 						);
 					}
-					/* $buffer   = str_replace( $orig_img, $image . $noscript, $buffer ); */
 				}
 			} // End foreach().
 		} // End if().
+
 		$element_types = \apply_filters( 'eio_allowed_background_image_elements', array( 'div', 'li', 'span', 'section', 'a' ) );
 		foreach ( $element_types as $element_type ) {
 			// Process background images on HTML elements.
@@ -434,18 +509,25 @@ class Lazy_Load extends Page_Parser {
 				}
 			}
 		}
+
 		if ( \in_array( 'picture', $this->user_element_exclusions, true ) ) {
 			$pictures = '';
 		} else {
 			// Images listed as picture/source elements. Mostly for NextGEN, but should work anywhere.
-			$pictures = $this->get_picture_tags_from_html( $buffer );
+			$pictures = $this->get_picture_tags_from_html( $buffer, PREG_OFFSET_CAPTURE );
 		}
 		if ( $this->is_iterable( $pictures ) ) {
 			foreach ( $pictures as $index => $picture ) {
-				if ( ! $this->validate_image_tag( $picture ) ) {
+				if ( empty( $picture[0] ) || empty( $picture[1] ) ) {
+					$this->debug_message( 'missing picture tag or position' );
 					continue;
 				}
-				$pimages = $this->get_images_from_html( $picture, false );
+				$picture_tag = $picture[0];
+				$position    = $picture[1];
+				if ( ! $this->validate_image_tag( $picture_tag ) ) {
+					continue;
+				}
+				$pimages = $this->get_images_from_html( $picture_tag, false );
 				if ( ! empty( $pimages[0] ) && $this->is_iterable( $pimages[0] ) && ! empty( $pimages[0][0] ) ) {
 					$image = $pimages[0][0];
 					$file  = $pimages['img_url'][0];
@@ -457,13 +539,13 @@ class Lazy_Load extends Page_Parser {
 						$ns_img   = $image;
 						$image    = $this->parse_img_tag( $image, $file );
 						$this->set_attribute( $ns_img, 'data-eio', 'l', true );
-						$noscript = '<noscript>' . $ns_img . '</noscript>';
-						$picture  = \str_replace( $orig_img, $image, $picture ) . $noscript;
+						$noscript    = '<noscript>' . $ns_img . '</noscript>';
+						$picture_tag = \str_replace( $orig_img, $image, $picture_tag ) . $noscript;
 					}
 				} else {
 					continue;
 				}
-				$sources = $this->get_elements_from_html( $picture, 'source' );
+				$sources = $this->get_elements_from_html( $picture_tag, 'source' );
 				if ( $this->is_iterable( $sources ) ) {
 					foreach ( $sources as $source ) {
 						if ( false !== \strpos( $source, 'data-src' ) ) {
@@ -476,42 +558,51 @@ class Lazy_Load extends Page_Parser {
 							$lazy_source = $source;
 							$this->set_attribute( $lazy_source, 'data-srcset', $srcset );
 							$this->remove_attribute( $lazy_source, 'srcset' );
-							$picture = \str_replace( $source, $lazy_source, $picture );
+							$picture_tag = \str_replace( $source, $lazy_source, $picture_tag );
 						}
 					}
-					$position = \strpos( $buffer, $pictures[ $index ] );
-					if ( $position && $picture !== $pictures[ $index ] ) {
+					if ( $position && $picture_tag !== $pictures[ $index ][0] ) {
 						$this->debug_message( 'lazified sources for picture element' );
 						$replacements[ $position ] = array(
-							'orig' => $pictures[ $index ],
-							'lazy' => $picture,
+							'orig' => $pictures[ $index ][0],
+							'lazy' => $picture_tag,
 						);
-						/* $buffer = str_replace( $pictures[ $index ], $picture, $buffer ); */
 					}
 				}
 			}
 		}
+
 		// Iframe elements, looking for stuff like YouTube embeds.
 		if ( \in_array( 'iframe', $this->user_element_exclusions, true ) ) {
 			$frames = '';
 		} else {
-			$frames = $this->get_elements_from_html( $search_buffer, 'iframe' );
+			$frames = $this->get_elements_from_html( $buffer, 'iframe', PREG_OFFSET_CAPTURE );
 		}
 		if ( $this->is_iterable( $frames ) ) {
-			foreach ( $frames as $index => $frame ) {
+			foreach ( $frames as $index => $frame_data ) {
+				if ( empty( $frame_data[0] ) || empty( $frame_data[1] ) ) {
+					$this->debug_message( 'missing iframe tag or position' );
+					continue;
+				}
 				$this->debug_message( 'parsing an iframe element' );
+				$frame    = $frame_data[0];
+				$position = $frame_data[1];
+				if ( $this->is_in_forbidden_block( $frame, $position ) ) {
+					continue;
+				}
 				$url = $this->get_attribute( $frame, 'src' );
 				if ( $url && 0 === \strpos( $url, 'http' ) && $this->validate_iframe_tag( $frame ) ) {
 					$this->debug_message( "lazifying iframe for: $url" );
 					$this->set_attribute( $frame, 'data-src', $url );
 					$this->remove_attribute( $frame, 'src' );
 					$this->set_attribute( $frame, 'class', \trim( $this->get_attribute( $frame, 'class' ) . ' lazyload' ), true );
-					if ( $frame !== $frames[ $index ] ) {
-						$buffer = \str_replace( $frames[ $index ], $frame, $buffer );
+					if ( $frame !== $frames[ $index ][0] ) {
+						$buffer = \str_replace( $frames[ $index ][0], $frame, $buffer );
 					}
 				}
 			}
 		}
+
 		if ( $this->is_iterable( $replacements ) ) {
 			\ksort( $replacements );
 			foreach ( $replacements as $position => $replacement ) {
@@ -533,7 +624,9 @@ class Lazy_Load extends Page_Parser {
 				$buffer = \str_replace( $replacement['orig'], $replacement['lazy'], $buffer );
 			}
 		}
-		$this->debug_message( 'all done parsing page for lazy' );
+
+		$elapsed_time = \microtime( true ) - $started_time;
+		$this->debug_message( "all done parsing page for lazy in $elapsed_time seconds" );
 		return $buffer;
 	}
 
@@ -795,23 +888,32 @@ class Lazy_Load extends Page_Parser {
 		if ( \in_array( $tag_type, $this->user_element_exclusions, true ) ) {
 			return $replacements;
 		}
-		$elements = $this->get_elements_from_html( \preg_replace( '/<(noscript|script).*?\/\1>/s', '', $buffer ), $tag_type );
+		$elements = $this->get_elements_from_html( $buffer, $tag_type, PREG_OFFSET_CAPTURE );
 		if ( $this->is_iterable( $elements ) ) {
-			foreach ( $elements as $index => $element ) {
+			foreach ( $elements as $index => $element_data ) {
+				if ( empty( $element_data[0] ) || empty( $element_data[1] ) ) {
+					$this->debug_message( 'missing element or position' );
+					continue;
+				}
+				$element  = $element_data[0];
+				$position = $element_data[1];
+				if ( $this->is_in_forbidden_block( $element, $position ) ) {
+					continue;
+				}
 				$this->debug_message( "parsing a $tag_type" );
-				if ( false === \strpos( $element, 'background:' ) && false === \strpos( $element, 'background-image:' ) ) {
+				if ( ! \str_contains( $element, 'background:' ) && ! \str_contains( $element, 'background-image:' ) ) {
 					$element = $this->lazify_element( $element );
-					if ( $element !== $elements[ $index ] ) {
+					if ( $element !== $elements[ $index ][0] ) {
 						$this->debug_message( "$tag_type lazified, replacing in html source" );
-						$buffer = \str_replace( $elements[ $index ], $element, $buffer );
+						$buffer = \str_replace( $elements[ $index ][0], $element, $buffer );
 					}
 					continue;
 				}
-				if ( false !== \strpos( $element, '--background' ) ) {
+				if ( \str_contains( $element, '--background' ) ) {
 					$this->set_attribute( $element, 'class', $this->get_attribute( $element, 'class' ) . ' lazyload', true );
-					if ( $element !== $elements[ $index ] ) {
+					if ( $element !== $elements[ $index ][0] ) {
 						$this->debug_message( "$tag_type with bg var lazified, replacing in html source" );
-						$buffer = \str_replace( $elements[ $index ], $element, $buffer );
+						$buffer = \str_replace( $elements[ $index ][0], $element, $buffer );
 					}
 					continue;
 				}
@@ -852,8 +954,13 @@ class Lazy_Load extends Page_Parser {
 								$this->set_attribute( $element, 'data-back-webp', $webp_image_urls );
 							}
 						} elseif ( ! empty( $bg_image_urls[0] ) ) {
-							$webp_image_url = \apply_filters( 'eio_image_url_to_webp', $bg_image_urls[0] );
+							list( $physical_width, $physical_height ) = $this->get_image_dimensions_by_url( $bg_image_urls[0] );
 							$this->set_attribute( $element, 'data-back', $bg_image_urls[0] );
+							if ( $physical_width && $physical_height ) {
+								$this->set_attribute( $element, 'data-eio-rwidth', $physical_width, true );
+								$this->set_attribute( $element, 'data-eio-rheight', $physical_height, true );
+							}
+							$webp_image_url = \apply_filters( 'eio_image_url_to_webp', $bg_image_urls[0] );
 							if ( $webp_image_url && $webp_image_url !== $bg_image_urls[0] ) {
 								$this->set_attribute( $element, 'data-back-webp', $webp_image_url );
 							}
@@ -861,14 +968,12 @@ class Lazy_Load extends Page_Parser {
 						$element = \str_replace( $style, $new_style, $element );
 					}
 				}
-				$position = \strpos( $buffer, $elements[ $index ] );
-				if ( $position && $element !== $elements[ $index ] ) {
+				if ( $position && $element !== $elements[ $index ][0] ) {
 					$this->debug_message( "$tag_type modified, replacing in html source" );
 					$replacements[ $position ] = array(
-						'orig' => $elements[ $index ],
+						'orig' => $elements[ $index ][0],
 						'lazy' => $element,
 					);
-					/* $buffer = str_replace( $elements[ $index ], $element, $buffer ); */
 				}
 			}
 		}
@@ -1017,6 +1122,23 @@ class Lazy_Load extends Page_Parser {
 	}
 
 	/**
+	 * Normalize HTML for comparison.
+	 *
+	 * @param string $html The HTML to normalize.
+	 * @return string The normalized HTML.
+	 */
+	public function normalize_html( $html ) {
+		$html = str_replace( '&amp;', '&', $html );
+		$html = str_replace( '&#038;', '&', $html );
+		$html = str_replace( '%2C', ',', $html );
+		$html = str_replace( ' />', '>', $html );
+		$html = str_replace( "'", '"', $html );
+		$html = preg_replace( '/\s\s+/', ' ', $html );
+		$html = preg_replace( '/\s*=\s*/', '=', $html );
+		return $html;
+	}
+
+	/**
 	 * Checks if the tag is allowed to be lazy loaded.
 	 *
 	 * @param string $image The image (img) tag.
@@ -1055,7 +1177,7 @@ class Lazy_Load extends Page_Parser {
 				return false;
 			}
 		}
-
+		// Check for exclusions.
 		$exclusions = \apply_filters(
 			'eio_lazy_exclusions',
 			\array_merge(
@@ -1088,8 +1210,7 @@ class Lazy_Load extends Page_Parser {
 					'wpcf7_captcha/',
 				),
 				$this->user_exclusions
-			),
-			$image
+			)
 		);
 		foreach ( $exclusions as $exclusion ) {
 			if ( false !== \strpos( $image, $exclusion ) ) {
@@ -1105,17 +1226,43 @@ class Lazy_Load extends Page_Parser {
 				return false;
 			}
 		}
+
+		foreach ( $this->img_nodes as $img_node ) {
+			$img_html = $this->doc->saveHTML( $img_node );
+			if ( defined( 'EIO_IMGNODE_DEBUG' ) && EIO_IMGNODE_DEBUG ) {
+				$this->debug_message( 'comparing to node value: ' . $this->normalize_html( $img_html ) . ' to ' . $this->normalize_html( $image ) );
+			}
+			// Normalize the HTML before comparing to avoid issues with different quote styles or spacing.
+			if ( $this->normalize_html( $img_html ) === $this->normalize_html( $image ) ) {
+				$parent = $img_node->parentNode;
+				if ( $parent && 'body' !== $parent->nodeName && $parent->hasAttributes() ) {
+					$class = trim( $parent->getAttribute( 'class' ) );
+					$this->debug_message( "Parent class: $class" );
+					if ( str_contains( $class, 'skip-lazy' ) ) {
+						$this->debug_message( "Skipping lazy load due to 'skip-lazy' class on parent" );
+						return false;
+					}
+					if ( $parent->hasAttribute( 'data-skip-lazy' ) ) {
+						$this->debug_message( "Skipping lazy load due to 'data-skip-lazy' attribute on parent" );
+						return false;
+					}
+				}
+			}
+		}
+
 		return true;
 	}
 
 	/**
-	 * Checks if a tag with a background image is allowed to be lazy loaded.
+	 * Gets the exclusion list for lazy loading background images.
 	 *
-	 * @param string $tag The tag.
-	 * @return bool True if the tag is allowed, false otherwise.
+	 * @param array $exclusions The current list of exclusions. Optional.
+	 * @return array The modified list of exclusions.
 	 */
-	public function validate_bgimage_tag( $tag ) {
-		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+	public function get_bgimage_exclusions( $exclusions = array() ) {
+		if ( ! \is_array( $exclusions ) ) {
+			$exclusions = array();
+		}
 		$exclusions = \apply_filters(
 			'eio_lazy_bg_image_exclusions',
 			\array_merge(
@@ -1126,11 +1273,24 @@ class Lazy_Load extends Page_Parser {
 					'lazyload',
 					'skip-lazy',
 					'avia-bg-style-fixed',
+					'trustindex',
 				),
-				$this->user_exclusions
-			),
-			$tag
+				$this->user_exclusions,
+				$exclusions
+			)
 		);
+		return $exclusions;
+	}
+
+	/**
+	 * Checks if a tag with a background image is allowed to be lazy loaded.
+	 *
+	 * @param string $tag The tag.
+	 * @return bool True if the tag is allowed, false otherwise.
+	 */
+	public function validate_bgimage_tag( $tag ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		$exclusions = $this->get_bgimage_exclusions( array() );
 		foreach ( $exclusions as $exclusion ) {
 			if ( false !== \strpos( $tag, $exclusion ) ) {
 				return false;
@@ -1213,14 +1373,27 @@ class Lazy_Load extends Page_Parser {
 			global $exactdn;
 			return $exactdn->generate_url( $this->content_url . 'lazy/placeholder-' . $width . 'x' . $height . '.png' );
 		} elseif ( ! is_file( $piip_path ) ) {
-			// First try PIP generation via Imagick, as it is pretty efficient.
-			if ( $this->imagick_support() ) {
-				$placeholder = new \Imagick();
-				$placeholder->newimage( $width, $height, 'transparent' );
-				$placeholder->setimageformat( 'PNG' );
-				$placeholder->stripimage();
-				$placeholder->writeimage( $piip_path );
-				$placeholder->clear();
+			// First, try GD and then optimize it with optipng/pngout if available.
+			// This is now the first attempt, as the Imagick placeholders are grayscale and may not work in Safari, and GD is somehow faster.
+			if (
+				$this->gd_support() &&
+				$this->check_memory_available( $width * $height * 4.8 ) // 4.8 = 24-bit or 3 bytes per pixel multiplied by a factor of 1.6 for extra wiggle room.
+			) {
+				$img   = \imagecreatetruecolor( $width, $height );
+				$color = \imagecolorallocatealpha( $img, 0, 0, 0, 127 );
+				\imagefill( $img, 0, 0, $color );
+				\imagesavealpha( $img, true );
+				\imagecolortransparent( $img, \imagecolorat( $img, 0, 0 ) );
+				\imagetruecolortopalette( $img, false, 1 );
+				\imagepng( $img, $piip_path, 9 );
+				if (
+					\function_exists( '\ewww_image_optimizer' ) &&
+					\function_exists( '\ewwwio' ) &&
+					! \ewwwio()->get_option( 'ewww_image_optimizer_cloud_key' ) &&
+					\ewwwio()->local->exec_check()
+				) {
+					\ewww_image_optimizer( $piip_path );
+				}
 			}
 			// If that didn't work, and we have a premium service, use the API to generate the slimmest PIP available.
 			if (
@@ -1236,22 +1409,17 @@ class Lazy_Load extends Page_Parser {
 					\clearstatcache();
 				}
 			}
-			// Last shot, use GD and then optimize it with optipng/pngout if available.
+			// Last resort, do PIP generation via Imagick, as it is pretty efficient even though Safari doesn't like the grayscale images it produces.
 			if (
 				! \is_file( $piip_path ) &&
-				$this->gd_support() &&
-				$this->check_memory_available( $width * $height * 4.8 ) // 4.8 = 24-bit or 3 bytes per pixel multiplied by a factor of 1.6 for extra wiggle room.
+				$this->imagick_support()
 			) {
-				$img   = \imagecreatetruecolor( $width, $height );
-				$color = \imagecolorallocatealpha( $img, 0, 0, 0, 127 );
-				\imagefill( $img, 0, 0, $color );
-				\imagesavealpha( $img, true );
-				\imagecolortransparent( $img, \imagecolorat( $img, 0, 0 ) );
-				\imagetruecolortopalette( $img, false, 1 );
-				\imagepng( $img, $piip_path, 9 );
-				if ( \function_exists( '\ewww_image_optimizer' ) ) {
-					\ewww_image_optimizer( $piip_path );
-				}
+				$placeholder = new \Imagick();
+				$placeholder->newimage( $width, $height, 'transparent' );
+				$placeholder->setimageformat( 'PNG' );
+				$placeholder->stripimage();
+				$placeholder->writeimage( $piip_path );
+				$placeholder->clear();
 			}
 		}
 		\clearstatcache();
@@ -1384,6 +1552,7 @@ class Lazy_Load extends Page_Parser {
 					array(
 						'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
 						'skip_autoscale' => ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
+						'bg_min_dpr'     => ( \defined( 'EIO_LL_BG_MIN_DPR' ) && EIO_LL_BG_MIN_DPR ? EIO_LL_BG_MIN_DPR : 1.1 ),
 						'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
 						'use_dpr'        => (int) $this->get_option( 'exactdn_hidpi' ),
 					)
@@ -1425,6 +1594,7 @@ class Lazy_Load extends Page_Parser {
 					array(
 						'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
 						'skip_autoscale' => ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
+						'bg_min_dpr'     => ( \defined( 'EIO_LL_BG_MIN_DPR' ) && EIO_LL_BG_MIN_DPR ? EIO_LL_BG_MIN_DPR : 1.1 ),
 						'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
 						'use_dpr'        => (int) $this->get_option( 'exactdn_hidpi' ),
 					)

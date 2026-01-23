@@ -444,7 +444,7 @@ class Backup extends Base {
 			}
 			$this->restore_file( $image );
 			if ( 'media' === $gallery && 'full' === $image['resize'] && ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
-				list( $width, $height ) = \wp_getimagesize( $image['path'] );
+				list( $width, $height ) = $this->getimagesize( $image['path'] );
 				if ( (int) $width !== (int) $meta['width'] || (int) $height !== (int) $meta['height'] ) {
 					$meta['height'] = $height;
 					$meta['width']  = $width;

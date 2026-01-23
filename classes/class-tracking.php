@@ -150,7 +150,6 @@ class Tracking {
 			global $exactdn;
 			if ( $exactdn->get_exactdn_domain() ) {
 				$data['exactdn']                     = 1;
-				$data['exactdn_lossy']               = (int) \ewww_image_optimizer_get_option( 'exactdn_lossy' );
 				$data['exactdn_hidpi']               = (int) \ewww_image_optimizer_get_option( 'exactdn_hidpi' );
 				$data['exactdn_all_the_things']      = (bool) \ewww_image_optimizer_get_option( 'exactdn_all_the_things' );
 				$data['exactdn_resize_existing']     = (bool) \ewww_image_optimizer_get_option( 'exactdn_resize_existing' );

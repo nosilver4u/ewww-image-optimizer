@@ -55,12 +55,126 @@ jQuery(document).ready(function($) {
 			$('#easyio-savings-fill').animate( {
 				width: easy_save_bar_width + '%',
 			}, 1000 );
+			var easy_bandwidth_bar_width = $('#easyio-bandwidth-fill').data('score');
+			if ( easy_bandwidth_bar_width == 100 ) {
+				$('#easyio-bandwidth-container .ewww-bar-fill').css('background-color', '#d63638');
+				$('#easyio-bandwidth-flex .ewww-bar-score').css('color', '#d63638');
+			}
+			$('#easyio-bandwidth-fill').animate( {
+				width: easy_bandwidth_bar_width + '%',
+			}, 1000 );
+			easyIORegisterStatsHandler();
 		}
 	})
 	.fail(function() {
 		$('#ewww-bulk-queue-images').html('<span class="ewww-bulk-error"><b>' + ewww_vars.invalid_response + '</b></span>');
 	});
-
+	function easyIORegisterStatsHandler() {
+		// $('#ewww-status').on('click', '#easyio-show-stats', function(){
+		$('#easyio-show-stats').on('click', function(){
+			var site_id = $(this).attr('data-site-id');
+			var ewww_post_data = {
+				action: 'exactdn_get_site_stats',
+				site_id: site_id,
+				ewww_wpnonce: ewww_vars._wpnonce,
+			};      
+			var statsContainerID = 'exactdn-stats-modal-' + site_id;
+			var statsContainer = false;
+			var statsExist = document.getElementById(statsContainerID);
+			var closeIcon  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>';                   
+			if ( ! statsExist ) {
+				$('body').append('<div id="' + statsContainerID + '" style="display:none;" class="exactdn-stats-modal"><div class="exactdn-stats-modal-close">' + closeIcon + '</div><div class="exactdn-stats-modal-charts"></div><img class="exactdn-loading-image" style="display:block;margin-left: auto;margin-right:auto;width:20px;" src="' + ewww_vars.loading_image_url + '" /></div>');
+				statsContainer = $('#' + statsContainerID);
+				$(statsContainer).on('click', '.exactdn-stats-modal-close', function() {
+					$('.exactdn-stats-modal').hide();
+					document.body.classList.toggle('exactdn-body-unscroll');
+				});
+								
+				$.post(ajaxurl, ewww_post_data, function(response) {
+					//console.log( response );
+					var is_json = true;
+					try {
+						var ewww_response = $.parseJSON(response);
+					} catch (err) {
+						is_json = false;
+					}
+					if ( ! is_json ) {
+						statsContainer.children('.exactdn-stats-modal-charts').html(ewww_vars.invalid_response);
+						$('.exactdn-loading-image').hide();
+						console.log(response);
+					} else if (ewww_response.error) {
+						statsContainer.children('.exactdn-stats-modal-charts').html('<strong>Error (contact support if necessary):</strong> ' + ewww_response.error);
+						$('.exactdn-loading-image').hide();
+					} else if (ewww_response.html) {
+						statsContainer.children('.exactdn-stats-modal-charts').html(ewww_response.html);
+						if (ewww_response.pending) {
+							console.log('need to fetch more stats, request pending');
+							setTimeout(fetchExtraStats, 10000, site_id);
+						} else {
+							$('.exactdn-loading-image').hide();
+						}
+					} else {
+						statsContainer.children('.exactdn-stats-modal-charts').html(ewww_vars.invalid_response);
+						$('.exactdn-loading-image').hide();
+						console.log(response);
+					}
+				})
+				.fail(function() {
+					statsContainer.children('.exactdn-stats-modal-charts').html(ewww_vars.invalid_response);
+					$('.exactdn-loading-image').hide();
+				});
+			} else {
+				statsContainer = $('#' + statsContainerID);
+			}
+			statsContainer.show();
+			document.body.classList.toggle('exactdn-body-unscroll');
+			return false;
+		});
+	}
+	var extraStatsRequests = 0;
+	function fetchExtraStats(site_id) {
+		var ewww_post_data = {
+			action: 'exactdn_get_site_stats',
+			site_id: site_id,
+			require_extra: 1,
+			ewww_wpnonce: ewww_vars._wpnonce,
+		};
+		var statsContainerID = 'exactdn-stats-modal-' + site_id;
+		var statsContainer = false;
+		var statsExist = document.getElementById(statsContainerID);
+		if ( ! statsExist ) {
+			console.log('no container for site #' + site_id);
+			return;
+		}
+		statsContainer = $('#' + statsContainerID);
+		if ( extraStatsRequests > 11 ) { // Roughly 2 minutes of waiting.
+			$('.exactdn-loading-image').hide();
+			statsContainer.find('.exactdn-stats-pending').text(ewww_vars.easyio_extra_stats_failed);
+			return;
+		}
+		$.post(ajaxurl, ewww_post_data, function(response) {
+			extraStatsRequests++;
+			var is_json = true;
+			try {
+				var ewww_response = $.parseJSON(response);
+			} catch (err) {
+				is_json = false;
+			}
+			if ( ! is_json ) {
+				console.log(response);
+				setTimeout(fetchExtraStats, 10000, site_id);
+				return;
+			}
+			if (ewww_response.error) {
+				console.log(ewww_response.error);
+			} else if (ewww_response.html) {
+				$('.exactdn-loading-image').hide();
+				statsContainer.children('.exactdn-stats-modal-charts').html(ewww_response.html);
+				return;
+			}
+			setTimeout(fetchExtraStats, 10000, site_id);
+		});
+    }
 	$('#ewww-warning-exec-dismiss-link').on(
 		'click',
 		function() {
@@ -648,7 +762,10 @@ jQuery(document).ready(function($) {
 			$('#ewww_image_optimizer_siip_container').fadeIn();
 			$('#ewww_image_optimizer_lqip_container').fadeIn();
 			$('#ewww_image_optimizer_dcip_container').fadeIn();
-			$('#ewww_image_optimizer_ll_all_things_container').fadeIn();
+			$('#ewww_image_optimizer_ll_external_bg_container').fadeIn();
+			if ($('#ewww_image_optimizer_ll_all_things_container textarea').val().length > 0) {
+				$('#ewww_image_optimizer_ll_all_things_container').fadeIn();
+			}
 			$('#ewww_image_optimizer_ll_exclude_container').fadeIn();
 		} else {
 			$('#ewww_image_optimizer_ll_autoscale_container').fadeOut();
@@ -656,6 +773,7 @@ jQuery(document).ready(function($) {
 			$('#ewww_image_optimizer_siip_container').fadeOut();
 			$('#ewww_image_optimizer_lqip_container').fadeOut();
 			$('#ewww_image_optimizer_dcip_container').fadeOut();
+			$('#ewww_image_optimizer_ll_external_bg_container').fadeOut();
 			$('#ewww_image_optimizer_ll_all_things_container').fadeOut();
 			$('#ewww_image_optimizer_ll_exclude_container').fadeOut();
 		}

@@ -50,7 +50,7 @@ function ewww_image_optimizer_gifsicle_resize( $file, $dst_x, $dst_y, $src_x, $s
 	ewwwio_debug_message( "width: $dst_w" );
 	ewwwio_debug_message( "height: $dst_h" );
 
-	list( $orig_w, $orig_h ) = wp_getimagesize( $file );
+	list( $orig_w, $orig_h ) = ewwwio()->getimagesize( $file );
 
 	$outfile = "$file.tmp";
 	// Run gifsicle.
@@ -853,7 +853,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					// Retrieve the data from the PNG.
 					$input = imagecreatefrompng( $file );
 					// Retrieve the dimensions of the PNG.
-					list($width, $height) = wp_getimagesize( $file );
+					list($width, $height) = ewwwio()->getimagesize( $file );
 					// Create a new image with those dimensions.
 					$output = imagecreatetruecolor( $width, $height );
 					if ( '' === $r ) {
@@ -1351,7 +1351,7 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 		ewww_image_optimizer_update_webp_results( $file, 0, 3 );
 		return ewww_image_optimizer_webp_error_message( 3 );
 	}
-	list( $width, $height ) = wp_getimagesize( $file );
+	list( $width, $height ) = ewwwio()->getimagesize( $file );
 	if ( $width > 16383 || $height > 16383 ) {
 		ewww_image_optimizer_update_webp_results( $file, 0, 4 );
 		return ewww_image_optimizer_webp_error_message( 4 );
@@ -1470,11 +1470,11 @@ function ewww_image_optimizer_get_cwebp_resize_params( $file ) {
 		ewwwio_debug_message( 'building resize params' );
 		if ( $webp_crop ) {
 			ewwwio_debug_message( 'cropping' );
-			list( $full_width, $full_height ) = wp_getimagesize( $fullsize_image );
+			list( $full_width, $full_height ) = ewwwio()->getimagesize( $fullsize_image );
 			if ( ! empty( $full_width ) && ! empty( $full_height ) ) {
 				ewwwio_debug_message( 'found full-size dims' );
 				$dims = image_resize_dimensions( $full_width, $full_height, $webp_width, $webp_height, $webp_crop );
-				if ( $dims ) {
+				if ( $dims && is_array( $dims ) ) {
 					ewwwio_debug_message( 'image_resize_dimensions() returned: ' . implode( ', ', $dims ) );
 					list( $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) = $dims;
 					// Build it with both crop and resize args, the crop will chop off the edges for the needed aspect ratio, then resize scales it (if needed).
