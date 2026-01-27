@@ -1269,6 +1269,12 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 	return array( false, $result, $converted, $original );
 }
 
+/**
+ * Returns the WebP file path of the given image based on naming mode.
+ *
+ * @param string $file The full filesystem path to the source image.
+ * @return string The full filesystem path to the WebP image.
+ */
 function ewww_image_optimizer_get_webp_path( $file ) {
 	$naming_mode = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
 	$info        = pathinfo( $file );
@@ -1282,6 +1288,12 @@ function ewww_image_optimizer_get_webp_path( $file ) {
 	return apply_filters( 'ewww_image_optimizer_webp_path', $webp_path, $file, $naming_mode );
 }
 
+/**
+ * Returns all possible WebP file paths of the given image.
+ *
+ * @param string $path The full filesystem path to the source image.
+ * @return string[] Array of two WebP file paths.
+ */
 function ewww_image_optimizer_get_all_webp_paths( $path ) {
 	$naming_mode = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
 	$append      = $path . '.webp';
@@ -1294,6 +1306,12 @@ function ewww_image_optimizer_get_all_webp_paths( $path ) {
 	return array( $replace, $append );
 }
 
+/**
+ * Removes obsolete WebP files created with previous naming conventions.
+ *
+ * @param string $path The full filesystem path to the source image.
+ * @return void
+ */
 function ewww_image_optimizer_cleanup_legacy_webp( $path ) {
 	$current  = ewww_image_optimizer_get_webp_path( $path );
 	$variants = ewww_image_optimizer_get_all_webp_paths( $path );
@@ -1306,6 +1324,13 @@ function ewww_image_optimizer_cleanup_legacy_webp( $path ) {
 	}
 }
 
+/**
+ * Returns the WebP URL of the given image.
+ *
+ * @param string $path The full filesystem path to the source image.
+ * @param string $url The full URL to the source image.
+ * @return string URL to the existing WebP image.
+ */
 function ewww_image_optimizer_get_webp_url( $path, $url ) {
 	$webp_paths = ewww_image_optimizer_get_all_webp_paths( $path );
 	$webp_urls  = ewww_image_optimizer_get_all_webp_paths( $url );

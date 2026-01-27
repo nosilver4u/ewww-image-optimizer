@@ -61,31 +61,16 @@ function ewww_image_optimizer_webp_scan() {
 			if ( ! str_ends_with( $path, '.webp' ) ) {
 				continue;
 			}
-			if ( 'append' === $naming_mode ) {
-				$original_path = ewwwio()->remove_from_end( $path, '.webp' );
-				if ( is_file( $original_path ) ) {
-					continue;
-				}
-				$extensionless       = $original_path;
-				$original_extensions = array( 'png', 'jpg', 'jpeg', 'gif' );
-				foreach ( $original_extensions as $ext ) {
-					if ( is_file( $extensionless . '.' . $ext ) ) {
-						ewwwio_debug_message( "queued $path" );
-						$list[] = $path;
-						break;
-					}
-					if ( is_file( $extensionless . '.' . strtoupper( $ext ) ) ) {
-						ewwwio_debug_message( "queued $path" );
-						$list[] = $path;
-						break;
-					}
-				}
-			} elseif ( 'replace' === $naming_mode ) {
-				$original_path =  ewwwio()->remove_from_end( $path, '.webp' );
-				if ( is_file( $original_path ) ) {
-					ewwwio_debug_message( "queued $path" );
-					$list[] = $path;
-				}
+			$original_path = ewwwio()->remove_from_end( $path, '.webp' );
+			$current_webp  = ewww_image_optimizer_get_webp_path( $original_path );
+			if ( $current_webp !== $path ) {
+				ewwwio_debug_message( "queued $path" );
+				$list[] = $path;
+				continue;
+			}
+			if ( ! ewwwio_is_file( $current_webp ) ) {
+				ewwwio_debug_message( "queued $path" );
+				$list[] = $path;
 			}
 		}
 	}
@@ -178,7 +163,7 @@ function ewww_image_optimizer_webp_loop() {
 		$image        = array_pop( $images );
 		$replace_base = '';
 		$skip         = true;
-		$naming_mode = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
+		$naming_mode  = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
 		if ( 'replace' === $naming_mode ) {
 			$original_path = ewwwio()->remove_from_end( $image, '.webp' );
 			if ( is_file( $original_path ) ) {

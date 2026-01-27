@@ -349,7 +349,7 @@ function ewww_image_optimizer_aux_images_table() {
 		$webp_info  = '';
 		$webp_error = '';
 		$webpurl    = '';
-		$webpfile   = ewww_image_optimizer_get_webp_path( $file );
+		list ( $webpfile ) = ewww_image_optimizer_get_all_webp_paths( $file );
 		$webp_size  = ewww_image_optimizer_filesize( $webpfile );
 		if ( ! $webp_size ) {
 			if ( ! empty( $optimized_image['webp_size'] ) ) {
@@ -363,7 +363,7 @@ function ewww_image_optimizer_aux_images_table() {
 			$webp_size = ewww_image_optimizer_size_format( $webp_size );
 			$webp_info = "<br>WebP: $webp_size";
 			if ( $image_url ) {
-				$webpurl   = $image_url . '.webp';
+				list( $webpurl ) = ewww_image_optimizer_get_all_webp_paths( $image_url );
 				$webp_info = "<br>WebP: <a href=\"$webpurl\" target=\"_blank\">$webp_size</a>";
 			}
 		} elseif ( $webp_error ) {
@@ -1130,7 +1130,8 @@ function ewww_image_optimizer_delete_webp( $id ) {
 			++$removed;
 		}
 	}
-	//remove WebP notification from displaying in media library
+
+	//Remove WebP notification from displaying in media library.
 	$wpdb->update(
 		$wpdb->ewwwio_images,
 		array(

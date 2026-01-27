@@ -1751,6 +1751,11 @@ function ewww_image_optimizer_cloud_based_media() {
 	return false;
 }
 
+/**
+ * Checks if a plugin is offloading media to cloud storage..
+ *
+ * @return bool True if a plugin is offloading media, false otherwise.
+ */
 function ewww_image_optimizer_offloaded_media() {
 	if (
 		class_exists( 'WindowsAzureStorageUtil' ) ||
@@ -2483,7 +2488,7 @@ function ewww_image_optimizer_retina( $id, $retina_path ) {
 	ewwwio_debug_message( "temp path: $temp_path" );
 	// Check for any orphaned webp retina images, and fix their paths.
 	ewwwio_debug_message( "retina path: $retina_path" );
-	$temp_webp = ewww_image_optimizer_get_webp_path( $temp_path );
+	$temp_webp  = ewww_image_optimizer_get_webp_path( $temp_path );
 	$final_webp = ewww_image_optimizer_get_webp_path( $retina_path );
 	ewwwio_debug_message( "temp retina webp path: $temp_webp" );
 	ewwwio_debug_message( "final retina webp path: $final_webp" );
@@ -4113,7 +4118,7 @@ function ewww_image_optimizer_media_replace( $attachment ) {
 		$base_dir = dirname( $file_path ) . '/';
 		foreach ( $meta['sizes'] as $data ) {
 			// Delete any residual webp versions.
-			$resize_path = $base_dir . $data['file'];
+			$resize_path  = $base_dir . $data['file'];
 			$current_webp = ewww_image_optimizer_get_webp_path( $resize_path );
 			if ( ewwwio_is_file( $current_webp ) ) {
 				ewwwio_delete_file( $current_webp );
@@ -6882,7 +6887,7 @@ function ewww_image_optimizer_remote_push( $meta, $id ) {
 			copy( $filename, $s3_path );
 			unlink( $filename );
 			$current_webp = ewww_image_optimizer_get_webp_path( $filename );
-			$s3_webp	  = ewww_image_optimizer_get_webp_path( $s3_path );
+			$s3_webp      = ewww_image_optimizer_get_webp_path( $s3_path );
 			if ( ewwwio_is_file( $current_webp ) ) {
 				copy( $current_webp, $s3_webp );
 				unlink( $current_webp );
@@ -6901,7 +6906,7 @@ function ewww_image_optimizer_remote_push( $meta, $id ) {
 				copy( $resize_path, $s3_rpath );
 				unlink( $resize_path );
 				$current_webp = ewww_image_optimizer_get_webp_path( $resize_path );
-				$s3_webp	  = ewww_image_optimizer_get_webp_path( $s3_rpath );
+				$s3_webp      = ewww_image_optimizer_get_webp_path( $s3_rpath );
 				if ( ewwwio_is_file( $current_webp ) ) {
 					copy( $current_webp, $s3_webp );
 					unlink( $current_webp );
@@ -6937,7 +6942,7 @@ function ewww_image_optimizer_remote_push( $meta, $id ) {
 					copy( $resize_path, $s3_rpath );
 					unlink( $resize_path );
 					$current_webp = ewww_image_optimizer_get_webp_path( $resize_path );
-					$s3_webp	  = ewww_image_optimizer_get_webp_path( $s3_rpath );
+					$s3_webp      = ewww_image_optimizer_get_webp_path( $s3_rpath );
 					if ( ewwwio_is_file( $current_webp ) ) {
 						copy( $current_webp, $s3_webp );
 						unlink( $current_webp );
@@ -8972,7 +8977,7 @@ function ewww_image_optimizer_as3cf_attachment_file_paths( $paths, $id ) {
 			global $wpdb;
 			$optimized = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 LIMIT 1", $id ) );
 			if ( $optimized ) {
-				$current_webp = ewww_image_optimizer_get_webp_path( $path );
+				$current_webp             = ewww_image_optimizer_get_webp_path( $path );
 				$paths[ $size . '-webp' ] = $current_webp;
 				ewwwio_debug_message( "added $current_webp to as3cf queue (for potential local copy)" );
 			}
@@ -9027,7 +9032,7 @@ function ewww_image_optimizer_as3cf_remove_source_files( $paths ) {
 		if ( false !== strpos( $size, '-webp' ) || str_ends_with( $path, '.webp' ) ) {
 			continue;
 		}
-		$current_webp = ewww_image_optimizer_get_webp_path( $path );
+		$current_webp             = ewww_image_optimizer_get_webp_path( $path );
 		$paths[ $size . '-webp' ] = $current_webp;
 		ewwwio_debug_message( "added $current_webp to as3cf deletion queue" );
 		$ewww_image = ewww_image_optimizer_find_already_optimized( $path );
@@ -11059,40 +11064,40 @@ function ewww_image_optimizer_webp_rewrite_verify() {
 		return;
 	}
 	$current_rules = ewwwio_extract_from_markers( ewww_image_optimizer_htaccess_path(), 'EWWWIO' );
-	$naming_mode = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
+	$naming_mode   = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
 	if ( 'replace' === $naming_mode ) {
-		$ewww_rules    = array(
-		'<IfModule mod_rewrite.c>',
-		'RewriteEngine On',
-		'RewriteCond %{HTTP_ACCEPT} image/webp',
-		'RewriteCond %{REQUEST_FILENAME} (.*)\.(jpe?g|png|gif)$',
-		'RewriteCond %1.webp -f',
-		'RewriteCond %{QUERY_STRING} !type=original',
-		'RewriteRule (.+)\.(jpe?g|png|gif)$ $1.webp [T=image/webp,L]',
-		'</IfModule>',
-		'<IfModule mod_headers.c>',
-		'<FilesMatch "\.(jpe?g|png|gif)$">',
-		'Header append Vary Accept',
-		'</FilesMatch>',
-		'</IfModule>',
-		'AddType image/webp .webp',
+		$ewww_rules = array(
+			'<IfModule mod_rewrite.c>',
+			'RewriteEngine On',
+			'RewriteCond %{HTTP_ACCEPT} image/webp',
+			'RewriteCond %{REQUEST_FILENAME} (.*)\.(jpe?g|png|gif)$',
+			'RewriteCond %1.webp -f',
+			'RewriteCond %{QUERY_STRING} !type=original',
+			'RewriteRule (.+)\.(jpe?g|png|gif)$ $1.webp [T=image/webp,L]',
+			'</IfModule>',
+			'<IfModule mod_headers.c>',
+			'<FilesMatch "\.(jpe?g|png|gif)$">',
+			'Header append Vary Accept',
+			'</FilesMatch>',
+			'</IfModule>',
+			'AddType image/webp .webp',
 		);
 	} else {
-		$ewww_rules    = array(
-		'<IfModule mod_rewrite.c>',
-		'RewriteEngine On',
-		'RewriteCond %{HTTP_ACCEPT} image/webp',
-		'RewriteCond %{REQUEST_FILENAME} (.*)\.(jpe?g|png|gif)$',
-		'RewriteCond %{REQUEST_FILENAME}.webp -f',
-		'RewriteCond %{QUERY_STRING} !type=original',
-		'RewriteRule (.+)\.(jpe?g|png|gif)$ %{REQUEST_URI}.webp [T=image/webp,L]',
-		'</IfModule>',
-		'<IfModule mod_headers.c>',
-		'<FilesMatch "\.(jpe?g|png|gif)$">',
-		'Header append Vary Accept',
-		'</FilesMatch>',
-		'</IfModule>',
-		'AddType image/webp .webp',
+		$ewww_rules = array(
+			'<IfModule mod_rewrite.c>',
+			'RewriteEngine On',
+			'RewriteCond %{HTTP_ACCEPT} image/webp',
+			'RewriteCond %{REQUEST_FILENAME} (.*)\.(jpe?g|png|gif)$',
+			'RewriteCond %{REQUEST_FILENAME}.webp -f',
+			'RewriteCond %{QUERY_STRING} !type=original',
+			'RewriteRule (.+)\.(jpe?g|png|gif)$ %{REQUEST_URI}.webp [T=image/webp,L]',
+			'</IfModule>',
+			'<IfModule mod_headers.c>',
+			'<FilesMatch "\.(jpe?g|png|gif)$">',
+			'Header append Vary Accept',
+			'</FilesMatch>',
+			'</IfModule>',
+			'AddType image/webp .webp',
 		);
 	}
 	if ( is_array( $current_rules ) ) {
@@ -13722,10 +13727,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<div class='ewww-setting-detail'>
 							<?php esc_html_e( 'Choose how WebP filenames are generated:', 'ewww-image-optimizer' ); ?><br>
 							<select name="ewww_image_optimizer_webp_naming_mode" id="ewww_image_optimizer_webp_naming_mode">
-								<option <?php disabled( $webp_rewrite_verify && 'replace' === ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode' ) ) ?> value="append" <?php selected( get_option( 'ewww_image_optimizer_webp_naming_mode' ), 'append' ); ?>>
+								<option <?php disabled( $webp_rewrite_verify && 'replace' === ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode' ) ); ?> value="append" <?php selected( get_option( 'ewww_image_optimizer_webp_naming_mode' ), 'append' ); ?>>
 									<?php esc_html_e( 'Append (.jpg.webp)', 'ewww-image-optimizer' ); ?>
 								</option>
-								<option <?php disabled( $webp_rewrite_verify && 'append' === ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode' ) ) ?> value="replace" <?php selected( get_option( 'ewww_image_optimizer_webp_naming_mode' ), 'replace' ); ?>>
+								<option <?php disabled( $webp_rewrite_verify && 'append' === ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode' ) ); ?> value="replace" <?php selected( get_option( 'ewww_image_optimizer_webp_naming_mode' ), 'replace' ); ?>>
 									<?php esc_html_e( 'Replace (.webp)', 'ewww-image-optimizer' ); ?>
 								</option>
 							</select>
@@ -13749,7 +13754,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) &&
 			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' )
 		) :
-			$webp_mime_error     = false;
+			$webp_mime_error = false;
 			// Only check the rules for problems if WebP is enabled, otherwise this is a blank slate.
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) :
 				$false_positive_headers = '';
