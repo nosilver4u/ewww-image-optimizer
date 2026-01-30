@@ -43,12 +43,13 @@ function ewww_image_optimizer_webp_migrate_preview() {
  */
 function ewww_image_optimizer_webp_scan() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	$list         = array();
-	$dir          = get_home_path();
-	$iterator     = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $dir ), RecursiveIteratorIterator::CHILD_FIRST );
-	$start        = microtime( true );
-	$file_counter = 0;
-	$naming_mode  = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
+	$list                = array();
+	$dir                 = get_home_path();
+	$iterator            = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $dir ), RecursiveIteratorIterator::CHILD_FIRST );
+	$start               = microtime( true );
+	$file_counter        = 0;
+	$naming_mode         = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
+	$original_extensions = array( 'png', 'jpg', 'jpeg', 'gif' );
 	foreach ( $iterator as $path ) {
 		if ( ewww_image_optimizer_stl_check() ) {
 			set_time_limit( 0 );
@@ -63,18 +64,12 @@ function ewww_image_optimizer_webp_scan() {
 			}
 			if ( 'append' === $naming_mode ) {
 				$original_path = ewwwio()->remove_from_end( $path, '.webp' );
-				if ( ewwwio_is_file( $original_path ) ) {
+				$info 	       = pathinfo( $original_path );
+				if ( ! empty( $info['extension'] ) ) {
 					continue;
 				}
-				$extensionless       = $original_path;
-				$original_extensions = array( 'png', 'jpg', 'jpeg', 'gif' );
 				foreach ( $original_extensions as $ext ) {
-					if ( ewwwio_is_file( $extensionless . '.' . $ext ) ) {
-						ewwwio_debug_message( "queued $path" );
-						$list[] = $path;
-						break;
-					}
-					if ( ewwwio_is_file( $extensionless . '.' . strtoupper( $ext ) ) ) {
+					if ( ewwwio_is_file( $original_path . '.' . $ext ) || ewwwio_is_file( $original_path . '.' . strtoupper( $ext ) ) ) {
 						ewwwio_debug_message( "queued $path" );
 						$list[] = $path;
 						break;
@@ -82,6 +77,10 @@ function ewww_image_optimizer_webp_scan() {
 				}
 			} elseif ( 'replace' === $naming_mode ) {
 				$original_path =  ewwwio()->remove_from_end( $path, '.webp' );
+				$info 	       = pathinfo( $original_path );
+				if ( empty( $info['extension'] ) ) {
+					continue;
+				}
 				if ( ewwwio_is_file( $original_path ) ) {
 					ewwwio_debug_message( "queued $path" );
 					$list[] = $path;
