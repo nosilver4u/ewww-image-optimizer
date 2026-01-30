@@ -3851,8 +3851,8 @@ function ewww_image_optimizer_delete( $id ) {
 	if ( ewww_image_optimizer_s3_uploads_enabled() && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
 		$s3_path = get_attached_file( $id );
 		if ( 0 === strpos( $s3_path, 's3://' ) ) {
-			ewwwio_debug_message( 'removing: ' . $s3_path . '.webp' );
 			$webpfile = ewww_image_optimizer_get_webp_path( $s3_path );
+			ewwwio_debug_message( 'removing: ' . $webpfile);
 			unlink( $webpfile );
 		}
 		$s3_dir = trailingslashit( dirname( $s3_path ) );

@@ -55,23 +55,35 @@ function ewww_image_optimizer_webp_scan() {
 		}
 		if ( $path->isDir() ) {
 			continue;
-		} else {
-			++$file_counter;
-			$path = $path->getPathname();
-			if ( ! str_ends_with( $path, '.webp' ) ) {
+		} 
+		++$file_counter;
+		$path = $path->getPathname();
+		if ( ! str_ends_with( $path, '.webp' ) ) {
+			continue;
+		}
+		$original_path = ewwwio()->remove_from_end( $path, '.webp' );
+		$current_webp  = ewww_image_optimizer_get_webp_path( $original_path );
+		if ( $current_webp === $path ) {
+			ewwwio_debug_message( "queued $path" );
+			$list[] = $path;
+			continue;
+		}
+		if ( ! ewwwio_is_file( $current_webp ) ) {
+			$info = pathinfo( $original_path );
+			if( empty( $info['extension'] ) ) {
+				$extensionless       = $original_path;
+				$original_extensions = array( 'png', 'jpg', 'jpeg', 'gif' );
+				foreach ( $original_extensions as $ext ) {
+					if ( is_file( $extensionless . '.' . $ext ) || is_file( $extensionless . '.' . strtoupper( $ext ) ) ) {
+						ewwwio_debug_message( "queued $path" );
+						$list[] = $path;
+						break;
+					}
+				}
 				continue;
 			}
-			$original_path = ewwwio()->remove_from_end( $path, '.webp' );
-			$current_webp  = ewww_image_optimizer_get_webp_path( $original_path );
-			if ( $current_webp !== $path ) {
-				ewwwio_debug_message( "queued $path" );
-				$list[] = $path;
-				continue;
-			}
-			if ( ! ewwwio_is_file( $current_webp ) ) {
-				ewwwio_debug_message( "queued $path" );
-				$list[] = $path;
-			}
+			ewwwio_debug_message( "queued $path" );
+			$list[] = $path;
 		}
 	}
 	$end = microtime( true ) - $start;

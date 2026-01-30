@@ -1292,7 +1292,7 @@ function ewww_image_optimizer_get_webp_path( $file ) {
  * Returns all possible WebP file paths of the given image.
  *
  * @param string $path The full filesystem path to the source image.
- * @return string[] Array of two WebP file paths.
+ * @return array Returns array of both append and replace WebP naming paths.
  */
 function ewww_image_optimizer_get_all_webp_paths( $path ) {
 	$naming_mode = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
@@ -1310,7 +1310,6 @@ function ewww_image_optimizer_get_all_webp_paths( $path ) {
  * Removes obsolete WebP files created with previous naming conventions.
  *
  * @param string $path The full filesystem path to the source image.
- * @return void
  */
 function ewww_image_optimizer_cleanup_legacy_webp( $path ) {
 	$current  = ewww_image_optimizer_get_webp_path( $path );
