@@ -62,10 +62,12 @@ function ewww_image_optimizer_webp_scan() {
 			if ( ! str_ends_with( $path, '.webp' ) ) {
 				continue;
 			}
+			$original_path = ewwwio()->remove_from_end( $path, '.webp' );
+			$info 	       = pathinfo( $original_path );
+			$ext           = strtolower( $info['extension'] ?? '' );
+			$is_real_ext   = in_array( $ext, $original_extensions, true );
 			if ( 'append' === $naming_mode ) {
-				$original_path = ewwwio()->remove_from_end( $path, '.webp' );
-				$info 	       = pathinfo( $original_path );
-				if ( ! empty( $info['extension'] ) ) {
+				if ( $is_real_ext ) {
 					continue;
 				}
 				foreach ( $original_extensions as $ext ) {
@@ -76,9 +78,7 @@ function ewww_image_optimizer_webp_scan() {
 					}
 				}
 			} elseif ( 'replace' === $naming_mode ) {
-				$original_path =  ewwwio()->remove_from_end( $path, '.webp' );
-				$info 	       = pathinfo( $original_path );
-				if ( empty( $info['extension'] ) ) {
+				if ( ! $is_real_ext ) {
 					continue;
 				}
 				if ( ewwwio_is_file( $original_path ) ) {
