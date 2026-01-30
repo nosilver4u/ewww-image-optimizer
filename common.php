@@ -3852,7 +3852,7 @@ function ewww_image_optimizer_delete( $id ) {
 		$s3_path = get_attached_file( $id );
 		if ( 0 === strpos( $s3_path, 's3://' ) ) {
 			$webpfile = ewww_image_optimizer_get_webp_path( $s3_path );
-			ewwwio_debug_message( 'removing: ' . $webpfile);
+			ewwwio_debug_message( 'removing: ' . $webpfile );
 			unlink( $webpfile );
 		}
 		$s3_dir = trailingslashit( dirname( $s3_path ) );

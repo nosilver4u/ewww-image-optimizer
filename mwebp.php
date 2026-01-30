@@ -55,7 +55,7 @@ function ewww_image_optimizer_webp_scan() {
 		}
 		if ( $path->isDir() ) {
 			continue;
-		} 
+		}
 		++$file_counter;
 		$path = $path->getPathname();
 		if ( ! str_ends_with( $path, '.webp' ) ) {
@@ -70,7 +70,7 @@ function ewww_image_optimizer_webp_scan() {
 		}
 		if ( ! ewwwio_is_file( $current_webp ) ) {
 			$info = pathinfo( $original_path );
-			if( empty( $info['extension'] ) ) {
+			if ( empty( $info['extension'] ) ) {
 				$extensionless       = $original_path;
 				$original_extensions = array( 'png', 'jpg', 'jpeg', 'gif' );
 				foreach ( $original_extensions as $ext ) {
