@@ -63,7 +63,7 @@ function ewww_image_optimizer_webp_scan() {
 				continue;
 			}
 			$original_path = ewwwio()->remove_from_end( $path, '.webp' );
-			$info 	       = pathinfo( $original_path );
+			$info          = pathinfo( $original_path );
 			$ext           = strtolower( $info['extension'] ?? '' );
 			$is_real_ext   = in_array( $ext, $original_extensions, true );
 			if ( 'append' === $naming_mode ) {
