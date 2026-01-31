@@ -351,7 +351,7 @@ function ewww_image_optimizer_aux_images_table() {
 		$webpurl                        = '';
 		list( $webpfile, $oldwebpfile ) = ewww_image_optimizer_get_all_webp_paths( $file );
 		$webp_size                      = ewww_image_optimizer_filesize( $webpfile );
-		if ( ! str_ends_with( $file_path, '.webp' ) && ! ewww_image_optimizer_easy_active() && ewwwio_is_file( $oldwebpfile ) && current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+		if ( ! str_ends_with( $file, '.webp' ) && ! ewww_image_optimizer_easy_active() && ewwwio_is_file( $oldwebpfile ) && current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 			echo "<div><a href='" . esc_url( admin_url( 'options.php?page=ewww-image-optimizer-webp-migrate' ) ) . "'>" . esc_html__( 'Run WebP renaming', 'ewww-image-optimizer' ) . '</a></div>';
 		}
 		if ( ! $webp_size ) {
@@ -366,7 +366,7 @@ function ewww_image_optimizer_aux_images_table() {
 			$webp_size = ewww_image_optimizer_size_format( $webp_size );
 			$webp_info = "<br>WebP: $webp_size";
 			if ( $image_url ) {
-				$webpurl   = ewww_image_optimizer_get_webp_path( $file, $image_url );
+				$webpurl   = ewww_image_optimizer_get_webp_url( $file, $image_url );
 				$webp_info = "<br>WebP: <a href=\"$webpurl\" target=\"_blank\">$webp_size</a>";
 			}
 		} elseif ( $webp_error ) {
