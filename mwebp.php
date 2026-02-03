@@ -174,35 +174,29 @@ function ewww_image_optimizer_webp_loop() {
 			ewwwio_debug_message( 'hit 1000, breaking loop' );
 			break;
 		}
-		$image        = array_pop( $images );
-		$replace_base = '';
-		$skip         = true;
-		$naming_mode  = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
+		$image               = array_pop( $images );
+		$replace_base        = '';
+		$skip                = true;
+		$naming_mode         = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
+		$extensionless       = ewwwio()->remove_from_end( $image, '.webp' );
+		$info                = pathinfo( $extensionless );
+		$ext                 = strtolower( $info['extension'] ?? '' );
+		$original_extensions = array( 'png', 'jpg', 'jpeg', 'gif' );
+		$is_real_ext         = in_array( $ext, $original_extensions, true );
 		if ( 'replace' === $naming_mode ) {
-			$original_path = ewwwio()->remove_from_end( $image, '.webp' );
-			if ( is_file( $original_path ) ) {
-				$replace_base = $original_path;
+			if ( $is_real_ext && ewwwio_is_file( $extensionless ) ) {
+				$replace_base = $extensionless;
 				$skip         = false;
 			}
 		} elseif ( 'append' === $naming_mode ) {
-			$extensionless       = ewwwio()->remove_from_end( $image, '.webp' );
-			$original_extensions = array( 'png', 'jpg', 'jpeg', 'gif' );
-			foreach ( $original_extensions as $ext ) {
-				if ( is_file( $extensionless . '.' . $ext ) ) {
-					if ( ! empty( $replace_base ) ) {
-						$skip = true;
-						break;
-					}
-					$replace_base = $extensionless . '.' . $ext;
+			if ( ! $is_real_ext ) {
+				continue;
+			}
+			foreach ( $original_extensions as $img_ext ) {
+				if ( ewwwio_is_file( $extensionless . '.' . $img_ext ) || ewwwio_is_file( $extensionless . '.' . strtoupper( $img_ext ) ) ) {
+					$replace_base = $extensionless . '.' . $img_ext;
 					$skip         = false;
-				}
-				if ( is_file( $extensionless . '.' . strtoupper( $ext ) ) ) {
-					if ( ! empty( $replace_base ) ) {
-						$skip = true;
-						break;
-					}
-					$replace_base = $extensionless . '.' . strtoupper( $ext );
-					$skip         = false;
+					break;
 				}
 			}
 		}
