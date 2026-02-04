@@ -12257,12 +12257,12 @@ function ewww_image_optimizer_get_image_savings() {
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 		$api_quota = ewww_image_optimizer_cloud_quota( true );
 		if ( is_array( $api_quota ) && isset( $api_quota['consumed'] ) && empty( $api_quota['sites'] ) ) {
-			if ( $exactdn_savings['bandwidth'] < $exactdn_savings['quota'] ) {
+			if ( ! empty( $exactdn_savings['bandwidth'] ) && $exactdn_savings['bandwidth'] < $exactdn_savings['quota'] ) {
 				$exactdn_savings['quota'] = $exactdn_savings['bandwidth'] * 1.25;
 			}
 		}
 	} else {
-		if ( $exactdn_savings['bandwidth'] < $exactdn_savings['quota'] ) {
+		if ( ! empty( $exactdn_savings['bandwidth'] ) && $exactdn_savings['bandwidth'] < $exactdn_savings['quota'] ) {
 			$exactdn_savings['quota'] = $exactdn_savings['bandwidth'] * 1.25;
 		}
 	}
