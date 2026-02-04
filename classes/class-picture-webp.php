@@ -587,15 +587,20 @@ class Picture_Webp extends Page_Parser {
 	 * Generate a WebP URL per the correct WebP naming pattern.
 	 *
 	 * @param string $url The image url.
+	 * @param string $path The image path.
 	 * @return string The WebP version of the image url.
 	 */
-	public function generate_url( $url ) {
-		$path = $this->url_to_path( $url );
-		if ( $path ) {
-			$webp_url = ewww_image_optimizer_get_webp_url( $path, $url );
-			return apply_filters( 'ewwwio_generated_webp_image_url', $webp_url, $url );
+	public function generate_url( $url, $path ) {
+		$url_parts = \explode( '?', $url );
+		$queryless_url = $url_parts[0];
+		if ( true === $path ) {
+			$webp_url = ewww_image_optimizer_get_webp_path( $queryless_url );
+		} else {
+			$webp_url = ewww_image_optimizer_get_webp_url( $path, $queryless_url );
 		}
-		$webp_url = $url . '.webp';
+		if ( ! empty( $url_parts[1] ) && ! str_contains( $url_parts[1], 'is-pending-load' ) ) {
+			$webp_url .= '?' . $url_parts[1];
+		}
 		return apply_filters( 'ewwwio_generated_webp_image_url', $webp_url, $url );
 	}
 

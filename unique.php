@@ -1332,10 +1332,7 @@ function ewww_image_optimizer_cleanup_legacy_webp( $path ) {
  */
 function ewww_image_optimizer_get_webp_url( $path, $url ) {
 	$webp_paths = ewww_image_optimizer_get_all_webp_paths( $path );
-	$webp_urls  = array(
-		$url . '.webp',
-		preg_replace( '/\.\w+$/', '.webp', $url ),
-	);
+	$webp_urls  = ewww_image_optimizer_get_all_webp_urls( $url );
 	if ( ewwwio_is_file( $webp_paths[0] ) ) {
 		return $webp_urls[0];
 	} elseif ( ewwwio_is_file( $webp_paths[1] ) ) {

@@ -365,7 +365,7 @@ function ewww_image_optimizer_aux_images_table() {
 		if ( $webp_size ) {
 			// Get a human readable filesize.
 			$webp_size = ewww_image_optimizer_size_format( $webp_size );
-			$webp_info = "<br>WebP: $webp_size";
+			$webp_info = "$webp_migration<br>WebP: $webp_size";
 			if ( $image_url ) {
 				$webpurl   = ewww_image_optimizer_get_webp_url( $file, $image_url );
 				$webp_info = "$webp_migration<br>WebP: <a href=\"$webpurl\" target=\"_blank\">$webp_size</a>";
