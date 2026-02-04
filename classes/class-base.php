@@ -1628,7 +1628,7 @@ class Base {
 					return $path_parts[0];
 				}
 				if ( ! empty( $extension ) ) {
-					$path_info = pathinfo( $path_parts[0] );
+					$path_info     = pathinfo( $path_parts[0] );
 					$replaced_path = $path_info['dirname'] . '/' . $path_info['filename'] . $extension;
 					if ( $this->is_file( $replaced_path ) ) {
 						return $path_parts[0];

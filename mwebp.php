@@ -193,7 +193,7 @@ function ewww_image_optimizer_webp_loop() {
 				continue;
 			}
 			foreach ( $original_extensions as $img_ext ) {
-				if ( ewwwio_is_file( $extensionless . '.' . $img_ext ) || ewwwio_is_file( $extensionless . '.' . strtoupper( $img_ext ) ) ) {	
+				if ( ewwwio_is_file( $extensionless . '.' . $img_ext ) || ewwwio_is_file( $extensionless . '.' . strtoupper( $img_ext ) ) ) {
 					if ( ! empty( $replace_base ) ) {
 						$skip = true;
 						break;

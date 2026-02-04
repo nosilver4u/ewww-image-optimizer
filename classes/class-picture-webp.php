@@ -591,7 +591,7 @@ class Picture_Webp extends Page_Parser {
 	 * @return string The WebP version of the image url.
 	 */
 	public function generate_url( $url, $path ) {
-		$url_parts = \explode( '?', $url );
+		$url_parts     = \explode( '?', $url );
 		$queryless_url = $url_parts[0];
 		if ( true === $path ) {
 			$webp_url = ewww_image_optimizer_get_webp_path( $queryless_url );

@@ -3824,7 +3824,7 @@ function ewww_image_optimizer_delete( $id ) {
 						ewwwio_debug_message( 'removing: ' . $webpfile );
 						ewwwio_delete_file( $webpfile );
 					}
-					ewww_imager_optimizer_cleanup_legacy_webp( $image['path'] );
+					ewww_image_optimizer_cleanup_legacy_webp( $image['path'] );
 					$eio_backup->delete_local_backup( $image['path'] );
 				}
 				if ( ! empty( $image['converted'] ) ) {
