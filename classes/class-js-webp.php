@@ -876,7 +876,7 @@ class JS_Webp extends Page_Parser {
 			foreach ( $images as $index => $image ) {
 				if ( ! empty( $image['image'] ) ) {
 					$validated_path = $this->validate_image_url( $image['image'] );
-					if( $validated_path ) {
+					if ( $validated_path ) {
 						$images[ $index ]['image-webp'] = $this->generate_url( $image['image'], $validated_path );
 					}
 				}
@@ -1013,9 +1013,8 @@ class JS_Webp extends Page_Parser {
 		$validated_path = $this->validate_image_url( $image_url );
 		if ( ! empty( $image_url ) && $validated_path ) {
 			$image_url = $this->generate_url( $image_url, $validated_path );
-			return $image_url;
 		}
-		return false;
+		return $image_url;
 	}
 
 	/**
@@ -1117,6 +1116,9 @@ class JS_Webp extends Page_Parser {
 	 */
 	public function validate_image_url( $image ) {
 		$this->debug_message( __METHOD__ . "() webp validation for $image" );
+		if ( empty ( $image ) ) {
+			return false;
+		}
 		if ( $this->is_lazy_placeholder( $image ) ) {
 			return false;
 		}

@@ -50,10 +50,10 @@ function ewww_image_optimizer_webp_scan() {
 	$file_counter        = 0;
 	$naming_mode         = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
 	$original_extensions = array( 'png', 'jpg', 'jpeg', 'gif' );
+	if ( ewww_image_optimizer_stl_check() ) {
+		set_time_limit( 0 );
+	}
 	foreach ( $iterator as $path ) {
-		if ( ewww_image_optimizer_stl_check() ) {
-			set_time_limit( 0 );
-		}
 		if ( $path->isDir() ) {
 			continue;
 		} else {
@@ -66,8 +66,12 @@ function ewww_image_optimizer_webp_scan() {
 			$info          = pathinfo( $original_path );
 			$ext           = strtolower( $info['extension'] ?? '' );
 			$is_real_ext   = in_array( $ext, $original_extensions, true );
+			$plugins_dir   = plugin_dir_path( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH );
 			if ( 'append' === $naming_mode ) {
 				if ( $is_real_ext ) {
+					continue;
+				}
+				if (str_contains ( $path, $plugins_dir ) ) {
 					continue;
 				}
 				foreach ( $original_extensions as $ext ) {
@@ -189,7 +193,7 @@ function ewww_image_optimizer_webp_loop() {
 				$skip         = false;
 			}
 		} elseif ( 'append' === $naming_mode ) {
-			if ( ! $is_real_ext ) {
+			if ( $is_real_ext ) {
 				continue;
 			}
 			foreach ( $original_extensions as $img_ext ) {
@@ -200,7 +204,6 @@ function ewww_image_optimizer_webp_loop() {
 					}
 					$replace_base = $extensionless . '.' . $img_ext;
 					$skip         = false;
-					break;
 				}
 			}
 		}

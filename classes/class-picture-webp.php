@@ -545,6 +545,9 @@ class Picture_Webp extends Page_Parser {
 	 */
 	public function validate_image_url( $image ) {
 		$this->debug_message( __METHOD__ . "() webp validation for $image" );
+		if (empty ( $image ) ) {
+			return false;
+		}
 		if ( $this->is_lazy_placeholder( $image ) ) {
 			return false;
 		}
