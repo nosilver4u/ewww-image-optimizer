@@ -261,14 +261,18 @@ class Picture_Webp extends Page_Parser {
 					$srcurl   = \rtrim( $srcurl, ',' );
 				}
 				$this->debug_message( "looking for $srcurl from srcset" );
-				if ( $this->validate_image_url( $srcurl ) ) {
-					$srcset = \str_replace( $srcurl . $trailing, $this->generate_url( $srcurl ) . $trailing, $srcset );
+				$validated_path = $this->validate_image_url( $srcurl );
+				if ( $validated_path ) {
+					$srcset = \str_replace( $srcurl . $trailing, $this->generate_url( $srcurl, $validated_path ) . $trailing, $srcset );
 					$this->debug_message( "replaced $srcurl in srcset" );
 					$found_webp = true;
 				}
 			}
-		} elseif ( $this->validate_image_url( $srcset ) ) {
-			return $this->generate_url( $srcset );
+		} else {
+			$validated_path = $this->validate_image_url( $srcset );
+			if ( $validated_path ) {
+				return $this->generate_url( $srcset, $validated_path );
+			}
 		}
 		if ( $found_webp ) {
 			return $srcset;
@@ -322,7 +326,8 @@ class Picture_Webp extends Page_Parser {
 				}
 				$file = $images['img_url'][ $index ];
 				$this->debug_message( "parsing an image: $file" );
-				if ( $this->validate_image_url( $file ) ) {
+				$validated_path = $this->validate_image_url( $file );
+				if ( $validated_path ) {
 					// If a CDN path match was found, or .webp image existence is confirmed.
 					$this->debug_message( 'found a webp image or forced path' );
 					$srcset      = $this->get_attribute( $image, 'srcset' );
@@ -332,7 +337,7 @@ class Picture_Webp extends Page_Parser {
 					}
 					$sizes_attr = '';
 					if ( empty( $srcset_webp ) ) {
-						$srcset_webp = $this->generate_url( $file );
+						$srcset_webp = $this->generate_url( $file, $validated_path );
 					} else {
 						$sizes = $this->get_attribute( $image, 'sizes' );
 						if ( $sizes ) {
