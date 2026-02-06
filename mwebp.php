@@ -71,7 +71,7 @@ function ewww_image_optimizer_webp_scan() {
 				if ( $is_real_ext ) {
 					continue;
 				}
-				if (str_contains ( $path, $plugins_dir ) ) {
+				if ( str_contains( $path, $plugins_dir ) ) {
 					continue;
 				}
 				foreach ( $original_extensions as $ext ) {
