@@ -172,6 +172,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 8.3.2 =
 *Release Date - TBD*
 
+* added: ability to choose append or replace for naming of WebP images, props @adamewww
+* improved: WebP renaming tool for converting from replacement naming to append and vice versa
 * fixed: Lazy Load setting does not detect presence of Easy IO plugin
 * fixed: Easy IO domain not reset after site URL is updated
 * fixed: PHP warnings and notices

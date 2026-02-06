@@ -11747,7 +11747,7 @@ function ewww_image_optimizer_intro_wizard() {
 							<br>
 							<span class="description"><?php esc_html_e( 'Premium compression for your local images.', 'ewww-image-optimizer' ); ?></span>
 						</p>
-		<?php if ( ! get_option( 'easyio_exactdn' ) ) : ?>
+		<?php if ( ! get_option( 'easyio_exactdn' ) || ! function_exists( 'easyio' ) ) : ?>
 						<div id='ewwwio-easy-activation-result'></div>
 						<div class='ewwwio-easy-setup-instructions'>
 							<label><?php esc_html_e( 'Easy IO', 'ewww-image-optimizer' ); ?></label><br>
@@ -12535,10 +12535,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	}
 	$exactdn_enabled         = false;
 	$show_as3cf_cname_notice = false;
-	if ( get_option( 'easyio_exactdn' ) || ewwwio()->perfect_images_easyio_domain() ) {
+	if ( ( get_option( 'easyio_exactdn' ) && function_exists( 'easyio' ) ) || ewwwio()->perfect_images_easyio_domain() ) {
 		ewww_image_optimizer_webp_rewrite_verify();
 		update_option( 'ewww_image_optimizer_exactdn', false );
-		if ( get_option( 'easyio_exactdn' ) ) {
+		if ( get_option( 'easyio_exactdn' ) && function_exists( 'easyio' ) ) {
 			update_option( 'ewww_image_optimizer_lazy_load', false );
 		}
 		update_option( 'ewww_image_optimizer_webp_for_cdn', false );
@@ -13243,7 +13243,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							</p>
 						</div>
 					</div>
-	<?php elseif ( ! get_option( 'easyio_exactdn' ) ) : ?>
+	<?php elseif ( ! get_option( 'easyio_exactdn' ) || ! function_exists( 'easyio' ) ) : ?>
 				<div class='ewww-settings-section'>
 		<?php ob_start(); // Intentionally after the ewww-settings-section, as this will be wrapped in a section later, if needed. ?>
 					<div id='ewww_image_optimizer_exactdn_container' class='ewww-settings-row ewwwio-premium-setup'>
