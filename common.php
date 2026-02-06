@@ -2664,9 +2664,9 @@ function ewww_image_optimizer_gd_create_webp( $file, $type, $webpfile ) {
 			return;
 	}
 	ewwwio_debug_message( "creating $webpfile with quality $quality" );
-	$result = imagewebp( $image, $webpfile, $quality );
+	imagewebp( $image, $webpfile, $quality );
 	// Make sure to cleanup--if $webpfile is borked, that will be handled elsewhere.
-	imagedestroy( $image );
+	$image = null;
 }
 
 /**
