@@ -346,11 +346,15 @@ function ewww_image_optimizer_aux_images_table() {
 			$remove_from_text = __( 'Remove from queue', 'ewww-image-optimizer' );
 		}
 		// Check for WebP results.
-		$webp_info  = '';
-		$webp_error = '';
-		$webpurl    = '';
-		$webpfile   = $file . '.webp';
-		$webp_size  = ewww_image_optimizer_filesize( $webpfile );
+		$webp_info                      = '';
+		$webp_error                     = '';
+		$webp_migration                 = '';
+		$webpurl                        = '';
+		list( $webpfile, $oldwebpfile ) = ewww_image_optimizer_get_all_webp_paths( $file );
+		$webp_size                      = ewww_image_optimizer_filesize( $webpfile );
+		if ( ! str_ends_with( $file, '.webp' ) && ! ewww_image_optimizer_easy_active() && ewwwio_is_file( $oldwebpfile ) && current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+			$webp_migration = "<br><a href='" . esc_url( admin_url( 'options.php?page=ewww-image-optimizer-webp-migrate' ) ) . "'>" . esc_html__( 'Run WebP renaming', 'ewww-image-optimizer' ) . '</a>';
+		}
 		if ( ! $webp_size ) {
 			if ( ! empty( $optimized_image['webp_size'] ) ) {
 				$webp_size = $optimized_image['webp_size'];
@@ -361,10 +365,10 @@ function ewww_image_optimizer_aux_images_table() {
 		if ( $webp_size ) {
 			// Get a human readable filesize.
 			$webp_size = ewww_image_optimizer_size_format( $webp_size );
-			$webp_info = "<br>WebP: $webp_size";
+			$webp_info = "$webp_migration<br>WebP: $webp_size";
 			if ( $image_url ) {
-				$webpurl   = $image_url . '.webp';
-				$webp_info = "<br>WebP: <a href=\"$webpurl\" target=\"_blank\">$webp_size</a>";
+				$webpurl   = ewww_image_optimizer_get_webp_url( $file, $image_url );
+				$webp_info = "$webp_migration<br>WebP: <a href=\"$webpurl\" target=\"_blank\">$webp_size</a>";
 			}
 		} elseif ( $webp_error ) {
 			$webp_info = "<br>$webp_error";
@@ -1006,8 +1010,13 @@ function ewww_image_optimizer_delete_webp( $id ) {
 	if ( ewww_image_optimizer_s3_uploads_enabled() ) {
 		$s3_path = get_attached_file( $id );
 		if ( 0 === strpos( $s3_path, 's3://' ) ) {
-			ewwwio_debug_message( 'removing: ' . $s3_path . '.webp' );
-			unlink( $s3_path . '.webp' );
+			$webp_paths = ewww_image_optimizer_get_all_webp_paths( $s3_path );
+			foreach ( $webp_paths as $webp_path ) {
+				if ( ewwwio_is_file( $webp_path ) ) {
+					ewwwio_debug_message( 'removing: ' . $webp_path );
+					unlink( $webp_path );
+				}
+			}
 		}
 		$s3_dir = trailingslashit( dirname( $s3_path ) );
 	}
@@ -1125,6 +1134,18 @@ function ewww_image_optimizer_delete_webp( $id ) {
 			++$removed;
 		}
 	}
+
+	// Remove WebP notification from displaying in media library.
+	$wpdb->update(
+		$wpdb->ewwwio_images,
+		array(
+			'webp_size'  => 0,
+			'webp_error' => 0,
+		),
+		array(
+			'attachment_id' => $id,
+		)
+	);
 	return $removed;
 }
 

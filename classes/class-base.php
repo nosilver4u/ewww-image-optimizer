@@ -1608,6 +1608,13 @@ class Base {
 			$this->debug_message( 'local file found' );
 			return $path_parts[0];
 		}
+		if ( ! empty( $extension ) ) {
+			$path_info     = pathinfo( $path_parts[0] );
+			$replaced_path = $path_info['dirname'] . '/' . $path_info['filename'] . $extension;
+			if ( $this->is_file( $replaced_path ) ) {
+				return $path_parts[0];
+			}
+		}
 		if ( \class_exists( '\HMWP_Classes_ObjController' ) ) {
 			$hmwp_file_handler = \HMWP_Classes_ObjController::getClass( 'HMWP_Models_Files' );
 			if ( \is_object( $hmwp_file_handler ) ) {
@@ -1619,6 +1626,13 @@ class Base {
 				if ( $this->is_file( $path_parts[0] . $extension ) ) {
 					$this->debug_message( 'local file found' );
 					return $path_parts[0];
+				}
+				if ( ! empty( $extension ) ) {
+					$path_info     = pathinfo( $path_parts[0] );
+					$replaced_path = $path_info['dirname'] . '/' . $path_info['filename'] . $extension;
+					if ( $this->is_file( $replaced_path ) ) {
+						return $path_parts[0];
+					}
 				}
 			}
 		}

@@ -685,6 +685,7 @@ final class Plugin extends Base {
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_jpg_background', 'ewww_image_optimizer_jpg_background' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_force', 'boolval' );
+		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_naming_mode' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_paths', 'ewww_image_optimizer_webp_paths_sanitize' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_for_cdn', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_picture_webp', 'boolval' );
@@ -745,6 +746,7 @@ final class Plugin extends Base {
 		\add_option( 'ewww_image_optimizer_force_gif2webp', false );
 		\add_option( 'ewww_image_optimizer_picture_webp', false );
 		\add_option( 'ewww_image_optimizer_webp_rewrite_exclude', '' );
+		\add_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
 
 		// Set network defaults.
 		\add_site_option( 'ewww_image_optimizer_background_optimization', false );
@@ -758,6 +760,7 @@ final class Plugin extends Base {
 		\add_site_option( 'ewww_image_optimizer_svg_level', '0' );
 		\add_site_option( 'ewww_image_optimizer_webp_level', '0' );
 		\add_site_option( 'ewww_image_optimizer_webp_conversion_method', 'local' );
+		\add_site_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
 		\add_site_option( 'ewww_image_optimizer_jpg_quality', '' );
 		\add_site_option( 'ewww_image_optimizer_webp_quality', '' );
 		\add_site_option( 'ewww_image_optimizer_backup_files', '' );

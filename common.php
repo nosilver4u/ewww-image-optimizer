@@ -320,7 +320,6 @@ function ewww_image_optimizer_ignore_converted_webp_images( $skip, $filename ) {
 	}
 	if ( str_ends_with( $filename, '.webp' ) ) {
 		$extensionless       = ewwwio()->remove_from_end( $filename, '.webp' );
-		$original_image_path = '';
 		$original_extensions = array(
 			'jpg',
 			'jpeg',
@@ -1753,6 +1752,25 @@ function ewww_image_optimizer_cloud_based_media() {
 }
 
 /**
+ * Checks if a plugin is offloading media to cloud storage..
+ *
+ * @return bool True if a plugin is offloading media, false otherwise.
+ */
+function ewww_image_optimizer_offloaded_media() {
+	if (
+		class_exists( 'WindowsAzureStorageUtil' ) ||
+		class_exists( 'Amazon_S3_And_CloudFront' ) ||
+		ewww_image_optimizer_s3_uploads_enabled() ||
+		class_exists( 'wpCloud\StatelessMedia\EWWW' ) ||
+		function_exists( 'ilab_get_image_sizes' ) ||
+		apply_filters( 'ewww_image_optimizer_offloaded_media', false )
+	) {
+		return true;
+	}
+	return false;
+}
+
+/**
  * Loads the class to extend WP_Image_Editor for automatic optimization of generated images.
  *
  * @param array $editors List of image editors available to WordPress.
@@ -1990,13 +2008,15 @@ function ewww_image_optimizer_path_renamed( $post, $old_filepath, $new_filepath 
 			)
 		);
 	}
-	// Look for WebP variants and rename them.
-	$old_webp = $old_filepath . '.webp';
-	$new_webp = $new_filepath . '.webp';
+	// Look for WebP variants and rename them when using replace webp.
+	$old_webp = ewww_image_optimizer_get_webp_path( $old_filepath );
+	$new_webp = ewww_image_optimizer_get_webp_path( $new_filepath );
 	if ( ewwwio_is_file( $old_webp ) && ! ewwwio_is_file( $new_webp ) ) {
 		ewwwio_debug_message( "renaming $old_webp to $new_webp" );
 		ewwwio_rename( $old_webp, $new_webp );
 	}
+	// Look for WebP variants and rename them when using append webp.
+	ewww_image_optimizer_cleanup_legacy_webp( $old_filepath );
 }
 
 /**
@@ -2468,11 +2488,15 @@ function ewww_image_optimizer_retina( $id, $retina_path ) {
 	ewwwio_debug_message( "temp path: $temp_path" );
 	// Check for any orphaned webp retina images, and fix their paths.
 	ewwwio_debug_message( "retina path: $retina_path" );
-	$webp_path = $temp_path . '.webp';
-	ewwwio_debug_message( "retina webp path: $webp_path" );
-	if ( ewwwio_is_file( $webp_path ) ) {
-		ewwwio_rename( $webp_path, $retina_path . '.webp' );
+	$temp_webp  = ewww_image_optimizer_get_webp_path( $temp_path );
+	$final_webp = ewww_image_optimizer_get_webp_path( $retina_path );
+	ewwwio_debug_message( "temp retina webp path: $temp_webp" );
+	ewwwio_debug_message( "final retina webp path: $final_webp" );
+	if ( ewwwio_is_file( $temp_webp ) && ! ewwwio_is_file( $final_webp ) ) {
+		ewwwio_debug_message( "renaming $temp_webp to $final_webp" );
+		ewwwio_rename( $temp_webp, $final_webp );
 	}
+	ewww_image_optimizer_cleanup_legacy_webp( $temp_path );
 	$opt_size = ewww_image_optimizer_filesize( $retina_path );
 	ewwwio_debug_message( "retina size: $opt_size" );
 	$optimized_query = ewww_image_optimizer_find_already_optimized( $temp_path );
@@ -3745,9 +3769,12 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 			ewwwio_debug_message( "appears to have valid type of $new_type, attempting to overwrite" );
 			if ( ewwwio_rename( $image['path'] . '.tmp', $image['path'] ) ) {
 				ewwwio_debug_message( "{$image['path']} was restored, removing .webp version and resetting db record" );
-				if ( ewwwio_is_file( $image['path'] . '.webp' ) && is_writable( $image['path'] . '.webp' ) ) {
-					unlink( $image['path'] . '.webp' );
+				$current_webp = ewww_image_optimizer_get_webp_path( $image['path'] );
+				if ( ewwwio_is_file( $current_webp ) && is_writable( $current_webp ) ) {
+					ewwwio_debug_message( "removing webp version: $current_webp" );
+					unlink( $current_webp );
 				}
+				ewww_image_optimizer_cleanup_legacy_webp( $image['path'] );
 				// Set the results to nothing.
 				$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->ewwwio_images SET image_size = 0, updates = 0, updated=updated, level = 0, resized_width = 0, resized_height = 0, resize_error = 0, webp_size = 0, webp_error = 0 WHERE id = %d", $image['id'] ) );
 				return true;
@@ -3792,15 +3819,12 @@ function ewww_image_optimizer_delete( $id ) {
 						ewwwio_debug_message( 'removing: ' . $image['path'] );
 						ewwwio_delete_file( $image['path'] );
 					}
-					if ( ewwwio_is_file( $image['path'] . '.webp' ) ) {
-						ewwwio_debug_message( 'removing: ' . $image['path'] . '.webp' );
-						ewwwio_delete_file( $image['path'] . '.webp' );
+					$webpfile = ewww_image_optimizer_get_webp_path( $image['path'] );
+					if ( ewwwio_is_file( $webpfile ) ) {
+						ewwwio_debug_message( 'removing: ' . $webpfile );
+						ewwwio_delete_file( $webpfile );
 					}
-					$webpfileold = preg_replace( '/\.\w+$/', '.webp', $image['path'] );
-					if ( ewwwio_is_file( $webpfileold ) ) {
-						ewwwio_debug_message( 'removing: ' . $webpfileold );
-						ewwwio_delete_file( $webpfileold );
-					}
+					ewww_image_optimizer_cleanup_legacy_webp( $image['path'] );
 					$eio_backup->delete_local_backup( $image['path'] );
 				}
 				if ( ! empty( $image['converted'] ) ) {
@@ -3810,10 +3834,12 @@ function ewww_image_optimizer_delete( $id ) {
 				if ( ! empty( $image['converted'] ) && ewwwio_is_file( $image['converted'] ) ) {
 					ewwwio_debug_message( 'removing: ' . $image['converted'] );
 					ewwwio_delete_file( $image['converted'] );
-					if ( ewwwio_is_file( $image['converted'] . '.webp' ) ) {
-						ewwwio_debug_message( 'removing: ' . $image['converted'] . '.webp' );
-						ewwwio_delete_file( $image['converted'] . '.webp' );
+					$webpfile = ewww_image_optimizer_get_webp_path( $image['converted'] );
+					if ( ewwwio_is_file( $webpfile ) ) {
+						ewwwio_debug_message( 'removing: ' . $webpfile );
+						ewwwio_delete_file( $webpfile );
 					}
+					ewww_image_optimizer_cleanup_legacy_webp( $image['converted'] );
 				}
 			}
 		}
@@ -3825,8 +3851,9 @@ function ewww_image_optimizer_delete( $id ) {
 	if ( ewww_image_optimizer_s3_uploads_enabled() && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
 		$s3_path = get_attached_file( $id );
 		if ( 0 === strpos( $s3_path, 's3://' ) ) {
-			ewwwio_debug_message( 'removing: ' . $s3_path . '.webp' );
-			unlink( $s3_path . '.webp' );
+			$webpfile = ewww_image_optimizer_get_webp_path( $s3_path );
+			ewwwio_debug_message( 'removing: ' . $webpfile );
+			unlink( $webpfile );
 		}
 		$s3_dir = trailingslashit( dirname( $s3_path ) );
 	}
@@ -3839,16 +3866,12 @@ function ewww_image_optimizer_delete( $id ) {
 		// Get the base filename.
 		$filename = wp_basename( $file_path );
 		// Delete any residual webp versions.
-		$webpfile    = $file_path . '.webp';
-		$webpfileold = preg_replace( '/\.\w+$/', '.webp', $file_path );
-		if ( ewwwio_is_file( $webpfile ) ) {
-			ewwwio_debug_message( 'removing: ' . $webpfile );
-			ewwwio_delete_file( $webpfile );
+		$current_webp = ewww_image_optimizer_get_webp_path( $file_path );
+		if ( ewwwio_is_file( $current_webp ) ) {
+			ewwwio_debug_message( 'removing: ' . $current_webp );
+			ewwwio_delete_file( $current_webp );
 		}
-		if ( ewwwio_is_file( $webpfileold ) ) {
-			ewwwio_debug_message( 'removing: ' . $webpfileold );
-			ewwwio_delete_file( $webpfileold );
-		}
+		ewww_image_optimizer_cleanup_legacy_webp( $file_path );
 		// Retrieve any posts that link the original image.
 		$rows = $wpdb->get_row(
 			$wpdb->prepare(
@@ -3873,11 +3896,12 @@ function ewww_image_optimizer_delete( $id ) {
 		// Get the original filename from the metadata.
 		$orig_path = $base_dir . wp_basename( $meta['original_image'] );
 		// Delete any residual webp versions.
-		$webpfile = $orig_path . '.webp';
-		if ( ewwwio_is_file( $webpfile ) ) {
-			ewwwio_debug_message( 'removing: ' . $webpfile );
-			ewwwio_delete_file( $webpfile );
+		$current_webp = ewww_image_optimizer_get_webp_path( $orig_path );
+		if ( ewwwio_is_file( $current_webp ) ) {
+			ewwwio_debug_message( 'removing: ' . $current_webp );
+			ewwwio_delete_file( $current_webp );
 		}
+		ewww_image_optimizer_cleanup_legacy_webp( $orig_path );
 		if ( $s3_path && $s3_dir && wp_basename( $meta['original_image'] ) ) {
 			ewwwio_debug_message( 'removing: ' . $s3_dir . wp_basename( $meta['original_image'] ) . '.webp' );
 			unlink( $s3_dir . wp_basename( $meta['original_image'] ) . '.webp' );
@@ -3895,16 +3919,13 @@ function ewww_image_optimizer_delete( $id ) {
 		$base_dir = dirname( $file_path ) . '/';
 		foreach ( $meta['sizes'] as $size => $data ) {
 			// Delete any residual webp versions.
-			$webpfile    = $base_dir . wp_basename( $data['file'] ) . '.webp';
-			$webpfileold = preg_replace( '/\.\w+$/', '.webp', $base_dir . wp_basename( $data['file'] ) );
-			if ( ewwwio_is_file( $webpfile ) ) {
-				ewwwio_debug_message( 'removing: ' . $webpfile );
-				ewwwio_delete_file( $webpfile );
+			$resized_path = $base_dir . wp_basename( $data['file'] );
+			$current_webp = ewww_image_optimizer_get_webp_path( $resized_path );
+			if ( ewwwio_is_file( $current_webp ) ) {
+				ewwwio_debug_message( 'removing: ' . $current_webp );
+				ewwwio_delete_file( $current_webp );
 			}
-			if ( ewwwio_is_file( $webpfileold ) ) {
-				ewwwio_debug_message( 'removing: ' . $webpfileold );
-				ewwwio_delete_file( $webpfileold );
-			}
+			ewww_image_optimizer_cleanup_legacy_webp( $resized_path );
 			if ( $s3_path && $s3_dir && wp_basename( $data['file'] ) ) {
 				ewwwio_debug_message( 'removing: ' . $s3_dir . wp_basename( $data['file'] ) . '.webp' );
 				unlink( $s3_dir . wp_basename( $data['file'] ) . '.webp' );
@@ -3935,15 +3956,12 @@ function ewww_image_optimizer_delete( $id ) {
 			}
 		}
 	}
-	if ( ewwwio_is_file( $file_path . '.webp' ) ) {
-		ewwwio_debug_message( 'removing: ' . $file_path . '.webp' );
-		ewwwio_delete_file( $file_path . '.webp' );
+	$current_webp = ewww_image_optimizer_get_webp_path( $file_path );
+	if ( ewwwio_is_file( $current_webp ) ) {
+		ewwwio_debug_message( 'removing: ' . $current_webp );
+		ewwwio_delete_file( $current_webp );
 	}
-	$webpfileold = preg_replace( '/\.\w+$/', '.webp', $file_path );
-	if ( ewwwio_is_file( $webpfileold ) ) {
-		ewwwio_debug_message( 'removing: ' . $webpfileold );
-		ewwwio_delete_file( $webpfileold );
-	}
+	ewww_image_optimizer_cleanup_legacy_webp( $file_path );
 	$eio_backup->delete_local_backup( $file_path );
 }
 
@@ -3996,17 +4014,21 @@ function ewww_image_optimizer_file_deleted( $file ) {
 			}
 			if ( ! empty( $image['converted'] ) && ewwwio_is_file( $image['converted'] ) ) {
 				ewwwio_delete_file( $image['converted'] );
-				if ( ewwwio_is_file( $image['converted'] . '.webp' ) ) {
-					ewwwio_delete_file( $image['converted'] . '.webp' );
+				$current_webp = ewww_image_optimizer_get_webp_path( $image['converted'] );
+				if ( ewwwio_is_file( $current_webp ) ) {
+					ewwwio_delete_file( $current_webp );
 				}
+				ewww_image_optimizer_cleanup_legacy_webp( $image['converted'] );
 			}
 			$eio_backup->delete_local_backup( $image['converted'] );
 			$wpdb->delete( $wpdb->ewwwio_images, array( 'id' => $image['id'] ) );
 		}
 	}
-	if ( ewwwio_is_file( $file . '.webp' ) ) {
-		ewwwio_delete_file( $file . '.webp' );
+	$current_webp = ewww_image_optimizer_get_webp_path( $file );
+	if ( ewwwio_is_file( $current_webp ) ) {
+		ewwwio_delete_file( $current_webp );
 	}
+	ewww_image_optimizer_cleanup_legacy_webp( $file );
 	$eio_backup->delete_local_backup( $file );
 }
 
@@ -4037,18 +4059,22 @@ function ewww_image_optimizer_media_replace( $attachment ) {
 					continue;
 				}
 				if ( ! empty( $image['path'] ) ) {
-					if ( ewwwio_is_file( $image['path'] . '.webp' ) ) {
-						ewwwio_delete_file( $image['path'] . '.webp' );
+					$current_webp = ewww_image_optimizer_get_webp_path( $image['path'] );
+					if ( ewwwio_is_file( $current_webp ) ) {
+						ewwwio_delete_file( $current_webp );
 					}
+					ewww_image_optimizer_cleanup_legacy_webp( $image['path'] );
 				}
 				if ( ! empty( $image['converted'] ) ) {
 					$image['converted'] = ewww_image_optimizer_absolutize_path( $image['converted'] );
 				}
 				if ( ! empty( $image['converted'] ) && ewwwio_is_file( $image['converted'] ) ) {
 					ewwwio_delete_file( $image['converted'] );
-					if ( ewwwio_is_file( $image['converted'] . '.webp' ) ) {
-						ewwwio_delete_file( $image['converted'] . '.webp' );
+					$current_webp = ewww_image_optimizer_get_webp_path( $image['converted'] );
+					if ( ewwwio_is_file( $current_webp ) ) {
+						ewwwio_delete_file( $current_webp );
 					}
+					ewww_image_optimizer_cleanup_legacy_webp( $image['converted'] );
 				}
 			}
 		}
@@ -4062,14 +4088,11 @@ function ewww_image_optimizer_media_replace( $attachment ) {
 		// Get the filepath from the metadata.
 		$file_path = $meta['orig_file'];
 
-		$webpfile    = $file_path . '.webp';
-		$webpfileold = preg_replace( '/\.\w+$/', '.webp', $file_path );
-		if ( ewwwio_is_file( $webpfile ) ) {
-			ewwwio_delete_file( $webpfile );
+		$current_webp = ewww_image_optimizer_get_webp_path( $file_path );
+		if ( ewwwio_is_file( $current_webp ) ) {
+			ewwwio_delete_file( $current_webp );
 		}
-		if ( ewwwio_is_file( $webpfileold ) ) {
-			ewwwio_delete_file( $webpfileold );
-		}
+		ewww_image_optimizer_cleanup_legacy_webp( $file_path );
 		$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
 	}
 	list( $file_path ) = ewww_image_optimizer_attachment_path( $meta, $id );
@@ -4080,10 +4103,11 @@ function ewww_image_optimizer_media_replace( $attachment ) {
 		// Get the original filename from the metadata.
 		$orig_path = $base_dir . wp_basename( $meta['original_image'] );
 		// Delete any residual webp versions.
-		$webpfile = $orig_path . '.webp';
-		if ( ewwwio_is_file( $webpfile ) ) {
-			ewwwio_delete_file( $webpfile );
+		$current_webp = ewww_image_optimizer_get_webp_path( $orig_path );
+		if ( ewwwio_is_file( $current_webp ) ) {
+			ewwwio_delete_file( $current_webp );
 		}
+		ewww_image_optimizer_cleanup_legacy_webp( $orig_path );
 		$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $orig_path ) ) );
 	}
 	// Remove the regular image from the ewwwio_images tables.
@@ -4094,14 +4118,12 @@ function ewww_image_optimizer_media_replace( $attachment ) {
 		$base_dir = dirname( $file_path ) . '/';
 		foreach ( $meta['sizes'] as $data ) {
 			// Delete any residual webp versions.
-			$webpfile    = $base_dir . $data['file'] . '.webp';
-			$webpfileold = preg_replace( '/\.\w+$/', '.webp', $base_dir . $data['file'] );
-			if ( ewwwio_is_file( $webpfile ) ) {
-				ewwwio_delete_file( $webpfile );
+			$resize_path  = $base_dir . $data['file'];
+			$current_webp = ewww_image_optimizer_get_webp_path( $resize_path );
+			if ( ewwwio_is_file( $current_webp ) ) {
+				ewwwio_delete_file( $current_webp );
 			}
-			if ( ewwwio_is_file( $webpfileold ) ) {
-				ewwwio_delete_file( $webpfileold );
-			}
+			ewww_image_optimizer_cleanup_legacy_webp( $resize_path );
 			$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $base_dir . $data['file'] ) ) );
 			// If the original resize is set, and still exists.
 			if ( ! empty( $data['orig_file'] ) ) {
@@ -4147,20 +4169,24 @@ function ewww_image_optimizer_media_rename( $old_name, $new_name ) {
 				ewwwio_debug_message( 'file still exists, skipping' );
 				continue;
 			}
-			if ( ! empty( $image['path'] ) && ewwwio_is_file( $image['path'] . '.webp' ) ) {
-				ewwwio_debug_message( 'removing WebP version' );
-				ewwwio_delete_file( $image['path'] . '.webp' );
+			$webp_path = ewww_image_optimizer_get_webp_path( $image['path'] );
+			if ( ewwwio_is_file( $webp_path ) ) {
+				ewwwio_debug_message( 'removing WebP version ' . $webp_path );
+				ewwwio_delete_file( $webp_path );
 			}
+			ewww_image_optimizer_cleanup_legacy_webp( $image['path'] );
 			if ( ! empty( $image['converted'] ) ) {
 				$image['converted'] = ewww_image_optimizer_absolutize_path( $image['converted'] );
 			}
 			if ( ! empty( $image['converted'] ) && ewwwio_is_file( $image['converted'] ) ) {
 				ewwwio_debug_message( 'removing "converted" file' );
 				ewwwio_delete_file( $image['converted'] );
-				if ( ewwwio_is_file( $image['converted'] . '.webp' ) ) {
-					ewwwio_debug_message( 'and WebP derivative' );
-					ewwwio_delete_file( $image['converted'] . '.webp' );
+				$converted_webp = ewww_image_optimizer_get_webp_path( $image['converted'] );
+				if ( ewwwio_is_file( $converted_webp ) ) {
+					ewwwio_debug_message( 'removing WebP derivative ' . $converted_webp );
+					ewwwio_delete_file( $converted_webp );
 				}
+				ewww_image_optimizer_cleanup_legacy_webp( $image['converted'] );
 			}
 			if ( 'full' === $image['resize'] ) {
 				ewwwio_debug_message( "updating path for $id (full)" );
@@ -4189,14 +4215,12 @@ function ewww_image_optimizer_media_rename( $old_name, $new_name ) {
 		// Get the filepath from the metadata.
 		$file_path = $meta['orig_file'];
 
-		$webpfile    = $file_path . '.webp';
-		$webpfileold = preg_replace( '/\.\w+$/', '.webp', $file_path );
-		if ( ewwwio_is_file( $webpfile ) ) {
-			ewwwio_delete_file( $webpfile );
+		$current_webp = ewww_image_optimizer_get_webp_path( $file_path );
+		if ( ewwwio_is_file( $current_webp ) ) {
+			ewwwio_debug_message( 'removing WebP version' . $current_webp );
+			ewwwio_delete_file( $current_webp );
 		}
-		if ( ewwwio_is_file( $webpfileold ) ) {
-			ewwwio_delete_file( $webpfileold );
-		}
+		ewww_image_optimizer_cleanup_legacy_webp( $file_path );
 		$wpdb->delete( $wpdb->ewwwio_images, array( 'path' => ewww_image_optimizer_relativize_path( $file_path ) ) );
 	}
 	ewww_image_optimizer_resize_from_meta_data( $meta, $id );
@@ -6862,9 +6886,11 @@ function ewww_image_optimizer_remote_push( $meta, $id ) {
 		if ( 0 === strpos( $s3_path, 's3://' ) && 0 === strpos( $filename, '/' ) && ewwwio_is_file( $filename ) ) {
 			copy( $filename, $s3_path );
 			unlink( $filename );
-			if ( ewwwio_is_file( $filename . '.webp' ) ) {
-				copy( $filename . '.webp', $s3_path . '.webp' );
-				unlink( $filename . '.webp' );
+			$current_webp = ewww_image_optimizer_get_webp_path( $filename );
+			$s3_webp      = ewww_image_optimizer_get_webp_path( $s3_path );
+			if ( ewwwio_is_file( $current_webp ) ) {
+				copy( $current_webp, $s3_webp );
+				unlink( $current_webp );
 			}
 		}
 		// Original image detected.
@@ -6879,9 +6905,11 @@ function ewww_image_optimizer_remote_push( $meta, $id ) {
 			if ( 0 === strpos( $s3_rpath, 's3://' ) && 0 === strpos( $resize_path, '/' ) && ewwwio_is_file( $resize_path ) ) {
 				copy( $resize_path, $s3_rpath );
 				unlink( $resize_path );
-				if ( ewwwio_is_file( $resize_path . '.webp' ) ) {
-					copy( $resize_path . '.webp', $s3_rpath . '.webp' );
-					unlink( $resize_path . '.webp' );
+				$current_webp = ewww_image_optimizer_get_webp_path( $resize_path );
+				$s3_webp      = ewww_image_optimizer_get_webp_path( $s3_rpath );
+				if ( ewwwio_is_file( $current_webp ) ) {
+					copy( $current_webp, $s3_webp );
+					unlink( $current_webp );
 				}
 			}
 		}
@@ -6913,9 +6941,11 @@ function ewww_image_optimizer_remote_push( $meta, $id ) {
 				if ( 0 === strpos( $s3_rpath, 's3://' ) && 0 === strpos( $resize_path, '/' ) ) {
 					copy( $resize_path, $s3_rpath );
 					unlink( $resize_path );
-					if ( ewwwio_is_file( $resize_path . '.webp' ) ) {
-						copy( $resize_path . '.webp', $s3_rpath . '.webp' );
-						unlink( $resize_path . '.webp' );
+					$current_webp = ewww_image_optimizer_get_webp_path( $resize_path );
+					$s3_webp      = ewww_image_optimizer_get_webp_path( $s3_rpath );
+					if ( ewwwio_is_file( $current_webp ) ) {
+						copy( $current_webp, $s3_webp );
+						unlink( $current_webp );
 					}
 				}
 			}
@@ -8858,10 +8888,12 @@ function ewww_image_optimizer_lr_sync_update( $id ) {
 				ewwwio_debug_message( "not resetting $image_path for lr sync" );
 				continue;
 			}
-			if ( ewwwio_is_file( $image_path . '.webp' ) ) {
+			$current_webp = ewww_image_optimizer_get_webp_path( $image_path );
+			if ( ewwwio_is_file( $current_webp ) ) {
 				ewwwio_debug_message( "removing WebP version of $image_path for lr sync" );
-				ewwwio_delete_file( $image_path . '.webp' );
+				ewwwio_delete_file( $current_webp );
 			}
+			ewww_image_optimizer_cleanup_legacy_webp( $image_path );
 			$wpdb->update(
 				$wpdb->ewwwio_images,
 				array(
@@ -8932,9 +8964,10 @@ function ewww_image_optimizer_as3cf_attachment_file_paths( $paths, $id ) {
 		if ( $as3cf_action ) {
 			ewwwio_debug_message( "checking $path for WebP or converted images in as3cf $as3cf_action queue" );
 		}
-		if ( ewwwio_is_file( $path . '.webp' ) ) {
-			$paths[ $size . '-webp' ] = $path . '.webp';
-			ewwwio_debug_message( "added $path.webp to as3cf queue" );
+		$current_webp = ewww_image_optimizer_get_webp_path( $path );
+		if ( ewwwio_is_file( $current_webp ) ) {
+			$paths[ $size . '-webp' ] = $current_webp;
+			ewwwio_debug_message( "added $current_webp to as3cf queue" );
 		} elseif (
 			// WOM(pro) is downloading from bucket to server, WebP is enabled, and the local/server file does not exist.
 			'download' === $as3cf_action &&
@@ -8944,8 +8977,9 @@ function ewww_image_optimizer_as3cf_attachment_file_paths( $paths, $id ) {
 			global $wpdb;
 			$optimized = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $wpdb->ewwwio_images WHERE attachment_id = %d AND gallery = 'media' AND image_size <> 0 LIMIT 1", $id ) );
 			if ( $optimized ) {
-				$paths[ $size . '-webp' ] = $path . '.webp';
-				ewwwio_debug_message( "added $path.webp to as3cf queue (for potential local copy)" );
+				$current_webp             = ewww_image_optimizer_get_webp_path( $path );
+				$paths[ $size . '-webp' ] = $current_webp;
+				ewwwio_debug_message( "added $current_webp to as3cf queue (for potential local copy)" );
 			}
 		}
 		if ( ! is_admin() ) {
@@ -8998,8 +9032,9 @@ function ewww_image_optimizer_as3cf_remove_source_files( $paths ) {
 		if ( false !== strpos( $size, '-webp' ) || str_ends_with( $path, '.webp' ) ) {
 			continue;
 		}
-		$paths[ $size . '-webp' ] = $path . '.webp';
-		ewwwio_debug_message( "added $path.webp to as3cf deletion queue" );
+		$current_webp             = ewww_image_optimizer_get_webp_path( $path );
+		$paths[ $size . '-webp' ] = $current_webp;
+		ewwwio_debug_message( "added $current_webp to as3cf deletion queue" );
 		$ewww_image = ewww_image_optimizer_find_already_optimized( $path );
 		if ( ! empty( $ewww_image['path'] ) ) {
 			$local_path = ewww_image_optimizer_absolutize_path( $ewww_image['path'] );
@@ -9807,7 +9842,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 				if ( $webp_size ) {
 					// Get a human readable filesize.
 					$webp_size = ewww_image_optimizer_size_format( $webp_size );
-					$webpurl   = esc_url( wp_get_attachment_url( $id ) . '.webp' );
+					$webpurl   = ewww_image_optimizer_get_webp_url( $file_path, wp_get_attachment_url( $id ) );
 					echo '<div>WebP: <a href="' . esc_url( $webpurl ) . '">' . esc_html( $webp_size ) . '</a></div>';
 				} elseif ( $webp_error ) {
 					echo '<div>' . esc_html( $webp_error ) . '</div>';
@@ -9908,14 +9943,14 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 			list( $detail_output, $converted, $backup_available ) = ewww_image_optimizer_custom_column_results( $action_id, $optimized_images );
 			echo wp_kses_post( $detail_output );
 
+			list( $webpfile, $oldwebpfile ) = ewww_image_optimizer_get_all_webp_paths( $file_path );
+
 			// Link to webp upgrade script.
-			$oldwebpfile = preg_replace( '/\.\w+$/', '.webp', $file_path );
 			if ( ! str_ends_with( $file_path, '.webp' ) && ! ewww_image_optimizer_easy_active() && ewwwio_is_file( $oldwebpfile ) && current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
-				echo "<div><a href='" . esc_url( admin_url( 'options.php?page=ewww-image-optimizer-webp-migrate' ) ) . "'>" . esc_html__( 'Run WebP upgrade', 'ewww-image-optimizer' ) . '</a></div>';
+				echo "<div><a href='" . esc_url( admin_url( 'options.php?page=ewww-image-optimizer-webp-migrate' ) ) . "'>" . esc_html__( 'Run WebP renaming', 'ewww-image-optimizer' ) . '</a></div>';
 			}
 
 			// Check for WebP results.
-			$webpfile   = $file_path . '.webp';
 			$webp_size  = ewww_image_optimizer_filesize( $webpfile );
 			$webp_error = '';
 			if ( ! $webp_size ) {
@@ -9933,7 +9968,7 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 			if ( $webp_size ) {
 				// Get a human readable filesize.
 				$webp_size = ewww_image_optimizer_size_format( $webp_size );
-				$webpurl   = esc_url( wp_get_attachment_url( $id ) . '.webp' );
+				$webpurl   = ewww_image_optimizer_get_webp_url( $file_path, wp_get_attachment_url( $id ) );
 				echo '<div>WebP: <a href="' . esc_url( $webpurl ) . '">' . esc_html( $webp_size ) . '</a></div>';
 			} elseif ( $webp_error ) {
 				echo '<div>' . esc_html( $webp_error ) . '</div>';
@@ -10010,12 +10045,12 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 				esc_html( $file_size )
 			) . '</div>';
 			// Determine filepath for webp.
-			$webpfile  = $file_path . '.webp';
+			$webpfile  = ewww_image_optimizer_get_webp_path( $file_path );
 			$webp_size = ewww_image_optimizer_filesize( $webpfile );
 			if ( $webp_size ) {
 				// Get a human readable filesize.
 				$webp_size = ewww_image_optimizer_size_format( $webp_size );
-				$webpurl   = esc_url( wp_get_attachment_url( $id ) . '.webp' );
+				$webpurl   = ewww_image_optimizer_get_webp_url( $file_path, wp_get_attachment_url( $id ) );
 				echo '<div>WebP: <a href="' . esc_url( $webpurl ) . '">' . esc_html( $webp_size ) . '</a></div>';
 			}
 			if ( current_user_can( apply_filters( 'ewww_image_optimizer_manual_permissions', '' ) ) ) {
@@ -10901,7 +10936,7 @@ function ewww_image_optimizer_test_webp_mime_error() {
 		ewwwio_debug_message( 'webp mime check failed: ' . bin2hex( substr( $test_result['body'], 0, 3 ) ) );
 		return __( 'WebP response failed mime-type test. Purge all caches and try again.', 'ewww-image-optimizer' );
 	}
-
+	$test_url .= '1';
 	// Run the "negative" test, which should receive the original PNG image.
 	$test_result = wp_remote_get( $test_url );
 	if ( is_wp_error( $test_result ) ) {
@@ -11029,33 +11064,58 @@ function ewww_image_optimizer_webp_rewrite_verify() {
 		return;
 	}
 	$current_rules = ewwwio_extract_from_markers( ewww_image_optimizer_htaccess_path(), 'EWWWIO' );
-	$ewww_rules    = array(
-		'<IfModule mod_rewrite.c>',
-		'RewriteEngine On',
-		'RewriteCond %{HTTP_ACCEPT} image/webp',
-		'RewriteCond %{REQUEST_FILENAME} (.*)\.(jpe?g|png|gif)$',
-		'RewriteCond %{REQUEST_FILENAME}.webp -f',
-		'RewriteCond %{QUERY_STRING} !type=original',
-		'RewriteRule (.+)\.(jpe?g|png|gif)$ %{REQUEST_URI}.webp [T=image/webp,L]',
-		'</IfModule>',
-		'<IfModule mod_headers.c>',
-		'<FilesMatch "\.(jpe?g|png|gif)$">',
-		'Header append Vary Accept',
-		'</FilesMatch>',
-		'</IfModule>',
-		'AddType image/webp .webp',
-	);
+	$naming_mode   = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
+	if ( 'replace' === $naming_mode ) {
+		$ewww_rules = array(
+			'<IfModule mod_rewrite.c>',
+			'RewriteEngine On',
+			'RewriteCond %{HTTP_ACCEPT} image/webp',
+			'RewriteCond %{REQUEST_FILENAME} (.*)\.(jpe?g|png|gif)$',
+			'RewriteCond %1.webp -f',
+			'RewriteCond %{QUERY_STRING} !type=original',
+			'RewriteRule (.+)\.(jpe?g|png|gif)$ $1.webp [T=image/webp,L]',
+			'</IfModule>',
+			'<IfModule mod_headers.c>',
+			'<FilesMatch "\.(jpe?g|png|gif)$">',
+			'Header append Vary Accept',
+			'</FilesMatch>',
+			'</IfModule>',
+			'AddType image/webp .webp',
+		);
+	} else {
+		$ewww_rules = array(
+			'<IfModule mod_rewrite.c>',
+			'RewriteEngine On',
+			'RewriteCond %{HTTP_ACCEPT} image/webp',
+			'RewriteCond %{REQUEST_FILENAME} (.*)\.(jpe?g|png|gif)$',
+			'RewriteCond %{REQUEST_FILENAME}.webp -f',
+			'RewriteCond %{QUERY_STRING} !type=original',
+			'RewriteRule (.+)\.(jpe?g|png|gif)$ %{REQUEST_URI}.webp [T=image/webp,L]',
+			'</IfModule>',
+			'<IfModule mod_headers.c>',
+			'<FilesMatch "\.(jpe?g|png|gif)$">',
+			'Header append Vary Accept',
+			'</FilesMatch>',
+			'</IfModule>',
+			'AddType image/webp .webp',
+		);
+	}
 	if ( is_array( $current_rules ) ) {
 		ewwwio_debug_message( 'current rules: ' . implode( '<br>', (array) $current_rules ) );
 	}
 	if ( empty( $current_rules ) ||
 		! ewww_image_optimizer_array_search( '{HTTP_ACCEPT} image/webp', $current_rules ) ||
-		! ewww_image_optimizer_array_search( '{REQUEST_FILENAME}.webp', $current_rules ) ||
 		! ewww_image_optimizer_array_search( 'Header append Vary Accept', $current_rules ) ||
 		ewww_image_optimizer_array_search( 'Header append Vary Accept env=REDIRECT', $current_rules ) ||
 		! ewww_image_optimizer_array_search( 'AddType image/webp', $current_rules )
 	) {
 		ewwwio_debug_message( 'missing or invalid rules' );
+		return $ewww_rules;
+	} elseif ( 'replace' === $naming_mode && ! ewww_image_optimizer_array_search( '%1.webp -f', $current_rules ) ) {
+		ewwwio_debug_message( 'missing replace rule' );
+		return $ewww_rules;
+	} elseif ( 'append' === $naming_mode && ! ewww_image_optimizer_array_search( '%{REQUEST_FILENAME}.webp -f', $current_rules ) ) {
+		ewwwio_debug_message( 'missing append rule' );
 		return $ewww_rules;
 	} else {
 		ewwwio_debug_message( 'all good' );
@@ -12996,9 +13056,13 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	if ( ewww_image_optimizer_easy_active() || $cf_host ) {
 		ewww_image_optimizer_webp_rewrite_verify();
 	}
-	$webp_available  = ewww_image_optimizer_webp_available();
-	$test_webp_image = plugins_url( '/images/test.png.webp', __FILE__ );
-	$test_png_image  = plugins_url( '/images/test.png', __FILE__ );
+	$webp_available      = ewww_image_optimizer_webp_available();
+	$test_webp_image     = plugins_url( '/images/test.png.webp', __FILE__ );
+	$test_png_image      = plugins_url( '/images/test.png', __FILE__ );
+	$webp_rewrite_verify = false;
+	if ( $webp_available && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) {
+		$webp_rewrite_verify = ! (bool) ewww_image_optimizer_webp_rewrite_verify();
+	}
 	?>
 
 	<?php if ( false !== strpos( $network, 'network-multisite' ) ) : ?>
@@ -13652,6 +13716,32 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							<p class='description'><?php esc_html_e( 'WebP images are served automatically by Easy IO.', 'ewww-image-optimizer' ); ?></p>
 						</div>
 					</div>
+		<?php if ( $easymode || ewww_image_optimizer_offloaded_media() ) : ?>
+					<input type='hidden' id='ewww_image_optimizer_webp_naming_mode' name='ewww_image_optimizer_webp_naming_mode' value='<?php echo esc_attr( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode' ) ); ?>' />
+		<?php else : ?>
+					<div class='ewww_image_optimizer_webp_setting_container ewww-settings-row' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? '' : ' style="display:none"'; ?>>
+						<div class='ewww-setting-header'>
+							<label for='ewww_image_optimizer_webp_naming_mode'><?php esc_html_e( 'WebP Naming Mode', 'ewww-image-optimizer' ); ?></label>
+							<span><?php ewwwio_help_link( 'https://docs.ewww.io/article/16-ewww-io-and-webp-images#webp-naming-modes', '5854745ac697912ffd6c1c89' ); ?></span>
+						</div>
+						<div class='ewww-setting-detail'>
+							<?php esc_html_e( 'Choose how WebP filenames are generated:', 'ewww-image-optimizer' ); ?><br>
+							<select name="ewww_image_optimizer_webp_naming_mode" id="ewww_image_optimizer_webp_naming_mode">
+								<option <?php disabled( $webp_rewrite_verify && 'replace' === ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode' ) ); ?> value="append" <?php selected( get_option( 'ewww_image_optimizer_webp_naming_mode' ), 'append' ); ?>>
+									<?php esc_html_e( 'Append (.jpg.webp)', 'ewww-image-optimizer' ); ?>
+								</option>
+								<option <?php disabled( $webp_rewrite_verify && 'append' === ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode' ) ); ?> value="replace" <?php selected( get_option( 'ewww_image_optimizer_webp_naming_mode' ), 'replace' ); ?>>
+									<?php esc_html_e( 'Replace (.webp)', 'ewww-image-optimizer' ); ?>
+								</option>
+							</select>
+			<?php if ( $webp_rewrite_verify ) : ?>
+							<p class='description'>
+								<?php esc_html_e( 'In order to change WebP naming modes, you must first remove the rewrite rules below.', 'ewww-image-optimizer' ); ?>
+							</p>
+			<?php endif; ?>
+						</div>
+					</div>
+		<?php endif; ?>
 					<div class='ewww_image_optimizer_webp_setting_container ewww-settings-row' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? '' : ' style="display:none"'; ?>>
 						<div class='ewww-setting-header'>
 							<?php esc_html_e( 'WebP Delivery Method', 'ewww-image-optimizer' ); ?>
@@ -13664,8 +13754,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) &&
 			! ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' )
 		) :
-			$webp_mime_error     = false;
-			$webp_rewrite_verify = false;
+			$webp_mime_error = false;
 			// Only check the rules for problems if WebP is enabled, otherwise this is a blank slate.
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ) :
 				$false_positive_headers = '';
@@ -13691,8 +13780,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				if ( $webp_mime_error ) {
 					echo wp_kses_post( $header_error );
 				}
-
-				$webp_rewrite_verify = ! (bool) ewww_image_optimizer_webp_rewrite_verify();
 			endif;
 			if ( $webp_mime_error && $webp_rewrite_verify ) :
 				printf(
@@ -13737,7 +13824,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				<?php endif; ?>
 							</p>
 							<div id='ewww-webp-rewrite'>
-				<?php if ( ! $nginx_server ) : ?>
+				<?php if ( ! $nginx_server && 'append' === ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' ) ) : ?>
 <pre id='webp-rewrite-rules'>&lt;IfModule mod_rewrite.c&gt;
 	RewriteEngine On
 	RewriteCond %{HTTP_ACCEPT} image/webp
@@ -13745,6 +13832,21 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	RewriteCond %{REQUEST_FILENAME}\.webp -f
 	RewriteCond %{QUERY_STRING} !type=original
 	RewriteRule (.+)\.(jpe?g|png|gif)$ %{REQUEST_URI}.webp [T=image/webp,L]
+&lt;/IfModule&gt;
+&lt;IfModule mod_headers.c&gt;
+	&lt;FilesMatch "\.(jpe?g|png|gif)$"&gt;
+		Header append Vary Accept
+	&lt;/FilesMatch&gt;
+&lt;/IfModule&gt;
+AddType image/webp .webp</pre>
+				<?php elseif ( ! $nginx_server && 'replace' === ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' ) ) : ?>
+<pre id='webp-rewrite-rules'>&lt;IfModule mod_rewrite.c&gt;
+	RewriteEngine On
+	RewriteCond %{HTTP_ACCEPT} image/webp
+	RewriteCond %{REQUEST_FILENAME} (.*)\.(jpe?g|png|gif)$
+	RewriteCond %1.webp -f
+	RewriteCond %{QUERY_STRING} !type=original
+	RewriteRule (.+)\.(jpe?g|png|gif)$ $1.webp [T=image/webp,L]
 &lt;/IfModule&gt;
 &lt;IfModule mod_headers.c&gt;
 	&lt;FilesMatch "\.(jpe?g|png|gif)$"&gt;
@@ -13761,6 +13863,11 @@ AddType image/webp .webp</pre>
 				<?php if ( ! $nginx_server ) : ?>
 										<div id='ewww-webp-rewrite-result'></div>
 										<button type='button' id='ewww-webp-insert' class='button-secondary action'><?php esc_html_e( 'Insert Rewrite Rules', 'ewww-image-optimizer' ); ?></button>
+										<div id='ewww-webp-rewrite-save-settings' style='display:none;'>
+											<p class='description'>
+												<?php esc_html_e( 'Please save your settings before inserting rewrite rules.', 'ewww-image-optimizer' ); ?>
+											</p>
+										</div>
 				<?php endif; ?>
 									</div>
 									<img id='ewww-webp-image' src='<?php echo esc_url( $test_png_image . '?m=' . time() ); ?>'>

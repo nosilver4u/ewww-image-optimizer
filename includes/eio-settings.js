@@ -680,7 +680,16 @@ jQuery(document).ready(function($) {
 			return false;
 		}
 	);
+	var ewww_naming_mode_changed = false;
+	$('#ewww_image_optimizer_webp_naming_mode').on( 'change', function() {
+		$('#ewww-webp-rewrite-save-settings').show();
+		ewww_naming_mode_changed = true;
+		$('#ewww-webp-rewrite #ewww-webp-insert').prop('disabled', true);
+	});
 	$('#ewww-webp-rewrite #ewww-webp-insert').on( 'click', function() {
+		if (ewww_naming_mode_changed) {
+			return false;
+		}
 		var ewww_webp_rewrite_action = 'ewww_webp_rewrite';
 		var ewww_webp_rewrite_data = {
 			action: ewww_webp_rewrite_action,

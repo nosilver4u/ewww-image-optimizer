@@ -261,14 +261,18 @@ class Picture_Webp extends Page_Parser {
 					$srcurl   = \rtrim( $srcurl, ',' );
 				}
 				$this->debug_message( "looking for $srcurl from srcset" );
-				if ( $this->validate_image_url( $srcurl ) ) {
-					$srcset = \str_replace( $srcurl . $trailing, $this->generate_url( $srcurl ) . $trailing, $srcset );
+				$validated_path = $this->validate_image_url( $srcurl );
+				if ( $validated_path ) {
+					$srcset = \str_replace( $srcurl . $trailing, $this->generate_url( $srcurl, $validated_path ) . $trailing, $srcset );
 					$this->debug_message( "replaced $srcurl in srcset" );
 					$found_webp = true;
 				}
 			}
-		} elseif ( $this->validate_image_url( $srcset ) ) {
-			return $this->generate_url( $srcset );
+		} else {
+			$validated_path = $this->validate_image_url( $srcset );
+			if ( $validated_path ) {
+				return $this->generate_url( $srcset, $validated_path );
+			}
 		}
 		if ( $found_webp ) {
 			return $srcset;
@@ -322,7 +326,8 @@ class Picture_Webp extends Page_Parser {
 				}
 				$file = $images['img_url'][ $index ];
 				$this->debug_message( "parsing an image: $file" );
-				if ( $this->validate_image_url( $file ) ) {
+				$validated_path = $this->validate_image_url( $file );
+				if ( $validated_path ) {
 					// If a CDN path match was found, or .webp image existence is confirmed.
 					$this->debug_message( 'found a webp image or forced path' );
 					$srcset      = $this->get_attribute( $image, 'srcset' );
@@ -332,7 +337,7 @@ class Picture_Webp extends Page_Parser {
 					}
 					$sizes_attr = '';
 					if ( empty( $srcset_webp ) ) {
-						$srcset_webp = $this->generate_url( $file );
+						$srcset_webp = $this->generate_url( $file, $validated_path );
 					} else {
 						$sizes = $this->get_attribute( $image, 'sizes' );
 						if ( $sizes ) {
@@ -540,6 +545,9 @@ class Picture_Webp extends Page_Parser {
 	 */
 	public function validate_image_url( $image ) {
 		$this->debug_message( __METHOD__ . "() webp validation for $image" );
+		if ( empty( $image ) ) {
+			return false;
+		}
 		if ( $this->is_lazy_placeholder( $image ) ) {
 			return false;
 		}
@@ -584,14 +592,24 @@ class Picture_Webp extends Page_Parser {
 	}
 
 	/**
-	 * Generate a WebP URL by appending .webp to the filename.
+	 * Generate a WebP URL per the correct WebP naming pattern.
 	 *
 	 * @param string $url The image url.
+	 * @param string $path The image path.
 	 * @return string The WebP version of the image url.
 	 */
-	public function generate_url( $url ) {
-		$path_parts = \explode( '?', $url );
-		return \apply_filters( 'ewwwio_generated_webp_image_url', $path_parts[0] . '.webp' . ( ! empty( $path_parts[1] ) && 'is-pending-load=1' !== $path_parts[1] ? '?' . $path_parts[1] : '' ) );
+	public function generate_url( $url, $path ) {
+		$url_parts     = \explode( '?', $url );
+		$queryless_url = $url_parts[0];
+		if ( true === $path ) {
+			$webp_url = ewww_image_optimizer_get_webp_path( $queryless_url );
+		} else {
+			$webp_url = ewww_image_optimizer_get_webp_url( $path, $queryless_url );
+		}
+		if ( ! empty( $url_parts[1] ) && ! str_contains( $url_parts[1], 'is-pending-load' ) ) {
+			$webp_url .= '?' . $url_parts[1];
+		}
+		return apply_filters( 'ewwwio_generated_webp_image_url', $webp_url, $url );
 	}
 
 	/**

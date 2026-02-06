@@ -43,28 +43,52 @@ function ewww_image_optimizer_webp_migrate_preview() {
  */
 function ewww_image_optimizer_webp_scan() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	$list         = array();
-	$dir          = get_home_path();
-	$iterator     = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $dir ), RecursiveIteratorIterator::CHILD_FIRST );
-	$start        = microtime( true );
-	$file_counter = 0;
+	$list                = array();
+	$dir                 = get_home_path();
+	$iterator            = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $dir ), RecursiveIteratorIterator::CHILD_FIRST );
+	$start               = microtime( true );
+	$file_counter        = 0;
+	$naming_mode         = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
+	$original_extensions = array( 'png', 'jpg', 'jpeg', 'gif' );
+	if ( ewww_image_optimizer_stl_check() ) {
+		set_time_limit( 0 );
+	}
 	foreach ( $iterator as $path ) {
-		if ( ewww_image_optimizer_stl_check() ) {
-			set_time_limit( 0 );
-		}
-		$skip_optimized = false;
 		if ( $path->isDir() ) {
 			continue;
 		} else {
 			++$file_counter;
-			$path          = $path->getPathname();
-			$newwebpformat = preg_replace( '/\.webp/', '', $path );
-			if ( file_exists( $newwebpformat ) ) {
+			$path = $path->getPathname();
+			if ( ! str_ends_with( $path, '.webp' ) ) {
 				continue;
 			}
-			if ( preg_match( '/\.webp$/', $path ) ) {
-				ewwwio_debug_message( "queued $path" );
-				$list[] = $path;
+			$original_path = ewwwio()->remove_from_end( $path, '.webp' );
+			$info          = pathinfo( $original_path );
+			$ext           = strtolower( $info['extension'] ?? '' );
+			$is_real_ext   = in_array( $ext, $original_extensions, true );
+			$plugins_dir   = plugin_dir_path( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH );
+			if ( 'append' === $naming_mode ) {
+				if ( $is_real_ext ) {
+					continue;
+				}
+				if ( str_contains( $path, $plugins_dir ) ) {
+					continue;
+				}
+				foreach ( $original_extensions as $ext ) {
+					if ( ewwwio_is_file( $original_path . '.' . $ext ) || ewwwio_is_file( $original_path . '.' . strtoupper( $ext ) ) ) {
+						ewwwio_debug_message( "queued $path" );
+						$list[] = $path;
+						break;
+					}
+				}
+			} elseif ( 'replace' === $naming_mode ) {
+				if ( ! $is_real_ext ) {
+					continue;
+				}
+				if ( ewwwio_is_file( $original_path ) ) {
+					ewwwio_debug_message( "queued $path" );
+					$list[] = $path;
+				}
 			}
 		}
 	}
@@ -154,44 +178,33 @@ function ewww_image_optimizer_webp_loop() {
 			ewwwio_debug_message( 'hit 1000, breaking loop' );
 			break;
 		}
-		$image        = array_pop( $images );
-		$replace_base = '';
-		$skip         = true;
-		$pngfile      = preg_replace( '/webp$/', 'png', $image );
-		$upngfile     = preg_replace( '/webp$/', 'PNG', $image );
-		$jpgfile      = preg_replace( '/webp$/', 'jpg', $image );
-		$jpegfile     = preg_replace( '/webp$/', 'jpeg', $image );
-		$ujpgfile     = preg_replace( '/webp$/', 'JPG', $image );
-		if ( file_exists( $pngfile ) ) {
-			$replace_base = $pngfile;
-			$skip         = false;
-		} if ( file_exists( $upngfile ) ) {
-			if ( empty( $replace_base ) ) {
-				$replace_base = $upngfile;
+		$image               = array_pop( $images );
+		$replace_base        = '';
+		$skip                = true;
+		$naming_mode         = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
+		$extensionless       = ewwwio()->remove_from_end( $image, '.webp' );
+		$info                = pathinfo( $extensionless );
+		$ext                 = strtolower( $info['extension'] ?? '' );
+		$original_extensions = array( 'png', 'jpg', 'jpeg', 'gif' );
+		$is_real_ext         = in_array( $ext, $original_extensions, true );
+		if ( 'replace' === $naming_mode ) {
+			if ( $is_real_ext && ewwwio_is_file( $extensionless ) ) {
+				$replace_base = $extensionless;
 				$skip         = false;
-			} else {
-				$skip = true;
 			}
-		} if ( file_exists( $jpgfile ) ) {
-			if ( empty( $replace_base ) ) {
-				$replace_base = $jpgfile;
-				$skip         = false;
-			} else {
-				$skip = true;
+		} elseif ( 'append' === $naming_mode ) {
+			if ( $is_real_ext ) {
+				continue;
 			}
-		} if ( file_exists( $jpegfile ) ) {
-			if ( empty( $replace_base ) ) {
-				$replace_base = $jpegfile;
-				$skip         = false;
-			} else {
-				$skip = true;
-			}
-		} if ( file_exists( $ujpgfile ) ) {
-			if ( empty( $replace_base ) ) {
-				$replace_base = $ujpgfile;
-				$skip         = false;
-			} else {
-				$skip = true;
+			foreach ( $original_extensions as $img_ext ) {
+				if ( ewwwio_is_file( $extensionless . '.' . $img_ext ) || ewwwio_is_file( $extensionless . '.' . strtoupper( $img_ext ) ) ) {
+					if ( ! empty( $replace_base ) ) {
+						$skip = true;
+						break;
+					}
+					$replace_base = $extensionless . '.' . $img_ext;
+					$skip         = false;
+				}
 			}
 		}
 		if ( $skip ) {
@@ -202,8 +215,14 @@ function ewww_image_optimizer_webp_loop() {
 			}
 			$images_skipped .= "$image<br>";
 		} else {
-			ewwwio_debug_message( "renaming $image with match of $replace_base" );
-			rename( $image, $replace_base . '.webp' );
+			$new_webp_path = ewww_image_optimizer_get_webp_path( $replace_base );
+			if ( is_file( $new_webp_path ) ) {
+				ewwwio_debug_message( "$new_webp_path already exists, deleting $image" );
+				ewwwio_delete_file( $image );
+				continue;
+			}
+			ewwwio_debug_message( "renaming $image with match of $replace_base to $new_webp_path" );
+			rename( $image, $new_webp_path );
 		}
 	} // End while().
 	if ( $images_skipped ) {

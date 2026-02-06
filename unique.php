@@ -1270,6 +1270,78 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 }
 
 /**
+ * Returns the WebP file path of the given image based on naming mode.
+ *
+ * @param string $file The full filesystem path to the source image.
+ * @return string The full filesystem path to the WebP image.
+ */
+function ewww_image_optimizer_get_webp_path( $file ) {
+	$naming_mode = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
+	$info        = pathinfo( $file );
+
+	if ( 'replace' === $naming_mode ) {
+		$webp_path = $info['dirname'] . '/' . $info['filename'] . '.webp';
+	} else {
+		$webp_path = $file . '.webp';
+	}
+
+	return apply_filters( 'ewww_image_optimizer_webp_path', $webp_path, $file, $naming_mode );
+}
+
+/**
+ * Returns all possible WebP file paths of the given image.
+ *
+ * @param string $path The full filesystem path to the source image.
+ * @return array Returns array of both append and replace WebP naming paths.
+ */
+function ewww_image_optimizer_get_all_webp_paths( $path ) {
+	$naming_mode = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
+	$append      = $path . '.webp';
+	$info        = pathinfo( $path );
+	$replace     = $info['dirname'] . '/' . $info['filename'] . '.webp';
+
+	if ( 'append' === $naming_mode ) {
+		return array( $append, $replace );
+	}
+	return array( $replace, $append );
+}
+
+/**
+ * Removes obsolete WebP files created with previous naming conventions.
+ *
+ * @param string $path The full filesystem path to the source image.
+ */
+function ewww_image_optimizer_cleanup_legacy_webp( $path ) {
+	$current  = ewww_image_optimizer_get_webp_path( $path );
+	$variants = ewww_image_optimizer_get_all_webp_paths( $path );
+
+	foreach ( $variants as $legacy ) {
+		if ( $legacy !== $current && ewwwio_is_file( $legacy ) ) {
+			ewwwio_debug_message( "removing legacy webp file: $legacy" );
+			ewwwio_delete_file( $legacy );
+		}
+	}
+}
+
+/**
+ * Returns the WebP URL of the given image.
+ *
+ * @param string $path The full filesystem path to the source image.
+ * @param string $url The full URL to the source image.
+ * @return string URL to the existing WebP image.
+ */
+function ewww_image_optimizer_get_webp_url( $path, $url ) {
+	$webp_paths = ewww_image_optimizer_get_all_webp_paths( $path );
+	$webp_urls  = ewww_image_optimizer_get_all_webp_paths( $url );
+	if ( ewwwio_is_file( $webp_paths[0] ) ) {
+		return $webp_urls[0];
+	} elseif ( ewwwio_is_file( $webp_paths[1] ) ) {
+		return $webp_urls[1];
+	}
+	return $webp_urls[0];
+}
+
+/**
  * Creates WebP images alongside JPG and PNG files.
  *
  * @param string $file The name of the JPG/PNG file.
@@ -1282,7 +1354,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $recreate = false ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$orig_size = ewww_image_optimizer_filesize( $file );
-	$webpfile  = $file . '.webp';
+	$webpfile  = ewww_image_optimizer_get_webp_path( $file );
 	if ( apply_filters( 'ewww_image_optimizer_bypass_webp', false, $file ) ) {
 		ewwwio_debug_message( "webp generation bypassed: $file" );
 		return '';

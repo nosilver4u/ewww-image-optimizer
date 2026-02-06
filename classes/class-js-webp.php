@@ -324,14 +324,18 @@ class JS_Webp extends Page_Parser {
 					$srcurl   = \rtrim( $srcurl, ',' );
 				}
 				$this->debug_message( "looking for $srcurl from srcset" );
-				if ( $this->validate_image_url( $srcurl ) ) {
-					$srcset = \str_replace( $srcurl . $trailing, $this->generate_url( $srcurl ) . $trailing, $srcset );
+				$validated_path = $this->validate_image_url( $srcurl );
+				if ( $validated_path ) {
+					$srcset = \str_replace( $srcurl . $trailing, $this->generate_url( $srcurl, $validated_path ) . $trailing, $srcset );
 					$this->debug_message( "replaced $srcurl in srcset" );
 					$found_webp = true;
 				}
 			}
-		} elseif ( $this->validate_image_url( $srcset ) ) {
-			return $this->generate_url( $srcset );
+		} else {
+			$validated_path = $this->validate_image_url( $srcset );
+			if ( $validated_path ) {
+				return $this->generate_url( $srcset, $validated_path );
+			}
 		}
 		if ( $found_webp ) {
 			return $srcset;
@@ -351,24 +355,27 @@ class JS_Webp extends Page_Parser {
 		$data_orig_file = $this->get_attribute( $image, 'data-orig-file' );
 		if ( $data_orig_file ) {
 			$this->debug_message( "looking for data-orig-file: $data_orig_file" );
-			if ( $this->validate_image_url( $data_orig_file ) ) {
-				$this->set_attribute( $image, 'data-webp-orig-file', $this->generate_url( $data_orig_file ), true );
+			$validated_path = $this->validate_image_url( $data_orig_file );
+			if ( $validated_path ) {
+				$this->set_attribute( $image, 'data-webp-orig-file', $this->generate_url( $data_orig_file, $validated_path ), true );
 				$this->debug_message( "replacing $data_orig_file via data-webp-orig-file" );
 			}
 		}
 		$data_medium_file = $this->get_attribute( $image, 'data-medium-file' );
 		if ( $data_medium_file ) {
 			$this->debug_message( "looking for data-medium-file: $data_medium_file" );
-			if ( $this->validate_image_url( $data_medium_file ) ) {
-				$this->set_attribute( $image, 'data-webp-medium-file', $this->generate_url( $data_medium_file ), true );
+			$validated_path = $this->validate_image_url( $data_medium_file );
+			if ( $validated_path ) {
+				$this->set_attribute( $image, 'data-webp-medium-file', $this->generate_url( $data_medium_file, $validated_path ), true );
 				$this->debug_message( "replacing $data_medium_file via data-webp-medium-file" );
 			}
 		}
 		$data_large_file = $this->get_attribute( $image, 'data-large-file' );
 		if ( $data_large_file ) {
 			$this->debug_message( "looking for data-large-file: $data_large_file" );
-			if ( $this->validate_image_url( $data_large_file ) ) {
-				$this->set_attribute( $image, 'data-webp-large-file', $this->generate_url( $data_large_file ), true );
+			$validated_path = $this->validate_image_url( $data_large_file );
+			if ( $validated_path ) {
+				$this->set_attribute( $image, 'data-webp-large-file', $this->generate_url( $data_large_file, $validated_path ), true );
 				$this->debug_message( "replacing $data_large_file via data-webp-large-file" );
 			}
 		}
@@ -386,16 +393,18 @@ class JS_Webp extends Page_Parser {
 		$data_large_image = $this->get_attribute( $image, 'data-large_image' );
 		if ( $data_large_image ) {
 			$this->debug_message( "looking for data-large_image: $data_large_image" );
-			if ( $this->validate_image_url( $data_large_image ) ) {
-				$this->set_attribute( $image, 'data-webp-large_image', $this->generate_url( $data_large_image ), true );
+			$validated_path = $this->validate_image_url( $data_large_image );
+			if ( $validated_path ) {
+				$this->set_attribute( $image, 'data-webp-large_image', $this->generate_url( $data_large_image, $validated_path ), true );
 				$this->debug_message( "replacing $data_large_image via data-webp-large_image" );
 			}
 		}
 		$data_src = $this->get_attribute( $image, 'data-src' );
 		if ( $data_src ) {
 			$this->debug_message( "looking for data-src: $data_src" );
-			if ( $this->validate_image_url( $data_src ) ) {
-				$this->set_attribute( $image, 'data-webp-src', $this->generate_url( $data_src ), true );
+			$validated_path = $this->validate_image_url( $data_src );
+			if ( $validated_path ) {
+				$this->set_attribute( $image, 'data-webp-src', $this->generate_url( $data_src, $validated_path ), true );
 				$this->debug_message( "replacing $data_src via data-webp-src" );
 			}
 		}
@@ -480,14 +489,18 @@ class JS_Webp extends Page_Parser {
 				}
 				$file = \trim( $images['img_url'][ $index ] );
 				$this->debug_message( "parsing an image: $file" );
-				if ( \strpos( $image, 'jetpack-lazy-image' ) && $this->validate_image_url( $file ) ) {
+				$validated_file_path = $this->validate_image_url( $file );
+				if ( \strpos( $image, 'jetpack-lazy-image' ) && $validated_file_path ) {
 					$new_image = $image;
 					$new_image = $this->jetpack_replace( $new_image );
 					$real_file = $this->get_attribute( $new_image, 'data-lazy-src' );
 					$this->debug_message( 'checking webp for Jetpack Lazy Load data-lazy-src' );
-					if ( $real_file && $this->validate_image_url( $real_file ) ) {
-						$this->debug_message( "found webp for Lazy Load: $real_file" );
-						$this->set_attribute( $new_image, 'data-lazy-src-webp', $this->generate_url( $real_file ) );
+					if ( $real_file ) {
+						$validated_real_path = $this->validate_image_url( $real_file );
+						if ( $validated_real_path ) {
+							$this->debug_message( "found webp for Jetpack Lazy Load: $real_file" );
+							$this->set_attribute( $new_image, 'data-lazy-src-webp', $this->generate_url( $real_file, $validated_real_path ) );
+						}
 					}
 					$srcset = $this->get_attribute( $new_image, 'data-lazy-srcset' );
 					if ( $srcset ) {
@@ -501,14 +514,14 @@ class JS_Webp extends Page_Parser {
 						$buffer = \str_replace( $image, $new_image, $buffer );
 					}
 				} elseif (
-					$this->validate_image_url( $file ) &&
+					$validated_file_path &&
 					( false === \strpos( $image, 'lazyload' ) || false !== \strpos( $image, 'lazyloaded' ) )
 				) {
 					// If a CDN path match was found, or .webp image existence is confirmed, and this is not a lazy-load 'dummy' image.
 					$this->debug_message( 'found a webp image or forced path' );
 					$new_image = $image;
 					$this->set_attribute( $new_image, 'data-src-img', $file );
-					$this->set_attribute( $new_image, 'data-src-webp', $this->generate_url( $file ) );
+					$this->set_attribute( $new_image, 'data-src-webp', $this->generate_url( $file, $validated_file_path ) );
 					$srcset = $this->get_attribute( $image, 'srcset' );
 					if ( $srcset ) {
 						$srcset_webp = $this->srcset_replace( $srcset );
@@ -538,9 +551,10 @@ class JS_Webp extends Page_Parser {
 					$new_image = $image;
 					$real_file = $this->get_attribute( $new_image, 'data-lazy-src' );
 					$this->debug_message( "checking webp for Lazy Load data-lazy-src: $real_file" );
-					if ( $this->validate_image_url( $real_file ) ) {
+					$validated_real_path = $this->validate_image_url( $real_file );
+					if ( $validated_real_path ) {
 						$this->debug_message( "found webp for Lazy Load: $real_file" );
-						$this->set_attribute( $new_image, 'data-lazy-src-webp', $this->generate_url( $real_file ) );
+						$this->set_attribute( $new_image, 'data-lazy-src-webp', $this->generate_url( $real_file, $validated_real_path ) );
 					}
 					$srcset = $this->get_attribute( $new_image, 'data-lazy-srcset' );
 					if ( $srcset ) {
@@ -558,9 +572,10 @@ class JS_Webp extends Page_Parser {
 					$new_image = $image;
 					$real_file = $this->get_attribute( $new_image, 'data-src' );
 					$this->debug_message( "checking webp for Lazy Load data-src: $real_file" );
-					if ( $this->validate_image_url( $real_file ) ) {
+					$validated_real_path = $this->validate_image_url( $real_file );
+					if ( $validated_real_path ) {
 						$this->debug_message( 'found webp for Lazy Load' );
-						$this->set_attribute( $new_image, 'data-src-webp', $this->generate_url( $real_file ) );
+						$this->set_attribute( $new_image, 'data-src-webp', $this->generate_url( $real_file, $validated_real_path ) );
 					}
 					$srcset = $this->get_attribute( $new_image, 'data-srcset' );
 					if ( $srcset ) {
@@ -578,9 +593,10 @@ class JS_Webp extends Page_Parser {
 					$new_image = $image;
 					$real_file = $this->get_attribute( $new_image, 'data-lazysrc' );
 					$this->debug_message( "checking webp for EG Lazy Load data-lazysrc: $real_file" );
-					if ( $this->validate_image_url( $real_file ) ) {
+					$validated_real_path = $this->validate_image_url( $real_file );
+					if ( $validated_real_path ) {
 						$this->debug_message( "found webp for Lazy Load: $real_file" );
-						$this->set_attribute( $new_image, 'data-lazysrc-webp', $this->generate_url( $real_file ) );
+						$this->set_attribute( $new_image, 'data-lazysrc-webp', $this->generate_url( $real_file, $validated_real_path ) );
 					}
 					if ( $new_image !== $image ) {
 						$this->set_attribute( $new_image, 'class', $this->get_attribute( $new_image, 'class' ) . ' ewww_webp_lazy_load', true );
@@ -606,9 +622,10 @@ class JS_Webp extends Page_Parser {
 					$new_image = $image;
 					$real_file = \trim( $this->get_attribute( $new_image, 'data-src' ) );
 					$this->debug_message( "checking webp for Lazy Load data-src: $real_file" );
-					if ( $this->validate_image_url( $real_file ) ) {
+					$validated_real_path = $this->validate_image_url( $real_file );
+					if ( $validated_real_path ) {
 						$this->debug_message( 'found webp for Lazy Load' );
-						$this->set_attribute( $new_image, 'data-src-webp', $this->generate_url( $real_file ) );
+						$this->set_attribute( $new_image, 'data-src-webp', $this->generate_url( $real_file, $validated_real_path ) );
 					}
 					$srcset = $this->get_attribute( $new_image, 'data-srcset' );
 					if ( $srcset ) {
@@ -700,13 +717,15 @@ class JS_Webp extends Page_Parser {
 				$thumb = $this->get_attribute( $link, 'data-thumbnail' );
 				if ( $file && $thumb ) {
 					$this->debug_message( "checking webp for ngg data-src: $file" );
-					if ( $this->validate_image_url( $file ) ) {
-						$this->set_attribute( $link, 'data-webp', $this->generate_url( $file ) );
+					$validated_file_path = $this->validate_image_url( $file );
+					if ( $validated_file_path ) {
+						$this->set_attribute( $link, 'data-webp', $this->generate_url( $file, $validated_file_path ) );
 						$this->debug_message( "found webp for ngg data-src: $file" );
 					}
 					$this->debug_message( "checking webp for ngg data-thumbnail: $thumb" );
-					if ( $this->validate_image_url( $thumb ) ) {
-						$this->set_attribute( $link, 'data-webp-thumbnail', $this->generate_url( $thumb ) );
+					$validated_file_path = $this->validate_image_url( $thumb );
+					if ( $validated_file_path ) {
+						$this->set_attribute( $link, 'data-webp-thumbnail', $this->generate_url( $thumb, $validated_file_path ) );
 						$this->debug_message( "found webp for ngg data-thumbnail: $thumb" );
 					}
 				}
@@ -714,8 +733,9 @@ class JS_Webp extends Page_Parser {
 				$link_class = $this->get_attribute( $link, 'class' );
 				if ( $link_class && $bg_image && false !== \strpos( $link_class, 'lazyload' ) ) {
 					$this->debug_message( "checking a/link for LL data-back: $bg_image" );
-					if ( $this->validate_image_url( $bg_image ) ) {
-						$this->set_attribute( $link, 'data-back-webp', $this->generate_url( $bg_image ) );
+					$validated_bg_path = $this->validate_image_url( $bg_image );
+					if ( $validated_bg_path ) {
+						$this->set_attribute( $link, 'data-back-webp', $this->generate_url( $bg_image, $validated_bg_path ) );
 						$this->debug_message( 'found webp for LL data-back' );
 					}
 				}
@@ -736,8 +756,9 @@ class JS_Webp extends Page_Parser {
 				$li_class = $this->get_attribute( $listitem, 'class' );
 				if ( $li_class && $bg_image && false !== strpos( $li_class, 'lazyload' ) ) {
 					$this->debug_message( "checking div for LL data-back: $bg_image" );
-					if ( $this->validate_image_url( $bg_image ) ) {
-						$this->set_attribute( $listitem, 'data-back-webp', $this->generate_url( $bg_image ) );
+					$validated_bg_path = $this->validate_image_url( $bg_image );
+					if ( $validated_bg_path ) {
+						$this->set_attribute( $listitem, 'data-back-webp', $this->generate_url( $bg_image, $validated_bg_path ) );
 						$this->debug_message( 'found webp for LL data-back' );
 						$buffer = \str_replace( $listitems[ $index ], $listitem, $buffer );
 					}
@@ -756,8 +777,9 @@ class JS_Webp extends Page_Parser {
 				$div_class = $this->get_attribute( $div, 'class' );
 				if ( $div_class && $thumb && \strpos( $div_class, 'woocommerce-product-gallery__image' ) !== false ) {
 					$this->debug_message( "checking webp for WC data-thumb: $thumb" );
-					if ( $this->validate_image_url( $thumb ) ) {
-						$this->set_attribute( $div, 'data-webp-thumb', $this->generate_url( $thumb ) );
+					$validated_thumb_path = $this->validate_image_url( $thumb );
+					if ( $validated_thumb_path ) {
+						$this->set_attribute( $div, 'data-webp-thumb', $this->generate_url( $thumb, $validated_thumb_path ) );
 						$this->debug_message( 'found webp for WC data-thumb' );
 						$buffer = \str_replace( $divs[ $index ], $div, $buffer );
 					}
@@ -765,8 +787,9 @@ class JS_Webp extends Page_Parser {
 				$bg_image = $this->get_attribute( $div, 'data-back' );
 				if ( $div_class && $bg_image && false !== \strpos( $div_class, 'lazyload' ) ) {
 					$this->debug_message( "checking div for LL data-back: $bg_image" );
-					if ( $this->validate_image_url( $bg_image ) ) {
-						$this->set_attribute( $div, 'data-back-webp', $this->generate_url( $bg_image ) );
+					$validated_bg_path = $this->validate_image_url( $bg_image );
+					if ( $validated_bg_path ) {
+						$this->set_attribute( $div, 'data-back-webp', $this->generate_url( $bg_image, $validated_bg_path ) );
 						$this->debug_message( 'found webp for LL data-back' );
 						$buffer = \str_replace( $divs[ $index ], $div, $buffer );
 					}
@@ -785,8 +808,9 @@ class JS_Webp extends Page_Parser {
 				$bg_image = $this->get_attribute( $section, 'data-back' );
 				if ( $class && $bg_image && false !== \strpos( $class, 'lazyload' ) ) {
 					$this->debug_message( "checking section for LL data-back: $bg_image" );
-					if ( $this->validate_image_url( $bg_image ) ) {
-						$this->set_attribute( $section, 'data-back-webp', $this->generate_url( $bg_image ) );
+					$validated_bg_path = $this->validate_image_url( $bg_image );
+					if ( $validated_bg_path ) {
+						$this->set_attribute( $section, 'data-back-webp', $this->generate_url( $bg_image, $validated_bg_path ) );
 						$this->debug_message( 'found webp for LL data-back' );
 						$buffer = \str_replace( $sections[ $index ], $section, $buffer );
 					}
@@ -805,8 +829,9 @@ class JS_Webp extends Page_Parser {
 				$bg_image = $this->get_attribute( $span, 'data-back' );
 				if ( $class && $bg_image && false !== \strpos( $class, 'lazyload' ) ) {
 					$this->debug_message( "checking span for LL data-back: $bg_image" );
-					if ( $this->validate_image_url( $bg_image ) ) {
-						$this->set_attribute( $span, 'data-back-webp', $this->generate_url( $bg_image ) );
+					$validated_bg_path = $this->validate_image_url( $bg_image );
+					if ( $validated_bg_path ) {
+						$this->set_attribute( $span, 'data-back-webp', $this->generate_url( $bg_image, $validated_bg_path ) );
 						$this->debug_message( 'found webp for LL data-back' );
 						$buffer = \str_replace( $spans[ $index ], $span, $buffer );
 					}
@@ -824,8 +849,9 @@ class JS_Webp extends Page_Parser {
 				$file = $this->get_attribute( $video, 'poster' );
 				if ( $file ) {
 					$this->debug_message( "checking webp for video poster: $file" );
-					if ( $this->validate_image_url( $file ) ) {
-						$this->set_attribute( $video, 'data-poster-webp', $this->generate_url( $file ) );
+					$validated_file_path = $this->validate_image_url( $file );
+					if ( $validated_file_path ) {
+						$this->set_attribute( $video, 'data-poster-webp', $this->generate_url( $file, $validated_file_path ) );
 						$this->set_attribute( $video, 'data-poster-image', $file );
 						$this->remove_attribute( $video, 'poster' );
 						$this->debug_message( "found webp for video poster: $file" );
@@ -848,26 +874,37 @@ class JS_Webp extends Page_Parser {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( $this->is_iterable( $images ) ) {
 			foreach ( $images as $index => $image ) {
-				if ( ! empty( $image['image'] ) && $this->validate_image_url( $image['image'] ) ) {
-					$images[ $index ]['image-webp'] = $this->generate_url( $image['image'] );
+				if ( ! empty( $image['image'] ) ) {
+					$validated_path = $this->validate_image_url( $image['image'] );
+					if ( $validated_path ) {
+						$images[ $index ]['image-webp'] = $this->generate_url( $image['image'], $validated_path );
+					}
 				}
-				if ( ! empty( $image['thumb'] ) && $this->validate_image_url( $image['thumb'] ) ) {
-					$images[ $index ]['thumb-webp'] = $this->generate_url( $image['thumb'] );
+				if ( ! empty( $image['thumb'] ) ) {
+					$validated_thumb_path = $this->validate_image_url( $image['thumb'] );
+					if ( $validated_thumb_path ) {
+						$images[ $index ]['thumb-webp'] = $this->generate_url( $image['thumb'], $validated_thumb_path );
+					}
 				}
-				if ( ! empty( $image['full_image'] ) && $this->validate_image_url( $image['full_image'] ) ) {
-					$images[ $index ]['full_image_webp'] = $this->generate_url( $image['full_image'] );
+				if ( ! empty( $image['full_image'] ) ) {
+					$validated_full_image_path = $this->validate_image_url( $image['full_image'] );
+					if ( $validated_full_image_path ) {
+						$images[ $index ]['full_image_webp'] = $this->generate_url( $image['full_image'], $validated_full_image_path );
+					}
 				}
 				if ( $this->is_iterable( $image['srcsets'] ) ) {
 					foreach ( $image['srcsets'] as $size => $srcset ) {
-						if ( $this->validate_image_url( $srcset ) ) {
-							$images[ $index ]['srcsets'][ $size . '-webp' ] = $this->generate_url( $srcset );
+						$validated_path = $this->validate_image_url( $srcset );
+						if ( $validated_path ) {
+							$images[ $index ]['srcsets'][ $size . '-webp' ] = $this->generate_url( $srcset, $validated_path );
 						}
 					}
 				}
 				if ( $this->is_iterable( $image['full_srcsets'] ) ) {
 					foreach ( $image['full_srcsets'] as $size => $srcset ) {
-						if ( $this->validate_image_url( $srcset ) ) {
-							$images[ $index ]['full_srcsets'][ $size . '-webp' ] = $this->generate_url( $srcset );
+						$validated_path = $this->validate_image_url( $srcset );
+						if ( $validated_path ) {
+							$images[ $index ]['full_srcsets'][ $size . '-webp' ] = $this->generate_url( $srcset, $validated_path );
 						}
 					}
 				}
@@ -885,17 +922,29 @@ class JS_Webp extends Page_Parser {
 	public function woocommerce_available_variation( $variation ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( $this->is_iterable( $variation ) && $this->is_iterable( $variation['image'] ) ) {
-			if ( ! empty( $variation['image']['src'] ) && $this->validate_image_url( $variation['image']['src'] ) ) {
-				$variation['image']['src_webp'] = $this->generate_url( $variation['image']['src'] );
+			if ( ! empty( $variation['image']['src'] ) ) {
+				$validated_path = $this->validate_image_url( $variation['image']['src'] );
+				if ( $validated_path ) {
+					$variation['image']['src_webp'] = $this->generate_url( $variation['image']['src'], $validated_path );
+				}
 			}
-			if ( ! empty( $variation['image']['full_src'] ) && $this->validate_image_url( $variation['image']['full_src'] ) ) {
-				$variation['image']['full_src_webp'] = $this->generate_url( $variation['image']['full_src'] );
+			if ( ! empty( $variation['image']['full_src'] ) ) {
+				$validated_full_src_path = $this->validate_image_url( $variation['image']['full_src'] );
+				if ( $validated_full_src_path ) {
+					$variation['image']['full_src_webp'] = $this->generate_url( $variation['image']['full_src'], $validated_full_src_path );
+				}
 			}
-			if ( ! empty( $variation['image']['gallery_thumbnail_src'] ) && $this->validate_image_url( $variation['image']['gallery_thumbnail_src'] ) ) {
-				$variation['image']['gallery_thumbnail_src_webp'] = $this->generate_url( $variation['image']['gallery_thumbnail_src'] );
+			if ( ! empty( $variation['image']['gallery_thumbnail_src'] ) ) {
+				$validated_gallery_thumbnail_src_path = $this->validate_image_url( $variation['image']['gallery_thumbnail_src'] );
+				if ( $validated_gallery_thumbnail_src_path ) {
+					$variation['image']['gallery_thumbnail_src_webp'] = $this->generate_url( $variation['image']['gallery_thumbnail_src'], $validated_gallery_thumbnail_src_path );
+				}
 			}
-			if ( ! empty( $variation['image']['thumb_src'] ) && $this->validate_image_url( $variation['image']['thumb_src'] ) ) {
-				$variation['image']['thumb_src_webp'] = $this->generate_url( $variation['image']['thumb_src'] );
+			if ( ! empty( $variation['image']['thumb_src'] ) ) {
+				$validated_thumb_src_path = $this->validate_image_url( $variation['image']['thumb_src'] );
+				if ( $validated_thumb_src_path ) {
+					$variation['image']['thumb_src_webp'] = $this->generate_url( $variation['image']['thumb_src'], $validated_thumb_src_path );
+				}
 			}
 			if ( ! empty( $variation['image']['srcset'] ) ) {
 				$webp_srcset = $this->srcset_replace( $variation['image']['srcset'] );
@@ -943,8 +992,9 @@ class JS_Webp extends Page_Parser {
 		if ( $this->is_iterable( $image_urls ) ) {
 			foreach ( $image_urls as $index => $image_url ) {
 				$this->debug_message( "checking $image_url for a WebP variant" );
-				if ( ! empty( $image_url ) && $this->validate_image_url( $image_url ) ) {
-					$image_urls[ $index ] = $this->generate_url( $image_url );
+				$validated_path = $this->validate_image_url( $image_url );
+				if ( ! empty( $image_url ) && $validated_path ) {
+					$image_urls[ $index ] = $this->generate_url( $image_url, $validated_path );
 				}
 			}
 		}
@@ -960,11 +1010,11 @@ class JS_Webp extends Page_Parser {
 	public function filter_image_url( $image_url ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->debug_message( "checking $image_url for a WebP variant" );
-		if ( ! empty( $image_url ) && $this->validate_image_url( $image_url ) ) {
-			$image_url = $this->generate_url( $image_url );
-			return $image_url;
+		$validated_path = $this->validate_image_url( $image_url );
+		if ( ! empty( $image_url ) && $validated_path ) {
+			$image_url = $this->generate_url( $image_url, $validated_path );
 		}
-		return false;
+		return $image_url;
 	}
 
 	/**
@@ -1066,6 +1116,9 @@ class JS_Webp extends Page_Parser {
 	 */
 	public function validate_image_url( $image ) {
 		$this->debug_message( __METHOD__ . "() webp validation for $image" );
+		if ( empty( $image ) ) {
+			return false;
+		}
 		if ( $this->is_lazy_placeholder( $image ) ) {
 			return false;
 		}
@@ -1110,14 +1163,24 @@ class JS_Webp extends Page_Parser {
 	}
 
 	/**
-	 * Generate a WebP URL by appending .webp to the filename.
+	 * Generate a WebP URL per the correct WebP naming pattern.
 	 *
 	 * @param string $url The image url.
+	 * @param string $path The image path.
 	 * @return string The WebP version of the image url.
 	 */
-	public function generate_url( $url ) {
-		$path_parts = \explode( '?', $url );
-		return \apply_filters( 'ewwwio_generated_webp_image_url', $path_parts[0] . '.webp' . ( ! empty( $path_parts[1] ) && 'is-pending-load=1' !== $path_parts[1] ? '?' . $path_parts[1] : '' ) );
+	public function generate_url( $url, $path ) {
+		$url_parts     = \explode( '?', $url );
+		$queryless_url = $url_parts[0];
+		if ( true === $path ) {
+			$webp_url = ewww_image_optimizer_get_webp_path( $queryless_url );
+		} else {
+			$webp_url = ewww_image_optimizer_get_webp_url( $path, $queryless_url );
+		}
+		if ( ! empty( $url_parts[1] ) && ! str_contains( $url_parts[1], 'is-pending-load' ) ) {
+			$webp_url .= '?' . $url_parts[1];
+		}
+		return apply_filters( 'ewwwio_generated_webp_image_url', $webp_url, $url );
 	}
 
 	/**
