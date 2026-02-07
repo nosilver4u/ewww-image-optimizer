@@ -4917,7 +4917,7 @@ function ewww_image_optimizer_soft_quota_exceeded() {
 	if ( apply_filters( 'ewwwio_whitelabel', false ) ) {
 		return esc_html__( 'Out of credits', 'ewww-image-optimizer' );
 	}
-	return '<a href="https://docs.ewww.io/article/101-soft-quotas-on-unlimited-plans" data-beacon-article="608ddf128996210f18bd95d3" target="_blank">' . esc_html__( 'Soft quota reached, contact us for more', 'ewww-image-optimizer' ) . '</a>';
+	return '<a href="https://docs.ewww.io/article/101-quotas-on-unlimited-plans" data-beacon-article="608ddf128996210f18bd95d3" target="_blank">' . esc_html__( 'Out of credits', 'ewww-image-optimizer' ) . '</a>';
 }
 
 /**
@@ -4965,8 +4965,8 @@ function ewww_image_optimizer_cloud_quota( $raw = false ) {
 		}
 		if ( ! empty( $quota['unlimited'] ) && $quota['consumed'] >= 0 && isset( $quota['soft_cap'] ) ) {
 			$consumed  = (int) $quota['consumed'];
-			$soft_cap  = '<a title="Help" data-beacon-article="608ddf128996210f18bd95d3" href="https://docs.ewww.io/article/101-soft-quotas-on-unlimited-plans">' . (int) $quota['soft_cap'] . '</a>';
-			$soft_cap .= ewwwio_get_help_link( 'https://docs.ewww.io/article/101-soft-quotas-on-unlimited-plans', '608ddf128996210f18bd95d3' );
+			$soft_cap  = '<a title="Help" data-beacon-article="608ddf128996210f18bd95d3" href="https://docs.ewww.io/article/101-quotas-on-unlimited-plans">' . (int) $quota['soft_cap'] . '</a>';
+			$soft_cap .= ewwwio_get_help_link( 'https://docs.ewww.io/article/101-quotas-on-unlimited-plans', '608ddf128996210f18bd95d3' );
 			if ( apply_filters( 'ewwwio_whitelabel', false ) ) {
 				$soft_cap = (int) $quota['soft_cap'];
 			}
@@ -13181,7 +13181,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<?php elseif ( false !== strpos( $verify_cloud, 'exceeded subkey' ) ) : ?>
 								<span style="color: orange; font-weight: bolder"><?php esc_html_e( 'Out of credits', 'ewww-image-optimizer' ); ?></span>					
 		<?php elseif ( false !== strpos( $verify_cloud, 'exceeded quota' ) ) : ?>
-								<span style="color: orange; font-weight: bolder"><a href="https://docs.ewww.io/article/101-soft-quotas-on-unlimited-plans" data-beacon-article="608ddf128996210f18bd95d3" target="_blank"><?php esc_html_e( 'Soft quota reached, contact us for more', 'ewww-image-optimizer' ); ?></a></span>
+								<span style="color: orange; font-weight: bolder"><a href="https://docs.ewww.io/article/101-quotas-on-unlimited-plans" data-beacon-article="608ddf128996210f18bd95d3" target="_blank"><?php esc_html_e( 'Out of credits', 'ewww-image-optimizer' ); ?></a></span>
 		<?php elseif ( false !== strpos( $verify_cloud, 'exceeded' ) ) : ?>
 								<span style="color: orange; font-weight: bolder"><?php esc_html_e( 'Out of credits', 'ewww-image-optimizer' ); ?></span> - <a href="https://ewww.io/buy-credits/" target="_blank"><?php esc_html_e( 'Purchase more', 'ewww-image-optimizer' ); ?></a>
 		<?php else : ?>
