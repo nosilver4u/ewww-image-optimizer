@@ -433,7 +433,6 @@ final class Plugin extends Base {
 	 */
 	public function exec_init() {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		global $exactdn;
 
 		// Initialize this, for if/when we setup JPG-only mode. If an API key is active, we'll toggle to false.
 		$default_jpg_only_mode = true;

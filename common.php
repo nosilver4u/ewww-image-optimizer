@@ -6406,6 +6406,9 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 	ewwwio_debug_message( "savings: $opt_size (new) vs. $orig_size (orig)" );
 	// Calculate how much space was saved.
 	$results_msg = ewww_image_optimizer_image_results( $orig_size, $opt_size, $prev_string );
+	if ( ! apply_filters( 'ewww_image_optimizer_update_table', true, $attachment, $opt_size, $orig_size ) ) {
+		return $results_msg;
+	}
 
 	$updates = array(
 		'path'       => ewww_image_optimizer_relativize_path( $attachment ),
