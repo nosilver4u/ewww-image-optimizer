@@ -480,10 +480,11 @@ function ewww_image_optimizer_bulk_head_output() {
 			</div>
 		</div>
 		<form id="ewww-bulk-controls" class="ewww-bulk-form">
-			<p><label for="ewww-force" style="font-weight: bold"><?php esc_html_e( 'Force re-optimize', 'ewww-image-optimizer' ); ?></label><?php ewwwio_help_link( 'https://docs.ewww.io/article/65-force-re-optimization', '5bb640a7042863158cc711cd' ); ?>
-				&emsp;<input type="checkbox" id="ewww-force" name="ewww-force"<?php echo ( get_transient( 'ewww_image_optimizer_force_reopt' ) || ! empty( ewwwio()->force ) ) ? ' checked' : ''; ?>>
-				&nbsp;<?php esc_html_e( 'Previously optimized images will be skipped by default, check this box before scanning to override.', 'ewww-image-optimizer' ); ?>
-				&nbsp;<a href="tools.php?page=ewww-image-optimizer-tools"><?php esc_html_e( 'View optimization history.', 'ewww-image-optimizer' ); ?></a>
+			<p>
+				<input type="checkbox" id="ewww-force" name="ewww-force"<?php echo ( get_transient( 'ewww_image_optimizer_force_reopt' ) || ! empty( ewwwio()->force ) ) ? ' checked' : ''; ?>>
+				<label for="ewww-force" style="font-weight: bold"><?php esc_html_e( 'Force re-optimize', 'ewww-image-optimizer' ); ?></label><?php ewwwio_help_link( 'https://docs.ewww.io/article/65-force-re-optimization', '5bb640a7042863158cc711cd' ); ?><br>
+				<?php esc_html_e( 'Previously optimized images will be skipped by default, check this box before scanning to override.', 'ewww-image-optimizer' ); ?><br>
+				<a href="tools.php?page=ewww-image-optimizer-tools"><?php esc_html_e( 'View optimization history.', 'ewww-image-optimizer' ); ?></a>
 			</p>
 			<?php ewww_image_optimizer_bulk_variant_option(); ?>
 			<?php ewww_image_optimizer_bulk_webp_only(); ?>
@@ -506,9 +507,10 @@ function ewww_image_optimizer_bulk_variant_option() {
 		return;
 	}
 	?>
-			<p><label for="ewww-force-smart" style="font-weight: bold"><?php esc_html_e( 'Smart Re-optimize', 'ewww-image-optimizer' ); ?></label>
-				&emsp;<input type="checkbox" id="ewww-force-smart" name="ewww-force-smart"<?php echo ( get_transient( 'ewww_image_optimizer_smart_reopt' ) || ! empty( ewwwio()->force_smart ) ) ? ' checked' : ''; ?>>
-				&nbsp;<?php esc_html_e( 'If compression settings have changed, re-optimize images that were compressed on the old settings. If possible, images compressed in Premium mode will be restored to originals beforehand.', 'ewww-image-optimizer' ); ?>
+			<p>
+				<input type="checkbox" id="ewww-force-smart" name="ewww-force-smart"<?php echo ( get_transient( 'ewww_image_optimizer_smart_reopt' ) || ! empty( ewwwio()->force_smart ) ) ? ' checked' : ''; ?>>
+				<label for="ewww-force-smart" style="font-weight: bold"><?php esc_html_e( 'Smart Re-optimize', 'ewww-image-optimizer' ); ?></label><br>
+				<?php esc_html_e( 'If compression settings have changed, re-optimize images that were compressed on the old settings. If possible, images compressed in Premium mode will be restored to originals beforehand.', 'ewww-image-optimizer' ); ?>
 			</p>
 	<?php
 }
@@ -521,9 +523,10 @@ function ewww_image_optimizer_bulk_scan_only() {
 		return;
 	}
 	?>
-			<p><label for="ewww-scan-only" style="font-weight: bold"><?php esc_html_e( 'Scan Only', 'ewww-image-optimizer' ); ?></label>
-				&emsp;<input type="checkbox" id="ewww-scan-only" name="ewww-scan-only">
-				&nbsp;<?php esc_html_e( 'Search for images to optimize and add them to the queue, but do not optimize any images yet.', 'ewww-image-optimizer' ); ?>
+			<p>
+				<input type="checkbox" id="ewww-scan-only" name="ewww-scan-only">
+				<label for="ewww-scan-only" style="font-weight: bold"><?php esc_html_e( 'Scan Only', 'ewww-image-optimizer' ); ?></label><br>
+				<?php esc_html_e( 'Search for images to optimize and add them to the queue, but do not optimize any images yet.', 'ewww-image-optimizer' ); ?>
 			</p>
 	<?php
 }
@@ -536,9 +539,10 @@ function ewww_image_optimizer_bulk_webp_only() {
 		return;
 	}
 	?>
-			<p><label for="ewww-webp-only" style="font-weight: bold"><?php esc_html_e( 'WebP Only', 'ewww-image-optimizer' ); ?></label>
-				&emsp;<input type="checkbox" id="ewww-webp-only" name="ewww-webp-only"<?php echo ( ! empty( ewwwio()->webp_only ) ) ? ' checked' : ''; ?>>
-				&nbsp;<?php esc_html_e( 'Skip compression and only attempt WebP conversion.', 'ewww-image-optimizer' ); ?>
+			<p>
+				<input type="checkbox" id="ewww-webp-only" name="ewww-webp-only"<?php echo ( ! empty( ewwwio()->webp_only ) ) ? ' checked' : ''; ?>>
+				<label for="ewww-webp-only" style="font-weight: bold"><?php esc_html_e( 'WebP Only', 'ewww-image-optimizer' ); ?></label><br>
+				<?php esc_html_e( 'Skip compression and only attempt WebP conversion.', 'ewww-image-optimizer' ); ?>
 			</p>
 	<?php
 }
@@ -558,12 +562,6 @@ function ewww_image_optimizer_bulk_action_output( $button_text, $fullsize_count,
 	if ( 'true' === $resume ) {
 		/* translators: %s: number of images, formatted for locale */
 		$button_text = sprintf( __( 'Optimize %s images', 'ewww-image-optimizer' ), number_format_i18n( $fullsize_count ) );
-		$scan_hide   = 'style="display:none"';
-		$start_hide  = '';
-	} else {
-		$start_hide = 'style="display:none"';
-		$scan_hide  = '';
-
 	}
 	?>
 	<p id="ewww-nothing" class="ewww-bulk-info" style="display:none"><?php echo esc_html_e( 'There are no images to optimize.', 'ewww-image-optimizer' ); ?></p>

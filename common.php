@@ -5351,7 +5351,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 			$msg = 'exceeded';
 			ewwwio_delete_file( $tempfile );
 		} elseif ( str_starts_with( $response['body'], '{' ) && strpos( $response['body'], 'location' ) ) {
-			ewwwio_debug_message( 'optimization pending' );
+			ewwwio_debug_message( 'optimization pending, or no opt' );
 			ewwwio_debug_message( $response['body'] );
 			$api_response = json_decode( $response['body'], true );
 			if ( ! empty( $api_response['id'] ) ) {
@@ -5360,7 +5360,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 				if ( is_object( $ewww_image ) && $ewww_image->file === $file ) {
 					ewwwio_debug_message( 'stashing retrieval id' );
 					$ewww_image->retrieve = $retrieve_id;
-					if ( empty( $ewww_image->backup ) ) {
+					if ( empty( $ewww_image->backup ) && ! empty( $hash ) ) {
 						$ewww_image->backup = $hash;
 					}
 					if ( defined( 'WP_CLI' ) && WP_CLI ) {
@@ -5382,6 +5382,9 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 			$newsize = filesize( $tempfile );
 			ewwwio_debug_message( "cloud results: $newsize (new) vs. $orig_size (original)" );
 			ewwwio_rename( $tempfile, $file );
+			if ( empty( $ewww_image->backup ) && ! empty( $hash ) ) {
+				$ewww_image->backup = $hash;
+			}
 		} elseif ( ewww_image_optimizer_mimetype( $tempfile, 'i' ) === 'image/webp' ) {
 			$newsize = filesize( $tempfile );
 			ewwwio_debug_message( "cloud results (webp): $newsize (new) vs. $orig_size (original)" );
@@ -5393,6 +5396,9 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 				$newsize   = filesize( $newfile );
 				$file      = $newfile;
 				ewwwio_debug_message( "cloud results (converted): $newsize (new) vs. $orig_size (original)" );
+				if ( empty( $ewww_image->backup ) && ! empty( $hash ) ) {
+					$ewww_image->backup = $hash;
+				}
 			}
 		}
 		clearstatcache();
@@ -12647,9 +12653,10 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 		<img src='<?php echo esc_url( $loading_image_url ); ?>' alt='loading'/>
 	</div>
 	<form id="ewww-bulk-controls" class="ewww-bulk-form" style="display: none;">
-		<p><label for="ewww-force" style="font-weight: bold"><?php esc_html_e( 'Force re-optimize', 'ewww-image-optimizer' ); ?></label><?php ewwwio_help_link( 'https://docs.ewww.io/article/65-force-re-optimization', '5bb640a7042863158cc711cd' ); ?>
-			&emsp;<input type="checkbox" id="ewww-force" name="ewww-force"<?php echo ( get_transient( 'ewww_image_optimizer_force_reopt' ) || ! empty( ewwwio()->force ) ) ? ' checked' : ''; ?>>
-			&nbsp;<?php esc_html_e( 'Previously optimized images will be skipped by default, check this box before scanning to override.', 'ewww-image-optimizer' ); ?>
+		<p>
+			<input type="checkbox" id="ewww-force" name="ewww-force"<?php echo ( get_transient( 'ewww_image_optimizer_force_reopt' ) || ! empty( ewwwio()->force ) ) ? ' checked' : ''; ?>>
+			<label for="ewww-force" style="font-weight: bold"><?php esc_html_e( 'Force re-optimize', 'ewww-image-optimizer' ); ?></label><?php ewwwio_help_link( 'https://docs.ewww.io/article/65-force-re-optimization', '5bb640a7042863158cc711cd' ); ?><br>
+			<?php esc_html_e( 'Previously optimized images will be skipped by default, check this box before scanning to override.', 'ewww-image-optimizer' ); ?>
 		</p>
 		<?php ewww_image_optimizer_bulk_variant_option(); ?>
 		<?php ewww_image_optimizer_bulk_scan_only(); ?>
