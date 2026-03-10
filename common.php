@@ -10478,8 +10478,9 @@ function ewww_image_optimizer_bulk_action_handler( $redirect_to, $doaction, $pos
 	$ids = implode( ',', array_map( 'intval', $post_ids ) );
 	return add_query_arg(
 		array(
-			'page' => 'ewww-image-optimizer-bulk',
-			'ids'  => $ids,
+			'page'     => 'ewww-image-optimizer-bulk',
+			'ids'      => $ids,
+			'_wpnonce' => wp_create_nonce( 'ewww-image-optimizer-bulk' ),
 		),
 		admin_url( 'upload.php' )
 	);

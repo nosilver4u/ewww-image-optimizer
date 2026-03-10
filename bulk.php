@@ -323,6 +323,7 @@ function ewww_image_optimizer_bulk_preview() {
 	if ( 'scanning' === get_option( 'ewww_image_optimizer_bulk_resume' ) || 'scanning' === get_option( 'ewww_image_optimizer_aux_resume' ) ) {
 		$async_preempt = true;
 	}
+	// TODO: Great, but now we need to mimic the settings page instead and show async status.
 	if ( get_option( 'ewww_image_optimizer_pause_queues' ) || get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
 		if ( ewwwio()->background_media->count_queue() || ewwwio()->background_image->count_queue() ) {
 			$async_preempt = true;
@@ -364,10 +365,10 @@ function ewww_image_optimizer_bulk_preview() {
 	// Retrieve the value of the 'bulk resume' option and set the button text for the form to use.
 	$resume = get_option( 'ewww_image_optimizer_bulk_resume' );
 	if ( empty( $resume ) ) {
-		$fullsize_count = ewww_image_optimizer_count_optimized( 'media' );
+		$fullsize_count = ewww_image_optimizer_count_images_to_optimize();
 		$button_text    = esc_attr__( 'Start optimizing', 'ewww-image-optimizer' );
 	} elseif ( 'scanning' === $resume ) {
-		$fullsize_count = ewww_image_optimizer_count_optimized( 'media' );
+		$fullsize_count = ewww_image_optimizer_count_images_to_optimize();
 		$button_text    = esc_attr__( 'Start optimizing', 'ewww-image-optimizer' );
 	} else {
 		$fullsize_count = ewww_image_optimizer_aux_images_table_count_pending();
@@ -389,10 +390,22 @@ function ewww_image_optimizer_bulk_preview() {
 				$resize_count = count( $resizes );
 			}
 			$resize_count = ( ! empty( $resize_count ) && $resize_count > 1 ? $resize_count : 6 );
-			if ( ! empty( $_REQUEST['ids'] ) && ( preg_match( '/^[\d,]+$/', sanitize_text_field( wp_unslash( $_REQUEST['ids'] ) ) ) || is_numeric( sanitize_text_field( wp_unslash( $_REQUEST['ids'] ) ) ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			if (
+				! empty( $_REQUEST['_wpnonce'] ) &&
+				wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww-image-optimizer-bulk' ) &&
+				! empty( $_REQUEST['ids'] ) &&
+				( preg_match( '/^[\d,]+$/', sanitize_text_field( wp_unslash( $_REQUEST['ids'] ) ) ) || is_numeric( sanitize_text_field( wp_unslash( $_REQUEST['ids'] ) ) ) )
+			) {
+				$ids = sanitize_text_field( wp_unslash( $_REQUEST['ids'] ) );
+				if ( is_numeric( $ids ) ) {
+					$ids[] = (int) $ids;
+				} else {
+					$ids = explode( ',', $ids );
+					array_walk( $ids, 'intval' );
+				}
 				echo '<p class="ewww-media-info ewww-bulk-info">' .
 					/* translators: 1: number of images 2: number of registered image sizes */
-					esc_html( sprintf( _n( '%1$s uploaded item in the Media Library has been selected with up to %2$d image files per upload.', '%1$s uploaded items in the Media Library have been selected with up to %2$d image files per upload.', $fullsize_count, 'ewww-image-optimizer' ), number_format_i18n( $fullsize_count ), $resize_count ) ) .
+					esc_html( sprintf( _n( '%1$s uploaded item in the Media Library has been selected with up to %2$d image files per upload.', '%1$s uploaded items in the Media Library have been selected with up to %2$d image files per upload.', $fullsize_count, 'ewww-image-optimizer' ), number_format_i18n( count( $ids ) ), $resize_count ) ) .
 					' ' . esc_html__( 'The total number of images found will be displayed before optimization begins.', 'ewww-image-optimizer' ) .
 					'</p>';
 			} else {
@@ -686,8 +699,7 @@ function ewww_image_optimizer_resume_queue() {
  * Retrieve image counts for the bulk process.
  *
  * For the media library, returns a simple count of the number of attachments. For other galleries,
- * counts the number of thumbnails/resizes along with how many of each need to be optimized. Uses
- * attachment "metadata" to calculate the counts, which will not be accurate for long.
+ * counts the number of thumbnails/resizes along with how many of each need to be optimized.
  *
  * @param string $gallery Bulk page that is calling the function. Accepts 'media', 'ngg', and 'flag'.
  * @return int|array {
@@ -697,7 +709,7 @@ function ewww_image_optimizer_resume_queue() {
  *     @type int $resize_count The number of thumbnails/resizes found.
  * }
  */
-function ewww_image_optimizer_count_optimized( $gallery ) {
+function ewww_image_optimizer_count_images_to_optimize( $gallery = 'media' ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	ewwwio_debug_message( "scanning for $gallery" );
 	global $wpdb;
@@ -845,10 +857,9 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 	if ( 'media_page_ewww-image-optimizer-bulk' !== $hook ) {
 		return;
 	}
+
 	add_filter( 'admin_footer_text', 'ewww_image_optimizer_footer_review_text' );
-	global $wpdb;
-	// Initialize the $attachments variable.
-	$attachments = array();
+
 	// Check to see if we are supposed to reset the bulk operation and verify we are authorized to do so.
 	if ( ! empty( $_REQUEST['ewww_reset'] ) && ! empty( $_REQUEST['ewww_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-bulk-reset' ) ) {
 		ewwwio_debug_message( 'resetting resume flags' );
@@ -859,85 +870,41 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 		ewww_image_optimizer_delete_queue_images();
 		ewww_image_optimizer_delete_pending();
 	}
-	// Check to see if we are supposed to convert the auxiliary images table and verify we are authorized to do so.
-	if ( ! empty( $_REQUEST['ewww_convert'] ) && ! empty( $_REQUEST['ewww_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-aux-images-convert' ) ) {
-		ewww_image_optimizer_aux_images_convert();
-	}
+
+	// Check and set these for the bulk controls.
 	if ( ! empty( $_GET['ewww_webp_only'] ) ) {
 		ewwwio()->webp_only = true;
 	}
 	if ( ! empty( $_GET['ewww_force'] ) ) {
 		ewwwio()->force = true;
 	}
-	// Check the 'bulk resume' option.
-	$resume   = get_option( 'ewww_image_optimizer_bulk_resume' );
-	$scanning = get_option( 'ewww_image_optimizer_aux_resume' );
-	if ( 'scanning' !== $scanning && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) ) {
-		$scanning = false;
-	}
-	if ( get_option( 'ewww_image_optimizer_pause_queues' ) || get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
-		if ( ewwwio()->background_media->count_queue() || ewwwio()->background_image->count_queue() ) {
-			$resume = true;
-		}
-	}
-	if ( ! $resume && ! $scanning ) {
-		ewwwio_debug_message( 'not resuming/scanning, so clearing any pending images in both tables' );
-		ewww_image_optimizer_delete_queue_images();
-		ewww_image_optimizer_delete_pending();
-	}
+
 	// See if we were given attachment IDs to work with via GET/POST.
 	$ids = array();
 	if ( ! empty( $_REQUEST['ids'] ) && ( preg_match( '/^[\d,]+$/', sanitize_text_field( wp_unslash( $_REQUEST['ids'] ) ), $request_ids ) || is_numeric( sanitize_text_field( wp_unslash( $_REQUEST['ids'] ) ) ) ) ) {
-		ewww_image_optimizer_delete_pending();
-		set_transient( 'ewww_image_optimizer_skip_aux', true, 3 * MINUTE_IN_SECONDS );
 		if ( is_numeric( sanitize_text_field( wp_unslash( $_REQUEST['ids'] ) ) ) ) {
 			$ids[] = (int) $_REQUEST['ids'];
 		} else {
 			$ids = explode( ',', $request_ids[0] );
 			array_walk( $ids, 'intval' );
 		}
-		ewwwio_debug_message( "validating requested ids: {$request_ids[0]}" );
-		// Retrieve post IDs correlating to the IDs submitted to make sure they are all valid.
-		$attachments = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%') AND ID IN ({$request_ids[0]}) ORDER BY ID DESC" ); // phpcs:ignore WordPress.DB.PreparedSQL
+		$ids = implode( ',', $ids );
 		// Unset the 'bulk resume' option since we were given specific IDs to optimize.
 		update_option( 'ewww_image_optimizer_bulk_resume', '' );
-		// Check if there is a previous bulk operation to resume.
-	} elseif ( $scanning || $resume ) {
-		ewwwio_debug_message( 'scanning/resuming, nothing doing' );
-	} elseif ( empty( $attachments ) ) {
-		ewwwio_debug_message( 'load em all up' );
-		// Since we aren't resuming, and weren't given a list of IDs, we will optimize everything.
-		delete_transient( 'ewww_image_optimizer_scan_aux' );
-		// Load up all the image attachments we can find.
-		$attachments = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%') ORDER BY ID DESC" );
-	} // End if().
-	if ( ! empty( $attachments ) ) {
-		// Store the attachment IDs we retrieved in the queue table so we can keep track of our progress in the database.
-		ewwwio_debug_message( 'loading attachments into queue table' );
-		ewww_image_optimizer_insert_unscanned( $attachments );
-		$attachment_count = count( $attachments );
-	} else {
-		$attachment_count = ewww_image_optimizer_count_unscanned_attachments();
 	}
-	if ( empty( $attachment_count ) && ! ewww_image_optimizer_count_attachments() && ! ewww_image_optimizer_aux_images_table_count_pending() ) {
-		update_option( 'ewww_image_optimizer_bulk_resume', '' );
-		update_option( 'ewww_image_optimizer_aux_resume', '' );
-	}
+
 	wp_enqueue_script( 'ewww-beacon-script', plugins_url( '/includes/eio-beacon.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
 	wp_enqueue_script( 'ewww-bulk-script', plugins_url( '/includes/eio-bulk.js', __FILE__ ), array( 'jquery', 'jquery-ui-slider', 'jquery-ui-progressbar', 'postbox', 'dashboard' ), EWWW_IMAGE_OPTIMIZER_VERSION );
-	// Number of images in the ewwwio_table (previously optimized images).
-	$image_count = ewww_image_optimizer_aux_images_table_count();
+
 	// Submit a couple variables for our javascript to work with.
 	$loading_image = plugins_url( '/images/wpspin.gif', __FILE__ );
+
 	wp_localize_script(
 		'ewww-bulk-script',
 		'ewww_vars',
 		array(
 			'_wpnonce'              => wp_create_nonce( 'ewww-image-optimizer-bulk' ),
-			'attachments'           => ewww_image_optimizer_aux_images_table_count_pending(),
-			'image_count'           => $image_count,
-			/* translators: %d: number of images */
-			'count_string'          => sprintf( esc_html__( '%d images', 'ewww-image-optimizer' ), $image_count ),
+			'selected_images'       => $ids,
 			'scan_fail'             => esc_html__( 'Operation timed out, you may need to increase the max_execution_time or memory_limit for PHP', 'ewww-image-optimizer' ),
 			'scan_incomplete'       => esc_html__( 'Scan did not complete, will try again', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' />",
 			'operation_stopped'     => esc_html__( 'Optimization stopped, reload page to resume.', 'ewww-image-optimizer' ),
@@ -957,6 +924,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 	);
 	// Load the stylesheet for the jquery progressbar.
 	wp_enqueue_style( 'jquery-ui-progressbar', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+
 	ewwwio_memory( __FUNCTION__ );
 }
 
@@ -997,6 +965,39 @@ function ewww_image_optimizer_check_bulk_options( $request ) {
 	if ( isset( $request['ewww_delay'] ) && $request['ewww_delay'] <= 60 ) {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_delay', (int) $request['ewww_delay'] );
 	}
+}
+
+/**
+ * Check how many image uploads will be optimized by the bulk process.
+ *
+ * If specific images were requested, count those. Otherwise, if there is no bulk operation in progress (needing to be resumed), count all images.
+ *
+ * @return int The number of images that will be queued/scanned.
+ */
+function ewww_image_optimizer_bulk_count_images_to_scan() {
+	// TODO: Not sure if we will even use this function?
+	// See if we were given attachment IDs to work with via GET/POST.
+	if (
+		! empty( $_REQUEST['_wpnonce'] ) &&
+		wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww-image-optimizer-bulk' ) &&
+		! empty( $_REQUEST['ids'] ) &&
+		( preg_match( '/^[\d,]+$/', sanitize_text_field( wp_unslash( $_REQUEST['ids'] ) ) ) || is_numeric( sanitize_text_field( wp_unslash( $_REQUEST['ids'] ) ) ) )
+	) {
+		$ids = sanitize_text_field( wp_unslash( $_REQUEST['ids'] ) );
+		if ( is_numeric( $ids ) ) {
+			$ids[] = (int) $ids;
+		} else {
+			$ids = explode( ',', $ids );
+			array_walk( $ids, 'intval' );
+		}
+		// Unset the 'bulk resume' option since we were given specific IDs to optimize.
+		update_option( 'ewww_image_optimizer_bulk_resume', '' );
+		// Check if there is a previous bulk operation to resume.
+		return count( $ids );
+	}
+	ewwwio_debug_message( 'count em all up' );
+	// Count all the image attachments we can find.
+	return ewww_image_optimizer_count_images_to_optimize();
 }
 
 /**
@@ -1382,6 +1383,106 @@ function ewww_image_optimizer_should_resize( $file, $media = false ) {
 }
 
 /**
+ * Initializes the bulk scanning process.
+ *
+ * Checks to see if attachment IDs were POSTed, and loads the
+ * appropriate attachments into the queue to be scanned.
+ *
+ * @global object $wpdb
+ * @param string $hook An indicator if this was not called from AJAX, like WP-CLI.
+ */
+function ewww_image_optimizer_bulk_scan_init( $hook = '' ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+
+	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
+	if ( 'ewww-image-optimizer-cli' !== $hook && empty( $_REQUEST['ewww_scan'] ) ) {
+		ewwwio_debug_message( 'bailing no cli' );
+		ewwwio_ob_clean();
+		die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
+	}
+	if ( ! empty( $_REQUEST['ewww_scan'] ) && ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) ) {
+		ewwwio_debug_message( 'bailing no nonce' );
+		ewwwio_ob_clean();
+		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
+	}
+	global $wpdb;
+	// Initialize the $attachments variable.
+	$attachments = array();
+	// Check to see if we are supposed to reset the bulk operation and verify we are authorized to do so.
+
+	// Check the 'bulk resume' option.
+	$resume   = get_option( 'ewww_image_optimizer_bulk_resume' );
+	$scanning = get_option( 'ewww_image_optimizer_aux_resume' );
+	// The aux_resume flag should never be anything other than 'scanning'. So if it is anything else, reset it to false.
+	if ( 'scanning' !== $scanning && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_auto' ) ) {
+		$scanning = false;
+	}
+
+	if ( ! $resume && ! $scanning ) {
+		ewwwio_debug_message( 'not resuming/scanning, so clearing any pending images in both tables' );
+		ewww_image_optimizer_delete_queue_images();
+		ewww_image_optimizer_delete_pending();
+	}
+	$attachments = array();
+	// See if we were given attachment IDs to work with via GET/POST.
+	if ( ! empty( $_REQUEST['ids'] ) ) {
+		ewww_image_optimizer_delete_pending();
+		// TODO: Can we set this longer and remove it when we're done? Like perhaps at the end of the aux_images_scan (right after it checks for it and returns)?
+		set_transient( 'ewww_image_optimizer_skip_aux', true, 10 * MINUTE_IN_SECONDS );
+		$ids = sanitize_text_field( wp_unslash( $_REQUEST['ids'] ) );
+		ewwwio_debug_message( "validating requested ids: $ids" );
+		if ( is_numeric( $ids ) ) {
+			$ids[] = (int) $_REQUEST['ids'];
+		} else {
+			$ids = explode( ',', $ids );
+			array_walk( $ids, 'intval' );
+		}
+		// Then put it back together for the sql query.
+		$ids = implode( ',', $ids );
+		// Retrieve post IDs correlating to the IDs submitted to make sure they are all valid.
+		$attachments = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%') AND ID IN ({$ids}) ORDER BY ID DESC" ); // phpcs:ignore WordPress.DB.PreparedSQL
+		// Unset the 'bulk resume' option since we were given specific IDs to optimize.
+		update_option( 'ewww_image_optimizer_bulk_resume', '' );
+		// Check if there is a previous bulk operation to resume.
+	} elseif ( $scanning || $resume ) {
+		ewwwio_debug_message( 'scanning/resuming, nothing doing' );
+	} elseif ( empty( $attachments ) ) {
+		ewwwio_debug_message( 'load em all up' );
+		// Since we aren't resuming, and weren't given a list of IDs, we will optimize everything.
+		delete_transient( 'ewww_image_optimizer_scan_aux' );
+		// Load up all the image attachments we can find.
+		$attachments = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%') ORDER BY ID DESC" );
+	} // End if().
+	if ( ! empty( $attachments ) ) {
+		// Store the attachment IDs we retrieved in the queue table so we can keep track of our progress in the database.
+		ewwwio_debug_message( 'loading attachments into queue table' );
+		ewww_image_optimizer_insert_unscanned( $attachments );
+		$attachment_count = count( $attachments );
+	} else {
+		$attachment_count = ewww_image_optimizer_count_unscanned_attachments();
+	}
+	$pending_image_count = ewww_image_optimizer_aux_images_table_count_pending();
+	// If there are no attachments to scan, and none in the queue table, and not even anything pending in the ewwwio_images table, then nuke the resumers.
+	if ( empty( $attachment_count ) && ! ewww_image_optimizer_count_queued_attachments() && ! $pending_image_count ) {
+		update_option( 'ewww_image_optimizer_bulk_resume', '' );
+		update_option( 'ewww_image_optimizer_aux_resume', '' );
+	}
+	// Number of images in the ewwwio_table (previously optimized images).
+	$image_count = ewww_image_optimizer_aux_images_table_count();
+	// TODO: pretty sure we won't need all (or any) of these, but we'll leave them for now, since we need something to indicate success.
+	wp_die(
+		wp_json_encode(
+			array(
+				'pending_images' => (int) $pending_image_count,
+				'image_count'    => (int) $image_count,
+				/* translators: %d: number of images */
+				'count_string'   => sprintf( esc_html__( '%d images', 'ewww-image-optimizer' ), (int) $image_count ),
+			)
+		)
+	);
+}
+
+/**
  * Scans the Media Library for images that need optimizing.
  *
  * Searches for images using the attachment metadata and stores them in the ewwwio_images table.
@@ -1421,7 +1522,6 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	$tiny_notice           = '';
 	$image_count           = 0;
 	$attachments_processed = 0;
-	$attachment_query      = '';
 	$images                = array();
 	$attachment_images     = array();
 	$reset_images          = array();
@@ -1449,7 +1549,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 
 	if ( empty( $attachment_ids ) && $ewww_scan ) {
 		// When the media library is finished, run the aux script function to scan for additional images.
-		ewww_image_optimizer_aux_images_script();
+		ewww_image_optimizer_aux_images_scan();
 	}
 
 	$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes_opt', false, true );
@@ -2663,6 +2763,7 @@ add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_bulk_script' );
 add_action( 'admin_enqueue_scripts', 'ewww_image_optimizer_tool_script' );
 add_action( 'wp_ajax_ewww_bulk_async_init', 'ewww_image_optimizer_bulk_async_init' );
 add_action( 'wp_ajax_ewww_bulk_async_get_status', 'ewww_image_optimizer_bulk_async_get_status' );
+add_action( 'wp_ajax_bulk_scan_init', 'ewww_image_optimizer_bulk_scan_init' );
 add_action( 'wp_ajax_bulk_scan', 'ewww_image_optimizer_media_scan' );
 add_action( 'wp_ajax_bulk_init', 'ewww_image_optimizer_bulk_initialize' );
 add_action( 'wp_ajax_bulk_loop', 'ewww_image_optimizer_bulk_loop' );

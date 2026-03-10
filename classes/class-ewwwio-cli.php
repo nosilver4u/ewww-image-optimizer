@@ -112,7 +112,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 					WP_CLI::line( __( 'Bulk status has been reset, starting from the beginning.', 'ewww-image-optimizer' ) );
 				}
 				ewww_image_optimizer_bulk_script( 'media_page_ewww-image-optimizer-bulk' );
-				$fullsize_count = ewww_image_optimizer_count_optimized( 'media' );
+				$fullsize_count = ewww_image_optimizer_count_images_to_optimize();
 
 				/* translators: %d: number of images */
 				WP_CLI::line( sprintf( _n( '%1$d image in the Media Library has been selected.', '%1$d images in the Media Library have been selected.', $fullsize_count, 'ewww-image-optimizer' ), $fullsize_count ) );
@@ -120,10 +120,11 @@ class EWWWIO_CLI extends WP_CLI_Command {
 				WP_CLI::line( __( 'Scanning, this could take a while', 'ewww-image-optimizer' ) );
 				// Do a filter to increase the timeout to 999 or something crazy.
 				add_filter( 'ewww_image_optimizer_timeout', 'ewww_image_optimizer_cli_timeout', 200 );
+				ewww_image_optimizer_bulk_scan_init( 'ewww-image-optimizer-cli' );
 				ewww_image_optimizer_media_scan( 'ewww-image-optimizer-cli' );
-				$pending_count = ewww_image_optimizer_aux_images_script( 'ewww-image-optimizer-cli' );
+				$pending_count = ewww_image_optimizer_aux_images_scan( 'ewww-image-optimizer-cli' );
 				if ( class_exists( 'EWWW_Nextgen' ) ) {
-					list( $fullsize_count, $resize_count ) = ewww_image_optimizer_count_optimized( 'ngg' );
+					list( $fullsize_count, $resize_count ) = ewww_image_optimizer_count_images_to_optimize( 'ngg' );
 					/* translators: 1-2: number of images */
 					WP_CLI::line( 'Nextgen: ' . sprintf( __( '%1$d images have been selected, with %2$d resized versions.', 'ewww-image-optimizer' ), $fullsize_count, $resize_count ) );
 				} elseif ( class_exists( 'EWWW_Nextcellent' ) ) {
@@ -132,7 +133,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 					WP_CLI::line( 'Nextgen: ' . sprintf( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', count( $attachments ), 'ewww-image-optimizer' ), count( $attachments ) ) );
 				}
 				if ( class_exists( 'EWWW_Flag' ) ) {
-					list( $fullsize_count, $resize_count ) = ewww_image_optimizer_count_optimized( 'flag' );
+					list( $fullsize_count, $resize_count ) = ewww_image_optimizer_count_images_to_optimize( 'flag' );
 					/* translators: 1-2: number of images */
 					WP_CLI::line( 'FlAGallery: ' . sprintf( __( '%1$d images have been selected, with %2$d resized versions.', 'ewww-image-optimizer' ), $fullsize_count, $resize_count ) );
 				}
@@ -179,15 +180,16 @@ class EWWWIO_CLI extends WP_CLI_Command {
 					WP_CLI::line( __( 'Bulk status has been reset, starting from the beginning.', 'ewww-image-optimizer' ) );
 				}
 				ewww_image_optimizer_bulk_script( 'media_page_ewww-image-optimizer-bulk' );
-				$fullsize_count = ewww_image_optimizer_count_optimized( 'media' );
+				$fullsize_count = ewww_image_optimizer_count_images_to_optimize();
 				/* translators: %d: number of images */
 				WP_CLI::line( sprintf( __( '%1$d images in the Media Library have been selected.', 'ewww-image-optimizer' ), $fullsize_count ) );
 				WP_CLI::line( __( 'The active theme, BuddyPress, WP Symposium, and folders that you have configured will also be scanned for unoptimized images.', 'ewww-image-optimizer' ) );
 				WP_CLI::line( __( 'Scanning, this could take a while', 'ewww-image-optimizer' ) );
 				// Do a filter to increase the timeout to 999 or something crazy.
 				add_filter( 'ewww_image_optimizer_timeout', 'ewww_image_optimizer_cli_timeout', 200 );
+				ewww_image_optimizer_bulk_scan_init( 'ewww-image-optimizer-cli' );
 				ewww_image_optimizer_media_scan( 'ewww-image-optimizer-cli' );
-				$pending_count = ewww_image_optimizer_aux_images_script( 'ewww-image-optimizer-cli' );
+				$pending_count = ewww_image_optimizer_aux_images_scan( 'ewww-image-optimizer-cli' );
 				if ( empty( $assoc_args['noprompt'] ) && $pending_count ) {
 					/* translators: %d: number of images */
 					WP_CLI::confirm( sprintf( _n( 'There is %d image ready to optimize.', 'There are %d images ready to optimize.', $pending_count, 'ewww-image-optimizer' ), $pending_count ) );
@@ -217,7 +219,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 					WP_CLI::line( __( 'Bulk status has been reset, starting from the beginning.', 'ewww-image-optimizer' ) );
 				}
 				if ( class_exists( 'EWWW_Nextgen' ) ) {
-					list( $fullsize_count, $resize_count ) = ewww_image_optimizer_count_optimized( 'ngg' );
+					list( $fullsize_count, $resize_count ) = ewww_image_optimizer_count_images_to_optimize( 'ngg' );
 					if ( empty( $assoc_args['noprompt'] ) ) {
 						/* translators: 1-2: number of images */
 						WP_CLI::confirm( sprintf( __( '%1$d images have been selected, with %2$d resized versions.', 'ewww-image-optimizer' ), $fullsize_count, $resize_count ) );
@@ -240,7 +242,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 					WP_CLI::line( __( 'Bulk status has been reset, starting from the beginning.', 'ewww-image-optimizer' ) );
 				}
 				if ( class_exists( 'EWWW_Flag' ) ) {
-					list( $fullsize_count, $resize_count ) = ewww_image_optimizer_count_optimized( 'flag' );
+					list( $fullsize_count, $resize_count ) = ewww_image_optimizer_count_images_to_optimize( 'flag' );
 					if ( empty( $assoc_args['noprompt'] ) ) {
 						/* translators: 1-2: number of images */
 						WP_CLI::confirm( 'FlAGallery: ' . sprintf( __( '%1$d images have been selected, with %2$d resized versions.', 'ewww-image-optimizer' ), $fullsize_count, $resize_count ) );

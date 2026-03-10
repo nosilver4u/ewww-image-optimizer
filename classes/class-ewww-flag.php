@@ -99,7 +99,7 @@ if ( ! class_exists( 'EWWW_Flag' ) ) {
 					return;
 				}
 			}
-			list( $fullsize_count, $resize_count ) = ewww_image_optimizer_count_optimized( 'flag' );
+			list( $fullsize_count, $resize_count ) = ewww_image_optimizer_count_images_to_optimize( 'flag' );
 			// Bail-out if there aren't any images to optimize.
 			if ( $fullsize_count < 1 ) {
 				echo '<p>' . esc_html__( 'You do not appear to have uploaded any images yet.', 'ewww-image-optimizer' ) . '</p>';

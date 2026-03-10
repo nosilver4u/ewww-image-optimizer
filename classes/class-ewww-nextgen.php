@@ -703,7 +703,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 					return;
 				}
 			}
-			list( $fullsize_count, $resize_count ) = ewww_image_optimizer_count_optimized( 'ngg' );
+			list( $fullsize_count, $resize_count ) = ewww_image_optimizer_count_images_to_optimize( 'ngg' );
 			// Make sure there are some attachments to process.
 			if ( $fullsize_count < 1 ) {
 				echo '<p>' . esc_html__( 'You do not appear to have uploaded any images yet.', 'ewww-image-optimizer' ) . '</p>';
