@@ -289,13 +289,23 @@ function ewww_image_optimizer_aux_images_table() {
 			$output['search_result'] = sprintf( esc_html__( '%d items displayed', 'ewww-image-optimizer' ), count( $already_optimized ) );
 		}
 	}
-	/* translators: 1: current page in list of images 2: total pages for list of images */
-	$output['pagination']   = sprintf( esc_html__( 'page %1$d of %2$s', 'ewww-image-optimizer' ), (int) $_POST['ewww_offset'] + 1, number_format_i18n( $total ) );
+
+	$output['pagination'] = sprintf(
+		/* translators: 1: current page in list of images 2: total pages for list of images */
+		esc_html__( 'page %1$s of %2$s', 'ewww-image-optimizer' ),
+		'<span class="current-page">' . ( (int) $_POST['ewww_offset'] + 1 ) . '</span>',
+		'<span class="total-pages">' . esc_html( number_format_i18n( $total ) ) . '</span>'
+	);
+
 	$output['search_count'] = count( $already_optimized );
 	$output['total_images'] = $search_count;
 	$output['total_pages']  = $total;
-	/* translators: %d: number of images */
-	$output['total_images_text'] = sprintf( esc_html__( '%s total images', 'ewww-image-optimizer' ), number_format_i18n( $search_count ) );
+
+	$output['total_images_text'] = sprintf(
+		/* translators: %d: number of images */
+		esc_html__( '%s total images', 'ewww-image-optimizer' ),
+		'<span class="total-images">' . number_format_i18n( $search_count ) . '</span>'
+	);
 
 	$output['table'] = '<table class="wp-list-table widefat media" cellspacing="0"><thead><tr><th>&nbsp;</th>' .
 		'<th>' . esc_html__( 'Filename', 'ewww-image-optimizer' ) . '</th>' .
@@ -309,28 +319,37 @@ function ewww_image_optimizer_aux_images_table() {
 	} else {
 		$output['table'] .= '<th>' . esc_html__( 'Results', 'ewww-image-optimizer' ) . '</th></tr></thead>';
 	}
-	$alternate = true;
-	foreach ( $already_optimized as $optimized_image ) {
-		$optimized_image['pending'] = $pending;
-		if ( empty( $debug_query ) ) {
-			$optimized_image['trace'] = '';
-		} elseif ( empty( $optimized_image['trace'] ) ) {
-			// This will allow us to show the message that there is no trace available, and that they should enable debugging to record tracel logs.
-			$optimized_image['trace'] = 1;
-		}
-		$output['table'] .= ewww_image_optimizer_get_image_table_row( $optimized_image, $alternate );
-		$alternate        = ! $alternate;
-	} // End foreach().
 
-	$output['table'] .= '</table>';
+	$output['table'] .= '<tbody>';
+
 	if ( empty( $already_optimized ) ) {
-		$output['table'] = '<p class="ewww-no-images">' . esc_html__( 'No images optimized!', 'ewww-image-optimizer' ) . '</p>';
-		/* translators: 1: current page in list of images 2: total pages for list of images */
-		$output['pagination'] = sprintf( esc_html__( 'page %1$d of %2$s', 'ewww-image-optimizer' ), 0, 0 );
+		$output['pagination'] = sprintf(
+			/* translators: 1: current page in list of images 2: total pages for list of images */
+			esc_html__( 'page %1$d of %2$s', 'ewww-image-optimizer' ),
+			1,
+			'<span class="total-pages">1</span>'
+		);
 		if ( $pending ) {
-			$output['table'] = '<p class="ewww-no-images">' . esc_html__( 'No images in queue.', 'ewww-image-optimizer' ) . '</p>';
+			$output['table'] .= '<tr class="ewww-no-images"><td colspan="5">' . esc_html__( 'No images in queue.', 'ewww-image-optimizer' ) . '</td></tr>';
+		} else {
+			$output['table'] .= '<tr class="ewww-no-images"><td colspan="5">' . esc_html__( 'No images optimized!', 'ewww-image-optimizer' ) . '</td></tr>';
 		}
+	} else {
+		$alternate = true;
+		foreach ( $already_optimized as $optimized_image ) {
+			$optimized_image['pending'] = $pending;
+			if ( empty( $debug_query ) ) {
+				$optimized_image['trace'] = '';
+			} elseif ( empty( $optimized_image['trace'] ) ) {
+				// This will allow us to show the message that there is no trace available, and that they should enable debugging to record tracel logs.
+				$optimized_image['trace'] = 1;
+			}
+			$output['table'] .= ewww_image_optimizer_get_image_table_row( $optimized_image, $alternate );
+			$alternate        = ! $alternate;
+		} // End foreach().
 	}
+
+	$output['table'] .= '</tbody></table>';
 	die( wp_json_encode( $output ) );
 }
 
@@ -378,6 +397,8 @@ function ewww_image_optimizer_get_image_table_row( $optimized_image, $alternate,
 		$last_updated = '';
 	} elseif ( $optimized_image['pending'] && empty( $optimized_image['image_size'] ) ) {
 		$last_updated = '';
+	} elseif ( ! $show_links ) {
+		$last_updated = gmdate( 'M j, H:i:s', $optimized_image['updated'] );
 	} else {
 		$last_updated = human_time_diff( $optimized_image['updated'] );
 	}
@@ -432,6 +453,11 @@ function ewww_image_optimizer_get_image_table_row( $optimized_image, $alternate,
 			| <a class="ewww-restore-image" data-id="<?php echo (int) $optimized_image['id']; ?>"><?php esc_html_e( 'Restore original', 'ewww-image-optimizer' ); ?></a>
 		<?php endif; ?>
 	<?php endif; ?>
+	<?php if ( ! empty( $optimized_image['debug'] ) ) : ?>
+			<?php $debug_id = uniqid(); ?>
+			<br><a class="ewww-show-debug-meta" data-id="<?php echo esc_attr( $debug_id ); ?>"><?php esc_html_e( 'Show Debug Output', 'ewww-image-optimizer' ); ?></a>
+			<div class="<?php echo esc_attr( "ewww-debug-meta-$debug_id" ); ?>" style="background-color:#f1f1f1;display:none;"><?php echo wp_kses_post( EWWW\Base::$debug_data ); ?></div>
+	<?php endif; ?>
 		</td>
 		<td><?php echo esc_html( $type ); ?></td>
 		<td><?php echo esc_html( $last_updated ); ?></td>
@@ -480,6 +506,10 @@ function ewww_image_optimizer_get_image_table_row( $optimized_image, $alternate,
 		<?php endif; ?>
 		<?php if ( ! empty( $resize_status ) ) : ?>
 			<br><?php echo esc_html( $resize_status ); ?>
+		<?php endif; ?>
+		<?php if ( ! empty( $optimized_image['elapsed'] ) ) : ?>
+			<?php /* translators: %s: number of seconds */ ?>
+			<br><?php printf( esc_html( _n( 'Elapsed: %s second', 'Elapsed: %s seconds', $optimized_image['elapsed'], 'ewww-image-optimizer' ) ), esc_html( number_format_i18n( $optimized_image['elapsed'], 1 ) ) ); ?>
 		<?php endif; ?>
 	<?php endif; ?>
 		</td>
@@ -1867,7 +1897,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			die(
 				wp_json_encode(
 					array(
-						'remaining' => '<p>' . esc_html__( 'Stage 2, please wait.', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
+						'remaining' => esc_html__( 'Searching additional folders for images to optimize...', 'ewww-image-optimizer' ),
 						'notice'    => '',
 					)
 				)
@@ -1902,7 +1932,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 				die(
 					wp_json_encode(
 						array(
-							'error' => esc_html__( 'Stage 2 unable to complete due to memory restrictions. Please increase the memory_limit setting for PHP and try again.', 'ewww-image-optimizer' ),
+							'error' => esc_html__( 'Image search unable to complete due to memory restrictions. Please increase the memory_limit setting for PHP and try again.', 'ewww-image-optimizer' ),
 						)
 					)
 				);
@@ -1917,7 +1947,7 @@ function ewww_image_optimizer_image_scan( $dir, $started = 0 ) {
 			die(
 				wp_json_encode(
 					array(
-						'remaining' => '<p>' . esc_html__( 'Stage 2, please wait.', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
+						'remaining' => esc_html__( 'Searching additional folders for images to optimize...', 'ewww-image-optimizer' ),
 						'notice'    => '',
 					)
 				)
@@ -2238,14 +2268,19 @@ function ewww_image_optimizer_aux_images_scan( $hook = '' ) {
 		if ( $image_count > 1000 ) {
 			$ready_msg .= ' <a href="https://docs.ewww.io/article/20-why-do-i-have-so-many-images-on-my-site" target="_blank" data-beacon-article="58598744c697912ffd6c3eb4">' . esc_html__( 'Why are there so many images?', 'ewww-image-optimizer' ) . '</a>';
 		}
+
+		$buttons  = '<a class="ewww-queue-controls ewww-start-optimization button-secondary" href="#">' . esc_html__( 'Start optimizing', 'ewww-image-optimizer' ) . '</a>';
+		$buttons .= '<a class="ewww-queue-controls ewww-pause-optimization button-secondary" style="display:none" href="#">' . esc_html__( 'Pause Optimization', 'ewww-image-optimizer' ) . '</a>';
+
+		if ( empty( $image_count ) ) {
+			$ready_msg = esc_html__( 'There are no images to optimize.', 'ewww-image-optimizer' );
+		}
 		ewwwio_ob_clean();
 		die(
 			wp_json_encode(
 				array(
-					'ready'        => $image_count,
-					'message'      => $ready_msg,
-					/* translators: %s: number of images */
-					'start_button' => esc_attr( sprintf( __( 'Optimize %s images', 'ewww-image-optimizer' ), number_format_i18n( $image_count ) ) ),
+					'ready'   => $image_count,
+					'message' => $ready_msg,
 				)
 			)
 		);

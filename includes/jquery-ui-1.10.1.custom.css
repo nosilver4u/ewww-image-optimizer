@@ -569,12 +569,16 @@ button.ewww-handlediv {
 	margin-left: 0;
 	margin-right: 20px;
 }
-#ewww-optimize-local-images, .ewww-action-container {
+.ewww-action-container {
 	display: flex;
 	align-items: center;
 }
 #ewww-bulk-table-wrapper {
 	width: 100%;
+}
+.ewww-bulk-spinner {
+	width: 20px;
+	height: 20px;
 }
 .ewww-queue-status {
 	display: flex;
@@ -620,7 +624,7 @@ button.ewww-handlediv {
 	line-height: 1.625;
 	text-align: center;
 }
-.ewww-no-images {
+.ewww-no-images, .ewww-no-images td {
 	text-align: center;
 }
 .ewww-sort-size {
@@ -878,6 +882,9 @@ p.ewww-webp-rewrite-info {
 }
 #ewwwio-api-activation-result.error, #ewwwio-easy-activation-result.error, #ewww-webp-rewrite-result.error {
 	border-left-color: #dc3232;
+}
+#ewww-bulk-progressline {
+	height: 5px;
 }
 #ewwwio-easy-activation-progressbar {
 	margin: 10px 0;

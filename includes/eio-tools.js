@@ -38,7 +38,7 @@ jQuery(document).ready(function($) {
 			$('#ewww-bulk-table').html(ewww_response.table);
 			$('.ewww-aux-table').show();
 			$('.ewww-search-count').text(ewww_response.search_result);
-			$('.current-page').text(ewww_response.pagination);
+			$('.current-page-info').html(ewww_response.pagination);
 
 			if ( ewww_response.total_pages > 0 ) {
 				ewww_search_total = ewww_response.total_pages;
@@ -52,7 +52,7 @@ jQuery(document).ready(function($) {
 				$('.last-page').addClass('disabled');
 			}
 			if (ewww_response.total_images_text) {
-				$('.ewww-tablenav-pages .displaying-num').text(ewww_response.total_images_text);
+				$('.ewww-tablenav-pages .displaying-num').html(ewww_response.total_images_text);
 			}
 		});
 		$('.prev-page').addClass('disabled');
@@ -133,9 +133,9 @@ jQuery(document).ready(function($) {
 				$('.next-page').addClass('disabled');
 				$('.last-page').addClass('disabled');
 			}
-			$('.current-page').text(ewww_response.pagination);
+			$('.current-page-info').html(ewww_response.pagination);
 			if (ewww_response.total_images_text) {
-				$('.ewww-tablenav-pages .displaying-num').text(ewww_response.total_images_text);
+				$('.ewww-tablenav-pages .displaying-num').html(ewww_response.total_images_text);
 			}
 		});
 		$('.prev-page').addClass('disabled');
@@ -179,9 +179,9 @@ jQuery(document).ready(function($) {
 				$('.next-page').addClass('disabled');
 				$('.last-page').addClass('disabled');
 			}
-			$('.current-page').text(ewww_response.pagination);
+			$('.current-page-info').html(ewww_response.pagination);
 			if (ewww_response.total_images_text) {
-				$('.ewww-tablenav-pages .displaying-num').text(ewww_response.total_images_text);
+				$('.ewww-tablenav-pages .displaying-num').html(ewww_response.total_images_text);
 			}
 		});
 		$('.prev-page').removeClass('disabled');
@@ -221,9 +221,9 @@ jQuery(document).ready(function($) {
 				ewww_search_total = ewww_response.total_pages;
 				ewww_total_pages  = ewww_response.total_pages;
 			}
-			$('.current-page').text(ewww_response.pagination);
+			$('.current-page-info').html(ewww_response.pagination);
 			if (ewww_response.total_images_text) {
-				$('.ewww-tablenav-pages .displaying-num').text(ewww_response.total_images_text);
+				$('.ewww-tablenav-pages .displaying-num').html(ewww_response.total_images_text);
 			}
 		});
 		if (!ewww_pointer) {
@@ -270,9 +270,9 @@ jQuery(document).ready(function($) {
 				ewww_search_total = ewww_response.total_pages;
 				ewww_total_pages  = ewww_response.total_pages;
 			}
-			$('.current-page').text(ewww_response.pagination);
+			$('.current-page-info').html(ewww_response.pagination);
 			if (ewww_response.total_images_text) {
-				$('.ewww-tablenav-pages .displaying-num').text(ewww_response.total_images_text);
+				$('.ewww-tablenav-pages .displaying-num').html(ewww_response.total_images_text);
 			}
 		});
 		$('.next-page').addClass('disabled');
@@ -323,9 +323,9 @@ jQuery(document).ready(function($) {
 			}
 			$('.prev-page').addClass('disabled');
 			$('.first-page').addClass('disabled');
-			$('.current-page').text(ewww_response.pagination);
+			$('.current-page-info').html(ewww_response.pagination);
 			if (ewww_response.total_images_text) {
-				$('.ewww-tablenav-pages .displaying-num').text(ewww_response.total_images_text);
+				$('.ewww-tablenav-pages .displaying-num').html(ewww_response.total_images_text);
 			}
 		});
 		return false;
