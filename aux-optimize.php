@@ -2118,7 +2118,7 @@ function ewww_image_optimizer_aux_images_scan( $hook = '' ) {
 		set_transient( 'ewww_image_optimizer_aux_lock', time(), 60 );
 		$scan_args = get_option( 'ewww_image_optimizer_scan_args' );
 		if ( is_array( $scan_args ) && ! empty( $scan_args ) ) {
-			ewwwio_debug_message( 'scan args saved to db' );
+			ewwwio_debug_message( 'scan args retrieved from db' );
 			if ( ! empty( $scan_args['force_reopt'] ) ) {
 				ewwwio_debug_message( 'force re-opt enabled' );
 				ewwwio()->force = true;
@@ -2254,6 +2254,7 @@ function ewww_image_optimizer_aux_images_scan( $hook = '' ) {
 	update_option( 'ewww_image_optimizer_scan_args', '' );
 	update_option( 'ewww_image_optimizer_aux_resume', '' );
 	update_option( 'ewww_image_optimizer_bulk_resume', '' );
+	update_option( 'ewww_image_optimizer_bulk_foreground', '' );
 	delete_transient( 'ewww_image_optimizer_aux_lock' );
 	if ( wp_doing_ajax() && 'ewww-image-optimizer-auto' !== $hook && ( ! defined( 'WP_CLI' ) || ! WP_CLI ) ) {
 		$verify_cloud = ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), false );

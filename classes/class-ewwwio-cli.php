@@ -103,9 +103,8 @@ class EWWWIO_CLI extends WP_CLI_Command {
 			case 'all':
 				if ( $ewww_reset ) {
 					update_option( 'ewww_image_optimizer_bulk_resume', '' );
+					update_option( 'ewww_image_optimizer_bulk_foreground', '' );
 					update_option( 'ewww_image_optimizer_aux_resume', '' );
-					update_option( 'ewww_image_optimizer_scanning_attachments', '', false );
-					update_option( 'ewww_image_optimizer_bulk_attachments', '', false );
 					update_option( 'ewww_image_optimizer_bulk_ngg_resume', '' );
 					update_option( 'ewww_image_optimizer_bulk_flag_resume', '' );
 					ewww_image_optimizer_delete_pending();
@@ -144,6 +143,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 				if ( $pending_count ) {
 					// Update the 'bulk resume' option to show that an operation is in progress.
 					update_option( 'ewww_image_optimizer_bulk_resume', 'true' );
+					update_option( 'ewww_image_optimizer_bulk_foreground', 'true' );
 					$_REQUEST['ewww_batch_limit'] = 1;
 					$clicount                     = 1;
 					/* translators: 1: current image being proccessed 2: total number of images*/
@@ -173,9 +173,8 @@ class EWWWIO_CLI extends WP_CLI_Command {
 			case 'other':
 				if ( $ewww_reset ) {
 					update_option( 'ewww_image_optimizer_bulk_resume', '' );
+					update_option( 'ewww_image_optimizer_bulk_foreground', '' );
 					update_option( 'ewww_image_optimizer_aux_resume', '' );
-					update_option( 'ewww_image_optimizer_scanning_attachments', '', false );
-					update_option( 'ewww_image_optimizer_bulk_attachments', '', false );
 					ewww_image_optimizer_delete_pending();
 					WP_CLI::line( __( 'Bulk status has been reset, starting from the beginning.', 'ewww-image-optimizer' ) );
 				}
@@ -198,6 +197,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 				if ( $pending_count ) {
 					// Update the 'bulk resume' option to show that an operation is in progress.
 					update_option( 'ewww_image_optimizer_bulk_resume', 'true' );
+					update_option( 'ewww_image_optimizer_bulk_foreground', 'true' );
 					$clicount = 1;
 					/* translators: 1: current image being proccessed 2: total number of images*/
 					WP_CLI::line( sprintf( __( 'Processing image %1$d of %2$d', 'ewww-image-optimizer' ), $clicount, $pending_count ) );
@@ -255,6 +255,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 			default:
 				if ( $ewww_reset ) {
 					update_option( 'ewww_image_optimizer_bulk_resume', '' );
+					update_option( 'ewww_image_optimizer_bulk_foreground', '' );
 					update_option( 'ewww_image_optimizer_aux_resume', '' );
 					update_option( 'ewww_image_optimizer_bulk_ngg_resume', '' );
 					update_option( 'ewww_image_optimizer_bulk_flag_resume', '' );
@@ -600,6 +601,7 @@ class EWWWIO_CLI extends WP_CLI_Command {
 	private function bulk_media_cleanup() {
 		// All done, so we can update the bulk options with empty values...
 		update_option( 'ewww_image_optimizer_bulk_resume', '' );
+		update_option( 'ewww_image_optimizer_bulk_foreground', '' );
 		update_option( 'ewww_image_optimizer_aux_resume', '' );
 		// and let the user know we are done.
 		WP_CLI::success( __( 'Finished Optimization!', 'ewww-image-optimizer' ) );

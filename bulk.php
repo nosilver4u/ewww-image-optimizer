@@ -511,10 +511,31 @@ function ewww_image_optimizer_bulk_head_output() {
  * Output the controls for the bulk optimizer.
  */
 function ewww_image_optimizer_bulk_controls() {
+	$scan_args = array();
+	if ( get_option( 'ewww_image_optimizer_bulk_foreground' ) ) {
+		ewwwio_debug_message( 'foreground bulk process interrupted, loading scan args from wp_options' );
+		$scan_args = get_option( 'ewww_image_optimizer_scan_args' );
+		if ( is_array( $scan_args ) && ! empty( $scan_args ) ) {
+			ewwwio_debug_message( 'found saved args:' );
+			if ( ! empty( $scan_args['force_reopt'] ) ) {
+				ewwwio_debug_message( 'force re-opt enabled' );
+				ewwwio()->force = true;
+			}
+			if ( ! empty( $scan_args['force_smart'] ) ) {
+				ewwwio_debug_message( 'smart re-opt enabled' );
+				ewwwio()->force_smart = true;
+			}
+			if ( ! empty( $scan_args['webp_only'] ) ) {
+				ewwwio_debug_message( 'webp-only enabled' );
+				ewwwio()->webp_only = true;
+			}
+			ewwwio_debug_message( print_r( $scan_args, true ) );
+		}
+	}
 	?>
 	<form id="ewww-bulk-controls" class="ewww-bulk-form" style="display: none;">
 		<?php ewww_image_optimizer_bulk_background_option(); ?>
-		<?php ewww_image_optimizer_bulk_scan_only_option(); ?>
+		<?php ewww_image_optimizer_bulk_scan_only_option( $scan_args ); ?>
 		<?php ewww_image_optimizer_bulk_force_reopt_option(); ?>
 		<?php ewww_image_optimizer_bulk_variant_option(); ?>
 		<?php ewww_image_optimizer_bulk_webp_only_option(); ?>
@@ -531,6 +552,9 @@ function ewww_image_optimizer_bulk_controls() {
  * Output the option to run the bulk process in background mode.
  */
 function ewww_image_optimizer_bulk_background_option() {
+	if ( ! ewww_image_optimizer_background_mode_enabled() || get_option( 'ewww_image_optimizer_bulk_foreground' ) ) {
+		return;
+	}
 	?>
 		<p>
 			<input type="checkbox" id="ewww-background" name="ewww-background">
@@ -541,12 +565,33 @@ function ewww_image_optimizer_bulk_background_option() {
 }
 
 /**
+ * Output the control for Scan Only/Prompt for Review mode on the Bulk page.
+ *
+ * @param array $scan_args A list of previous args when a bulk optimization has been paused/interrupted.
+ */
+function ewww_image_optimizer_bulk_scan_only_option( $scan_args ) {
+	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_ludicrous_mode' ) && empty( $scan_args ) ) {
+		return;
+	}
+	if ( ! empty( $scan_args['scan_only'] ) ) {
+		ewwwio_debug_message( 'saved scan_only is enabled' );
+	}
+	?>
+		<p>
+			<input type="checkbox" id="ewww-scan-only" name="ewww-scan-only" <?php checked( ! isset( $scan_args['scan_only'] ) || ! empty( $scan_args['scan_only'] ) ); ?>>
+			<label for="ewww-scan-only" style="font-weight: bold"><?php esc_html_e( 'Prompt for Review', 'ewww-image-optimizer' ); ?></label><br>
+			<?php esc_html_e( 'Search for images to optimize, then wait for confirmation before optimizing.', 'ewww-image-optimizer' ); ?>
+		</p>
+	<?php
+}
+
+/**
  * Output the control to Force re-optimization of already optimized images.
  */
 function ewww_image_optimizer_bulk_force_reopt_option() {
 	?>
 		<p>
-			<input type="checkbox" id="ewww-force" name="ewww-force"<?php echo ( get_transient( 'ewww_image_optimizer_force_reopt' ) || ! empty( ewwwio()->force ) ) ? ' checked' : ''; ?>>
+			<input type="checkbox" id="ewww-force" name="ewww-force"<?php checked( get_transient( 'ewww_image_optimizer_force_reopt' ) || ! empty( ewwwio()->force ) ); ?>>
 			<label for="ewww-force" style="font-weight: bold"><?php esc_html_e( 'Force Re-optimize', 'ewww-image-optimizer' ); ?></label><?php ewwwio_help_link( 'https://docs.ewww.io/article/65-force-re-optimization', '5bb640a7042863158cc711cd' ); ?><br>
 			<?php esc_html_e( 'Previously optimized images will be skipped by default, check this box before scanning to override.', 'ewww-image-optimizer' ); ?>
 		</p>
@@ -565,25 +610,9 @@ function ewww_image_optimizer_bulk_variant_option() {
 	}
 	?>
 		<p>
-			<input type="checkbox" id="ewww-force-smart" name="ewww-force-smart"<?php echo ( get_transient( 'ewww_image_optimizer_smart_reopt' ) || ! empty( ewwwio()->force_smart ) ) ? ' checked' : ''; ?>>
+			<input type="checkbox" id="ewww-force-smart" name="ewww-force-smart" <?php checked( get_transient( 'ewww_image_optimizer_smart_reopt' ) || ! empty( ewwwio()->force_smart ) ); ?>>
 			<label for="ewww-force-smart" style="font-weight: bold"><?php esc_html_e( 'Smart Re-optimize', 'ewww-image-optimizer' ); ?></label><br>
 			<?php esc_html_e( 'If compression settings have changed, re-optimize images that were compressed on the old settings. If possible, images compressed in Premium mode will be restored to originals beforehand.', 'ewww-image-optimizer' ); ?>
-		</p>
-	<?php
-}
-
-/**
- * Output the control for WebP Only on the Bulk page.
- */
-function ewww_image_optimizer_bulk_scan_only_option() {
-	if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_ludicrous_mode' ) ) {
-		return;
-	}
-	?>
-		<p>
-			<input type="checkbox" id="ewww-scan-only" name="ewww-scan-only" checked>
-			<label for="ewww-scan-only" style="font-weight: bold"><?php esc_html_e( 'Scan Only', 'ewww-image-optimizer' ); ?></label><br>
-			<?php esc_html_e( 'Search for images to optimize and add them to the queue, but do not optimize any images yet.', 'ewww-image-optimizer' ); ?>
 		</p>
 	<?php
 }
@@ -597,7 +626,7 @@ function ewww_image_optimizer_bulk_webp_only_option() {
 	}
 	?>
 		<p>
-			<input type="checkbox" id="ewww-webp-only" name="ewww-webp-only"<?php echo ( ! empty( ewwwio()->webp_only ) ) ? ' checked' : ''; ?>>
+			<input type="checkbox" id="ewww-webp-only" name="ewww-webp-only"<?php checked( ! empty( ewwwio()->webp_only ) ); ?>>
 			<label for="ewww-webp-only" style="font-weight: bold"><?php esc_html_e( 'WebP Only', 'ewww-image-optimizer' ); ?></label><br>
 			<?php esc_html_e( 'Skip compression and only attempt WebP conversion.', 'ewww-image-optimizer' ); ?>
 		</p>
@@ -681,10 +710,12 @@ function ewww_image_optimizer_clear_queue() {
 	update_option( 'ewww_image_optimizer_pause_image_queue', false, false );
 	update_option( 'ewww_image_optimizer_aux_resume', '' );
 	update_option( 'ewww_image_optimizer_bulk_resume', '' );
+	update_option( 'ewww_image_optimizer_bulk_foreground', '' );
 	update_option( 'ewww_image_optimizer_scan_args', '' );
 
 	ewwwio()->background_media->cancel_process();
 	ewwwio()->background_image->cancel_process();
+	ewww_image_optimizer_delete_queue_images();
 	ewww_image_optimizer_delete_pending();
 	update_option( 'ewwwio_stop_scheduled_scan', true, false );
 	sleep( 5 ); // Give the queues a little time to complete in-process items.
@@ -904,11 +935,13 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 
 	add_filter( 'admin_footer_text', 'ewww_image_optimizer_footer_review_text' );
 
+	// TODO: this may be handled via the clear_queue function instead now.
 	// Check to see if we are supposed to reset the bulk operation and verify we are authorized to do so.
 	if ( ! empty( $_REQUEST['ewww_reset'] ) && ! empty( $_REQUEST['ewww_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-bulk-reset' ) ) {
 		ewwwio_debug_message( 'resetting resume flags' );
 		// Set the 'bulk resume' option to an empty string to reset the bulk operation.
 		update_option( 'ewww_image_optimizer_bulk_resume', '' );
+		update_option( 'ewww_image_optimizer_bulk_foreground', '' );
 		update_option( 'ewww_image_optimizer_aux_resume', '' );
 
 		ewww_image_optimizer_delete_queue_images();
@@ -935,6 +968,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 		$ids = implode( ',', $ids );
 		// Unset the 'bulk resume' option since we were given specific IDs to optimize.
 		update_option( 'ewww_image_optimizer_bulk_resume', '' );
+		update_option( 'ewww_image_optimizer_bulk_foreground', '' );
 	}
 
 	wp_enqueue_script( 'ewww-beacon-script', plugins_url( '/includes/eio-beacon.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION );
@@ -1012,6 +1046,23 @@ function ewww_image_optimizer_check_bulk_options( $request ) {
 }
 
 /**
+ * Save bulk options based on $_REQUEST parameters.
+ *
+ * @param array $request The POST/GET parameters that are currently set.
+ */
+function ewww_image_optimizer_save_bulk_options( $request ) {
+	ewww_image_optimizer_check_bulk_options( $request );
+
+	$scan_args = array(
+		'force_reopt' => ewwwio()->force,
+		'force_smart' => ewwwio()->force_smart,
+		'webp_only'   => ewwwio()->webp_only,
+		'scan_only'   => ! empty( $request['ewww_scan_only'] ),
+	);
+	update_option( 'ewww_image_optimizer_scan_args', $scan_args );
+}
+
+/**
  * Check how many image uploads will be optimized by the bulk process.
  *
  * If specific images were requested, count those. Otherwise, if there is no bulk operation in progress (needing to be resumed), count all images.
@@ -1036,6 +1087,7 @@ function ewww_image_optimizer_bulk_count_images_to_scan() {
 		}
 		// Unset the 'bulk resume' option since we were given specific IDs to optimize.
 		update_option( 'ewww_image_optimizer_bulk_resume', '' );
+		update_option( 'ewww_image_optimizer_bulk_foreground', '' );
 		// Check if there is a previous bulk operation to resume.
 		return count( $ids );
 	}
@@ -1083,7 +1135,7 @@ function ewww_image_optimizer_bulk_async_init() {
 	update_option( 'ewww_image_optimizer_bulk_resume', 'scanning' );
 	delete_option( 'ewwwio_stop_scheduled_scan' );
 
-	ewww_image_optimizer_check_bulk_options( $_REQUEST );
+	ewww_image_optimizer_save_bulk_options( $_REQUEST );
 
 	$scan_args = array(
 		'force_reopt' => ewwwio()->force,
@@ -1467,12 +1519,16 @@ function ewww_image_optimizer_bulk_scan_init( $hook = '' ) {
 		ewww_image_optimizer_delete_queue_images();
 		ewww_image_optimizer_delete_pending();
 	}
+
+	ewww_image_optimizer_save_bulk_options( $_REQUEST );
+
 	$attachments = array();
 	// See if we were given attachment IDs to work with via GET/POST.
 	if ( ! empty( $_REQUEST['ids'] ) ) {
 		ewww_image_optimizer_delete_pending();
+		ewww_image_optimizer_delete_queue_images();
 		// TODO: Can we set this longer and remove it when we're done? Like perhaps at the end of the aux_images_scan (right after it checks for it and returns)?
-		set_transient( 'ewww_image_optimizer_skip_aux', true, 10 * MINUTE_IN_SECONDS );
+		set_transient( 'ewww_image_optimizer_skip_aux', true, 6 * HOUR_IN_SECONDS );
 		$ids = sanitize_text_field( wp_unslash( $_REQUEST['ids'] ) );
 		ewwwio_debug_message( "validating requested ids: $ids" );
 		if ( is_numeric( $ids ) ) {
@@ -1487,6 +1543,7 @@ function ewww_image_optimizer_bulk_scan_init( $hook = '' ) {
 		$attachments = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%') AND ID IN ({$ids}) ORDER BY ID DESC" ); // phpcs:ignore WordPress.DB.PreparedSQL
 		// Unset the 'bulk resume' option since we were given specific IDs to optimize.
 		update_option( 'ewww_image_optimizer_bulk_resume', '' );
+		update_option( 'ewww_image_optimizer_bulk_foreground', '' );
 		// Check if there is a previous bulk operation to resume.
 	} elseif ( $scanning || $resume ) {
 		ewwwio_debug_message( 'scanning/resuming, nothing doing' );
@@ -1514,6 +1571,7 @@ function ewww_image_optimizer_bulk_scan_init( $hook = '' ) {
 	// If there are no attachments to scan, and none in the queue table, and not even anything pending in the ewwwio_images table, then nuke the resumers.
 	if ( empty( $attachment_count ) && ! ewww_image_optimizer_count_queued_attachments() && ! $pending_image_count ) {
 		update_option( 'ewww_image_optimizer_bulk_resume', '' );
+		update_option( 'ewww_image_optimizer_bulk_foreground', '' );
 		update_option( 'ewww_image_optimizer_aux_resume', '' );
 	}
 	wp_die(
@@ -1557,7 +1615,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	$ewww_scan = empty( $_REQUEST['ewww_scan'] ) ? '' : sanitize_key( $_REQUEST['ewww_scan'] );
 
 	// Check options like Force Re-opt, Smart Re-opt, or WebP Only.
-	ewww_image_optimizer_check_bulk_options( $_REQUEST );
+	ewww_image_optimizer_save_bulk_options( $_REQUEST );
 
 	global $optimized_list;
 	$queued_ids            = array();
@@ -1571,6 +1629,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 
 	ewwwio_debug_message( 'scanning for media attachments' );
 	update_option( 'ewww_image_optimizer_bulk_resume', 'scanning' );
+	update_option( 'ewww_image_optimizer_bulk_foreground', 'true' );
 	set_transient( 'ewww_image_optimizer_no_scheduled_optimization', true, 60 * MINUTE_IN_SECONDS );
 
 	// Retrieve the time when the scan starts.
@@ -2184,6 +2243,10 @@ function ewww_image_optimizer_bulk_initialize() {
 
 	// Update the 'bulk resume' option to show that an operation is in progress.
 	update_option( 'ewww_image_optimizer_bulk_resume', 'true' );
+	update_option( 'ewww_image_optimizer_bulk_foreground', 'true' );
+
+	ewww_image_optimizer_save_bulk_options( $_REQUEST );
+
 	list( $attachment ) = ewww_image_optimizer_get_queued_attachments( 'media', 1 );
 	ewwwio_debug_message( "first image: $attachment" );
 	$first_image = new EWWW_Image( $attachment, 'media' );
@@ -2786,7 +2849,8 @@ function ewww_image_optimizer_bulk_cleanup() {
 	// All done, so we can update the bulk options with empty values.
 	update_option( 'ewww_image_optimizer_aux_resume', '' );
 	update_option( 'ewww_image_optimizer_bulk_resume', '' );
-	// update_option( 'ewww_image_optimizer_bulk_attachments', '', false );.
+	update_option( 'ewww_image_optimizer_bulk_foreground', '' );
+	update_option( 'ewww_image_optimizer_scan_args', '' );
 	delete_transient( 'ewww_image_optimizer_skip_aux' );
 	delete_transient( 'ewww_image_optimizer_force_reopt' );
 	// Let the user know we are done.

@@ -12014,9 +12014,81 @@ function ewww_image_optimizer_rescue_mode() {
 }
 
 /**
+ * Display the status of the bulk foreground process.
+ */
+function ewww_image_optimizer_bulk_foreground_show_status() {
+	if ( ! get_option( 'ewww_image_optimizer_bulk_foreground' ) ) {
+		return;
+	}
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	$loading_image = plugins_url( '/images/spinner.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
+
+	// Get a queue message, and then output the resume/clear/reset buttons.
+	$queue_message     = '';
+	$image_queue_count = 0;
+	if ( 'scanning' === get_option( 'ewww_image_optimizer_aux_resume' ) ) {
+		$queue_message = __( 'A previous scan was interrupted.', 'ewww-image-optimizer' );
+	} elseif ( 'scanning' === get_option( 'ewww_image_optimizer_bulk_resume' ) ) {
+		$media_queue_count = ewww_image_optimizer_count_unscanned_attachments();
+		/* translators: %s: number of images/uploads */
+		$queue_message = sprintf( __( '%s media uploads left to scan', 'ewww-image-optimizer' ), number_format_i18n( $media_queue_count ) );
+	} elseif ( get_option( 'ewww_image_optimizer_bulk_resume' ) ) {
+		$image_queue_count = ewww_image_optimizer_aux_images_table_count_pending();
+		/* translators: %s: number of images */
+		$queue_message = sprintf( __( '%s images left to optimize', 'ewww-image-optimizer' ), number_format_i18n( $image_queue_count ) );
+	} else {
+		// This shouldn't be possible, but if it happens, we should clear the foreground option and run the async status bits instead.
+		ewwwio_debug_message( 'bulk_foreground was set, but none of the other resume flags matched, so running async status function instead' );
+		update_option( 'ewww_image_optimizer_bulk_foreground', '' );
+		ewww_image_optimizer_bulk_async_show_status();
+		return;
+	}
+
+	$hide_queue_controls = '';
+	?>
+	<div class='ewww-queue-status'>
+		<div id="ewww-optimize-local-images">
+			<?php echo esc_html( $queue_message ); ?>
+		</div>
+		<img class='ewww-bulk-spinner' src='<?php echo esc_url( $loading_image ); ?>' style='display: none;'/>
+	</div>
+	<div class="ewww-bulk-actions">
+	<?php if ( 'scanning' === get_option( 'ewww_image_optimizer_aux_resume' ) || 'scanning' === get_option( 'ewww_image_optimizer_bulk_resume' ) ) : ?>
+		<a class='ewww-queue-controls bulk-foreground ewww-resume-scan button-primary' style='<?php echo esc_attr( $hide_queue_controls ); ?>' href='#'>
+			<?php esc_html_e( 'Resume Scan', 'ewww-image-optimizer' ); ?>
+		</a>
+		<a class='ewww-queue-controls bulk-foreground ewww-start-optimization button-primary' style='display: none;' href='#'>
+			<?php esc_html_e( 'Start optimizing', 'ewww-image-optimizer' ); ?>
+		</a>
+	<?php else : ?>
+		<a class='ewww-queue-controls bulk-foreground ewww-start-optimization button-primary' href='#'>
+			<?php esc_html_e( 'Resume Optimization', 'ewww-image-optimizer' ); ?>
+		</a>
+	<?php endif; ?>
+		<a class='ewww-queue-controls bulk-foreground ewww-pause-optimization button-secondary' style='display: none;' href='#'>
+			<?php esc_html_e( 'Pause Optimization', 'ewww-image-optimizer' ); ?>
+		</a>
+		<a class='ewww-queue-controls bulk-foreground ewww-resume-optimization button-secondary' style='display: none;' href='#'>
+			<?php esc_html_e( 'Resume Optimization', 'ewww-image-optimizer' ); ?>
+		</a>
+		<a class='ewww-queue-controls ewww-clear-queue button-secondary' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_clear_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
+			<?php esc_html_e( 'Clear Queue', 'ewww-image-optimizer' ); ?>
+		</a>
+	</div>
+	<script>
+		var ewww_autopoll = false;
+		var ewww_previous_pending = <?php echo (int) $image_queue_count; ?>;
+	</script>
+	<?php
+}
+
+/**
  * Display the status of the bulk async process.
  */
 function ewww_image_optimizer_bulk_async_show_status() {
+	if ( get_option( 'ewww_image_optimizer_bulk_foreground' ) ) {
+		return;
+	}
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$loading_image = plugins_url( '/images/spinner.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
 
@@ -12042,7 +12114,7 @@ function ewww_image_optimizer_bulk_async_show_status() {
 		ewwwio_debug_message( 'rebooting image queue' );
 		ewwwio()->background_image->dispatch();
 	} elseif ( 'scanning' === get_option( 'ewww_image_optimizer_aux_resume' ) && ! $media_queue_count ) {
-		if ( ! get_transient( 'ewww_image_optimizer_aux_lock' ) ) {
+		if ( ! get_option( 'ewww_image_optimizer_bulk_foreground' ) && ! get_transient( 'ewww_image_optimizer_aux_lock' ) ) {
 			ewwwio_debug_message( 'running scheduled optimization' );
 			ewwwio()->async_scan->data(
 				array(
@@ -12098,6 +12170,7 @@ function ewww_image_optimizer_bulk_async_show_status() {
 		}
 		?>
 		</div>
+		<div class="ewww-bulk-actions">
 		<?php
 	} else {
 		?>
@@ -12172,12 +12245,7 @@ function ewww_image_optimizer_get_bulk_info() {
 
 	ob_start();
 	?>
-	<?php if ( ! ewww_image_optimizer_background_mode_enabled() ) : ?>
-		<div id="ewww-bulk-warning" class="ewww-bulk-info ewwwio-notice notice-warning">
-			<a href="#ewww-notices"><?php esc_html_e( 'Background Optimization is disabled, but you may use the legacy Bulk Optimizer.', 'ewww-image-optimizer' ); ?></a>
-			<?php ewwwio_help_link( 'https://docs.ewww.io/article/42-background-and-parallel-optimization-disabled', '598cb8be2c7d3a73488be237' ); ?>
-		</div>
-	<?php elseif ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && ewww_image_optimizer_easy_active() && ! ewwwio()->local->exec_check() ) : ?>
+	<?php if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) && ewww_image_optimizer_easy_active() && ! ewwwio()->local->exec_check() ) : ?>
 		<div id="ewww-bulk-warning" class="ewww-bulk-info ewwwio-notice notice-info">
 			<?php esc_html_e( 'Easy IO is already optimizing your images! If you need to save storage space, you may enter your API key below to compress the local images on your site.', 'ewww-image-optimizer' ); ?>
 			<?php ewwwio_help_link( 'https://docs.ewww.io/article/46-exactdn-with-the-ewww-io-api-cloud', '59c44349042863033a1d06d3' ); ?>
@@ -12676,6 +12744,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 <div id='ewwwio-bulk-header' class="ewww-status-actions">
 	<div class="ewwwio-bulk-header-row ewww-blocks ewwwio-flex-space-between">
 		<div class="ewww-action-container ewwwio-flex-space-between">
+			<?php ewww_image_optimizer_bulk_foreground_show_status(); ?>
 			<?php ewww_image_optimizer_bulk_async_show_status(); ?>
 		</div>
 		<div class="ewww-action-container">
