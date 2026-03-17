@@ -455,8 +455,8 @@ function ewww_image_optimizer_get_image_table_row( $optimized_image, $alternate,
 	<?php endif; ?>
 	<?php if ( ! empty( $optimized_image['debug'] ) ) : ?>
 			<?php $debug_id = uniqid(); ?>
-			<br><a class="ewww-show-debug-meta" data-id="<?php echo esc_attr( $debug_id ); ?>"><?php esc_html_e( 'Show Debug Output', 'ewww-image-optimizer' ); ?></a>
-			<div class="<?php echo esc_attr( "ewww-debug-meta-$debug_id" ); ?>" style="background-color:#f1f1f1;display:none;"><?php echo wp_kses_post( EWWW\Base::$debug_data ); ?></div>
+			<br><a class="ewww-show-debug-meta" href="#" data-id="<?php echo esc_attr( $debug_id ); ?>"><?php esc_html_e( 'Show Debug Output', 'ewww-image-optimizer' ); ?></a>
+			<div class="ewww-bulk-single-debug <?php echo esc_attr( "ewww-debug-meta-$debug_id" ); ?>" style="background-color:#f1f1f1;display:none;"><?php echo wp_kses_post( $optimized_image['debug'] ); ?></div>
 	<?php endif; ?>
 		</td>
 		<td><?php echo esc_html( $type ); ?></td>
@@ -549,7 +549,9 @@ function ewww_image_optimizer_aux_images_exclude() {
 	}
 	$image = new \EWWW_Image( $id );
 	ewww_image_optimizer_add_file_exclusion( $image->file );
+	ewwwio_debug_message( "excluding {$image->file}" );
 	if ( empty( $image->opt_size ) ) {
+		ewwwio_debug_message( 'not optimized, removing record' );
 		if ( $wpdb->delete(
 			$wpdb->ewwwio_images,
 			array(
@@ -559,6 +561,7 @@ function ewww_image_optimizer_aux_images_exclude() {
 			echo '1';
 		}
 	} else {
+		ewwwio_debug_message( 'previously optimized, toggle pending record' );
 		if ( $wpdb->update(
 			$wpdb->ewwwio_images,
 			array(
@@ -604,6 +607,7 @@ function ewww_image_optimizer_aux_images_remove() {
 		$id = (int) $_POST['ewww_image_id'];
 	}
 	if ( empty( $_POST['ewww_pending'] ) ) {
+		ewwwio_debug_message( "removing record for $id" );
 		if ( $wpdb->delete(
 			$wpdb->ewwwio_images,
 			array(
@@ -613,6 +617,7 @@ function ewww_image_optimizer_aux_images_remove() {
 			echo '1';
 		}
 	} else {
+		ewwwio_debug_message( "toggle pending for $id" );
 		if ( $wpdb->update(
 			$wpdb->ewwwio_images,
 			array(
@@ -2258,7 +2263,7 @@ function ewww_image_optimizer_aux_images_scan( $hook = '' ) {
 		}
 		ewwwio_memory( __FUNCTION__ );
 		/* translators: %s: number of images */
-		$ready_msg = sprintf( esc_html( _n( 'There is %s image ready to optimize.', 'There are %s images ready to optimize.', $image_count, 'ewww-image-optimizer' ) ), '<strong>' . number_format_i18n( $image_count ) . '</strong>' );
+		$ready_msg = sprintf( esc_html( _n( 'There is %s image ready to optimize.', 'There are %s images ready to optimize.', $image_count, 'ewww-image-optimizer' ) ), '<span class="ready-to-optimize-count" style="font-weight:bold">' . number_format_i18n( $image_count ) . '</span>' );
 		if ( is_array( $usage ) && ! $usage['metered'] && ! $usage['unlimited'] ) {
 			$credits_available = $usage['licensed'] - $usage['consumed'];
 			if ( $credits_available < $image_count ) {

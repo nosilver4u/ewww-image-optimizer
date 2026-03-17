@@ -12109,40 +12109,42 @@ function ewww_image_optimizer_bulk_async_show_status() {
 			</div>
 			<img class='ewww-bulk-spinner' src='<?php echo esc_url( $loading_image ); ?>' style='display: none;'/>
 		</div>
+		<div class="ewww-bulk-actions">
 		<?php
 	}
 	if ( get_option( 'ewww_image_optimizer_pause_queues' ) ) {
 		?>
-		<a class='ewww-queue-controls ewww-resume-optimization button-secondary' style='<?php echo esc_attr( $hide_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_resume_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
-			<?php esc_html_e( 'Resume Optimization', 'ewww-image-optimizer' ); ?>
-		</a>
+			<a class='ewww-queue-controls ewww-resume-optimization button-secondary' style='<?php echo esc_attr( $hide_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_resume_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
+				<?php esc_html_e( 'Resume Optimization', 'ewww-image-optimizer' ); ?>
+			</a>
 		<?php
 	} elseif ( get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
 		?>
-		<a class='ewww-queue-controls ewww-start-optimization button-secondary' style='<?php echo esc_attr( $hide_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_resume_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
-			<?php esc_html_e( 'Start optimizing', 'ewww-image-optimizer' ); ?>
-		</a>
+			<a class='ewww-queue-controls ewww-start-optimization button-secondary' style='<?php echo esc_attr( $hide_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_resume_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
+				<?php esc_html_e( 'Start optimizing', 'ewww-image-optimizer' ); ?>
+			</a>
 		<?php
 	} else {
 		?>
-		<a class='ewww-queue-controls ewww-start-optimization button-secondary' style='display: none;' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_resume_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
-			<?php esc_html_e( 'Start optimizing', 'ewww-image-optimizer' ); ?>
-		</a>
-		<a class='ewww-queue-controls ewww-pause-optimization button-secondary' style='<?php echo esc_attr( $hide_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_pause_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
-			<?php esc_html_e( 'Pause Optimization', 'ewww-image-optimizer' ); ?>
-		</a>
-		<a class='ewww-queue-controls ewww-resume-optimization button-secondary' style='display: none;' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_resume_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
-			<?php esc_html_e( 'Resume Optimization', 'ewww-image-optimizer' ); ?>
-		</a>
+			<a class='ewww-queue-controls ewww-start-optimization button-secondary' style='display: none;' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_resume_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
+				<?php esc_html_e( 'Start optimizing', 'ewww-image-optimizer' ); ?>
+			</a>
+			<a class='ewww-queue-controls ewww-pause-optimization button-secondary' style='<?php echo esc_attr( $hide_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_pause_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
+				<?php esc_html_e( 'Pause Optimization', 'ewww-image-optimizer' ); ?>
+			</a>
+			<a class='ewww-queue-controls ewww-resume-optimization button-secondary' style='display: none;' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_resume_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
+				<?php esc_html_e( 'Resume Optimization', 'ewww-image-optimizer' ); ?>
+			</a>
 		<?php
 	}
 	?>
-	<a class='ewww-queue-controls ewww-clear-queue button-secondary' style='<?php echo esc_attr( $hide_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_clear_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
-		<?php esc_html_e( 'Clear Queue', 'ewww-image-optimizer' ); ?>
-	</a>
-	<script>
-		var ewww_autopoll = <?php echo ( $autopoll ) ? 'true' : 'false'; ?>;
-	</script>
+			<a class='ewww-queue-controls ewww-clear-queue button-secondary' style='<?php echo esc_attr( $hide_queue_controls ); ?>' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_clear_queue' ), 'ewww_image_optimizer_clear_queue', 'ewww_nonce' ) ); ?>'>
+				<?php esc_html_e( 'Clear Queue', 'ewww-image-optimizer' ); ?>
+			</a>
+		</div>
+		<script>
+			var ewww_autopoll = <?php echo ( $autopoll ) ? 'true' : 'false'; ?>;
+		</script>
 	<?php
 }
 
@@ -12671,26 +12673,41 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	</div>
 </div>
 	<?php if ( 'singlesite' === $network || 'network-singlesite' === $network ) : ?>
-<div id='ewwwio-bulk-header' class="ewww-blocks ewwwio-flex-space-between ewww-status-actions">
-	<div class="ewww-action-container ewwwio-flex-space-between ewww-bulk-actions">
-		<?php ewww_image_optimizer_bulk_async_show_status(); ?>
-		<div id="ewww-bulk-counter" style="display: none;"></div>
+<div id='ewwwio-bulk-header' class="ewww-status-actions">
+	<div class="ewwwio-bulk-header-row ewww-blocks ewwwio-flex-space-between">
+		<div class="ewww-action-container ewwwio-flex-space-between">
+			<?php ewww_image_optimizer_bulk_async_show_status(); ?>
+		</div>
+		<div class="ewww-action-container">
+			<a id="ewww-show-table" class='button-secondary' href='#'>
+				<?php esc_html_e( 'View Optimized Images', 'ewww-image-optimizer' ); ?>
+			</a>
+			<a id="ewww-hide-table" class="dashicons dashicons-arrow-up" style="display: none;" href="#">
+				&nbsp;
+			</a>
+		</div>
+	</div>
+	<div class="ewwwio-bulk-header-row">
+		<div id="ewww-bulk-progressbar" class="thin" style="display: none;"></div>
+	</div>
+	<div class="ewwwio-bulk-header-row ewww-blocks ewwwio-flex-space-between">
+		<div id="ewww-bulk-counter" style="display: none;">
+			<?php
+			printf(
+				/* translators: 1: number of images optimized 2: number of images to be optimized in total */
+				esc_html__( 'Optimized %1$s/%2$s', 'ewww-image-optimizer' ),
+				'<span class="optimized-images-count"></span>',
+				'<span class="total-images-count"></span>',
+			);
+			?>
+		</div>
 		<div id="ewww-bulk-timer" style="display: none;">
 			<?php /* translators: %s: a time in H:m:s notation, with an HTML/span wrapper */ ?>
 			<?php printf( esc_html__( '%s remaining', 'ewww-image-optimizer' ), '<span class="time-remaining"></span>' ); ?>
 		</div>
 	</div>
-	<div class="ewww-action-container">
-		<a id="ewww-show-table" class='button-secondary' href='#'>
-			<?php esc_html_e( 'View Optimized Images', 'ewww-image-optimizer' ); ?>
-		</a>
-		<a id="ewww-hide-table" class="dashicons dashicons-arrow-up" style="display: none;" href="#">
-			&nbsp;
-		</a>
-	</div>
 </div><!-- end .ewww-blocks --><!-- end .ewwwio-flex-space-between -->
 <div id="ewww-bulk-results" class="ewwwio-flex-space-between ewww-status-actions" style="display: none;">
-	<div id="ewww-bulk-progressline" style="display: none;"></div>
 	<div id="ewww-bulk-queue-images">
 		<img src='<?php echo esc_url( $loading_image_url ); ?>' alt='loading'/>
 	</div>

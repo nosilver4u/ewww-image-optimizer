@@ -1,5 +1,6 @@
 jQuery(document).ready(function($) {
-	var ewww_i = 0;
+	var ewww_i = 0; // Tracks how many images optimized (foreground) in a single session.
+	var ewww_j = 0; // Vs. tracks how many images optimized (foreground) since the last pause/resume.
 	var ewww_k = 0;
 	var ewww_background = 0;
 	var ewww_force = 0;
@@ -8,7 +9,7 @@ jQuery(document).ready(function($) {
 	var ewww_webp_only = 0;
 	var ewww_delay = 0;
 	var ewww_batch_limit = 0;
-	var ewww_quota_update, ewwwTimeoutHandler, bulkResultsSlideTimer;
+	var ewwwTimeoutHandler, bulkResultsSlideTimer;
 	var ewwwNumberFormat = new Intl.NumberFormat();
 	var ewww_tiny_skip = '';
 	var ewww_pending = 0;
@@ -18,6 +19,7 @@ jQuery(document).ready(function($) {
 	var ewww_table_action = 'bulk_aux_images_table';
 	var ewww_total_pages = 0;
 	var ewww_total_images = 0;
+	var ewww_total_pending = 0;
 	var ewww_pointer = 0;
 	var ewww_search_total = 0;
 	var ewww_size_sort = false;
@@ -31,7 +33,7 @@ jQuery(document).ready(function($) {
 	var ewww_seconds_remaining = 0;
 	var ewww_countdown = false;
 	var ewww_error_counter = 30;
-	var ewwwBulkFirstPage;
+	var ewwwBulkFirstPage = false;
 	var ewwwBulkFirstLoop = false;
 	if (ewww_vars.scan_only_mode) {
 		ewww_scan_only = true;
@@ -256,7 +258,8 @@ jQuery(document).ready(function($) {
 						ewww_pending = 1;
 						ewww_table_visible = true;
 						$('#ewww-search-pending').hide();
-						$('#ewww-search-optimized').show();
+						$('#ewww-search-optimized').hide();
+						$('#ewww-showing-queue').show();
 						ewwwUpdateTable();
 					}
 				} else {
@@ -291,6 +294,7 @@ jQuery(document).ready(function($) {
 	});
 	$('.ewww-action-container').on('click', '.bulk-foreground.ewww-pause-optimization', function() {
 		ewww_k = 9;
+		ewww_j = 0;
 		$('.ewww-bulk-spinner').hide();
 		$('#ewww-bulk-timer').hide();
 		$('#ewww-bulk-counter').hide();
@@ -303,10 +307,50 @@ jQuery(document).ready(function($) {
 		$('.ewww-clear-queue').show();
 		return false;
 	});
+	$('.ewww-action-container').on('click', '.bulk-foreground.ewww-resume-optimization', function() {
+		if (9===ewww_k) {
+			console.log('resuming w/o reload');
+			ewwwResumeOpt();
+		} else {
+			console.log('resuming, from fresh page load');
+			ewwwStartOpt();
+		}
+		return false;
+	});
+	function ewwwResumeOpt () {
+		ewww_k = 0;
+		$('.ewww-resume-optimization').hide();
+		$('.ewww-start-optimization').hide();
+		$('.ewww-clear-queue').hide();
+		$('.ewww-pause-optimization').show();
+		$('.ewww-bulk-spinner').show();
+		ewww_bulk_start_time = Date.now();
+		$('#ewww-optimize-local-images').html('');
+		$('#ewww-bulk-progressbar').show();
+		$('#ewww-bulk-timer').show();
+		$('#ewww-bulk-counter').show();
+		// Reset the table to page 1 (cached).
+		ewww_pointer = 0;
+		ewww_pending = 0;
+		$('#ewww-show-table').hide();
+		$('#ewww-hide-table').hide();
+		$('#ewww-search-pending').show();
+		$('#ewww-search-optimized').hide();
+		$('.ewww-search-input').val('');
+		$('.current-page-info .current-page').text(1);
+		ewwwBulkFirstPage.clone().replaceAll('#ewww-bulk-table table');
+		if (ewwwBulkFirstPage.children().length < 50) {
+			$('.next-page').addClass('disabled');
+			$('.last-page').addClass('disabled');
+		}
+		$('.prev-page').addClass('disabled');
+		$('.first-page').addClass('disabled');
+		ewwwProcessImage();
+	}
 	function ewwwStartOpt () {
 		ewww_k = 0;
-		//ewww_quota_update = setInterval( ewwwUpdateQuota, 60000 );
-		//$('#ewww-hide-table').trigger('click');
+		$('#ewwwio-settings-menu').hide();
+		$('#ewww-settings-wrap').hide();
 		$('.ewww-pause-optimization').addClass('bulk-foreground');
 		$('.ewww-resume-optimization').hide();
 		$('.ewww-start-optimization').hide();
@@ -316,6 +360,7 @@ jQuery(document).ready(function($) {
 		if (ewww_delay) {
 			ewww_batch_limit = 1;
 		}
+		ewww_bulk_start_time = Date.now();
 		var ewww_init_data = {
 			action: 'ewww_bulk_init',
 			ewww_wpnonce: ewww_vars.bulk_nonce,
@@ -340,19 +385,19 @@ jQuery(document).ready(function($) {
 					console.log( ewww_init_response.data );
 				}
 			} else {
-				if ( ewww_init_response.start_time ) {
-					ewww_bulk_start_time = ewww_init_response.start_time;
-				}
 				$('#ewww-optimize-local-images').html(ewww_init_response.results);
-				$('#ewww-bulk-progressline').progressbar({ max: ewww_total_pending });
-				$('#ewww-bulk-progressline').show();
-				//$('#ewww-bulk-counter').html( ewww_vars.optimized + ' 0/' + ewww_total_pending);
+				$('#ewww-bulk-progressbar').progressbar({ max: ewww_total_pending });
+				$('#ewww-bulk-progressbar').show();
+				$('#ewww-bulk-counter .optimized-images-count').text(0);
+				$('#ewww-bulk-counter .total-images-count').text(ewww_total_pending);
+				$('#ewww-bulk-counter').show();
 				// Initialize the table, but don't show it until we have a result.
 				ewww_pointer = 0;
 				ewww_pending = 0;
 				$('.ewww-search-input').val('');
 				$('#ewww-show-table').hide();
 				$('#ewww-hide-table').hide();
+				$('#ewwwio-bulk-header .ewww-action-container.ewwwio-flex-space-between').addClass('full-width');
 				var ewww_table_data = {
 					action: ewww_table_action,
 					ewww_wpnonce: ewww_vars._wpnonce,
@@ -381,13 +426,8 @@ jQuery(document).ready(function($) {
 					ewwwBulkFirstPage = $(ewww_response.table);
 					ewwwBulkFirstLoop = ewww_response;
 					ewww_total_images = ewww_response.total_images;
-					/*if (ewww_response && ewww_response.total_images > 50) {
-						$('.next-page').removeClass('disabled');
-						$('.last-page').removeClass('disabled');
-					} else {*/
-						$('.next-page').addClass('disabled');
-						$('.last-page').addClass('disabled');
-					//}
+					$('.next-page').addClass('disabled');
+					$('.last-page').addClass('disabled');
 					$('.prev-page').addClass('disabled');
 					$('.first-page').addClass('disabled');
 					ewwwProcessImage();
@@ -399,6 +439,7 @@ jQuery(document).ready(function($) {
 		var ewww_loop_data = {
 			action: 'ewww_bulk_loop',
 			ewww_wpnonce: ewww_vars.bulk_nonce,
+			ewww_extra_nonce: ewww_vars._wpnonce,
 			ewww_force: ewww_force,
 			ewww_force_smart: ewww_force_smart,
 			ewww_webp_only: ewww_webp_only,
@@ -418,8 +459,8 @@ jQuery(document).ready(function($) {
 				$('#ewww-bulk-counter').hide();
 				$('.ewww-pause-optimization').hide();
 				$('#ewww-optimize-local-images').append('<span class="ewww-bulk-error"><b>' + ewww_vars.invalid_response + '</b></span>');
-				//clearInterval(ewww_quota_update);
 				clearInterval(ewww_countdown);
+				ewww_countdown = false;
 				if ( ! response ) {
 					console.log( 'empty response' );
 				} else {
@@ -428,12 +469,14 @@ jQuery(document).ready(function($) {
 				return false;
 			}
 			ewww_i += ewww_response.completed;
+			ewww_j += ewww_response.completed;
 			if ( ewww_response.add_to_total > 0 ) {
 				ewww_total_pending = ewww_total_pending + ewww_response.add_to_total;
-				$('#ewww-bulk-progressline').progressbar({ max: ewww_total_pending });
+				$('#ewww-bulk-progressbar').progressbar({ max: ewww_total_pending });
+				$('#ewww-bulk-counter .total-images-count').text(ewww_total_pending);
 			}
-			$('#ewww-bulk-progressline').progressbar( "option", "value", ewww_i );
-			//$('#ewww-bulk-counter').html(ewww_vars.optimized + ' ' + ewww_i + '/' + ewww_total_pending);
+			$('#ewww-bulk-progressbar').progressbar( "option", "value", ewww_i );
+			$('#ewww-bulk-counter .optimized-images-count').text(ewww_i);
 			if ( ewww_response.update_meta ) {
 	        		var ewww_updatemeta_data = {
 					action: 'ewww_bulk_update_meta',
@@ -448,35 +491,34 @@ jQuery(document).ready(function($) {
 				$('#ewww-bulk-counter').hide();
 				$('.ewww-pause-optimization').hide();
 				$('#ewww-optimize-local-images').append('<span class="ewww-bulk-error"><b>' + ewww_response.error + '</b></span>');
-				//clearInterval(ewww_quota_update);
 				clearInterval(ewww_countdown);
-				ewwwUpdateQuota();
+				ewww_countdown = false;
 			}
 			else if (ewww_k == 9) {
 				if ( ewww_response.results ) {
 					ewwwAddTableRow(ewww_response.results);
 				}
-				//clearInterval(ewww_quota_update);
 				clearInterval(ewww_countdown);
-			//	$('#ewww-optimize-local-images').html(ewww_vars.operation_stopped);
+				ewww_countdown = false;
 			}
 			else if ( response == 0 ) {
-				//clearInterval(ewww_quota_update);
 				$('.ewww-bulk-spinner').hide();
 				$('#ewww-bulk-timer').hide();
 				$('#ewww-bulk-counter').hide();
 				$('.ewww-pause-optimization').hide();
 				clearInterval(ewww_countdown);
+				ewww_countdown = false;
 				$('#ewww-optimize-local-images').html('<span class="ewww-bulk-error"><b>' + ewww_vars.operation_stopped + '</b></span>');
 			}
 			else if ( ewww_i < ewww_total_pending && ! ewww_response.done ) {
-				if ( ewww_bulk_start_time && ewww_response.current_time ) {
-					ewww_bulk_elapsed_time = ewww_response.current_time - ewww_bulk_start_time;
-					ewww_time_per_image = ewww_bulk_elapsed_time / ewww_i;
-					ewww_time_remaining = Math.floor((ewww_total_pending - ewww_i) * ewww_time_per_image);
+				if ( ewww_bulk_start_time ) {
+					ewww_bulk_elapsed_time = Date.now() - ewww_bulk_start_time;
+					ewww_time_per_image = (ewww_bulk_elapsed_time + (ewww_delay * 1000)) / ewww_j;
+					ewww_time_remaining = Math.floor((ewww_total_pending - ewww_i) * ewww_time_per_image / 1000);
 					ewwwTimeIncrementsUpdate();
 					if ( ! ewww_countdown) {
-						$('#ewww-bulk-timer .time-remaining').html(ewww_days_remaining + ':' + ewww_hours_remaining + ':' + ewww_minutes_remaining + ':' + ewww_seconds_remaining).show();
+						$('#ewww-bulk-timer').show();
+						$('#ewww-bulk-timer .time-remaining').html(ewww_days_remaining + ':' + ewww_hours_remaining + ':' + ewww_minutes_remaining + ':' + ewww_seconds_remaining);
 						ewww_countdown = setInterval( ewwwCountDown, 1000 );
 					}
 				}
@@ -489,6 +531,9 @@ jQuery(document).ready(function($) {
 				if ( ewww_response.new_nonce ) {
 					ewww_vars.bulk_nonce = ewww_response.new_nonce;
 				}
+				if ( ewww_response.new_extra_nonce ) {
+					ewww_vars._wpnonce = ewww_response.new_extra_nonce;
+				}
 				ewww_error_counter = 30;
 				ewwwTimeoutHandler = setTimeout(ewwwProcessImage, ewww_delay * 1000);
 			}
@@ -500,7 +545,6 @@ jQuery(document).ready(function($) {
 					action: 'ewww_bulk_cleanup',
 					ewww_wpnonce: ewww_vars.bulk_nonce,
 				};
-				// TODO: make sure we hide the timer and pause button in all the relevant places (errors and what not else).
 				$.post(ajaxurl, ewww_cleanup_data, function(response) {
 					$('#ewww-optimize-local-images').html(response);
 					$('.ewww-bulk-spinner').hide();
@@ -524,19 +568,8 @@ jQuery(document).ready(function($) {
 		});
 	}
 	function ewwwBulkCleanup() {
-		//clearInterval(ewww_quota_update);
 		clearInterval(ewww_countdown);
-		/*var ewww_table_count_data = {
-			action: 'bulk_aux_images_table_count',
-			ewww_wpnonce: ewww_vars._wpnonce,
-			ewww_inline: 1,
-		};
-		$.post(ajaxurl, ewww_table_count_data, function(response) {
-			ewww_vars.image_count = response;
-		});*/
-		$('#ewww-show-table').show();
-		$('#ewww-table-info').show(); // ??
-		$('#ewww-bulk-timer').hide();
+		ewww_countdown = false;
 		ewww_total_pending = 0;
 		ewww_i = 0;
 		ewww_force = 0;
@@ -562,12 +595,12 @@ jQuery(document).ready(function($) {
 	}
 	function ewwwAddTableRow(image_rows) {
 		if (ewwwBulkFirstLoop && ewwwBulkFirstLoop.table) {
-			console.log('first loop, setting up table with pre-fetched data');
 			ewwwBulkFirstPage.find('.ewww-no-images').remove();
 			$('#ewww-bulk-table').html(ewwwBulkFirstPage);
 			$('.ewww-search-count').text(ewwwBulkFirstLoop.search_result);
 			$('#ewww-search-optimized').hide();
 			$('#ewww-search-pending').show();
+			$('#ewww-showing-queue').hide();
 			if ( ewwwBulkFirstLoop.total_pages > 0 ) {
 				ewww_search_total = ewwwBulkFirstLoop.total_pages;
 				ewww_total_pages  = ewwwBulkFirstLoop.total_pages;
@@ -582,17 +615,15 @@ jQuery(document).ready(function($) {
 		$('#ewww-bulk-table-wrapper').show()
 		// We store a copy of the last 50 image records in s3io_bulk_first_page, and need to use it here,
 		// in case they are on a page other than the first one.
-		var isAlternate = ewwwBulkFirstPage.children().first().hasClass('alternate');
+		var isAlternate = ewwwBulkFirstPage.find('tbody tr').first().hasClass('alternate');
 		// NOT sure if this is the right logic, see what we need to loop through all the tr elements in image_rows.
 		$.each(image_rows, function(index, value) {
-			console.log('adding ' + value + ' to table');
 			ewww_total_images++;
 			var image_row = $(value);
 			if (! isAlternate) {
 				image_row.addClass('alternate');
 			}
-			//ewww_table_skew = 0;
-			if (ewww_pointer === 0) {
+			if (ewww_pointer === 0 && ! ewww_pending) {
 				$('.prev-page').addClass('disabled');
 				$('.first-page').addClass('disabled');
 				image_row.prependTo('#ewww-bulk-table tbody').hide().fadeIn(400,function() {
@@ -601,17 +632,12 @@ jQuery(document).ready(function($) {
 						$('#ewww-bulk-table tbody').children().last().remove();
 					}
 					ewwwBulkFirstPage = $('#ewww-bulk-table table').clone();
-					if (ewwwBulkFirstPage.children().length < 50) {
-						//ewww_table_skew = ewwwBulkFirstPage.children().length;
-					}
 				});
 			} else {
 				ewwwBulkFirstPage.prepend(image_row);
 				if (ewwwBulkFirstPage.children().length > 50) {
 					// Remove the last row, as it belongs on the next page now.
 					ewwwBulkFirstPage.children().last().remove();
-				} else if (ewwwBulkFirstPage.children().length < 50) {
-				//	ewww_table_skew = ewwwBulkFirstPage.children().length;
 				}
 			}
 			isAlternate = ! isAlternate;
@@ -755,8 +781,10 @@ jQuery(document).ready(function($) {
 		console.log('refreshing table/results');
 		ewww_pointer = 0;
 		var ewww_search = $('.ewww-search-input').val();
-		$('#ewww-show-table').hide();
-		$('#ewww-hide-table').show();
+		if ( ! ewww_countdown ) {
+			$('#ewww-show-table').hide();
+			$('#ewww-hide-table').show();
+		}
 		$('#ewww-bulk-queue-images').hide();
 		$('#ewww-bulk-controls').hide();
 		$('#ewww-bulk-table-wrapper').show()
@@ -845,7 +873,7 @@ jQuery(document).ready(function($) {
 		ewww_pending = 0;
 		$(this).hide();
 		$('#ewww-search-pending').show();
-		if (ewwwBulkFirstPage.children().length > 0) {
+		if (ewwwBulkFirstPage && ewwwBulkFirstPage.children().length > 0) {
 			$('.current-page-info .current-page').text(1);
 			ewwwBulkFirstPage.clone().replaceAll('#ewww-bulk-table table');
 			if (ewwwBulkFirstPage.children().length >= 50) {
@@ -875,7 +903,9 @@ jQuery(document).ready(function($) {
 		ewww_pointer = 0;
 		var ewww_search = $('.ewww-search-input').val();
 		if (ewww_search) {
-			$('.ewww-bulk-spinner').hide();
+			if ( ! ewww_countdown ) {
+				$('.ewww-bulk-spinner').hide();
+			}
 			clearTimeout(ewww_autopoll_timeout);
 		} else if (ewww_autopoll) {
 			$('.ewww-bulk-spinner').show();
@@ -910,7 +940,9 @@ jQuery(document).ready(function($) {
 			return false;
 		}
 		clearTimeout(ewww_autopoll_timeout);
-		$('.ewww-bulk-spinner').hide();
+		if ( ! ewww_countdown ) {
+			$('.ewww-bulk-spinner').hide();
+		}
 		var ewww_search = $('.ewww-search-input').val();
 		ewww_pointer++;
 		var ewww_table_data = {
@@ -937,10 +969,12 @@ jQuery(document).ready(function($) {
 			return false;
 		}
 		clearTimeout(ewww_autopoll_timeout);
-		$('.ewww-bulk-spinner').hide();
+		if ( ! ewww_countdown ) {
+			$('.ewww-bulk-spinner').hide();
+		}
 		var ewww_search = $('.ewww-search-input').val();
 		ewww_pointer--;
-		if (0 === ewww_pointer && ewwwBulkFirstPage.children().length > 0) {
+		if (! ewww_search && ! ewww_pending && 0 === ewww_pointer && ewwwBulkFirstPage && ewwwBulkFirstPage.children().length > 0) {
 			$('.current-page-info .current-page').text(1);
 			ewwwBulkFirstPage.clone().replaceAll('#ewww-bulk-table table');
 		} else {
@@ -972,7 +1006,9 @@ jQuery(document).ready(function($) {
 		if ($(this).hasClass('disabled')) {
 			return false;
 		}
-		$('.ewww-bulk-spinner').hide();
+		if ( ! ewww_countdown ) {
+			$('.ewww-bulk-spinner').hide();
+		}
 		clearTimeout(ewww_autopoll_timeout);
 		var ewww_search = $('.ewww-search-input').val();
 		ewww_pointer = ewww_total_pages - 1;
@@ -1002,7 +1038,7 @@ jQuery(document).ready(function($) {
 		}
 		ewww_pointer = 0;
 		var ewww_search = $('.ewww-search-input').val();
-		if (! ewww_search && ewwwBulkFirstPage.children().length > 0) {
+		if (! ewww_search && ! ewww_pending && ewwwBulkFirstPage && ewwwBulkFirstPage.children().length > 0) {
 			$('.current-page-info .current-page').text(1);
 			ewwwBulkFirstPage.clone().replaceAll('#ewww-bulk-table table');
 			$('.next-page').removeClass('disabled');
@@ -1045,7 +1081,15 @@ jQuery(document).ready(function($) {
 		};
 		$.post(ajaxurl, ewww_image_removal, function(response) {
 			if(response == '1') {
-				$('#ewww-image-' + imageID).remove();
+				$('.ewww-image-' + imageID).remove();
+				if (ewww_pending) {
+					ewww_total_pending--;
+					$('#ewww-optimize-local-images .ready-to-optimize-count').text(ewwwNumberFormat.format(ewww_total_pending));
+					$('.displaying-num .total-images').text(ewwwNumberFormat.format(ewww_total_pending));
+				} else {
+					ewww_total_images--;
+					$('.displaying-num .total-images').text(ewwwNumberFormat.format(ewww_total_images));
+				}
 			} else {
 				alert(ewww_vars.remove_failed);
 			}
@@ -1061,7 +1105,10 @@ jQuery(document).ready(function($) {
 		};
 		$.post(ajaxurl, ewww_image_exclusion, function(response) {
 			if(response == '1') {
-				$('#ewww-image-' + imageID).remove();
+				$('.ewww-image-' + imageID).remove();
+				ewww_total_pending--;
+				$('#ewww-optimize-local-images .ready-to-optimize-count').text(ewwwNumberFormat.format(ewww_total_pending));
+				$('.displaying-num .total-images').text(ewwwNumberFormat.format(ewww_total_pending));
 			} else {
 				alert(ewww_vars.remove_failed);
 			}
@@ -1075,8 +1122,8 @@ jQuery(document).ready(function($) {
 			ewww_wpnonce: ewww_vars._wpnonce,
 			ewww_image_id: imageID,
 		};
-		var original_html = $('#ewww-image-' + imageID + ' td:last-child').html();
-		$('#ewww-image-' + imageID + ' td:last-child').html(ewww_vars.restoring);
+		var original_html = $('.ewww-image-' + imageID + ' td:last-child').html();
+		$('.ewww-image-' + imageID + ' td:last-child').html(ewww_vars.restoring);
 		$.post(ajaxurl, ewww_image_restore, function(response) {
 			var is_json = true;
 			try {
@@ -1087,12 +1134,16 @@ jQuery(document).ready(function($) {
 				return false;
 			}
 			if ( ewww_response.success == '1') {
-				$('#ewww-image-' + imageID + ' td:last-child').html(ewww_vars.original_restored);
+				$('.ewww-image-' + imageID + ' td:last-child').html(ewww_vars.original_restored);
 			} else if (ewww_response.error) {
-				$('#ewww-image-' + imageID + ' td:last-child').html(original_html);
+				$('.ewww-image-' + imageID + ' td:last-child').html(original_html);
 				alert(ewww_response.error);
 			}
 		});
 		return false;
+	});
+	$('.ewww-aux-table').on('click', '.ewww-show-debug-meta', function() {
+		var post_id = $(this).data('id');
+		$('.ewww-debug-meta-' + post_id).toggle();
 	});
 });

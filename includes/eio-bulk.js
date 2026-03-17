@@ -62,7 +62,6 @@ jQuery(document).ready(function($) {
 		action: ewww_init_action,
 		ewww_wpnonce: ewww_vars._wpnonce,
 	};
-	var ewww_table_action = 'bulk_aux_images_table';
 	var ewww_table_count_action = 'bulk_aux_images_table_count';
 	$(document).on('click', '.ewww-show-debug-meta', function() {
 		var post_id = $(this).data('id');

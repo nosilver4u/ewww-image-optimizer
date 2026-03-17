@@ -317,57 +317,57 @@
 }
 /*  jQuery UI Tooltip 1.10.1 */
 .ui-tooltip {
-        padding: 8px;
-        position: absolute;
-        z-index: 9999;
-        max-width: 300px;
-        min-width: 130px;
+	padding: 8px;
+	position: absolute;
+	z-index: 9999;
+	max-width: 300px;
+	min-width: 130px;
 	border-radius: 8px;
 	background: #fff;
 }
 body .ui-tooltip {
-        border-width: 1px;
+	border-width: 1px;
 }
 .ui-tooltip, .arrow:after {
-        border: 1px solid #272727;
+	border: 1px solid #272727;
 }
 .ui-tooltip {
-        padding: 5px 10px;
+	padding: 5px 10px;
 }
 .arrow {
-        width: 70px;
-        height: 16px;
-        overflow: hidden;
-        position: absolute;
-        left: 50%;
-        margin-left: -35px;
-        bottom: -16px;
-        z-index: 99999;
+	width: 70px;
+	height: 16px;
+	overflow: hidden;
+	position: absolute;
+	left: 50%;
+	margin-left: -35px;
+	bottom: -16px;
+	z-index: 99999;
 }
 .arrow.top {
-        top: -16px;
-        bottom: auto;
+	top: -16px;
+	bottom: auto;
 }
 .arrow.left {
-        left: 20%;
+	left: 20%;
 }
 .arrow:after {
-        content: "";
-        position: absolute;
-        left: 20px;
-        top: -20px;
-        width: 25px;
-        height: 25px;
-        background-color: #FFF;
-        transform: rotate(45deg);
-        -webkit-transform: rotate(45deg);
-        -moz-transform: rotate(45deg);
-        -ms-transform: rotate(45deg);
-        -o-transform: rotate(45deg);
+	content: "";
+	position: absolute;
+	left: 20px;
+	top: -20px;
+	width: 25px;
+	height: 25px;
+	background-color: #FFF;
+	transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+	-moz-transform: rotate(45deg);
+	-ms-transform: rotate(45deg);
+	-o-transform: rotate(45deg);
 }
 .arrow.top:after {
-        bottom: -20px;
-        top: auto;
+	bottom: -20px;
+	top: auto;
 }
 /* media library actions and details */
 a.ewww-remove-image, a.ewww-restore-image, a.ewww-exclude-image {
@@ -572,6 +572,10 @@ button.ewww-handlediv {
 .ewww-action-container {
 	display: flex;
 	align-items: center;
+	gap: 25px;
+}
+.ewww-action-container.full-width {
+	width: 100%;
 }
 #ewww-bulk-table-wrapper {
 	width: 100%;
@@ -596,6 +600,13 @@ button.ewww-handlediv {
 	width: 100%;
 	height: 300px;
 	gap: 15px;
+}
+.ewww-bulk-single-debug {
+	max-width: 500px;
+	border: 1px solid #e5e5e5;
+	background: #fff;
+	overflow: auto;
+	margin-top: 5px;
 }
 .ewww-tablenav {
 	min-height: 30px;
@@ -883,8 +894,11 @@ p.ewww-webp-rewrite-info {
 #ewwwio-api-activation-result.error, #ewwwio-easy-activation-result.error, #ewww-webp-rewrite-result.error {
 	border-left-color: #dc3232;
 }
-#ewww-bulk-progressline {
-	height: 5px;
+#ewww-bulk-progressbar.ui-progressbar.thin {
+	height: 12px;
+	box-shadow: none;
+	background-color: #e6e6e6;
+	margin: 20px 0 10px;
 }
 #ewwwio-easy-activation-progressbar {
 	margin: 10px 0;
