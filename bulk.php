@@ -1001,10 +1001,8 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 			'bulk_refresh_error'    => esc_html__( 'Failed to refresh queue status, please manually refresh the page for further updates.', 'ewww-image-optimizer' ),
 			'easymode'              => ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_ludicrous_mode' ),
 			'invalid_response'      => esc_html__( 'Received an invalid response from your website, please check for errors in the Developer Tools console of your browser.', 'ewww-image-optimizer' ),
-			'operation_stopped'     => esc_html__( 'Optimization stopped, reload page to resume.', 'ewww-image-optimizer' ),
+			'operation_stopped'     => esc_html__( 'Optimization Stopped', 'ewww-image-optimizer' ),
 			'operation_interrupted' => esc_html__( 'Operation Interrupted', 'ewww-image-optimizer' ),
-			/* translators: used for Bulk Optimize progress bar, like so: Optimized 32/346 */
-			'optimized'             => esc_html__( 'Optimized', 'ewww-image-optimizer' ),
 			'original_restored'     => esc_html__( 'Original Restored', 'ewww-image-optimizer' ),
 			'remove_failed'         => esc_html__( 'Could not remove image from table.', 'ewww-image-optimizer' ),
 			'restoring'             => '<p>' . esc_html__( 'Restoring', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
@@ -1012,7 +1010,6 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 			'scan_incomplete'       => esc_html__( 'Scan did not complete, will try again', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' />",
 			'scan_only_mode'        => get_option( 'ewww_image_optimizer_pause_image_queue' ) ? true : false,
 			'temporary_failure'     => esc_html__( 'Temporary failure, attempts remaining:', 'ewww-image-optimizer' ),
-			'time_remaining'        => esc_html__( 'remaining', 'ewww-image-optimizer' ),
 		)
 	);
 }
