@@ -70,6 +70,23 @@ class Local extends Base {
 	}
 
 	/**
+	 * Checks if notices about exec() and/or missing tools should be displayed.
+	 *
+	 * @return bool True if exec-related notices should be displayed, false otherwise.
+	 */
+	public function should_display_exec_notice() {
+		if (
+			( ! $this->exec_check() || ! $this->os_supported() ) &&
+			! $this->get_option( 'ewww_image_optimizer_dismiss_exec_notice' ) &&
+			! $this->get_option( 'ewww_image_optimizer_cloud_key' ) &&
+			! \ewww_image_optimizer_easy_active()
+		) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Checks if exec() is allowed.
 	 *
 	 * @return bool True if exec() is enabled.

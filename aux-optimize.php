@@ -15,61 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Displays the lower portion of the Bulk Optimize page: debugging data and help beacon (if enabled).
- */
-function ewww_image_optimizer_aux_images() {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	$output = '';
-
-	ewwwio_debug_info();
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
-		echo '<div style="clear:both;"></div>';
-		if ( ewwwio_is_file( ewwwio()->debug_log_path() ) ) {
-			?>
-			<h2><?php esc_html_e( 'Debug Log', 'ewww-image-optimizer' ); ?></h2>
-			<p>
-				<a target='_blank' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_view_debug_log' ), 'ewww_image_optimizer_options-options' ) ); ?>'><?php esc_html_e( 'View Log', 'ewww-image-optimizer' ); ?></a> -
-				<a href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_delete_debug_log' ), 'ewww_image_optimizer_options-options' ) ); ?>'><?php esc_html_e( 'Clear Log', 'ewww-image-optimizer' ); ?></a>
-			</p>
-			<p>
-				<a class='button button-secondary' target='_blank' href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_download_debug_log' ), 'ewww_image_optimizer_options-options' ) ); ?>'><?php esc_html_e( 'Download Log', 'ewww-image-optimizer' ); ?></a>
-			</p>
-			<?php
-		}
-		echo '<h2>' . esc_html__( 'System Info', 'ewww-image-optimizer' ) . '</h2>';
-		echo '<p><button id="ewww-copy-debug" class="button button-secondary" type="button">' . esc_html__( 'Copy', 'ewww-image-optimizer' ) . '</button></p>';
-		echo '<div id="ewww-debug-info" contenteditable="true">' .
-			wp_kses(
-				EWWW\Base::$debug_data,
-				array(
-					'br' => array(),
-					'b'  => array(),
-				)
-			) .
-			'</div>';
-	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_enable_help' ) ) {
-		$current_user = wp_get_current_user();
-		$help_email   = $current_user->user_email;
-		$hs_debug     = '';
-		if ( ! empty( EWWW\Base::$debug_data ) ) {
-			$hs_debug = str_replace( array( "'", '<br>', '<b>', '</b>', '=>' ), array( "\'", '\n', '**', '**', '=' ), EWWW\Base::$debug_data );
-		}
-		?>
-<script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
-<script type="text/javascript">
-	window.Beacon('init', 'aa9c3d3b-d4bc-4e9b-b6cb-f11c9f69da87');
-	Beacon( 'prefill', {
-		email: '<?php echo esc_js( $help_email ); ?>',
-		text: '\n\n---------------------------------------\n<?php echo wp_kses_post( $hs_debug ); ?>',
-	});
-</script>
-		<?php
-	}
-	ewwwio()->temp_debug_end();
-}
-
-/**
  * Displays 50 records from the images table.
  *
  * Called via AJAX to find 50 records from the images table and display them

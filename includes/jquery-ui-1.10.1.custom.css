@@ -565,7 +565,7 @@ button.ewww-handlediv {
 	margin: 0px;
 	padding: 1em;
 }
-.ewww-settings-notices div.notice {
+.ewww-settings-notices div.notice, #ewww-bulk-results .notice {
 	margin-left: 0;
 	margin-right: 20px;
 }
@@ -708,7 +708,7 @@ div.ewww-status-detail {
 	margin: 0 -7px 10px;
 	padding: 3px 7px;
 }
-.ewww-status-detail .ewwwio-notice, .ewww-status-detail .notice-warning {
+.ewww-status-detail .ewwwio-notice, .ewww-status-detail .notice-warning, #ewww-bulk-results .notice {
 	border: none;
 	box-shadow: -4px 0px #ffb900, inset 0 -1px #e2e2e2;
 	margin: 0 -7px 10px;
@@ -719,6 +719,14 @@ div.ewww-status-detail {
 	box-shadow: -4px 0px #d63638, inset 0 -1px #e2e2e2;
 	margin: 0 -7px 10px;
 	padding: 3px 7px;
+}
+#ewww-bulk-results .notice {
+	margin-left: 4px;
+	margin-right: 4px;
+}
+/* To specifically hide the extra notice in the bulk area on the settings page. */
+.settings_page_ewww-image-optimizer-options #ewww-bulk-results .notice {
+	display: none;
 }
 /* Easy IO stats modal */
 .exactdn-stats-modal {
@@ -984,7 +992,7 @@ p.ewww-webp-rewrite-info {
 .ewww-recommend p:first-child, .ewww-status-detail .ewwwio-notice p:first-child {
 	margin-top: 0;
 }
-.ewww-recommend p, .ewww-status-detail .ewwwio-notice p {
+.ewww-recommend p, .ewww-status-detail .ewwwio-notice p, #ewww-bulk-results .ewwwio-notice p {
 	margin: 0.5em 0;
 }
 .ewww-recommend code {

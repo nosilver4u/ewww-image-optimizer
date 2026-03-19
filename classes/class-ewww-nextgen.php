@@ -49,7 +49,6 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			add_action( 'admin_action_ewww_ngg_manual', array( $this, 'ewww_ngg_manual' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'ewww_ngg_manual_actions_script' ) );
 			add_action( 'admin_menu', array( $this, 'ewww_ngg_bulk_menu' ) );
-			add_action( 'admin_menu', array( $this, 'ewww_ngg_update_menu' ), PHP_INT_MAX - 1 );
 			add_action( 'admin_head', array( $this, 'ewww_ngg_bulk_actions_script' ) );
 			add_action( 'admin_init', array( $this, 'ewww_ngg_bulk_action_handler' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'ewww_ngg_bulk_script' ), 20 );
@@ -113,21 +112,14 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 		 * Adds the Bulk Optimize page to the NextGEN menu.
 		 */
 		public function ewww_ngg_bulk_menu() {
-			if ( ! defined( 'NGGFOLDER' ) ) {
-				return;
-			}
-			add_submenu_page( NGGFOLDER, esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ), apply_filters( 'ewww_image_optimizer_bulk_permissions', '' ), 'ewww-ngg-bulk', array( &$this, 'ewww_ngg_bulk_preview' ) );
-			remove_submenu_page( 'nextgen-gallery', 'ngg_imagify' );
-		}
-
-		/**
-		 * Removes unnecessary menu items from the NextGEN menu.
-		 */
-		public function ewww_ngg_update_menu() {
-			if ( ! defined( 'NGGFOLDER' ) ) {
-				return;
-			}
-			remove_submenu_page( NGGFOLDER, 'ngg_imagify' );
+			add_submenu_page(
+				'imagely',
+				esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ),
+				esc_html__( 'Bulk Optimize', 'ewww-image-optimizer' ),
+				apply_filters( 'ewww_image_optimizer_bulk_permissions', '' ),
+				'ewww-ngg-bulk',
+				array( $this, 'ewww_ngg_bulk_preview' )
+			);
 		}
 
 		/**
