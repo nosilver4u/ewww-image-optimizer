@@ -10615,10 +10615,6 @@ function ewww_image_optimizer_settings_script( $hook ) {
 	global $easyio_site_registered;
 	global $easyio_site_id;
 
-	if ( ! get_option( 'ewww_image_optimizer_bulk_resume' ) && ! get_option( 'ewww_image_optimizer_aux_resume' ) ) {
-		ewww_image_optimizer_delete_queue_images();
-	}
-
 	// Reset Easy IO bits before we remove the rest of the admin_notices.
 	delete_option( 'ewww_image_optimizer_exactdn_checkin' );
 	global $exactdn;
@@ -10653,37 +10649,24 @@ function ewww_image_optimizer_settings_script( $hook ) {
 		wp_enqueue_script( 'jquery-ui-progressbar' );
 	}
 
-	// Check options like Force Re-opt, Smart Re-opt, or WebP Only.
-	if ( ! empty( $_REQUEST['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
-		ewww_image_optimizer_check_bulk_options( $_REQUEST );
-	}
-
 	$easyio_site_url = ewwwio()->content_url();
 	$loading_image   = plugins_url( '/images/spinner.gif', __FILE__ );
 	ewww_image_optimizer_easy_site_registered( $easyio_site_url );
 	add_thickbox();
 	wp_enqueue_script( 'ewww-beacon-script', plugins_url( '/includes/eio-beacon.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION, true );
 	wp_enqueue_script( 'ewww-settings-script', plugins_url( '/includes/eio-settings.js', __FILE__ ), array( 'jquery' ), EWWW_IMAGE_OPTIMIZER_VERSION, true );
-	wp_enqueue_script( 'ewww-bulk-table-script', plugins_url( '/includes/eio-bulk-table.js', __FILE__ ), array( 'jquery', 'jquery-ui-slider', 'jquery-ui-progressbar' ), EWWW_IMAGE_OPTIMIZER_VERSION, true );
 	wp_enqueue_script( 'ewww-chart-script', plugins_url( '/includes/chart.min.js', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION, true );
-	wp_enqueue_style( 'jquery-ui-tooltip-custom', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+	wp_enqueue_style( 'ewww-admin-styles', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+
 	wp_localize_script(
 		'ewww-settings-script',
 		'ewww_vars',
 		array(
 			'_wpnonce'                  => wp_create_nonce( 'ewww-image-optimizer-settings' ),
-			'bulk_nonce'                => wp_create_nonce( 'ewww-image-optimizer-bulk' ),
 			'notice_nonce'              => wp_create_nonce( 'ewww-image-optimizer-notice' ),
-			'scan_fail'                 => esc_html__( 'Operation timed out, you may need to increase the max_execution_time or memory_limit for PHP', 'ewww-image-optimizer' ),
-			'scan_incomplete'           => esc_html__( 'Scan did not complete, will try again', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' />",
 			'invalid_response'          => esc_html__( 'Received an invalid response from your website, please check for errors in the Developer Tools console of your browser.', 'ewww-image-optimizer' ),
-			'loading_image_url'         => plugins_url( '/images/spinner.gif', __FILE__ ),
-			'backup_warning'            => esc_html__( 'Please be sure to backup your site before proceeding. Do you wish to continue?', 'ewww-image-optimizer' ),
+			'loading_image_url'         => esc_url( $loading_image ),
 			'operation_stopped'         => esc_html__( 'Operation stopped.', 'ewww-image-optimizer' ),
-			'bulk_refresh_error'        => esc_html__( 'Failed to refresh queue status, please manually refresh the page for further updates.', 'ewww-image-optimizer' ),
-			'remove_failed'             => esc_html__( 'Could not remove image from table.', 'ewww-image-optimizer' ),
-			'original_restored'         => esc_html__( 'Original Restored', 'ewww-image-optimizer' ),
-			'restoring'                 => '<p>' . esc_html__( 'Restoring', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' /></p>",
 			'easyio_register_warning'   => esc_html__( 'This will register all your sites with the Easy IO CDN and will take some time to complete. Do you wish to proceed?', 'ewww-image-optimizer' ),
 			'easyio_register_success'   => esc_html__( 'Easy IO registration complete. Please wait 5-10 minutes and then activate your sites.', 'ewww-image-optimizer' ),
 			'exactdn_network_warning'   => esc_html__( 'This will attempt to activate Easy IO on all sites within the multi-site network. Please be sure you have registered all your site URLs before continuing.', 'ewww-image-optimizer' ),
@@ -10697,8 +10680,6 @@ function ewww_image_optimizer_settings_script( $hook ) {
 			'easyio_site_registered'    => (bool) $easyio_site_registered,
 			'easyio_extra_stats_failed' => esc_html__( 'Additional stats unavailable, please try again later.', 'ewww-image-optimizer' ),
 			'easymode'                  => ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_ludicrous_mode' ),
-			'scan_only_mode'            => get_option( 'ewww_image_optimizer_pause_image_queue' ) ? true : false,
-			'bulk_init'                 => ! empty( $_GET['bulk_optimize'] ) ? true : false,
 		)
 	);
 	wp_add_inline_script(
@@ -10707,7 +10688,8 @@ function ewww_image_optimizer_settings_script( $hook ) {
 		'ewww_vars.save_space = ' . ( get_option( 'ewww_image_optimizer_goal_save_space' ) ? 1 : 0 ) . ";\n" .
 		'ewww_vars.site_speed = ' . ( get_option( 'ewww_image_optimizer_goal_site_speed' ) ? 1 : 0 ) . ";\n"
 	);
-	ewwwio_memory( __FUNCTION__ );
+
+	ewww_image_optimizer_bulk_script( 'media_page_ewww-image-optimizer-bulk' );
 }
 
 /**
@@ -12227,7 +12209,7 @@ function ewww_image_optimizer_bulk_async_show_status() {
 function ewww_image_optimizer_get_bulk_info() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$permissions = apply_filters( 'ewww_image_optimizer_bulk_permissions', '' );
-	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' ) || ! current_user_can( $permissions ) ) {
+	if ( empty( $_REQUEST['ewww_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-bulk' ) || ! current_user_can( $permissions ) ) {
 		ewwwio_ob_clean();
 		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
 	}

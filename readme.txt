@@ -169,8 +169,15 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 8.5.0 =
+*Release Date - TBD*
+
+* changed: async/non-async bulk optimizers merged into common interface on both Settings and Bulk Optimizer pages
+* added: option to choose Background or Foreground mode during bulk optimization
+* added: Choose whether to include Additional Folders like the theme or other configured folders during bulk optimization
+
 = 8.4.1 =
-*Release Date - Feburary 19, 2026*
+*Release Date - February 19, 2026*
 
 * fixed: PHP warnings with offloaded media in the Media Library
 * fixed: WebP naming mode unable to be changed on Cloudflare sites

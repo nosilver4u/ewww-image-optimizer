@@ -85,7 +85,7 @@ function ewww_image_optimizer_aux_images_table() {
 		empty( $_REQUEST['ewww_wpnonce'] ) ||
 		(
 			! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-tools' ) &&
-			! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' )
+			! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-bulk' )
 		) ||
 		! current_user_can( $permissions )
 	) {
@@ -533,7 +533,7 @@ function ewww_image_optimizer_aux_images_exclude() {
 		empty( $_REQUEST['ewww_wpnonce'] ) ||
 		(
 			! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-tools' ) &&
-			! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' )
+			! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-bulk' )
 		) ||
 		! current_user_can( $permissions )
 	) {
@@ -592,7 +592,7 @@ function ewww_image_optimizer_aux_images_remove() {
 		empty( $_REQUEST['ewww_wpnonce'] ) ||
 		(
 			! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-tools' ) &&
-			! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' )
+			! wp_verify_nonce( sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-bulk' )
 		) ||
 		! current_user_can( $permissions )
 	) {
@@ -2247,6 +2247,8 @@ function ewww_image_optimizer_aux_images_scan( $hook = '' ) {
 				ewww_image_optimizer_image_scan( "$upload_path/$last_year/$last_month/", $started );
 			}
 		}
+	} else {
+		ewwwio_debug_message( 'skipping scan because of skip_aux transient' );
 	} // End if().
 	$image_count = (int) ewww_image_optimizer_aux_images_table_count_pending();
 	ewwwio_debug_message( "found $image_count images to optimize while scanning" );
@@ -2256,6 +2258,7 @@ function ewww_image_optimizer_aux_images_scan( $hook = '' ) {
 	update_option( 'ewww_image_optimizer_bulk_resume', '' );
 	update_option( 'ewww_image_optimizer_bulk_foreground', '' );
 	delete_transient( 'ewww_image_optimizer_aux_lock' );
+	delete_transient( 'ewww_image_optimizer_skip_aux' );
 	if ( wp_doing_ajax() && 'ewww-image-optimizer-auto' !== $hook && ( ! defined( 'WP_CLI' ) || ! WP_CLI ) ) {
 		$verify_cloud = ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), false );
 		$usage        = false;
