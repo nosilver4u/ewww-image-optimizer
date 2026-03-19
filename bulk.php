@@ -1046,7 +1046,7 @@ function ewww_image_optimizer_check_bulk_options( $request ) {
 	if ( ! empty( $request['ewww_webp_only'] ) ) {
 		ewwwio()->webp_only = true;
 	}
-	if ( ! empty( $request['ewww_scan_only'] ) ) {
+	if ( ! empty( $request['ewww_scan_only'] ) && ! get_option( 'ewww_image_optimizer_bulk_foreground' ) ) {
 		update_option( 'ewww_image_optimizer_pause_image_queue', true, false );
 	} else {
 		update_option( 'ewww_image_optimizer_pause_image_queue', false, false );
@@ -1636,9 +1636,6 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	global $ewww_scan;
 	$ewww_scan = empty( $_REQUEST['ewww_scan'] ) ? '' : sanitize_key( $_REQUEST['ewww_scan'] );
 
-	// Check options like Force Re-opt, Smart Re-opt, or WebP Only.
-	ewww_image_optimizer_save_bulk_options( $_REQUEST );
-
 	global $optimized_list;
 	$queued_ids            = array();
 	$skipped_ids           = array();
@@ -1653,6 +1650,9 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 	update_option( 'ewww_image_optimizer_bulk_resume', 'scanning' );
 	update_option( 'ewww_image_optimizer_bulk_foreground', 'true' );
 	set_transient( 'ewww_image_optimizer_no_scheduled_optimization', true, 60 * MINUTE_IN_SECONDS );
+
+	// Check options like Force Re-opt, Smart Re-opt, or WebP Only.
+	ewww_image_optimizer_save_bulk_options( $_REQUEST );
 
 	// Retrieve the time when the scan starts.
 	$started = microtime( true );
