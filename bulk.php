@@ -1486,8 +1486,6 @@ function ewww_image_optimizer_bulk_scan_init( $hook = '' ) {
 			delete_transient( 'ewww_image_optimizer_skip_aux' );
 		}
 		ewwwio_debug_message( 'load em all up' );
-		// Since we aren't resuming, and weren't given a list of IDs, we will optimize everything.
-		delete_transient( 'ewww_image_optimizer_scan_aux' );
 		// Load up all the image attachments we can find.
 		$attachments = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%') ORDER BY ID DESC" );
 	} // End if().

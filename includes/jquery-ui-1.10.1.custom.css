@@ -986,7 +986,7 @@ p.ewww-webp-rewrite-info {
 	display: flex;
 	justify-content: space-between;
 }
-.ewwwio-recommend-action-links {
+.ewwwio-recommend-action-links, #ewww-bulk-loading {
 	align-items: center;
 }
 .ewww-recommend p:first-child, .ewww-status-detail .ewwwio-notice p:first-child {

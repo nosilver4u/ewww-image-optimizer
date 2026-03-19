@@ -708,6 +708,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 					ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), false );
 					echo '<span id="ewww-bulk-credits-available">' . esc_html__( 'Image credits available:', 'ewww-image-optimizer' ) . ' ' . wp_kses_post( ewww_image_optimizer_cloud_quota() ) . '</span>';
+					echo '<div style="clear:both;"></div>';
 				}
 				if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
 					echo '<div id="ewww-bulk-warning" class="ewww-bulk-info notice notice-warning"><p>' . esc_html__( 'Bulk Optimization will alter your original images and cannot be undone. Please be sure you have a backup of your images before proceeding.', 'ewww-image-optimizer' ) . '</p></div>';
@@ -722,10 +723,13 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				$delay = ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' ) ? ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' ) : 0;
 				/* translators: 1-4: number(s) of images */
 				$selected_images_text = sprintf( __( '%1$d images have been selected, with %2$d resized versions.', 'ewww-image-optimizer' ), $fullsize_count, $resize_count );
+				$loading_img_url      = plugins_url( '/images/wpspin.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
 				?>
-					<div id="ewww-bulk-loading"></div>
-					<div id="ewww-bulk-progressbar"></div>
-					<div id="ewww-bulk-counter"></div>
+			<div id="ewww-bulk-loading" class="ewwwio-flex-space-between" style="display:none;">
+				<span class="ewww-bulk-next"></span>&nbsp;<img src="<?php echo esc_url( $loading_img_url ); ?>" alt="loading" />
+			</div>
+			<div id="ewww-bulk-progressbar"></div>
+			<div id="ewww-bulk-counter"></div>
 			<form id="ewww-bulk-stop" style="display:none;" method="post" action="">
 				<br /><input type="submit" class="button-secondary action" value="<?php esc_attr_e( 'Stop Optimizing', 'ewww-image-optimizer' ); ?>" />
 			</form>
@@ -937,13 +941,13 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				ewwwio_ob_clean();
 				wp_die( wp_json_encode( $output ) );
 			}
-			$id            = array_shift( $attachments );
-			$file          = $this->ewww_ngg_bulk_filename( $id );
-			$loading_image = plugins_url( '/images/wpspin.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
-			if ( empty( $file ) ) {
-				$output['results'] = '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' alt='loading'/></p>";
+			$id        = array_shift( $attachments );
+			$file_name = $this->ewww_ngg_bulk_filename( $id );
+			if ( empty( $file_name ) ) {
+				$output['results'] = '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . '</p>';
 			} else {
-				$output['results'] = '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . " <b>$file</b>&nbsp;<img src='$loading_image' alt='loading'/></p>";
+				/* translators: %s: image file name */
+				$output['results'] = '<p>' . sprintf( esc_html__( 'Optimizing %s', 'ewww-image-optimizer' ), '<b>' . esc_html( $file_name ) . '</b>' ) . '</p>';
 			}
 			ewwwio_ob_clean();
 			wp_die( wp_json_encode( $output ) );
@@ -1029,11 +1033,11 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			if ( ! empty( $attachments ) ) {
 				$next_attachment = array_shift( $attachments );
 				$next_file       = $this->ewww_ngg_bulk_filename( $next_attachment );
-				$loading_image   = plugins_url( '/images/wpspin.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
 				if ( $next_file ) {
-					$output['next_file'] = '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . " <b>$next_file</b>&nbsp;<img src='$loading_image' alt='loading'/></p>";
+					/* translators: %s: image file name */
+					$output['next_file'] = '<p>' . sprintf( esc_html__( 'Optimizing %s', 'ewww-image-optimizer' ), '<b>' . esc_html( $next_file ) . '</b>' ) . '</p>';
 				} else {
-					$output['next_file'] = '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . "&nbsp;<img src='$loading_image' alt='loading'/></p>";
+					$output['next_file'] = '<p>' . esc_html__( 'Optimizing', 'ewww-image-optimizer' ) . '</p>';
 				}
 			} else {
 				$output['done'] = 1;
