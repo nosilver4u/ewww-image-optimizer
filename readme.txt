@@ -172,9 +172,11 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 8.5.0 =
 *Release Date - TBD*
 
-* changed: async/non-async bulk optimizers merged into common interface on both Settings and Bulk Optimizer pages
+* changed: foreground/background bulk optimizers merged into common interface on both Settings and Bulk Optimizer pages
 * added: option to choose Background or Foreground mode during bulk optimization
 * added: Choose whether to include Additional Folders like the theme or other configured folders during bulk optimization
+* fixed: some strings in bulk interface not able to be translated properly for RTL locales
+* fixed: NextGEN bulk optimizer missing from menu with NextGEN 4.x
 
 = 8.4.1 =
 *Release Date - February 19, 2026*

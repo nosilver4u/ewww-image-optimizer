@@ -36,6 +36,7 @@ jQuery(document).ready(function($) {
 	var ewww_error_counter = 30;
 	var ewwwBulkFirstPage = false;
 	var ewwwBulkFirstLoop = false;
+	var ewww_quota_update;
 	if (ewww_bulk.scan_only_mode) {
 		ewww_scan_only = true;
 	}
@@ -361,13 +362,38 @@ jQuery(document).ready(function($) {
 		}
 		return false;
 	});
+	function ewwwUpdateQuota() {
+		console.log('maybe updating quota info');
+		var ewww_quota_update_data = {
+			action: 'bulk_quota_update',
+			ewww_wpnonce: ewww_bulk._wpnonce,
+		};
+		var existing_quota_data = $('#ewww-bulk-credits-available').html();
+		if (existing_quota_data && existing_quota_data.length > 0) {
+			console.log('yes, updating!');
+			$.post(ajaxurl, ewww_quota_update_data, function(response) {
+				$('#ewww-bulk-credits-available').html(response);
+				if (response.length > 0) {
+					console.log('hurrah, got some data back!');
+					$('#ewww-bulk-credits-available').fadeIn();
+				}
+			});
+		} else {
+			clearInterval(ewww_quota_update);
+		}
+	}
 	function ewwwResumeOpt () {
 		ewww_k = 0;
+		ewww_quota_update = setInterval( ewwwUpdateQuota, 60000 );
+		ewwwUpdateQuota();
 		$('.ewww-resume-optimization').hide();
 		$('.ewww-start-optimization').hide();
 		$('.ewww-clear-queue').hide();
-		$('.ewww-pause-optimization').show();
-		$('.ewww-bulk-spinner').fadeIn();
+		$('#ewww-hide-table').hide();
+		$('#ewww-show-table').hide(0,function(){
+			$('.ewww-pause-optimization').show();
+			$('.ewww-bulk-spinner').fadeIn();
+		});
 		ewww_bulk_start_time = Date.now();
 		$('#ewww-optimize-local-images').html('');
 		$('#ewww-bulk-progressbar').fadeIn();
@@ -376,8 +402,6 @@ jQuery(document).ready(function($) {
 		// Reset the table to page 1 (cached).
 		ewww_pointer = 0;
 		ewww_pending = 0;
-		$('#ewww-show-table').hide();
-		$('#ewww-hide-table').hide();
 		$('#ewww-search-pending').show();
 		$('#ewww-search-optimized').hide();
 		$('.ewww-search-input').val('');
@@ -393,15 +417,19 @@ jQuery(document).ready(function($) {
 	}
 	function ewwwStartOpt () {
 		ewww_k = 0;
+		ewww_quota_update = setInterval( ewwwUpdateQuota, 60000 );
+		ewwwUpdateQuota();
 		$('#ewwwio-settings-menu').hide();
 		$('#ewww-settings-wrap').hide();
 		$('.ewww-pause-optimization').addClass('bulk-foreground');
 		$('.ewww-resume-optimization').hide();
 		$('.ewww-start-optimization').hide();
 		$('.ewww-clear-queue').hide();
-		$('#ewwwio-bulk-header .ewww-action-container.ewwwio-flex-space-between').addClass('full-width');
-		$('.ewww-pause-optimization').show();
-		$('.ewww-bulk-spinner').fadeIn();
+		$('#ewww-show-table').hide(0,function(){
+			$('#ewwwio-bulk-header .ewww-action-container.ewwwio-flex-space-between').addClass('full-width');
+			$('.ewww-pause-optimization').show();
+			$('.ewww-bulk-spinner').fadeIn();
+		});
 		if (ewww_delay) {
 			ewww_batch_limit = 1;
 		}
@@ -506,6 +534,7 @@ jQuery(document).ready(function($) {
 				$('#ewww-bulk-counter').hide();
 				$('.ewww-pause-optimization').hide();
 				$('#ewww-optimize-local-images').append('<span class="ewww-bulk-error"><b>' + ewww_bulk.invalid_response + '</b></span>');
+				clearInterval(ewww_quota_update);
 				clearInterval(ewww_countdown);
 				ewww_countdown = false;
 				if ( ! response ) {
@@ -538,13 +567,16 @@ jQuery(document).ready(function($) {
 				$('#ewww-bulk-counter').hide();
 				$('.ewww-pause-optimization').hide();
 				$('#ewww-optimize-local-images').append('<span class="ewww-bulk-error"><b>' + ewww_response.error + '</b></span>');
+				clearInterval(ewww_quota_update);
 				clearInterval(ewww_countdown);
+				ewwwUpdateQuota();
 				ewww_countdown = false;
 			}
 			else if (ewww_k == 9) {
 				if ( ewww_response.results ) {
 					ewwwAddTableRow(ewww_response.results);
 				}
+				clearInterval(ewww_quota_update);
 				clearInterval(ewww_countdown);
 				ewww_countdown = false;
 			}
@@ -553,6 +585,7 @@ jQuery(document).ready(function($) {
 				$('#ewww-bulk-timer').hide();
 				$('#ewww-bulk-counter').hide();
 				$('.ewww-pause-optimization').hide();
+				clearInterval(ewww_quota_update);
 				clearInterval(ewww_countdown);
 				ewww_countdown = false;
 				$('#ewww-optimize-local-images').html('<span class="ewww-bulk-error"><b>' + ewww_bulk.operation_stopped + '</b></span>');
@@ -603,6 +636,8 @@ jQuery(document).ready(function($) {
 			if (ewww_error_counter == 0) {
 				$('#ewww-optimize-local-images').html('<p class="ewww-bulk-error"><b>' + ewww_bulk.operation_interrupted + ':</b> ' + ewww_bulk.bulk_fail_more + '</p>');
 				$('.ewww-bulk-spinner').hide();
+				clearInterval(ewww_quota_update);
+				clearInterval(ewww_countdown);
 			} else {
 				$('#ewww-optimize-local-images').html('<p class="ewww-bulk-error"><b>' + ewww_bulk.temporary_failure + ' ' + ewww_error_counter + ' (' + ewww_bulk.bulk_fail_more + ')</b></p>');
 				ewww_error_counter--;
@@ -613,6 +648,7 @@ jQuery(document).ready(function($) {
 		});
 	}
 	function ewwwBulkCleanup() {
+		clearInterval(ewww_quota_update);
 		clearInterval(ewww_countdown);
 		ewww_countdown = false;
 		ewww_total_pending = 0;

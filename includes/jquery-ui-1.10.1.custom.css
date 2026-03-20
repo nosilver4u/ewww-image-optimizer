@@ -401,13 +401,15 @@ a.ewww-remove-image, a.ewww-restore-image, a.ewww-exclude-image {
 	padding-bottom: 0px;
 }
 /* bulk and settings ui */
+#ewwwio-header-branding #ewww-bulk-credits-available {
+	border: 1px solid #c3c4c7;
+}
 #ewww-bulk-credits-available {
 	margin-left: 20px;
 	padding: 4px 8px;
 	position: relative;
 	top: -3px;
-	border: 1px solid #2271b1;
-	border-radius: 2px;
+	border-radius: 4px;
 	text-shadow: none;
 	font-weight: 600;
 	font-size: 13px;
@@ -1010,6 +1012,9 @@ p.ewww-webp-rewrite-info {
 	background-color: #3eadc9;
 }
 #ewwwio-header-branding {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 	padding: 0 20px;
 }
 #ewww-settings-form {

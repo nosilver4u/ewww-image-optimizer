@@ -12723,6 +12723,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 <div id='ewwwio-settings-header'>
 	<div id='ewwwio-header-branding'>
 		<img height="44" width="266" src="<?php echo esc_url( plugins_url( '/images/ewwwio-logo-horizontal-gray.png', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ) ); ?>">
+		<span id="ewww-bulk-credits-available" style="display: none;"><?php echo ! empty( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) ? '1' : ''; ?></span>
 	</div>
 </div>
 	<?php if ( 'singlesite' === $network || 'network-singlesite' === $network ) : ?>

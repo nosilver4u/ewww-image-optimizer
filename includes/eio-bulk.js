@@ -272,6 +272,8 @@ jQuery(document).ready(function($) {
 		.fail(function() {
 			if (ewww_error_counter == 0) {
 				$('#ewww-bulk-loading').html('<p class="ewww-bulk-error"><b>' + ewww_vars.operation_interrupted + ':</b> ' + ewww_vars.bulk_fail_more + '</p>');
+				clearInterval(ewww_quota_update);
+				clearInterval(ewww_countdown);
 			} else {
 				$('#ewww-bulk-loading .ewww-bulk-next').html('<p class="ewww-bulk-error"><b>' + ewww_vars.temporary_failure + ' ' + ewww_error_counter + ' (' + ewww_vars.bulk_fail_more + ')</b></p>');
 				ewww_error_counter--;

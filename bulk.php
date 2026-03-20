@@ -325,6 +325,7 @@ function ewww_image_optimizer_bulk_preview() {
 <div id='ewwwio-settings-header'>
 	<div id='ewwwio-header-branding'>
 		<img height="44" width="266" src="<?php echo esc_url( plugins_url( '/images/ewwwio-logo-horizontal-gray.png', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ) ); ?>">
+		<span id="ewww-bulk-credits-available" style="display: none;"><?php echo ! empty( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) ? '1' : ''; ?></span>
 	</div>
 </div>
 	<?php
@@ -2159,7 +2160,8 @@ function ewww_image_optimizer_bulk_quota_update() {
 	}
 	ewwwio_ob_clean();
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
-		echo esc_html__( 'Image credits available:', 'ewww-image-optimizer' ) . ' ' . wp_kses_post( ewww_image_optimizer_cloud_quota() );
+		/* translators: %s: information about the number of API credits remaining, if applicable */
+		printf( esc_html__( 'Image credits available: %s', 'ewww-image-optimizer' ), wp_kses_post( ewww_image_optimizer_cloud_quota() ) );
 	}
 	ewwwio_memory( __FUNCTION__ );
 	die();
