@@ -269,6 +269,11 @@ jQuery(document).ready(function($) {
 					$('#ewww-optimize-local-images').append( '<br><i>' + ewww_tiny_skip + '</i>' );
 					console.log( 'done, skipped some tiny images' );
 				}
+				if (! ewww_table_visible) {
+					$('#ewww-bulk-results').hide();
+				}
+				$('#ewww-bulk-queue-confirm').hide();
+				clearTimeout(bulkResultsSlideTimer);
 				if (ewww_scan_only) {
 					$('.ewww-bulk-spinner').hide();
 					$('.ewww-start-optimization').removeClass('button-secondary');
@@ -276,8 +281,6 @@ jQuery(document).ready(function($) {
 					$('.ewww-start-optimization').addClass('bulk-foreground');
 					$('.ewww-start-optimization').show();
 					$('.ewww-clear-queue').show();
-					$('#ewww-bulk-queue-confirm').hide();
-					clearTimeout(bulkResultsSlideTimer);
 					if (!ewww_table_visible && !ewww_hid_pending) {
 						ewww_pending = 1;
 						ewww_table_visible = true;
@@ -364,12 +367,12 @@ jQuery(document).ready(function($) {
 		$('.ewww-start-optimization').hide();
 		$('.ewww-clear-queue').hide();
 		$('.ewww-pause-optimization').show();
-		$('.ewww-bulk-spinner').show();
+		$('.ewww-bulk-spinner').fadeIn();
 		ewww_bulk_start_time = Date.now();
 		$('#ewww-optimize-local-images').html('');
-		$('#ewww-bulk-progressbar').show();
-		$('#ewww-bulk-timer').show();
-		$('#ewww-bulk-counter').show();
+		$('#ewww-bulk-progressbar').fadeIn();
+		$('#ewww-bulk-timer').fadeIn();
+		$('#ewww-bulk-counter').fadeIn();
 		// Reset the table to page 1 (cached).
 		ewww_pointer = 0;
 		ewww_pending = 0;
@@ -396,8 +399,9 @@ jQuery(document).ready(function($) {
 		$('.ewww-resume-optimization').hide();
 		$('.ewww-start-optimization').hide();
 		$('.ewww-clear-queue').hide();
+		$('#ewwwio-bulk-header .ewww-action-container.ewwwio-flex-space-between').addClass('full-width');
 		$('.ewww-pause-optimization').show();
-		$('.ewww-bulk-spinner').show();
+		$('.ewww-bulk-spinner').fadeIn();
 		if (ewww_delay) {
 			ewww_batch_limit = 1;
 		}
@@ -433,17 +437,16 @@ jQuery(document).ready(function($) {
 			} else {
 				$('#ewww-optimize-local-images').html(ewww_init_response.results);
 				$('#ewww-bulk-progressbar').progressbar({ max: ewww_total_pending });
-				$('#ewww-bulk-progressbar').show();
+				$('#ewww-bulk-progressbar').slideDown();
 				$('#ewww-bulk-counter .optimized-images-count').text(0);
 				$('#ewww-bulk-counter .total-images-count').text(ewww_total_pending);
-				$('#ewww-bulk-counter').show();
+				$('#ewww-bulk-counter').fadeIn();
 				// Initialize the table, but don't show it until we have a result.
 				ewww_pointer = 0;
 				ewww_pending = 0;
 				$('.ewww-search-input').val('');
 				$('#ewww-show-table').hide();
 				$('#ewww-hide-table').hide();
-				$('#ewwwio-bulk-header .ewww-action-container.ewwwio-flex-space-between').addClass('full-width');
 				var ewww_table_data = {
 					action: ewww_table_action,
 					ewww_wpnonce: ewww_bulk._wpnonce,
@@ -468,7 +471,6 @@ jQuery(document).ready(function($) {
 						$('.ewww-bulk-spinner').hide();
 						return false;
 					}
-					$('.ewww-aux-table').show();
 					ewwwBulkFirstPage = $(ewww_response.table);
 					ewwwBulkFirstLoop = ewww_response;
 					ewww_total_images = ewww_response.total_images;
@@ -562,7 +564,7 @@ jQuery(document).ready(function($) {
 					ewww_time_remaining = Math.floor((ewww_total_pending - ewww_i) * ewww_time_per_image / 1000);
 					ewwwTimeIncrementsUpdate();
 					if ( ! ewww_countdown) {
-						$('#ewww-bulk-timer').show();
+						$('#ewww-bulk-timer').fadeIn();
 						$('#ewww-bulk-timer .time-remaining').html(ewww_days_remaining + ':' + ewww_hours_remaining + ':' + ewww_minutes_remaining + ':' + ewww_seconds_remaining);
 						ewww_countdown = setInterval( ewwwCountDown, 1000 );
 					}
@@ -653,9 +655,10 @@ jQuery(document).ready(function($) {
 				$('.ewww-tablenav-pages .displaying-num').html(ewwwBulkFirstLoop.total_images_text);
 			}
 			ewwwBulkFirstLoop = false;
+			$('.ewww-aux-table').show();
 		}
-		$('#ewww-bulk-results').show()
-		$('#ewww-bulk-table-wrapper').show()
+		$('#ewww-bulk-table-wrapper').show();
+		$('#ewww-bulk-results').slideDown();
 		// We store a copy of the last 50 image records in s3io_bulk_first_page, and need to use it here,
 		// in case they are on a page other than the first one.
 		var isAlternate = ewwwBulkFirstPage.find('tbody tr').first().hasClass('alternate');
