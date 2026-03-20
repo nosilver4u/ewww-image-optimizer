@@ -707,7 +707,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				<?php
 				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
 					ewww_image_optimizer_cloud_verify( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ), false );
-					echo '<span id="ewww-bulk-credits-available">' . esc_html__( 'Image credits available:', 'ewww-image-optimizer' ) . ' ' . wp_kses_post( ewww_image_optimizer_cloud_quota() ) . '</span>';
+					echo '<span id="ewww-bulk-credits-available" style="float:right">' . esc_html__( 'Image credits available:', 'ewww-image-optimizer' ) . ' ' . wp_kses_post( ewww_image_optimizer_cloud_quota() ) . '</span>';
 					echo '<div style="clear:both;"></div>';
 				}
 				if ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
@@ -723,7 +723,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				$delay = ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' ) ? ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' ) : 0;
 				/* translators: 1-4: number(s) of images */
 				$selected_images_text = sprintf( __( '%1$d images have been selected, with %2$d resized versions.', 'ewww-image-optimizer' ), $fullsize_count, $resize_count );
-				$loading_img_url      = plugins_url( '/images/wpspin.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
+				$loading_img_url      = plugins_url( '/images/spinner.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
 				?>
 			<div id="ewww-bulk-loading" class="ewwwio-flex-space-between" style="display:none;">
 				<span class="ewww-bulk-next"></span>&nbsp;<img src="<?php echo esc_url( $loading_img_url ); ?>" alt="loading" />
