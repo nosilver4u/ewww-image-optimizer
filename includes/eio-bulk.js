@@ -264,6 +264,7 @@ jQuery(document).ready(function($) {
 					$('#ewww-bulk-loading .ewww-bulk-next').html(response);
 					$('#ewww-bulk-stop').hide();
 					$('#ewww-bulk-last').hide();
+					$('#ewww-bulk-loading img').hide();
 					ewwwAuxCleanup();
 				});
 			}
@@ -292,8 +293,6 @@ jQuery(document).ready(function($) {
 			$.post(ajaxurl, ewww_table_count_data, function(response) {
 				ewww_vars.image_count = response;
 			});
-			$('#ewww-show-table').show();
-			$('#ewww-table-info').show();
 			$('#ewww-bulk-timer').hide();
 			$('#ewww-bulk-first').hide();
 			ewww_attachments = 0;
