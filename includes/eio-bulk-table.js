@@ -136,14 +136,22 @@ jQuery(document).ready(function($) {
 			ewwwScanInit();
 		}
 		bulkResultsSlideTimer = setTimeout(function() {
-			$('#ewww-bulk-results').slideUp(400, function() {
-				$('#ewww-bulk-queue-confirm').hide();
-				if (ewww_background) {
-					$('#ewww-show-table').show();
-					$('#ewww-hide-table').hide();
-				}
-				ewww_pending = 0;
-			});
+			if (ewww_table_visible) {
+				$('#ewww-bulk-queue-confirm').slideUp(400, function() {
+					if (ewww_background) {
+						$('#ewww-hide-table').show();
+					}
+				});
+			} else {
+				$('#ewww-bulk-results').slideUp(400, function() {
+					$('#ewww-bulk-queue-confirm').hide();
+					if (ewww_background) {
+						$('#ewww-show-table').show();
+						$('#ewww-hide-table').hide();
+					}
+					ewww_pending = 0;
+				});
+			}
 		}, 7000);
 		$('.ewww-bulk-spinner').show();
 		return false;
@@ -270,11 +278,11 @@ jQuery(document).ready(function($) {
 					$('#ewww-optimize-local-images').append( '<br><i>' + ewww_tiny_skip + '</i>' );
 					console.log( 'done, skipped some tiny images' );
 				}
+				// TODO: does this matter on bigger sites where the scan takes long enough that the table isn't visible yet?
+				// .
 				if (! ewww_table_visible) {
-					$('#ewww-bulk-results').hide();
+					//$('#ewww-bulk-results').hide();
 				}
-				$('#ewww-bulk-queue-confirm').hide();
-				clearTimeout(bulkResultsSlideTimer);
 				if (ewww_scan_only) {
 					$('.ewww-bulk-spinner').hide();
 					$('.ewww-start-optimization').removeClass('button-secondary');
@@ -328,6 +336,8 @@ jQuery(document).ready(function($) {
 		return false;
 	});
 	$('.ewww-action-container').on('click', '.bulk-foreground.ewww-start-optimization', function() {
+		clearTimeout(bulkResultsSlideTimer);
+		$('#ewww-bulk-queue-confirm').slideUp();
 		$('#ewww-bulk-queue-images').hide();
 		$('#ewww-bulk-controls').hide();
 		if (0===ewww_total_pending && ewww_previous_pending > 0) {
@@ -347,34 +357,28 @@ jQuery(document).ready(function($) {
 		clearTimeout(ewwwTimeoutHandler);
 		$('#ewww-optimize-local-images').html(ewww_bulk.operation_stopped);
 		$('.ewww-resume-optimization').addClass('bulk-foreground');
-		//$('.ewww-clear-queue').addClass('bulk-foreground');
 		$('.ewww-resume-optimization').show();
 		$('.ewww-clear-queue').show();
 		return false;
 	});
 	$('.ewww-action-container').on('click', '.bulk-foreground.ewww-resume-optimization', function() {
 		if (9===ewww_k) {
-			console.log('resuming w/o reload');
 			ewwwResumeOpt();
 		} else {
-			console.log('resuming, from fresh page load');
 			ewwwStartOpt();
 		}
 		return false;
 	});
 	function ewwwUpdateQuota() {
-		console.log('maybe updating quota info');
 		var ewww_quota_update_data = {
 			action: 'bulk_quota_update',
 			ewww_wpnonce: ewww_bulk._wpnonce,
 		};
 		var existing_quota_data = $('#ewww-bulk-credits-available').html();
 		if (existing_quota_data && existing_quota_data.length > 0) {
-			console.log('yes, updating!');
 			$.post(ajaxurl, ewww_quota_update_data, function(response) {
 				$('#ewww-bulk-credits-available').html(response);
 				if (response.length > 0) {
-					console.log('hurrah, got some data back!');
 					$('#ewww-bulk-credits-available').fadeIn();
 				}
 			});
@@ -628,6 +632,9 @@ jQuery(document).ready(function($) {
 					$('#ewww-bulk-timer').hide();
 					$('#ewww-search-pending').hide();
 					$('.ewww-pause-optimization').hide();
+					$('#ewww-hide-table').show();
+					$('#ewwwio-settings-menu').show();
+					$('#ewww-settings-wrap').show();
 					ewwwBulkCleanup();
 				});
 			}
@@ -695,6 +702,7 @@ jQuery(document).ready(function($) {
 		}
 		$('#ewww-bulk-table-wrapper').show();
 		$('#ewww-bulk-results').slideDown();
+		ewww_table_visible = true;
 		// We store a copy of the last 50 image records in s3io_bulk_first_page, and need to use it here,
 		// in case they are on a page other than the first one.
 		var isAlternate = ewwwBulkFirstPage.find('tbody tr').first().hasClass('alternate');
