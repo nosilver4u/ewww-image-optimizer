@@ -2541,7 +2541,7 @@ function ewww_image_optimizer_myarcade_thumbnail( $url ) {
  */
 function ewww_image_optimizer_media_scripts( $hook ) {
 	if ( 'upload.php' === $hook || 'ims_gallery_page_ewww-ims-optimize' === $hook ) {
-		if ( ! get_option( 'ewww_image_optimizer_bulk_resume' ) && ! get_option( 'ewww_image_optimizer_aux_resume' ) ) {
+		if ( ! get_option( 'ewww_image_optimizer_bulk_resume' ) && ! get_option( 'ewww_image_optimizer_aux_resume' ) && ! get_option( 'ewww_image_optimizer_bulk_foreground' ) ) {
 			ewww_image_optimizer_delete_queue_images();
 		}
 		update_option( 'ewww_image_optimizer_aux_resume', '' );
