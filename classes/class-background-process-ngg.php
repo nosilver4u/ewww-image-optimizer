@@ -62,7 +62,7 @@ class Background_Process_Ngg extends Background_Process {
 			}
 		}
 		// Retrieve the metadata for the image.
-		$meta = new nggMeta( $attachment_id );
+		$meta = new \nggMeta( $attachment_id );
 		if ( empty( $meta ) ) {
 			++$item['attempts'];
 			sleep( 4 );

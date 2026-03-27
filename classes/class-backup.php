@@ -484,7 +484,7 @@ class Backup extends Base {
 			empty( $_REQUEST['ewww_wpnonce'] ) ||
 			(
 				! \wp_verify_nonce( \sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-tools' ) &&
-				! \wp_verify_nonce( \sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-settings' )
+				! \wp_verify_nonce( \sanitize_key( $_REQUEST['ewww_wpnonce'] ), 'ewww-image-optimizer-bulk' )
 			)
 		) {
 			$this->ob_clean();

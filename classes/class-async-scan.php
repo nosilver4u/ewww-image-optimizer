@@ -36,6 +36,6 @@ class Async_Scan extends Async_Request {
 		check_ajax_referer( $this->identifier, 'nonce' );
 		global $ewww_scan;
 		$ewww_scan = empty( $_REQUEST['ewww_scan'] ) ? '' : sanitize_key( $_REQUEST['ewww_scan'] );
-		ewww_image_optimizer_aux_images_script( 'ewww-image-optimizer-auto' );
+		ewww_image_optimizer_aux_images_scan( 'ewww-image-optimizer-auto' );
 	}
 }
