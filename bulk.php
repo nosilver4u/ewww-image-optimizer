@@ -389,7 +389,7 @@ function ewww_image_optimizer_bulk_results_output() {
 	$loading_image_url = plugins_url( '/images/spinner.gif', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE );
 	?>
 <div id="ewww-bulk-results" class="ewww-status-actions" style="display: none;">
-	<div class="row-something ewwwio-flex-space-between">
+	<div id="ewww-bulk-setup-ui" class="ewwwio-flex-space-between">
 		<div id="ewww-bulk-queue-images">
 			<img src='<?php echo esc_url( $loading_image_url ); ?>' alt='loading'/>
 		</div>
