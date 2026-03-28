@@ -286,7 +286,7 @@ function ewww_image_optimizer_aux_images_table() {
 			if ( empty( $debug_query ) ) {
 				$optimized_image['trace'] = '';
 			} elseif ( empty( $optimized_image['trace'] ) ) {
-				// This will allow us to show the message that there is no trace available, and that they should enable debugging to record tracel logs.
+				// This will allow us to show the message that there is no trace available, and that they should enable debugging to record trace logs.
 				$optimized_image['trace'] = 1;
 			}
 			$output['table'] .= ewww_image_optimizer_get_image_table_row( $optimized_image, $alternate );

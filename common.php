@@ -2092,7 +2092,6 @@ function ewww_image_optimizer_image_sizes_advanced( $sizes ) {
 function ewww_image_optimizer_fallback_sizes( $sizes ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$disabled_sizes = ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_resizes', false, true );
-	$flipped        = false;
 	if ( ! empty( $disabled_sizes ) ) {
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && ewww_image_optimizer_function_exists( 'print_r' ) ) {
 			ewwwio_debug_message( print_r( $sizes, true ) );
@@ -15275,8 +15274,20 @@ function ewwwio_debug_backtrace() {
 	} else {
 		$backtrace = debug_backtrace( false );
 	}
-	array_shift( $backtrace );
-	array_shift( $backtrace );
+	if ( is_array( $backtrace ) && count( $backtrace ) > 2 ) {
+		foreach ( $backtrace as $trace ) {
+			if ( isset( $trace['function'] ) ) {
+				if ( str_contains( $trace['function'], 'bulk_loop' ) ) {
+					return '';
+				}
+				if ( str_contains( $trace['function'], 'optimizer_manual' ) ) {
+					return '';
+				}
+			}
+		}
+		array_shift( $backtrace );
+		array_shift( $backtrace );
+	}
 	return maybe_serialize( $backtrace );
 }
 

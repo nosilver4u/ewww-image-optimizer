@@ -819,7 +819,7 @@ jQuery(document).ready(function($) {
 			}
 			if (ewww_scan_only) {
 				$('.ewww-start-optimization').show();
-				if (!ewww_table_visible && !ewww_hid_pending) {
+				if (!ewww_table_visible && !ewww_hid_pending && ewww_response.images_queued > 0) {
 					ewww_pending = 1;
 					ewww_table_visible = true;
 					$('#ewww-search-pending').hide();

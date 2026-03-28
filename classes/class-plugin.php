@@ -359,7 +359,7 @@ final class Plugin extends Base {
 	 * Load plugin compat on the plugins_loaded hook, which is about as early as possible.
 	 */
 	public function plugins_compat() {
-		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 
 		if ( $this->get_option( 'ewww_image_optimizer_lazy_load' ) && $this->get_option( 'ewww_image_optimizer_ll_external_bg' ) ) {
 			$this->debug_message( 'requesting external parsing of CSS for background images via SWIS' );
@@ -542,7 +542,7 @@ final class Plugin extends Base {
 	 * Runs early for checks that need to happen on init before anything else.
 	 */
 	public function init() {
-		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 
 		// For the settings page, check for the enable-local param and take appropriate action.
 		if ( ! empty( $_GET['enable-local'] ) && ! empty( $_REQUEST['_wpnonce'] ) && \wp_verify_nonce( \sanitize_key( $_REQUEST['_wpnonce'] ), 'ewww_image_optimizer_options-options' ) ) {
@@ -841,7 +841,9 @@ final class Plugin extends Base {
 		if ( class_exists( '\Imagick' ) ) {
 			$imagick = new \Imagick();
 			if ( $imagick instanceof \Imagick ) {
-				$this->debug_message( print_r( $info, true ) );
+				if ( $this->get_option( 'ewww_image_optimizer_debug' ) && $this->function_exists( 'print_r' ) ) {
+					$this->debug_message( print_r( $info, true ) );
+				}
 				if ( ! empty( $info['wp-media']['fields'] ) ) {
 					$not_available = __( 'Not available' ); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 					if ( empty( $info['wp-media']['fields']['imagick_limits'] ) ) {

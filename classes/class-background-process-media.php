@@ -212,7 +212,6 @@ class Background_Process_Media extends Background_Process {
 			return false;
 		}
 		$compression_level = \ewww_image_optimizer_get_level( $mime );
-		$smart_reopt       = false;
 		if ( ! empty( $item['force_smart'] ) && ! \ewww_image_optimizer_level_mismatch( $already_optimized['level'], $compression_level ) ) {
 			$item['force_smart'] = false;
 		}
@@ -378,6 +377,7 @@ class Background_Process_Media extends Background_Process {
 		$type            = ewww_image_optimizer_mimetype( $file_path, 'i' );
 		if ( ! in_array( $type, $supported_types, true ) ) {
 			ewwwio_debug_message( "mimetype not supported: $id" );
+			\ewww_image_optimizer_post_optimize_attachment( $id );
 			return;
 		}
 
@@ -496,6 +496,9 @@ class Background_Process_Media extends Background_Process {
 		if ( $queued && ! ewwwio()->background_image->is_process_running() && ! \get_option( 'ewww_image_optimizer_pause_image_queue' ) ) {
 			ewwwio()->background_image->dispatch();
 		}
+		if ( empty( $queued ) ) {
+			\ewww_image_optimizer_post_optimize_attachment( $id );
+		}
 	}
 
 
@@ -521,6 +524,7 @@ class Background_Process_Media extends Background_Process {
 		if ( $file_path ) {
 			\ewww_image_optimizer_add_file_exclusion( $file_path );
 		}
+		\ewww_image_optimizer_post_optimize_attachment( $item['attachment_id'] );
 	}
 
 	/**

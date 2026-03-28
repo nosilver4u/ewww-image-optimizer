@@ -1140,6 +1140,8 @@ function ewww_image_optimizer_bulk_async_get_status() {
 	$media_queue_count = ewwwio()->background_media->count_queue();
 	$image_queue_count = ewwwio()->background_image->count_queue();
 
+	$output['images_queued'] = (int) $image_queue_count;
+
 	if ( $media_queue_count && ! $media_queue_running ) {
 		ewwwio_debug_message( 'rebooting media queue' );
 		ewwwio()->background_media->dispatch();
@@ -1164,12 +1166,15 @@ function ewww_image_optimizer_bulk_async_get_status() {
 	}
 
 	if ( $media_queue_count ) {
+		ewwwio_debug_message( "media items remaining (to scan): $media_queue_count" );
 		/* translators: %s: number of images/uploads */
 		$output['media_remaining'] = sprintf( esc_html__( '%s media uploads left to scan', 'ewww-image-optimizer' ), number_format_i18n( $media_queue_count ) );
 	} elseif ( $image_queue_count ) {
+		ewwwio_debug_message( "images remaining (to optimize): $image_queue_count" );
 		/* translators: %s: number of images */
 		$output['images_remaining'] = sprintf( esc_html__( '%s images left to optimize', 'ewww-image-optimizer' ), number_format_i18n( $image_queue_count ) );
 	} elseif ( 'scanning' === get_option( 'ewww_image_optimizer_aux_resume' ) ) {
+		ewwwio_debug_message( 'media scan complete, async scan should start shortly (or be running)' );
 		// We output this as 'media_remaining' because the async scan hasn't run yet, and we don't want the autopoll to quit just yet.
 		$output['media_remaining'] = esc_html__( 'Searching additional folders for images to optimize...', 'ewww-image-optimizer' );
 	} elseif ( ! apply_filters( 'ewwwio_whitelabel', false ) ) {
@@ -2603,13 +2608,12 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		if ( $file && $image->id && is_object( $ewww_image ) && ! empty( $ewww_image->record ) && is_array( $ewww_image->record ) ) {
 			$ewww_image->record['elapsed'] = $image_elapsed;
 			$ewww_image->record['updated'] = time();
+			$ewww_image->record['trace']   = '';
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 				$ewww_image->record['debug'] = EWWW\Base::$debug_data;
 				ewww_image_optimizer_debug_log();
 			}
 			$output['results'][] = trim( ewww_image_optimizer_get_image_table_row( $ewww_image->record, false, false ) );
-			ewwwio_debug_message( print_r( $image, true ) );
-			ewwwio_debug_message( print_r( $ewww_image, true ) );
 		}
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
