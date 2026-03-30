@@ -2779,8 +2779,24 @@ function ewww_image_optimizer_post_optimize_attachment( $attachment_id ) {
 	$ewww_attachment['meta'] = $meta;
 	add_filter( 'w3tc_cdn_update_attachment_metadata', 'ewww_image_optimizer_w3tc_update_files' );
 
+	add_filter( 'wp_get_missing_image_subsizes', 'ewww_image_optimizer_no_missing_sizes' );
 	wp_update_attachment_metadata( $attachment_id, $meta );
 	do_action( 'ewww_image_optimizer_after_optimize_attachment', $attachment_id, $meta );
+	add_filter( 'wp_get_missing_image_subsizes', 'ewww_image_optimizer_no_missing_sizes' );
+}
+
+/**
+ * Short-circuit the check for missing image sizes in WP Offload Media after a file has been optimized.
+ *
+ * We return an empty array to prevent WP Offload Media from thinking there are missing sizes.
+ * There might be, but that would only matter for new uploads prior to completion of wp_generate_attachment_metadata().
+ *
+ * @param array $sizes Array of image sizes.
+ * @return array An empty array.
+ */
+function ewww_image_optimizer_no_missing_sizes( $sizes ) {
+	$sizes = array();
+	return $sizes;
 }
 
 /**
