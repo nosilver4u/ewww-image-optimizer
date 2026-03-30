@@ -886,9 +886,7 @@ jQuery(document).ready(function($) {
 			if (ewww_response && ewww_pending == 0 && ewww_response.show_pending_button) {
 				$('#ewww-search-pending').show();
 			}
-			if (ewww_pending) {
-				ewww_total_pending = ewww_response.total_images;
-			} else {
+			if (! ewww_pending) {
 				ewww_total_images = ewww_response.total_images;
 			}
 			if (ewww_response && ewww_response.total_images > 50) {
