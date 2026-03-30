@@ -1288,7 +1288,6 @@ class EWWW_Image {
 				'path'      => ewww_image_optimizer_relativize_path( $new_path ),
 				'converted' => ewww_image_optimizer_relativize_path( $path ),
 				'updates'   => 0,
-				'trace'     => '',
 			),
 			array(
 				'id' => $record['id'],
@@ -1325,7 +1324,6 @@ class EWWW_Image {
 				'converted'  => '',
 				'image_size' => 0,
 				'updates'    => 0,
-				'trace'      => '',
 				'level'      => null,
 			),
 			array(

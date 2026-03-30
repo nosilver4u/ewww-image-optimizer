@@ -38,11 +38,10 @@ function ewww_image_optimizer_aux_images_table() {
 		die( wp_json_encode( array( 'error' => esc_html__( 'Access token has expired, please reload the page.', 'ewww-image-optimizer' ) ) ) );
 	}
 	global $wpdb;
-	$debug_query = ! empty( $_REQUEST['ewww_debug'] ) ? 1 : 0;
-	$per_page    = 50;
-	$offset      = empty( $_POST['ewww_offset'] ) ? 0 : $per_page * abs( (int) $_POST['ewww_offset'] );
-	$search      = empty( $_POST['ewww_search'] ) ? '' : sanitize_text_field( wp_unslash( $_POST['ewww_search'] ) );
-	$pending     = empty( $_POST['ewww_pending'] ) ? 0 : 1;
+	$per_page = 50;
+	$offset   = empty( $_POST['ewww_offset'] ) ? 0 : $per_page * abs( (int) $_POST['ewww_offset'] );
+	$search   = empty( $_POST['ewww_search'] ) ? '' : sanitize_text_field( wp_unslash( $_POST['ewww_search'] ) );
+	$pending  = empty( $_POST['ewww_pending'] ) ? 0 : 1;
 	if ( ! empty( $_POST['ewww_skew'] ) ) {
 		$skew = (int) $_POST['ewww_skew'];
 		if ( $skew > 0 ) {
@@ -64,20 +63,35 @@ function ewww_image_optimizer_aux_images_table() {
 		$sort_column     = 'id';
 		$sort_direction  = 'DESC';
 		$size_sort_class = '';
+		$attachment_sort = true;
 		if ( ! empty( $_POST['ewww_size_sort'] ) && 'asc' === $_POST['ewww_size_sort'] ) {
 			$sort_column     = 'orig_size';
 			$sort_direction  = 'ASC';
 			$size_sort_class = 'ewww-size-asc';
+			$attachment_sort = false;
 		} elseif ( ! empty( $_POST['ewww_size_sort'] ) && 'desc' === $_POST['ewww_size_sort'] ) {
 			$sort_column     = 'orig_size';
 			$sort_direction  = 'DESC';
 			$size_sort_class = 'ewww-size-desc';
+			$attachment_sort = false;
 		}
 		if ( ! empty( $search ) ) {
 			if ( 'ASC' === $sort_direction ) {
 				$already_optimized = $wpdb->get_results(
 					$wpdb->prepare(
-						'SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,trace,UNIX_TIMESTAMP(updated) AS updated FROM %i WHERE pending=1 AND path LIKE %s ORDER BY %i ASC LIMIT %d,%d',
+						'SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,UNIX_TIMESTAMP(updated) AS updated FROM %i WHERE pending=1 AND path LIKE %s ORDER BY %i ASC LIMIT %d,%d',
+						$wpdb->ewwwio_images,
+						'%' . $wpdb->esc_like( $search ) . '%',
+						$sort_column,
+						$offset,
+						$per_page
+					),
+					ARRAY_A
+				);
+			} elseif ( ! $attachment_sort ) {
+				$already_optimized = $wpdb->get_results(
+					$wpdb->prepare(
+						'SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,UNIX_TIMESTAMP(updated) AS updated FROM %i WHERE pending=1 AND path LIKE %s ORDER BY %i DESC LIMIT %d,%d',
 						$wpdb->ewwwio_images,
 						'%' . $wpdb->esc_like( $search ) . '%',
 						$sort_column,
@@ -89,7 +103,7 @@ function ewww_image_optimizer_aux_images_table() {
 			} else {
 				$already_optimized = $wpdb->get_results(
 					$wpdb->prepare(
-						'SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,trace,UNIX_TIMESTAMP(updated) AS updated FROM %i WHERE pending=1 AND path LIKE %s ORDER BY %i DESC LIMIT %d,%d',
+						'SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,UNIX_TIMESTAMP(updated) AS updated FROM %i WHERE pending=1 AND path LIKE %s ORDER BY attachment_id DESC, %i DESC LIMIT %d,%d',
 						$wpdb->ewwwio_images,
 						'%' . $wpdb->esc_like( $search ) . '%',
 						$sort_column,
@@ -117,7 +131,18 @@ function ewww_image_optimizer_aux_images_table() {
 			if ( 'ASC' === $sort_direction ) {
 				$already_optimized = $wpdb->get_results(
 					$wpdb->prepare(
-						'SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,trace,UNIX_TIMESTAMP(updated) AS updated FROM %i WHERE pending=1 ORDER BY %i ASC LIMIT %d,%d',
+						'SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,UNIX_TIMESTAMP(updated) AS updated FROM %i WHERE pending=1 ORDER BY %i ASC LIMIT %d,%d',
+						$wpdb->ewwwio_images,
+						$sort_column,
+						$offset,
+						$per_page
+					),
+					ARRAY_A
+				);
+			} elseif ( ! $attachment_sort ) {
+				$already_optimized = $wpdb->get_results(
+					$wpdb->prepare(
+						'SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,UNIX_TIMESTAMP(updated) AS updated FROM %i WHERE pending=1 ORDER BY %i DESC LIMIT %d,%d',
 						$wpdb->ewwwio_images,
 						$sort_column,
 						$offset,
@@ -128,7 +153,7 @@ function ewww_image_optimizer_aux_images_table() {
 			} else {
 				$already_optimized = $wpdb->get_results(
 					$wpdb->prepare(
-						'SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,trace,UNIX_TIMESTAMP(updated) AS updated FROM %i WHERE pending=1 ORDER BY %i DESC LIMIT %d,%d',
+						'SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,UNIX_TIMESTAMP(updated) AS updated FROM %i WHERE pending=1 ORDER BY attachment_id DESC, %i DESC LIMIT %d,%d',
 						$wpdb->ewwwio_images,
 						$sort_column,
 						$offset,
@@ -143,44 +168,23 @@ function ewww_image_optimizer_aux_images_table() {
 			$output['search_result'] = sprintf( esc_html__( '%d items displayed', 'ewww-image-optimizer' ), count( $already_optimized ) );
 		}
 	} elseif ( ! empty( $search ) ) {
-		if ( $debug_query ) {
-			$already_optimized = $wpdb->get_results(
-				$wpdb->prepare(
-					'SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,trace,UNIX_TIMESTAMP(updated) AS updated FROM %i WHERE pending=0 AND image_size > 0 AND updates > %d AND path LIKE %s ORDER BY updates DESC,id DESC LIMIT %d,%d',
-					$wpdb->ewwwio_images,
-					$debug_query,
-					'%' . $wpdb->esc_like( $search ) . '%',
-					$offset,
-					$per_page
-				),
-				ARRAY_A
-			);
-			$search_count      = $wpdb->get_var(
-				$wpdb->prepare(
-					"SELECT COUNT(*) FROM $wpdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d AND path LIKE %s",
-					$debug_query,
-					'%' . $wpdb->esc_like( $search ) . '%'
-				)
-			);
-		} else {
-			$already_optimized = $wpdb->get_results(
-				$wpdb->prepare(
-					'SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,trace,UNIX_TIMESTAMP(updated) AS updated FROM %i WHERE pending=0 AND image_size > 0 AND path LIKE %s ORDER BY id DESC LIMIT %d,%d',
-					$wpdb->ewwwio_images,
-					'%' . $wpdb->esc_like( $search ) . '%',
-					$offset,
-					$per_page
-				),
-				ARRAY_A
-			);
-			$search_count      = $wpdb->get_var(
-				$wpdb->prepare(
-					'SELECT COUNT(*) FROM %i WHERE pending=0 AND image_size > 0 AND path LIKE %s',
-					$wpdb->ewwwio_images,
-					'%' . $wpdb->esc_like( $search ) . '%'
-				)
-			);
-		}
+		$already_optimized = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,UNIX_TIMESTAMP(updated) AS updated FROM %i WHERE pending=0 AND image_size > 0 AND path LIKE %s ORDER BY id DESC LIMIT %d,%d',
+				$wpdb->ewwwio_images,
+				'%' . $wpdb->esc_like( $search ) . '%',
+				$offset,
+				$per_page
+			),
+			ARRAY_A
+		);
+		$search_count      = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM %i WHERE pending=0 AND image_size > 0 AND path LIKE %s',
+				$wpdb->ewwwio_images,
+				'%' . $wpdb->esc_like( $search ) . '%'
+			)
+		);
 		if ( $search_count < $per_page ) {
 			/* translators: %d: number of image records found */
 			$output['search_result'] = sprintf( esc_html__( '%d items found', 'ewww-image-optimizer' ), count( $already_optimized ) );
@@ -190,45 +194,22 @@ function ewww_image_optimizer_aux_images_table() {
 		}
 		$total = ceil( $search_count / $per_page );
 	} else {
-		if ( $debug_query ) {
-			$already_optimized = $wpdb->get_results(
-				$wpdb->prepare(
-					'SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,trace,UNIX_TIMESTAMP(updated) AS updated FROM %i WHERE pending=0 AND image_size > 0 AND updates > %d ORDER BY updates DESC,id DESC LIMIT %d,%d',
-					$wpdb->ewwwio_images,
-					$debug_query,
-					$offset,
-					$per_page
-				),
-				ARRAY_A
-			);
-			$search_count      = $wpdb->get_var(
-				$wpdb->prepare(
-					"SELECT COUNT(*) FROM $wpdb->ewwwio_images WHERE pending=0 AND image_size > 0 AND updates > %d",
-					$debug_query
-				)
-			);
-			if ( $search_count > $per_page ) {
-				/* translators: 1: number of image records displayed, 2: number of total records found */
-				$output['search_result'] = sprintf( esc_html__( '%1$d items displayed of %2$d records found', 'ewww-image-optimizer' ), count( $already_optimized ), $search_count );
-			}
-		} else {
-			$already_optimized = $wpdb->get_results(
-				$wpdb->prepare(
-					'SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,trace,UNIX_TIMESTAMP(updated) AS updated FROM %i WHERE pending=0 AND image_size > 0 ORDER BY id DESC LIMIT %d,%d',
-					$wpdb->ewwwio_images,
-					$offset,
-					$per_page
-				),
-				ARRAY_A
-			);
-			$search_count      = $wpdb->get_var(
-				$wpdb->prepare(
-					'SELECT COUNT(*) FROM %i WHERE pending=0 AND image_size > 0',
-					$wpdb->ewwwio_images
-				)
-			);
-		}
-		$total = ceil( $search_count / $per_page );
+		$already_optimized = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT path,orig_size,image_size,id,backup,attachment_id,gallery,resize_error,webp_size,webp_error,updates,UNIX_TIMESTAMP(updated) AS updated FROM %i WHERE pending=0 AND image_size > 0 ORDER BY id DESC LIMIT %d,%d',
+				$wpdb->ewwwio_images,
+				$offset,
+				$per_page
+			),
+			ARRAY_A
+		);
+		$search_count      = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM %i WHERE pending=0 AND image_size > 0',
+				$wpdb->ewwwio_images
+			)
+		);
+		$total             = ceil( $search_count / $per_page );
 		if ( empty( $output['search_result'] ) ) {
 			/* translators: %d: number of image records found */
 			$output['search_result'] = sprintf( esc_html__( '%d items displayed', 'ewww-image-optimizer' ), count( $already_optimized ) );
@@ -283,14 +264,8 @@ function ewww_image_optimizer_aux_images_table() {
 		$alternate = true;
 		foreach ( $already_optimized as $optimized_image ) {
 			$optimized_image['pending'] = $pending;
-			if ( empty( $debug_query ) ) {
-				$optimized_image['trace'] = '';
-			} elseif ( empty( $optimized_image['trace'] ) ) {
-				// This will allow us to show the message that there is no trace available, and that they should enable debugging to record trace logs.
-				$optimized_image['trace'] = 1;
-			}
-			$output['table'] .= ewww_image_optimizer_get_image_table_row( $optimized_image, $alternate );
-			$alternate        = ! $alternate;
+			$output['table']           .= ewww_image_optimizer_get_image_table_row( $optimized_image, $alternate );
+			$alternate                  = ! $alternate;
 		} // End foreach().
 	}
 
@@ -313,7 +288,6 @@ function ewww_image_optimizer_get_image_table_row( $optimized_image, $alternate,
 	$image_name = str_replace( ABSPATH, '', $file );
 	$thumb_url  = '';
 	$image_url  = '';
-	$trace      = ! empty( $optimized_image['trace'] ) ? maybe_unserialize( $optimized_image['trace'] ) : array();
 	ewwwio_debug_message( "name is $image_name after replacing ABSPATH" );
 	if ( 'media' === $optimized_image['gallery'] && ! empty( $optimized_image['attachment_id'] ) ) {
 		$thumb_url = wp_get_attachment_image_url( $optimized_image['attachment_id'] );
@@ -371,24 +345,6 @@ function ewww_image_optimizer_get_image_table_row( $optimized_image, $alternate,
 		<td style="width:50px;" class="column-icon"><img style="width:50px;height:50px;object-fit:contain;" loading="lazy" src="<?php echo esc_url( $thumb_url ); ?>" /></td>
 		<td class="title">
 			<?php echo esc_html( $image_name ); ?>
-	<?php if ( ! empty( $trace ) ) : ?>
-			<?php /* translators: %d: number of re-optimizations */ ?>
-			<br><?php printf( esc_html__( 'Number of attempted optimizations: %d', 'ewww-image-optimizer' ), (int) $optimized_image['updates'] ); ?>
-		<?php if ( is_array( $trace ) ) : ?>
-			<br><?php echo esc_html__( 'PHP trace:', 'ewww-image-optimizer' ); ?>
-			<?php $i = 0; ?>
-			<?php foreach ( $trace as $function ) : ?>
-				<?php if ( ! empty( $function['file'] ) && ! empty( $function['line'] ) ) : ?>
-					<?php echo esc_html( "#$i {$function['function']}() called at {$function['file']}:{$function['line']}" ); ?><br>
-				<?php elseif ( ! empty( $function['function'] ) ) : ?>
-					<?php echo esc_html( "#$i {$function['function']}() called" ); ?><br>
-				<?php endif; ?>
-				<?php ++$i; ?>
-			<?php endforeach; ?>
-		<?php else : ?>
-			<br><?php esc_html_e( 'No PHP trace available, enable Debugging option to store trace logs.', 'ewww-image-optimizer' ); ?>
-		<?php endif; ?>
-	<?php endif; ?>
 	<?php if ( $show_links ) : ?>
 			<br><a class="ewww-remove-image" data-id="<?php echo (int) $optimized_image['id']; ?>"><?php echo esc_html( $remove_from_text ); ?></a>
 		<?php if ( $optimized_image['pending'] ) : ?>

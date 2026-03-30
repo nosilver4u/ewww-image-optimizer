@@ -1314,6 +1314,9 @@ function ewww_image_optimizer_install_table() {
 				if ( 'results' === $tablefield->Field ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images DROP COLUMN results" );
 				}
+				if ( 'trace' === $tablefield->Field ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images DROP COLUMN trace" );
+				}
 			}
 		}
 		if (
@@ -1419,7 +1422,6 @@ function ewww_image_optimizer_install_table() {
 	 * pending: 1 if the image is queued for optimization,
 	 * updates: how many times an image has been optimized,
 	 * updated: when the image was last optimized,
-	 * trace: tracelog from the last optimization if debugging was enabled.
 	 */
 	$sql = "CREATE TABLE $wpdb->ewwwio_images (
 		id bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -1441,7 +1443,6 @@ function ewww_image_optimizer_install_table() {
 		pending tinyint NOT NULL DEFAULT 0,
 		updates int unsigned,
 		updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-		trace blob,
 		$primary_key_definition
 		KEY path (path($path_index_size)),
 		KEY attachment_info (gallery(3),attachment_id)
@@ -6462,9 +6463,6 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 			$updates['updates'] = $already_optimized['updates'] + 1;
 		}
 		$updates['pending'] = 0;
-		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) && $already_optimized['updates'] > 1 ) {
-			$updates['trace'] = ewwwio_debug_backtrace();
-		}
 		if ( empty( $already_optimized['gallery'] ) && is_object( $ewww_image ) && $ewww_image instanceof EWWW_Image && $ewww_image->gallery ) {
 			$updates['gallery'] = $ewww_image->gallery;
 		}
@@ -15261,34 +15259,6 @@ function ewwwio_debug_version_info() {
 	$eio_debug .= 'core plugin<br>';
 
 	EWWW\Base::$debug_data .= $eio_debug;
-}
-
-/**
- * Generate and cleanup a PHP backtrace.
- *
- * @return string A serialized backtrace, suitable for database storage.
- */
-function ewwwio_debug_backtrace() {
-	if ( defined( 'DEBUG_BACKTRACE_IGNORE_ARGS' ) ) {
-		$backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
-	} else {
-		$backtrace = debug_backtrace( false );
-	}
-	if ( is_array( $backtrace ) && count( $backtrace ) > 2 ) {
-		foreach ( $backtrace as $trace ) {
-			if ( isset( $trace['function'] ) ) {
-				if ( str_contains( $trace['function'], 'bulk_loop' ) ) {
-					return '';
-				}
-				if ( str_contains( $trace['function'], 'optimizer_manual' ) ) {
-					return '';
-				}
-			}
-		}
-		array_shift( $backtrace );
-		array_shift( $backtrace );
-	}
-	return maybe_serialize( $backtrace );
 }
 
 /**

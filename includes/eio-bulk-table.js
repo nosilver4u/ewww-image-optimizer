@@ -22,7 +22,6 @@ jQuery(document).ready(function($) {
 	var ewww_total_images = 0;
 	var ewww_total_pending = 0;
 	var ewww_pointer = 0;
-	var ewww_search_total = 0;
 	var ewww_size_sort = false;
 	var ewww_bulk_start_time = 0;
 	var ewww_bulk_elapsed_time = 0;
@@ -278,11 +277,6 @@ jQuery(document).ready(function($) {
 					$('#ewww-optimize-local-images').append( '<br><i>' + ewww_tiny_skip + '</i>' );
 					console.log( 'done, skipped some tiny images' );
 				}
-				// TODO: does this matter on bigger sites where the scan takes long enough that the table isn't visible yet?
-				// .
-				if (! ewww_table_visible) {
-					//$('#ewww-bulk-results').hide();
-				}
 				if (ewww_scan_only) {
 					$('.ewww-bulk-spinner').hide();
 					$('.ewww-start-optimization').removeClass('button-secondary');
@@ -411,7 +405,7 @@ jQuery(document).ready(function($) {
 		$('.ewww-search-input').val('');
 		$('.current-page-info .current-page').text(1);
 		ewwwBulkFirstPage.clone().replaceAll('#ewww-bulk-table table');
-		if (ewwwBulkFirstPage.children().length < 50) {
+		if (ewwwBulkFirstPage.find('tbody tr').length < 50) {
 			$('.next-page').addClass('disabled');
 			$('.last-page').addClass('disabled');
 		}
@@ -690,7 +684,6 @@ jQuery(document).ready(function($) {
 			$('#ewww-search-pending').show();
 			$('#ewww-showing-queue').hide();
 			if ( ewwwBulkFirstLoop.total_pages > 0 ) {
-				ewww_search_total = ewwwBulkFirstLoop.total_pages;
 				ewww_total_pages  = ewwwBulkFirstLoop.total_pages;
 			}
 			$('.current-page-info').html(ewwwBulkFirstLoop.pagination);
@@ -724,15 +717,14 @@ jQuery(document).ready(function($) {
 					ewwwBulkFirstPage = $('#ewww-bulk-table table').clone();
 				});
 			} else {
-				ewwwBulkFirstPage.prepend(image_row);
-				if (ewwwBulkFirstPage.children().length > 50) {
+				ewwwBulkFirstPage.find('tbody').prepend(image_row);
+				if (ewwwBulkFirstPage.find('tbody tr').length > 50) {
 					// Remove the last row, as it belongs on the next page now.
-					ewwwBulkFirstPage.children().last().remove();
+					ewwwBulkFirstPage.find('tbody tr').last().remove();
 				}
 			}
 			isAlternate = ! isAlternate;
 		});
-		// This might have issues, but shouldn't, as the increment is done right away, and only the bits in the fadeIn() happen more slowly.
 		if (ewww_total_images >= 50) {
 			ewww_total_pages = Math.ceil(ewww_total_images / 50);
 			$('.current-page-info .total-pages').text(ewwwNumberFormat.format(ewww_total_pages));
@@ -894,7 +886,11 @@ jQuery(document).ready(function($) {
 			if (ewww_response && ewww_pending == 0 && ewww_response.show_pending_button) {
 				$('#ewww-search-pending').show();
 			}
-			ewww_total_images = ewww_response.total_images;
+			if (ewww_pending) {
+				ewww_total_pending = ewww_response.total_images;
+			} else {
+				ewww_total_images = ewww_response.total_images;
+			}
 			if (ewww_response && ewww_response.total_images > 50) {
 				$('.next-page').removeClass('disabled');
 				$('.last-page').removeClass('disabled');
@@ -921,7 +917,6 @@ jQuery(document).ready(function($) {
 		$('#ewww-bulk-table').html(ewww_response.table);
 		$('.ewww-search-count').text(ewww_response.search_result);
 		if ( ewww_response.total_pages > 0 ) {
-			ewww_search_total = ewww_response.total_pages;
 			ewww_total_pages  = ewww_response.total_pages;
 		}
 		$('.current-page-info').html(ewww_response.pagination);
@@ -964,10 +959,13 @@ jQuery(document).ready(function($) {
 		ewww_pending = 0;
 		$(this).hide();
 		$('#ewww-search-pending').show();
-		if (ewwwBulkFirstPage && ewwwBulkFirstPage.children().length > 0) {
+		if (ewwwBulkFirstPage && ewwwBulkFirstPage.find('tbody tr').length > 0) {
 			$('.current-page-info .current-page').text(1);
 			ewwwBulkFirstPage.clone().replaceAll('#ewww-bulk-table table');
-			if (ewwwBulkFirstPage.children().length >= 50) {
+			$('.displaying-num .total-images').text(ewwwNumberFormat.format(ewww_total_images));
+			if (ewwwBulkFirstPage.find('tbody tr').length >= 50) {
+				ewww_total_pages = Math.ceil(ewww_total_images / 50);
+				$('.current-page-info .total-pages').text(ewwwNumberFormat.format(ewww_total_pages));
 				$('.next-page').removeClass('disabled');
 				$('.last-page').removeClass('disabled');
 			}
@@ -1012,7 +1010,6 @@ jQuery(document).ready(function($) {
 		};
 		$.post(ajaxurl, ewww_table_data, function(response) {
 			var ewww_response = ewwwParseTableResponse(response);
-			ewww_search_total = ewww_response.total_pages;
 			ewww_total_pages  = ewww_response.total_pages;
 			if (ewww_response && ewww_response.total_images > 50) {
 				$('.next-page').removeClass('disabled');
@@ -1065,7 +1062,7 @@ jQuery(document).ready(function($) {
 		}
 		var ewww_search = $('.ewww-search-input').val();
 		ewww_pointer--;
-		if (! ewww_search && ! ewww_pending && 0 === ewww_pointer && ewwwBulkFirstPage && ewwwBulkFirstPage.children().length > 0) {
+		if (! ewww_search && ! ewww_pending && 0 === ewww_pointer && ewwwBulkFirstPage && ewwwBulkFirstPage.find('tbody tr').length > 0) {
 			$('.current-page-info .current-page').text(1);
 			ewwwBulkFirstPage.clone().replaceAll('#ewww-bulk-table table');
 		} else {
@@ -1101,11 +1098,8 @@ jQuery(document).ready(function($) {
 			$('.ewww-bulk-spinner').hide();
 		}
 		clearTimeout(ewww_autopoll_timeout);
-		var ewww_search = $('.ewww-search-input').val();
-		ewww_pointer = ewww_total_pages - 1;
-		if (ewww_search) {
-			ewww_pointer = ewww_search_total - 1;
-		}
+		var ewww_search     = $('.ewww-search-input').val();
+		ewww_pointer        = ewww_total_pages - 1;
 		var ewww_table_data = {
 			action: ewww_table_action,
 			ewww_wpnonce: ewww_bulk._wpnonce,
@@ -1129,7 +1123,7 @@ jQuery(document).ready(function($) {
 		}
 		ewww_pointer = 0;
 		var ewww_search = $('.ewww-search-input').val();
-		if (! ewww_search && ! ewww_pending && ewwwBulkFirstPage && ewwwBulkFirstPage.children().length > 0) {
+		if (! ewww_search && ! ewww_pending && ewwwBulkFirstPage && ewwwBulkFirstPage.find('tbody tr').length > 0) {
 			$('.current-page-info .current-page').text(1);
 			ewwwBulkFirstPage.clone().replaceAll('#ewww-bulk-table table');
 			$('.next-page').removeClass('disabled');

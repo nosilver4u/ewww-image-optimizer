@@ -179,6 +179,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: some strings in bulk interface not able to be translated properly for RTL locales
 * fixed: NextGEN bulk optimizer missing from menu with NextGEN 4.x
 * fixed: when media is offloaded, background optimization leaves local copies behind in some rare cases
+* fixed: list of pending images for bulk optimization sorted incorrectly
 * deprecated: direct support for GRAND FlaGallery will be removed soon, use Folders to Optimize setting instead
 * deprecated: direct support for NextCellent Gallery will be removed soon, use Folders to Optimize setting instead
 

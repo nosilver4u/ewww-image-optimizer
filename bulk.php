@@ -16,30 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function ewww_image_optimizer_display_tools() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	echo "<div class='wrap'>\n";
-	echo "<h1 id='ewwwio-tools-header'>EWWW Image Optimizer</h1>\n";
 
-	// Find out if the auxiliary image table has anything in it.
 	$already_optimized = ewww_image_optimizer_aux_images_table_count();
-	if ( ! $already_optimized ) {
-		esc_html_e( 'Nothing has been optimized yet!', 'ewww-image-optimizer' );
-		echo "</div>\n";
-		return;
-	}
-
-	echo "<div id='ewww-aux-forms'>\n";
-	echo "<p id='ewww-table-info' class='ewww-tool-info'>" .
-		/* translators: %s: number of images */
-		sprintf( esc_html__( 'The plugin keeps track of already optimized images to prevent re-optimization. There are %s images that have been optimized so far.', 'ewww-image-optimizer' ), esc_html( number_format_i18n( $already_optimized ) ) ) .
-		"</p>\n";
-	echo "<form id='ewww-show-table' class='ewww-tool-form' method='post' action=''>\n" .
-		'<button type="submit" class="button-primary action">' . esc_html__( 'Show Optimized Images', 'ewww-image-optimizer' ) . "</button>\n" .
-		"</form>\n";
-
-	ewwwio_table_nav_controls( 'top' );
-	echo '<div id="ewww-bulk-table" class="ewww-aux-table"></div>';
-	ewwwio_table_nav_controls( 'bottom' );
-	echo "\n</div>\n";
 
 	$queue_status = __( 'idle', 'ewww-image-optimizer' );
 	if ( ewwwio()->background_media->is_process_running() ) {
@@ -48,163 +26,188 @@ function ewww_image_optimizer_display_tools() {
 	if ( ewwwio()->background_image->is_process_running() ) {
 		$queue_status = __( 'running', 'ewww-image-optimizer' );
 	}
-
-	echo '<hr class="ewww-tool-divider">';
 	$queue_count  = ewwwio()->background_media->count_queue();
 	$queue_count += ewwwio()->background_image->count_queue();
-	/* translators: %s: idle/running */
-	echo "<p id='ewww-queue-info' class='ewww-tool-info'>" . sprintf( esc_html__( 'Current queue status: %s', 'ewww-image-optimizer' ), esc_html( $queue_status ) ) . "<br>\n";
 	if ( $queue_count ) {
-		/* translators: %d: number of images */
-		echo sprintf( esc_html__( 'There are %d images in the queue currently.', 'ewww-image-optimizer' ), (int) $queue_count ) . "</p>\n";
 		$nonce = wp_create_nonce( 'ewww_image_optimizer_clear_queue' );
-		echo "<form id='ewww-clear-queue' class='ewww-tool-form' method='post' action=''>\n" .
-			"<input type='hidden' id='ewww_nonce' name='ewww_nonce' value='" . esc_attr( $nonce ) . "'>" .
-			"<input type='hidden' name='action' value='ewww_image_optimizer_clear_queue'>" .
-			'<button type="submit" class="button-secondary action">' . esc_html__( 'Clear Queue', 'ewww-image-optimizer' ) . "</button>\n" .
-			"</form>\n";
-	} else {
-		echo esc_html__( 'There are no images in the queue currently.', 'ewww-image-optimizer' ) . "</p>\n";
 	}
 
-	echo '<hr class="ewww-tool-divider">';
-	echo "<div>\n<p id='ewww-clear-table-info' class='ewww-tool-info'>" .
-		esc_html__( 'The optimization history prevents the plugin from re-optimizing images, but you may erase the history to reduce database size or to force the plugin to re-optimize all images.', 'ewww-image-optimizer' );
-	echo "</p>\n";
-	echo "<form id='ewww-clear-table' class='ewww-tool-form' method='post' action=''>\n" .
-		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Erase Optimization History', 'ewww-image-optimizer' ) . "' />\n" .
-		"</form>\n</div>\n";
-
-	$backup_mode = '';
-	if ( 'local' === ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
-		$backup_mode = __( 'local', 'ewww-image-optimizer' );
-	} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
-		$backup_mode = __( 'cloud', 'ewww-image-optimizer' );
-	}
-	echo '<hr class="ewww-tool-divider">';
-	echo "<div>\n<p id='ewww-restore-originals-info' class='ewww-tool-info'>";
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
-		/* translators: %s: 'cloud' or 'local', translated separately */
-		printf( esc_html__( 'Restore all your images from %s backups in case of image corruption or degraded quality.', 'ewww-image-optimizer' ), esc_html( $backup_mode ) );
-		if ( ! get_option( 'ewww_image_optimizer_bulk_restore_position' ) ) {
-			echo '<br>';
-			esc_html_e( '*As such things are quite rare, it is highly recommended to contact support first, as this may be due to a plugin conflict.', 'ewww-image-optimizer' );
-		}
-	} else {
-		esc_html_e( 'Backups are currently disabled in the Local settings.', 'ewww-image-optimizer' );
-	}
-	echo "</p>\n";
-	echo "<form id='ewww-restore-originals' class='ewww-tool-form' method='post' action=''>\n" .
-		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Restore Images', 'ewww-image-optimizer' ) . "' " . disabled( (bool) ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ), false, false ) . " />\n" .
-		"</form>\n";
-	if ( get_option( 'ewww_image_optimizer_bulk_restore_position' ) ) {
-		?>
-		<p class="description ewww-tool-info">
-			<i><?php esc_html_e( 'Will resume from previous position.', 'ewww-image-optimizer' ); ?></i> -
-			<a  href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_reset_bulk_restore' ), 'ewww-image-optimizer-tools' ) ); ?>'>
-				<?php esc_html_e( 'Reset position', 'ewww-image-optimizer' ); ?>
-			</a>
-		</p>
-		<?php
-	}
-	echo "</div>\n";
-	echo "<div id='ewww-restore-originals-progressbar' style='display:none;'></div>";
-	echo "<div id='ewww-restore-originals-progress' style='display:none;'></div>";
-	echo "<div id='ewww-restore-originals-messages' style='display:none;'></div>";
-
-	echo '<hr class="ewww-tool-divider">';
-	echo "<div>\n<p id='ewww-clean-originals-info' class='ewww-tool-info'>" .
-		esc_html__( 'When WordPress scales down large images, it keeps the original on disk for thumbnail generation. You may delete them to save disk space.', 'ewww-image-optimizer' ) . "</p>\n";
-	echo "<form id='ewww-clean-originals' class='ewww-tool-form' method='post' action=''>\n" .
-		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Delete Originals', 'ewww-image-optimizer' ) . "' />\n" .
-		"</form>\n</div>\n";
-	echo "<div id='ewww-clean-originals-action' style='display:none;'><p>" . esc_html__( 'Searching for originals to remove...', 'ewww-image-optimizer' ) . '</p></div>';
-	echo "<div id='ewww-clean-originals-progressbar' style='display:none;'></div>";
-	echo "<div id='ewww-clean-originals-progress' style='display:none;'></div>";
-	echo "<div id='ewww-clean-originals-messages' style='display:none;'><p></p></div>";
-
-	echo '<hr class="ewww-tool-divider">';
-	echo "<div>\n<p id='ewww-clean-converted-info' class='ewww-tool-info'>" .
-		esc_html__( 'If you have converted images (PNG to JPG and friends) without deleting the originals, you may remove them when ready.', 'ewww-image-optimizer' ) . "<br>\n" .
-		'<i>' . esc_html__( 'Please perform a site backup before proceeding.', 'ewww-image-optimizer' ) . "</i></p>\n";
-	echo "<form id='ewww-clean-converted' class='ewww-tool-form' method='post' action=''>\n" .
-		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Remove Converted Originals', 'ewww-image-optimizer' ) . "' />\n" .
-		"</form>\n</div>\n";
-	echo "<div id='ewww-clean-converted-progressbar' style='display:none;'></div>";
-	echo "<div id='ewww-clean-converted-progress' style='display:none;'></div>";
-	echo "<div id='ewww-clean-converted-messages' style='display:none;'></div>";
-
-	echo '<hr class="ewww-tool-divider">';
-	echo "<div>\n<p id='ewww-clean-webp-info' class='ewww-tool-info'>" .
-		esc_html__( 'You may remove all the WebP images from your site if you no longer need them. For example, sites that use Easy IO do not need local WebP images.', 'ewww-image-optimizer' ) . "</p>\n";
-	echo "<form id='ewww-clean-webp' class='ewww-tool-form' method='post' action=''>\n" .
-		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Remove WebP Images', 'ewww-image-optimizer' ) . "' />\n" .
-		"</form>\n";
-	if ( get_option( 'ewww_image_optimizer_webp_clean_position' ) ) {
-		?>
-		<p class="description ewww-tool-info">
-			<i><?php esc_html_e( 'Will resume from previous position.', 'ewww-image-optimizer' ); ?></i> -
-			<a  href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_reset_webp_clean' ), 'ewww-image-optimizer-tools' ) ); ?>'>
-				<?php esc_html_e( 'Reset position', 'ewww-image-optimizer' ); ?>
-			</a>
-		</p>
-		<?php
-	}
 	?>
-	</div>
-	<div id='ewww-clean-webp-progressbar' style='display:none;'></div>
-	<div id='ewww-clean-webp-details'>
-		<div id='ewww-clean-webp-progress' style='display:none;'></div>
-		<div id='ewww-clean-webp-removed' style='display:none;'>
-			<?php
-			printf(
-				/* translators: %s: Number of images (wrapped in a span, to be updated via JS) */
-				esc_html__( 'Removed %s WebP images', 'ewww-image-optimizer' ),
-				"<span id='ewww-clean-webp-removed-total'>0</span>"
-			);
-			?>
-		</div>
-	</div>
-
-	<?php
-	$as3cf_remove = false;
-	if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
-		global $as3cf;
-		if ( $as3cf->get_setting( 'serve-from-s3' ) && $as3cf->get_setting( 'remove-local-file' ) ) {
-			$as3cf_remove = true;
+	<div class='wrap'>
+		<h1 id='ewwwio-tools-header'>EWWW Image Optimizer</h1>
+	<?php if ( empty( $already_optimized ) ) : ?>
+		<?php esc_html_e( 'Nothing has been optimized yet!', 'ewww-image-optimizer' ); ?>
+	<?php else : ?>
+		<?php
+		$backup_mode = '';
+		if ( 'local' === ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
+			$backup_mode = __( 'local', 'ewww-image-optimizer' );
+		} elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) {
+			$backup_mode = __( 'cloud', 'ewww-image-optimizer' );
 		}
-	}
-	if ( ! ewww_image_optimizer_s3_uploads_enabled() && ! function_exists( 'ud_get_stateless_media' ) && ! $as3cf_remove ) {
-		echo '<hr class="ewww-tool-divider">';
-		echo "<div>\n<p id='ewww-clean-table-info' class='ewww-tool-info'>" .
-			esc_html__( 'Older sites may have duplicate records or references to deleted files. Use the cleanup tool to remove such records.', 'ewww-image-optimizer' ) . '<br>' .
-			'<i>' . esc_html__( 'If you offload your media to external storage like Amazon S3, and remove the local files, do not run this tool.', 'ewww-image-optimizer' ) . "</i></p>\n";
-		echo "<form id='ewww-clean-table' class='ewww-tool-form' method='post' action=''>\n" .
-			"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Clean Optimization Records', 'ewww-image-optimizer' ) . "' />\n" .
-			"</form>\n</div>\n";
-		echo "<div id='ewww-clean-table-progressbar' style='display:none;'></div>";
-		echo "<div id='ewww-clean-table-progress' style='display:none;'></div>";
-	}
 
-	global $wpdb;
-	$years_since_meta_migration = (int) gmdate( 'Y' ) - 2017;
-	echo '<hr class="ewww-tool-divider">';
-	echo "<div>\n<p id='ewww-clean-meta-info' class='ewww-tool-info'>" .
-		/* translators: 1: number of years 2: postmeta table name 3: ewwwio_images table name */
-		esc_html( sprintf( __( 'Sites using EWWW IO for more than %1$d years may have optimization data that still needs to be migrated between the %2$s and %3$s tables.', 'ewww-image-optimizer' ), $years_since_meta_migration, $wpdb->postmeta, $wpdb->ewwwio_images ) ) . "</p>\n";
-	echo "<form id='ewww-clean-meta' class='ewww-tool-form' method='post' action=''>\n" .
-		"<input type='submit' class='button-secondary action' value='" . esc_attr__( 'Migrate Optimization Records', 'ewww-image-optimizer' ) . "' />\n" .
-		"</form>\n</div>\n";
-	echo "<div id='ewww-clean-meta-progressbar' style='display:none;'></div>";
-	echo "<div id='ewww-clean-meta-progress' style='display:none;'></div>";
+		$as3cf_remove = false;
+		if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
+			global $as3cf;
+			if ( $as3cf->get_setting( 'serve-from-s3' ) && $as3cf->get_setting( 'remove-local-file' ) ) {
+				$as3cf_remove = true;
+			}
+		}
+		global $wpdb;
+		$years_since_meta_migration = (int) gmdate( 'Y' ) - 2017;
+		?>
 
-	echo '<hr class="ewww-tool-divider">';
-	echo "<p id='ewww-debug-table-info' class='ewww-tool-info'>" . esc_html__( 'Some plugins have bugs that cause them to re-create thumbnails and trigger re-optimization when the images are modified. Turn on the Debugging option to record trace logs for further investigation.', 'ewww-image-optimizer' ) . "</p>\n";
-	echo "<form id='ewww-show-debug-table' class='ewww-tool-form' method='post' action=''>\n" .
-		'<button type="submit" class="button-secondary action">' . esc_html__( 'Show Re-optimized Images', 'ewww-image-optimizer' ) . "</button>\n" .
-		"</form>\n";
+		<p id='ewww-queue-info' class='ewww-tool-info'>
+			<?php /* translators: %s: idle/running */ ?>
+			<?php printf( esc_html__( 'Current queue status: %s', 'ewww-image-optimizer' ), esc_html( $queue_status ) ); ?><br>
+		<?php if ( $queue_count ) : ?>
+			<?php /* translators: %d: number of images */ ?>
+			<?php printf( esc_html__( 'There are %d images in the queue currently.', 'ewww-image-optimizer' ), (int) $queue_count ); ?>
+		</p>
+		<form id='ewww-clear-queue' class='ewww-tool-form' method='post' action=''>
+			<input type='hidden' id='ewww_nonce' name='ewww_nonce' value='<?php echo esc_attr( $nonce ); ?>'>
+			<input type='hidden' name='action' value='ewww_image_optimizer_clear_queue'>
+			<button type="submit" class="button-secondary action"><?php esc_html_e( 'Clear Queue', 'ewww-image-optimizer' ); ?></button>
+		</form>
+		<?php else : ?>
+			<?php esc_html_e( 'There are no images in the queue currently.', 'ewww-image-optimizer' ); ?>
+		</p>
+		<?php endif; ?>
 
-	echo "</div>\n";
+		<?php if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) ) : ?>
+		<hr class="ewww-tool-divider">
+
+		<div>
+			<p id='ewww-restore-originals-info' class='ewww-tool-info'>
+			<?php /* translators: %s: 'cloud' or 'local', translated separately */ ?>
+			<?php printf( esc_html__( 'Restore all your images from %s backups in case of image corruption or degraded quality.', 'ewww-image-optimizer' ), esc_html( $backup_mode ) ); ?>
+			<?php if ( ! get_option( 'ewww_image_optimizer_bulk_restore_position' ) ) : ?>
+				<br>
+				<?php esc_html_e( '*As such things are quite rare, it is highly recommended to contact support first, as this may be due to a plugin conflict.', 'ewww-image-optimizer' ); ?>
+			<?php endif; ?>
+			</p>
+			<form id='ewww-restore-originals' class='ewww-tool-form' method='post' action=''>
+				<input type='submit' class='button-secondary action' value='<?php echo esc_attr__( 'Restore Images', 'ewww-image-optimizer' ); ?>' />
+			</form>
+			<?php if ( get_option( 'ewww_image_optimizer_bulk_restore_position' ) ) : ?>
+			<p class="description ewww-tool-info">
+				<i><?php esc_html_e( 'Will resume from previous position.', 'ewww-image-optimizer' ); ?></i> -
+				<a  href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_reset_bulk_restore' ), 'ewww-image-optimizer-tools' ) ); ?>'>
+					<?php esc_html_e( 'Reset position', 'ewww-image-optimizer' ); ?>
+				</a>
+			</p>
+			<?php endif; ?>
+		</div>
+		<div id='ewww-restore-originals-progressbar' style='display:none;'></div>
+		<div id='ewww-restore-originals-progress' style='display:none;'></div>
+		<div id='ewww-restore-originals-messages' style='display:none;'></div>
+		<?php endif; ?>
+
+		<hr class="ewww-tool-divider">
+
+		<div>
+			<p id='ewww-clean-originals-info' class='ewww-tool-info'>
+				<?php esc_html_e( 'When WordPress scales down large images, it keeps the original on disk for thumbnail generation. You may delete them to save disk space.', 'ewww-image-optimizer' ); ?>
+			</p>
+			<form id='ewww-clean-originals' class='ewww-tool-form' method='post' action=''>
+				<input type='submit' class='button-secondary action' value='<?php echo esc_attr__( 'Delete Originals', 'ewww-image-optimizer' ); ?>' />
+			</form>
+		</div>
+		<div id='ewww-clean-originals-action' style='display:none;'>
+			<p>
+				<?php esc_html_e( 'Searching for originals to remove...', 'ewww-image-optimizer' ); ?>
+			</p>
+		</div>
+		<div id='ewww-clean-originals-progressbar' style='display:none;'></div>
+		<div id='ewww-clean-originals-progress' style='display:none;'></div>
+		<div id='ewww-clean-originals-messages' style='display:none;'><p></p></div>
+
+		<hr class="ewww-tool-divider">
+
+		<div>
+			<p id='ewww-clean-converted-info' class='ewww-tool-info'>
+				<?php esc_html_e( 'If you have converted images (PNG to JPG and friends) without deleting the originals, you may remove them when ready.', 'ewww-image-optimizer' ); ?>
+			</p>
+			<form id='ewww-clean-converted' class='ewww-tool-form' method='post' action=''>
+				<input type='submit' class='button-secondary action' value='<?php echo esc_attr__( 'Remove Converted Originals', 'ewww-image-optimizer' ); ?>' />
+			</form>
+		</div>
+		<div id='ewww-clean-converted-progressbar' style='display:none;'></div>
+		<div id='ewww-clean-converted-progress' style='display:none;'></div>
+		<div id='ewww-clean-converted-messages' style='display:none;'></div>
+
+		<hr class="ewww-tool-divider">
+
+		<div>
+			<p id='ewww-clean-webp-info' class='ewww-tool-info'>
+				<?php esc_html_e( 'You may remove all the WebP images from your site if you no longer need them. For example, sites that use Easy IO do not need local WebP images.', 'ewww-image-optimizer' ); ?>
+			</p>
+			<form id='ewww-clean-webp' class='ewww-tool-form' method='post' action=''>
+				<input type='submit' class='button-secondary action' value='<?php echo esc_attr__( 'Remove WebP Images', 'ewww-image-optimizer' ); ?>' />
+			</form>
+		<?php if ( get_option( 'ewww_image_optimizer_webp_clean_position' ) ) : ?>
+			<p class="description ewww-tool-info">
+				<i><?php esc_html_e( 'Will resume from previous position.', 'ewww-image-optimizer' ); ?></i> -
+				<a  href='<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=ewww_image_optimizer_reset_webp_clean' ), 'ewww-image-optimizer-tools' ) ); ?>'>
+					<?php esc_html_e( 'Reset position', 'ewww-image-optimizer' ); ?>
+				</a>
+			</p>
+		<?php endif; ?>
+		</div>
+		<div id='ewww-clean-webp-progressbar' style='display:none;'></div>
+		<div id='ewww-clean-webp-details'>
+			<div id='ewww-clean-webp-progress' style='display:none;'></div>
+			<div id='ewww-clean-webp-removed' style='display:none;'>
+				<?php
+				printf(
+					/* translators: %s: Number of images (wrapped in a span, to be updated via JS) */
+					esc_html__( 'Removed %s WebP images', 'ewww-image-optimizer' ),
+					"<span id='ewww-clean-webp-removed-total'>0</span>"
+				);
+				?>
+			</div>
+		</div>
+
+		<?php if ( ! ewww_image_optimizer_s3_uploads_enabled() && ! function_exists( 'ud_get_stateless_media' ) && ! $as3cf_remove ) : ?>
+		<hr class="ewww-tool-divider">
+		<div>
+			<p id='ewww-clean-table-info' class='ewww-tool-info'>
+				<?php esc_html_e( 'Older sites may have duplicate records or references to deleted files. Use the cleanup tool to remove such records.', 'ewww-image-optimizer' ); ?><br>
+				<i><?php esc_html_e( 'If you offload your media to external storage like Amazon S3, and remove the local files, do not run this tool.', 'ewww-image-optimizer' ); ?></i>
+			</p>
+			<form id='ewww-clean-table' class='ewww-tool-form' method='post' action=''>
+				<input type='submit' class='button-secondary action' value='<?php echo esc_attr__( 'Clean Optimization Records', 'ewww-image-optimizer' ); ?>' />
+			</form>
+		</div>
+		<div id='ewww-clean-table-progressbar' style='display:none;'></div>
+		<div id='ewww-clean-table-progress' style='display:none;'></div>
+		<?php endif; ?>
+
+		<hr class="ewww-tool-divider">
+		<div>
+			<p id='ewww-clean-meta-info' class='ewww-tool-info'>
+				<?php /* translators: 1: number of years 2: postmeta table name 3: ewwwio_images table name */ ?>
+				<?php printf( esc_html__( 'Sites using EWWW IO for more than %1$d years may have optimization data that still needs to be migrated between the %2$s and %3$s tables.', 'ewww-image-optimizer' ), (int) $years_since_meta_migration, esc_html( $wpdb->postmeta ), esc_html( $wpdb->ewwwio_images ) ); ?>
+			</p>
+			<form id='ewww-clean-meta' class='ewww-tool-form' method='post' action=''>
+				<input type='submit' class='button-secondary action' value='<?php echo esc_attr__( 'Migrate Optimization Records', 'ewww-image-optimizer' ); ?>' />
+			</form>
+		</div>
+		<div id='ewww-clean-meta-progressbar' style='display:none;'></div>
+		<div id='ewww-clean-meta-progress' style='display:none;'></div>
+
+		<hr class="ewww-tool-divider">
+		<div>
+			<p id='ewww-clear-table-info' class='ewww-tool-info'>
+				<?php esc_html_e( 'The optimization history prevents the plugin from re-optimizing images, but you may erase the history to reduce database size or to force the plugin to re-optimize all images.', 'ewww-image-optimizer' ); ?>
+			</p>
+			<form id='ewww-clear-table' class='ewww-tool-form' method='post' action=''>
+				<input type='submit' class='button-secondary action' value='<?php echo esc_attr__( 'Erase Optimization History', 'ewww-image-optimizer' ); ?>' />
+			</form>
+		</div>
+	<?php endif; ?>
+	</div>
+	<?php
 }
 
 /**
@@ -265,7 +268,10 @@ function ewww_image_optimizer_tool_script( $hook ) {
 		return;
 	}
 	add_filter( 'admin_footer_text', 'ewww_image_optimizer_footer_review_text' );
+
 	wp_enqueue_script( 'ewww-tool-script', plugins_url( '/includes/eio-tools.js', __FILE__ ), array( 'jquery', 'jquery-ui-progressbar' ), EWWW_IMAGE_OPTIMIZER_VERSION, true );
+	wp_enqueue_style( 'ewww-admin-styles', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ), array(), EWWW_IMAGE_OPTIMIZER_VERSION );
+
 	// Number of images in the ewwwio_table (previously optimized images).
 	$image_count = ewww_image_optimizer_aux_images_table_count();
 	// Submit a couple variables for our javascript to work with.
@@ -310,9 +316,6 @@ function ewww_image_optimizer_tool_script( $hook ) {
 			'webp_cleanable'    => $webp_cleanable,
 		)
 	);
-	// Load the stylesheet for the jquery progressbar.
-	wp_enqueue_style( 'jquery-ui-progressbar', plugins_url( '/includes/jquery-ui-1.10.1.custom.css', __FILE__ ) );
-	ewwwio_memory( __FUNCTION__ );
 }
 
 /**
@@ -2608,7 +2611,6 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 		if ( $file && $image->id && is_object( $ewww_image ) && ! empty( $ewww_image->record ) && is_array( $ewww_image->record ) ) {
 			$ewww_image->record['elapsed'] = $image_elapsed;
 			$ewww_image->record['updated'] = time();
-			$ewww_image->record['trace']   = '';
 			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_debug' ) ) {
 				$ewww_image->record['debug'] = EWWW\Base::$debug_data;
 				ewww_image_optimizer_debug_log();
