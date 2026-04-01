@@ -1,3 +1,17 @@
+= 8.5.0 =
+*Release Date - April 1, 2026*
+
+* changed: foreground/background bulk optimizers merged into common interface on both Settings and Bulk Optimizer pages
+* added: option to choose Background or Foreground mode during bulk optimization
+* added: Choose whether to include Additional Folders like the theme or other configured folders during bulk optimization
+* fixed: some strings in bulk interface not able to be translated properly for RTL locales
+* fixed: NextGEN bulk optimizer missing from menu with NextGEN 4.x
+* fixed: when media is offloaded, background optimization leaves local copies behind in some rare cases
+* fixed: existing images with missing thumbs/sizes do not get properly offloaded by WP Offload Media after bulk optimization
+* fixed: list of pending images for bulk optimization sorted incorrectly
+* deprecated: direct support for GRAND FlaGallery will be removed soon, use Folders to Optimize setting instead
+* deprecated: direct support for NextCellent Gallery will be removed soon, use Folders to Optimize setting instead
+
 = 8.4.1 =
 *Release Date - Feburary 19, 2026*
 

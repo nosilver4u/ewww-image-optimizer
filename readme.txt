@@ -2,8 +2,8 @@
 Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: compress, convert, webp, resize, lazy load
-Tested up to: 6.9
-Stable tag: 8.4.1
+Tested up to: 7.0
+Stable tag: 8.5.0
 License: GPLv3
 
 Comprehensive image optimization that doesn't require a rocket science degree. Optimize images automatically for Faster Sites and Happy Visitors.
@@ -171,7 +171,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 8.5.0 =
-*Release Date - TBD*
+*Release Date - April 1, 2026*
 
 * changed: foreground/background bulk optimizers merged into common interface on both Settings and Bulk Optimizer pages
 * added: option to choose Background or Foreground mode during bulk optimization
