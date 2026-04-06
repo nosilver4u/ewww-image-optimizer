@@ -6741,12 +6741,13 @@ function ewww_image_optimizer_stream_wrapper_exists() {
 	if ( ! ewww_image_optimizer_iterable( $wrappers ) ) {
 		return false;
 	}
+	$supported_wrappers = array( 's3', 'gs' );
+	$supported_wrappers = apply_filters( 'ewww_image_optimizer_stream_wrappers', $supported_wrappers );
 	foreach ( $wrappers as $wrapper ) {
-		if ( strpos( $wrapper, 's3' ) === 0 ) {
-			return true;
-		}
-		if ( strpos( $wrapper, 'gs' ) === 0 ) {
-			return true;
+		foreach ( $supported_wrappers as $supported_wrapper ) {
+			if ( str_starts_with( $wrapper, $supported_wrapper ) ) {
+				return true;
+			}
 		}
 	}
 	return false;
@@ -6759,12 +6760,13 @@ function ewww_image_optimizer_stream_wrapper_exists() {
  * @return bool True if a stream wrapper is found, false otherwise.
  */
 function ewww_image_optimizer_stream_wrapped( $filename ) {
-	if ( false !== strpos( $filename, '://' ) ) {
-		if ( strpos( $filename, 's3' ) === 0 ) {
-			return true;
-		}
-		if ( strpos( $filename, 'gs' ) === 0 ) {
-			return true;
+	$default_wrappers = array( 's3', 'gs' );
+	$wrappers         = apply_filters( 'ewww_image_optimizer_stream_wrappers', $default_wrappers );
+	if ( str_contains( $filename, '://' ) ) {
+		foreach ( $wrappers as $wrapper ) {
+			if ( str_starts_with( $filename, $wrapper ) ) {
+				return true;
+			}
 		}
 	}
 	return false;
@@ -9509,6 +9511,11 @@ function ewww_image_optimizer_custom_column( $column_name, $id, $meta = null ) {
 			$ewww_cdn = true;
 		}
 		$file_path = ewww_image_optimizer_attachment_path( $meta, $id );
+		$is_remote = apply_filters( 'ewww_image_optimizer_is_remote_file', false, $file_path, $id );
+		if ( $is_remote ) {
+			echo '<div>' . esc_html__( 'Offloaded Media', 'ewww-image-optimizer' ) . '</div>';
+			$ewww_cdn = true;
+		}
 		if ( is_array( $meta ) & function_exists( 'ilab_get_image_sizes' ) && ! empty( $meta['s3'] ) && empty( $file_path ) ) {
 			echo esc_html__( 'Media Cloud image', 'ewww-image-optimizer' ) . '</div>';
 			return;
@@ -11790,9 +11797,9 @@ function ewww_image_optimizer_intro_wizard() {
 		<?php endif; ?>
 		<?php if ( ! function_exists( 'imsanity_get_max_width_height' ) ) : ?>
 				<p>
-					<input type='number' step='10' min='0' class='small-text' id='ewww_image_optimizer_maxmediawidth' name='ewww_image_optimizer_maxmediawidth' value='<?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' ) ? (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' ) : 2560; ?>' <?php disabled( function_exists( 'imsanity_get_max_width_height' ) ); ?> />
+					<input type='number' min='0' class='small-text' id='ewww_image_optimizer_maxmediawidth' name='ewww_image_optimizer_maxmediawidth' value='<?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' ) ? (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' ) : 2560; ?>' <?php disabled( function_exists( 'imsanity_get_max_width_height' ) ); ?> />
 					<label for='ewww_image_optimizer_maxmediawidth'><?php esc_html_e( 'Max Width', 'ewww-image-optimizer' ); ?></label>
-					<input type='number' step='10' min='0' class='small-text' id='ewww_image_optimizer_maxmediaheight' name='ewww_image_optimizer_maxmediaheight' value='<?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' ) ? (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' ) : 2560; ?>' <?php disabled( function_exists( 'imsanity_get_max_width_height' ) ); ?> />
+					<input type='number' min='0' class='small-text' id='ewww_image_optimizer_maxmediaheight' name='ewww_image_optimizer_maxmediaheight' value='<?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' ) ? (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' ) : 2560; ?>' <?php disabled( function_exists( 'imsanity_get_max_width_height' ) ); ?> />
 					<label for='ewww_image_optimizer_maxmediaheight'><?php esc_html_e( 'Max Height', 'ewww-image-optimizer' ); ?></label><br>
 					<span class='description'><?php esc_html_e( 'Limit full-size images to these dimensions (in pixels).', 'ewww-image-optimizer' ); ?></span>
 				</p>

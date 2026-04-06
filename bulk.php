@@ -1741,7 +1741,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 					$s3_uploads = \S3_Uploads\Plugin::get_instance();
 					remove_filter( 'upload_dir', array( $s3_uploads, 'filter_upload_dir' ) );
 				}
-				if ( ewww_image_optimizer_stream_wrapped( $file_path ) || 0 === strpos( $file_path, 'http' ) ) {
+				if ( ewww_image_optimizer_stream_wrapped( $file_path ) || str_starts_with( $file_path, 'http' ) ) {
 					$file_path = get_attached_file( $selected_id, true );
 				}
 				if ( class_exists( 'S3_Uploads', false ) && method_exists( 'S3_Uploads', 'filter_upload_dir' ) ) {
@@ -2782,7 +2782,7 @@ function ewww_image_optimizer_post_optimize_attachment( $attachment_id ) {
 	add_filter( 'wp_get_missing_image_subsizes', 'ewww_image_optimizer_no_missing_sizes' );
 	wp_update_attachment_metadata( $attachment_id, $meta );
 	do_action( 'ewww_image_optimizer_after_optimize_attachment', $attachment_id, $meta );
-	add_filter( 'wp_get_missing_image_subsizes', 'ewww_image_optimizer_no_missing_sizes' );
+	remove_filter( 'wp_get_missing_image_subsizes', 'ewww_image_optimizer_no_missing_sizes' );
 }
 
 /**
