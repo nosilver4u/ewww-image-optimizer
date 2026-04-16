@@ -170,6 +170,11 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 8.5.1 =
+*Release Date - TBD*
+
+* fixed: performance regression when Lazy Load checks parent elements for skip-lazy exceptions
+
 = 8.5.0 =
 *Release Date - April 1, 2026*
 

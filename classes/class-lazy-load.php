@@ -478,7 +478,7 @@ class Lazy_Load extends Page_Parser {
 				if ( $this->is_in_forbidden_block( $image_tag, $position ) ) {
 					continue;
 				}
-				if ( $this->validate_image_tag( $image_tag ) ) {
+				if ( $this->validate_image_tag( $image_tag, $index ) ) {
 					$this->debug_message( 'found a valid image tag' );
 					$this->debug_message( "original image tag: $image_tag" );
 					$orig_img  = $image_tag;
@@ -1122,29 +1122,34 @@ class Lazy_Load extends Page_Parser {
 	}
 
 	/**
-	 * Normalize HTML for comparison.
+	 * Normalize URL for comparison.
 	 *
-	 * @param string $html The HTML to normalize.
-	 * @return string The normalized HTML.
+	 * @param string $url The URL to normalize.
+	 * @return string The normalized URL.
 	 */
-	public function normalize_html( $html ) {
-		$html = str_replace( '&amp;', '&', $html );
-		$html = str_replace( '&#038;', '&', $html );
-		$html = str_replace( '%2C', ',', $html );
-		$html = str_replace( ' />', '>', $html );
-		$html = str_replace( "'", '"', $html );
-		$html = preg_replace( '/\s\s+/', ' ', $html );
-		$html = preg_replace( '/\s*=\s*/', '=', $html );
-		return $html;
+	public function normalize_url( $url ) {
+		$url = str_replace(
+			array(
+				'&amp;',
+				'&#038;',
+			),
+			array(
+				'&',
+				'&',
+			),
+			$url
+		);
+		return $url;
 	}
 
 	/**
 	 * Checks if the tag is allowed to be lazy loaded.
 	 *
-	 * @param string $image The image (img) tag.
+	 * @param string   $image The image (img) tag.
+	 * @param int|null $index The index of the image in the list. Optional.
 	 * @return bool True if the tag is allowed, false otherwise.
 	 */
-	public function validate_image_tag( $image ) {
+	public function validate_image_tag( $image, $index = null ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( $this->is_lazy_placeholder( $image ) ) {
 			return false;
@@ -1227,25 +1232,29 @@ class Lazy_Load extends Page_Parser {
 			}
 		}
 
-		foreach ( $this->img_nodes as $img_node ) {
-			$img_html = $this->doc->saveHTML( $img_node );
-			if ( defined( 'EIO_IMGNODE_DEBUG' ) && EIO_IMGNODE_DEBUG ) {
-				$this->debug_message( 'comparing to node value: ' . $this->normalize_html( $img_html ) . ' to ' . $this->normalize_html( $image ) );
-			}
-			// Normalize the HTML before comparing to avoid issues with different quote styles or spacing.
-			if ( $this->normalize_html( $img_html ) === $this->normalize_html( $image ) ) {
-				$parent = $img_node->parentNode;
-				if ( $parent && 'body' !== $parent->nodeName && $parent->hasAttributes() ) {
-					$class = trim( $parent->getAttribute( 'class' ) );
-					$this->debug_message( "Parent class: $class" );
-					if ( str_contains( $class, 'skip-lazy' ) ) {
-						$this->debug_message( "Skipping lazy load due to 'skip-lazy' class on parent" );
-						return false;
+		if ( ! is_null( $index ) ) {
+			foreach ( $this->img_nodes as $node_index => $img_node ) {
+				continue;
+				if ( abs( $index - $node_index ) > 3 ) {
+					continue;
+				}
+				$normalized_dom_url = $img_node->getAttribute( 'src' );
+				$normalized_img_url = $this->normalize_url( $image_src );
+				if ( $normalized_dom_url === $normalized_img_url ) {
+					$parent = $img_node->parentNode;
+					if ( $parent && 'body' !== $parent->nodeName && $parent->hasAttributes() ) {
+						$class = trim( $parent->getAttribute( 'class' ) );
+						$this->debug_message( "Parent class: $class" );
+						if ( str_contains( $class, 'skip-lazy' ) ) {
+							$this->debug_message( "Skipping lazy load due to 'skip-lazy' class on parent" );
+							return false;
+						}
+						if ( $parent->hasAttribute( 'data-skip-lazy' ) ) {
+							$this->debug_message( "Skipping lazy load due to 'data-skip-lazy' attribute on parent" );
+							return false;
+						}
 					}
-					if ( $parent->hasAttribute( 'data-skip-lazy' ) ) {
-						$this->debug_message( "Skipping lazy load due to 'data-skip-lazy' attribute on parent" );
-						return false;
-					}
+					break;
 				}
 			}
 		}
