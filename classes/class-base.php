@@ -1081,6 +1081,21 @@ class Base {
 	}
 
 	/**
+	 * Get elapsed time in microseconds.
+	 *
+	 * @param array $started The start time, as returned by hrtime().
+	 * @return int Elapsed time in microseconds.
+	 */
+	public function get_elapsed_time( $started ) {
+		if ( ! \is_array( $started ) || 2 !== count( $started ) ) {
+			return 0;
+		}
+		$current_time = \hrtime();
+		$elapsed_time = ( $current_time[0] - $started[0] ) * 1000000 + ( $current_time[1] - $started[1] ) / 1000;
+		return (int) $elapsed_time;
+	}
+
+	/**
 	 * Get the dimensions of an image.
 	 *
 	 * Differs from the core wp_getimagesize() in that it always returns an array with two values.

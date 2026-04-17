@@ -60,8 +60,8 @@ class Lazy_Load extends Page_Parser {
 	/**
 	 * The ExactDN domain/zone.
 	 *
-	 * @access private
-	 * @var float $elapsed_time
+	 * @access protected
+	 * @var string $exactdn_domain
 	 */
 	protected $exactdn_domain = false;
 
@@ -74,12 +74,60 @@ class Lazy_Load extends Page_Parser {
 	protected $piip_folder = '';
 
 	/**
+	 * Whether to allow LQIPs.
+	 *
+	 * @access public
+	 * @var bool $use_lqip
+	 */
+	public $use_lqip = true;
+
+	/**
+	 * Whether to allow DCIPs.
+	 *
+	 * @access public
+	 * @var bool $use_dcip
+	 */
+	public $use_dcip = true;
+
+	/**
 	 * Whether to allow PIIPs.
 	 *
 	 * @access public
-	 * @var bool $allow_piip
+	 * @var bool $use_piip
 	 */
-	public $allow_piip = true;
+	public $use_piip = true;
+
+	/**
+	 * Whether to allow SIIPs.
+	 *
+	 * @access public
+	 * @var bool $use_siip
+	 */
+	public $use_siip = true;
+
+	/**
+	 * Whether to allow reading dimensions via getimagesize().
+	 *
+	 * @access protected
+	 * @var bool $read_dimensions_from_file
+	 */
+	protected $read_dimensions_from_file = true;
+
+	/**
+	 * Whether to check parent elements for skip-lazy class/attribute.
+	 *
+	 * @access protected
+	 * @var bool $skip_via_parent
+	 */
+	protected $skip_via_parent = false;
+
+	/**
+	 * Should we add missing width and height attributes to images?
+	 *
+	 * @access protected
+	 * @var bool $add_missing_dimensions
+	 */
+	protected $add_missing_dimensions = false;
 
 	/**
 	 * A list of attributes to be added to the inline scripts.
@@ -187,9 +235,9 @@ class Lazy_Load extends Page_Parser {
 		}
 
 		if ( ! \is_dir( $this->piip_folder ) ) {
-			$this->allow_piip = \wp_mkdir_p( $this->piip_folder ) && ( $this->gd_support() || $this->imagick_support() );
+			$this->use_piip = \wp_mkdir_p( $this->piip_folder ) && ( $this->gd_support() || $this->imagick_support() );
 		} else {
-			$this->allow_piip = \is_writable( $this->piip_folder ) && ( $this->gd_support() || $this->imagick_support() );
+			$this->use_piip = \is_writable( $this->piip_folder ) && ( $this->gd_support() || $this->imagick_support() );
 		}
 
 		\add_filter( 'wp_lazy_loading_enabled', array( $this, 'wp_lazy_loading_enabled' ), 10, 2 );
@@ -227,6 +275,19 @@ class Lazy_Load extends Page_Parser {
 		$this->validate_user_exclusions();
 		$this->validate_css_element_inclusions();
 		$this->get_allowed_domains();
+		$this->get_lazy_settings();
+	}
+
+	/**
+	 * Set various properties based on plugins settings and filters.
+	 */
+	protected function get_lazy_settings() {
+		$this->add_missing_dimensions = \apply_filters( 'eio_add_missing_width_height_attrs', $this->get_option( $this->prefix . 'add_missing_dims' ) );
+
+		$this->use_lqip = \apply_filters( 'eio_use_lqip', $this->get_option( $this->prefix . 'use_lqip' ) );
+		$this->use_dcip = \apply_filters( 'eio_use_dcip', $this->get_option( $this->prefix . 'use_dcip' ) );
+		$this->use_piip = \apply_filters( 'eio_use_piip', $this->use_piip );
+		$this->use_siip = \apply_filters( 'eio_use_siip', $this->get_option( $this->prefix . 'use_siip' ) );
 	}
 
 	/**
@@ -420,11 +481,12 @@ class Lazy_Load extends Page_Parser {
 			$this->debug_message( "3rd party context does not match: $context" );
 			return $buffer;
 		}
+		$started_time = \hrtime();
 		if ( \preg_match( '/^<\?xml/', $buffer ) ) {
 			$this->debug_message( 'not html, xml tag found' );
 			return $buffer;
 		}
-		if ( \strpos( $buffer, 'amp-boilerplate' ) ) {
+		if ( \str_contains( $buffer, 'amp-boilerplate' ) ) {
 			$this->debug_message( 'AMP page processing' );
 			return $buffer;
 		}
@@ -438,11 +500,14 @@ class Lazy_Load extends Page_Parser {
 			return $buffer;
 		}
 
+		if ( \str_contains( $buffer, 'skip-lazy' ) ) {
+			$this->skip_via_parent = true;
+		}
+
 		if ( ! $this->parsing_exactdn ) {
 			$this->get_preload_images( $buffer );
 		}
 
-		$started_time     = \microtime( true );
 		$above_the_fold   = (int) \apply_filters( 'eio_lazy_fold', $this->get_option( $this->prefix . 'll_abovethefold' ) );
 		$images_processed = 0;
 		$replacements     = array();
@@ -458,11 +523,13 @@ class Lazy_Load extends Page_Parser {
 		}
 		$this->forbidden_blocks = ! empty( $forbidden_blocks[0] ) ? $forbidden_blocks[0] : array();
 
-		$this->doc = new \DOMDocument();
-		libxml_use_internal_errors( true );
-		$this->doc->loadHTML( $buffer );
-		libxml_clear_errors();
-		$this->img_nodes = $this->doc->getElementsByTagName( 'img' );
+		if ( $this->skip_via_parent ) {
+			$this->doc = new \DOMDocument();
+			libxml_use_internal_errors( true );
+			$this->doc->loadHTML( $buffer );
+			libxml_clear_errors();
+			$this->img_nodes = $this->doc->getElementsByTagName( 'img' );
+		}
 
 		$images = $this->get_images_from_html( $buffer, false, true, PREG_OFFSET_CAPTURE );
 		if ( ! empty( $images[0] ) && $this->is_iterable( $images[0] ) ) {
@@ -479,11 +546,16 @@ class Lazy_Load extends Page_Parser {
 					continue;
 				}
 				if ( $this->validate_image_tag( $image_tag, $index ) ) {
+					if ( ( $this->read_dimensions_from_file || $this->use_piip ) && $this->get_elapsed_time( $started_time ) > 100000 ) {
+						$this->debug_message( 'parsing exceeded 100ms, disabling file-based dimension retrieval for the rest of the page' );
+						$this->read_dimensions_from_file = false;
+						$this->use_piip                  = false;
+					}
 					$this->debug_message( 'found a valid image tag' );
 					$this->debug_message( "original image tag: $image_tag" );
 					$orig_img  = $image_tag;
 					$ns_img    = $image_tag;
-					$image_tag = $this->parse_img_tag( $image_tag, $file );
+					$image_tag = $this->parse_img_tag( $image_tag, $file, $index );
 					$this->set_attribute( $ns_img, 'data-eio', 'l', true );
 					$noscript = '<noscript>' . $ns_img . '</noscript>';
 					if ( $position && $orig_img !== $image_tag ) {
@@ -534,10 +606,15 @@ class Lazy_Load extends Page_Parser {
 					$this->debug_message( "parsing an image (inside picture): $file" );
 					$this->debug_message( "the img tag: $image" );
 					if ( $this->validate_image_tag( $image ) ) {
+						if ( ( $this->read_dimensions_from_file || $this->use_piip ) && $this->get_elapsed_time( $started_time ) > 100000 ) {
+							$this->debug_message( 'parsing exceeded 100ms, disabling file-based dimension retrieval for the rest of the page' );
+							$this->read_dimensions_from_file = false;
+							$this->use_piip                  = false;
+						}
 						$this->debug_message( 'found a valid image tag (inside picture)' );
 						$orig_img = $image;
 						$ns_img   = $image;
-						$image    = $this->parse_img_tag( $image, $file );
+						$image    = $this->parse_img_tag( $image, $file, $index );
 						$this->set_attribute( $ns_img, 'data-eio', 'l', true );
 						$noscript    = '<noscript>' . $ns_img . '</noscript>';
 						$picture_tag = \str_replace( $orig_img, $image, $picture_tag ) . $noscript;
@@ -625,7 +702,7 @@ class Lazy_Load extends Page_Parser {
 			}
 		}
 
-		$elapsed_time = \microtime( true ) - $started_time;
+		$elapsed_time = $this->get_elapsed_time( $started_time ) / 1000000;
 		$this->debug_message( "all done parsing page for lazy in $elapsed_time seconds" );
 		return $buffer;
 	}
@@ -654,12 +731,11 @@ class Lazy_Load extends Page_Parser {
 	 *
 	 * @param string $image The img tag to parse.
 	 * @param string $file The URL from the src attribute. Optional.
+	 * @param int    $index The index of the image in the list of images. Optional.
 	 * @return string The modified tag.
 	 */
-	public function parse_img_tag( $image, $file = '' ) {
+	public function parse_img_tag( $image, $file = '', $index = 0 ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		global $exactdn;
-
 		if (
 			! empty( $_POST['action'] ) && // phpcs:ignore WordPress.Security.NonceVerification
 			! empty( $_POST['vc_action'] ) && // phpcs:ignore WordPress.Security.NonceVerification
@@ -692,14 +768,14 @@ class Lazy_Load extends Page_Parser {
 			$width_attr  = false;
 			$height_attr = false;
 		}
-		list( $physical_width, $physical_height ) = $this->get_image_dimensions_by_url( $file );
+		list( $physical_width, $physical_height ) = $this->get_image_dimensions_by_url( $file, $this->read_dimensions_from_file );
 
 		// Initialize the placeholder for this image.
 		$placeholder_src = $this->placeholder_src;
 
 		$insert_dimensions = false;
 		$this->debug_message( "width attr: $width_attr and height attr: $height_attr" );
-		if ( \apply_filters( 'eio_add_missing_width_height_attrs', $this->get_option( $this->prefix . 'add_missing_dims' ) ) && ( empty( $width_attr ) || empty( $height_attr ) ) ) {
+		if ( $this->add_missing_dimensions && ( empty( $width_attr ) || empty( $height_attr ) ) ) {
 			$this->debug_message( 'missing width attr or height attr' );
 			if ( $physical_width && \is_numeric( $physical_width ) && $physical_height && \is_numeric( $physical_height ) ) {
 				$this->debug_message( "found $physical_width and/or $physical_height to insert (maybe)" );
@@ -721,19 +797,19 @@ class Lazy_Load extends Page_Parser {
 		$use_native_lazy = false;
 
 		$placeholder_types = array();
-		if ( $this->parsing_exactdn && \apply_filters( 'eio_use_lqip', $this->get_option( $this->prefix . 'use_lqip' ), $file ) ) {
+		if ( $this->parsing_exactdn && $this->use_lqip ) {
 			$placeholder_types[] = 'lqip';
 		}
-		if ( $this->parsing_exactdn && \apply_filters( 'eio_use_dcip', $this->get_option( $this->prefix . 'use_dcip' ), $file ) ) {
+		if ( $this->parsing_exactdn && $this->use_dcip ) {
 			$placeholder_types[] = 'dcip';
 		}
-		if ( $this->parsing_exactdn && \apply_filters( 'eio_use_piip', true, $file ) ) {
+		if ( $this->parsing_exactdn && $this->use_piip ) {
 			$placeholder_types[] = 'epip';
 		}
-		if ( $this->allow_piip && \apply_filters( 'eio_use_piip', true, $file ) ) {
+		if ( $this->use_piip ) {
 			$placeholder_types[] = 'piip';
 		}
-		if ( \apply_filters( 'eio_use_siip', $this->get_option( $this->prefix . 'use_siip' ), $file ) ) {
+		if ( $this->use_siip ) {
 			$placeholder_types[] = 'siip';
 		}
 
@@ -773,8 +849,8 @@ class Lazy_Load extends Page_Parser {
 				case 'epip':
 					$this->debug_message( 'using epip, maybe' );
 					if ( false === \strpos( $file, 'nggid' ) && ! \preg_match( '#\.svg(\?|$)#', $file ) && \strpos( $file, $this->exactdn_domain ) ) {
-						if ( $physical_width && $physical_height && $this->allow_piip ) {
-							$placeholder_src = $this->create_piip( $physical_width, $physical_height );
+						if ( $physical_width && $physical_height && $this->use_piip ) {
+							$placeholder_src = $this->get_piip( $physical_width, $physical_height );
 							if ( false === \strpos( $placeholder_src, 'data:image' ) ) {
 								$use_native_lazy = true;
 							}
@@ -798,8 +874,8 @@ class Lazy_Load extends Page_Parser {
 					$physical_width  = (int) $physical_width ? (int) $physical_width : false;
 					$physical_height = (int) $physical_height ? (int) $physical_height : false;
 					if ( $physical_width && $physical_height ) {
-						$this->debug_message( "creating piip of $physical_width x $physical_height" );
-						$png_placeholder_src = $this->create_piip( $physical_width, $physical_height );
+						$this->debug_message( "getting piip of $physical_width x $physical_height" );
+						$png_placeholder_src = $this->get_piip( $physical_width, $physical_height );
 						if ( $png_placeholder_src ) {
 							$placeholder_src = $png_placeholder_src;
 							if ( false === \strpos( $placeholder_src, 'data:image' ) ) {
@@ -1232,7 +1308,7 @@ class Lazy_Load extends Page_Parser {
 			}
 		}
 
-		if ( ! is_null( $index ) ) {
+		if ( ! is_null( $index ) && $this->skip_via_parent ) {
 			foreach ( $this->img_nodes as $node_index => $img_node ) {
 				continue;
 				if ( abs( $index - $node_index ) > 3 ) {
@@ -1349,7 +1425,8 @@ class Lazy_Load extends Page_Parser {
 	 * @param int $height The height of the placeholder image.
 	 * @return string The PNG placeholder link.
 	 */
-	public function create_piip( $width = 1, $height = 1 ) {
+	public function get_piip( $width = 1, $height = 1 ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$width  = (int) $width;
 		$height = (int) $height;
 		if ( ( 1 === $width && 1 === $height ) || ! $width || ! $height ) {
@@ -1404,21 +1481,7 @@ class Lazy_Load extends Page_Parser {
 					\ewww_image_optimizer( $piip_path );
 				}
 			}
-			// If that didn't work, and we have a premium service, use the API to generate the slimmest PIP available.
-			if (
-				! \is_file( $piip_path ) &&
-				( $this->parsing_exactdn || $this->get_option( 'ewww_image_optimizer_cloud_key' ) ) &&
-				! \defined( 'EWWW_IMAGE_OPTIMIZER_DISABLE_API_PIP' )
-			) {
-				$piip_location = "http://optimize.exactlywww.com/resize/lazy.php?width=$width&height=$height";
-				$piip_response = \wp_remote_get( $piip_location );
-				if ( ! \is_wp_error( $piip_response ) && \is_array( $piip_response ) && ! empty( $piip_response['body'] ) ) {
-					$this->debug_message( "retrieved PIP from API, storing to $piip_path" );
-					\file_put_contents( $piip_path, $piip_response['body'] );
-					\clearstatcache();
-				}
-			}
-			// Last resort, do PIP generation via Imagick, as it is pretty efficient even though Safari doesn't like the grayscale images it produces.
+			// Next best, do PIP generation via Imagick, as it is pretty efficient even though Safari doesn't like the grayscale images it produces.
 			if (
 				! \is_file( $piip_path ) &&
 				$this->imagick_support()

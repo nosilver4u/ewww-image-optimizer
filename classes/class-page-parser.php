@@ -282,14 +282,15 @@ class Page_Parser extends Base {
 	 * Get dimensions of a file from the URL.
 	 *
 	 * @param string $url The URL of the image.
+	 * @param bool   $read_file Whether to read dimensions from the image file itself if they cannot be determined from the URL. Optional.Default true.
 	 * @return array The width and height, in pixels.
 	 */
-	public function get_image_dimensions_by_url( $url ) {
+	public function get_image_dimensions_by_url( $url, $read_file = true ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->debug_message( "getting dimensions for $url" );
 
 		list( $width, $height ) = $this->get_dimensions_from_filename( $url, ! empty( $this->parsing_exactdn ) );
-		if ( empty( $width ) || empty( $height ) ) {
+		if ( $read_file && ( empty( $width ) || empty( $height ) ) ) {
 			// Couldn't get it from the URL directly, see if we can get the actual filename.
 			$file = false;
 			if ( $this->allowed_urls && $this->allowed_domains ) {
@@ -444,7 +445,7 @@ class Page_Parser extends Base {
 		if ( $replace ) {
 			// Don't forget, back references cannot be used in character classes.
 			$new_element = \preg_replace( '#\s' . $name . '\s*=\s*("|\')(?!\1).*?\1#is', ' ' . $name . '="' . $value . '"', $element );
-			if ( \strpos( $new_element, "$name=" ) && $new_element !== $element ) {
+			if ( \str_contains( $new_element, "$name=" ) && $new_element !== $element ) {
 				$element = $new_element;
 				return;
 			}
