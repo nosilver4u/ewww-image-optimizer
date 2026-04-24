@@ -929,7 +929,7 @@ class Base {
 
 	/**
 	 * Make sure this is really and truly a "front-end request", excluding page builders and such.
-	 * NOTE: this is not currently used anywhere, each module has it's own list.
+	 * NOTE: this is currently used by Image_Detective only. Otherwise, each module still has it's own list.
 	 *
 	 * @return bool True for front-end requests, false for admin/builder requests.
 	 */
@@ -939,18 +939,32 @@ class Base {
 		}
 		$uri = \add_query_arg( '', '' );
 		if (
-			\strpos( $uri, 'cornerstone=' ) !== false ||
-			\strpos( $uri, 'cornerstone-endpoint' ) !== false ||
-			\strpos( $uri, 'ct_builder=' ) !== false ||
-			\did_action( 'cornerstone_boot_app' ) || \did_action( 'cs_before_preview_frame' ) ||
-			'/print/' === substr( $uri, -7 ) ||
-			\strpos( $uri, 'elementor-preview=' ) !== false ||
-			\strpos( $uri, 'et_fb=' ) !== false ||
-			\strpos( $uri, 'is-editor-iframe=' ) !== false ||
-			\strpos( $uri, 'vc_editable=' ) !== false ||
-			\strpos( $uri, 'tatsu=' ) !== false ||
+			\str_contains( $uri, 'bricks=run' ) ||
+			\str_contains( $uri, '?brizy-edit' ) ||
+			\str_contains( $uri, '&builder=true' ) ||
+			\str_contains( $uri, 'cornerstone=' ) ||
+			\str_contains( $uri, 'cornerstone-endpoint' ) ||
+			\str_contains( $uri, 'ct_builder=' ) ||
+			\str_contains( $uri, 'ct_render_shortcode=' ) ||
+			\did_action( 'cornerstone_boot_app' ) ||
+			\did_action( 'cs_before_preview_frame' ) ||
+			\did_action( 'cs_element_rendering' ) ||
+			\did_action( 'cornerstone_before_boot_app' ) ||
+			\apply_filters( 'cs_is_preview_render', false ) ||
+			\str_contains( $uri, 'elementor-preview=' ) ||
+			\str_contains( $uri, 'et_fb=' ) ||
+			\str_contains( $uri, 'fb-edit=' ) ||
+			\str_contains( $uri, '?fl_builder' ) ||
+			\str_contains( $uri, '?giveDonationFormInIframe' ) ||
+			\str_contains( $uri, 'is-editor-iframe=' ) ||
+			\str_contains( $uri, 'action=oxy_render' ) ||
+			\str_contains( $uri, 'tatsu=' ) ||
+			\str_contains( $uri, 'tve=true' ) ||
 			( ! empty( $_POST['action'] ) && 'tatsu_get_concepts' === \sanitize_text_field( \wp_unslash( $_POST['action'] ) ) ) || // phpcs:ignore WordPress.Security.NonceVerification
-			\strpos( $uri, 'wp-login.php' ) !== false ||
+			\str_contains( $uri, 'vc_editable=' ) ||
+			\str_contains( $uri, 'wp-login.php' ) ||
+			'/print/' === \substr( $uri, -7 ) ||
+			( \function_exists( '\affwp_is_affiliate_portal' ) && \affwp_is_affiliate_portal() ) ||
 			\is_embed() ||
 			\is_feed() ||
 			\is_preview() ||

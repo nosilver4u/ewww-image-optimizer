@@ -173,6 +173,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 8.5.1 =
 *Release Date - TBD*
 
+TODO: modify this if necessary
+* added: LCP image detection, along with improved UI for Resize Detection which has been renamed to Image Detective
 * fixed: performance regression when Lazy Load checks parent elements for skip-lazy exceptions
 
 = 8.5.0 =

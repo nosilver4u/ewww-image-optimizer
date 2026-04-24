@@ -97,6 +97,13 @@ final class Plugin extends Base {
 	public $background_ngg2;
 
 	/**
+	 * Image Detective object.
+	 *
+	 * @var object|EWWW\Image_Detective $image_detective
+	 */
+	public $image_detective;
+
+	/**
 	 * Helpscout Beacon object.
 	 *
 	 * @var object|EWWW\HS_Beacon $hs_beacon
@@ -282,6 +289,8 @@ final class Plugin extends Base {
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-admin-notices.php';
 		// EWWW\Backup class for managing image backups.
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-backup.php';
+		// EWWW\Image_Detective class for scaling/LCP detection.
+		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-image-detective.php';
 		// EWWW\HS_Beacon class for integrated help/docs.
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-hs-beacon.php';
 		// EWWW\Tracking class for reporting anonymous site data.
@@ -337,9 +346,10 @@ final class Plugin extends Base {
 	 * Setup mandatory child classes.
 	 */
 	private function load_children() {
-		self::$instance->local    = new Local();
-		self::$instance->notices  = new Admin_Notices();
-		self::$instance->tracking = new Tracking();
+		self::$instance->image_detective = new Image_Detective();
+		self::$instance->local           = new Local();
+		self::$instance->notices         = new Admin_Notices();
+		self::$instance->tracking        = new Tracking();
 	}
 
 	/**

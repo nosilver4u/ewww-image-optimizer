@@ -142,8 +142,6 @@ add_action( 'wp_ajax_ewww_manual_restore', 'ewww_image_optimizer_manual' );
 add_action( 'wp_ajax_ewww_manual_image_restore', 'ewww_image_optimizer_manual' );
 // AJAX action hook for fetching the optimization status of an image attachment.
 add_action( 'wp_ajax_ewww_manual_get_status', 'ewww_image_optimizer_ajax_get_attachment_status' );
-// Adds script to highlight mis-sized images on the front-end (for logged in admins only).
-add_action( 'wp_head', 'ewww_image_optimizer_resize_detection_script' );
 // Adds a button on the admin bar to allow highlighting mis-sized images on-demand.
 add_action( 'admin_bar_init', 'ewww_image_optimizer_admin_bar_init' );
 // Non-AJAX handler to delete the API key, and reroute back to the settings page.
@@ -15044,88 +15042,6 @@ function ewww_image_optimizer_enable_force_gif2webp() {
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_force_gif2webp', true );
 	wp_safe_redirect( wp_get_referer() );
 	exit;
-}
-
-/**
- * Loads script to detect scaled images within the page, only enabled for admins.
- */
-function ewww_image_optimizer_resize_detection_script() {
-	if (
-		! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ||
-		( ! empty( $_SERVER['SCRIPT_NAME'] ) && 'wp-login.php' === wp_basename( sanitize_text_field( wp_unslash( $_SERVER['SCRIPT_NAME'] ) ) ) )
-	) {
-		return;
-	}
-	if ( ewww_image_optimizer_is_amp() ) {
-		return;
-	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' ) ) {
-		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
-			$resize_detection_script = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'includes/resize-detection.js' );
-		} else {
-			$resize_detection_script = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'includes/resize-detection.min.js' );
-		}
-		?>
-		<style>
-			#wp-admin-bar-resize-detection div.ab-empty-item {
-				cursor: pointer;
-			}
-			#wp-admin-bar-resize-detection {
-				opacity: 1;
-				-webkit-transition: opacity 0.3s ease-in-out;
-				-moz-transition: opacity 0.3s ease-in-out;
-				-ms-transition: opacity 0.3s ease-in-out;
-				-o-transition: opacity 0.3s ease-in-out;
-				transition: opacity 0.3 ease-in-out;
-			}
-			#wp-admin-bar-resize-detection.ewww-fade {
-				opacity: 0;
-			}
-			img.scaled-image {
-				border: 3px #3eadc9 dotted;
-				margin: -3px;
-			}
-		</style>
-		<script data-cfasync="false" data-no-optimize="1" data-no-defer="1" data-no-minify="1"><?php echo $resize_detection_script; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></script>
-		<?php
-	}
-}
-
-/**
- * Makes sure the resize detection script is excluded from Autoptimize functions.
- *
- * @param string $jsexcludes A list of exclusions from Autoptimize.
- * @param string $content The page content being parsed by Autoptimize.
- * @return string The JS excludes plus one more.
- */
-function ewww_image_optimizer_autoptimize_js_exclude( $jsexcludes = '', $content = '' ) {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( is_array( $jsexcludes ) ) {
-		$jsexcludes['includes/resize_detection.js'] = '';
-		return $jsexcludes;
-	}
-	return $jsexcludes . ', includes/resize_detection.js';
-}
-
-/**
- * Checks to see if the current page being output is an AMP page.
- *
- * @return bool True for an AMP endpoint, false otherwise.
- */
-function ewww_image_optimizer_is_amp() {
-	if ( ! did_action( 'parse_query' ) ) {
-		return false;
-	}
-	if ( function_exists( 'amp_is_request' ) && amp_is_request() ) {
-		return true;
-	}
-	if ( function_exists( 'is_amp_endpoint' ) && is_amp_endpoint() ) {
-		return true;
-	}
-	if ( function_exists( 'ampforwp_is_amp_endpoint' ) && ampforwp_is_amp_endpoint() ) {
-		return true;
-	}
-	return false;
 }
 
 /**
