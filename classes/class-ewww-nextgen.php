@@ -1071,7 +1071,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 				return;
 			}
 			?>
-			<script type="text/javascript">
+			<script>
 				jQuery(document).ready(function($){
 					$('select[name^="bulkaction"] option:last-child').after('<option value="bulk_optimize"><?php esc_html_e( 'Bulk Optimize', 'ewww-image-optimizer' ); ?></option>');
 				});
