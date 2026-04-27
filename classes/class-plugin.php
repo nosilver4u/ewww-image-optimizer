@@ -757,7 +757,7 @@ final class Plugin extends Base {
 		\add_option( 'ewww_image_optimizer_picture_webp', false, '', true );
 		\add_option( 'ewww_image_optimizer_webp_rewrite_exclude', '', '', true );
 		\add_option( 'ewww_image_optimizer_webp_naming_mode', 'append', '', true );
-		\add_option( 'ewww_image_optimizer_allow_tracking', '', true, '', true );
+		\add_option( 'ewww_image_optimizer_allow_tracking', '', '', true );
 
 		// Set network defaults.
 		\add_site_option( 'ewww_image_optimizer_background_optimization', false );
