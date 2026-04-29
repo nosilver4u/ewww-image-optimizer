@@ -1814,6 +1814,35 @@ class Base {
 			}
 		}
 
+		/**
+		 * Allow third-party offload plugins to mark the site as serving media from S3-compatible storage.
+		 *
+		 * Built-in detection covers WP Offload Media, S3 Uploads, and WP Stateless. Other offloaders
+		 * (e.g. Advanced Media Offloader) can hook this filter to opt in.
+		 *
+		 * @param bool|string $s3_active False when no S3 offload is active, otherwise the S3/CDN host
+		 *                               that should be matched against asset URLs.
+		 */
+		$this->s3_active = \apply_filters( 'eio_s3_active', $this->s3_active );
+
+		/**
+		 * Allow third-party offload plugins to declare an S3 object prefix.
+		 *
+		 * The prefix is stripped from URLs when mapping CDN URLs back to local paths.
+		 *
+		 * @param string $s3_object_prefix The object prefix, or an empty string when none is used.
+		 */
+		$this->s3_object_prefix = \apply_filters( 'eio_s3_object_prefix', $this->s3_object_prefix );
+
+		/**
+		 * Allow third-party offload plugins to declare that offloaded URLs contain a numeric
+		 * object versioning segment (8 or 14 digits) that must be stripped before resolving
+		 * URLs to local paths.
+		 *
+		 * @param bool $s3_object_version True when offloaded URLs contain a versioning segment.
+		 */
+		$this->s3_object_version = \apply_filters( 'eio_s3_object_versioning_enabled', $this->s3_object_version );
+
 		// NOTE: we don't want this for Easy IO as they might be using SWIS to deliver
 		// JS/CSS from a different CDN domain, and that will break with Easy IO!
 		if ( __NAMESPACE__ . '\ExactDN' !== \get_class( $this ) && __NAMESPACE__ . '\Base' !== \get_class( $this ) && \function_exists( '\swis' ) && \is_object( \swis()->settings ) && \swis()->settings->get_option( 'cdn_domain' ) ) {
