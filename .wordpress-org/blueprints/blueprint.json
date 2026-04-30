@@ -1,0 +1,50 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "landingPage": "/wp-admin/options-general.php?page=ewww-image-optimizer-options",
+  "preferredVersions": {
+    "wp": "latest",
+    "php": "8.3"
+  },
+  "features": {
+    "networking": true
+  },
+  "steps": [
+    {
+      "step": "login",
+      "username": "admin",
+      "password": "password"
+    },
+    {
+      "step": "installPlugin",
+      "pluginData": {
+        "resource": "wordpress.org/plugins",
+        "slug": "ewww-image-optimizer"
+      },
+      "options": {
+        "activate": true
+      }
+    },
+    {
+      "step": "setSiteOptions",
+      "options": {
+        "blogname": "EWWW Image Optimizer Demo",
+
+        "ewww_image_optimizer_metadata_remove": 1,
+        "ewww_image_optimizer_jpg_level": 10,
+        "ewww_image_optimizer_png_level": 10,
+        "ewww_image_optimizer_gif_level": 10,
+        "ewww_image_optimizer_pdf_level": 10,
+
+        "ewww_image_optimizer_lazy_load": 1,
+        "ewww_image_optimizer_webp": 1,
+        "ewww_image_optimizer_webp_quality": 80,
+
+        "ewww_image_optimizer_background_optimization": 1,
+        "ewww_image_optimizer_auto": 1,
+        "ewww_image_optimizer_resize_existing": 1,
+        "ewww_image_optimizer_maxmediawidth": 1920,
+        "ewww_image_optimizer_maxmediaheight": 1080
+      }
+    }
+  ]
+}
