@@ -1000,8 +1000,6 @@ function ewww_image_optimizer_delete_webp( $id ) {
 	if ( ! empty( $meta['orig_file'] ) ) {
 		// Get the filepath from the metadata.
 		$file_path = $meta['orig_file'];
-		// Get the base filename.
-		$filename = wp_basename( $file_path );
 		// Delete any residual webp versions.
 		$webpfile    = $file_path . '.webp';
 		$webpfileold = preg_replace( '/\.\w+$/', '.webp', $file_path );
@@ -1048,7 +1046,7 @@ function ewww_image_optimizer_delete_webp( $id ) {
 	if ( isset( $meta['sizes'] ) && ewww_image_optimizer_iterable( $meta['sizes'] ) ) {
 		// One way or another, $file_path is now set, and we can get the base folder name.
 		$base_dir = dirname( $file_path ) . '/';
-		foreach ( $meta['sizes'] as $size => $data ) {
+		foreach ( $meta['sizes'] as $data ) {
 			if ( empty( $data['file'] ) ) {
 				continue;
 			}

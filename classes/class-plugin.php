@@ -22,112 +22,112 @@ final class Plugin extends Base {
 	/**
 	 * The one and only true EWWW\Plugin
 	 *
-	 * @var object|EWWW\Plugin $instance
+	 * @var object|Plugin $instance
 	 */
 	private static $instance;
 
 	/**
 	 * Async Key Verify object.
 	 *
-	 * @var object|EWWW\Async_Key_Verify $async_key_verify
+	 * @var object|Async_Key_Verify $async_key_verify
 	 */
 	public $async_key_verify;
 
 	/**
 	 * Async Scan object.
 	 *
-	 * @var object|EWWW\Async_Scan $async_scan
+	 * @var object|Async_Scan $async_scan
 	 */
 	public $async_scan;
 
 	/**
 	 * Async Test Optimize object.
 	 *
-	 * @var object|EWWW\Async_Test_Optimize $async_test_optimize
+	 * @var object|Async_Test_Optimize $async_test_optimize
 	 */
 	public $async_test_optimize;
 
 	/**
 	 * Async Test Request object.
 	 *
-	 * @var object|EWWW\Async_Test_Request $async_test_request
+	 * @var object|Async_Test_Request $async_test_request
 	 */
 	public $async_test_request;
 
 	/**
 	 * Background Attachment Update object.
 	 *
-	 * @var object|EWWW\Background_Process_Attachment_Update $background_attachment_update
+	 * @var object|Background_Process_Attachment_Update $background_attachment_update
 	 */
 	public $background_attachment_update;
 
 	/**
 	 * Background Process Flag object.
 	 *
-	 * @var object|EWWW\Background_Process_Flag $background_flag
+	 * @var object|Background_Process_Flag $background_flag
 	 */
 	public $background_flag;
 
 	/**
 	 * Background Process Image object.
 	 *
-	 * @var object|EWWW\Background_Process_Image $background_image
+	 * @var object|Background_Process_Image $background_image
 	 */
 	public $background_image;
 
 	/**
 	 * Background Process Media object.
 	 *
-	 * @var object|EWWW\Background_Process_Media $background_media
+	 * @var object|Background_Process_Media $background_media
 	 */
 	public $background_media;
 
 	/**
 	 * Background Process Ngg object.
 	 *
-	 * @var object|EWWW\Background_Process_Ngg $background_ngg
+	 * @var object|Background_Process_Ngg $background_ngg
 	 */
 	public $background_ngg;
 
 	/**
 	 * Background Process Ngg2 object.
 	 *
-	 * @var object|EWWW\Background_Process_Ngg2 $background_ngg2
+	 * @var object|Background_Process_Ngg2 $background_ngg2
 	 */
 	public $background_ngg2;
 
 	/**
 	 * Image Detective object.
 	 *
-	 * @var object|EWWW\Image_Detective $image_detective
+	 * @var object|Image_Detective $image_detective
 	 */
 	public $image_detective;
 
 	/**
 	 * Helpscout Beacon object.
 	 *
-	 * @var object|EWWW\HS_Beacon $hs_beacon
+	 * @var object|HS_Beacon $hs_beacon
 	 */
 	public $hs_beacon;
 
 	/**
 	 * EWWW\Local object for handling local optimization tools/functions.
 	 *
-	 * @var object|EWWW\Local $local
+	 * @var object|Local $local
 	 */
 	public $local;
 
 	/**
 	 * EWWW\Admin_Notices object for handling notifications.
 	 *
-	 * @var object|EWWW\Admin_Notices $notices
+	 * @var object|Admin_Notices $notices
 	 */
 	public $notices;
 
 	/**
 	 * EWWW\Tracking object for anonymous usage tracking.
 	 *
-	 * @var object|EWWW\Tracking $tracking
+	 * @var object|Tracking $tracking
 	 */
 	public $tracking;
 

@@ -175,7 +175,9 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 TODO: modify this if necessary
 * added: LCP image detection, along with improved UI for Resize Detection which has been renamed to Image Detective
+* added: filters for plugins that offload media to cloud storage to integrate with S3 detection for JS/Picture WebP and Lazy Load, props @alessandrocarrera
 * fixed: performance regression when Lazy Load checks parent elements for skip-lazy exceptions
+* fixed: new uploads checked twice for optimization when Image Regenerate & Select Crop plugin is active
 
 = 8.5.0 =
 *Release Date - April 1, 2026*

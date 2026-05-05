@@ -29,7 +29,7 @@ class JS_Webp extends Page_Parser {
 	 * A list of user-defined (element-type) exclusions, populated by validate_user_exclusions().
 	 *
 	 * @access protected
-	 * @var array $user_exclusions
+	 * @var array $user_element_exclusions
 	 */
 	protected $user_element_exclusions = array();
 
@@ -106,13 +106,14 @@ class JS_Webp extends Page_Parser {
 
 		\add_filter( 'eio_do_js_webp', array( $this, 'should_process_page' ), 10, 2 );
 
+		$do_webp = true;
 		/**
 		 * Allow pre-empting JS WebP by page.
 		 *
-		 * @param bool Whether to parse the page for images to rewrite for WebP, default true.
-		 * @param string The URI/path of the page.
+		 * @param bool $do_webp Whether to parse the page for images to rewrite for WebP, default true.
+		 * @param string $this->request_uri The URI/path of the page.
 		 */
-		if ( ! \apply_filters( 'eio_do_js_webp', true, $this->request_uri ) ) {
+		if ( ! \apply_filters( 'eio_do_js_webp', $do_webp, $this->request_uri ) ) {
 			return;
 		}
 		// WebP parsing for external use and third-party plugins.
@@ -1230,7 +1231,7 @@ class JS_Webp extends Page_Parser {
 		);
 		if ( ! \ewww_image_optimizer_ce_webp_enabled() ) {
 			\wp_enqueue_script( 'ewww-webp-check-script', \plugins_url( '/includes/check-webp.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), $this->version, $check_args );
-			\wp_enqueue_script( 'ewww-webp-load-script', \plugins_url( '/includes/load-webp.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), $this->version, true, $load_args );
+			\wp_enqueue_script( 'ewww-webp-load-script', \plugins_url( '/includes/load-webp.min.js', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ), array(), $this->version, $load_args );
 		}
 	}
 
