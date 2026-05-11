@@ -74,4 +74,35 @@ trait Page_Settings {
 			$this->debug_message( 'Error updating page settings: ' . $wpdb->last_error );
 		}
 	}
+
+	/**
+	 * Remove the page settings by URI from the ewwwio_pages table.
+	 *
+	 * @param string $post_identifier The URI of the page for which to remove settings.
+	 */
+	protected function remove_per_page_settings( $post_identifier ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		global $wpdb;
+		if ( ! empty( $post_identifier ) ) {
+			$wpdb->delete(
+				$wpdb->ewwwio_pages,
+				array( 'page' => $post_identifier ),
+				array( '%s' )
+			);
+		}
+	}
+
+	/**
+	 * Remove all page settings from the ewwwio_pages and postmeta tables.
+	 */
+	protected function remove_all_page_settings() {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		global $wpdb;
+		$wpdb->query( "TRUNCATE $wpdb->ewwwio_pages" );
+		$wpdb->delete(
+			$wpdb->postmeta,
+			array( 'meta_key' => 'eio_page_settings' ),
+			array( '%s' )
+		);
+	}
 }

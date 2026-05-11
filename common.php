@@ -142,8 +142,6 @@ add_action( 'wp_ajax_ewww_manual_restore', 'ewww_image_optimizer_manual' );
 add_action( 'wp_ajax_ewww_manual_image_restore', 'ewww_image_optimizer_manual' );
 // AJAX action hook for fetching the optimization status of an image attachment.
 add_action( 'wp_ajax_ewww_manual_get_status', 'ewww_image_optimizer_ajax_get_attachment_status' );
-// Adds a button on the admin bar to allow highlighting mis-sized images on-demand.
-add_action( 'admin_bar_init', 'ewww_image_optimizer_admin_bar_init' );
 // Non-AJAX handler to delete the API key, and reroute back to the settings page.
 add_action( 'admin_action_ewww_image_optimizer_remove_cloud_key', 'ewww_image_optimizer_remove_cloud_key' );
 // Non-AJAX handler to disable Easy IO and reroute back to the settings page.
@@ -15075,53 +15073,6 @@ function ewww_image_optimizer_enable_force_gif2webp() {
 	ewww_image_optimizer_set_option( 'ewww_image_optimizer_force_gif2webp', true );
 	wp_safe_redirect( wp_get_referer() );
 	exit;
-}
-
-/**
- * Checks if admin bar is visible, and then adds the admin_bar_menu action.
- */
-function ewww_image_optimizer_admin_bar_init() {
-	if (
-		! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ||
-		! is_admin_bar_showing() ||
-		( ! empty( $_SERVER['SCRIPT_NAME'] ) && 'wp-login.php' === wp_basename( sanitize_text_field( wp_unslash( $_SERVER['SCRIPT_NAME'] ) ) ) ) ||
-		is_admin()
-	) {
-		return;
-	}
-	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' ) ) {
-		add_action( 'admin_bar_menu', 'ewww_image_optimizer_admin_bar_menu', 99 );
-	}
-}
-
-/**
- * Adds a resize detection button to the wp admin bar.
- *
- * @param object $wp_admin_bar The WP Admin Bar object, passed by reference.
- */
-function ewww_image_optimizer_admin_bar_menu( $wp_admin_bar ) {
-	$wp_admin_bar->add_menu(
-		array(
-			'id'    => 'image-detective',
-			'title' => __( 'Image Detective', 'ewww-image-optimizer' ),
-		)
-	);
-	$wp_admin_bar->add_menu(
-		array(
-			'id'     => 'image-detective-check',
-			'href'   => '#',
-			'parent' => 'image-detective',
-			'title'  => __( 'Check again', 'ewww-image-optimizer' ),
-		)
-	);
-	$wp_admin_bar->add_menu(
-		array(
-			'id'     => 'image-detective-clear',
-			'href'   => '#',
-			'parent' => 'image-detective',
-			'title'  => __( 'Clear', 'ewww-image-optimizer' ),
-		)
-	);
 }
 
 /**

@@ -31,6 +31,9 @@ class Image_Detective extends Base {
 	 */
 	public function __construct() {
 		parent::__construct();
+		if ( ! $this->get_option( $this->prefix . 'resize_detection' ) ) {
+			return;
+		}
 
 		$this->request_uri = \add_query_arg( '', '' );
 
@@ -39,6 +42,10 @@ class Image_Detective extends Base {
 		if ( \is_admin() ) {
 			return;
 		}
+
+		\add_action( 'init', array( $this, 'handle_clear_settings_request' ) );
+
+		\add_action( 'admin_bar_menu', array( $this, 'admin_bar_menu' ), 99 );
 
 		\add_action( 'wp_head', array( $this, 'load_scripts' ) );
 	}
@@ -180,6 +187,110 @@ class Image_Detective extends Base {
 			$exclusions = array( $new_exclusion );
 		}
 		return $exclusions;
+	}
+
+	/**
+	 * Adds Image Detective menu to the wp admin bar.
+	 *
+	 * @param object $wp_admin_bar The WP Admin Bar object, passed by reference.
+	 */
+	public function admin_bar_menu( $wp_admin_bar ) {
+		if (
+			! \current_user_can( \apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ||
+			! \is_admin_bar_showing() ||
+			( ! empty( $_SERVER['SCRIPT_NAME'] ) && 'wp-login.php' === \wp_basename( \sanitize_text_field( \wp_unslash( $_SERVER['SCRIPT_NAME'] ) ) ) )
+		) {
+			return;
+		}
+		$wp_admin_bar->add_node(
+			array(
+				'id'    => 'image-detective',
+				'title' => __( 'Image Detective', 'ewww-image-optimizer' ),
+			)
+		);
+		$wp_admin_bar->add_node(
+			array(
+				'id'     => 'image-detective-check',
+				'href'   => '#',
+				'parent' => 'image-detective',
+				'title'  => __( 'Check again', 'ewww-image-optimizer' ),
+			)
+		);
+		$wp_admin_bar->add_node(
+			array(
+				'id'     => 'image-detective-clear',
+				'href'   => '#',
+				'parent' => 'image-detective',
+				'title'  => __( 'Clear detected images', 'ewww-image-optimizer' ),
+			)
+		);
+		if ( ! $this->get_option( $this->prefix . 'lazy_load' ) ) {
+			return;
+		}
+		if ( ! \get_option( $this->prefix . 'll_manual_page_settings' ) ) {
+			return;
+		}
+		$this->debug_message( 'manual page settings exist, adding menu item to clear them' );
+		$wp_admin_bar->add_node(
+			array(
+				'id'     => 'image-detective-remove-per-page-settings',
+				'href'   => wp_nonce_url(
+					add_query_arg(
+						array(
+							'_action'     => 'ewww_remove_per_page_settings',
+							'post_id'     => is_singular() ? get_queried_object_id() : '',
+							'request_uri' => ! is_singular() ? $this->parse_url( $this->request_uri, PHP_URL_PATH ) : '',
+						),
+					),
+					'ewww-remove-page-settings'
+				),
+				'parent' => 'image-detective',
+				'title'  => __( 'Clear settings for current page', 'ewww-image-optimizer' ),
+			)
+		);
+		$wp_admin_bar->add_node(
+			array(
+				'id'     => 'image-detective-remove-all-page-settings',
+				'href'   => wp_nonce_url(
+					add_query_arg(
+						array(
+							'_action' => 'ewww_remove_all_page_settings',
+						),
+					),
+					'ewww-remove-page-settings'
+				),
+				'parent' => 'image-detective',
+				'title'  => __( 'Clear all per-page settings', 'ewww-image-optimizer' ),
+			)
+		);
+	}
+
+	/**
+	 * Handle requests to clear page settings.
+	 */
+	public function handle_clear_settings_request() {
+		if ( ! \current_user_can( \apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+			return;
+		}
+		if ( empty( $_GET['_action'] ) || ! \in_array( $_GET['_action'], array( 'ewww_remove_per_page_settings', 'ewww_remove_all_page_settings' ), true ) ) {
+			return;
+		}
+		if ( empty( $_GET['_wpnonce'] ) || ! \wp_verify_nonce( \sanitize_key( $_GET['_wpnonce'] ), 'ewww-remove-page-settings' ) ) {
+			return;
+		}
+		if ( 'ewww_remove_per_page_settings' === $_GET['_action'] ) {
+			$post_identifier = '';
+			if ( ! empty( $_REQUEST['post_id'] ) ) {
+				$post_identifier = (int) $_REQUEST['post_id'];
+				\delete_post_meta( $post_identifier, 'eio_page_settings' );
+			} elseif ( ! empty( $_REQUEST['request_uri'] ) ) {
+				$post_identifier = \sanitize_text_field( \wp_unslash( $_REQUEST['request_uri'] ) );
+				$this->remove_per_page_settings( $post_identifier );
+			}
+		} elseif ( 'ewww_remove_all_page_settings' === $_GET['_action'] ) {
+			$this->remove_all_page_settings();
+		}
+		\wp_safe_redirect( \remove_query_arg( array( '_action', '_wpnonce', 'post_id', 'request_uri' ) ) );
 	}
 
 	/**
@@ -329,7 +440,7 @@ class Image_Detective extends Base {
 			var imageDetectiveVars = {
 				ajaxUrl: '<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>',
 				nonce: '<?php echo esc_js( wp_create_nonce( 'ewww-image-detective' ) ); ?>',
-				llActive: <?php echo $this->get_option( 'ewww_image_optimizer_lazy_load' ) ? 'true' : 'false'; ?>,
+				llActive: <?php echo $this->get_option( $this->prefix . 'lazy_load' ) ? 'true' : 'false'; ?>,
 				excludeMenuText: '<?php echo esc_js( __( 'Add Lazy Load Exclusion', 'ewww-image-optimizer' ) ); ?>',
 				invalid_response: '<?php echo esc_js( __( 'Received an invalid response from your website, please check for errors in the Developer Tools console of your browser.', 'ewww-image-optimizer' ) ); ?>',
 				<?php /* translators: %s is a placeholder for the image name or class. */ ?>
