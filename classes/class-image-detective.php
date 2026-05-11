@@ -288,6 +288,7 @@ class Image_Detective extends Base {
 				$this->remove_per_page_settings( $post_identifier );
 			}
 		} elseif ( 'ewww_remove_all_page_settings' === $_GET['_action'] ) {
+			\update_option( $this->prefix . 'll_manual_page_settings', false );
 			$this->remove_all_page_settings();
 		}
 		\wp_safe_redirect( \remove_query_arg( array( '_action', '_wpnonce', 'post_id', 'request_uri' ) ) );
