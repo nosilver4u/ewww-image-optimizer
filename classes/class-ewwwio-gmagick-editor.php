@@ -14,6 +14,7 @@ if ( class_exists( 'WP_Image_Editor_Gmagick' ) ) {
 	/**
 	 * Extension of the WP_Image_Editor_Gmagick class to auto-compress edited images.
 	 *
+	 * @property array $size The dimensions of the image being edited.
 	 * @see WP_Image_Editor_Gmagick
 	 */
 	class EWWWIO_Gmagick_Editor extends WP_Image_Editor_Gmagick {

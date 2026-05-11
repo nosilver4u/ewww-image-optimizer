@@ -1313,10 +1313,10 @@ function ewww_image_optimizer_get_all_webp_paths( $path ) {
 	}
 	$replace = $info['dirname'] . $info['filename'] . '.webp';
 
-	if ( 'append' === $naming_mode ) {
-		return array( $append, $replace );
+	if ( 'replace' === $naming_mode ) {
+		return array( $replace, $append );
 	}
-	return array( $replace, $append );
+	return array( $append, $replace );
 }
 
 /**
@@ -1582,17 +1582,20 @@ function ewww_image_optimizer_install_pngout_wrapper() {
  * @return string The url from whence we came (settings page), with success or error parameters added.
  */
 function ewww_image_optimizer_install_pngout() {
+	$pngout_error = '';
 	if ( ! extension_loaded( 'zlib' ) || ! class_exists( 'PharData' ) ) {
 		$pngout_error = __( 'zlib or phar extension missing from PHP', 'ewww-image-optimizer' );
 	}
+	$os_string = '';
 	if ( PHP_OS === 'Linux' ) {
 		$os_string = 'linux';
 	}
 	if ( PHP_OS === 'FreeBSD' ) {
 		$os_string = 'bsd';
 	}
-	$latest    = '20200115';
-	$tool_path = trailingslashit( EWWW_IMAGE_OPTIMIZER_TOOL_PATH );
+	$latest          = '20200115';
+	$tool_path       = trailingslashit( EWWW_IMAGE_OPTIMIZER_TOOL_PATH );
+	$download_result = false;
 	if ( empty( $pngout_error ) ) {
 		if ( PHP_OS === 'Linux' || PHP_OS === 'FreeBSD' ) {
 			$download_result = download_url( 'http://www.jonof.id.au/files/kenutils/pngout-' . $latest . '-' . $os_string . '-static.tar.gz' );
@@ -1746,6 +1749,7 @@ function ewww_image_optimizer_install_svgcleaner_wrapper() {
  * @return string The url from whence we came (settings page), with success or error parameters added.
  */
 function ewww_image_optimizer_install_svgcleaner() {
+	$download_error = '';
 	if ( ! extension_loaded( 'zlib' ) || ! class_exists( 'PharData' ) ) {
 		$download_error = __( 'zlib or phar extension missing from PHP', 'ewww-image-optimizer' );
 	}
@@ -1755,6 +1759,7 @@ function ewww_image_optimizer_install_svgcleaner() {
 	$os_chmod  = true;
 	$os_binary = 'svgcleaner';
 	$os_ext    = 'tar.gz';
+	$os_string = '';
 	if ( PHP_OS === 'Linux' ) {
 		$arch_type = 'x86_64';
 		if ( ewww_image_optimizer_function_exists( 'php_uname' ) ) {

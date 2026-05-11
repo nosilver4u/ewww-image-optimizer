@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Abstract Background_Process class.
  *
  * @abstract
- * @extends EWWW\Async_Request
+ * @extends Async_Request
  */
 abstract class Background_Process extends Async_Request {
 

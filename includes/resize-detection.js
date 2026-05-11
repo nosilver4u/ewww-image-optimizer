@@ -7,21 +7,39 @@
 		started = Date.now();
 		checkImageSizes();
 		document.body.append(scalingError);
-		const adminBarButton = document.getElementById('wp-admin-bar-resize-detection');
-		if (adminBarButton) {
-			adminBarButton.onclick = function() {
-				adminBarButton.classList.toggle('ewww-fade');
+		const adminBarCheckButton = document.getElementById('wp-admin-bar-image-detective-check');
+		if (adminBarCheckButton) {
+			adminBarCheckButton.onclick = function() {
+				adminBarCheckButton.classList.toggle('ewww-fade');
 				clearScaledImages();
-				checkImageSizes();
 				setTimeout(function() {
-					adminBarButton.classList.toggle('ewww-fade');
+					checkImageSizes();
+					adminBarCheckButton.classList.toggle('ewww-fade');
 				}, 500);
+				return false;
+			};
+		}
+		const adminBarClearButton = document.getElementById('wp-admin-bar-image-detective-clear');
+		if (adminBarClearButton) {
+			adminBarClearButton.onclick = function() {
+				adminBarClearButton.classList.toggle('ewww-fade');
+				clearLCPMarker();
+				clearScaledImages();
+				setTimeout(function() {
+					adminBarClearButton.classList.toggle('ewww-fade');
+				}, 500);
+				return false;
 			};
 		}
 		initCriticalImages();
 	};
 
 	const lcpElements = [];
+	const lcpTag = document.createElement('div');
+	const excludeMenuTag = document.createElement('div');
+	excludeMenuTag.id = 'ewww-lazy-exclude-menu';
+	let excludeButtonVisible = false;
+	let excludeMenuVisible = false;
 	const initCriticalImages = function() {
 		if (! atfImagesLoaded() && Date.now() - started < 5000) {
 			console.log('hold up, need to wait a bit...');
@@ -33,24 +51,23 @@
 	};
 
 	const setupLCPObserver = function() {
-		const lcpTag = document.createElement('div');
 		lcpTag.id = 'ewww-lcp-tag';
 		lcpTag.innerText = 'LCP';
 		const lcpObserver = new PerformanceObserver((list) => {
 			const lcpEntries = list.getEntries();
 			if (lcpElements.length > 0) {
-				for (let i = 0, len = lcpElements.length; i < len; i++){
-					lcpElements[i].element.classList.remove('ewww-lcp-element');
-				}
+				clearLCPMarker();
 			} else {
 				document.body.append(lcpTag);
+				document.body.append(excludeMenuTag);
 			}
 			const lastLCP = lcpEntries[lcpEntries.length - 1];
 			matchPosition(lastLCP.element, lcpTag);
 			console.log('LCP Element:', lastLCP.element);
 			lastLCP.element.classList.add('ewww-lcp-element');
-			// TODO: check the sizing of the LCP element--should already, but how will that work?
-			// Probably just need a special CSS rule for the combined classes. But possibly also something to handle having the dimension data and LCP tag at the same time.
+			if (lastLCP.element.tagName.toLowerCase() === 'img' && (hasClass(lastLCP.element,'lazyload') || hasClass(lastLCP.element,'lazyloaded'))) {
+				lastLCP.element.addEventListener('mouseover', showExcludeMenu);
+			}
 			lcpElements.push(lastLCP);
 		});
 		lcpObserver.observe({type: 'largest-contentful-paint', buffered: true});
@@ -74,6 +91,156 @@
 		destElem.style.zIndex = sourceElem.style.zIndex + 999;
 		destElem.style.maxWidth = (rect.width - 40) + 'px';
 	};
+
+	const hideExcludeMenu = function(e) {
+		if (hasClass(excludeMenuTag, 'ewww-error')) {
+			document.removeEventListener('mouseup', hideExcludeMenu);
+			return;
+		}
+		const currentLCP = document.querySelector('.ewww-lcp-element');
+		if (!currentLCP.contains(e.target) && ! excludeMenuTag.contains(e.target) && 'ewww-lcp-tag' !== e.target.id) {
+			excludeMenuTag.style.display = 'none';
+			excludeButtonVisible = false;
+			currentLCP.addEventListener('mouseover', showExcludeMenu);
+			document.removeEventListener('mouseup', hideExcludeMenu);
+		}
+	}
+
+	const sendExclusion = async function() {
+		this.removeEventListener('click', sendExclusion);
+		const exclusion = this.dataset.ewwwLazyExcludeValue;
+		console.log('sending exclusion:', exclusion, this.dataset.globalExclusion);
+		const exclusionData = new FormData();
+		exclusionData.append('action', 'ewww_add_lazy_exclusion');
+		exclusionData.append('ewww_wpnonce', imageDetectiveVars.nonce);
+		exclusionData.append('global', this.dataset.globalExclusion);
+		exclusionData.append('exclusion', exclusion);
+		exclusionData.append('post_id', imageDetectiveVars.postId);
+		exclusionData.append('request_uri', imageDetectiveVars.requestUri);
+
+		try {
+			const exclusionResponse = await fetch(
+				imageDetectiveVars.ajaxUrl,
+				{
+					method: 'POST',
+					body: exclusionData,
+				}
+			);
+			if (!exclusionResponse.ok) {
+				excludeMenuTag.innerHTML = imageDetectiveVars.invalid_response;
+				excludeMenuTag.classList.add('ewww-error');
+				console.log(`Attempt to add Lazy Load Exclusion resulted in an HTTP error with code ${exclusionResponse.status}`);
+				return;
+			}
+			const exclusionResult = await exclusionResponse.json();
+			if (exclusionResult.success && exclusionResult.message) {
+				excludeMenuTag.innerHTML = exclusionResult.message;
+				excludeMenuTag.classList.add('ewww-success');
+			} else if (exclusionResult.data) {
+				excludeMenuTag.innerHTML = exclusionResult.data;
+				excludeMenuTag.classList.add('ewww-error');
+			} else {
+				excludeMenuTag.innerHTML = imageDetectiveVars.invalid_response;
+				excludeMenuTag.classList.add('ewww-error');
+				console.log('Attempt to add Lazy Load Exclusion encountered an invalid response:', exclusionResult);
+			}
+		} catch (error) {
+			excludeMenuTag.innerHTML = imageDetectiveVars.invalid_response;
+			excludeMenuTag.classList.add('ewww-error');
+			console.log('Attempt to add Lazy Load Exclusion resulted in an error:', error);
+		}
+		excludeMenuVisible = false;
+	}
+
+	const addExcludeMenuItem = function(exclusion,global) {
+		const exclusionMenuItem = document.createElement('li');
+		if (global) {
+			exclusionMenuItem.innerHTML = imageDetectiveVars.menuItemGlobalText;
+			exclusionMenuItem.dataset.globalExclusion = 1;
+		} else {
+			exclusionMenuItem.innerHTML = imageDetectiveVars.menuItemPageText;
+			exclusionMenuItem.dataset.globalExclusion = 0;
+		}
+		exclusionMenuItem.dataset.ewwwLazyExcludeValue = exclusion;
+		exclusionMenuItem.querySelector('span.ewww-lazy-exclude-item-name').innerText = exclusion;
+		exclusionMenuItem.addEventListener('click', sendExclusion);
+		return exclusionMenuItem;
+	}
+
+	const showExcludeMenu = function() {
+		this.removeEventListener('mouseover', showExcludeMenu);
+		if (hasClass(excludeMenuTag, 'ewww-error')) {
+			return;
+		}
+		if (hasClass(excludeMenuTag, 'ewww-success')) {
+			excludeMenuTag.classList.remove('ewww-success');
+			excludeMenuTag.innerHTML = '';
+		}
+		excludeButtonVisible = true;
+		const excludeMenuItems = [];
+		let excludeMenuList = excludeMenuTag.querySelector('ul');
+		if (null === excludeMenuList) {
+			if ('string' == typeof this.src && this.src.search(/data:image/) === -1) {
+				console.log('attempting to get image path:', this.src);
+				try {
+					const imageURL = new URL(this.src);
+					if (imageURL.pathname.length > 0) {
+						console.log('adding menu items with ' + imageURL.pathname);
+						excludeMenuItems.push(addExcludeMenuItem(imageURL.pathname, true));
+						excludeMenuItems.push(addExcludeMenuItem(imageURL.pathname, false));
+					}
+				} catch (error) {
+					// do nothing, and skip to classes...
+					console.log('could not parse', this.src, error);
+				}
+			}
+			if (this.classList.length > 0) {
+				const ignoredClasses = ['ewww-lcp-element','lazyload','lazyloaded','ewww-improperly-scaled'];
+				this.classList.forEach(function(classValue){
+					if (ignoredClasses.includes(classValue)) {
+						return;
+					}
+					excludeMenuItems.push(addExcludeMenuItem(classValue, true));
+				});
+			}
+			if (this.id.length > 0) {
+				excludeMenuItems.push(addExcludeMenuItem(this.id, true));
+			}
+		}
+		if (excludeMenuItems.length > 0) {
+			console.log('creating menu list');
+			const excludeMenuLabel = document.createElement('div');
+			excludeMenuLabel.id = 'ewww-lazy-exclude-menu-label';
+			excludeMenuLabel.innerText = imageDetectiveVars.excludeMenuText;
+			excludeMenuLabel.onclick = function() {
+				if (excludeMenuVisible) {
+					excludeMenuVisible = false;
+					excludeMenuTag.querySelector('ul').style.display = 'none';
+				} else {
+					excludeMenuVisible = true;
+					excludeMenuTag.querySelector('ul').style.display = 'block';
+				}
+			};
+			excludeMenuTag.append(excludeMenuLabel);
+			excludeMenuList = document.createElement('ul');
+			for (let i = 0, len = excludeMenuItems.length; i < len; i++) {
+				console.log('adding menu list item');
+				excludeMenuList.append(excludeMenuItems[i]);
+			}
+			excludeMenuTag.append(excludeMenuList);
+		}
+		if (hasClass(this, 'ewww-improperly-scaled')) {
+			excludeMenuTag.style.marginTop = '110px';
+			excludeMenuTag.dataset.badScale = 1;
+		} else {
+			excludeMenuTag.dataset.badScale = 0;
+		}
+		matchPosition(this, excludeMenuTag);
+		if ('none' === excludeMenuTag.style.display) {
+			excludeMenuTag.style.display = 'flex';
+		}
+		document.addEventListener('mouseup', hideExcludeMenu);
+	}
 
 	const showScalingError = function() {
 		scalingError.innerText = this.dataset.ewwwScalingError;
@@ -99,9 +266,18 @@
 
 	const clearScaledImages = function() {
 		const scaledImages = document.querySelectorAll('img.ewww-improperly-scaled');
-		for (let i = 0, len = scaledImages.length; i < len; i++){
+		for (let i = 0, len = scaledImages.length; i < len; i++) {
 			clearScalingError(scaledImages[i]);
 		}
+	}
+
+	const clearLCPMarker = function() {
+		for (let i = 0, len = lcpElements.length; i < len; i++){
+			lcpElements[i].element.classList.remove('ewww-lcp-element');
+			lcpElements[i].element.removeEventListener('mouseover', showExcludeMenu);
+		}
+		lcpTag.style.top = '-1000px';
+		lcpTag.style.left = '-1000px';
 	}
 
 	const checkImageSizes = function() {
@@ -224,7 +400,6 @@
 						img.clientWidth + "x" + img.clientHeight + ", natural is " +
 						img.naturalWidth + "x" + img.naturalHeight + "!";
 					img.addEventListener('mouseover', showScalingError);
-					// img.addEventListener('mouseout', hideScalingError);
 				}
 			}
 		}

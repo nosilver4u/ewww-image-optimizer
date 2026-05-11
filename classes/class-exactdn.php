@@ -267,8 +267,8 @@ class ExactDN extends Page_Parser {
 		/**
 		 * Allow pre-empting the parsers by page.
 		 *
-		 * @param bool Whether to skip parsing the page.
-		 * @param string The URI/path of the page.
+		 * @param bool false Whether to skip parsing the page.
+		 * @param string $this->request_uri The URI/path of the page.
 		 */
 		if ( \apply_filters( 'exactdn_skip_page', false, $this->request_uri ) ) {
 			return;
@@ -1226,6 +1226,7 @@ class ExactDN extends Page_Parser {
 				if ( empty( $args ) ) {
 					$srcset_fill = false;
 				}
+				$placeholder_src_orig = '';
 				// Support Lazy Load plugins.
 				// Don't modify $tag yet as we need unmodified version later.
 				$lazy_load_src = \trim( $this->get_attribute( $images['img_tag'][ $index ], 'data-lazy-src' ) );
@@ -1614,6 +1615,7 @@ class ExactDN extends Page_Parser {
 
 					$args    = array();
 					$new_tag = $tag;
+					$new_src = '';
 					$width   = $this->get_attribute( $images['img_tag'][ $index ], 'width' );
 					$height  = $this->get_attribute( $images['img_tag'][ $index ], 'height' );
 					// Making sure the width/height are numeric.
@@ -3053,7 +3055,6 @@ class ExactDN extends Page_Parser {
 			}
 		}
 
-		$this->debug_message( 'parsing srcset took ' . $this->get_elapsed_time( $started ) / 1000000 . ' seconds so far' );
 		if ( ! $w_descriptor ) {
 			$this->debug_message( 'using x descriptors instead of w' );
 			$multipliers = \array_filter( $multipliers, '\is_int' );
@@ -3079,7 +3080,6 @@ class ExactDN extends Page_Parser {
 			$reqwidth   = $size_array[0];
 			$reqheight  = $size_array[1];
 			$this->debug_message( "filling additional sizes with requested w $reqwidth h $reqheight full w $fullwidth full h $fullheight" );
-			$this->debug_message( 'parsing srcset took ' . $this->get_elapsed_time( $started ) / 1000000 . ' seconds so far' );
 
 			$constrained_size = \wp_constrain_dimensions( $fullwidth, $fullheight, $reqwidth );
 			$expected_size    = array( $reqwidth, $reqheight );
@@ -3103,7 +3103,6 @@ class ExactDN extends Page_Parser {
 			$newsources    = null;
 
 			foreach ( $multipliers as $multiplier ) {
-				$this->debug_message( 'parsing srcset took ' . $this->get_elapsed_time( $started ) / 1000000 . ' seconds so far' );
 
 				$newwidth = \intval( $base * $multiplier );
 				if ( $multiplier > 50 ) { // Not a true multiplier, but a hard-coded width.
@@ -3337,10 +3336,10 @@ class ExactDN extends Page_Parser {
 	/**
 	 * Check if this is a REST API request that we should handle (or not).
 	 *
-	 * @param WP_HTTP_Response $response Result to send to the client. Usually a WP_REST_Response.
-	 * @param WP_REST_Server   $handler  ResponseHandler instance (usually WP_REST_Server).
-	 * @param WP_REST_Request  $request  Request used to generate the response.
-	 * @return WP_HTTP_Response The result, unaltered.
+	 * @param \WP_HTTP_Response $response Result to send to the client. Usually a WP_REST_Response.
+	 * @param \WP_REST_Server   $handler  ResponseHandler instance (usually WP_REST_Server).
+	 * @param \WP_REST_Request  $request  Request used to generate the response.
+	 * @return \WP_HTTP_Response The result, unaltered.
 	 */
 	public function parse_restapi_maybe( $response, $handler, $request ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
@@ -4300,12 +4299,13 @@ class ExactDN extends Page_Parser {
 			if ( empty( $modified ) ) {
 				$modified = $this->version;
 			}
+			$modified = "m=$modified";
 			/**
 			 * Allows a custom version string for resources that are missing one.
 			 *
-			 * @param string Defaults to the modified time of the theme folder, and falls back to the plugin version.
+			 * @param string $modified Defaults to the modified time of the theme folder, and falls back to the plugin version.
 			 */
-			$parsed_url['query'] = \apply_filters( 'exactdn_version_string', "m=$modified" );
+			$parsed_url['query'] = \apply_filters( 'exactdn_version_string', $modified );
 		} elseif (
 			false !== \strpos( $url, $this->content_path . '/plugins/' ) &&
 			( empty( $parsed_url['query'] ) || 'ver=' . $wp_version === $parsed_url['query'] )
@@ -4317,12 +4317,13 @@ class ExactDN extends Page_Parser {
 				if ( empty( $modified ) ) {
 					$modified = $this->version;
 				}
+				$modified = "m=$modified";
 				/**
 				 * Allows a custom version string for resources that are missing one.
 				 *
-				 * @param string Defaults to the modified time of the folder, and falls back to the plugin version.
+				 * @param string $modified Defaults to the modified time of the folder, and falls back to the plugin version.
 				 */
-				$parsed_url['query'] = \apply_filters( 'exactdn_version_string', "m=$modified" );
+				$parsed_url['query'] = \apply_filters( 'exactdn_version_string', $modified );
 			}
 		} elseif ( empty( $parsed_url['query'] ) ) {
 			$parsed_url['query'] = \apply_filters( 'exactdn_version_string', 'm=' . $this->version );

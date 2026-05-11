@@ -313,6 +313,7 @@ class EWWW_Image {
 		update_attached_file( $this->attachment_id, $meta['file'] );
 		$this->replace_url();
 
+		$mime = '';
 		// If the new image is a JPG.
 		if ( preg_match( '/.jpg$/i', $meta['file'] ) ) {
 			// Set the mimetype to JPG.

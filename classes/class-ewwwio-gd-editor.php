@@ -147,12 +147,12 @@ class EWWWIO_GD_Editor extends WP_Image_Editor_GD {
 		$resized = $this->_resize( $max_w, $max_h, $crop );
 
 		if ( is_resource( $resized ) || ( is_object( $resized ) && $resized instanceof GdImage ) ) {
-			imagedestroy( $this->image );
+			unset( $this->image );
 			$this->image = $resized;
 			return true;
 		} elseif ( is_string( $resized ) ) {
 			$this->ewww_image = $resized;
-			imagedestroy( $this->image );
+			unset( $this->image );
 			$this->image = @imagecreatefromstring( $resized );
 			return true;
 		} elseif ( is_wp_error( $resized ) ) {
@@ -265,9 +265,10 @@ class EWWWIO_GD_Editor extends WP_Image_Editor_GD {
 			$duplicate = ( (int) $orig_size['width'] === (int) $size_data['width'] && (int) $orig_size['height'] === (int) $size_data['height'] );
 
 			if ( ! is_wp_error( $image ) && ! $duplicate ) {
+				$resized = false;
 				if ( is_resource( $image ) || ( is_object( $image ) && $image instanceof GdImage ) ) {
 					$resized = $this->_save( $image );
-					imagedestroy( $image );
+					unset( $image );
 				} elseif ( is_string( $image ) ) {
 					$resized = $this->_save_ewwwio_file( $image );
 					unset( $image );

@@ -677,7 +677,7 @@ class Base {
 	/**
 	 * Get a list of which image types can be converted to WebP with the current configuration.
 	 *
-	 * @return A list of mime-types suitable for WebP conversion.
+	 * @return array A list of mime-types suitable for WebP conversion.
 	 */
 	public function get_webp_types() {
 		$webp_types = array( 'image/jpeg' );
@@ -740,6 +740,8 @@ class Base {
 			$paths = $input;
 		} elseif ( \is_string( $input ) ) {
 			$paths = \explode( "\n", $input );
+		} else {
+			return $path_array;
 		}
 		if ( $this->is_iterable( $paths ) ) {
 			foreach ( $paths as $path ) {
@@ -1384,10 +1386,10 @@ class Base {
 		} elseif ( \function_exists( '\ini_get' ) ) {
 			$memory_limit = \ini_get( 'memory_limit' );
 		} else {
+			// Conservative default, current usage + 16M.
+			$current_memory = \memory_get_usage( true );
+			$memory_limit   = \round( $current_memory / ( 1024 * 1024 ) ) + 16;
 			if ( ! \defined( 'EIO_MEMORY_LIMIT' ) ) {
-				// Conservative default, current usage + 16M.
-				$current_memory = \memory_get_usage( true );
-				$memory_limit   = \round( $current_memory / ( 1024 * 1024 ) ) + 16;
 				define( 'EIO_MEMORY_LIMIT', $memory_limit );
 			}
 		}

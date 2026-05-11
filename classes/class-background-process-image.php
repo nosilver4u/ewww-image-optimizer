@@ -200,9 +200,9 @@ class Background_Process_Image extends Background_Process {
 					$meta['height'] = $new_dimensions[1];
 					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_preserve_originals' ) ) {
 						$scaled_file = ewww_image_optimizer_scaled_filename( $image->file );
+						global $wpdb;
 						if ( ewwwio_is_file( $scaled_file ) ) {
 							$already_optimized = \ewww_image_optimizer_find_already_optimized( $scaled_file );
-							global $wpdb;
 							$wpdb->update(
 								$wpdb->ewwwio_images,
 								array(

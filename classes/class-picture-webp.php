@@ -75,8 +75,8 @@ class Picture_Webp extends Page_Parser {
 		/**
 		 * Allow pre-empting <picture> WebP by page.
 		 *
-		 * @param bool Whether to parse the page for images to rewrite for WebP, default true.
-		 * @param string The URI/path of the page.
+		 * @param bool true Whether to parse the page for images to rewrite for WebP, default true.
+		 * @param string $this->request_uri The URI/path of the page.
 		 */
 		if ( ! \apply_filters( 'eio_do_picture_webp', true, $this->request_uri ) ) {
 			return;

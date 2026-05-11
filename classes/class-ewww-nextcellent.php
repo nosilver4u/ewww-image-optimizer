@@ -127,9 +127,11 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				} elseif ( ! empty( $_POST['image'] ) ) {
 					$id = sanitize_key( $_POST['image'] );
 				}
-				$ewww_image         = new EWWW_Image( $id, 'nextcell', $filename );
-				$ewww_image->resize = 'thumbnail';
-				ewww_image_optimizer( $filename );
+				if ( ! empty( $id ) ) {
+					$ewww_image         = new EWWW_Image( $id, 'nextcell', $filename );
+					$ewww_image->resize = 'thumbnail';
+					ewww_image_optimizer( $filename );
+				}
 			}
 			ewwwio_memory( __METHOD__ );
 		}
@@ -280,7 +282,7 @@ if ( ! class_exists( 'EWWW_Nextcellent' ) ) {
 				// Get the file path of the image.
 				$file_path = $meta->image->imagePath;
 				// Get the mimetype of the image.
-				$type = ewww_image_optimizer_quick_mimetype( $file_path, 'i' );
+				$type = ewww_image_optimizer_quick_mimetype( $file_path );
 
 				// Check to see if we have a tool to handle the mimetype detected.
 				if ( ! ewwwio()->tools_initialized && ! ewwwio()->local->os_supported() ) {

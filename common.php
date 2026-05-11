@@ -1257,6 +1257,7 @@ function ewww_image_optimizer_install_table() {
 	global $wpdb;
 	$wpdb->ewwwio_images = $wpdb->prefix . 'ewwwio_images';
 	$wpdb->ewwwio_queue  = $wpdb->prefix . 'ewwwio_queue';
+	$wpdb->ewwwio_pages  = $wpdb->prefix . 'ewwwio_pages';
 
 	// Get the current wpdb charset and collation.
 	$db_collation = $wpdb->get_charset_collate();
@@ -1473,10 +1474,25 @@ function ewww_image_optimizer_install_table() {
 		KEY attachment_info (gallery(3),attachment_id)
 	) COLLATE utf8_general_ci;";
 
-	// Include the upgrade library to install/upgrade a table.
-	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 	$updates = dbDelta( $sql );
 	ewwwio_debug_message( 'queue db upgrade results: ' . implode( '<br>', $updates ) );
+
+	/*
+	 * Create a table with 3 columns:
+	 * id: unique for each record/image,
+	 * page: the request URI for the page,
+	 * data: lazy load exclusions, and any other information needed to optimize front-end loading.
+	 */
+	$sql = "CREATE TABLE $wpdb->ewwwio_pages (
+		id bigint unsigned NOT NULL AUTO_INCREMENT,
+		page varchar(255),
+		data text,
+		PRIMARY KEY  (id),
+		UNIQUE KEY page (page(191))
+	) COLLATE utf8_general_ci;";
+
+	$updates = dbDelta( $sql );
+	ewwwio_debug_message( 'pages db upgrade results: ' . implode( '<br>', $updates ) );
 }
 
 /**
@@ -2409,7 +2425,7 @@ function ewww_image_optimizer_network_admin_menu() {
 	if ( is_multisite() && is_plugin_active_for_network( EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE_REL ) ) {
 		$permissions = apply_filters( 'ewww_image_optimizer_superadmin_permissions', '' );
 		// Add options page to the settings menu.
-		$ewww_network_options_page = add_submenu_page(
+		add_submenu_page(
 			'settings.php',                        // Slug of parent.
 			'EWWW Image Optimizer',                // Page Title.
 			'EWWW Image Optimizer',                // Menu title.
@@ -11427,6 +11443,7 @@ function ewwwio_debug_info() {
 	ewwwio_debug_message( 'png2jpg fill:' );
 	ewww_image_optimizer_jpg_background();
 	ewwwio_debug_message( 'webp conversion: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) ? 'on' : 'off' ) );
+	ewwwio_debug_message( 'webp naming mode: ' . esc_html( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' ) ) );
 	ewwwio_debug_message( 'js webp rewriting: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'picture webp rewriting: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'WebP Rewrite exclusions:' );
@@ -13341,6 +13358,18 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				<div class='ewww-settings-section'>
 					<div class='ewww-settings-row'>
 						<div class='ewww-setting-header'>
+							<label for='ewww_image_optimizer_resize_detection'><?php esc_html_e( 'Image Detective', 'ewww-image-optimizer' ); ?></label>
+							<?php ewwwio_help_link( 'https://docs.ewww.io/article/41-resize-settings', '59849911042863033a1ba5f9' ); ?>
+						</div>
+						<div class='ewww-setting-detail'>
+							<input type='checkbox' id='ewww_image_optimizer_resize_detection' name='ewww_image_optimizer_resize_detection' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' ) ); ?> />
+							<?php esc_html_e( 'Helps identify LCP elements, highlight image scaling issues and more. Only visible for logged-in Admin users.', 'ewww-image-optimizer' ); ?>
+						</div>
+					</div>
+				</div>
+				<div class='ewww-settings-section'>
+					<div class='ewww-settings-row'>
+						<div class='ewww-setting-header'>
 							<?php esc_html_e( 'Max Image Dimensions', 'ewww-image-optimizer' ); ?>
 							<?php ewwwio_help_link( 'https://docs.ewww.io/article/41-resize-settings', '59849911042863033a1ba5f9' ); ?>
 						</div>
@@ -14288,18 +14317,6 @@ AddType image/webp .webp</pre>
 				<div class='ewww-settings-section'>
 					<div class='ewww-settings-row'>
 						<div class='ewww-setting-header'>
-							<label for='ewww_image_optimizer_resize_detection'><?php esc_html_e( 'Resize Detection', 'ewww-image-optimizer' ); ?></label>
-							<?php ewwwio_help_link( 'https://docs.ewww.io/article/41-resize-settings', '59849911042863033a1ba5f9' ); ?>
-						</div>
-						<div class='ewww-setting-detail'>
-							<input type='checkbox' id='ewww_image_optimizer_resize_detection' name='ewww_image_optimizer_resize_detection' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' ) ); ?> />
-							<?php esc_html_e( 'Highlight images that need to be resized because the browser is scaling them down. Only visible for Admin users and adds a button to the admin bar to detect scaled images that have been lazy loaded.', 'ewww-image-optimizer' ); ?>
-						</div>
-					</div>
-				</div>
-				<div class='ewww-settings-section'>
-					<div class='ewww-settings-row'>
-						<div class='ewww-setting-header'>
 							<label for='ewww_image_optimizer_resize_existing'><?php esc_html_e( 'Resize Existing Images', 'ewww-image-optimizer' ); ?></label>
 							<?php ewwwio_help_link( 'https://docs.ewww.io/article/41-resize-settings', '59849911042863033a1ba5f9' ); ?>
 						</div>
@@ -15085,9 +15102,24 @@ function ewww_image_optimizer_admin_bar_init() {
 function ewww_image_optimizer_admin_bar_menu( $wp_admin_bar ) {
 	$wp_admin_bar->add_menu(
 		array(
-			'id'     => 'resize-detection',
-			'parent' => 'top-secondary',
-			'title'  => __( 'Detect Scaled Images', 'ewww-image-optimizer' ),
+			'id'    => 'image-detective',
+			'title' => __( 'Image Detective', 'ewww-image-optimizer' ),
+		)
+	);
+	$wp_admin_bar->add_menu(
+		array(
+			'id'     => 'image-detective-check',
+			'href'   => '#',
+			'parent' => 'image-detective',
+			'title'  => __( 'Check again', 'ewww-image-optimizer' ),
+		)
+	);
+	$wp_admin_bar->add_menu(
+		array(
+			'id'     => 'image-detective-clear',
+			'href'   => '#',
+			'parent' => 'image-detective',
+			'title'  => __( 'Clear', 'ewww-image-optimizer' ),
 		)
 	);
 }

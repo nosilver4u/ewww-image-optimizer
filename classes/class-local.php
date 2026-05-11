@@ -229,6 +229,17 @@ class Local extends Base {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$src_folder = \trailingslashit( EWWW_IMAGE_OPTIMIZER_BINARY_PATH );
 		$dst_folder = \trailingslashit( $this->content_dir );
+
+		$gifsicle_src = '';
+		$optipng_src  = '';
+		$jpegtran_src = '';
+		$pngquant_src = '';
+		$webp_src     = '';
+		$gifsicle_dst = '';
+		$optipng_dst  = '';
+		$jpegtran_dst = '';
+		$pngquant_dst = '';
+		$webp_dst     = '';
 		if ( PHP_OS === 'WINNT' ) {
 			$gifsicle_src = $src_folder . 'gifsicle.exe';
 			$optipng_src  = $src_folder . 'optipng.exe';
@@ -999,6 +1010,11 @@ class Local extends Base {
 					$this->debug_message( "$path: {$jpegtran_version[0]}" );
 				} else {
 					$this->debug_message( "$path: invalid output" );
+					if ( $this->function_exists( 'print_r' ) ) {
+						$this->debug_message( print_r( $jpegtran_version, true ) );
+					} else {
+						$this->debug_message( gettype( $jpegtran_version ) );
+					}
 					break;
 				}
 				foreach ( $jpegtran_version as $jout ) {

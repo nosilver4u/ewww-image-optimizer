@@ -209,6 +209,9 @@ final class Plugin extends Base {
 			if ( ! isset( $wpdb->ewwwio_queue ) ) {
 				$wpdb->ewwwio_queue = $wpdb->prefix . 'ewwwio_queue';
 			}
+			if ( ! isset( $wpdb->ewwwio_pages ) ) {
+				$wpdb->ewwwio_pages = $wpdb->prefix . 'ewwwio_pages';
+			}
 
 			self::$instance = new Plugin( true );
 			self::$instance->debug_message( '<b>' . __METHOD__ . '()</b>' );
@@ -283,6 +286,8 @@ final class Plugin extends Base {
 		$this->async_requires();
 		// EWWW_Image class for working with queued images and image records from the database.
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-image.php';
+		// Page_Settings trait for working with page-specific settings and rules.
+		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/trait-page-settings.php';
 		// EWWWW\Local class for optimization tool installation/validation.
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-local.php';
 		// EWWW\Admin_Notices class for managing admin notices.
@@ -748,6 +753,7 @@ final class Plugin extends Base {
 		\add_option( 'ewww_image_optimizer_ll_exclude', '', '', true );
 		\add_option( 'ewww_image_optimizer_ll_all_things', '', '', true );
 		\add_option( 'ewww_image_optimizer_ll_autoscale', true, '', true );
+		\add_option( 'ewww_image_optimizer_ll_manual_page_settings', false, '', true );
 		\add_option( 'ewww_image_optimizer_disable_pngout', true, '', true );
 		\add_option( 'ewww_image_optimizer_disable_svgcleaner', true, '', true );
 		\add_option( 'ewww_image_optimizer_optipng_level', 2, '', true );

@@ -59,10 +59,10 @@ function ewww_image_optimizer_aux_images_table() {
 		$output['show_pending_button'] = ewww_image_optimizer_aux_images_table_count_pending() > 0;
 	}
 
+	$size_sort_class = '';
 	if ( $pending ) {
 		$sort_column     = 'id';
 		$sort_direction  = 'DESC';
-		$size_sort_class = '';
 		$attachment_sort = true;
 		if ( ! empty( $_POST['ewww_size_sort'] ) && 'asc' === $_POST['ewww_size_sort'] ) {
 			$sort_column     = 'orig_size';
@@ -306,7 +306,7 @@ function ewww_image_optimizer_get_image_table_row( $optimized_image, $alternate,
 		$thumb_url = site_url( 'wp-includes/images/media/default.png' );
 	}
 	// Retrieve the mimetype of the attachment.
-	$type = ewww_image_optimizer_quick_mimetype( $file, 'i' );
+	$type = ewww_image_optimizer_quick_mimetype( $file );
 
 	$savings = '';
 	if ( $optimized_image['image_size'] ) {
@@ -1361,12 +1361,13 @@ function ewww_image_optimizer_reset_images( $reset_images ) {
 	}
 	array_walk( $reset_images, 'intval' );
 	global $wpdb;
+	$max_query_length = 15000;
 	/**
 	 * Set a maximum for a query, 1k less than WPE's 16k limit, just to be safe.
 	 *
-	 * @param int 15000 The maximum query length.
+	 * @param int $max_query_length The maximum query length.
 	 */
-	$max_query_length = apply_filters( 'ewww_image_optimizer_max_query_length', 15000 );
+	$max_query_length = apply_filters( 'ewww_image_optimizer_max_query_length', $max_query_length );
 	$reset_images_sql = '';
 	foreach ( $reset_images as $reset_image ) {
 		if ( strlen( $reset_images_sql ) > $max_query_length ) {

@@ -17,6 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Lazy_Load extends Page_Parser {
 
+	use Page_Settings;
+
 	/**
 	 * A list of user-defined exclusions, populated by validate_user_exclusions().
 	 *
@@ -180,10 +182,10 @@ class Lazy_Load extends Page_Parser {
 		$this->content_url();
 
 		$this->request_uri = \add_query_arg( '', '' );
-		if ( false === \strpos( $this->request_uri, 'page=ewww-image-optimizer-options' ) ) {
-			$this->debug_message( "request uri is {$this->request_uri}" );
-		} else {
+		if ( \str_contains( $this->request_uri, 'page=ewww-image-optimizer-options' ) ) {
 			$this->debug_message( 'request uri is EWWW IO settings' );
+		} else {
+			$this->debug_message( "request uri is {$this->request_uri}" );
 		}
 
 		\add_filter( 'eio_do_lazyload', array( $this, 'should_process_page' ), 10, 2 );
@@ -191,8 +193,8 @@ class Lazy_Load extends Page_Parser {
 		/**
 		 * Allow pre-empting Lazy Load by page.
 		 *
-		 * @param bool Whether to parse the page for images to lazy load, default true.
-		 * @param string The URL of the page.
+		 * @param bool true Whether to parse the page for images to lazy load, default true.
+		 * @param string $this->request_uri The URI of the page.
 		 */
 		if ( ! \apply_filters( 'eio_do_lazyload', true, $this->request_uri ) ) {
 			return;
@@ -466,6 +468,39 @@ class Lazy_Load extends Page_Parser {
 	}
 
 	/**
+	 * Check if page settings exist for the current page and load them for use during parsing.
+	 */
+	protected function load_page_settings() {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( ! \get_option( $this->prefix . 'll_manual_page_settings' ) ) {
+			$this->debug_message( 'no manual page settings exist' );
+			return;
+		}
+		if ( \is_singular() ) {
+			$post_id = \get_queried_object_id();
+			if ( ! empty( $post_id ) ) {
+				$eio_page_settings = \maybe_unserialize( \get_post_meta( $post_id, 'eio_page_settings', true ) );
+				if ( ! empty( $eio_page_settings['ll_exclude'] ) && $this->is_iterable( $eio_page_settings['ll_exclude'] ) ) {
+					$this->debug_message( 'loading page settings for a singular page' );
+					$this->user_exclusions = array_merge( $this->user_exclusions, $eio_page_settings['ll_exclude'] );
+				}
+				return;
+			}
+		}
+		$request_uri = $this->parse_url( $this->request_uri, PHP_URL_PATH );
+		if ( empty( $request_uri ) ) {
+			$request_uri = '/';
+		}
+		if ( ! empty( $request_uri ) ) {
+			$eio_page_record = $this->get_page_settings( $request_uri );
+			if ( ! empty( $eio_page_record['data']['ll_exclude'] ) && $this->is_iterable( $eio_page_record['data']['ll_exclude'] ) ) {
+				$this->debug_message( 'loading page settings for a non-singular page' );
+				$this->user_exclusions = array_merge( $this->user_exclusions, $eio_page_record['data']['ll_exclude'] );
+			}
+		}
+	}
+
+	/**
 	 * Search for img elements and rewrite them for Lazy Load with fallback to noscript elements.
 	 *
 	 * @param string $buffer The full HTML page generated since the output buffer was started.
@@ -507,6 +542,8 @@ class Lazy_Load extends Page_Parser {
 		if ( ! $this->parsing_exactdn ) {
 			$this->get_preload_images( $buffer );
 		}
+
+		$this->load_page_settings();
 
 		$above_the_fold   = (int) \apply_filters( 'eio_lazy_fold', $this->get_option( $this->prefix . 'll_abovethefold' ) );
 		$images_processed = 0;
@@ -1310,7 +1347,6 @@ class Lazy_Load extends Page_Parser {
 
 		if ( ! is_null( $index ) && $this->skip_via_parent ) {
 			foreach ( $this->img_nodes as $node_index => $img_node ) {
-				continue;
 				if ( abs( $index - $node_index ) > 3 ) {
 					continue;
 				}
