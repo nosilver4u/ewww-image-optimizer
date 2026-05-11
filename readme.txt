@@ -173,10 +173,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 8.5.1 =
 *Release Date - TBD*
 
-TODO: modify this if necessary
-* added: LCP image detection, along with improved UI for Resize Detection which has been renamed to Image Detective
+* added: LCP image detection helper, along with improved UI for Resize Detection which has been renamed to Image Detective
 * added: ability to exclude LCP image from Lazy Load
 * added: filters for plugins that offload media to cloud storage to integrate with S3 detection for JS/Picture WebP and Lazy Load, props @alessandrocarrera
+* changed: Lazy Load and Easy IO scaling thresholds reduced for improved auto-scaling
 * fixed: performance regression when Lazy Load checks parent elements for skip-lazy exceptions
 * fixed: new uploads checked twice for optimization when Image Regenerate & Select Crop plugin is active
 * fixed: incorrect WebP URLs shown in Media Library when naming mode is empty, usually when media is offloaded

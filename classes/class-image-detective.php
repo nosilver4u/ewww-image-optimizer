@@ -329,6 +329,7 @@ class Image_Detective extends Base {
 			var imageDetectiveVars = {
 				ajaxUrl: '<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>',
 				nonce: '<?php echo esc_js( wp_create_nonce( 'ewww-image-detective' ) ); ?>',
+				llActive: <?php echo $this->get_option( 'ewww_image_optimizer_lazy_load' ) ? 'true' : 'false'; ?>,
 				excludeMenuText: '<?php echo esc_js( __( 'Add Lazy Load Exclusion', 'ewww-image-optimizer' ) ); ?>',
 				invalid_response: '<?php echo esc_js( __( 'Received an invalid response from your website, please check for errors in the Developer Tools console of your browser.', 'ewww-image-optimizer' ) ); ?>',
 				<?php /* translators: %s is a placeholder for the image name or class. */ ?>

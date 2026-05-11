@@ -3018,7 +3018,7 @@ class ExactDN extends Page_Parser {
 		 *
 		 * @param array|bool $multipliers Array of multipliers to use or false to bypass.
 		 */
-		$multipliers = \apply_filters( 'exactdn_srcset_multipliers', array( .2, .4, .6, .8, 1, 450 ) );
+		$multipliers = \apply_filters( 'exactdn_srcset_multipliers', array( .1, .2, .3, .4, .5, .6, .7, .8, .9, 1, 450 ) );
 
 		if ( empty( $url ) || empty( $multipliers ) ) {
 			// No URL, or no multipliers, bail!

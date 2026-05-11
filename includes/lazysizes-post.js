@@ -504,8 +504,8 @@
 					physicalWidth = realDims.w;
 					physicalHeight = realDims.h;
 				}
-	            var wrongWidth = (target.clientWidth && (target.clientWidth * 1.25 * dPR < physicalWidth));
-	            var wrongHeight = (target.clientHeight && (target.clientHeight * 1.25 * dPR < physicalHeight));
+	            var wrongWidth = (target.clientWidth && ((target.clientWidth * 1.25 * dPR < physicalWidth) || (target.clientWidth * dPR + 50 < physicalWidth)));
+	            var wrongHeight = (target.clientHeight && ((target.clientHeight * 1.25 * dPR < physicalHeight) || (target.clientHeight * dPR + 50 < physicalHeight)));
 				console.log('displayed at ' + Math.round(target.clientWidth * dPR) + 'w x ' + Math.round(target.clientHeight * dPR) + 'h, natural/physical is ' +
 				physicalWidth + 'w x ' + physicalHeight + 'h!');
 				console.log('the data-src: ' + target.getAttribute('data-src') );

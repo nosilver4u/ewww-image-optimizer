@@ -65,7 +65,7 @@
 			matchPosition(lastLCP.element, lcpTag);
 			console.log('LCP Element:', lastLCP.element);
 			lastLCP.element.classList.add('ewww-lcp-element');
-			if (lastLCP.element.tagName.toLowerCase() === 'img' && (hasClass(lastLCP.element,'lazyload') || hasClass(lastLCP.element,'lazyloaded'))) {
+			if (imageDetectiveVars.llActive && lastLCP.element.tagName.toLowerCase() === 'img' && (hasClass(lastLCP.element,'lazyload') || hasClass(lastLCP.element,'lazyloaded'))) {
 				lastLCP.element.addEventListener('mouseover', showExcludeMenu);
 			}
 			lcpElements.push(lastLCP);
@@ -392,8 +392,8 @@
 				// For each image with a natural width which isn't
 				// a 1x1 image, check its size.
 				const dPR = (window.devicePixelRatio || 1);
-				const wrongWidth = (img.clientWidth * 1.5 * dPR < img.naturalWidth);
-				const wrongHeight = (img.clientHeight * 1.5 * dPR < img.naturalHeight);
+				const wrongWidth = (img.clientWidth * 1.25 * dPR < img.naturalWidth) || (img.clientWidth > 768 && img.clientWidth * dPR + 100 < img.naturalWidth);
+				const wrongHeight = (img.clientHeight * 1.25 * dPR < img.naturalHeight) || (img.clientHeight > 768 && img.clientHeight * dPR + 100 < img.naturalHeight);
 				if (wrongWidth || wrongHeight) {
 					img.classList.add('ewww-improperly-scaled');
 					img.dataset.ewwwScalingError = "Forced to wrong size: " +
