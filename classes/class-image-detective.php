@@ -31,12 +31,13 @@ class Image_Detective extends Base {
 	 */
 	public function __construct() {
 		parent::__construct();
-		if ( ! $this->get_option( $this->prefix . 'resize_detection' ) ) {
+		if ( ! $this->get_option( $this->prefix . 'image_detective' ) ) {
 			return;
 		}
 
 		$this->request_uri = \add_query_arg( '', '' );
 
+		// NOTE: Be careful that anything for admin users does not accidentally run for guests.
 		\add_action( 'wp_ajax_ewww_add_lazy_exclusion', array( $this, 'ajax_add_lazy_exclusion' ) );
 
 		if ( \is_admin() ) {
@@ -224,9 +225,6 @@ class Image_Detective extends Base {
 				'title'  => __( 'Clear detected images', 'ewww-image-optimizer' ),
 			)
 		);
-		if ( ! $this->get_option( $this->prefix . 'lazy_load' ) ) {
-			return;
-		}
 		if ( ! \get_option( $this->prefix . 'll_manual_page_settings' ) ) {
 			return;
 		}
@@ -307,7 +305,7 @@ class Image_Detective extends Base {
 		if ( ! $this->is_frontend() ) {
 			return;
 		}
-		if ( ! $this->get_option( 'ewww_image_optimizer_resize_detection' ) ) {
+		if ( ! $this->get_option( 'ewww_image_optimizer_image_detective' ) ) {
 			return;
 		}
 		$plugin_dir = \plugin_dir_path( \constant( \strtoupper( $this->prefix ) . 'PLUGIN_FILE' ) );
@@ -315,9 +313,9 @@ class Image_Detective extends Base {
 			( \defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ||
 			( \defined( \strtoupper( $this->prefix ) . 'SCRIPT_DEBUG' ) && \constant( \strtoupper( $this->prefix ) . 'SCRIPT_DEBUG' ) )
 		) {
-			$resize_detection_script = \file_get_contents( $plugin_dir . 'includes/resize-detection.js' );
+			$image_detective_script = \file_get_contents( $plugin_dir . 'includes/resize-detection.js' );
 		} else {
-			$resize_detection_script = \file_get_contents( $plugin_dir . 'includes/resize-detection.min.js' );
+			$image_detective_script = \file_get_contents( $plugin_dir . 'includes/resize-detection.min.js' );
 		}
 		$post_id = 0;
 		if ( \is_singular() ) {
@@ -436,7 +434,7 @@ class Image_Detective extends Base {
 			}
 		</style>
 		<script data-cfasync="false" data-no-optimize="1" data-no-defer="1" data-no-minify="1">
-			<?php echo $resize_detection_script; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<?php echo $image_detective_script; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
 			var imageDetectiveVars = {
 				ajaxUrl: '<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>',

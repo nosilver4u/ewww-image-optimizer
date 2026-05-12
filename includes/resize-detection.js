@@ -23,6 +23,7 @@
 		if (adminBarClearButton) {
 			adminBarClearButton.onclick = function() {
 				adminBarClearButton.classList.toggle('ewww-fade');
+				shouldTagLCP = false;
 				clearLCPMarker();
 				clearScaledImages();
 				setTimeout(function() {
@@ -40,6 +41,8 @@
 	excludeMenuTag.id = 'ewww-lazy-exclude-menu';
 	let excludeButtonVisible = false;
 	let excludeMenuVisible = false;
+	let lastLCP = false;
+	let shouldTagLCP = true;
 	const initCriticalImages = function() {
 		if (! atfImagesLoaded() && Date.now() - started < 5000) {
 			console.log('hold up, need to wait a bit...');
@@ -61,13 +64,14 @@
 				document.body.append(lcpTag);
 				document.body.append(excludeMenuTag);
 			}
-			const lastLCP = lcpEntries[lcpEntries.length - 1];
-			matchPosition(lastLCP.element, lcpTag);
+			lastLCP = lcpEntries[lcpEntries.length - 1];
+			tagLCP(lastLCP.element);
+			/*matchPosition(lastLCP.element, lcpTag);
 			console.log('LCP Element:', lastLCP.element);
 			lastLCP.element.classList.add('ewww-lcp-element');
 			if (imageDetectiveVars.llActive && lastLCP.element.tagName.toLowerCase() === 'img' && (hasClass(lastLCP.element,'lazyload') || hasClass(lastLCP.element,'lazyloaded'))) {
 				lastLCP.element.addEventListener('mouseover', showExcludeMenu);
-			}
+			}*/
 			lcpElements.push(lastLCP);
 		});
 		lcpObserver.observe({type: 'largest-contentful-paint', buffered: true});
@@ -79,8 +83,21 @@
 		);
 		for (const type of ['keydown', 'click', 'visibilitychange']) {
 			addEventListener(type, function() {
-				lcpObserver.disconnect();
+				//lcpObserver.disconnect();
 			});
+		}
+	};
+
+	const tagLCP = function(lcpElement) {
+		if (! shouldTagLCP) {
+			console.log('nope, do not tag LCP anymore');
+			return;
+		}
+		matchPosition(lcpElement, lcpTag);
+		console.log('LCP Element:', lcpElement);
+		lcpElement.classList.add('ewww-lcp-element');
+		if (imageDetectiveVars.llActive && lcpElement.tagName.toLowerCase() === 'img' && (hasClass(lcpElement,'lazyload') || hasClass(lcpElement,'lazyloaded'))) {
+			lcpElement.addEventListener('mouseover', showExcludeMenu);
 		}
 	};
 
@@ -89,7 +106,7 @@
 		destElem.style.top = (rect.top + window.scrollY) + 'px';
 		destElem.style.left = (rect.left + window.scrollX) + 'px';
 		destElem.style.zIndex = sourceElem.style.zIndex + 999;
-		destElem.style.maxWidth = (rect.width - 40) + 'px';
+		destElem.style.maxWidth = (rect.width - 60) + 'px';
 	};
 
 	const hideExcludeMenu = function(e) {
@@ -195,7 +212,7 @@
 				}
 			}
 			if (this.classList.length > 0) {
-				const ignoredClasses = ['ewww-lcp-element','lazyload','lazyloaded','ewww-improperly-scaled'];
+				const ignoredClasses = ['ewww-lcp-element','lazyload','lazyloaded','lazyloading','lazyautosizes','ls-is-cached','ewww-improperly-scaled'];
 				this.classList.forEach(function(classValue){
 					if (ignoredClasses.includes(classValue)) {
 						return;
@@ -269,6 +286,7 @@
 		for (let i = 0, len = scaledImages.length; i < len; i++) {
 			clearScalingError(scaledImages[i]);
 		}
+		hideScalingError();
 	}
 
 	const clearLCPMarker = function() {
@@ -287,6 +305,10 @@
 		for (i = 0; i < imgs.length; i++) {
 			clearScalingError(imgs[i]);
 			checkImageScale(imgs[i]);
+		}
+		if (lastLCP) {
+			shouldTagLCP = true;
+			tagLCP(lastLCP.element);
 		}
 		return false;
 	};
@@ -394,13 +416,15 @@
 				const dPR = (window.devicePixelRatio || 1);
 				const wrongWidth = (img.clientWidth * 1.25 * dPR < img.naturalWidth) || (img.clientWidth > 768 && img.clientWidth * dPR + 100 < img.naturalWidth);
 				const wrongHeight = (img.clientHeight * 1.25 * dPR < img.naturalHeight) || (img.clientHeight > 768 && img.clientHeight * dPR + 100 < img.naturalHeight);
-				if (wrongWidth || wrongHeight) {
+				const widthDiff = img.naturalWidth - img.clientWidth * dPR;
+				const heightDiff = img.naturalHeight - img.clientHeight * dPR;
+				if ((wrongWidth && heightDiff > 25) || (wrongHeight && widthDiff > 25)) {
 					img.classList.add('ewww-improperly-scaled');
-					img.dataset.ewwwScalingError = "Forced to wrong size: " +
-						img.clientWidth + "x" + img.clientHeight + ", natural is " +
-						img.naturalWidth + "x" + img.naturalHeight + "!";
+					img.dataset.ewwwScalingError = 'Forced to wrong size: natural image size is ' +
+						img.naturalWidth + "x" + img.naturalHeight + ', but should be ' +
+						img.clientWidth + "x" + img.clientHeight + "!";
 					img.addEventListener('mouseover', showScalingError);
-				}
+				} 
 			}
 		}
 	};

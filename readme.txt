@@ -21,6 +21,7 @@ Are you frustrated by a slow website? Do over-sized images make you say “ewww�
 * Lossless JPG, PNG, GIF, and SVG image optimization (8% average savings)
 * WebP conversion compatible with all web hosts (60% average savings)
 * Optimize images from [any plugin](https://docs.ewww.io/article/84-plugin-compatibility)
+* Image Detective to help you identify improperly scaled images and better optimize LCP images
 * Resize images at upload or in bulk
 * Lazy Load with auto-scaling for responsive images–uses properly-sized placeholders to prevent layout shift (CLS)
 * Sharpen thumbnail images for better quality
@@ -180,6 +181,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: performance regression when Lazy Load checks parent elements for skip-lazy exceptions
 * fixed: new uploads checked twice for optimization when Image Regenerate & Select Crop plugin is active
 * fixed: incorrect WebP URLs shown in Media Library when naming mode is empty, usually when media is offloaded
+* fixed: some front-end options not autoloaded
 
 = 8.5.0 =
 *Release Date - April 1, 2026*

@@ -654,8 +654,8 @@ function ewww_image_optimizer_save_network_settings() {
 			update_site_option( 'ewww_image_optimizer_maxmediawidth', $ewww_image_optimizer_maxmediawidth );
 			$ewww_image_optimizer_maxmediaheight = empty( $_POST['ewww_image_optimizer_maxmediaheight'] ) ? 0 : (int) $_POST['ewww_image_optimizer_maxmediaheight'];
 			update_site_option( 'ewww_image_optimizer_maxmediaheight', $ewww_image_optimizer_maxmediaheight );
-			$ewww_image_optimizer_resize_detection = ( empty( $_POST['ewww_image_optimizer_resize_detection'] ) ? false : true );
-			update_site_option( 'ewww_image_optimizer_resize_detection', $ewww_image_optimizer_resize_detection );
+			$ewww_image_optimizer_image_detective = ( empty( $_POST['ewww_image_optimizer_image_detective'] ) ? false : true );
+			update_site_option( 'ewww_image_optimizer_image_detective', $ewww_image_optimizer_image_detective );
 			$ewww_image_optimizer_resize_existing = ( empty( $_POST['ewww_image_optimizer_resize_existing'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_resize_existing', $ewww_image_optimizer_resize_existing );
 			$ewww_image_optimizer_resize_other_existing = ( empty( $_POST['ewww_image_optimizer_resize_other_existing'] ) ? false : true );
@@ -810,6 +810,15 @@ function ewww_image_optimizer_upgrade() {
 		) {
 			ewww_image_optimizer_set_option( 'ewww_image_optimizer_webp_conversion_method', 'cloud' );
 		}
+		if (
+			get_option( 'ewww_image_optimizer_version' ) < 860 &&
+			ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' )
+		) {
+			ewww_image_optimizer_set_option( 'ewww_image_optimizer_image_detective', true );
+			delete_option( 'ewww_image_optimizer_resize_detection' );
+			delete_site_option( 'ewww_image_optimizer_resize_detection' );
+		}
+
 		if ( get_option( 'ewww_image_optimizer_local_mode' ) || get_site_option( 'ewww_image_optimizer_local_mode' ) ) {
 			update_option( 'ewww_image_optimizer_ludicrous_mode', true );
 			update_site_option( 'ewww_image_optimizer_ludicrous_mode', true );
@@ -11312,15 +11321,10 @@ function ewwwio_debug_info() {
 	}
 	ewwwio_debug_message( 'JPG-only mode: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_only_mode' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'remove metadata: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ? 'on' : 'off' ) );
-	ewwwio_debug_message( 'jpg level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) );
-	ewwwio_debug_message( 'png level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) );
-	ewwwio_debug_message( 'gif level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) );
-	ewwwio_debug_message( 'pdf level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) );
-	ewwwio_debug_message( 'svg level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ) );
-	ewwwio_debug_message( 'webp level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_level' ) );
-	ewwwio_debug_message( 'webp mode: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_conversion_method' ) );
+	ewwwio_debug_message( 'image detective: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_image_detective' ) ? 'on' : 'off' ) );
+	ewwwio_debug_message( 'max media dimensions: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' ) . ' x ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' ) );
+	ewwwio_debug_message( 'max other dimensions: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherwidth' ) . ' x ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherheight' ) );
 	ewwwio_debug_message( 'bulk delay: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_delay' ) );
-	ewwwio_debug_message( 'backup mode: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) );
 	ewwwio_debug_message( 'ExactDN enabled: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'ExactDN all the things: ' . ( ewww_image_optimizer_get_option( 'exactdn_all_the_things' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'ExactDN hidpi: ' . intval( ewww_image_optimizer_get_option( 'exactdn_hidpi' ) ) );
@@ -11346,6 +11350,14 @@ function ewwwio_debug_info() {
 	ewwwio_debug_message( 'LL exclusions:' );
 	$ll_exclude_paths = ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_exclude' ) ? esc_html( implode( "\n", (array) ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_exclude' ) ) ) : '';
 	ewwwio_debug_message( $ll_exclude_paths );
+	ewwwio_debug_message( 'jpg level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) );
+	ewwwio_debug_message( 'png level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) );
+	ewwwio_debug_message( 'gif level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) );
+	ewwwio_debug_message( 'pdf level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) );
+	ewwwio_debug_message( 'svg level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ) );
+	ewwwio_debug_message( 'webp level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_level' ) );
+	ewwwio_debug_message( 'webp mode: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_conversion_method' ) );
+	ewwwio_debug_message( 'backup mode: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_backup_files' ) );
 	if ( ! ewww_image_optimizer_full_cloud() ) {
 		ewwwio_debug_message( 'optipng level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_optipng_level' ) );
 		ewwwio_debug_message( 'pngout disabled: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_disable_pngout' ) ? 'yes' : 'no' ) );
@@ -11416,9 +11428,6 @@ function ewwwio_debug_info() {
 	ewwwio_debug_message( 'exclude originals from lossy: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lossy_skip_full' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'exclude originals from metadata removal: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_skip_full' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'use system binaries: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_skip_bundle' ) ? 'yes' : 'no' ) );
-	ewwwio_debug_message( 'resize detection: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' ) ? 'on' : 'off' ) );
-	ewwwio_debug_message( 'max media dimensions: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediawidth' ) . ' x ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxmediaheight' ) );
-	ewwwio_debug_message( 'max other dimensions: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherwidth' ) . ' x ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_maxotherheight' ) );
 	ewwwio_debug_message( 'resize existing images: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'resize existing (non-media) images: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_other_existing' ) ? 'on' : 'off' ) );
 	ewwwio_debug_message( 'preserve originals: ' . ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_preserve_originals' ) ? 'on' : 'off' ) );
@@ -13356,11 +13365,11 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				<div class='ewww-settings-section'>
 					<div class='ewww-settings-row'>
 						<div class='ewww-setting-header'>
-							<label for='ewww_image_optimizer_resize_detection'><?php esc_html_e( 'Image Detective', 'ewww-image-optimizer' ); ?></label>
+							<label for='ewww_image_optimizer_image_detective'><?php esc_html_e( 'Image Detective', 'ewww-image-optimizer' ); ?></label>
 							<?php ewwwio_help_link( 'https://docs.ewww.io/article/41-resize-settings', '59849911042863033a1ba5f9' ); ?>
 						</div>
 						<div class='ewww-setting-detail'>
-							<input type='checkbox' id='ewww_image_optimizer_resize_detection' name='ewww_image_optimizer_resize_detection' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_detection' ) ); ?> />
+							<input type='checkbox' id='ewww_image_optimizer_image_detective' name='ewww_image_optimizer_image_detective' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_image_detective' ) ); ?> />
 							<?php esc_html_e( 'Helps identify LCP elements, highlight image scaling issues and more. Only visible for logged-in Admin users.', 'ewww-image-optimizer' ); ?>
 						</div>
 					</div>

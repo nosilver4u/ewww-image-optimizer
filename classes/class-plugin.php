@@ -682,7 +682,7 @@ final class Plugin extends Base {
 		// Using sanitize_text_field instead of textarea on purpose.
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_ll_all_things', 'sanitize_text_field' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_ll_exclude', array( $this, 'exclude_paths_sanitize' ) );
-		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_resize_detection', 'boolval' );
+		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_image_detective', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_maxmediawidth', 'intval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_maxmediaheight', 'intval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_resize_existing', 'boolval' );
@@ -721,6 +721,7 @@ final class Plugin extends Base {
 		\add_option( 'ewww_image_optimizer_debug', false, '', true );
 		\add_option( 'ewww_image_optimizer_test_mode', false, '', true );
 		\add_option( 'ewww_image_optimizer_metadata_remove', true, '', true );
+		\add_option( 'ewww_image_optimizer_image_detective', false, '', true );
 		\add_option( 'ewww_image_optimizer_maxmediawidth', 2560, '', true );
 		\add_option( 'ewww_image_optimizer_maxmediaheight', 2560, '', true );
 		\add_option( 'ewww_image_optimizer_cloud_key', false, '', true );
@@ -738,12 +739,12 @@ final class Plugin extends Base {
 		\add_option( 'ewww_image_optimizer_resize_existing', true, '', true );
 		\add_option( 'ewww_image_optimizer_exactdn', false, '', true );
 		\add_option( 'ewww_image_optimizer_exactdn_plan_id', 0, '', true );
+		\add_option( 'ewww_image_optimizer_exactdn_asset_domains', '', '', true );
 		\add_option( 'exactdn_all_the_things', true, '', true );
 		\add_option( 'exactdn_hidpi', false, '', true );
 		\add_option( 'exactdn_exclude', '', '', true );
 		\add_option( 'exactdn_sub_folder', false, '', true );
 		\add_option( 'exactdn_prevent_db_queries', true, '', true );
-		\add_option( 'exactdn_asset_domains', '', '', true );
 		\add_option( 'ewww_image_optimizer_lazy_load', false, '', true );
 		\add_option( 'ewww_image_optimizer_add_missing_dims', false, '', true );
 		\add_option( 'ewww_image_optimizer_use_siip', false, '', true );
@@ -764,6 +765,64 @@ final class Plugin extends Base {
 		\add_option( 'ewww_image_optimizer_webp_rewrite_exclude', '', '', true );
 		\add_option( 'ewww_image_optimizer_webp_naming_mode', 'append', '', true );
 		\add_option( 'ewww_image_optimizer_allow_tracking', '', '', true );
+
+		// Then make sure they are all actually autoloaded.
+		$autoload_options = array(
+			'ewww_image_optimizer_background_optimization' => true,
+			'ewww_image_optimizer_noauto'                  => true,
+			'ewww_image_optimizer_auto'                    => true,
+			'ewww_image_optimizer_ludicrous_mode'          => true,
+			'ewww_image_optimizer_jpg_only_mode'           => true,
+			'ewww_image_optimizer_disable_editor'          => true,
+			'ewww_image_optimizer_debug'                   => true,
+			'ewww_image_optimizer_test_mode'               => true,
+			'ewww_image_optimizer_metadata_remove'         => true,
+			'ewww_image_optimizer_image_detective'         => true,
+			'ewww_image_optimizer_maxmediawidth'           => true,
+			'ewww_image_optimizer_maxmediaheight'          => true,
+			'ewww_image_optimizer_cloud_key'               => true,
+			'ewww_image_optimizer_jpg_level'               => true,
+			'ewww_image_optimizer_png_level'               => true,
+			'ewww_image_optimizer_gif_level'               => true,
+			'ewww_image_optimizer_pdf_level'               => true,
+			'ewww_image_optimizer_svg_level'               => true,
+			'ewww_image_optimizer_webp_level'              => true,
+			'ewww_image_optimizer_webp_conversion_method'  => true,
+			'ewww_image_optimizer_webp'                    => true,
+			'ewww_image_optimizer_jpg_quality'             => true,
+			'ewww_image_optimizer_webp_quality'            => true,
+			'ewww_image_optimizer_backup_files'            => true,
+			'ewww_image_optimizer_resize_existing'         => true,
+			'ewww_image_optimizer_exactdn'                 => true,
+			'ewww_image_optimizer_exactdn_plan_id'         => true,
+			'ewww_image_optimizer_exactdn_asset_domains'   => true,
+			'exactdn_all_the_things'                       => true,
+			'exactdn_hidpi'                                => true,
+			'exactdn_exclude'                              => true,
+			'exactdn_sub_folder'                           => true,
+			'exactdn_prevent_db_queries'                   => true,
+			'ewww_image_optimizer_lazy_load'               => true,
+			'ewww_image_optimizer_add_missing_dims'        => true,
+			'ewww_image_optimizer_use_siip'                => true,
+			'ewww_image_optimizer_use_lqip'                => true,
+			'ewww_image_optimizer_use_dcip'                => true,
+			'ewww_image_optimizer_ll_external_bg'          => true,
+			'ewww_image_optimizer_ll_exclude'              => true,
+			'ewww_image_optimizer_ll_all_things'           => true,
+			'ewww_image_optimizer_ll_autoscale'            => true,
+			'ewww_image_optimizer_ll_manual_page_settings' => true,
+			'ewww_image_optimizer_disable_pngout'          => true,
+			'ewww_image_optimizer_disable_svgcleaner'      => true,
+			'ewww_image_optimizer_optipng_level'           => true,
+			'ewww_image_optimizer_pngout_level'            => true,
+			'ewww_image_optimizer_webp_for_cdn'            => true,
+			'ewww_image_optimizer_force_gif2webp'          => true,
+			'ewww_image_optimizer_picture_webp'            => true,
+			'ewww_image_optimizer_webp_rewrite_exclude'    => true,
+			'ewww_image_optimizer_webp_naming_mode'        => true,
+			'ewww_image_optimizer_allow_tracking'          => true,
+		);
+		wp_set_option_autoload_values( $autoload_options );
 
 		// Set network defaults.
 		\add_site_option( 'ewww_image_optimizer_background_optimization', false );
