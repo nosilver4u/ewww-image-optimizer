@@ -446,6 +446,8 @@ class Image_Detective extends Base {
 				menuItemGlobalText: '<?php printf( esc_js( __( 'Exclude %s', 'ewww-image-optimizer' ) ), '<span class="ewww-lazy-exclude-item-name"></span>' ); ?>',
 				<?php /* translators: %s is a placeholder for the image name. */ ?>
 				menuItemPageText: '<?php printf( esc_js( __( 'Exclude %s on this page only', 'ewww-image-optimizer' ) ), '<span class="ewww-lazy-exclude-item-name"></span>' ); ?>',
+				<?php /* translators: 1: Natural image width, 2: Natural image height, 3: Container width, 4: Container height. Note that width and height have an 'x' between them. */ ?>
+				scalingErrorText: '<?php printf( esc_js( __( 'Forced to wrong size: natural image size is %1$sx%2$s, but should be %3$sx%4$s', 'ewww-image-optimizer' ) ), '<span class="ewww-scaling-error-natural-width"></span>', '<span class="ewww-scaling-error-natural-height"></span>', '<span class="ewww-scaling-error-container-width"></span>', '<span class="ewww-scaling-error-container-height"></span>' ); ?>',
 				postId: <?php echo (int) $post_id; ?>,
 				requestUri: '<?php echo esc_js( $request_uri ); ?>',
 			};

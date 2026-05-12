@@ -66,12 +66,6 @@
 			}
 			lastLCP = lcpEntries[lcpEntries.length - 1];
 			tagLCP(lastLCP.element);
-			/*matchPosition(lastLCP.element, lcpTag);
-			console.log('LCP Element:', lastLCP.element);
-			lastLCP.element.classList.add('ewww-lcp-element');
-			if (imageDetectiveVars.llActive && lastLCP.element.tagName.toLowerCase() === 'img' && (hasClass(lastLCP.element,'lazyload') || hasClass(lastLCP.element,'lazyloaded'))) {
-				lastLCP.element.addEventListener('mouseover', showExcludeMenu);
-			}*/
 			lcpElements.push(lastLCP);
 		});
 		lcpObserver.observe({type: 'largest-contentful-paint', buffered: true});
@@ -83,7 +77,7 @@
 		);
 		for (const type of ['keydown', 'click', 'visibilitychange']) {
 			addEventListener(type, function() {
-				//lcpObserver.disconnect();
+				shouldTagLCP = false;
 			});
 		}
 	};
@@ -260,7 +254,11 @@
 	}
 
 	const showScalingError = function() {
-		scalingError.innerText = this.dataset.ewwwScalingError;
+		scalingError.innerHTML = imageDetectiveVars.scalingErrorText;
+		scalingError.querySelector('span.ewww-scaling-error-natural-width').innerText = this.naturalWidth;
+		scalingError.querySelector('span.ewww-scaling-error-natural-height').innerText = this.naturalHeight;
+		scalingError.querySelector('span.ewww-scaling-error-container-width').innerText = this.clientWidth;
+		scalingError.querySelector('span.ewww-scaling-error-container-height').innerText = this.clientHeight;
 		if (hasClass(this, 'ewww-lcp-element')) {
 			scalingError.style.marginTop = '60px';
 		} else {
@@ -420,9 +418,6 @@
 				const heightDiff = img.naturalHeight - img.clientHeight * dPR;
 				if ((wrongWidth && heightDiff > 25) || (wrongHeight && widthDiff > 25)) {
 					img.classList.add('ewww-improperly-scaled');
-					img.dataset.ewwwScalingError = 'Forced to wrong size: natural image size is ' +
-						img.naturalWidth + "x" + img.naturalHeight + ', but should be ' +
-						img.clientWidth + "x" + img.clientHeight + "!";
 					img.addEventListener('mouseover', showScalingError);
 				} 
 			}
