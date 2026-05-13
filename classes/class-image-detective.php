@@ -39,6 +39,7 @@ class Image_Detective extends Base {
 
 		// NOTE: Be careful that anything for admin users does not accidentally run for guests.
 		\add_action( 'wp_ajax_ewww_add_lazy_exclusion', array( $this, 'ajax_add_lazy_exclusion' ) );
+		\add_action( 'wp_ajax_ewww_add_ignore_scaling_rule', array( $this, 'ajax_add_ignore_scaling_rule' ) );
 
 		if ( \is_admin() ) {
 			return;
@@ -55,7 +56,7 @@ class Image_Detective extends Base {
 	 * AJAX handler for adding a lazy load exclusion.
 	 */
 	public function ajax_add_lazy_exclusion() {
-		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		\check_ajax_referer( 'ewww-image-detective', 'ewww_wpnonce' );
 		if ( ! \current_user_can( \apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 			\wp_send_json_error( \esc_html__( 'You do not have permission to perform this action.', 'ewww-image-optimizer' ) );
@@ -95,7 +96,7 @@ class Image_Detective extends Base {
 	 * @param string $exclusion The exclusion to add.
 	 */
 	private function update_global_lazy_exclusions( $exclusion ) {
-		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( ! \is_string( $exclusion ) || empty( $exclusion ) || \strlen( $exclusion ) > 500 ) {
 			$this->debug_message( 'invalid exclusion value:' );
 			$this->debug_message( $exclusion );
@@ -116,7 +117,7 @@ class Image_Detective extends Base {
 	 * @param string     $exclusion The exclusion to add.
 	 */
 	private function update_page_lazy_exclusions( $post_identifier, $exclusion ) {
-		$this->debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( ! \is_string( $exclusion ) || empty( $exclusion ) || \strlen( $exclusion ) > 500 ) {
 			$this->debug_message( 'invalid exclusion value:' );
 			$this->debug_message( $exclusion );
@@ -161,6 +162,87 @@ class Image_Detective extends Base {
 				if ( ! \get_option( $this->prefix . 'll_manual_page_settings' ) ) {
 					\update_option( $this->prefix . 'll_manual_page_settings', true );
 				}
+			}
+		}
+	}
+
+	/**
+	 * AJAX handler for adding an image to the ignore list for scaling issues.
+	 */
+	public function ajax_add_ignore_scaling_rule() {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		\check_ajax_referer( 'ewww-image-detective', 'ewww_wpnonce' );
+		if ( ! \current_user_can( \apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+			\wp_send_json_error( \esc_html__( 'You do not have permission to perform this action.', 'ewww-image-optimizer' ) );
+		}
+		$this->ob_clean();
+		if ( empty( $_REQUEST['ignore'] ) ) {
+			\wp_send_json_error( \esc_html__( 'Cannot save empty image path.', 'ewww-image-optimizer' ) );
+		}
+		$exclusion = sanitize_text_field( wp_unslash( $_REQUEST['ignore'] ) );
+		if ( empty( $_REQUEST['post_id'] ) && empty( $_REQUEST['request_uri'] ) ) {
+			\wp_send_json_error( \esc_html__( 'Cannot add image to ignore list without a valid post ID or request URI.', 'ewww-image-optimizer' ) );
+		}
+		if ( ! empty( $_REQUEST['post_id'] ) ) {
+			$post_identifier = (int) $_REQUEST['post_id'];
+		} else {
+			$post_identifier = \sanitize_text_field( \wp_unslash( $_REQUEST['request_uri'] ) );
+		}
+		$this->debug_message( "adding $exclusion to ignore list for post/page $post_identifier" );
+		$this->update_page_scaling_detection_exclusions( $post_identifier, $exclusion );
+		$this->ob_clean();
+		\wp_send_json(
+			array(
+				'success' => true,
+				'message' => \esc_html__( 'The image has been added to the ignore list.', 'ewww-image-optimizer' ),
+			)
+		);
+	}
+
+	/**
+	 * Update page-specific scaling-detection exclusions.
+	 *
+	 * @param int|string $post_identifier The post ID or request URI of the page for which to add the exclusion.
+	 * @param string     $exclusion The exclusion to add.
+	 */
+	private function update_page_scaling_detection_exclusions( $post_identifier, $exclusion ) {
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( ! \is_string( $exclusion ) || empty( $exclusion ) || \strlen( $exclusion ) > 500 ) {
+			$this->debug_message( 'invalid exclusion value:' );
+			$this->debug_message( $exclusion );
+			return;
+		}
+		if ( empty( $post_identifier ) ) {
+			$this->debug_message( 'invalid post identifier' );
+			return;
+		}
+		if ( \is_int( $post_identifier ) ) {
+			$eio_page_settings = \maybe_unserialize( \get_post_meta( $post_identifier, 'eio_page_settings', true ) );
+			$exclusions        = $this->is_iterable( $eio_page_settings ) && isset( $eio_page_settings['scale_detection_exclude'] ) ? $eio_page_settings['scale_detection_exclude'] : array();
+			$new_exclusions    = $this->merge_exclusions( $exclusions, $exclusion );
+			if ( is_array( $new_exclusions ) && ! empty( $new_exclusions ) && count( $new_exclusions ) > count( $exclusions ) ) {
+				$this->debug_message( 'saving updated exclusions in postmeta' );
+				if ( ! is_array( $eio_page_settings ) ) {
+					$eio_page_settings = array();
+				}
+				$eio_page_settings['scale_detection_exclude'] = $new_exclusions;
+				\update_post_meta( $post_identifier, 'eio_page_settings', \serialize( $eio_page_settings ) );
+			}
+		} elseif ( \is_string( $post_identifier ) ) {
+			$eio_page_record   = $this->get_page_settings( $post_identifier );
+			$eio_page_settings = isset( $eio_page_record['data'] ) && is_array( $eio_page_record['data'] ) ? $eio_page_record['data'] : array();
+			$exclusions        = $this->is_iterable( $eio_page_settings ) && isset( $eio_page_settings['scale_detection_exclude'] ) ? $eio_page_settings['scale_detection_exclude'] : array();
+			$new_exclusions    = $this->merge_exclusions( $exclusions, $exclusion );
+			if ( is_array( $new_exclusions ) && ! empty( $new_exclusions ) && count( $new_exclusions ) > count( $exclusions ) ) {
+				$this->debug_message( 'saving updated exclusions in ewwwio_pages table' );
+				if ( ! is_array( $eio_page_record ) || empty( $eio_page_record ) || ! isset( $eio_page_record['id'] ) ) {
+					$eio_page_record = array(
+						'page' => $post_identifier,
+						'data' => array(),
+					);
+				}
+				$eio_page_record['data']['scale_detection_exclude'] = $new_exclusions;
+				$this->update_page_settings( $eio_page_record );
 			}
 		}
 	}
@@ -225,10 +307,6 @@ class Image_Detective extends Base {
 				'title'  => __( 'Clear detected images', 'ewww-image-optimizer' ),
 			)
 		);
-		if ( ! \get_option( $this->prefix . 'll_manual_page_settings' ) ) {
-			return;
-		}
-		$this->debug_message( 'manual page settings exist, adding menu item to clear them' );
 		$wp_admin_bar->add_node(
 			array(
 				'id'     => 'image-detective-remove-per-page-settings',
@@ -317,13 +395,21 @@ class Image_Detective extends Base {
 		} else {
 			$image_detective_script = \file_get_contents( $plugin_dir . 'includes/resize-detection.min.js' );
 		}
+		$scaling_exclusions = array();
 		$post_id = 0;
 		if ( \is_singular() ) {
-			$post_id = \get_queried_object_id();
+			$post_id            = \get_queried_object_id();
+			$eio_page_settings  = \maybe_unserialize( \get_post_meta( $post_id, 'eio_page_settings', true ) );
+			$scaling_exclusions = $this->is_iterable( $eio_page_settings ) && isset( $eio_page_settings['scale_detection_exclude'] ) ? $eio_page_settings['scale_detection_exclude'] : array();
 		}
 		$request_uri = $this->parse_url( $this->request_uri, PHP_URL_PATH );
 		if ( empty( $request_uri ) ) {
 			$request_uri = '/';
+		}
+		if ( empty( $post_id ) && ! empty( $request_uri ) ) {
+			$eio_page_record    = $this->get_page_settings( $request_uri );
+			$eio_page_settings  = isset( $eio_page_record['data'] ) && is_array( $eio_page_record['data'] ) ? $eio_page_record['data'] : array();
+			$scaling_exclusions = $this->is_iterable( $eio_page_settings ) && isset( $eio_page_settings['scale_detection_exclude'] ) ? $eio_page_settings['scale_detection_exclude'] : array();
 		}
 		?>
 		<style id="ewww-image-detective-inline-styles">
@@ -362,13 +448,13 @@ class Image_Detective extends Base {
 				top: -1000px;
 				left: -1000px;
 			}
-			#ewww-lazy-exclude-menu.ewww-error {
+			#ewww-lazy-exclude-menu.ewww-error, #ewww-scaling-error.ewww-error {
 				background-color: #fff;
 				color: #d10707;
 				padding: 6px 10px;
 				border: #d10707 solid 1px;
 			}
-			#ewww-lazy-exclude-menu.ewww-success {
+			#ewww-lazy-exclude-menu.ewww-success, #ewww-scaling-error.ewww-success {
 				background-color: #fff;
 				color: #272727;
 				padding: 6px 10px;
@@ -409,6 +495,10 @@ class Image_Detective extends Base {
 				color: #3eadc9;
 				background-color: #fff;
 			}
+			.ewww-ignore-scaling-error {
+				color: #1e8da9;
+				padding-left: 10px;
+			}
 			#ewww-scaling-error {
 				background-color: #ccc;
 				color: #272727;
@@ -433,7 +523,7 @@ class Image_Detective extends Base {
 				box-shadow: 0 0 3px 3px #d10707;
 			}
 		</style>
-		<script data-cfasync="false" data-no-optimize="1" data-no-defer="1" data-no-minify="1">
+		<script data-cfasync="false" data-no-optimize="1" data-no-defer="1" data-no-minify="1" id="ewww-image-detective-inline-script">
 			<?php echo $image_detective_script; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
 			var imageDetectiveVars = {
@@ -448,6 +538,8 @@ class Image_Detective extends Base {
 				menuItemPageText: '<?php printf( esc_js( __( 'Exclude %s on this page only', 'ewww-image-optimizer' ) ), '<span class="ewww-lazy-exclude-item-name"></span>' ); ?>',
 				<?php /* translators: 1: Natural image width, 2: Natural image height, 3: Container width, 4: Container height. Note that width and height have an 'x' between them. */ ?>
 				scalingErrorText: '<?php printf( esc_js( __( 'Forced to wrong size: natural image size is %1$sx%2$s, but should be %3$sx%4$s', 'ewww-image-optimizer' ) ), '<span class="ewww-scaling-error-natural-width"></span>', '<span class="ewww-scaling-error-natural-height"></span>', '<span class="ewww-scaling-error-container-width"></span>', '<span class="ewww-scaling-error-container-height"></span>' ); ?>',
+				ignoreErrorText: '<?php echo esc_js( __( 'Ignore', 'ewww-image-optimizer' ) ); ?>',
+				scalingExclusions: <?php echo wp_json_encode( $scaling_exclusions ); ?>,
 				postId: <?php echo (int) $post_id; ?>,
 				requestUri: '<?php echo esc_js( $request_uri ); ?>',
 			};

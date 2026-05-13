@@ -75,7 +75,7 @@
 			},
 			60000
 		);
-		for (const type of ['keydown', 'click', 'visibilitychange']) {
+		for (const type of ['keydown', 'click']) {
 			addEventListener(type, function() {
 				shouldTagLCP = false;
 			});
@@ -140,7 +140,7 @@
 			if (!exclusionResponse.ok) {
 				excludeMenuTag.innerHTML = imageDetectiveVars.invalid_response;
 				excludeMenuTag.classList.add('ewww-error');
-				console.log(`Attempt to add Lazy Load Exclusion resulted in an HTTP error with code ${exclusionResponse.status}`);
+				window.console.log(`Attempt to add Lazy Load Exclusion resulted in an HTTP error with code ${exclusionResponse.status}`);
 				return;
 			}
 			const exclusionResult = await exclusionResponse.json();
@@ -153,14 +153,65 @@
 			} else {
 				excludeMenuTag.innerHTML = imageDetectiveVars.invalid_response;
 				excludeMenuTag.classList.add('ewww-error');
-				console.log('Attempt to add Lazy Load Exclusion encountered an invalid response:', exclusionResult);
+				window.console.log('Attempt to add Lazy Load Exclusion encountered an invalid response:', exclusionResult);
 			}
 		} catch (error) {
 			excludeMenuTag.innerHTML = imageDetectiveVars.invalid_response;
 			excludeMenuTag.classList.add('ewww-error');
-			console.log('Attempt to add Lazy Load Exclusion resulted in an error:', error);
+			window.console.log('Attempt to add Lazy Load Exclusion resulted in an error:', error);
 		}
 		excludeMenuVisible = false;
+	}
+
+	const sendIgnoreImage = async function() {
+		event.preventDefault();
+		this.removeEventListener('click', sendIgnoreImage);
+		currentScalingErrorElem.removeEventListener('mouseover', showScalingError);
+		// How do we display success? Just nuke the error message?
+		// But likely need to make sure we remove the ignoreTag
+		const ignorePath = this.dataset.imagePath;
+		console.log('sending ignore request:', ignorePath );
+		const ignoreData = new FormData();
+		ignoreData.append('action', 'ewww_add_ignore_scaling_rule');
+		ignoreData.append('ewww_wpnonce', imageDetectiveVars.nonce);
+		ignoreData.append('ignore', ignorePath);
+		ignoreData.append('post_id', imageDetectiveVars.postId);
+		ignoreData.append('request_uri', imageDetectiveVars.requestUri);
+
+		try {
+			const ignoreResponse = await fetch(
+				imageDetectiveVars.ajaxUrl,
+				{
+					method: 'POST',
+					body: ignoreData,
+				}
+			);
+			if (!ignoreResponse.ok) {
+				scalingError.innerHTML = imageDetectiveVars.invalid_response;
+				scalingError.classList.add('ewww-error');
+				window.console.log(`Attempt to add Scaling Ignore Rule resulted in an HTTP error with code ${ignoreResponse.status}`);
+				return false;
+			}
+			const ignoreResult = await ignoreResponse.json();
+			if (ignoreResult.success && ignoreResult.message) {
+				currentScalingErrorElem.classList.remove('ewww-improperly-scaled');
+				scalingError.innerHTML = ignoreResult.message;
+				scalingError.classList.add('ewww-success');
+				imageDetectiveVars.scalingExclusions.push(ignorePath);
+			} else if (ignoreResult.data) {
+				scalingError.innerHTML = ignoreResult.data;
+				scalingError.classList.add('ewww-error');
+			} else {
+				scalingError.innerHTML = imageDetectiveVars.invalid_response;
+				scalingError.classList.add('ewww-error');
+				window.console.log('Attempt to add Scaling Ignore Rule encountered an invalid response:', ignoreResult);
+			}
+		} catch (error) {
+			scalingError.innerHTML = imageDetectiveVars.invalid_response;
+			scalingError.classList.add('ewww-error');
+			window.console.log('Attempt to add Scaling Ignore Rule resulted in an error:', error);
+		}
+		return false;
 	}
 
 	const addExcludeMenuItem = function(exclusion,global) {
@@ -178,6 +229,21 @@
 		return exclusionMenuItem;
 	}
 
+	const getImagePath = function(img) {
+		if ('string' == typeof img.src && img.src.search(/data:image/) === -1) {
+			console.log('attempting to get image path:', img.src);
+			try {
+				const imageURL = new URL(img.src);
+				if (imageURL.pathname.length > 0) {
+					return imageURL.pathname;
+				}
+			} catch (error) {
+				console.log('could not parse', error);
+			}
+		}
+		return '';
+	}
+
 	const showExcludeMenu = function() {
 		this.removeEventListener('mouseover', showExcludeMenu);
 		if (hasClass(excludeMenuTag, 'ewww-error')) {
@@ -191,19 +257,11 @@
 		const excludeMenuItems = [];
 		let excludeMenuList = excludeMenuTag.querySelector('ul');
 		if (null === excludeMenuList) {
-			if ('string' == typeof this.src && this.src.search(/data:image/) === -1) {
-				console.log('attempting to get image path:', this.src);
-				try {
-					const imageURL = new URL(this.src);
-					if (imageURL.pathname.length > 0) {
-						console.log('adding menu items with ' + imageURL.pathname);
-						excludeMenuItems.push(addExcludeMenuItem(imageURL.pathname, true));
-						excludeMenuItems.push(addExcludeMenuItem(imageURL.pathname, false));
-					}
-				} catch (error) {
-					// do nothing, and skip to classes...
-					console.log('could not parse', this.src, error);
-				}
+			const imagePath = getImagePath(this);
+			if (imagePath) {
+				console.log('adding menu items with ' + imagePath);
+				excludeMenuItems.push(addExcludeMenuItem(imagePath, true));
+				excludeMenuItems.push(addExcludeMenuItem(imagePath, false));
 			}
 			if (this.classList.length > 0) {
 				const ignoredClasses = ['ewww-lcp-element','lazyload','lazyloaded','lazyloading','lazyautosizes','ls-is-cached','ewww-improperly-scaled'];
@@ -253,7 +311,11 @@
 		document.addEventListener('mouseup', hideExcludeMenu);
 	}
 
+	let currentScalingErrorElem = {};
 	const showScalingError = function() {
+		currentScalingErrorElem = this;
+		scalingError.classList.remove('ewww-error');
+		scalingError.classList.remove('ewww-success');
 		scalingError.innerHTML = imageDetectiveVars.scalingErrorText;
 		scalingError.querySelector('span.ewww-scaling-error-natural-width').innerText = this.naturalWidth;
 		scalingError.querySelector('span.ewww-scaling-error-natural-height').innerText = this.naturalHeight;
@@ -263,6 +325,16 @@
 			scalingError.style.marginTop = '60px';
 		} else {
 			scalingError.style.removeProperty('margin-top');
+			const imagePath = getImagePath(this);
+			if (imagePath) {
+				let ignoreTag = document.createElement('a');
+				ignoreTag.classList.add('ewww-ignore-scaling-error');
+				ignoreTag.href = '#';
+				ignoreTag.innerText = imageDetectiveVars.ignoreErrorText;
+				ignoreTag.addEventListener('click', sendIgnoreImage);
+				ignoreTag.dataset.imagePath = imagePath;
+				scalingError.append(' ', ignoreTag);
+			}
 		}
 		matchPosition(this, scalingError);
 	}
@@ -404,6 +476,10 @@
 			return;
 		}
 		if ('string' == typeof img.src && img.src.search(/data:image/) > -1) {
+			return;
+		}
+		const imagePath = getImagePath(img);
+		if (imageDetectiveVars.scalingExclusions.includes(imagePath)) {
 			return;
 		}
 		console.log('checking size of: ' + img.src);
