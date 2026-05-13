@@ -396,7 +396,7 @@ class Image_Detective extends Base {
 			$image_detective_script = \file_get_contents( $plugin_dir . 'includes/resize-detection.min.js' );
 		}
 		$scaling_exclusions = array();
-		$post_id = 0;
+		$post_id            = 0;
 		if ( \is_singular() ) {
 			$post_id            = \get_queried_object_id();
 			$eio_page_settings  = \maybe_unserialize( \get_post_meta( $post_id, 'eio_page_settings', true ) );
