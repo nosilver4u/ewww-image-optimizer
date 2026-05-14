@@ -317,8 +317,8 @@
 		scalingError.classList.remove('ewww-error');
 		scalingError.classList.remove('ewww-success');
 		scalingError.innerHTML = imageDetectiveVars.scalingErrorText;
-		scalingError.querySelector('span.ewww-scaling-error-natural-width').innerText = this.naturalWidth;
-		scalingError.querySelector('span.ewww-scaling-error-natural-height').innerText = this.naturalHeight;
+		scalingError.querySelector('span.ewww-scaling-error-natural-width').innerText = this.srcsetImg && this.srcsetImg.naturalWidth > 0 ? this.srcsetImg.naturalWidth : this.naturalWidth;
+		scalingError.querySelector('span.ewww-scaling-error-natural-height').innerText = this.srcsetImg && this.srcsetImg.naturalHeight > 0 ? this.srcsetImg.naturalHeight : this.naturalHeight;
 		scalingError.querySelector('span.ewww-scaling-error-container-width').innerText = this.clientWidth;
 		scalingError.querySelector('span.ewww-scaling-error-container-height').innerText = this.clientHeight;
 		if (hasClass(this, 'ewww-lcp-element')) {
@@ -370,7 +370,7 @@
 
 	const checkImageSizes = function() {
 		// Find images which have width or height greater than their natural
-		// width or height, highlight them, and store an error message.
+		// width or height and highlight them.
 		const imgs = document.getElementsByTagName('img');
 		for (i = 0; i < imgs.length; i++) {
 			clearScalingError(imgs[i]);
@@ -482,23 +482,44 @@
 		if (imageDetectiveVars.scalingExclusions.includes(imagePath)) {
 			return;
 		}
-		console.log('checking size of: ' + img.src);
-		if (img.naturalWidth) {
+		if (img.complete && img.naturalWidth > 0) {
+			console.log('checking size of: ' + img.src);
 			if (img.naturalWidth > 25 && img.naturalHeight > 25 && img.clientWidth > 25 && img.clientHeight > 25) {
-				// For each image with a natural width which isn't
-				// a 1x1 image, check its size.
-				const dPR = (window.devicePixelRatio || 1);
-				const wrongWidth = (img.clientWidth * 1.25 * dPR < img.naturalWidth) || (img.clientWidth > 768 && img.clientWidth * dPR + 100 < img.naturalWidth);
-				const wrongHeight = (img.clientHeight * 1.25 * dPR < img.naturalHeight) || (img.clientHeight > 768 && img.clientHeight * dPR + 100 < img.naturalHeight);
-				const widthDiff = img.naturalWidth - img.clientWidth * dPR;
-				const heightDiff = img.naturalHeight - img.clientHeight * dPR;
-				if ((wrongWidth && heightDiff > 25) || (wrongHeight && widthDiff > 25)) {
-					img.classList.add('ewww-improperly-scaled');
-					img.addEventListener('mouseover', showScalingError);
-				} 
+				// For each image with a natural width greater than 25x25...
+				if (img.srcset && img.currentSrc && img.srcsetImg && img.srcsetImg.src == img.currentSrc) {
+					compareNaturalToExpected(img, img.srcsetImg.naturalWidth, img.srcsetImg.naturalHeight);
+				} else if (img.srcset && img.currentSrc && 'string' == typeof img.currentSrc) {
+					img.srcsetImg = new Image();
+					img.srcsetImg.onload = function() {
+						console.log(`natural dimensions from srcset source ${img.srcsetImg.src} are ${img.srcsetImg.naturalWidth}x${img.srcsetImg.naturalHeight}`);
+						compareNaturalToExpected(img, img.srcsetImg.naturalWidth, img.srcsetImg.naturalHeight);
+					}
+					img.srcsetImg.src = img.currentSrc;
+				} else {
+					compareNaturalToExpected(img, img.naturalWidth, img.naturalHeight);
+				}
+			}
+		} else {
+			console.log('defering check until onload: ' + img.src);
+			img.onload = function() {
+				checkImageScale(this);
 			}
 		}
 	};
+
+	const compareNaturalToExpected = function(img, physicalWidth, physicalHeight) {
+		const dPR = (window.devicePixelRatio || 1);
+		console.log(`comparing natural ${physicalWidth}x${physicalHeight} vs. expected ${img.clientWidth}x${img.clientHeight} using dpr ${dPR}`);
+		const wrongWidth = (img.clientWidth * 1.25 * dPR < physicalWidth) || (img.clientWidth > 768 && img.clientWidth * dPR + 100 < physicalWidth);
+		const wrongHeight = (img.clientHeight * 1.25 * dPR < physicalHeight) || (img.clientHeight > 768 && img.clientHeight * dPR + 100 < physicalHeight);
+		const widthDiff = physicalWidth - img.clientWidth * dPR;
+		const heightDiff = physicalHeight - img.clientHeight * dPR;
+		console.log(`width difference is ${widthDiff} and height difference is ${heightDiff}`);
+		if ((wrongWidth && heightDiff > 25) || (wrongHeight && widthDiff > 25)) {
+			img.classList.add('ewww-improperly-scaled');
+			img.addEventListener('mouseover', showScalingError);
+		}
+	}
 
 	document.addEventListener('lazyloaded', function(e) {
 		clearScalingError(e.target);
