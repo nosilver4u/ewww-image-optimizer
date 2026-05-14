@@ -538,7 +538,7 @@ class Picture_Webp extends Page_Parser {
 	}
 
 	/**
-	 * Checks if the path is a valid WebP image, on-disk or forced.
+	 * Checks if the path has a valid WebP image copy, on-disk or forced.
 	 *
 	 * @param string $image The image URL.
 	 * @return bool True if the file exists or matches a forced path, false otherwise.
@@ -567,6 +567,9 @@ class Picture_Webp extends Page_Parser {
 			return false;
 		}
 		if ( $extension && 'webp' === $extension ) {
+			return false;
+		}
+		if ( $extension && 'avif' === $extension ) {
 			return false;
 		}
 		if ( \apply_filters( 'ewww_image_optimizer_skip_webp_rewrite', false, $image ) ) {

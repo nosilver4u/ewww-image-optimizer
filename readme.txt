@@ -3,7 +3,7 @@ Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: compress, convert, webp, resize, lazy load
 Tested up to: 7.0
-Stable tag: 8.5.0
+Stable tag: 8.6.0
 License: GPLv3
 
 Comprehensive image optimization that doesn't require a rocket science degree. Optimize images automatically for Faster Sites and Happy Visitors.
@@ -171,8 +171,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
-= 8.5.1 =
-*Release Date - TBD*
+= 8.6.0 =
+*Release Date - May 14, 2026*
 
 * added: LCP image detection helper, along with improved UI for Resize Detection which has been renamed to Image Detective
 * added: ability to exclude LCP image from Lazy Load
@@ -182,6 +182,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: new uploads checked twice for optimization when Image Regenerate & Select Crop plugin is active
 * fixed: incorrect WebP URLs shown in Media Library when naming mode is empty, usually when media is offloaded
 * fixed: some front-end options not autoloaded
+* fixed: AVIF images rewritten in Force WebP mode
 
 = 8.5.0 =
 *Release Date - April 1, 2026*
