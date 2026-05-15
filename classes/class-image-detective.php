@@ -102,7 +102,15 @@ class Image_Detective extends Base {
 			$this->debug_message( $exclusion );
 			return;
 		}
-		$exclusions     = $this->get_option( $this->prefix . 'll_exclude' );
+		$exclusions = $this->get_option( $this->prefix . 'll_exclude' );
+		if ( empty( $exclusions ) ) {
+			$exclusions = array();
+		} elseif ( \is_string( $exclusions ) ) {
+			$exclusions = \explode( "\n", $exclusions );
+		} else {
+			$this->debug_message( 'invalid exclusions value, not a string or array, check the db' );
+			return;
+		}
 		$new_exclusions = $this->merge_exclusions( $exclusions, $exclusion );
 		if ( is_array( $new_exclusions ) && ! empty( $new_exclusions ) && count( $new_exclusions ) > count( $exclusions ) ) {
 			$this->debug_message( 'saving updated exclusions' );

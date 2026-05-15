@@ -174,7 +174,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 8.6.1 =
 *Release Date - TBD*
 
-* fixed: Image Detective uses incorrect dimensions for auto-sized srcset images 
+* fixed: Image Detective uses incorrect dimensions for auto-sized srcset images
+* fixed: size detection for images using native lazy load
+* fixed: PHP error adding global Lazy Load exclusion with Image Detective
+
 = 8.6.0 =
 *Release Date - May 14, 2026*
 
