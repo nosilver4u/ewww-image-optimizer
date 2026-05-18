@@ -10631,7 +10631,7 @@ function ewww_image_optimizer_get_bad_attachments() {
 	} else {
 		$bad_attachments = (array) ewww_image_optimizer_get_option( 'ewww_image_optimizer_bad_attachments' );
 	}
-	array_walk( $bad_attachments, 'intval' );
+	$bad_attachments = array_filter( array_map( 'absint', $bad_attachments ) );
 	delete_transient( 'ewww_image_optimizer_rebuilding_attachment' );
 	return array( $bad_attachments, $bad_attachment );
 }
@@ -12260,7 +12260,7 @@ function ewww_image_optimizer_get_bulk_info() {
 			$ids = array( (int) $_REQUEST['ids'] );
 		} else {
 			$ids = explode( ',', $ids );
-			array_walk( $ids, 'intval' );
+			$ids = array_filter( array_map( 'absint', $ids ) );
 		}
 		$fullsize_count = count( $ids );
 	} else {

@@ -777,19 +777,24 @@ function ewww_image_optimizer_count_images_to_optimize( $gallery = 'media' ) {
 	switch ( $gallery ) {
 		case 'media':
 			return ewww_image_optimizer_count_attachments();
-			break;
 		case 'ngg':
 			// See if we were given attachment IDs to work with via GET/POST.
 			if ( ! empty( $_REQUEST['doaction'] ) || get_option( 'ewww_image_optimizer_bulk_ngg_resume' ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 				// Retrieve the attachment IDs that were pre-loaded in the database.
 				$attachment_ids = get_option( 'ewww_image_optimizer_bulk_ngg_attachments' );
-				array_walk( $attachment_ids, 'intval' );
-				while ( $attachment_ids && strlen( $attachment_query ) < $max_query_length ) {
-					$attachment_query .= "'" . array_pop( $attachment_ids ) . "',";
-					++$attachment_query_count;
+				if ( is_array( $attachment_ids ) ) {
+					// Use array_map to convert all values to positive integers, and array_filter to remove any left-over empty values.
+					$attachment_ids = array_filter( array_map( 'absint', $attachment_ids ) );
+
+					while ( $attachment_ids && strlen( $attachment_query ) < $max_query_length ) {
+						$attachment_query .= "'" . array_pop( $attachment_ids ) . "',";
+						++$attachment_query_count;
+					}
+					$attachment_query = 'WHERE pid IN (' . substr( $attachment_query, 0, -1 ) . ')';
+					$max_query        = $attachment_query_count;
+				} else {
+					$attachment_ids = array();
 				}
-				$attachment_query = 'WHERE pid IN (' . substr( $attachment_query, 0, -1 ) . ')';
-				$max_query        = $attachment_query_count;
 			}
 			// Get an array of sizes available for the $image.
 			global $ewwwngg;
@@ -838,13 +843,19 @@ function ewww_image_optimizer_count_images_to_optimize( $gallery = 'media' ) {
 			if ( ! empty( $_REQUEST['doaction'] ) || get_option( 'ewww_image_optimizer_bulk_flag_resume' ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 				// Retrieve the attachment IDs that were pre-loaded in the database.
 				$attachment_ids = get_option( 'ewww_image_optimizer_bulk_flag_attachments' );
-				array_walk( $attachment_ids, 'intval' );
-				while ( $attachment_ids && strlen( $attachment_query ) < $max_query_length ) {
-					$attachment_query .= "'" . array_pop( $attachment_ids ) . "',";
-					++$attachment_query_count;
+				if ( is_array( $attachment_ids ) ) {
+					// Use array_map to convert all values to positive integers, and array_filter to remove any left-over empty values.
+					$attachment_ids = array_filter( array_map( 'absint', $attachment_ids ) );
+
+					while ( $attachment_ids && strlen( $attachment_query ) < $max_query_length ) {
+						$attachment_query .= "'" . array_pop( $attachment_ids ) . "',";
+						++$attachment_query_count;
+					}
+					$attachment_query = 'WHERE pid IN (' . substr( $attachment_query, 0, -1 ) . ')';
+					$max_query        = $attachment_query_count;
+				} else {
+					$attachment_ids = array();
 				}
-				$attachment_query = 'WHERE pid IN (' . substr( $attachment_query, 0, -1 ) . ')';
-				$max_query        = $attachment_query_count;
 			}
 			$offset      = 0;
 			$attachments = $wpdb->get_col( "SELECT meta_data FROM $wpdb->flagpictures $attachment_query LIMIT $offset, $max_query" ); // phpcs:ignore WordPress.DB.PreparedSQL
@@ -934,7 +945,7 @@ function ewww_image_optimizer_bulk_script( $hook ) {
 			$ids = array( (int) $ids );
 		} else {
 			$ids = explode( ',', $ids );
-			array_walk( $ids, 'intval' );
+			$ids = array_filter( array_map( 'absint', $ids ) );
 		}
 		$ids = implode( ',', $ids );
 		// Unset the 'bulk resume' option since we were given specific IDs to optimize.
@@ -1481,12 +1492,14 @@ function ewww_image_optimizer_bulk_scan_init( $hook = '' ) {
 			$ids = array( (int) $_REQUEST['ids'] );
 		} else {
 			$ids = explode( ',', $ids );
-			array_walk( $ids, 'intval' );
+			$ids = array_filter( array_map( 'absint', $ids ) );
 		}
+
 		// Then put it back together for the sql query.
 		$ids = implode( ',', $ids );
 		// Retrieve post IDs correlating to the IDs submitted to make sure they are all valid.
 		$attachments = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND (post_mime_type LIKE '%%image%%' OR post_mime_type LIKE '%%pdf%%') AND ID IN ({$ids}) ORDER BY ID DESC" ); // phpcs:ignore WordPress.DB.PreparedSQL
+
 		// Unset the 'bulk resume' option since we were given specific IDs to optimize.
 		update_option( 'ewww_image_optimizer_bulk_resume', '' );
 		update_option( 'ewww_image_optimizer_bulk_foreground', '' );

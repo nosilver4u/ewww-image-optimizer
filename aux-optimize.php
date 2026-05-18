@@ -1359,7 +1359,10 @@ function ewww_image_optimizer_reset_images( $reset_images ) {
 	if ( ! ewww_image_optimizer_iterable( $reset_images ) ) {
 		return;
 	}
-	array_walk( $reset_images, 'intval' );
+	$reset_images = array_filter( array_map( 'absint', $reset_images ) );
+	if ( empty( $reset_images ) ) {
+		return;
+	}
 	global $wpdb;
 	$max_query_length = 15000;
 	/**
@@ -1516,7 +1519,7 @@ function ewww_image_optimizer_get_unscanned_attachments( $gallery, $limit = 1000
 		ewwwio_debug_message( 'no attachments found for scanning' );
 		return array();
 	}
-	array_walk( $selected_ids, 'intval' );
+	$selected_ids = array_filter( array_map( 'absint', $selected_ids ) );
 	ewwwio_debug_message( 'selected items: ' . count( $selected_ids ) );
 	return $selected_ids;
 }
@@ -1644,7 +1647,7 @@ function ewww_image_optimizer_get_queued_attachments( $gallery, $limit = 100 ) {
 		ewwwio_debug_message( 'no attachments found in queue' );
 		return array( 0 );
 	}
-	array_walk( $selected_ids, 'intval' );
+	$selected_ids = array_filter( array_map( 'absint', $selected_ids ) );
 	ewwwio_debug_message( 'selected items: ' . count( $selected_ids ) );
 	return $selected_ids;
 }
@@ -1694,10 +1697,13 @@ function ewww_image_optimizer_update_scanned_images( $ids, $gallery = 'media' ) 
 	}
 	global $wpdb;
 
-	array_walk( $ids, 'intval' );
-	$ids_sql = '(' . implode( ',', $ids ) . ')';
+	$ids = array_filter( array_map( 'absint', $ids ) );
+	if ( empty( $ids ) ) {
+		return;
+	}
+	$ids_sql = implode( ',', $ids );
 
-	$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->ewwwio_queue SET scanned = 1 WHERE gallery = %s AND attachment_id IN $ids_sql", $gallery ) ); // phpcs:ignore WordPress.DB.PreparedSQL
+	$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->ewwwio_queue SET scanned = 1 WHERE gallery = %s AND attachment_id IN ({$ids_sql})", $gallery ) ); // phpcs:ignore WordPress.DB.PreparedSQL
 }
 
 /**
@@ -1716,10 +1722,13 @@ function ewww_image_optimizer_delete_queued_images( $ids, $gallery = 'media' ) {
 	}
 	global $wpdb;
 
-	array_walk( $ids, 'intval' );
-	$ids_sql = '(' . implode( ',', $ids ) . ')';
+	$ids = array_filter( array_map( 'absint', $ids ) );
+	if ( empty( $ids ) ) {
+		return;
+	}
+	$ids_sql = implode( ',', $ids );
 
-	$wpdb->query( $wpdb->prepare( "DELETE from $wpdb->ewwwio_queue WHERE gallery = %s AND attachment_id IN $ids_sql", $gallery ) ); // phpcs:ignore WordPress.DB.PreparedSQL
+	$wpdb->query( $wpdb->prepare( "DELETE from $wpdb->ewwwio_queue WHERE gallery = %s AND attachment_id IN ({$ids_sql})", $gallery ) ); // phpcs:ignore WordPress.DB.PreparedSQL
 }
 
 /**
