@@ -522,7 +522,8 @@ class Local extends Base {
 			'68bbeddef97f9aca5f76fcf71f3394dae98559c4107c3497f4f097196f09ff89', // jpegtran-mac   9d, EWWW 6.1.0.
 			'9f728b5fd533a73d46138c14514ba5424ef153386d80f75669ab9b64df02aef6', // jpegtran-sol   9d, EWWW 6.1.0.
 			'39096e3dd3d9c375de23e5d6ac2c4e0000c994d768d9de5c60680a1d5b99cb7b', // jpegtran.exe   9d, EWWW 6.1.0.
-			'973f59ba04c1eac964aef0b0e2028c006c439075ee494896d75e8af1feede598', // jpegtran-linux 10, EWWW 8.6.1.
+			'91106936e6cb733b903c0718a2793f32994164a851eaeb2e55da8423498083a4', // jpegtran-fbsd  10, EWWW 8.7.0.
+			'973f59ba04c1eac964aef0b0e2028c006c439075ee494896d75e8af1feede598', // jpegtran-linux 10, EWWW 8.7.0.
 			// end jpegtran.
 			'6deddb5562ac13ffc3e46a0af79b592e92fb4553c5df294b6e0052bc890fd0e3', // optipng-linux 0.7.4, EWWW 1.2.0.
 			'51df81fa8c765efbe0aa4c1cf5293e25e7e2e7f6962f5161615239c54aec4c01', // optipng-linux 0.7.4, EWWW 1.3.0.
@@ -552,6 +553,9 @@ class Local extends Base {
 			'c81b54f299a1284c6312448abf9fb79351d424f64709081dfb5e9afa3b7ad9c8', // optipng-linux 0.7.8 EWWW 7.5.0.
 			'd38e6c9162ae5dc7c801b56de92dfa144d1dee7171f011233ce0acf24718b29b', // optipng-mac   0.7.8 EWWW 7.5.0.
 			'3464cd6c7fc9cb893f368111eb19b634b2acf14dcc94958d0758251071cfcbd9', // optipng.exe   0.7.8 EWWW 7.5.0.
+			'861fc8d9d5c9966ccfad48ac54cf423a45dacfadd8ada19bf3f1af8d2cb7318d', // optipng-fbsd  7.9.1 EWWW 8.7.0.
+			'57d9e2336fc1f5f3ffbacb0f9683d3aecc67cc963de597fef009faa0e2d02f95', // optipng-linux 7.9.1 EWWW 8.7.0.
+			'de908e5ba742c4132f7628087ca40fe8588a681c9992ae136e1ceee83dcd8139', // optipng.exe   7.9.1 EWWW 8.7.0.
 			// end optipng.
 			'a2292c0085863a65c99cb41ff8418ce63033e162906df72e8fdde52f0633579b', // gifsicle linux 1.67, EWWW 1.2.0.
 			'd7f9609b6fd0000b2eaad2bd0c3cb85476988b18705762e915bda3f2e6007801', // gifsicle-linux 1.68, EWWW 1.3.0.
@@ -591,6 +595,8 @@ class Local extends Base {
 			'8e69f9ff4807c14613986348d7a06e99eabff2a30c9f1efd32363ab8e5a23c07', // gifsicle-fbsd  1.95, EWWW 7.5.0.
 			'7fc9de52fff727604655a349b579918ba34b76ea371de3460d6272774bd896c6', // gifsicle-linux 1.95, EWWW 7.5.0.
 			'a4ae039ce0d4fb788c97a5b130c1865091fcd12f98345cb8aa4bc1a8e098326e', // gifsicle-mac   1.95, EWWW 7.5.0.
+			'1564845dbd794ed38794527dc83e2ab97b55b6ec17cd42a83908b91c72d000ae', // gifsicle-fbsd  1.96, EWWW 8.7.0.
+			'ce1f4bd5eb6008d1e7e00ede99d57b8b1c27ffbea5c4e682ddb577fd9f192db1', // gifsicle-linux 1.96, EWWW 8.7.0.
 			// end gifsicle.
 			'bdea95497d6e60aae8938cae8e999ef74a255ad603531bf523dcdb531f61fc8f', // 20110722-bsd/i686/pngout.
 			'57c09b3ebd7d4623d16f6056efd7951e8f98e2362a27993a7d865af677875c00', // 20110722-bsd-static/i686/pngout-static.
@@ -668,6 +674,9 @@ class Local extends Base {
 			'd4521b01d134351d9d398ab1086406cfc8f706fc300e88d1a4b9b914a33d9229', // pngquant-linux 2.17.0 EWWW 6.7.0.
 			'0ac4981983faa3a2334c0ae7abf9a26480eddc77ed2c581a11dada0eee5a5e2d', // pngquant-mac   2.17.0 EWWW 6.7.0.
 			'7aadad6a50aa5c40cfcb20f9478c92f6030360a3424bc262ce383dc1e97fb86a', // pngquant.exe   2.17.0 EWWW 6.7.0.
+			'8354be992b14d8957578d66df8e32061e05efa33e01f2cd2012d5c0f81608cca', // pngquant-fbsd  3.0.4  EWWW 8.7.0.
+			'24161ba990f8e16faa11c876fb07e4e182d06917f94f2000716e27873e1eff90', // pngquant-linux 3.0.4  EWWW 8.7.0.
+			'00d3e980ab3c3c39a9df1069b406f4e5013b97394988f66d8356d4d7d05f011c', // pngquant-mac   3.0.3  EWWW 8.7.0.
 			// end pngquant.
 			'bf0e12f996802dc114a864e5150647ce41089a5a2b5e36c3a270ac848b655c26', // cwebp-fbsd 0.4.1, EWWW 2.0.0.
 			'5349646072c3ef5f8b4588bbee8635e882c245439e2d86b863f04b7e27f4fafe', // cwebp-fbsd64 0.4.1, EWWW 2.0.0.
@@ -725,6 +734,10 @@ class Local extends Base {
 			'52dde413dc4547abf607d8f1e5426ab8110ae9f02e685c1d7c49537ea75be9ca', // cwebp-linux 1.3.2, EWWW 7.5.0.
 			'6eda6785dac4c23fc363e5db2dc45cfaab71225435a8bad95f3b56c1b7ee026d', // cwebp-mac15 1.3.2, EWWW 7.5.0.
 			'f317c8bc61624db206f5aa254f3bbc46d5cafdcb91862378ce7a0371dbf61b03', // cwebp.exe   1.3.2, EWWW 7.5.0.
+			'234a38d094dfb521624c7fe86a3d6e84cf0a58eb43caf4d9cb0e105e5f322f3d', // cwebp-fbsd  1.6.0, EWWW 8.7.0.
+			'956388bb7c9af8d7d2574627656be8905b0ed951636add2bb8cf8ae53be942d3', // cwebp-linux 1.6.0, EWWW 8.7.0.
+			'5e3017e6106d331a11e6e1684baa6d60d5a48dc30047018bd142756e29014c28', // cwebp-mac15 1.6.0, EWWW 8.7.0.
+			'6a2f5cb5dce71366353ab1d9caf9c636e039f25703acfce1c148eed346f2f72a', // cwebp.exe   1.6.0, EWWW 8.7.0.
 			// end cwebp.
 			'15d8b7d54b73059a9a63ab3d5ca8201cd30c2f6fc59fc068f7bd6c85e6a22420', // svgcleaner-linux 0.9.5.
 			'c88c1961374b3edc93a29376ccbd447a514c1cda335fe6a868c0dac6d77c79fa', // svgcleaner-mac 0.9.5.

@@ -174,9 +174,15 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 8.6.1 =
 *Release Date - TBD*
 
+* changed: Linux binaries are now 64-bit for better compatibility with modern servers
 * fixed: Image Detective uses incorrect dimensions for auto-sized srcset images
 * fixed: size detection for images using native lazy load
 * fixed: PHP error adding global Lazy Load exclusion with Image Detective
+* updated: jpegtran to version 10
+* updated: optipng to version 7.9.1
+* updated: gifsicle to version 1.96
+* updated: pngquant to version 3.0.4
+* updated: cwebp to version 1.6.0
 
 = 8.6.0 =
 *Release Date - May 14, 2026*
