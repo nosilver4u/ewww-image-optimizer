@@ -524,6 +524,7 @@ class Local extends Base {
 			'39096e3dd3d9c375de23e5d6ac2c4e0000c994d768d9de5c60680a1d5b99cb7b', // jpegtran.exe   9d, EWWW 6.1.0.
 			'91106936e6cb733b903c0718a2793f32994164a851eaeb2e55da8423498083a4', // jpegtran-fbsd  10, EWWW 8.7.0.
 			'973f59ba04c1eac964aef0b0e2028c006c439075ee494896d75e8af1feede598', // jpegtran-linux 10, EWWW 8.7.0.
+			'2a62aee577272277dfbac86f550184821fa31ca95a46df06619f666c7eff0b5b', // jpegtran-mac   10, EWWW 8.7.0.
 			// end jpegtran.
 			'6deddb5562ac13ffc3e46a0af79b592e92fb4553c5df294b6e0052bc890fd0e3', // optipng-linux 0.7.4, EWWW 1.2.0.
 			'51df81fa8c765efbe0aa4c1cf5293e25e7e2e7f6962f5161615239c54aec4c01', // optipng-linux 0.7.4, EWWW 1.3.0.
@@ -555,6 +556,7 @@ class Local extends Base {
 			'3464cd6c7fc9cb893f368111eb19b634b2acf14dcc94958d0758251071cfcbd9', // optipng.exe   0.7.8 EWWW 7.5.0.
 			'861fc8d9d5c9966ccfad48ac54cf423a45dacfadd8ada19bf3f1af8d2cb7318d', // optipng-fbsd  7.9.1 EWWW 8.7.0.
 			'57d9e2336fc1f5f3ffbacb0f9683d3aecc67cc963de597fef009faa0e2d02f95', // optipng-linux 7.9.1 EWWW 8.7.0.
+			'da5447adc9dc93238c60c05fc3c510bab9bbc4d5d524375daa770de6889426fe', // optipng-mac   7.9.1 EWWW 8.7.0.
 			'de908e5ba742c4132f7628087ca40fe8588a681c9992ae136e1ceee83dcd8139', // optipng.exe   7.9.1 EWWW 8.7.0.
 			// end optipng.
 			'a2292c0085863a65c99cb41ff8418ce63033e162906df72e8fdde52f0633579b', // gifsicle linux 1.67, EWWW 1.2.0.
@@ -597,6 +599,7 @@ class Local extends Base {
 			'a4ae039ce0d4fb788c97a5b130c1865091fcd12f98345cb8aa4bc1a8e098326e', // gifsicle-mac   1.95, EWWW 7.5.0.
 			'1564845dbd794ed38794527dc83e2ab97b55b6ec17cd42a83908b91c72d000ae', // gifsicle-fbsd  1.96, EWWW 8.7.0.
 			'ce1f4bd5eb6008d1e7e00ede99d57b8b1c27ffbea5c4e682ddb577fd9f192db1', // gifsicle-linux 1.96, EWWW 8.7.0.
+			'39eb585efc7a542f43ddaff8930b317bcf2206e805ae7be619b5b255920f5893', // gifsicle-mac   1.96, EWWW 8.7.0.
 			// end gifsicle.
 			'bdea95497d6e60aae8938cae8e999ef74a255ad603531bf523dcdb531f61fc8f', // 20110722-bsd/i686/pngout.
 			'57c09b3ebd7d4623d16f6056efd7951e8f98e2362a27993a7d865af677875c00', // 20110722-bsd-static/i686/pngout-static.

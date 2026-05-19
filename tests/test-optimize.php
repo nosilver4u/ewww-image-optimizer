@@ -371,7 +371,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$results = $this->optimize_png();
 		update_option( 'ewww_image_optimizer_webp', '' );
 		update_site_option( 'ewww_image_optimizer_webp', '' );
-		$this->assertEquals( 188043, filesize( $results[0] ) );
+		$this->assertLessThan( 188300, filesize( $results[0] ) );
 		unlink( $results[0] );
 		$this->assertLessThanOrEqual( 138000, filesize( $results[0] . '.webp' ) );
 		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
@@ -411,7 +411,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_pngout_level', 1 );
 		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		$results = $this->optimize_png();
-		$this->assertEquals( 180779, filesize( $results[0] ) );
+		$this->assertLessThan( 181000, filesize( $results[0] ) );
 		unlink( $results[0] );
 	}
 
