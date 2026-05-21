@@ -3,7 +3,7 @@ Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: compress, convert, webp, resize, lazy load
 Tested up to: 7.0
-Stable tag: 8.6.0
+Stable tag: 8.7.0
 License: GPLv3
 
 Comprehensive image optimization that doesn't require a rocket science degree. Optimize images automatically for Faster Sites and Happy Visitors.
@@ -171,8 +171,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
-= 8.6.1 =
-*Release Date - TBD*
+= 8.7.0 =
+*Release Date - May 21, 2026*
 
 * changed: Linux binaries are now 64-bit for better compatibility with modern servers
 * fixed: Image Detective uses incorrect dimensions for auto-sized srcset images
