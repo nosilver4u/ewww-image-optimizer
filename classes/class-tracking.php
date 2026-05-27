@@ -239,7 +239,7 @@ class Tracking {
 		$this->setup_data();
 		\ewwwio_debug_message( 'sending site data' );
 		$request = \wp_remote_post(
-			'https://optimize.exactlywww.com/stats/report.php',
+			'https://stats.exactlywww.net/stats/report.php',
 			array(
 				'timeout'    => 5,
 				'body'       => $this->data,

@@ -603,7 +603,7 @@ class ExactDN extends Page_Parser {
 		}
 		$site_url = $this->content_url();
 
-		$url = 'http://optimize.exactlywww.com/exactdn/activate.php';
+		$url = 'http://api.exactlywww.net/exactdn/activate.php';
 		$ssl = \wp_http_supports( array( 'ssl' ) );
 		if ( $ssl ) {
 			$url = \set_url_scheme( $url, 'https' );
@@ -695,7 +695,7 @@ class ExactDN extends Page_Parser {
 		global $exactdn_activate_error;
 		$exactdn_activate_error = 'zone not verified';
 		// Primary check sends the test URL to the API for full verification.
-		$api_url = 'http://optimize.exactlywww.com/exactdn/verify.php';
+		$api_url = 'http://api.exactlywww.net/exactdn/verify.php';
 		$ssl     = \wp_http_supports( array( 'ssl' ) );
 		if ( $ssl ) {
 			$api_url = \set_url_scheme( $api_url, 'https' );
@@ -4331,9 +4331,6 @@ class ExactDN extends Page_Parser {
 			}
 		} elseif ( empty( $parsed_url['query'] ) ) {
 			$parsed_url['query'] = \apply_filters( 'exactdn_version_string', 'm=' . $this->version );
-		} elseif ( \str_contains( $parsed_url['query'], 'wpr_t=' ) && \str_contains( $parsed_url['query'], 'ver=' ) ) {
-			// Remove extra wpr_t query arg, since version is already present and wpr_t causes caching issues.
-			$parsed_url['query'] = \preg_replace( '/&?wpr_t=\d+/', '', $parsed_url['query'] );
 		}
 
 		$exactdn_url = $scheme . '://' . $this->exactdn_domain . '/' . \ltrim( $parsed_url['path'], '/' ) . '?' . $parsed_url['query'];
@@ -4616,7 +4613,7 @@ class ExactDN extends Page_Parser {
 	 */
 	public function savings() {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		$url = 'http://optimize.exactlywww.com/exactdn/savings.php';
+		$url = 'http://api.exactlywww.net/exactdn/savings.php';
 		$ssl = \wp_http_supports( array( 'ssl' ) );
 		if ( $ssl ) {
 			$url = \set_url_scheme( $url, 'https' );

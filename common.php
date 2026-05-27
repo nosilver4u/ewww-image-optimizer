@@ -3749,7 +3749,7 @@ function ewww_image_optimizer_cloud_restore_single_image( $image ) {
 	}
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
 	$domain  = parse_url( get_site_url(), PHP_URL_HOST );
-	$url     = 'http://optimize.exactlywww.com/backup/restore.php';
+	$url     = 'http://api.exactlywww.net/backup/restore.php';
 	$ssl     = wp_http_supports( array( 'ssl' ) );
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
@@ -4495,7 +4495,7 @@ function ewww_image_optimizer_register_site_post() {
 		return new WP_Error( 'missing_key', __( 'No API key for Easy IO registration', 'ewww-image-optimizer' ) );
 	}
 	ewwwio_debug_message( "registering $site_url on Easy IO" );
-	$url = 'https://optimize.exactlywww.com/exactdn/create.php';
+	$url = 'https://api.exactlywww.net/exactdn/create.php';
 	add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 	$result = wp_remote_post(
 		$url,
@@ -4575,7 +4575,7 @@ function ewww_image_optimizer_deregister_site_post( $site_id ) {
 		return new WP_Error( 'missing_key', __( 'No API key for Easy IO removal', 'ewww-image-optimizer' ) );
 	}
 	ewwwio_debug_message( "removing site $site_id from Easy IO" );
-	$url = 'https://optimize.exactlywww.com/exactdn/remove.php';
+	$url = 'https://api.exactlywww.net/exactdn/remove.php';
 	add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 	$result = wp_remote_post(
 		$url,
@@ -4610,7 +4610,7 @@ function ewww_image_optimizer_easy_site_registered( $site_url ) {
 	$cloud_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
 	if ( ! empty( $cloud_key ) ) {
 		ewwwio_debug_message( "checking $site_url with Easy IO" );
-		$url = 'https://optimize.exactlywww.com/exactdn/show.php';
+		$url = 'https://api.exactlywww.net/exactdn/show.php';
 		add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 		$result = wp_remote_post(
 			$url,
@@ -4662,7 +4662,7 @@ function ewww_image_optimizer_exactdn_get_site_stats_ajax() {
 		die( wp_json_encode( array( 'error' => esc_html__( 'Site ID unknown.', 'ewww-image-optimizer' ) ) ) );
 	}
 	$site_id = (int) $_REQUEST['site_id'];
-	$url     = "https://masterdb.exactlywww.com/stats/easyio-zone.php?site_id=$site_id&format=json";
+	$url     = "https://stats.exactlywww.net/stats/easyio-zone.php?site_id=$site_id&format=json";
 	if ( ! empty( $_POST['require_extra'] ) ) {
 		$url .= '&require_extra=1';
 	}
@@ -4714,7 +4714,7 @@ function ewww_image_optimizer_cloud_key_verify_ajax() {
 		die( wp_json_encode( array( 'error' => esc_html__( 'Please enter your API key and try again.', 'ewww-image-optimizer' ) ) ) );
 	}
 	$api_key = trim( ewww_image_optimizer_cloud_key_sanitize( wp_unslash( $_POST['compress_api_key'] ) ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-	$url     = 'http://optimize.exactlywww.com/verify/';
+	$url     = 'http://api.exactlywww.net/verify/';
 	if ( wp_http_supports( array( 'ssl' ) ) ) {
 		$url = set_url_scheme( $url, 'https' );
 	}
@@ -4857,7 +4857,7 @@ function ewww_image_optimizer_cloud_verify( $api_key, $cache = true ) {
 		ewwwio()->async_key_verify->dispatch();
 		return $ewww_cloud_status;
 	}
-	$url = 'http://optimize.exactlywww.com/verify/';
+	$url = 'http://api.exactlywww.net/verify/';
 	$ssl = wp_http_supports( array( 'ssl' ) );
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
@@ -4955,7 +4955,7 @@ function ewww_image_optimizer_soft_quota_exceeded() {
 function ewww_image_optimizer_cloud_quota( $raw = false ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
-	$url     = 'http://optimize.exactlywww.com/quota/v2/';
+	$url     = 'http://api.exactlywww.net/quota/v2/';
 	$ssl     = wp_http_supports( array( 'ssl' ) );
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
@@ -5251,7 +5251,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		ewwwio_debug_message( 'no API key and free_exec mode inactive' );
 		return array( $file, false, 'key verification failed', 0, '' );
 	}
-	$url = 'http://optimize.exactlywww.com/v3/optimize/';
+	$url = 'http://api.exactlywww.net/v3/optimize/';
 	$ssl = wp_http_supports( array( 'ssl' ) );
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
@@ -5572,7 +5572,7 @@ function ewww_image_optimizer_cloud_retrieve_pending_image( $image, $wait = fals
 		return false;
 	}
 	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
-	$url     = 'http://optimize.exactlywww.com/v3/retrieve/?id=' . $image->retrieve;
+	$url     = 'http://api.exactlywww.net/v3/retrieve/?id=' . $image->retrieve;
 	$ssl     = wp_http_supports( array( 'ssl' ) );
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
@@ -5696,7 +5696,7 @@ function ewww_image_optimizer_cloud_autorotate( $file, $type ) {
 	ewwwio_get_filesystem();
 	ewwwio_debug_message( "file: $file " );
 	ewwwio_debug_message( "type: $type" );
-	$url = 'http://optimize.exactlywww.com/rotate/';
+	$url = 'http://api.exactlywww.net/rotate/';
 	$ssl = wp_http_supports( array( 'ssl' ) );
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
@@ -5813,7 +5813,7 @@ function ewww_image_optimizer_cloud_reduce_png( $file, $colors ) {
 	global $eio_filesystem;
 	ewwwio_get_filesystem();
 	ewwwio_debug_message( "file: $file " );
-	$url = 'http://optimize.exactlywww.com/reduce-png/';
+	$url = 'http://api.exactlywww.net/reduce-png/';
 	$ssl = wp_http_supports( array( 'ssl' ) );
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
@@ -5920,7 +5920,7 @@ function ewww_image_optimizer_cloud_backup( $file ) {
 		return false;
 	}
 	ewwwio_debug_message( "file: $file " );
-	$url = 'http://optimize.exactlywww.com/backup/store.php';
+	$url = 'http://api.exactlywww.net/backup/store.php';
 	$ssl = wp_http_supports( array( 'ssl' ) );
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
@@ -6051,7 +6051,7 @@ function ewww_image_optimizer_cloud_resize( $file, $type, $dst_x, $dst_y, $src_x
 	ewwwio_debug_message( "file: $file " );
 	ewwwio_debug_message( "width: $dst_w" );
 	ewwwio_debug_message( "height: $dst_h" );
-	$url = 'http://optimize.exactlywww.com/resize/';
+	$url = 'http://api.exactlywww.net/resize/';
 	$ssl = wp_http_supports( array( 'ssl' ) );
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
