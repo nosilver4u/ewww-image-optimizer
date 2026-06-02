@@ -12606,7 +12606,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	} elseif ( defined( 'IMSANITY_VERSION' ) ) {
 		$speed_score += 5;
 	} else {
-		$speed_recommendations[] = __( 'Configure Max Image Dimensions.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/41-resize-settings', '59849911042863033a1ba5f9' );
+		$speed_recommendations[] = __( 'Configure Max Image Dimensions.', 'ewww-image-optimizer' ) . ewwwio_get_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' );
 	}
 	$jpg_quality = apply_filters( 'jpeg_quality', 82, 'image_resize' );
 	if ( $jpg_quality < 91 && $jpg_quality > 49 ) {
@@ -13366,7 +13366,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					<div class='ewww-settings-row'>
 						<div class='ewww-setting-header'>
 							<label for='ewww_image_optimizer_image_detective'><?php esc_html_e( 'Image Detective', 'ewww-image-optimizer' ); ?></label>
-							<?php ewwwio_help_link( 'https://docs.ewww.io/article/41-resize-settings', '59849911042863033a1ba5f9' ); ?>
+							<?php ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ); ?>
 						</div>
 						<div class='ewww-setting-detail'>
 							<input type='checkbox' id='ewww_image_optimizer_image_detective' name='ewww_image_optimizer_image_detective' value='true' <?php checked( ewww_image_optimizer_get_option( 'ewww_image_optimizer_image_detective' ) ); ?> />
@@ -13378,7 +13378,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					<div class='ewww-settings-row'>
 						<div class='ewww-setting-header'>
 							<?php esc_html_e( 'Max Image Dimensions', 'ewww-image-optimizer' ); ?>
-							<?php ewwwio_help_link( 'https://docs.ewww.io/article/41-resize-settings', '59849911042863033a1ba5f9' ); ?>
+							<?php ewwwio_help_link( 'https://docs.ewww.io/article/7-basic-configuration', '585373d5c697912ffd6c0bb2' ); ?>
 						</div>
 						<div class='ewww-setting-detail'>
 							<label for='ewww_image_optimizer_maxmediawidth'><?php esc_html_e( 'Max Width', 'ewww-image-optimizer' ); ?></label>

@@ -175,6 +175,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 *Release Date - TBD*
 
 * fixed: JS/CSS URLs created by WP Rocket are not delivered via Easy IO CDN
+* fixed: docs/help links for Image Detective and Max Image Dimensions
 
 = 8.7.0 =
 *Release Date - May 21, 2026*
