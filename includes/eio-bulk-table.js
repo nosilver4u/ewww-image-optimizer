@@ -22,6 +22,7 @@ jQuery(document).ready(function($) {
 	var ewww_total_images = 0;
 	var ewww_total_pending = 0;
 	var ewww_pointer = 0;
+	var ewww_search = '';
 	var ewww_size_sort = false;
 	var ewww_bulk_start_time = 0;
 	var ewww_bulk_elapsed_time = 0;
@@ -699,17 +700,17 @@ jQuery(document).ready(function($) {
 		// We store a copy of the last 50 image records in s3io_bulk_first_page, and need to use it here,
 		// in case they are on a page other than the first one.
 		var isAlternate = ewwwBulkFirstPage.find('tbody tr').first().hasClass('alternate');
-		// NOT sure if this is the right logic, see what we need to loop through all the tr elements in image_rows.
 		$.each(image_rows, function(index, value) {
 			ewww_total_images++;
 			var image_row = $(value);
 			if (! isAlternate) {
 				image_row.addClass('alternate');
 			}
-			if (ewww_pointer === 0 && ! ewww_pending) {
+			if (0 === ewww_pointer && ! ewww_pending && ! ewww_search) {
 				$('.prev-page').addClass('disabled');
 				$('.first-page').addClass('disabled');
 				image_row.prependTo('#ewww-bulk-table tbody').hide().fadeIn(400,function() {
+					$('#ewww-bulk-table tbody tr.ewww-no-images').remove();
 					if ($('#ewww-bulk-table tbody').children().length > 50) {
 						// Remove the last row, as it belongs on the next page now.
 						$('#ewww-bulk-table tbody').children().last().remove();
@@ -863,7 +864,7 @@ jQuery(document).ready(function($) {
 	function ewwwUpdateTable() {
 		console.log('refreshing table/results');
 		ewww_pointer = 0;
-		var ewww_search = $('.ewww-search-input').val();
+		ewww_search = $('.ewww-search-input').val();
 		if ( ! ewww_countdown ) {
 			$('#ewww-show-table').hide();
 			$('#ewww-hide-table').show();
@@ -988,7 +989,7 @@ jQuery(document).ready(function($) {
 	});
 	$('.ewww-search-form').on( 'submit', function() {
 		ewww_pointer = 0;
-		var ewww_search = $('.ewww-search-input').val();
+		ewww_search  = $('.ewww-search-input').val();
 		if (ewww_search) {
 			if ( ! ewww_countdown ) {
 				$('.ewww-bulk-spinner').hide();
@@ -1029,7 +1030,7 @@ jQuery(document).ready(function($) {
 		if ( ! ewww_countdown ) {
 			$('.ewww-bulk-spinner').hide();
 		}
-		var ewww_search = $('.ewww-search-input').val();
+		ewww_search = $('.ewww-search-input').val();
 		ewww_pointer++;
 		var ewww_table_data = {
 			action: ewww_table_action,
@@ -1058,7 +1059,7 @@ jQuery(document).ready(function($) {
 		if ( ! ewww_countdown ) {
 			$('.ewww-bulk-spinner').hide();
 		}
-		var ewww_search = $('.ewww-search-input').val();
+		ewww_search = $('.ewww-search-input').val();
 		ewww_pointer--;
 		if (! ewww_search && ! ewww_pending && 0 === ewww_pointer && ewwwBulkFirstPage && ewwwBulkFirstPage.find('tbody tr').length > 0) {
 			$('.current-page-info .current-page').text(1);
@@ -1096,7 +1097,7 @@ jQuery(document).ready(function($) {
 			$('.ewww-bulk-spinner').hide();
 		}
 		clearTimeout(ewww_autopoll_timeout);
-		var ewww_search     = $('.ewww-search-input').val();
+		ewww_search         = $('.ewww-search-input').val();
 		ewww_pointer        = ewww_total_pages - 1;
 		var ewww_table_data = {
 			action: ewww_table_action,
@@ -1120,7 +1121,7 @@ jQuery(document).ready(function($) {
 			return false;
 		}
 		ewww_pointer = 0;
-		var ewww_search = $('.ewww-search-input').val();
+		ewww_search = $('.ewww-search-input').val();
 		if (! ewww_search && ! ewww_pending && ewwwBulkFirstPage && ewwwBulkFirstPage.find('tbody tr').length > 0) {
 			$('.current-page-info .current-page').text(1);
 			ewwwBulkFirstPage.clone().replaceAll('#ewww-bulk-table table');

@@ -176,6 +176,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 * fixed: JS/CSS URLs created by WP Rocket are not delivered via Easy IO CDN
 * fixed: docs/help links for Image Detective and Max Image Dimensions
+* fixed: search during bulk optimization does not pause table updates
 
 = 8.7.0 =
 *Release Date - May 21, 2026*
