@@ -735,6 +735,7 @@ final class Plugin extends Base {
 		\add_option( 'ewww_image_optimizer_webp', false, '', true );
 		\add_option( 'ewww_image_optimizer_jpg_quality', '', '', true );
 		\add_option( 'ewww_image_optimizer_webp_quality', '', '', true );
+		\add_option( 'ewww_image_optimizer_sharpen', false, '', true );
 		\add_option( 'ewww_image_optimizer_backup_files', '', '', true );
 		\add_option( 'ewww_image_optimizer_resize_existing', true, '', true );
 		\add_option( 'ewww_image_optimizer_exactdn', false, '', true );
@@ -765,6 +766,8 @@ final class Plugin extends Base {
 		\add_option( 'ewww_image_optimizer_webp_rewrite_exclude', '', '', true );
 		\add_option( 'ewww_image_optimizer_webp_naming_mode', 'append', '', true );
 		\add_option( 'ewww_image_optimizer_allow_tracking', '', '', true );
+		\add_option( 'ewww_image_optimizer_620_upgrade_needed', false, '', true );
+		\add_option( 'ewww_image_optimizer_webp_enabled', false, '', true );
 
 		// Then make sure they are all actually autoloaded.
 		$autoload_options = array(
@@ -801,6 +804,7 @@ final class Plugin extends Base {
 			'exactdn_exclude'                              => true,
 			'exactdn_sub_folder'                           => true,
 			'exactdn_prevent_db_queries'                   => true,
+			'ewww_image_optimizer_sharpen'                 => true,
 			'ewww_image_optimizer_lazy_load'               => true,
 			'ewww_image_optimizer_add_missing_dims'        => true,
 			'ewww_image_optimizer_use_siip'                => true,
@@ -820,9 +824,13 @@ final class Plugin extends Base {
 			'ewww_image_optimizer_picture_webp'            => true,
 			'ewww_image_optimizer_webp_rewrite_exclude'    => true,
 			'ewww_image_optimizer_webp_naming_mode'        => true,
+			'ewww_image_optimizer_webp_enabled'            => true,
 			'ewww_image_optimizer_allow_tracking'          => true,
+			'ewww_image_optimizer_620_upgrade_needed'      => true,
+			'ewww_image_optimizer_review_time'             => true,
+			'ewww_image_optimizer_dismiss_review_notice'   => true,
 		);
-		wp_set_option_autoload_values( $autoload_options );
+		\wp_set_option_autoload_values( $autoload_options );
 
 		// Set network defaults.
 		\add_site_option( 'ewww_image_optimizer_background_optimization', false );

@@ -227,7 +227,7 @@ final class Admin_Notices extends Base {
 	 */
 	public function upgrade_620_notice() {
 		// Let the admin know a db upgrade is needed.
-		if ( ! \is_super_admin() || ! \get_transient( 'ewww_image_optimizer_620_upgrade_needed' ) ) {
+		if ( ! \is_super_admin() || ! \get_option( 'ewww_image_optimizer_620_upgrade_needed' ) ) {
 			return;
 		}
 		echo "<div id='ewww-image-optimizer-upgrade-notice' class='notice notice-info'><p>" .
@@ -282,7 +282,7 @@ final class Admin_Notices extends Base {
 				esc_url( $bulk_link ) .
 				"'>" . esc_html__( 'Use the Bulk Optimizer to generate WebP images for existing uploads.', 'ewww-image-optimizer' ) . '</a></p></div>';
 		}
-		delete_option( 'ewww_image_optimizer_webp_enabled' );
+		update_option( 'ewww_image_optimizer_webp_enabled', '' );
 	}
 
 	/**

@@ -890,7 +890,7 @@ function ewww_image_optimizer_620_upgrade() {
 	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		wp_die( esc_html__( 'Access denied.', 'ewww-image-optimizer' ) );
 	}
-	delete_transient( 'ewww_image_optimizer_620_upgrade_needed' );
+	update_option( 'ewww_image_optimizer_620_upgrade_needed', '' );
 	global $wpdb;
 	$suppress = $wpdb->suppress_errors();
 	$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images MODIFY updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" );
@@ -1339,7 +1339,7 @@ function ewww_image_optimizer_install_table() {
 				$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images MODIFY updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" );
 			} else {
 				// Do it later via user interaction.
-				set_transient( 'ewww_image_optimizer_620_upgrade_needed', true );
+				update_option( 'ewww_image_optimizer_620_upgrade_needed', true );
 			}
 		} elseif ( $timestamp_upgrade_needed ) {
 			$wpdb->query( "ALTER TABLE $wpdb->ewwwio_images ALTER updated SET DEFAULT (CURRENT_TIMESTAMP)" );
