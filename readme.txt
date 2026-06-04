@@ -3,10 +3,10 @@ Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: compress, convert, webp, resize, lazy load
 Tested up to: 7.0
-Stable tag: 8.7.01
+Stable tag: 8.7.1
 License: GPLv3
 
-Comprehensive image optimization that doesn't require a rocket science degree. Optimize images automatically for Faster Sites and Happy Visitors.
+Comprehensive image optimization with WebP, AVIF, Lazy Load, and more. Optimize images automatically for Faster Sites and Happy Visitors.
 
 == Description ==
 
@@ -172,7 +172,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 8.7.1 =
-*Release Date - TBD*
+*Release Date - June 4, 2026*
 
 * fixed: JS/CSS URLs created by WP Rocket are not delivered via Easy IO CDN
 * fixed: docs/help links for Image Detective and Max Image Dimensions
@@ -277,57 +277,6 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: PHP warnings related to HTML parsing
 * fixed: missing ImageMagick information on Site Health screen
 * fixed: PHP warnings when link URLs contain special regex characters
-
-= 8.1.4 =
-*Release Date - May 15, 2025*
-
-* added: customize lossy PDF compression by defining EWWW_IMAGE_OPTIMIZER_PDF_IMAGE_DPI and/or EWWW_IMAGE_OPTIMIZER_PDF_IMAGE_QUALITY
-* fixed: WebP thumbnails have incorrect orientation when created from the original unoptimized image
-
-= 8.1.3 =
-*Release Date - March 26, 2025*
-
-* added: exclude private BuddyBoss media from Easy IO with page:buddyboss exclusion
-* changed: WebP Only mode no longer requires Force Re-optimize for already optimized images
-* fixed: Easy IO rewriting some URLs when full page exclusions are used
-* fixed: WebP rewriters alter PNG URLs when PNG to WebP conversion is unavailable
-* fixed: regression in compatibility with plugins that recreate images via WP_Image_Editor
-* fixed: previous fix to avoid translation notices caused errors with other plugins calling background processes earlier than 'init'
-
-= 8.1.2 =
-*Release Date - March 6, 2025*
-
-* changed: WebP Conversion mode configurable for API users
-* changed: combine metadata queries for faster async scanning
-* changed: Bulk Optimization no longer requires Force Re-optimization to create WebP images for previously optimized images
-* fixed: background processes trigger notice from loading translations too early
-* fixed: WooCommerce thumb regen still runs when WC sizes are disabled
-* fixed: Easy IO fails to refresh CDN domain when site URL has changed
-* fixed: Force and WebP Only options not applied when scanning additional folders in async mode
-* fixed: PDF and SVG images queued in WebP Only mode
-
-= 8.1.1 =
-*Release Date - February 26, 2025*
-
-* changed: added handling of HTTP errors to processes on Tools page
-* changed: added nonce-renewal for long-running processes on Tools page
-* changed: improved output for WebP Cleanup tool and Delete Converted Originals tool
-* fixed: queue table upgrade fails to add 'id' column
-
-= 8.1.0 =
-*Release Date - February 18, 2025*
-
-* added: Preserve Originals option to keep pre-scaled images for WebP and thumbnail generation
-* added: ability for 3rd party plugins to hook into Lazy Load and WebP HTML parsers
-* changed: ImageMagick is default WebP conversion method on supported servers
-* changed: improved performance of custom *_option functions on multisite
-* changed: Max Image Dimensions always override WP big_image threshold
-* changed: local image backups not removed on plugin deactivation
-* fixed: Sharpen Images not applied to new WebP Conversion process
-* fixed: WebP Quality not applied to ImageMagick WebP Conversion for thumbnails
-* fixed: WebP resizing overrides custom crop set by Crop Thumbnails
-* fixed: pre-scaled original cannot be found if attachment metadata is incomplete
-* fixed: PHP error in bulk image scanner
 
 = Earlier versions =
 Please refer to the separate changelog.txt file.
