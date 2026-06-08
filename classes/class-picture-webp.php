@@ -42,13 +42,6 @@ class Picture_Webp extends Page_Parser {
 	protected $user_page_exclusions = array();
 
 	/**
-	 * Request URI.
-	 *
-	 * @var string $request_uri
-	 */
-	public $request_uri = '';
-
-	/**
 	 * Register (once) actions and filters for Picture WebP.
 	 */
 	public function __construct() {
@@ -63,22 +56,15 @@ class Picture_Webp extends Page_Parser {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->content_url();
 
-		$this->request_uri = \add_query_arg( '', '' );
-		if ( false === \strpos( $this->request_uri, 'page=ewww-image-optimizer-options' ) ) {
-			$this->debug_message( "request uri is {$this->request_uri}" );
-		} else {
-			$this->debug_message( 'request uri is EWWW IO settings' );
-		}
-
 		\add_filter( 'eio_do_picture_webp', array( $this, 'should_process_page' ), 10, 2 );
 
 		/**
 		 * Allow pre-empting <picture> WebP by page.
 		 *
 		 * @param bool true Whether to parse the page for images to rewrite for WebP, default true.
-		 * @param string $this->request_uri The URI/path of the page.
+		 * @param string parent::$request_uri The URI/path of the page.
 		 */
-		if ( ! \apply_filters( 'eio_do_picture_webp', true, $this->request_uri ) ) {
+		if ( ! \apply_filters( 'eio_do_picture_webp', true, parent::$request_uri ) ) {
 			return;
 		}
 
@@ -137,7 +123,7 @@ class Picture_Webp extends Page_Parser {
 			return false;
 		}
 		if ( empty( $uri ) ) {
-			$uri = $this->request_uri;
+			$uri = parent::$request_uri;
 		}
 		if ( $this->is_iterable( $this->user_page_exclusions ) ) {
 			foreach ( $this->user_page_exclusions as $page_exclusion ) {
@@ -314,7 +300,7 @@ class Picture_Webp extends Page_Parser {
 			$this->debug_message( 'picture WebP should not process page' );
 			return $buffer;
 		}
-		if ( ! \apply_filters( 'eio_do_picture_webp', true, $this->request_uri ) ) {
+		if ( ! \apply_filters( 'eio_do_picture_webp', true, parent::$request_uri ) ) {
 			return $buffer;
 		}
 

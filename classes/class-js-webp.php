@@ -79,13 +79,6 @@ class JS_Webp extends Page_Parser {
 	);
 
 	/**
-	 * Request URI.
-	 *
-	 * @var string $request_uri
-	 */
-	public $request_uri = '';
-
-	/**
 	 * Register (once) actions and filters for JS WebP.
 	 */
 	public function __construct() {
@@ -97,13 +90,6 @@ class JS_Webp extends Page_Parser {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		$this->content_url();
 
-		$this->request_uri = \add_query_arg( '', '' );
-		if ( false === \strpos( $this->request_uri, 'page=ewww-image-optimizer-options' ) ) {
-			$this->debug_message( "request uri is {$this->request_uri}" );
-		} else {
-			$this->debug_message( 'request uri is EWWW IO settings' );
-		}
-
 		\add_filter( 'eio_do_js_webp', array( $this, 'should_process_page' ), 10, 2 );
 
 		$do_webp = true;
@@ -111,9 +97,9 @@ class JS_Webp extends Page_Parser {
 		 * Allow pre-empting JS WebP by page.
 		 *
 		 * @param bool $do_webp Whether to parse the page for images to rewrite for WebP, default true.
-		 * @param string $this->request_uri The URI/path of the page.
+		 * @param string parent::$request_uri The URI/path of the page.
 		 */
-		if ( ! \apply_filters( 'eio_do_js_webp', $do_webp, $this->request_uri ) ) {
+		if ( ! \apply_filters( 'eio_do_js_webp', $do_webp, parent::$request_uri ) ) {
 			return;
 		}
 		// WebP parsing for external use and third-party plugins.
@@ -193,7 +179,7 @@ class JS_Webp extends Page_Parser {
 			return false;
 		}
 		if ( empty( $uri ) ) {
-			$uri = $this->request_uri;
+			$uri = parent::$request_uri;
 		}
 		if ( $this->is_iterable( $this->user_page_exclusions ) ) {
 			foreach ( $this->user_page_exclusions as $page_exclusion ) {
@@ -445,7 +431,7 @@ class JS_Webp extends Page_Parser {
 			$this->debug_message( 'JS WebP should not process page' );
 			return $buffer;
 		}
-		if ( ! \apply_filters( 'eio_do_js_webp', true, $this->request_uri ) ) {
+		if ( ! \apply_filters( 'eio_do_js_webp', true, parent::$request_uri ) ) {
 			return $buffer;
 		}
 
@@ -1197,7 +1183,7 @@ class JS_Webp extends Page_Parser {
 		if ( ! $this->should_process_page() ) {
 			return;
 		}
-		if ( ! \apply_filters( 'eio_do_js_webp', true, $this->request_uri ) ) {
+		if ( ! \apply_filters( 'eio_do_js_webp', true, parent::$request_uri ) ) {
 			return;
 		}
 		$check_args = array(
@@ -1221,7 +1207,7 @@ class JS_Webp extends Page_Parser {
 		if ( ! $this->should_process_page() ) {
 			return;
 		}
-		if ( ! \apply_filters( 'eio_do_js_webp', true, $this->request_uri ) ) {
+		if ( ! \apply_filters( 'eio_do_js_webp', true, parent::$request_uri ) ) {
 			return;
 		}
 		$check_args = array(
@@ -1245,7 +1231,7 @@ class JS_Webp extends Page_Parser {
 		if ( ! $this->should_process_page() ) {
 			return;
 		}
-		if ( ! \apply_filters( 'eio_do_js_webp', true, $this->request_uri ) ) {
+		if ( ! \apply_filters( 'eio_do_js_webp', true, parent::$request_uri ) ) {
 			return;
 		}
 		if ( \defined( 'EWWW_IMAGE_OPTIMIZER_NO_JS' ) && EWWW_IMAGE_OPTIMIZER_NO_JS ) {
@@ -1275,7 +1261,7 @@ class JS_Webp extends Page_Parser {
 		if ( ! $this->should_process_page() ) {
 			return;
 		}
-		if ( ! \apply_filters( 'eio_do_js_webp', true, $this->request_uri ) ) {
+		if ( ! \apply_filters( 'eio_do_js_webp', true, parent::$request_uri ) ) {
 			return;
 		}
 		$this->debug_message( 'inlining load webp script' );

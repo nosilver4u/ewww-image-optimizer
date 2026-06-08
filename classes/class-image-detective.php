@@ -20,13 +20,6 @@ class Image_Detective extends Base {
 	use Page_Settings;
 
 	/**
-	 * Request URI.
-	 *
-	 * @var string $request_uri
-	 */
-	public $request_uri = '';
-
-	/**
 	 * Register (once) actions and filters for Lazy Load.
 	 */
 	public function __construct() {
@@ -34,8 +27,6 @@ class Image_Detective extends Base {
 		if ( ! $this->get_option( $this->prefix . 'image_detective' ) ) {
 			return;
 		}
-
-		$this->request_uri = \add_query_arg( '', '' );
 
 		// NOTE: Be careful that anything for admin users does not accidentally run for guests.
 		\add_action( 'wp_ajax_ewww_add_lazy_exclusion', array( $this, 'ajax_add_lazy_exclusion' ) );
@@ -323,7 +314,7 @@ class Image_Detective extends Base {
 						array(
 							'_action'     => 'ewww_remove_per_page_settings',
 							'post_id'     => is_singular() ? get_queried_object_id() : '',
-							'request_uri' => ! is_singular() ? $this->parse_url( $this->request_uri, PHP_URL_PATH ) : '',
+							'request_uri' => ! is_singular() ? $this->parse_url( parent::$request_uri, PHP_URL_PATH ) : '',
 						),
 					),
 					'ewww-remove-page-settings'
@@ -410,7 +401,7 @@ class Image_Detective extends Base {
 			$eio_page_settings  = \maybe_unserialize( \get_post_meta( $post_id, 'eio_page_settings', true ) );
 			$scaling_exclusions = $this->is_iterable( $eio_page_settings ) && isset( $eio_page_settings['scale_detection_exclude'] ) ? $eio_page_settings['scale_detection_exclude'] : array();
 		}
-		$request_uri = $this->parse_url( $this->request_uri, PHP_URL_PATH );
+		$request_uri = $this->parse_url( parent::$request_uri, PHP_URL_PATH );
 		if ( empty( $request_uri ) ) {
 			$request_uri = '/';
 		}

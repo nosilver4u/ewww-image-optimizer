@@ -263,11 +263,11 @@ function ewwwio_table_nav_controls( $location = 'top' ) {
  * @param string $hook The Hook suffix of the calling page.
  */
 function ewww_image_optimizer_tool_script( $hook ) {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Make sure we are being called from the bulk optimization page.
 	if ( 'tools_page_ewww-image-optimizer-tools' !== $hook ) {
 		return;
 	}
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	add_filter( 'admin_footer_text', 'ewww_image_optimizer_footer_review_text' );
 
 	wp_enqueue_script( 'ewww-tool-script', plugins_url( '/includes/eio-tools.js', __FILE__ ), array( 'jquery', 'jquery-ui-progressbar' ), EWWW_IMAGE_OPTIMIZER_VERSION, true );
@@ -912,11 +912,11 @@ function ewww_image_optimizer_count_images_to_optimize( $gallery = 'media' ) {
  * @param string $hook An indicator if this was not called from AJAX, like WP-CLI.
  */
 function ewww_image_optimizer_bulk_script( $hook ) {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Make sure we are being called from the bulk optimization page.
 	if ( 'media_page_ewww-image-optimizer-bulk' !== $hook && 'settings_page_ewww-image-optimizer-options' !== $hook ) {
 		return;
 	}
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 
 	remove_all_actions( 'admin_notices' );
 	remove_all_actions( 'network_admin_notices' );

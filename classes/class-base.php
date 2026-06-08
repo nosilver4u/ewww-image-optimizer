@@ -34,6 +34,14 @@ class Base {
 	public static $temp_debug = false;
 
 	/**
+	 * Whether content_url() call has been debugged.
+	 *
+	 * @access public
+	 * @var bool $content_url_debugged
+	 */
+	public static $content_url_debugged = false;
+
+	/**
 	 * System info, gathered from the debugger and debug_info() functions.
 	 *
 	 * @access public
@@ -48,6 +56,13 @@ class Base {
 	 * @var bool $use_network_options
 	 */
 	public static $use_network_options = null;
+
+	/**
+	 * Request URI.
+	 *
+	 * @var string $request_uri
+	 */
+	public static $request_uri = '';
 
 	/**
 	 * Content directory (URL) for the plugin to use.
@@ -250,6 +265,9 @@ class Base {
 		$this->home_url          = \trailingslashit( \get_site_url() );
 		$this->relative_home_url = \preg_replace( '/https?:/', '', $this->home_url );
 		$this->home_domain       = $this->parse_url( $this->home_url, PHP_URL_HOST );
+		if ( empty( self::$request_uri ) ) {
+			self::$request_uri = \add_query_arg( '', '' );
+		}
 
 		if ( 'EWWW' === __NAMESPACE__ ) {
 			$this->content_url = \content_url( 'ewww/' );
@@ -283,6 +301,11 @@ class Base {
 		$this->debug_message( "home url: $this->home_url" );
 		$this->debug_message( "relative home url: $this->relative_home_url" );
 		$this->debug_message( "home domain: $this->home_domain" );
+		if ( ! \str_contains( self::$request_uri, 'page=ewww-image-optimizer-options' ) ) {
+			$this->debug_message( 'request uri is ' . self::$request_uri );
+		} else {
+			$this->debug_message( 'request uri is EWWW IO settings' );
+		}
 	}
 
 	/**
@@ -1744,7 +1767,13 @@ class Base {
 		if ( $this->site_url ) {
 			return $this->site_url;
 		}
-		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		$temp_debug = self::$temp_debug;
+		if ( self::$temp_debug && self::$content_url_debugged ) {
+			self::$temp_debug = false;
+		}
+		if ( ! self::$content_url_debugged ) {
+			$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		}
 		$this->site_url = \get_home_url();
 		global $as3cf;
 		if ( \class_exists( '\Amazon_S3_And_CloudFront' ) && \is_object( $as3cf ) ) {
@@ -1762,25 +1791,35 @@ class Base {
 			}
 			if ( $as3cf->get_setting( 'enable-object-prefix' ) ) {
 				$this->s3_object_prefix = $as3cf->get_setting( 'object-prefix' );
-				$this->debug_message( $this->s3_object_prefix );
+				if ( ! self::$content_url_debugged ) {
+					$this->debug_message( $this->s3_object_prefix );
+				}
 			} else {
 				$this->s3_object_prefix = '';
-				$this->debug_message( 'no WOM prefix' );
+				if ( ! self::$content_url_debugged ) {
+					$this->debug_message( 'no WOM prefix' );
+				}
 			}
 			if ( ! empty( $s3_domain ) && $as3cf->get_setting( 'serve-from-s3' ) ) {
 				$this->s3_active = $s3_domain;
-				$this->debug_message( "found S3 domain of $s3_domain with bucket $s3_bucket and region $s3_region" );
+				if ( ! self::$content_url_debugged ) {
+					$this->debug_message( "found S3 domain of $s3_domain with bucket $s3_bucket and region $s3_region" );
+				}
 				$this->allowed_urls[] = $s3_scheme . '://' . $s3_domain . '/';
 				if ( $as3cf->get_setting( 'enable-delivery-domain' ) && $as3cf->get_setting( 'delivery-domain' ) ) {
 					$delivery_domain         = $as3cf->get_setting( 'delivery-domain' );
 					$this->allowed_urls[]    = $s3_scheme . '://' . \trailingslashit( $delivery_domain ) . \trailingslashit( \trim( $this->s3_object_prefix, '/' ) );
 					$this->allowed_domains[] = $delivery_domain;
-					$this->debug_message( "found WOM delivery domain of $delivery_domain" );
+					if ( ! self::$content_url_debugged ) {
+						$this->debug_message( "found WOM delivery domain of $delivery_domain" );
+					}
 				}
 			}
 			if ( $as3cf->get_setting( 'object-versioning' ) ) {
 				$this->s3_object_version = true;
-				$this->debug_message( 'object versioning enabled' );
+				if ( ! self::$content_url_debugged ) {
+					$this->debug_message( 'object versioning enabled' );
+				}
 			}
 		}
 
@@ -1794,7 +1833,9 @@ class Base {
 			}
 			if ( ! empty( $s3_uploads_url ) ) {
 				$this->allowed_urls[] = $s3_uploads_url;
-				$this->debug_message( "found S3 URL from S3_Uploads: $s3_uploads_url" );
+				if ( ! self::$content_url_debugged ) {
+					$this->debug_message( "found S3 URL from S3_Uploads: $s3_uploads_url" );
+				}
 				$s3_domain       = $this->parse_url( $s3_uploads_url, PHP_URL_HOST );
 				$s3_scheme       = $this->parse_url( $s3_uploads_url, PHP_URL_SCHEME );
 				$this->s3_active = $s3_domain;
@@ -1808,7 +1849,9 @@ class Base {
 				if ( 'disabled' !== $sm_mode ) {
 					$sm_host              = $sm->get_gs_host();
 					$this->allowed_urls[] = $sm_host;
-					$this->debug_message( "found cloud storage URL from WP Stateless: $sm_host" );
+					if ( ! self::$content_url_debugged ) {
+						$this->debug_message( "found cloud storage URL from WP Stateless: $sm_host" );
+					}
 					$s3_domain       = $this->parse_url( $sm_host, PHP_URL_HOST );
 					$s3_scheme       = $this->parse_url( $sm_host, PHP_URL_SCHEME );
 					$this->s3_active = $s3_domain;
@@ -1863,7 +1906,9 @@ class Base {
 			$site_domain = $this->parse_url( $site_url, PHP_URL_HOST );
 			// If the home domain does not match the upload url, and the site domain does match...
 			if ( $home_domain && false === \strpos( $upload_dir['baseurl'], $home_domain ) && $site_domain && false !== \strpos( $upload_dir['baseurl'], $site_domain ) ) {
-				$this->debug_message( "using WP URL (via get_site_url) with $site_domain rather than $home_domain" );
+				if ( ! self::$content_url_debugged ) {
+					$this->debug_message( "using WP URL (via get_site_url) with $site_domain rather than $home_domain" );
+				}
 				$home_url = $site_url;
 			}
 			$this->site_url = \defined( 'EXACTDN_LOCAL_DOMAIN' ) && EXACTDN_LOCAL_DOMAIN ? EXACTDN_LOCAL_DOMAIN : $home_url;
@@ -1885,7 +1930,9 @@ class Base {
 		$this->allowed_domains[] = $this->upload_domain;
 		// For when plugins don't do a very good job of updating URLs for mapped multi-site domains.
 		if ( ! $this->s3_active && \is_multisite() && false === \strpos( $upload_dir['baseurl'], $this->upload_domain ) ) {
-			$this->debug_message( 'upload domain does not match the home URL' );
+			if ( ! self::$content_url_debugged ) {
+				$this->debug_message( 'upload domain does not match the home URL' );
+			}
 			$origin_upload_domain = $this->parse_url( $upload_dir['baseurl'], PHP_URL_HOST );
 			if ( $origin_upload_domain ) {
 				$this->allowed_domains[] = $origin_upload_domain;
@@ -1900,6 +1947,9 @@ class Base {
 				$this->allowed_domains[] = $nonwww;
 			}
 		}
+		// Yes, this is correct, as weird as it looks...
+		// So long as we are not using S3, then all classes should check for WPML domains.
+		// But, when we're using S3, ExactDN should no longer bother with WPML domains, since it only cares about the S3 domain then.
 		if ( ! $this->s3_active || __NAMESPACE__ . '\ExactDN' !== \get_class( $this ) ) {
 			$wpml_domains = \apply_filters( 'wpml_setting', array(), 'language_domains' );
 			if ( $this->is_iterable( $wpml_domains ) ) {
@@ -1912,9 +1962,15 @@ class Base {
 				}
 			}
 		}
-		$this->debug_message( "site/upload url: $this->site_url" );
-		$this->debug_message( "site/upload domain: $this->upload_domain" );
-		$this->debug_message( "upload_url: $this->upload_url" );
+		if ( ! self::$content_url_debugged ) {
+			$this->debug_message( "site/upload url: $this->site_url" );
+			$this->debug_message( "site/upload domain: $this->upload_domain" );
+			$this->debug_message( "upload_url: $this->upload_url" );
+		}
+		if ( $temp_debug ) {
+			self::$temp_debug = true;
+		}
+		self::$content_url_debugged = true;
 		return $this->site_url;
 	}
 

@@ -226,13 +226,6 @@ class ExactDN extends Page_Parser {
 	private $replaced_images = array();
 
 	/**
-	 * Request URI.
-	 *
-	 * @var string $request_uri
-	 */
-	public $request_uri = '';
-
-	/**
 	 * Register (once) actions and filters for ExactDN. If you want to use this class, use the global.
 	 */
 	public function __construct() {
@@ -251,14 +244,8 @@ class ExactDN extends Page_Parser {
 		}
 
 		$this->validate_user_exclusions();
-		$this->request_uri = \add_query_arg( '', '' );
-		if ( false === \strpos( $this->request_uri, 'page=ewww-image-optimizer-options' ) ) {
-			$this->debug_message( "request uri is {$this->request_uri}" );
-		} else {
-			$this->debug_message( 'request uri is EWWW IO settings' );
-		}
 
-		if ( '/robots.txt' === $this->request_uri || '/sitemap.xml' === $this->request_uri ) {
+		if ( '/robots.txt' === parent::$request_uri || '/sitemap.xml' === parent::$request_uri ) {
 			return;
 		}
 
@@ -268,9 +255,9 @@ class ExactDN extends Page_Parser {
 		 * Allow pre-empting the parsers by page.
 		 *
 		 * @param bool false Whether to skip parsing the page.
-		 * @param string $this->request_uri The URI/path of the page.
+		 * @param string parent::$request_uri The URI/path of the page.
 		 */
-		if ( \apply_filters( 'exactdn_skip_page', false, $this->request_uri ) ) {
+		if ( \apply_filters( 'exactdn_skip_page', false, parent::$request_uri ) ) {
 			return;
 		}
 
@@ -1145,7 +1132,7 @@ class ExactDN extends Page_Parser {
 		if ( $this->is_json( $content ) ) {
 			return $content;
 		}
-		if ( \apply_filters( 'exactdn_skip_page', false, $this->request_uri ) ) {
+		if ( \apply_filters( 'exactdn_skip_page', false, parent::$request_uri ) ) {
 			return $content;
 		}
 
@@ -2528,7 +2515,6 @@ class ExactDN extends Page_Parser {
 	 */
 	public function filter_image_downsize( $image, $attachment_id, $size ) {
 		$started = \hrtime();
-		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 
 		if ( \is_array( $attachment_id ) || \is_object( $attachment_id ) ) {
 			return $image;
@@ -2571,10 +2557,11 @@ class ExactDN extends Page_Parser {
 			return $image;
 		}
 		// Make it easier to skip all images by URI.
-		if ( \apply_filters( 'exactdn_skip_page', false, $this->request_uri ) ) {
+		if ( \apply_filters( 'exactdn_skip_page', false, parent::$request_uri ) ) {
 			return $image;
 		}
 
+		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( \function_exists( '\aq_resize' ) ) {
 			$this->debug_message( 'aq_resize detected, image_downsize filter bypassed' );
 			return $image;
@@ -2932,7 +2919,7 @@ class ExactDN extends Page_Parser {
 		) {
 			return $sources;
 		}
-		if ( \apply_filters( 'exactdn_skip_page', false, $this->request_uri ) ) {
+		if ( \apply_filters( 'exactdn_skip_page', false, parent::$request_uri ) ) {
 			return $sources;
 		}
 
@@ -3178,7 +3165,7 @@ class ExactDN extends Page_Parser {
 		if ( ! \doing_filter( 'the_content' ) ) {
 			return $sizes;
 		}
-		if ( \apply_filters( 'exactdn_skip_page', false, $this->request_uri ) ) {
+		if ( \apply_filters( 'exactdn_skip_page', false, parent::$request_uri ) ) {
 			return $sizes;
 		}
 		$content_width = $this->get_content_width();
@@ -4209,7 +4196,7 @@ class ExactDN extends Page_Parser {
 		if ( \function_exists( '\affwp_is_affiliate_portal' ) && \affwp_is_affiliate_portal() ) {
 			return $url;
 		}
-		if ( \apply_filters( 'exactdn_skip_page', false, $this->request_uri ) ) {
+		if ( \apply_filters( 'exactdn_skip_page', false, parent::$request_uri ) ) {
 			return $url;
 		}
 		if ( \did_action( 'cornerstone_boot_app' ) || \did_action( 'cs_before_preview_frame' ) ) {
@@ -4578,8 +4565,7 @@ class ExactDN extends Page_Parser {
 	 * @return array The list of hints, potentially with the ExactDN domain added in.
 	 */
 	public function resource_hints( $hints, $relationship_type ) {
-		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		if ( ! $this->exactdn_domain ) {
+		if ( ! $this->exactdn_domain || \is_admin() ) {
 			return $hints;
 		}
 		if ( 'dns-prefetch' === $relationship_type ) {

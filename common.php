@@ -3074,16 +3074,14 @@ function ewww_image_optimizer_jpg_background( $background = null ) {
  * @return int The sanitized JPG quality level.
  */
 function ewww_image_optimizer_jpg_quality( $quality = null ) {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( is_null( $quality ) ) {
 		// Retrieve the user-supplied value for jpg quality.
 		$quality = ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_quality' );
 	}
 	// Verify that the quality level is an integer, 1-100.
 	if ( is_numeric( $quality ) && preg_match( '/^(100|[1-9][0-9]?)$/', $quality ) ) {
-		ewwwio_debug_message( "quality: $quality" );
+		ewwwio_debug_message( "JPG quality: $quality" );
 		// Send back the valid quality level.
-		ewwwio_memory( __FUNCTION__ );
 		return $quality;
 	} else {
 		if ( ! empty( $quality ) ) {
@@ -3115,7 +3113,6 @@ function ewww_image_optimizer_set_jpg_quality( $quality ) {
  * @return int The sanitized WebP quality level.
  */
 function ewww_image_optimizer_webp_quality( $quality = null ) {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( is_null( $quality ) ) {
 		// Retrieve the user-supplied value for WebP quality.
 		$quality = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_quality' );
@@ -3155,7 +3152,6 @@ function ewww_image_optimizer_set_webp_quality( $quality ) {
  * @return int The sanitized AVIF quality level.
  */
 function ewww_image_optimizer_avif_quality( $quality = null ) {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	if ( is_null( $quality ) ) {
 		// Retrieve the user-supplied value for AVIF quality.
 		$quality = ewww_image_optimizer_get_option( 'ewww_image_optimizer_avif_quality' );
@@ -10642,11 +10638,11 @@ function ewww_image_optimizer_get_bad_attachments() {
  * @param string $hook The hook name of the page being loaded.
  */
 function ewww_image_optimizer_settings_script( $hook ) {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Make sure we are being called from the settings page.
 	if ( 'settings_page_ewww-image-optimizer-options' !== $hook ) {
 		return;
 	}
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	global $easyio_site_registered;
 	global $easyio_site_id;
 
@@ -10723,8 +10719,6 @@ function ewww_image_optimizer_settings_script( $hook ) {
 		'ewww_vars.save_space = ' . ( get_option( 'ewww_image_optimizer_goal_save_space' ) ? 1 : 0 ) . ";\n" .
 		'ewww_vars.site_speed = ' . ( get_option( 'ewww_image_optimizer_goal_site_speed' ) ? 1 : 0 ) . ";\n"
 	);
-
-	ewww_image_optimizer_bulk_script( $hook );
 }
 
 /**

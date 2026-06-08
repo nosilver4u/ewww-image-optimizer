@@ -866,11 +866,11 @@ final class Plugin extends Base {
 	 * Removes EWWW IO settings errors from the global $wp_settings_errors to suppress standard error handling.
 	 */
 	public function get_settings_errors() {
-		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		global $wp_settings_errors;
 		if ( empty( $wp_settings_errors ) || ! is_array( $wp_settings_errors ) ) {
 			$stored_errors = get_settings_errors();
 			if ( ! empty( $stored_errors ) && is_array( $stored_errors ) ) {
+				$this->debug_message( 'loading up stored errors' );
 				$this->settings_errors = $stored_errors;
 			}
 			return;
@@ -888,7 +888,6 @@ final class Plugin extends Base {
 	 * Display any settings errors inside a div similar to the core settings_errors() function.
 	 */
 	public function settings_errors() {
-		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( empty( $this->settings_errors ) || ! is_array( $this->settings_errors ) ) {
 			$this->debug_message( 'no errors!' );
 			return;

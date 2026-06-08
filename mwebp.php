@@ -105,11 +105,11 @@ function ewww_image_optimizer_webp_scan() {
  * @param string $hook The hook identifier for the current page.
  */
 function ewww_image_optimizer_webp_script( $hook ) {
-	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	// Make sure we are being called from the migration page.
 	if ( 'admin_page_ewww-image-optimizer-webp-migrate' !== $hook ) {
 		return;
 	}
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	$images = ewww_image_optimizer_webp_scan();
 	// Remove the images array from the db if it currently exists, and then store the new list in the database.
 	if ( get_option( 'ewww_image_optimizer_webp_images' ) ) {
