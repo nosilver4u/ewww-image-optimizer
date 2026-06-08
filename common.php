@@ -6817,7 +6817,10 @@ function ewww_image_optimizer_remote_push( $meta, $id ) {
 			return $meta;
 		}
 		$upload_path = trailingslashit( WP_CONTENT_DIR ) . 'uploads/';
-		$filename    = realpath( str_replace( $s3_upload_dir, $upload_path, $s3_path ) );
+		if ( preg_match( '#/uploads/(sites/\d+/)$#', $s3_upload_dir, $multisite_segment ) ) {
+			$upload_path .= $multisite_segment[1];
+		}
+		$filename = realpath( str_replace( $s3_upload_dir, $upload_path, $s3_path ) );
 		ewwwio_debug_message( "S3 Uploads fullsize path: $s3_path" );
 		ewwwio_debug_message( "unfiltered fullsize path: $filename" );
 		if ( 0 === strpos( $s3_path, 's3://' ) && 0 === strpos( $filename, '/' ) && ewwwio_is_file( $filename ) ) {
@@ -6915,7 +6918,10 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 			return false;
 		}
 		$upload_path = trailingslashit( WP_CONTENT_DIR ) . 'uploads/';
-		$filename    = str_replace( $s3_upload_dir, $upload_path, $s3_path );
+		if ( preg_match( '#/uploads/(sites/\d+/)$#', $s3_upload_dir, $multisite_segment ) ) {
+			$upload_path .= $multisite_segment[1];
+		}
+		$filename = str_replace( $s3_upload_dir, $upload_path, $s3_path );
 		if ( false === strpos( $filename, WP_CONTENT_DIR ) ) {
 			ewwwio_debug_message( "$filename not in WP_CONTENT_DIR" );
 			return false;
