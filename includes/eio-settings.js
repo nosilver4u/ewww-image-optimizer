@@ -70,7 +70,6 @@ jQuery(document).ready(function($) {
 		$('#ewww-bulk-queue-images').html('<span class="ewww-bulk-error"><b>' + ewww_vars.invalid_response + '</b></span>');
 	});
 	function easyIORegisterStatsHandler() {
-		// $('#ewww-status').on('click', '#easyio-show-stats', function(){
 		$('#easyio-show-stats').on('click', function(){
 			var site_id = $(this).attr('data-site-id');
 			var ewww_post_data = {
@@ -175,6 +174,54 @@ jQuery(document).ready(function($) {
 			setTimeout(fetchExtraStats, 10000, site_id);
 		});
     }
+	$('#ewww-async-status').on('click', 'a', function() {
+		retestAsyncMode();
+		return false;
+	});
+	function retestAsyncMode() {
+		var ewww_post_data = {
+			action: 'ewww_retest_async',
+			ewww_wpnonce: ewww_vars._wpnonce,
+		};
+		var retestLink = $('#ewww-async-status a');
+		$('#ewww-async-status span').html('<img class="ewww-loading-image" style="display:block" src="' + ewww_vars.loading_image_url + '" />');
+		$.post(ajaxurl, ewww_post_data, function(response) {
+			var is_json = true;
+			try {
+				if ('string' === typeof response) {
+					var ewww_response = $.parseJSON(response);
+				} else if ('object' === typeof response) {
+					var ewww_response = response;
+				} else {
+					is_json = false;
+				}
+			} catch (err) {
+				is_json = false;
+				console.log(err);
+			}
+			if (! is_json) {
+				console.log(response);
+			} else if (ewww_response.error) {
+				$('#ewww-async-status span').html(ewww_response.error);
+				if (ewww_response.detail) {
+					$('#ewww-async-status span').append('<br>' + ewww_response.detail);
+				}
+				$('#ewww-async-status span').append('<br>');
+				$('#ewww-async-status span').append(retestLink);
+				$('#ewww-async-status span').css('color', 'orange');
+				$('#ewww-async-status span').css('font-weight', 'bolder');
+			} else if (ewww_response.success) {
+				$('#ewww-async-status span').html(ewww_response.success);
+				$('#ewww-async-status span').append(' - ');
+				$('#ewww-async-status span').append(retestLink);
+				$('#ewww-async-status span').css('color', 'inherit');
+				$('#ewww-async-status span').css('font-weight', 'normal');
+			}
+		});
+	}
+	if (ewww_vars.should_retest_async) {
+		retestAsyncMode();
+	}
 	$('#ewww-warning-exec-dismiss-link').on(
 		'click',
 		function() {

@@ -174,6 +174,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 8.7.2 =
 *Release Date - TBD*
 
+* changed: re-test mechanism for background optimization only runs on settings, and improved error reporting for re-testing
 * fixed: cross-site image collisions in remote_push/remote_fetch on multisite with S3 offload, props @earthlingdavey
 * fixed: bulk JS enqueued twice
 

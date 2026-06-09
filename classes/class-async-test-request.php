@@ -57,6 +57,7 @@ class Async_Test_Request extends Async_Request {
 		}
 		ewwwio_debug_message( 'setting background option to true' );
 		$success = ewww_image_optimizer_set_option( 'ewww_image_optimizer_background_optimization', true );
+		ewww_image_optimizer_set_option( 'ewww_image_optimizer_async_test_success', time() );
 		if ( $success ) {
 			ewwwio_debug_message( 'hurrah, async enabled!' );
 		}

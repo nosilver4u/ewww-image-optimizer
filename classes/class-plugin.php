@@ -713,6 +713,7 @@ final class Plugin extends Base {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		// Set defaults for all options that need to be autoloaded.
 		\add_option( 'ewww_image_optimizer_background_optimization', false, '', true );
+		\add_option( 'ewww_image_optimizer_async_test_success', '', '', true );
 		\add_option( 'ewww_image_optimizer_noauto', false, '', true ); // Disables auto-opt.
 		\add_option( 'ewww_image_optimizer_auto', false, '', true ); // Scheduled opt (I know, poor naming).
 		\add_option( 'ewww_image_optimizer_ludicrous_mode', false, '', true );
@@ -772,6 +773,7 @@ final class Plugin extends Base {
 		// Then make sure they are all actually autoloaded.
 		$autoload_options = array(
 			'ewww_image_optimizer_background_optimization' => true,
+			'ewww_image_optimizer_async_test_success'      => true,
 			'ewww_image_optimizer_noauto'                  => true,
 			'ewww_image_optimizer_auto'                    => true,
 			'ewww_image_optimizer_ludicrous_mode'          => true,
@@ -834,6 +836,7 @@ final class Plugin extends Base {
 
 		// Set network defaults.
 		\add_site_option( 'ewww_image_optimizer_background_optimization', false );
+		\add_site_option( 'ewww_image_optimizer_async_test_success', '' );
 		\add_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		\add_site_option( 'ewww_image_optimizer_maxmediawidth', 2560 );
 		\add_site_option( 'ewww_image_optimizer_maxmediaheight', 2560 );
