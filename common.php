@@ -739,6 +739,9 @@ function ewww_image_optimizer_upgrade() {
 		$ewwwio_upgrading = true;
 		ewww_image_optimizer_install_table();
 		ewwwio()->set_defaults();
+		if ( ! get_option( 'ewww_image_optimizer_version' ) ) {
+			ewww_image_optimizer_enable_background_optimization();
+		}
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_async_test_success', 0 );
 		// This will get re-enabled if things are too slow.
 		ewww_image_optimizer_set_option( 'exactdn_prevent_db_queries', false );

@@ -3,7 +3,7 @@ Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: compress, convert, webp, resize, lazy load
 Tested up to: 7.0
-Stable tag: 8.7.1
+Stable tag: 8.7.2
 License: GPLv3
 
 Comprehensive image optimization with WebP, AVIF, Lazy Load, and more. Optimize images automatically for Faster Sites and Happy Visitors.
@@ -172,10 +172,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 8.7.2 =
-*Release Date - TBD*
+*Release Date - June 10, 2026*
 
 * changed: re-test mechanism for background optimization only runs on settings, and improved error reporting for re-testing
-* fixed: cross-site image collisions in remote_push/remote_fetch on multisite with S3 offload, props @earthlingdavey
+* fixed: cross-site image collisions in remote_push/remote_fetch on multisite with S3 Offload plugin, props @earthlingdavey
 * fixed: bulk JS enqueued twice
 
 = 8.7.1 =

@@ -1,3 +1,10 @@
+= 8.7.2 =
+*Release Date - June 10, 2026*
+
+* changed: re-test mechanism for background optimization only runs on settings, and improved error reporting for re-testing
+* fixed: cross-site image collisions in remote_push/remote_fetch on multisite with S3 Offload plugin, props @earthlingdavey
+* fixed: bulk JS enqueued twice
+
 = 8.7.1 =
 *Release Date - June 4, 2026*
 
