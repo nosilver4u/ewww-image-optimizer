@@ -1848,29 +1848,28 @@ function ewww_image_optimizer_notice_reoptimization() {
  * @return bool True if a plugin is removing local files, false otherwise.
  */
 function ewww_image_optimizer_cloud_based_media() {
+	$cloud_based = false;
 	if ( class_exists( 'Amazon_S3_And_CloudFront' ) ) {
 		global $as3cf;
 		if ( is_object( $as3cf ) && $as3cf->get_setting( 'serve-from-s3' ) && $as3cf->get_setting( 'remove-local-file' ) ) {
-			return true;
+			$cloud_based = true;
 		}
-	}
-	if ( ewww_image_optimizer_s3_uploads_enabled() ) {
-		return true;
-	}
-	if ( class_exists( 'wpCloud\StatelessMedia\EWWW' ) && function_exists( 'ud_get_stateless_media' ) ) {
+	} elseif ( ewww_image_optimizer_s3_uploads_enabled() ) {
+		$cloud_based = true;
+	} elseif ( class_exists( 'wpCloud\StatelessMedia\EWWW' ) && function_exists( 'ud_get_stateless_media' ) ) {
 		$sm = ud_get_stateless_media();
 		if ( method_exists( $sm, 'get' ) ) {
 			$sm_mode = $sm->get( 'sm.mode' );
 			if ( 'disabled' !== $sm_mode ) {
-				return true;
+				$cloud_based = true;
 			}
 		}
 	}
-	return false;
+	return apply_filters( 'ewww_image_optimizer_cloud_based_media', $cloud_based );
 }
 
 /**
- * Checks if a plugin is offloading media to cloud storage..
+ * Checks if a plugin is offloading media to cloud storage.
  *
  * @return bool True if a plugin is offloading media, false otherwise.
  */
