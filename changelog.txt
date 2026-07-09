@@ -1,3 +1,8 @@
+= 8.7.3 =
+*Release Date - July 9, 2026*
+
+* added: ewww_image_optimizer_cloud_based_media filter for cloud-based storage plugins to integrate with optimization processes
+
 = 8.7.2 =
 *Release Date - June 10, 2026*
 
