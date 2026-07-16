@@ -3,7 +3,7 @@ Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: compress, convert, webp, resize, lazy load
 Tested up to: 7.0
-Stable tag: 8.7.3
+Stable tag: 8.7.4
 License: GPLv3
 
 Comprehensive image optimization with WebP, AVIF, Lazy Load, and more. Optimize images automatically for Faster Sites and Happy Visitors.
@@ -172,7 +172,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 8.7.4 =
-*Release Date - TBD*
+*Release Date - July 16, 2026*
 
 * security: prevent authenticated XSS
 
