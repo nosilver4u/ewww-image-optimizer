@@ -1644,9 +1644,10 @@ class Lazy_Load extends Page_Parser {
 			'var eio_lazy_vars = ' .
 				\wp_json_encode(
 					array(
-						'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
-						'skip_autoscale' => ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
 						'bg_min_dpr'     => ( \defined( 'EIO_LL_BG_MIN_DPR' ) && EIO_LL_BG_MIN_DPR ? EIO_LL_BG_MIN_DPR : 1.1 ),
+						'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
+						'safe_domains'   => \apply_filters( 'eio_lazy_safe_domains', $this->allowed_domains ),
+						'skip_autoscale' => ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
 						'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
 						'use_dpr'        => (int) $this->get_option( 'exactdn_hidpi' ),
 					)
@@ -1686,9 +1687,10 @@ class Lazy_Load extends Page_Parser {
 			'var eio_lazy_vars = ' .
 				\wp_json_encode(
 					array(
-						'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
-						'skip_autoscale' => ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
 						'bg_min_dpr'     => ( \defined( 'EIO_LL_BG_MIN_DPR' ) && EIO_LL_BG_MIN_DPR ? EIO_LL_BG_MIN_DPR : 1.1 ),
+						'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
+						'safe_domains'   => \apply_filters( 'eio_lazy_safe_domains', $this->allowed_domains ),
+						'skip_autoscale' => ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
 						'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
 						'use_dpr'        => (int) $this->get_option( 'exactdn_hidpi' ),
 					)

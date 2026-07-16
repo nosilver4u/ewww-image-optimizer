@@ -10,14 +10,20 @@ window.lazySizesConfig.iframeLoadMode = 1;
 if (typeof eio_lazy_vars === 'undefined'){
 	console.log('setting failsafe lazy vars');
 	eio_lazy_vars = {
+		bg_min_dpr: 1.1,
 		exactdn_domain: '.exactdn.com',
-		threshold: 0,
+		safe_domains: [],
 		skip_autoscale: 0,
+		threshold: 0,
 		use_dpr: 0,
 	};
 }
 if (eio_lazy_vars.threshold > 50) {
 	window.lazySizesConfig.expand = eio_lazy_vars.threshold;
+}
+window.lazySizesConfig.safeDomains = [];
+if (typeof eio_lazy_vars.safe_domains === 'object' && Array.isArray(eio_lazy_vars.safe_domains)) {
+	window.lazySizesConfig.safeDomains = eio_lazy_vars.safe_domains;
 }
 console.log( 'root margin: ' + window.lazySizesConfig.expand );
 for ( const [css_index, css_image] of Object.entries(swis_lazy_css_images)){

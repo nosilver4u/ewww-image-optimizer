@@ -161,6 +161,25 @@ For background images, use data-bg attribute:
 		if(uniqueUrls[src]){
 			return;
 		}
+		if(typeof lazySizes.cfg.safeDomains !== 'object' || ! Array.isArray(lazySizes.cfg.safeDomains)) {
+			return;
+		}
+		var safeDomains = lazySizes.cfg.safeDomains;
+		console.log(safeDomains);
+
+		var validSrc = false;
+		var i = 0;
+		for(; i < safeDomains.length; i++){
+			console.log('checking if ' + src + ' matches ' + 'http(s)://' + safeDomains[i] + '/');
+			if(src.startsWith('http://' + safeDomains[i] + '/')||src.startsWith('https://' + safeDomains[i] + '/')){
+				console.log('src is valid');
+				validSrc = true;
+				break;
+			}
+		}
+		if(!validSrc){
+			return;
+		}
 		var elem = document.createElement(style ? 'link' : 'script');
 		var insertElem = document.getElementsByTagName('script')[0];
 
