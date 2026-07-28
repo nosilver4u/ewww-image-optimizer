@@ -6,14 +6,14 @@
  * @package Ewww_Image_Optimizer
  */
 
-const OPTIONAL  = 0;
-const REQUIRED  = 1;
-const FORBIDDEN = 2;
-
 /**
  * Test Plugin Readme and PHP Headers.
  */
 class EWWWIO_Test_Plugin_Headers extends WP_UnitTestCase {
+
+	const OPTIONAL  = 0;
+	const REQUIRED  = 1;
+	const FORBIDDEN = 2;
 
 	/**
 	 * Readme headers specification.
@@ -21,28 +21,28 @@ class EWWWIO_Test_Plugin_Headers extends WP_UnitTestCase {
 	 * @var array<string,int> Headers defined in the readme spec. Key: Header; Value: OPTIONAL, REQUIRED, FORBIDDEN.
 	 */
 	public static $readme_headers = array(
-		'Contributors'      => REQUIRED,
-		'Tags'              => OPTIONAL,
-		'Donate link'       => OPTIONAL,
-		'Tested up to'      => REQUIRED,
-		'Stable tag'        => REQUIRED,
-		'License'           => REQUIRED,
-		'License URI'       => OPTIONAL,
+		'Contributors'      => self::REQUIRED,
+		'Tags'              => self::OPTIONAL,
+		'Donate link'       => self::OPTIONAL,
+		'Tested up to'      => self::REQUIRED,
+		'Stable tag'        => self::REQUIRED,
+		'License'           => self::REQUIRED,
+		'License URI'       => self::OPTIONAL,
 
 		// Plugin file headers that do not belong in the readme.
-		'Plugin Name'       => FORBIDDEN,
-		'Plugin URI'        => FORBIDDEN,
-		'Description'       => FORBIDDEN,
-		'Version'           => FORBIDDEN,
-		'Author'            => FORBIDDEN,
-		'Author URI'        => FORBIDDEN,
-		'Text Domain'       => FORBIDDEN,
-		'Domain Path'       => FORBIDDEN,
-		'Network'           => FORBIDDEN,
-		'Update URI'        => FORBIDDEN,
-		'Requires at least' => FORBIDDEN, // Both WP and the plugin directory prefer the version in the plugin file.
-		'Requires PHP'      => FORBIDDEN, // Both WP and the plugin directory prefer the version in the plugin file.
-		'Requires Plugins'  => FORBIDDEN,
+		'Plugin Name'       => self::FORBIDDEN,
+		'Plugin URI'        => self::FORBIDDEN,
+		'Description'       => self::FORBIDDEN,
+		'Version'           => self::FORBIDDEN,
+		'Author'            => self::FORBIDDEN,
+		'Author URI'        => self::FORBIDDEN,
+		'Text Domain'       => self::FORBIDDEN,
+		'Domain Path'       => self::FORBIDDEN,
+		'Network'           => self::FORBIDDEN,
+		'Update URI'        => self::FORBIDDEN,
+		'Requires at least' => self::FORBIDDEN, // Both WP and the plugin directory prefer the version in the plugin file.
+		'Requires PHP'      => self::FORBIDDEN, // Both WP and the plugin directory prefer the version in the plugin file.
+		'Requires Plugins'  => self::FORBIDDEN,
 	);
 
 	/**
@@ -51,27 +51,27 @@ class EWWWIO_Test_Plugin_Headers extends WP_UnitTestCase {
 	 * @var array<string,int> Headers defined in the plugin spec. Key: Header; Value: OPTIONAL, REQUIRED, FORBIDDEN.
 	 */
 	public static $plugin_headers = array(
-		'Plugin Name'       => REQUIRED,
-		'Plugin URI'        => OPTIONAL,
-		'Description'       => REQUIRED,
-		'Version'           => REQUIRED,
-		'Requires at least' => REQUIRED, // Not required by the spec but I'm enforcing it.
-		'Requires PHP'      => REQUIRED, // Not required by the spec but I'm enforcing it.
-		'Author'            => REQUIRED,
-		'Author URI'        => OPTIONAL,
-		'License'           => REQUIRED,
-		'License URI'       => OPTIONAL,
-		'Text Domain'       => OPTIONAL,
-		'Domain Path'       => OPTIONAL,
-		'Network'           => OPTIONAL,
-		'Update URI'        => OPTIONAL,
-		'Requires Plugins'  => OPTIONAL,
+		'Plugin Name'       => self::REQUIRED,
+		'Plugin URI'        => self::OPTIONAL,
+		'Description'       => self::REQUIRED,
+		'Version'           => self::REQUIRED,
+		'Requires at least' => self::REQUIRED, // Not required by the spec but I'm enforcing it.
+		'Requires PHP'      => self::REQUIRED, // Not required by the spec but I'm enforcing it.
+		'Author'            => self::REQUIRED,
+		'Author URI'        => self::OPTIONAL,
+		'License'           => self::REQUIRED,
+		'License URI'       => self::OPTIONAL,
+		'Text Domain'       => self::OPTIONAL,
+		'Domain Path'       => self::OPTIONAL,
+		'Network'           => self::OPTIONAL,
+		'Update URI'        => self::OPTIONAL,
+		'Requires Plugins'  => self::OPTIONAL,
 
 		// Readme file headers that do not belong in the plugin file.
-		'Contributors'      => FORBIDDEN,
-		'Tags'              => FORBIDDEN,
-		'Donate link'       => FORBIDDEN,
-		'Stable tag'        => FORBIDDEN,
+		'Contributors'      => self::FORBIDDEN,
+		'Tags'              => self::FORBIDDEN,
+		'Donate link'       => self::FORBIDDEN,
+		'Stable tag'        => self::FORBIDDEN,
 
 		/*
 		 * Opinionated: Allowed by the spec.
@@ -86,7 +86,7 @@ class EWWWIO_Test_Plugin_Headers extends WP_UnitTestCase {
 		 * WordPress Core doesn't use the header, it pulls the data in
 		 * from the plugin API.
 		 */
-		'Tested up to'      => FORBIDDEN,
+		'Tested up to'      => self::FORBIDDEN,
 	);
 
 	/**
@@ -159,7 +159,7 @@ class EWWWIO_Test_Plugin_Headers extends WP_UnitTestCase {
 		$required_headers = array_filter(
 			self::$readme_headers,
 			function ( $status ) {
-				return REQUIRED === $status;
+				return self::REQUIRED === $status;
 			}
 		);
 		$headers          = array();
@@ -189,7 +189,7 @@ class EWWWIO_Test_Plugin_Headers extends WP_UnitTestCase {
 		$forbidden_headers = array_filter(
 			self::$readme_headers,
 			function ( $status ) {
-				return FORBIDDEN === $status;
+				return self::FORBIDDEN === $status;
 			}
 		);
 		$headers           = array();
@@ -220,7 +220,7 @@ class EWWWIO_Test_Plugin_Headers extends WP_UnitTestCase {
 		$required_headers = array_filter(
 			self::$plugin_headers,
 			function ( $status ) {
-				return REQUIRED === $status;
+				return self::REQUIRED === $status;
 			}
 		);
 		$headers          = array();
@@ -250,7 +250,7 @@ class EWWWIO_Test_Plugin_Headers extends WP_UnitTestCase {
 		$forbidden_headers = array_filter(
 			self::$plugin_headers,
 			function ( $status ) {
-				return FORBIDDEN === $status;
+				return self::FORBIDDEN === $status;
 			}
 		);
 		$headers           = array();

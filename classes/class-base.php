@@ -1054,6 +1054,17 @@ class Base {
 	}
 
 	/**
+	 * Check if a file/directory is writable.
+	 *
+	 * @param string $file The path to check.
+	 * @return bool True if it is, false if it ain't.
+	 */
+	public function is_writable( $file ) {
+		$this->get_filesystem();
+		return $this->filesystem->is_writable( $file );
+	}
+
+	/**
 	 * Check filesize, and prevent errors by ensuring file exists, and that the cache has been cleared.
 	 *
 	 * @param string $file The name of the file.
@@ -1070,6 +1081,19 @@ class Base {
 		} else {
 			return 0;
 		}
+	}
+
+	/**
+	 * Moves a file to a new location.
+	 *
+	 * @param string $source Path to the source file.
+	 * @param string $destination Path to the destination file.
+	 * @param bool   $overwrite Whether to overwrite the destination file if it exists. Default true.
+	 * @return bool True on success, false on failure.
+	 */
+	public function rename( $source, $destination, $overwrite = true ) {
+		$this->get_filesystem();
+		return $this->filesystem->move( $source, $destination, $overwrite );
 	}
 
 	/**

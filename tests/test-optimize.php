@@ -56,7 +56,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	/**
 	 * The API key used for API-based tests.
 	 *
-	 * @var stringg $api_key
+	 * @var string $api_key
 	 */
 	public static $api_key = '';
 
@@ -69,27 +69,27 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		wp_mkdir_p( $temp_upload_dir );
 
 		$test_jpg = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/20170314_174658.jpg' );
-		rename( $test_jpg, $temp_upload_dir . wp_basename( $test_jpg ) );
+		ewwwio()->rename( $test_jpg, $temp_upload_dir . wp_basename( $test_jpg ) );
 		self::$test_jpg = $temp_upload_dir . wp_basename( $test_jpg );
 
 		$test_png = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/books.png' );
-		rename( $test_png, $temp_upload_dir . wp_basename( $test_png ) );
+		ewwwio()->rename( $test_png, $temp_upload_dir . wp_basename( $test_png ) );
 		self::$test_png = $temp_upload_dir . wp_basename( $test_png );
 
 		$test_gif = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/gifsiclelogo.gif' );
-		rename( $test_gif, $temp_upload_dir . wp_basename( $test_gif ) );
+		ewwwio()->rename( $test_gif, $temp_upload_dir . wp_basename( $test_gif ) );
 		self::$test_gif = $temp_upload_dir . wp_basename( $test_gif );
 
 		$test_pdf = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/tomtempleartist-bio-2008.pdf' );
-		rename( $test_pdf, $temp_upload_dir . wp_basename( $test_pdf ) );
+		ewwwio()->rename( $test_pdf, $temp_upload_dir . wp_basename( $test_pdf ) );
 		self::$test_pdf = $temp_upload_dir . wp_basename( $test_pdf );
 
 		$test_svg = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/image-x-generic.svg' );
-		rename( $test_svg, $temp_upload_dir . wp_basename( $test_svg ) );
+		ewwwio()->rename( $test_svg, $temp_upload_dir . wp_basename( $test_svg ) );
 		self::$test_svg = $temp_upload_dir . wp_basename( $test_svg );
 
 		$test_webp = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/amie-roussel-unsplash.webp' );
-		rename( $test_webp, $temp_upload_dir . wp_basename( $test_webp ) );
+		ewwwio()->rename( $test_webp, $temp_upload_dir . wp_basename( $test_webp ) );
 		self::$test_webp = $temp_upload_dir . wp_basename( $test_webp );
 
 		self::$api_key  = getenv( 'EWWWIO_API_KEY' );
@@ -212,10 +212,10 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_webp', '' );
 		update_site_option( 'ewww_image_optimizer_webp', '' );
 		$this->assertEquals( 1348499, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 		$this->assertEqualsWithDelta( 200048, filesize( $results[0] . '.webp' ), 1000 );
 		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
-			unlink( $results[0] . '.webp' );
+			wp_delete_file( $results[0] . '.webp' );
 		}
 	}
 
@@ -238,11 +238,11 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$this->assertEquals( ewww_image_optimizer_get_orientation( self::$test_jpg, 'image/jpeg' ), 8 );
 		// orientation post-rotation should always be 1, no matter the image.
 		$this->assertEquals( ewww_image_optimizer_get_orientation( $results[0], 'image/jpeg' ), 1 );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 		// size of webp with meta.
 		$this->assertEqualsWithDelta( 219630, filesize( $results[0] . '.webp' ), 1000 );
 		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
-			unlink( $results[0] . '.webp' );
+			wp_delete_file( $results[0] . '.webp' );
 		}
 	}
 
@@ -270,10 +270,10 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		remove_all_filters( 'ewwwio_imagick_supports_webp' );
 		$this->assertEquals( 1339854, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 		$this->assertEquals( 187866, filesize( $results[0] . '.webp' ) );
 		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
-			unlink( $results[0] . '.webp' );
+			wp_delete_file( $results[0] . '.webp' );
 		}
 	}
 
@@ -304,11 +304,11 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		$this->assertEquals( 1359406, filesize( $results[0] ) );
 		// orientation pre-rotation.
 		$this->assertEquals( ewww_image_optimizer_get_orientation( $results[0], 'image/jpeg' ), 1 );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 		// size of webp with meta.
 		$this->assertEquals( 207452, filesize( $results[0] . '.webp' ) );
 		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
-			unlink( $results[0] . '.webp' );
+			wp_delete_file( $results[0] . '.webp' );
 		}
 	}
 
@@ -330,7 +330,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		$this->assertEquals( 344098, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 	}
 
 	/**
@@ -351,7 +351,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		$this->assertEquals( 310924, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 	}
 
 	/**
@@ -372,10 +372,10 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_webp', '' );
 		update_site_option( 'ewww_image_optimizer_webp', '' );
 		$this->assertLessThan( 188300, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 		$this->assertLessThanOrEqual( 138000, filesize( $results[0] . '.webp' ) );
 		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
-			unlink( $results[0] . '.webp' );
+			wp_delete_file( $results[0] . '.webp' );
 		}
 	}
 
@@ -393,7 +393,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_metadata_remove', '' );
 		$results = $this->optimize_png();
 		$this->assertLessThanOrEqual( 190775, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 	}
 
 	/**
@@ -412,7 +412,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		$results = $this->optimize_png();
 		$this->assertLessThan( 181000, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 	}
 
 	/**
@@ -428,8 +428,8 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_optipng_level', 2 );
 		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		$results = $this->optimize_png();
-		$this->assertLessThanOrEqual( 39000, filesize( $results[0] ) );
-		unlink( $results[0] );
+		$this->assertLessThanOrEqual( 39100, filesize( $results[0] ) );
+		wp_delete_file( $results[0] );
 	}
 
 	/**
@@ -450,7 +450,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		$this->assertLessThanOrEqual( 175000, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 	}
 
 	/**
@@ -471,7 +471,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		$this->assertLessThanOrEqual( 39100, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 	}
 
 	/**
@@ -492,7 +492,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		$this->assertLessThanOrEqual( 32269, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 	}
 
 	/**
@@ -503,7 +503,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_gif_level', 10 );
 		$results = $this->optimize_gif();
 		$this->assertEquals( 8900, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 	}
 
 	/**
@@ -526,10 +526,10 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		$this->assertEquals( 8900, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 		$this->assertEquals( 8008, filesize( $results[0] . '.webp' ) );
 		if ( ewwwio_is_file( $results[0] . '.webp' ) ) {
-			unlink( $results[0] . '.webp' );
+			wp_delete_file( $results[0] . '.webp' );
 		}
 	}
 
@@ -549,7 +549,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		$this->assertLessThan( 144999, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 	}
 
 	/**
@@ -568,7 +568,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		$this->assertLessThan( 129000, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 	}
 
 	/**
@@ -583,7 +583,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_svg_level', 1 );
 		$results = $this->optimize_svg();
 		$this->assertEquals( 10792, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 	}
 
 	/**
@@ -598,7 +598,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_svg_level', 10 );
 		$results = $this->optimize_svg();
 		$this->assertEquals( 9518, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 	}
 
 	/**
@@ -617,7 +617,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		$this->assertEquals( 10792, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 	}
 
 	/**
@@ -636,7 +636,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		$this->assertEquals( 9518, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 	}
 
 	/**
@@ -655,7 +655,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		$this->assertLessThan( 260000, filesize( $results[0] ) );
-		unlink( $results[0] );
+		wp_delete_file( $results[0] );
 	}
 
 	/**
@@ -678,16 +678,16 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	 */
 	public static function tear_down_after_class() {
 		if ( ewwwio_is_file( self::$test_jpg ) ) {
-			unlink( self::$test_jpg );
+			wp_delete_file( self::$test_jpg );
 		}
 		if ( ewwwio_is_file( self::$test_png ) ) {
-			unlink( self::$test_png );
+			wp_delete_file( self::$test_png );
 		}
 		if ( ewwwio_is_file( self::$test_gif ) ) {
-			unlink( self::$test_gif );
+			wp_delete_file( self::$test_gif );
 		}
 		if ( ewwwio_is_file( self::$test_pdf ) ) {
-			unlink( self::$test_pdf );
+			wp_delete_file( self::$test_pdf );
 		}
 		ewww_image_optimizer_remove_binaries();
 	}

@@ -15281,7 +15281,6 @@ function ewwwio_debug_version_info() {
 			$eio_debug .= "detected pantheon env: $pantheon_env<br>";
 		}
 	}
-	$eio_debug .= 'core plugin<br>';
 
 	EWWW\Base::$debug_data .= $eio_debug;
 }
