@@ -32,7 +32,7 @@ Are you frustrated by a slow website? Do over-sized images make you say â€œewwwâ
 * Preserve GIF animations in thumbnails
 * [Free email support](https://ewww.io/contact-us/)
 
-EWWW Image Optimizer is the only plugin that lets you optimize images using tools on your own web server (jpegtran, optipng, pngout, pngquant, gifsicle, cwebp). This requires the PHP exec() function and a [compatible](https://docs.ewww.io/article/43-supported-web-hosts) Linux, Windows, MacOS, or FreeBSD web server. [If your web server is not compatible, we offer unlimited lossless JPG image optimization and WebP conversion via our Compress API **for free*](https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it).
+EWWW Image Optimizer is the only plugin that lets you optimize images using tools on your own web server (jpegtran, optipng, pngout, pngquant, gifsicle, cwebp). This requires the PHP exec() function and a [compatible](https://docs.ewww.io/article/43-supported-web-hosts) Linux, Windows, MacOS, or FreeBSD web server. [If your web server is not compatible, we offer unlimited lossless JPG image optimization and WebP conversion via our Compress API **for free**](https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it).
 
 **Upgrade to [Premium](https://ewww.io/plans/) for:**
 
@@ -170,6 +170,11 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
+
+= 8.7.5 =
+*Release Date - TBD*
+
+* fixed: PHP notices in BuddyPress/BuddyBoss compatibility functions
 
 = 8.7.4 =
 *Release Date - July 16, 2026*

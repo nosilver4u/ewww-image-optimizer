@@ -3761,7 +3761,7 @@ class ExactDN extends Page_Parser {
 		if ( $media_id && ! $symlink ) {
 			$media    = new \BP_Media( $media_id );
 			$metadata = \wp_get_attachment_metadata( $media->attachment_id );
-			if ( $size && ! empty( $metadata ) && $this->is_iterable( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
+			if ( $size && ! empty( $metadata ) && isset( $metadata['sizes'] ) && $this->is_iterable( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
 				$attachment_url = \wp_get_attachment_image_url( $media->attachment_id, $size );
 			} else {
 				$attachment_url = \wp_get_attachment_url( $media->attachment_id );
@@ -3787,7 +3787,7 @@ class ExactDN extends Page_Parser {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( $attachment_id && ! $symlink ) {
 			$metadata = \wp_get_attachment_metadata( $attachment_id );
-			if ( $size && ! empty( $metadata ) && $this->is_iterable( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
+			if ( $size && ! empty( $metadata ) && isset( $metadata['sizes'] ) && $this->is_iterable( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
 				$attachment_url = \wp_get_attachment_image_url( $attachment_id, $size );
 			} else {
 				$attachment_url = \wp_get_attachment_url( $attachment_id );
@@ -3818,7 +3818,7 @@ class ExactDN extends Page_Parser {
 		) {
 			$this->debug_message( "$extension is allowed for $document_id" );
 			$metadata = \wp_get_attachment_metadata( $attachment_id );
-			if ( $size && ! empty( $metadata ) && $this->is_iterable( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
+			if ( $size && ! empty( $metadata ) && isset( $metadata['sizes'] ) && $this->is_iterable( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
 				$attachment_url = \wp_get_attachment_image_url( $attachment_id, $size );
 			} else {
 				$attachment_url = \wp_get_attachment_image_url( $attachment_id, 'full' );
@@ -3831,7 +3831,7 @@ class ExactDN extends Page_Parser {
 					\bb_document_regenerate_attachment_thumbnails( $attachment_id );
 				}
 				$metadata = \wp_get_attachment_metadata( $attachment_id );
-				if ( $size && ! empty( $metadata ) && $this->is_iterable( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
+				if ( $size && ! empty( $metadata ) && isset( $metadata['sizes'] ) && $this->is_iterable( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
 					$attachment_url = \wp_get_attachment_image_url( $attachment_id, $size );
 				} else {
 					$attachment_url = \wp_get_attachment_image_url( $attachment_id, 'full' );

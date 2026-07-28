@@ -21,7 +21,7 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 	/**
 	 * The API key used for API-based tests.
 	 *
-	 * @var stringg $api_key
+	 * @var string $api_key
 	 */
 	public static $api_key = '';
 
@@ -66,7 +66,7 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 		$thumb_path = trailingslashit( dirname( $file_path ) ) . wp_basename( $meta['sizes']['thumbnail']['file'] );
 		$this->assertTrue( ewww_image_optimizer_is_animated( $thumb_path ) );
 
-		unlink( $upload_gif );
+		\ewwwio()->delete_file( $upload_gif, dirname( $upload_gif ) );
 	}
 
 	/**
@@ -88,7 +88,7 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
-		unlink( $upload_gif );
+		\ewwwio()->delete_file( $upload_gif, dirname( $upload_gif ) );
 	}
 
 	/**
@@ -110,8 +110,8 @@ class EWWWIO_AGR_Tests extends WP_UnitTestCase {
 	 * Cleans up the temp images.
 	 */
 	public static function tear_down_after_class() {
-		if ( ewwwio_is_file( self::$test_gif ) ) {
-			unlink( self::$test_gif );
+		if ( ewwwio()->is_file( self::$test_gif ) ) {
+			\ewwwio()->delete_file( self::$test_gif, dirname( self::$test_gif ) );
 		}
 		ewww_image_optimizer_remove_binaries();
 	}
