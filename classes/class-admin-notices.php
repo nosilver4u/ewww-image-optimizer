@@ -786,7 +786,7 @@ final class Admin_Notices extends Base {
 		if ( ! empty( $missing ) && 'quiet' !== $quiet ) {
 			if ( ! \is_dir( $this->content_dir ) ) {
 				$this->tool_folder_notice();
-			} elseif ( ! \is_writable( $this->content_dir ) || ! is_readable( $this->content_dir ) ) {
+			} elseif ( ! $this->is_writable( $this->content_dir ) || ! $this->is_readable( $this->content_dir ) ) {
 				$this->tool_folder_permissions_notice();
 			} elseif ( ! \is_executable( $this->content_dir ) && PHP_OS !== 'WINNT' ) {
 				$this->tool_folder_permissions_notice();
@@ -885,9 +885,9 @@ final class Admin_Notices extends Base {
 			<?php $this->display_exec_dismiss_script(); ?>
 		<?php elseif ( \ewwwio()->local->tools_missing ) : ?>
 			<?php
-			if ( ! \is_dir( \EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
+			if ( ! $this->is_dir( \EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
 				$this->tool_folder_notice();
-			} elseif ( ! is_writable( \EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) || ! \is_readable( \EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
+			} elseif ( ! $this->is_writable( \EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) || ! $this->is_readable( \EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) ) {
 				$this->tool_folder_permissions_notice();
 			} elseif ( ! \is_executable( \EWWW_IMAGE_OPTIMIZER_TOOL_PATH ) && \PHP_OS !== 'WINNT' ) {
 				$this->tool_folder_permissions_notice();

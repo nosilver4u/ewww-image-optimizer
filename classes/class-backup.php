@@ -262,7 +262,7 @@ class Backup extends Base {
 		}
 		\wp_mkdir_p( \dirname( $backup_file ) );
 		\clearstatcache();
-		if ( ! \is_writable( \dirname( $backup_file ) ) ) {
+		if ( ! $this->is_writable( \dirname( $backup_file ) ) ) {
 			$this->debug_message( \dirname( $backup_file ) . ' is not writable' );
 			return;
 		}
@@ -330,7 +330,7 @@ class Backup extends Base {
 			return false;
 		}
 		$file = $image['path'];
-		if ( ! \is_writable( \dirname( $file ) ) ) {
+		if ( ! $this->is_writable( \dirname( $file ) ) ) {
 			$this->debug_message( "$file (or the parent dir) is not writable" );
 			/* translators: %s: An image filename */
 			$this->error_message = \sprintf( \__( '%s is not writable.', 'ewww-image-optimizer' ), $file );
@@ -366,7 +366,7 @@ class Backup extends Base {
 		copy( $backup_file, $file );
 		if ( $this->filesize( $file ) === $this->filesize( $backup_file ) ) {
 			$this->debug_message( 'restore success, checking for .webp variant and resetting db record' );
-			if ( $this->is_file( $file . '.webp' ) && \is_writable( $file . '.webp' ) ) {
+			if ( $this->is_file( $file . '.webp' ) && $this->is_writable( $file . '.webp' ) ) {
 				$this->debug_message( "removing $file.webp" );
 				$this->delete_file( $file . '.webp' );
 			}
@@ -411,7 +411,7 @@ class Backup extends Base {
 			return;
 		}
 		\clearstatcache();
-		if ( ! $this->is_file( $backup_file ) || ! \is_writable( $backup_file ) ) {
+		if ( ! $this->is_file( $backup_file ) || ! $this->is_writable( $backup_file ) ) {
 			return;
 		}
 		$this->delete_file( $backup_file );

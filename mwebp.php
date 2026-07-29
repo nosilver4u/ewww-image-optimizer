@@ -231,7 +231,7 @@ function ewww_image_optimizer_webp_loop() {
 			}
 			++$images_renamed;
 			ewwwio_debug_message( "renaming $image with match of $replace_base to $new_webp_path" );
-			rename( $image, $new_webp_path );
+			ewwwio()->rename( $image, $new_webp_path );
 		}
 	} // End while().
 	if ( $images_renamed ) {

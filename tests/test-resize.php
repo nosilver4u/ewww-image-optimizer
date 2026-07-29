@@ -58,7 +58,7 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 	/**
 	 * Initializes the plugin and installs the ewwwio_images table.
 	 */
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
 		ewww_image_optimizer_install_table();
@@ -68,14 +68,14 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 	/**
 	 * Creates a JPG attachment while resizing is enabled (no cropping) using jpegtran.
 	 */
-	function test_scale_jpg_local() {
+	public function test_resize_scale_jpg_local() {
 		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_jpg_level', 10 );
 		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_site_option( 'ewww_image_optimizer_jpg_level', 10 );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherwidth', 1024 );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherheight', 1024 );
-		$id = $this->factory->attachment->create_upload_object( self::$test_jpg );
+		$id = self::factory()->attachment->create_upload_object( self::$test_jpg );
 		$meta = wp_get_attachment_metadata( $id );
 		$file_path = ewww_image_optimizer_attachment_path( $meta, $id );
 		list( $width, $height ) = ewwwio()->getimagesize( $file_path );
@@ -86,7 +86,7 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 	/**
 	 * Creates a JPG attachment while resizing is enabled (crop-mode) using jpegtran.
 	 */
-	function test_crop_jpg_local() {
+	public function test_resize_crop_jpg_local() {
 		update_option( 'ewww_image_optimizer_metadata_remove', true );
 		update_option( 'ewww_image_optimizer_jpg_level', 10 );
 		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
@@ -94,7 +94,7 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherwidth', 1024 );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherheight', 1024 );
 		add_filter( 'ewww_image_optimizer_crop_image', '__return_true' );
-		$id = $this->factory->attachment->create_upload_object( self::$test_jpg );
+		$id = self::factory()->attachment->create_upload_object( self::$test_jpg );
 		remove_filter( 'ewww_image_optimizer_crop_image', '__return_true' );
 		$meta = wp_get_attachment_metadata( $id );
 		$file_path = ewww_image_optimizer_attachment_path( $meta, $id );
@@ -106,7 +106,7 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 	/**
 	 * Creates a JPG attachment while resizing is enabled (no cropping) using API.
 	 */
-	function test_scale_jpg_cloud() {
+	public function test_resize_scale_jpg_cloud() {
 		if ( empty( self::$api_key ) ) {
 			self::markTestSkipped( 'No API key available.' );
 		}
@@ -118,7 +118,7 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherwidth', 1024 );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherheight', 1024 );
-		$id = $this->factory->attachment->create_upload_object( self::$test_jpg );
+		$id = self::factory()->attachment->create_upload_object( self::$test_jpg );
 		$meta = wp_get_attachment_metadata( $id );
 		$file_path = ewww_image_optimizer_attachment_path( $meta, $id );
 		list( $width, $height ) = ewwwio()->getimagesize( $file_path );
@@ -129,7 +129,7 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 	/**
 	 * Creates a JPG attachment while resizing is enabled (crop-mode) using API.
 	 */
-	function test_crop_jpg_cloud() {
+	public function test_resize_crop_jpg_cloud() {
 		if ( empty( self::$api_key ) ) {
 			self::markTestSkipped( 'No API key available.' );
 		}
@@ -142,7 +142,7 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherwidth', 1024 );
 		ewww_image_optimizer_set_option( 'ewww_image_optimizer_maxotherheight', 1024 );
 		add_filter( 'ewww_image_optimizer_crop_image', '__return_true' );
-		$id = $this->factory->attachment->create_upload_object( self::$test_jpg );
+		$id = self::factory()->attachment->create_upload_object( self::$test_jpg );
 		remove_filter( 'ewww_image_optimizer_crop_image', '__return_true' );
 		$meta = wp_get_attachment_metadata( $id );
 		$file_path = ewww_image_optimizer_attachment_path( $meta, $id );
@@ -154,7 +154,7 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 	/**
 	 * Cleans up ewwwio_images table.
 	 */
-	function tear_down() {
+	public function tear_down() {
 		global $wpdb;
 		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 		$wpdb->query( "DROP TABLE IF EXISTS $wpdb->ewwwio_images" );
@@ -171,13 +171,13 @@ class EWWWIO_Resize_Tests extends WP_UnitTestCase {
 	 */
 	public static function tear_down_after_class() {
 		if ( ewwwio_is_file( self::$test_jpg ) ) {
-			unlink( self::$test_jpg );
+			wp_delete_file( self::$test_jpg );
 		}
 		if ( ewwwio_is_file( self::$test_png ) ) {
-			unlink( self::$test_png );
+			wp_delete_file( self::$test_png );
 		}
 		if ( ewwwio_is_file( self::$test_gif ) ) {
-			unlink( self::$test_gif );
+			wp_delete_file( self::$test_gif );
 		}
 	}
 }

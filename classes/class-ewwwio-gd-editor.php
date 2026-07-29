@@ -380,7 +380,7 @@ class EWWWIO_GD_Editor extends WP_Image_Editor_GD {
 		$result = file_put_contents( $filename, $image );
 		if ( $result ) {
 			ewwwio_debug_message( "image editor (gd-api-enhanced) saved: $filename" );
-			if ( is_writable( $filename ) ) {
+			if ( ewwwio()->is_writable( $filename ) ) {
 				$stat  = stat( dirname( $filename ) );
 				$perms = $stat['mode'] & 0000666; // Same permissions as parent folder with executable bits stripped.
 				ewwwio_chmod( $filename, $perms );

@@ -723,7 +723,7 @@ class EWWW_Image {
 			ewwwio_debug_message( "$file is not a file, cannot convert" );
 			return false;
 		}
-		if ( ! is_writable( $file ) ) {
+		if ( ! ewwwio()->is_writable( $file ) ) {
 			ewwwio_debug_message( "$file is not writable, cannot convert" );
 			return false;
 		}

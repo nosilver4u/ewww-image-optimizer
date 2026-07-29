@@ -225,7 +225,7 @@ class Lazy_Load extends Page_Parser {
 		if ( ! \is_dir( $this->piip_folder ) ) {
 			$this->use_piip = \wp_mkdir_p( $this->piip_folder ) && ( $this->gd_support() || $this->imagick_support() );
 		} else {
-			$this->use_piip = \is_writable( $this->piip_folder ) && ( $this->gd_support() || $this->imagick_support() );
+			$this->use_piip = $this->is_writable( $this->piip_folder ) && ( $this->gd_support() || $this->imagick_support() );
 		}
 
 		\add_filter( 'wp_lazy_loading_enabled', array( $this, 'wp_lazy_loading_enabled' ), 10, 2 );

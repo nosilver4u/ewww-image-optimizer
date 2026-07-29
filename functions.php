@@ -21,6 +21,26 @@ function ewwwio_is_file( $file ) {
 }
 
 /**
+ * Check if directory exists, and that it is local rather than using a protocol like http:// or phar://
+ *
+ * @param string $dir The path of the directoy to check.
+ * @return bool True if the directory exists and is local, false otherwise.
+ */
+function ewwwio_is_dir( $dir ) {
+	return ewwwio()->is_dir( $dir );
+}
+
+/**
+ * Check if a file/directory is readable.
+ *
+ * @param string $file The path to check.
+ * @return bool True if it is, false if it ain't.
+ */
+function ewwwio_is_readable( $file ) {
+	return ewwwio()->is_readable( $file );
+}
+
+/**
  * Check filesize, and prevent errors by ensuring file exists, and that the cache has been cleared.
  *
  * @param string $file The name of the file.
@@ -28,6 +48,38 @@ function ewwwio_is_file( $file ) {
  */
 function ewww_image_optimizer_filesize( $file ) {
 	return ewwwio()->filesize( $file );
+}
+
+/**
+ * Check if file is in an approved location and remove it.
+ *
+ * @param string $file The path of the file to check.
+ * @param string $dir The path of the folder constraint. Optional.
+ * @return bool True if the file was removed, false otherwise.
+ */
+function ewwwio_delete_file( $file, $dir = '' ) {
+	return ewwwio()->delete_file( $file, $dir );
+}
+
+/**
+ * Check if file is in an approved location and chmod it.
+ *
+ * @param string $file The path of the file to check.
+ * @param string $mode The mode to apply to the file.
+ */
+function ewwwio_chmod( $file, $mode ) {
+	return ewwwio()->chmod( $file, $mode );
+}
+
+/**
+ * Check if destination is in an approved location and rename the original.
+ *
+ * @param string $src The path of the original file.
+ * @param string $dst The destination file path.
+ * @return bool True if the file was removed, false otherwise.
+ */
+function ewwwio_rename( $src, $dst ) {
+	return ewwwio()->rename( $src, $dst );
 }
 
 /**
@@ -137,7 +189,7 @@ function ewww_image_optimizer_iterable( $value ) {
  * @return string Human-readable filesize.
  */
 function ewww_image_optimizer_size_format( $size, $precision = 1 ) {
-		return ewwwio()->size_format( $size, $precision );
+	return ewwwio()->size_format( $size, $precision );
 }
 
 /**

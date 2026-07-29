@@ -357,15 +357,15 @@ class Local extends Base {
 				return;
 			}
 		}
-		if ( ! \is_dir( $this->content_dir ) && \is_writable( \dirname( $this->content_dir ) ) ) {
+		if ( ! $this->is_dir( $this->content_dir ) && $this->is_writable( \dirname( $this->content_dir ) ) ) {
 			$this->debug_message( 'folder does not exist, creating...' );
 			if ( ! \wp_mkdir_p( $this->content_dir ) ) {
 				$this->debug_message( 'could not create folder' );
 				$this->tools_missing = true;
 				return;
 			}
-		} elseif ( \is_dir( $this->content_dir ) ) {
-			if ( ! \is_writable( $this->content_dir ) ) {
+		} elseif ( $this->is_dir( $this->content_dir ) ) {
+			if ( ! $this->is_writable( $this->content_dir ) ) {
 				$this->debug_message( 'wp-content/ewww is not writable, not installing anything' );
 				$this->tools_missing = true;
 				return;
@@ -373,7 +373,7 @@ class Local extends Base {
 				$this->debug_message( 'wp-content/ewww is not executable (non-Windows), not installing anything' );
 				$this->tools_missing = true;
 				return;
-			} elseif ( ! \is_readable( $this->content_dir ) ) {
+			} elseif ( ! $this->is_readable( $this->content_dir ) ) {
 				$this->debug_message( 'wp-content/ewww is not readable, not installing anything' );
 				$this->tools_missing = true;
 				return;
@@ -439,31 +439,31 @@ class Local extends Base {
 			// NOTE: check_permissions() looks to make sure it is executable. If the tool is not executable,
 			// then we error if we can't write to the file to make it so, or if we are unable to run chmod().
 			if ( $this->tools['jpegtran']['enabled'] && ! $this->check_permissions( $jpegtran_dst, 'rwxr-xr-x' ) ) {
-				if ( ! \is_writable( $jpegtran_dst ) || ! \chmod( $jpegtran_dst, 0755 ) ) {
+				if ( ! $this->is_writable( $jpegtran_dst ) || ! $this->chmod( $jpegtran_dst, 0755 ) ) {
 					$toolfail = true;
 					$this->debug_message( 'could not set jpegtran permissions' );
 				}
 			}
 			if ( $this->tools['gifsicle']['enabled'] && ! $this->check_permissions( $gifsicle_dst, 'rwxr-xr-x' ) ) {
-				if ( ! \is_writable( $gifsicle_dst ) || ! \chmod( $gifsicle_dst, 0755 ) ) {
+				if ( ! $this->is_writable( $gifsicle_dst ) || ! $this->chmod( $gifsicle_dst, 0755 ) ) {
 					$toolfail = true;
 					$this->debug_message( 'could not set gifsicle permissions' );
 				}
 			}
 			if ( $this->tools['optipng']['enabled'] && ! $this->check_permissions( $optipng_dst, 'rwxr-xr-x' ) ) {
-				if ( ! \is_writable( $optipng_dst ) || ! \chmod( $optipng_dst, 0755 ) ) {
+				if ( ! $this->is_writable( $optipng_dst ) || ! $this->chmod( $optipng_dst, 0755 ) ) {
 					$toolfail = true;
 					$this->debug_message( 'could not set optipng permissions' );
 				}
 			}
 			if ( ! $this->check_permissions( $pngquant_dst, 'rwxr-xr-x' ) ) {
-				if ( ! \is_writable( $pngquant_dst ) || ! \chmod( $pngquant_dst, 0755 ) ) {
+				if ( ! $this->is_writable( $pngquant_dst ) || ! $this->chmod( $pngquant_dst, 0755 ) ) {
 					$toolfail = true;
 					$this->debug_message( 'could not set pngquant permissions' );
 				}
 			}
 			if ( $this->tools['cwebp']['enabled'] && ! $this->check_permissions( $cwebp_dst, 'rwxr-xr-x' ) ) {
-				if ( ! \is_writable( $cwebp_dst ) || ! \chmod( $cwebp_dst, 0755 ) ) {
+				if ( ! $this->is_writable( $cwebp_dst ) || ! $this->chmod( $cwebp_dst, 0755 ) ) {
 					$toolfail = true;
 					$this->debug_message( 'could not set cwebp permissions' );
 				}
@@ -1051,7 +1051,7 @@ class Local extends Base {
 				$testjpgsize = $this->filesize( $testjpg );
 				$this->debug_message( "blind testing jpegtran, is $testjpgsize smaller than 5700?" );
 				if ( $testjpgsize ) {
-					\unlink( $testjpg );
+					$this->delete_file( $testjpg );
 				}
 				if ( 0 < $testjpgsize && $testjpgsize < 5700 ) {
 					$this->debug_message( 'optimizer found' );
@@ -1078,7 +1078,7 @@ class Local extends Base {
 				$testpngsize = $this->filesize( $testpng );
 				$this->debug_message( "blind testing optipng, is $testpngsize smaller than 110?" );
 				if ( $testpngsize ) {
-					\unlink( $testpng );
+					$this->delete_file( $testpng );
 				}
 				if ( 0 < $testpngsize && $testpngsize < 110 ) {
 					$this->debug_message( 'optimizer found' );
@@ -1105,7 +1105,7 @@ class Local extends Base {
 				$testgifsize = $this->filesize( $testgif );
 				$this->debug_message( "blind testing gifsicle, is $testgifsize smaller than 12000?" );
 				if ( $testgifsize ) {
-					\unlink( $testgif );
+					$this->delete_file( $testgif );
 				}
 				if ( 0 < $testgifsize && $testgifsize < 12000 ) {
 					$this->debug_message( 'optimizer found' );
@@ -1132,7 +1132,7 @@ class Local extends Base {
 				$testpngsize = $this->filesize( $testpng );
 				$this->debug_message( "blind testing pngout, is $testpngsize smaller than 110?" );
 				if ( $testpngsize ) {
-					\unlink( $testpng );
+					$this->delete_file( $testpng );
 				}
 				if ( 0 < $testpngsize && $testpngsize < 110 ) {
 					$this->debug_message( 'optimizer found' );
@@ -1159,7 +1159,7 @@ class Local extends Base {
 				$testpngsize = $this->filesize( $testpng );
 				$this->debug_message( "blind testing pngquant, is $testpngsize smaller than 114?" );
 				if ( $testpngsize ) {
-					\unlink( $testpng );
+					$this->delete_file( $testpng );
 				}
 				if ( 0 < $testpngsize && $testpngsize < 114 ) {
 					$this->debug_message( 'optimizer found' );
@@ -1205,7 +1205,7 @@ class Local extends Base {
 				$testpngsize = $this->filesize( $testpng );
 				$this->debug_message( "blind testing cwebp, is $testpngsize smaller than 114?" );
 				if ( $testpngsize ) {
-					\unlink( $testpng );
+					$this->delete_file( $testpng );
 				}
 				if ( 0 < $testpngsize && $testpngsize < 114 ) {
 					$this->debug_message( 'optimizer found' );

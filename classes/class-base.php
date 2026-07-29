@@ -363,30 +363,30 @@ class Base {
 	 */
 	public function debug_log() {
 		$debug_log = $this->debug_log_path();
-		if ( ! \is_dir( $this->content_dir ) && \is_writable( WP_CONTENT_DIR ) ) {
+		if ( ! $this->is_dir( $this->content_dir ) && $this->is_writable( WP_CONTENT_DIR ) ) {
 			\wp_mkdir_p( $this->content_dir );
 		}
 		if (
 			! empty( self::$debug_data ) &&
 			empty( self::$temp_debug ) &&
 			$this->get_option( $this->prefix . 'debug' ) &&
-			\is_dir( $this->content_dir ) &&
-			\is_writable( $this->content_dir )
+			$this->is_dir( $this->content_dir ) &&
+			$this->is_writable( $this->content_dir )
 		) {
 			$memory_limit = $this->memory_limit();
 			\clearstatcache();
 			$timestamp = \gmdate( 'Y-m-d H:i:s' ) . "\n";
 			if ( ! \file_exists( $debug_log ) ) {
-				\touch( $debug_log );
+				$this->touch( $debug_log );
 			} else {
 				if ( \filesize( $debug_log ) + 4000000 + \memory_get_usage( true ) > $memory_limit ) {
-					\unlink( $debug_log );
+					$this->delete_file( $debug_log );
 					\clearstatcache();
 					$debug_log = $this->debug_log_path();
-					\touch( $debug_log );
+					$this->touch( $debug_log );
 				}
 			}
-			if ( \filesize( $debug_log ) + \strlen( self::$debug_data ) + 4000000 + \memory_get_usage( true ) <= $memory_limit && \is_writable( $debug_log ) ) {
+			if ( \filesize( $debug_log ) + \strlen( self::$debug_data ) + 4000000 + \memory_get_usage( true ) <= $memory_limit && $this->is_writable( $debug_log ) ) {
 				self::$debug_data = \str_replace( '<br>', "\n", self::$debug_data );
 				\file_put_contents( $debug_log, $timestamp . self::$debug_data, FILE_APPEND );
 			}
@@ -1043,6 +1043,60 @@ class Base {
 	}
 
 	/**
+	 * Check if directory exists, and that it is local rather than using a protocol like http:// or phar://
+	 *
+	 * @param string $dir The path of the directoy to check.
+	 * @return bool True if the directory exists and is local, false otherwise.
+	 */
+	public function is_dir( $dir ) {
+		if ( false !== strpos( $dir, '://' ) ) {
+			return false;
+		}
+		if ( false !== strpos( $dir, 'phar://' ) ) {
+			return false;
+		}
+		$this->get_filesystem();
+		// The additional logic below is commented out for now, as it is overly restrictive.
+		return $this->filesystem->is_dir( $dir );
+		$dir        = realpath( $dir );
+		$wp_dir     = realpath( ABSPATH );
+		$upload_dir = wp_get_upload_dir();
+		$upload_dir = realpath( $upload_dir['basedir'] );
+
+		$content_dir = realpath( WP_CONTENT_DIR );
+		if ( empty( $content_dir ) ) {
+			$content_dir = $wp_dir;
+		}
+		if ( empty( $upload_dir ) ) {
+			$upload_dir = $content_dir;
+		}
+		if ( defined( 'EWWW_IMAGE_OPTIMIZER_TOOL_PATH' ) ) {
+			$tool_dir = realpath( EWWW_IMAGE_OPTIMIZER_TOOL_PATH );
+			$tool_dir = dirname( $tool_dir );
+		}
+		if ( empty( $tool_dir ) ) {
+			$tool_dir = $content_dir;
+		}
+		if ( defined( 'EWWWIO_CONTENT_DIR' ) ) {
+			$eio_content_dir = realpath( EWWWIO_CONTENT_DIR );
+		}
+		if ( empty( $eio_content_dir ) ) {
+			$eio_content_dir = $content_dir;
+		}
+		$plugin_dir = realpath( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH );
+		if (
+			false === strpos( $dir, $upload_dir ) &&
+			false === strpos( $dir, $content_dir ) &&
+			false === strpos( $dir, $wp_dir ) &&
+			false === strpos( $dir, $plugin_dir ) &&
+			false === strpos( $dir, $tool_dir ) &&
+			false === strpos( $dir, $eio_content_dir )
+		) {
+			return false;
+		}
+	}
+
+	/**
 	 * Check if a file/directory is readable.
 	 *
 	 * @param string $file The path to check.
@@ -1065,6 +1119,32 @@ class Base {
 	}
 
 	/**
+	 * Sets the access and modification times of a file.
+	 *
+	 * @param string $file Path to file.
+	 * @param int    $time Modified time to set for file. Default 0.
+	 * @param int    $atime Access time to set for file. Default 0.
+	 * @return bool True on success, false on failure.
+	 */
+	public function touch( $file, $time = 0, $atime = 0 ) {
+		$this->get_filesystem();
+		return $this->filesystem->touch( $file, $time, $atime );
+	}
+
+	/**
+	 * Changes filesystem permissions.
+	 *
+	 * @param string $file Path to the file/directory.
+	 * @param int    $mode The permissions as octal number, like 0644 or 0755.
+	 * @param bool   $recursive If set to true, changes file permissions recursively. Default false.
+	 * @return bool True on success, false on failure.
+	 */
+	public function chmod( $file, $mode, $recursive = false ) {
+		$this->get_filesystem();
+		return $this->filesystem->chmod( $file, $mode, $recursive );
+	}
+
+	/**
 	 * Check filesize, and prevent errors by ensuring file exists, and that the cache has been cleared.
 	 *
 	 * @param string $file The name of the file.
@@ -1084,6 +1164,32 @@ class Base {
 	}
 
 	/**
+	 * Reads entire file into a string.
+	 *
+	 * @param string $file Name of the file to read.
+	 * @return string|false Read data on success, false on failure.
+	 */
+	public function get_contents( $file ) {
+		$this->get_filesystem();
+		return $this->filesystem->get_contents( $file );
+	}
+
+	/**
+	 * Writes a string to a file.
+	 *
+	 * This is NOT a drop-in replacement for file_put_contents() since it does not support flags, it is merely a wrapper for the WP_Filesystem method of the same name.
+	 *
+	 * @param string $file Name of the file to write.
+	 * @param string $contents The data to write.
+	 * @param bool   $mode The file permissions as octal number, usually 0644. Default false.
+	 * @return bool True on success, false on failure.
+	 */
+	public function put_contents( $file, $contents, $mode = false ) {
+		$this->get_filesystem();
+		return $this->filesystem->put_contents( $file, $contents, $mode );
+	}
+
+	/**
 	 * Moves a file to a new location.
 	 *
 	 * @param string $source Path to the source file.
@@ -1094,6 +1200,18 @@ class Base {
 	public function rename( $source, $destination, $overwrite = true ) {
 		$this->get_filesystem();
 		return $this->filesystem->move( $source, $destination, $overwrite );
+	}
+
+	/**
+	 * Deletes a directory.
+	 *
+	 * @param string $path Path to directory.
+	 * @param bool   $recursive Whether to recursively remove files/directories.
+	 * @return bool True on success, false on failure.
+	 */
+	public function rmdir( $path, $recursive = false ) {
+		$this->get_filesystem();
+		return $this->filesystem->rmdir( $path, $recursive );
 	}
 
 	/**
@@ -1123,7 +1241,7 @@ class Base {
 		if ( false !== \strpos( $file, $wp_dir ) ) {
 			return \wp_delete_file_from_directory( $file, $wp_dir );
 		}
-		return false;
+		return \wp_delete_file( $file );
 	}
 
 	/**
@@ -1199,7 +1317,7 @@ class Base {
 			$this->debug_message( "$path is not a file, or out of bounds" );
 			return $type;
 		}
-		if ( ! \is_readable( $path ) ) {
+		if ( ! $this->is_readable( $path ) ) {
 			$this->debug_message( "$path is not readable" );
 			return $type;
 		}
@@ -1769,7 +1887,7 @@ class Base {
 		}
 		// Because encoded ampersands in the filename break things.
 		$url = \html_entity_decode( $url );
-		return \parse_url( $url, $component );
+		return \wp_parse_url( $url, $component );
 	}
 
 	/**

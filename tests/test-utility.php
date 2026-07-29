@@ -69,10 +69,10 @@ class EWWWIO_Utility_Tests extends WP_UnitTestCase {
 	function test_animated() {
 		$wp_upload_dir   = wp_upload_dir();
 		$test_gif = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/gifsiclelogo.gif' );
-		rename( $test_gif, $wp_upload_dir['basedir'] . wp_basename( $test_gif ) );
+		ewwwio()->rename( $test_gif, $wp_upload_dir['basedir'] . wp_basename( $test_gif ) );
 		$test_gif = $wp_upload_dir['basedir'] . wp_basename( $test_gif );
 		$this->assertTrue( ewww_image_optimizer_is_animated( $test_gif ) );
-		unlink( $test_gif );
+		wp_delete_file( $test_gif );
 	}
 
 	/**
@@ -81,10 +81,10 @@ class EWWWIO_Utility_Tests extends WP_UnitTestCase {
 	function test_transparency() {
 		$wp_upload_dir   = wp_upload_dir();
 		$test_png = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/books.png' );
-		rename( $test_png, $wp_upload_dir['basedir'] . wp_basename( $test_png ) );
+		ewwwio()->rename( $test_png, $wp_upload_dir['basedir'] . wp_basename( $test_png ) );
 		$test_png = $wp_upload_dir['basedir'] . wp_basename( $test_png );
 		$this->assertTrue( ewww_image_optimizer_png_alpha( $test_png ) );
-		unlink( $test_png );
+		wp_delete_file( $test_png );
 	}
 
 	/**

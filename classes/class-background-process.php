@@ -301,7 +301,7 @@ abstract class Background_Process extends Async_Request {
 	 */
 	protected function get_lock_dir() {
 		if (
-			\is_writable( EWWWIO_CONTENT_DIR ) &&
+			\ewwwio()->is_writable( EWWWIO_CONTENT_DIR ) &&
 			\function_exists( '\filemtime' ) &&
 			empty( $_ENV['PANTHEON_ENVIRONMENT'] ) &&
 			\apply_filters( 'ewww_image_optimizer_async_disk_locking', true )

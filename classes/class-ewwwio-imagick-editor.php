@@ -704,10 +704,10 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 		$result = file_put_contents( $filename, $image );
 		if ( $result ) {
 			ewwwio_debug_message( "image editor (imagick-api-enhanced) saved: $filename" );
-			if ( is_writable( $filename ) ) {
+			if ( ewwwio()->is_writable( $filename ) ) {
 				$stat  = stat( dirname( $filename ) );
 				$perms = $stat['mode'] & 0000666; // Same permissions as parent folder with executable bits stripped.
-				ewwwio_chmod( $filename, $perms );
+				ewwwio()->chmod( $filename, $perms );
 			}
 			ewwwio_memory( __FUNCTION__ );
 			return array(
@@ -849,7 +849,7 @@ class EWWWIO_Imagick_Editor extends WP_Image_Editor_Imagick {
 		// Set correct file permissions.
 		$stat  = stat( dirname( $filename ) );
 		$perms = $stat['mode'] & 0000666; // Same permissions as parent folder, strip off the executable bits.
-		chmod( $filename, $perms );
+		ewwwio()->chmod( $filename, $perms );
 
 		if ( ewwwio_is_file( $filename ) ) {
 			if ( $this->indexed_max_colors ) {
