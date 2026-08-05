@@ -7413,7 +7413,7 @@ function ewww_image_optimizer_autorotate( $file ) {
 }
 
 /**
- * If a PNG image is over the threshold, see if we can make it smaller as a JPG.
+ * If a GIF is not animated, convert it to PNG to see if that is better on filesize.
  *
  * @param string $file The file to check for conversion.
  */
@@ -7426,26 +7426,15 @@ function ewww_image_optimizer_autoconvert( $file ) {
 		wp_raise_memory_limit( 'image' );
 	}
 	$type = ewww_image_optimizer_mimetype( $file, 'i' );
-	if ( 'image/png' !== $type && 'image/gif' !== $type ) {
-		ewwwio_debug_message( 'not a PNG or GIF, no conversion needed' );
-		return;
-	}
-	$orig_size = ewww_image_optimizer_filesize( $file );
-	if ( 'image/png' === $type && $orig_size < apply_filters( 'ewww_image_optimizer_autoconvert_threshold', 250000 ) ) {
-		ewwwio_debug_message( 'not a large PNG (size or dimensions), skipping' );
-		return;
-	}
-	if ( 'image/png' === $type && ewww_image_optimizer_png_alpha( $file ) && ( ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_to_jpg' ) || ! ewww_image_optimizer_jpg_background() ) ) {
-		ewwwio_debug_message( 'alpha detected, skipping' );
+	if ( 'image/gif' !== $type ) {
+		ewwwio_debug_message( 'not a GIF, no auto-convert possible' );
 		return;
 	}
 	if ( 'image/gif' === $type && ewww_image_optimizer_is_animated( $file ) ) {
 		ewwwio_debug_message( 'animation detected, skipping' );
 		return;
 	}
-	if ( 'image/png' === $type ) {
-		$newfile = ewww_image_optimizer_unique_filename( $file, '.jpg' );
-	} elseif ( 'image/gif' === $type ) {
+	if ( 'image/gif' === $type ) {
 		$newfile = ewww_image_optimizer_unique_filename( $file, '.png' );
 	} else {
 		return;

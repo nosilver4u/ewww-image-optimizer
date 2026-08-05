@@ -248,7 +248,6 @@ function ewwwio_table_nav_controls( $location = 'top' ) {
 					);
 					?>
 				</div>
-
 				<a class="tablenav-pages-navspan button next-page disabled">&rsaquo;</a>
 				<a class="tablenav-pages-navspan button last-page disabled">&raquo;</a>
 			</div>
