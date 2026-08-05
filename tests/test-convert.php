@@ -329,31 +329,6 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests autoconvert by uploading a PNG attachment.
-	 */
-	function test_convert_local_png_autoconvert() {
-		update_option( 'ewww_image_optimizer_png_level', 10 );
-		update_site_option( 'ewww_image_optimizer_png_level', 10 );
-
-		$upload_png = self::$test_png . '.png';
-		copy( self::$test_png, $upload_png );
-		$id = self::factory()->attachment->create_upload_object( $upload_png );
-		$meta = wp_get_attachment_metadata( $id );
-		$file_path = ewww_image_optimizer_attachment_path( $meta, $id );
-		$this->assertEquals( 'image/jpeg', ewww_image_optimizer_mimetype( $file_path, 'i' ) );
-
-		$test_png = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/books.png' );
-		$upload_png = $test_png . '.png';
-		copy( $test_png, $upload_png );
-		$id = self::factory()->attachment->create_upload_object( $upload_png );
-		$meta = wp_get_attachment_metadata( $id );
-		$file_path = ewww_image_optimizer_attachment_path( $meta, $id );
-		$this->assertEquals( 'image/png', ewww_image_optimizer_mimetype( $file_path, 'i' ) );
-
-		wp_delete_file( $test_png );
-	}
-
-	/**
 	 * Tests attachment conversion by uploading a PNG attachment and then converting it.
 	 */
 	function test_convert_local_png_attachment() {

@@ -3032,7 +3032,7 @@ function ewww_image_optimizer_aux_paths_sanitize( $input ) {
 			$upload_dir = wp_get_upload_dir();
 			// Retrieve the path of the upload folder from the array.
 			$upload_path = trailingslashit( $upload_dir['basedir'] );
-			if ( ! $abspath && $blog_one && false !== strpos( $path, $upload_path . 'sites' ) ) {
+			if ( ! $abspath && $blog_one && str_contains( $path, $upload_path . 'sites' ) ) {
 				add_settings_error(
 					'ewww_image_optimizer_aux_paths',
 					"ewwwio-aux-paths-$i",

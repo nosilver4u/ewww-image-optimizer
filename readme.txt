@@ -174,7 +174,10 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 8.7.5 =
 *Release Date - TBD*
 
+* changed: folder scanner can access external directories again
+* improved: use WP file access functions wherever possible
 * fixed: PHP notices in BuddyPress/BuddyBoss compatibility functions
+* removed: PNG to JPG auto-convert for large PNG images
 
 = 8.7.4 =
 *Release Date - July 16, 2026*
