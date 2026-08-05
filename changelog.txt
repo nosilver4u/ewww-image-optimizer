@@ -1,3 +1,10 @@
+= 8.7.5 =
+*Release Date - August 5, 2026*
+
+* improved: use WP file access functions wherever possible
+* fixed: PHP notices in BuddyPress/BuddyBoss compatibility functions
+* removed: PNG to JPG auto-convert for large PNG images
+
 = 8.7.4 =
 *Release Date - July 16, 2026*
 
