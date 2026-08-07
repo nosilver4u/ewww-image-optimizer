@@ -171,6 +171,12 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 8.7.6 =
+*Release Date - TBD*
+
+* fixed: WebP conversion via Imagick throws fatal error when source file goes missing
+* fixed: PNG to JPG conversion via API sometimes results in black background for 8-bit images
+
 = 8.7.5 =
 *Release Date - August 5, 2026*
 

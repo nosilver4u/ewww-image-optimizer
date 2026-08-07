@@ -2860,55 +2860,65 @@ function ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile ) {
 				}
 				ewwwio_debug_message( 'something unknown went wrong, try the normal process' );
 			}
-			$image = new Imagick( $file );
-			if ( false === $image ) {
-				return;
-			}
-			if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
-				// Getting possible color profiles.
-				$profiles = $image->getImageProfiles( 'icc', true );
-			}
-			$color = $image->getImageColorspace();
-			ewwwio_debug_message( "color space is $color" );
-			if ( Imagick::COLORSPACE_CMYK === $color ) {
-				ewwwio_debug_message( 'found CMYK image' );
-				if ( ewwwio_is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/icc/sRGB2014.icc' ) ) {
-					ewwwio_debug_message( 'adding icc profile' );
-					$icc_profile = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/icc/sRGB2014.icc' );
-					$image->profileImage( 'icc', $icc_profile );
+			try {
+				$image = new Imagick( $file );
+				if ( false === $image ) {
+					return;
 				}
-				ewwwio_debug_message( 'attempting SRGB transform' );
-				$image->transformImageColorspace( Imagick::COLORSPACE_SRGB );
-				ewwwio_debug_message( 'removing icc profile' );
-				$image->setImageProfile( '*', null );
-				$profiles = array();
-			}
-			$image->setImageFormat( 'WEBP' );
-			if ( $sharp_yuv ) {
-				ewwwio_debug_message( 'enabling sharp_yuv' );
-				$image->setOption( 'webp:use-sharp-yuv', 'true' );
-			}
-			ewwwio_debug_message( "setting quality to $quality" );
-			$image->setImageCompressionQuality( $quality );
-			break;
-		case 'image/png':
-			$image = new Imagick( $file );
-			if ( false === $image ) {
-				return;
-			}
-			$image->setImageFormat( 'WEBP' );
-			if ( defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) && EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) {
-				ewwwio_debug_message( 'doing lossy conversion' );
+				if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
+					// Getting possible color profiles.
+					$profiles = $image->getImageProfiles( 'icc', true );
+				}
+				$color = $image->getImageColorspace();
+				ewwwio_debug_message( "color space is $color" );
+				if ( Imagick::COLORSPACE_CMYK === $color ) {
+					ewwwio_debug_message( 'found CMYK image' );
+					if ( ewwwio_is_file( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/icc/sRGB2014.icc' ) ) {
+						ewwwio_debug_message( 'adding icc profile' );
+						$icc_profile = file_get_contents( EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'vendor/icc/sRGB2014.icc' );
+						$image->profileImage( 'icc', $icc_profile );
+					}
+					ewwwio_debug_message( 'attempting SRGB transform' );
+					$image->transformImageColorspace( Imagick::COLORSPACE_SRGB );
+					ewwwio_debug_message( 'removing icc profile' );
+					$image->setImageProfile( '*', null );
+					$profiles = array();
+				}
+				$image->setImageFormat( 'WEBP' );
 				if ( $sharp_yuv ) {
 					ewwwio_debug_message( 'enabling sharp_yuv' );
 					$image->setOption( 'webp:use-sharp-yuv', 'true' );
 				}
 				ewwwio_debug_message( "setting quality to $quality" );
 				$image->setImageCompressionQuality( $quality );
-			} else {
-				ewwwio_debug_message( 'sticking to lossless' );
-				$image->setOption( 'webp:lossless', true );
-				$image->setOption( 'webp:alpha-quality', 100 );
+			} catch ( Exception $e ) {
+				ewwwio_debug_message( 'caught exception: ' . $e->getMessage() );
+				return;
+			}
+			break;
+		case 'image/png':
+			try {
+				$image = new Imagick( $file );
+				if ( false === $image ) {
+					return;
+				}
+				$image->setImageFormat( 'WEBP' );
+				if ( defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP' ) && EWWW_IMAGE_OPTIMIZER_LOSSY_PNG2WEBP ) {
+					ewwwio_debug_message( 'doing lossy conversion' );
+					if ( $sharp_yuv ) {
+						ewwwio_debug_message( 'enabling sharp_yuv' );
+						$image->setOption( 'webp:use-sharp-yuv', 'true' );
+					}
+					ewwwio_debug_message( "setting quality to $quality" );
+					$image->setImageCompressionQuality( $quality );
+				} else {
+					ewwwio_debug_message( 'sticking to lossless' );
+					$image->setOption( 'webp:lossless', true );
+					$image->setOption( 'webp:alpha-quality', 100 );
+				}
+			} catch ( Exception $e ) {
+				ewwwio_debug_message( 'caught exception: ' . $e->getMessage() );
+				return;
 			}
 			break;
 		default:
@@ -2916,14 +2926,24 @@ function ewww_image_optimizer_imagick_create_webp( $file, $type, $webpfile ) {
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) ) {
 		ewwwio_debug_message( 'removing meta' );
-		$image->stripImage();
-		if ( ! empty( $profiles ) ) {
-			ewwwio_debug_message( 'adding color profile to WebP' );
-			$image->profileImage( 'icc', $profiles['icc'] );
+		try {
+			$image->stripImage();
+			if ( ! empty( $profiles ) ) {
+				ewwwio_debug_message( 'adding color profile to WebP' );
+				$image->profileImage( 'icc', $profiles['icc'] );
+			}
+		} catch ( Exception $e ) {
+			ewwwio_debug_message( 'caught exception: ' . $e->getMessage() );
+			return;
 		}
 	}
 	ewwwio_debug_message( 'getting blob' );
-	$image_blob = $image->getImageBlob();
+	try {
+		$image_blob = $image->getImageBlob();
+	} catch ( Exception $e ) {
+		ewwwio_debug_message( 'caught exception: ' . $e->getMessage() );
+		return;
+	}
 	ewwwio_debug_message( 'writing file' );
 	file_put_contents( $webpfile, $image_blob );
 }
@@ -13970,6 +13990,7 @@ AddType image/webp .webp</pre>
 		( ewwwio()->gd_supports_webp() && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) )
 	) {
 		$local_webp_available = true;
+		ewwwio_debug_message( 'Local WebP conversion is available.' );
 	}
 	$cloud_webp_available   = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) || ! $local_webp_available;
 	$webp_conversion_method = ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_conversion_method' );
