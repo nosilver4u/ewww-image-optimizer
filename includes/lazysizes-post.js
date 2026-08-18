@@ -36,12 +36,10 @@
 
 				// handle data-back (so as not to conflict with the stock data-bg)
 				bg = e.target.dataset.back;
-				// Was getAttribute('data-back');
 				if (bg) {
 					if(ewww_webp_supported) {
 						console.log('checking for data-back-webp');
 						bgWebP = e.target.dataset.backWebp;
-						// Was bgWebP = e.target.getAttribute('data-back-webp');
 						if (bgWebP) {
 							console.log('replacing data-back with data-back-webp');
 							bg = bgWebP;
@@ -457,27 +455,34 @@
 
 	document.addEventListener('lazybeforesizes', function(e){
 		var src = e.target.getAttribute('data-src');
-		console.log('auto-sizing ' + src + ' to: ' + e.detail.width);
+		var maxWidth = e.target.dataset.maxWidth > 10 ? e.target.dataset.maxWidth : 9999;
+		console.log('auto-sizing ' + src + ' to ' + e.detail.width + ' but no more than ' + maxWidth);
+		if (e.detail.width > maxWidth) {
+			e.detail.width = maxWidth;
+		}
 		var imgAspect = getAspectRatio(e.target);
 		if (e.target.clientHeight > 1 && imgAspect) {
-			var minimum_width = Math.ceil(imgAspect * e.target.clientHeight);
+			var minimum_width = Math.min(Math.ceil(imgAspect * e.target.clientHeight), maxWidth);
 			console.log('minimum_width = ' + minimum_width);
 			if (e.detail.width+2 < minimum_width) {
 				e.detail.width = minimum_width;
 			}
 		}
+		// If this is the first time around for this image...
 		if (e.target._lazysizesWidth === undefined) {
-			if (!eio_lazy_vars.use_dpr && window.devicePixelRatio > 1) {
+			/*if (!eio_lazy_vars.use_dpr && window.devicePixelRatio > 1) {
 				console.log('use_dpr is disabled, reversing auto-sizes by dpr ' + window.devicePixelRatio);
 				e.detail.width = Math.ceil(e.detail.width / window.devicePixelRatio);
-			}
+			}*/
 			return;
 		}
 		console.log('previous width was ' + e.target._lazysizesWidth);
-		if (!eio_lazy_vars.use_dpr && window.devicePixelRatio > 1) {
+		/*if (!eio_lazy_vars.use_dpr && window.devicePixelRatio > 1) {
 			console.log('use_dpr is disabled, reversing auto-sizes by dpr ' + window.devicePixelRatio);
 			e.detail.width = Math.ceil(e.detail.width / window.devicePixelRatio);
-		}
+		}*/
+		// Don't make sizes smaller than it already is, this can get into a loop of shrinking an image.
+		// At this point, an image has already been loaded, so changing things isn't beneficial.
 		if (e.detail.width < e.target._lazysizesWidth) {
 			console.log('no way! ' + e.detail.width + ' is smaller than ' + e.target._lazysizesWidth);
 			e.detail.width = e.target._lazysizesWidth;
@@ -489,13 +494,13 @@
 		console.log('loading an image');
 		console.log(target);
 		var srcset  = target.getAttribute('data-srcset');
-	    if (target.naturalWidth && ! srcset) {
+		if (target.naturalWidth && ! srcset) {
 			console.log('natural width of ' + target.getAttribute('src') + ' is ' + target.naturalWidth);
 			console.log('we have an image with no srcset');
 			if ((target.naturalWidth > 1) && (target.naturalHeight > 1)) {
-	        	// For each image with a natural width which isn't
-	        	// a 1x1 image, check its size.
-	        	var dPR = getdPR();
+				// For each image with a natural width which isn't
+				// a 1x1 image, check its size.
+				var dPR = getdPR();
 				var physicalWidth = target.naturalWidth;
 				var physicalHeight = target.naturalHeight;
 				var realDims = getRealDimensionsFromImg(target);
@@ -504,16 +509,16 @@
 					physicalWidth = realDims.w;
 					physicalHeight = realDims.h;
 				}
-	            var wrongWidth = (target.clientWidth && ((target.clientWidth * 1.25 * dPR < physicalWidth) || (target.clientWidth * dPR + 50 < physicalWidth)));
-	            var wrongHeight = (target.clientHeight && ((target.clientHeight * 1.25 * dPR < physicalHeight) || (target.clientHeight * dPR + 50 < physicalHeight)));
+				var wrongWidth = (target.clientWidth && ((target.clientWidth * 1.25 * dPR < physicalWidth) || (target.clientWidth * dPR + 50 < physicalWidth)));
+				var wrongHeight = (target.clientHeight && ((target.clientHeight * 1.25 * dPR < physicalHeight) || (target.clientHeight * dPR + 50 < physicalHeight)));
 				console.log('displayed at ' + Math.round(target.clientWidth * dPR) + 'w x ' + Math.round(target.clientHeight * dPR) + 'h, natural/physical is ' +
 				physicalWidth + 'w x ' + physicalHeight + 'h!');
 				console.log('the data-src: ' + target.getAttribute('data-src') );
-	            if (wrongWidth || wrongHeight) {
+				if (wrongWidth || wrongHeight) {
 					updateImgElem(target);
 				}
 			}
-	    }
+		}
 		if(ewww_webp_supported) {
 			console.log('webp supported');
 			//console.log(srcset);
@@ -582,8 +587,8 @@
 				if (autosizedElem.src && ! autosizedElem.srcset && autosizedElem.naturalWidth > 1 && autosizedElem.naturalHeight > 1 && autosizedElem.clientWidth > 1 && autosizedElem.clientHeight > 1){
 					console.log(autosizedElem);
 					console.log('natural width of ' + autosizedElem.src + ' is ' + autosizedElem.naturalWidth);
-		        	// For each image with a natural width which isn't
-		        	// a 1x1 image, check its size.
+					// For each image with a natural width which isn't
+					// a 1x1 image, check its size.
 					var physicalWidth  = autosizedElem.naturalWidth;
 					var physicalHeight = autosizedElem.naturalHeight;
 					var maxWidth  = window.innerWidth;
@@ -606,12 +611,12 @@
 					// For upscaling, the goal is to get to 1x dPR, we won't waste bandwidth on retina/2x images.
 					var desiredWidth  = autosizedElem.clientWidth;
 					var desiredHeight = autosizedElem.clientHeight;
-		            var wrongWidth  = (desiredWidth > physicalWidth * 1.1 && maxWidth >= desiredWidth);
-		            var wrongHeight = (desiredHeight > physicalHeight * 1.1 && maxHeight >= desiredHeight);
+					var wrongWidth  = (desiredWidth > physicalWidth * 1.1 && maxWidth >= desiredWidth);
+					var wrongHeight = (desiredHeight > physicalHeight * 1.1 && maxHeight >= desiredHeight);
 					console.log('displayed at ' + Math.round(desiredWidth) + 'w x ' + Math.round(desiredHeight) + 'h, natural/physical is ' +
 					physicalWidth + 'w x ' + physicalHeight + 'h');
-		            if (wrongWidth || wrongHeight) {
-		            	console.log('requesting upsize');
+					if (wrongWidth || wrongHeight) {
+						console.log('requesting upsize');
 						updateImgElem(autosizedElem,true);
 					}
 				}

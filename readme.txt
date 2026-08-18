@@ -176,6 +176,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 * fixed: WebP conversion via Imagick throws fatal error when source file goes missing
 * fixed: PNG to JPG conversion via API sometimes results in black background for 8-bit images
+* fixed: Auto-scaling sometimes makes images too large (or too small) when CSS width is set to `auto`
 
 = 8.7.5 =
 *Release Date - August 5, 2026*

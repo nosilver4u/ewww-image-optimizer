@@ -940,10 +940,13 @@ class Lazy_Load extends Page_Parser {
 			// Return false on this filter to disable automatic sizes calculation,
 			// or use the sizes value passed via the filter to conditionally disable it.
 			if (
-				false === \strpos( $image, 'skip-autoscale' ) &&
-				apply_filters( 'eio_lazy_responsive', $srcset_sizes ) &&
+				! \str_contains( $image, 'skip-autoscale' ) &&
+				\apply_filters( 'eio_lazy_responsive', $srcset_sizes ) &&
 				( ! \defined( 'EIO_LL_AUTOSCALE' ) || EIO_LL_AUTOSCALE )
 			) {
+				if ( ! empty( $width_attr ) && \str_contains( $srcset_sizes, $width_attr . 'px' ) && ! \str_contains( $image, 'data-max-width=' ) ) {
+					$this->set_attribute( $image, 'data-max-width', $width_attr );
+				}
 				$this->set_attribute( $image, 'data-sizes', 'auto', true );
 				$this->remove_attribute( $image, 'sizes' );
 			}
