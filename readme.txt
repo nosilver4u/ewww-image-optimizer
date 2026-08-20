@@ -2,8 +2,8 @@
 Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: compress, convert, webp, resize, lazy load
-Tested up to: 7.0
-Stable tag: 8.7.5
+Tested up to: 7.1
+Stable tag: 8.7.6
 License: GPLv3
 
 Comprehensive image optimization with WebP, AVIF, Lazy Load, and more. Optimize images automatically for Faster Sites and Happy Visitors.
@@ -176,10 +176,11 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 8.7.6 =
-*Release Date - TBD*
+*Release Date - August 20, 2026*
 
 * added: option to disable client-side media processing in WP 7.1, mostly for animated GIF images and indexed (palette) PNG images
 * fixed: compatibility with client-side media processing in WP 7.1
+* fixed: Easy IO modifies URLs in REST API endpoints used by media uploader in WP 7.1
 * fixed: WebP conversion via Imagick throws fatal error when source file goes missing
 * fixed: PNG to JPG conversion via API sometimes results in black background for 8-bit images
 * fixed: Auto-scaling sometimes makes images too large (or too small) when CSS width is set to `auto`

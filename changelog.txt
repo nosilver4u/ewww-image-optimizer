@@ -1,3 +1,13 @@
+= 8.7.6 =
+*Release Date - August 20, 2026*
+
+* added: option to disable client-side media processing in WP 7.1, mostly for animated GIF images and indexed (palette) PNG images
+* fixed: compatibility with client-side media processing in WP 7.1
+* fixed: Easy IO modifies URLs in REST API endpoints used by media uploader in WP 7.1
+* fixed: WebP conversion via Imagick throws fatal error when source file goes missing
+* fixed: PNG to JPG conversion via API sometimes results in black background for 8-bit images
+* fixed: Auto-scaling sometimes makes images too large (or too small) when CSS width is set to `auto`
+
 = 8.7.5 =
 *Release Date - August 5, 2026*
 
