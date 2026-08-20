@@ -639,6 +639,7 @@ final class Plugin extends Base {
 			// Process image after resize by Imsanity.
 			\add_action( 'imsanity_post_process_attachment', 'ewww_image_optimizer_optimize_by_id', 10, 2 );
 		}
+		add_filter( 'wp_client_side_media_processing_enabled', array( $this, 'maybe_disable_client_side_processing' ) );
 	}
 
 	/**
@@ -662,6 +663,7 @@ final class Plugin extends Base {
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_jpg_quality', 'ewww_image_optimizer_jpg_quality' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_webp_quality', 'ewww_image_optimizer_webp_quality' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_avif_quality', 'ewww_image_optimizer_avif_quality' );
+		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_disable_client_side_processing', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_auto', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_include_media_paths', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_include_originals', 'boolval' );
@@ -734,9 +736,11 @@ final class Plugin extends Base {
 		\add_option( 'ewww_image_optimizer_webp_level', '0', '', true );
 		\add_option( 'ewww_image_optimizer_webp_conversion_method', 'local', '', true );
 		\add_option( 'ewww_image_optimizer_webp', false, '', true );
+		\add_option( 'ewww_image_optimizer_sharpen', false, '', true );
 		\add_option( 'ewww_image_optimizer_jpg_quality', '', '', true );
 		\add_option( 'ewww_image_optimizer_webp_quality', '', '', true );
-		\add_option( 'ewww_image_optimizer_sharpen', false, '', true );
+		\add_option( 'ewww_image_optimizer_avif_quality', '', '', true );
+		\add_option( 'ewww_image_optimizer_disable_client_side_processing', false, '', true );
 		\add_option( 'ewww_image_optimizer_backup_files', '', '', true );
 		\add_option( 'ewww_image_optimizer_resize_existing', true, '', true );
 		\add_option( 'ewww_image_optimizer_exactdn', false, '', true );
@@ -794,8 +798,11 @@ final class Plugin extends Base {
 			'ewww_image_optimizer_webp_level'              => true,
 			'ewww_image_optimizer_webp_conversion_method'  => true,
 			'ewww_image_optimizer_webp'                    => true,
+			'ewww_image_optimizer_sharpen'                 => true,
 			'ewww_image_optimizer_jpg_quality'             => true,
 			'ewww_image_optimizer_webp_quality'            => true,
+			'ewww_image_optimizer_avif_quality'            => true,
+			'ewww_image_optimizer_disable_client_side_processing' => true,
 			'ewww_image_optimizer_backup_files'            => true,
 			'ewww_image_optimizer_resize_existing'         => true,
 			'ewww_image_optimizer_exactdn'                 => true,
@@ -806,7 +813,6 @@ final class Plugin extends Base {
 			'exactdn_exclude'                              => true,
 			'exactdn_sub_folder'                           => true,
 			'exactdn_prevent_db_queries'                   => true,
-			'ewww_image_optimizer_sharpen'                 => true,
 			'ewww_image_optimizer_lazy_load'               => true,
 			'ewww_image_optimizer_add_missing_dims'        => true,
 			'ewww_image_optimizer_use_siip'                => true,
@@ -850,6 +856,7 @@ final class Plugin extends Base {
 		\add_site_option( 'ewww_image_optimizer_webp_naming_mode', 'append' );
 		\add_site_option( 'ewww_image_optimizer_jpg_quality', '' );
 		\add_site_option( 'ewww_image_optimizer_webp_quality', '' );
+		\add_site_option( 'ewww_image_optimizer_avif_quality', '' );
 		\add_site_option( 'ewww_image_optimizer_backup_files', '' );
 		\add_site_option( 'ewww_image_optimizer_resize_existing', true );
 		\add_site_option( 'ewww_image_optimizer_disable_pngout', true );
@@ -861,6 +868,22 @@ final class Plugin extends Base {
 		\add_site_option( 'exactdn_sub_folder', false );
 		\add_site_option( 'exactdn_prevent_db_queries', true );
 		\add_site_option( 'ewww_image_optimizer_ll_autoscale', true );
+	}
+
+	/**
+	 * Check if the user wants to disable client-side media processing.
+	 *
+	 * @param bool $enabled Whether client-side media processing is enabled. Default is true.
+	 * @return bool True if client-side media processing is enabled, false otherwise.
+	 */
+	public function maybe_disable_client_side_processing( $enabled ) {
+		if ( defined( 'EIO_DISABLE_CLIENT_SIDE_PROCESSING' ) && EIO_DISABLE_CLIENT_SIDE_PROCESSING ) {
+			return false;
+		}
+		if ( $this->get_option( 'ewww_image_optimizer_disable_client_side_processing' ) ) {
+			return false;
+		}
+		return $enabled;
 	}
 
 	/**

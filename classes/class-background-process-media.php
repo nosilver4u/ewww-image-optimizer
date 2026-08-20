@@ -126,7 +126,7 @@ class Background_Process_Media extends Background_Process {
 		if ( empty( $item['attempts'] ) && ! empty( $item['new'] ) ) {
 			ewwwio_debug_message( 'first attempt on new upload, going to sleep for a second' );
 			$item['attempts'] = 0;
-			sleep( 1 ); // On the first attempt, hold off and wait for the db to catch up.
+			sleep( 2 ); // On the first attempt, hold off and wait for the db to catch up.
 		}
 		if ( ! empty( $this->attachments_meta[ $attachment_id ]['type'] ) ) {
 			$type = $this->attachments_meta[ $attachment_id ]['type'];
@@ -159,7 +159,7 @@ class Background_Process_Media extends Background_Process {
 				$missing_meta_bail = true;
 			}
 		}
-		if ( in_array( $type, $supported_types, true ) && empty( $meta ) && $missing_meta_bail ) {
+		if ( in_array( $type, $supported_types, true ) && ( empty( $meta ) || empty( $meta['sizes'] ) ) && $missing_meta_bail ) {
 			ewwwio_debug_message( "metadata is missing, requeueing (previous attempts: {$item['attempts']})" );
 			sleep( 4 );
 			return $item;

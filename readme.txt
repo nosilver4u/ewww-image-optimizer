@@ -102,6 +102,10 @@ Allows you to run all batch image processes from the command line, instead of th
 
 [WP Offload Media](https://wordpress.org/plugins/amazon-s3-and-cloudfront/) is the officially supported (and recommended) plugin for uploads to Amazon S3, Digital Ocean Spaces, and Google Cloud Storage. [Check our compatibility list for details on other plugins](https://docs.ewww.io/article/84-plugin-compatibility). All pull mode CDNs like Cloudflare, KeyCDN, Bunny CDN and Sucuri work automatically, but you will need to purge the CDN cache after you optimize images with bulk optimization.
 
+= Client-Side Media Processing =
+
+EWWW IO is fully compatible with browser-based thumbnail generation, but if you encounter any issues, you may [disable the in-browser image handling in Ludicrous Mode](https://docs.ewww.io/article/11-advanced-configuration). 
+
 = Translations =
 
 Huge thanks to all our translators, [see the full list](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/contributors)!
@@ -174,6 +178,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 8.7.6 =
 *Release Date - TBD*
 
+* added: option to disable client-side media processing in WP 7.1, mostly for animated GIF images and indexed (palette) PNG images
+* fixed: compatibility with client-side media processing in WP 7.1
 * fixed: WebP conversion via Imagick throws fatal error when source file goes missing
 * fixed: PNG to JPG conversion via API sometimes results in black background for 8-bit images
 * fixed: Auto-scaling sometimes makes images too large (or too small) when CSS width is set to `auto`
