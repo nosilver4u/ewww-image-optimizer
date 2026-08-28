@@ -461,6 +461,16 @@ class Base {
 	}
 
 	/**
+	 * Escape a string for use in preg_replace as the replacement string.
+	 *
+	 * @param string $replacement The replacement string to escape.
+	 * @return string The escaped replacement string.
+	 */
+	public function esc_preg_replacement( $replacement ) {
+		return \addcslashes( $replacement, '\\$' );
+	}
+
+	/**
 	 * Escape any spaces in the filename.
 	 *
 	 * @param string $path The path to a binary file.

@@ -1530,11 +1530,15 @@ class ExactDN extends Page_Parser {
 						if ( \defined( 'EIO_PRESERVE_LINKED_IMAGES' ) && EIO_PRESERVE_LINKED_IMAGES && ! empty( $images['link_url'][ $index ] ) && $this->validate_image_url( $images['link_url'][ $index ] ) ) {
 							$new_tag = \preg_replace(
 								'#(href=["|\'])' . preg_quote( $images['link_url'][ $index ], '#' ) . '(["|\'])#i',
-								'\1' . $this->generate_url(
-									$images['link_url'][ $index ],
-									array(
-										'lossy' => 0,
-										'strip' => 'none',
+								'\1' . $this->esc_preg_replacement(
+									\esc_url(
+										$this->generate_url(
+											$images['link_url'][ $index ],
+											array(
+												'lossy' => 0,
+												'strip' => 'none',
+											)
+										)
 									)
 								) . '\2',
 								$new_tag,
@@ -1543,7 +1547,7 @@ class ExactDN extends Page_Parser {
 						} elseif ( ! empty( $images['link_url'][ $index ] ) && $this->validate_image_url( $images['link_url'][ $index ] ) ) {
 							$new_tag = \preg_replace(
 								'#(href=["|\'])' . preg_quote( $images['link_url'][ $index ], '#' ) . '(["|\'])#i',
-								'\1' . $this->generate_url( $images['link_url'][ $index ], array( 'w' => 2560 ) ) . '\2',
+								'\1' . $this->esc_preg_replacement( \esc_url( $this->generate_url( $images['link_url'][ $index ], array( 'w' => 2560 ) ) ) ) . '\2',
 								$new_tag,
 								1
 							);
@@ -1573,7 +1577,7 @@ class ExactDN extends Page_Parser {
 							if ( $exactdn_url !== $preload_image['url'] ) {
 								$this->debug_message( "replacing {$preload_image['url']} with $exactdn_url" );
 								$new_preload_tag = $preload_image['tag'];
-								$this->set_attribute( $new_preload_tag, 'href', \esc_url( $exactdn_url ), true );
+								$this->set_attribute( $new_preload_tag, 'href', $exactdn_url, true ); // Already escaped above.
 								if ( $preload_image['tag'] !== $new_preload_tag ) {
 									$content = \str_replace( $preload_image['tag'], $new_preload_tag, $content );
 								}
@@ -1594,8 +1598,8 @@ class ExactDN extends Page_Parser {
 
 						if ( $insert_dimensions && $filename_width > 0 && $filename_height > 0 ) {
 							$this->debug_message( "filling in width = $filename_width and height = $filename_height" );
-							$this->set_attribute( $new_tag, 'width', $filename_width, true );
-							$this->set_attribute( $new_tag, 'height', $filename_height, true );
+							$this->set_attribute( $new_tag, 'width', (int) $filename_width, true );
+							$this->set_attribute( $new_tag, 'height', (int) $filename_height, true );
 						}
 
 						// Replace original tag with modified version.
@@ -1704,14 +1708,14 @@ class ExactDN extends Page_Parser {
 						if ( $width ) {
 							$srcset = $this->generate_image_srcset( $src, $width, $zoom, $filename_width );
 							if ( $srcset ) {
-								$this->set_attribute( $new_tag, $this->srcset_attr, $srcset );
+								$this->set_attribute( $new_tag, \esc_attr( $this->srcset_attr ), $srcset );
 								$this->set_attribute( $new_tag, 'sizes', \sprintf( '(max-width: %1$dpx) 100vw, %1$dpx', $width ) );
 							}
 						}
 						if ( $insert_dimensions && $filename_width > 0 && $filename_height > 0 ) {
 							$this->debug_message( "filling in width = $filename_width and height = $filename_height" );
-							$this->set_attribute( $new_tag, 'width', $filename_width, true );
-							$this->set_attribute( $new_tag, 'height', $filename_height, true );
+							$this->set_attribute( $new_tag, 'width', (int) $filename_width, true );
+							$this->set_attribute( $new_tag, 'height', (int) $filename_height, true );
 						}
 						if ( $new_tag !== $images['img_tag'][ $index ] ) {
 							// Replace original tag with modified version.
@@ -1861,9 +1865,9 @@ class ExactDN extends Page_Parser {
 				}
 				if ( $this->validate_image_url( $full_link_url ) ) {
 					$exactdn_url = $this->generate_url( $full_link_url, $args );
-					if ( $exactdn_url && $exactdn_url !== $link_url && false !== \strpos( $exactdn_url, $this->exactdn_domain ) ) {
+					if ( $exactdn_url && $exactdn_url !== $link_url && \str_contains( $exactdn_url, $this->exactdn_domain ) ) {
 						$this->debug_message( 'updating link URL in element' );
-						$element = \str_replace( $link_url, $exactdn_url, $element );
+						$element = \str_replace( $link_url, \esc_url( $exactdn_url ), $element );
 						if ( $element && $element !== $elements[ $index ] ) {
 							$this->debug_message( 'updating link element in content' );
 							$content = \str_replace( $elements[ $index ], $element, $content );
@@ -1936,7 +1940,7 @@ class ExactDN extends Page_Parser {
 					$this->debug_message( "parsing a video poster: $poster" );
 					if ( $this->validate_image_url( $poster ) ) {
 						$this->debug_message( 'rewriting video poster...' );
-						$this->set_attribute( $video, 'poster', $this->generate_url( $poster ), true );
+						$this->set_attribute( $video, 'poster', \esc_url( $this->generate_url( $poster ) ), true );
 						if ( $video !== $videos[ $index ] ) {
 							$content = \str_replace( $videos[ $index ], $video, $content );
 						}
@@ -2024,7 +2028,7 @@ class ExactDN extends Page_Parser {
 						}
 						$exactdn_bg_image_url = $this->generate_url( $bg_image_url, $args );
 						if ( $bg_image_url !== $exactdn_bg_image_url ) {
-							$new_style = \str_replace( $orig_bg_url, $exactdn_bg_image_url, $new_style );
+							$new_style = \str_replace( $orig_bg_url, \esc_url_raw( $exactdn_bg_image_url ), $new_style );
 
 							$preload_image = $this->is_image_preloaded( $exactdn_bg_image_url, $orig_bg_url );
 							if ( $preload_image ) {
@@ -2043,7 +2047,7 @@ class ExactDN extends Page_Parser {
 					}
 				}
 				if ( $style !== $new_style ) {
-					$element = \str_replace( $style, $new_style, $element );
+					$element = \str_replace( $style, \esc_attr( $new_style ), $element );
 				}
 				if ( $skip_autoscale ) {
 					$new_class = 'skip-autoscale';
@@ -2090,7 +2094,7 @@ class ExactDN extends Page_Parser {
 							$exactdn_bg_image_url = $this->generate_url( $bg_image_url );
 							if ( $bg_image_url !== $exactdn_bg_image_url ) {
 								$this->debug_message( "replacing $bg_image_url with $exactdn_bg_image_url" );
-								$bg_image = \str_replace( $bg_image_url, $exactdn_bg_image_url, $bg_image );
+								$bg_image = \str_replace( $bg_image_url, \esc_url_raw( $exactdn_bg_image_url ), $bg_image );
 								if ( $bg_image !== $bg_images[ $bindex ] ) {
 									$this->debug_message( "replacing bg url with $bg_image" );
 									$element = \str_replace( $bg_images[ $bindex ], $bg_image, $element );
@@ -2162,7 +2166,7 @@ class ExactDN extends Page_Parser {
 					$this->debug_message( "parsing a sr6 thumb: $thumb" );
 					if ( $this->validate_image_url( $thumb ) ) {
 						$this->debug_message( 'rewriting slide thumb...' );
-						$this->set_attribute( $element, 'data-thumb', $this->generate_url( $thumb ), true );
+						$this->set_attribute( $element, 'data-thumb', \esc_url( $this->generate_url( $thumb ) ), true );
 						if ( $element !== $elements[ $eindex ] ) {
 							$content = \str_replace( $elements[ $eindex ], $element, $content );
 						}
@@ -2180,7 +2184,7 @@ class ExactDN extends Page_Parser {
 					$this->debug_message( "parsing a sr6 poster: $poster" );
 					if ( $this->validate_image_url( $poster ) ) {
 						$this->debug_message( 'rewriting layer poster...' );
-						$this->set_attribute( $element, 'data-poster', $this->generate_url( $poster ), true );
+						$this->set_attribute( $element, 'data-poster', \esc_url( $this->generate_url( $poster ) ), true );
 						if ( $element !== $elements[ $eindex ] ) {
 							$content = \str_replace( $elements[ $eindex ], $element, $content );
 						}
@@ -2877,12 +2881,12 @@ class ExactDN extends Page_Parser {
 					$new_srcurl = '//' . $this->upload_domain . $new_srcurl;
 				}
 				if ( $this->validate_image_url( $new_srcurl ) ) {
-					$srcset = \str_replace( $srcurl . $trailing, $this->generate_url( $new_srcurl ) . $trailing, $srcset );
+					$srcset = \str_replace( $srcurl . $trailing, \esc_url( $this->generate_url( $new_srcurl ) ) . $trailing, $srcset );
 					$this->debug_message( "replaced $srcurl in srcset" );
 				}
 			}
 		} elseif ( $this->validate_image_url( $srcset ) ) {
-			return $this->generate_url( $srcset );
+			return \esc_url( $this->generate_url( $srcset ) );
 		}
 		return $srcset;
 	}
@@ -3274,7 +3278,7 @@ class ExactDN extends Page_Parser {
 		}
 		if ( ! empty( $sources ) ) {
 			foreach ( $sources as $source ) {
-				$srcset .= \str_replace( ' ', '%20', $source['url'] ) . ' ' . $source['value'] . $source['descriptor'] . ', ';
+				$srcset .= \str_replace( ' ', '%20', \esc_url( $source['url'] ) ) . ' ' . $source['value'] . $source['descriptor'] . ', ';
 			}
 		}
 		/* $this->debug_message( print_r( $sources, true ) ); */
@@ -3434,7 +3438,7 @@ class ExactDN extends Page_Parser {
 			$this->debug_message( 'cannot validate uri when variable is not a string' );
 			return false;
 		}
-		if ( false !== \strpos( $url, 'data:image/' ) ) {
+		if ( \str_contains( $url, 'data:image/' ) ) {
 			$this->debug_message( "could not parse data uri: $url" );
 			return false;
 		}
@@ -3494,7 +3498,7 @@ class ExactDN extends Page_Parser {
 		}
 
 		// Ensure image extension is acceptable, unless it's a dynamic NextGEN image.
-		if ( ! \in_array( \strtolower( \pathinfo( $url_info['path'], PATHINFO_EXTENSION ) ), $this->extensions, true ) && false === \strpos( $url_info['path'], 'nextgen-image/' ) ) {
+		if ( ! \in_array( \strtolower( \pathinfo( $url_info['path'], PATHINFO_EXTENSION ) ), $this->extensions, true ) && ! \str_contains( $url_info['path'], 'nextgen-image/' ) ) {
 			$this->debug_message( 'invalid extension' );
 			return false;
 		}
@@ -3503,6 +3507,13 @@ class ExactDN extends Page_Parser {
 		if ( ! $this->allow_image_domain( $url_info['host'] ) ) {
 			$this->debug_message( 'invalid host for ExactDN' );
 			return false;
+		}
+
+		foreach ( $url_info as $url_part ) {
+			if ( \is_string( $url_part ) && \strpbrk( $url_part, '\\<>[]{}' ) ) {
+				$this->debug_message( "$url contains invalid characters" );
+				return false;
+			}
 		}
 
 		// If we got this far, we should have an acceptable image URL,
@@ -4514,6 +4525,11 @@ class ExactDN extends Page_Parser {
 			}
 		}
 		$this->debug_message( "exactdn url with args: $exactdn_url" );
+
+		if ( \strpbrk( $exactdn_url, '\\<>[]{}' ) ) {
+			$this->debug_message( "$exactdn_url contains invalid characters, returning original URL" );
+			return $image_url;
+		}
 
 		$exactdn_url = $this->url_scheme( $exactdn_url, $scheme );
 		return $exactdn_url;

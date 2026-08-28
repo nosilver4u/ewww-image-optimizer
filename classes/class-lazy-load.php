@@ -962,8 +962,8 @@ class Lazy_Load extends Page_Parser {
 		}
 		if ( $insert_dimensions ) {
 			$this->debug_message( "setting width=$width_attr and height=$height_attr" );
-			$this->set_attribute( $image, 'width', $width_attr, true );
-			$this->set_attribute( $image, 'height', $height_attr, true );
+			$this->set_attribute( $image, 'width', (int) $width_attr, true );
+			$this->set_attribute( $image, 'height', (int) $height_attr, true );
 		}
 		if ( 0 === \strpos( $placeholder_src, 'data:image/svg+xml' ) && $physical_width && $physical_height ) {
 			$this->set_attribute( $image, 'data-eio-rwidth', $physical_width, true );
