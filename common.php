@@ -13198,7 +13198,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				<div class='ewww-settings-section' style='display: none;'>
 	<?php endif; ?>
 	<?php if ( ! apply_filters( 'ewwwio_whitelabel', false ) ) : ?>
-					<div class='ewww-settings-row ewwwio-exactdn-options' <?php echo $exactdn_enabled ? '' : 'style="display:none;"'; ?>>
+					<div class='ewww-settings-row ewwwio-exactdn-options exactdn-easy-options' <?php echo $exactdn_enabled ? '' : 'style="display:none;"'; ?>>
 						<div class='ewww-setting-header'>&nbsp;</div>
 						<div class='ewww-setting-detail'>
 							<p class='description'>
@@ -13231,10 +13231,6 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 							</p>
 						</div>
 					</div>
-	<?php if ( ! $exactdn_enabled ) : ?>
-					<input type='hidden' id='ewww_image_optimizer_use_lqip' name='ewww_image_optimizer_use_lqip' <?php echo ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_lqip' ) ? "value='1'" : "value='0'" ); ?> />
-					<input type='hidden' id='ewww_image_optimizer_use_dcip' name='ewww_image_optimizer_use_dcip' <?php echo ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_use_dcip' ) ? "value='1'" : "value='0'" ); ?> />
-	<?php endif; ?>
 					<div class='ewww-settings-row ewwwio-exactdn-options exactdn-easy-options' <?php echo $exactdn_enabled ? '' : "style='display:none;'"; ?>>
 						<div class='ewww-setting-header'>&nbsp;</div>
 						<div class='ewww-setting-detail'>
@@ -13401,8 +13397,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					<div id='ewww_image_optimizer_lqip_container' class='ewww-settings-row' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? '' : ' style="display:none"'; ?>>
 						<div class='ewww-setting-header'>&nbsp;</div>
 						<div class='ewww-setting-detail'>
-							<input type='checkbox' name='ewww_image_optimizer_use_lqip' value='true' id='<?php echo esc_attr( $lqip_id ); ?>' <?php disabled( $lqip_dis ); ?> <?php checked( $lqip_che ); ?> />
-							<label for='<?php echo esc_attr( $lqip_id ); ?>'><strong>LQIP</strong></label>
+							<input type='checkbox' name='ewww_image_optimizer_use_lqip' value='true' id='ewww_image_optimizer_use_lqip' <?php disabled( $lqip_dis ); ?> <?php checked( $lqip_che ); ?> />
+							<label for='ewww_image_optimizer_use_lqip'><strong>LQIP</strong></label>
 							<?php ewwwio_help_link( 'https://docs.ewww.io/article/75-lazy-load-placeholders', '5c9a7a302c7d3a1544615e47' ); ?>
 							<p class='description'>
 								<?php esc_html_e( 'Use low-quality versions of your images as placeholders via Easy IO. Can improve user experience, but may be slower than blank placeholders.', 'ewww-image-optimizer' ); ?>
@@ -13412,8 +13408,8 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 					<div id='ewww_image_optimizer_dcip_container' class='ewww-settings-row' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ? '' : ' style="display:none"'; ?>>
 						<div class='ewww-setting-header'>&nbsp;</div>
 						<div class='ewww-setting-detail'>
-							<input type='checkbox' name='ewww_image_optimizer_use_dcip' value='true' id='<?php echo esc_attr( $dcip_id ); ?>' <?php disabled( $dcip_dis ); ?> <?php checked( $dcip_che ); ?> />
-							<label for='<?php echo esc_attr( $dcip_id ); ?>'><strong>DCIP</strong></label>
+							<input type='checkbox' name='ewww_image_optimizer_use_dcip' value='true' id='ewww_image_optimizer_use_dcip' <?php disabled( $dcip_dis ); ?> <?php checked( $dcip_che ); ?> />
+							<label for='ewww_image_optimizer_use_dcip'><strong>DCIP</strong></label>
 							<?php ewwwio_help_link( 'https://docs.ewww.io/article/75-lazy-load-placeholders', '5c9a7a302c7d3a1544615e47' ); ?>
 							<p class='description'>
 								<?php esc_html_e( 'Use dominant-color versions of your images as placeholders via Easy IO. Can improve user experience, but may be slower than blank placeholders.', 'ewww-image-optimizer' ); ?>

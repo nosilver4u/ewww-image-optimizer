@@ -462,6 +462,8 @@ jQuery(document).ready(function($) {
 				} else {
 					$('.ewwwio-exactdn-options').show();
 				}
+				$('#ewww_image_optimizer_use_lqip').prop('disabled', false);
+				$('#ewww_image_optimizer_use_dcip').prop('disabled', false);
 				$('.ewwwio-easy-setup-instructions').hide();
 				$('#ewww_image_optimizer_webp_container').hide();
 				$('.ewww_image_optimizer_webp_setting_container').hide();
