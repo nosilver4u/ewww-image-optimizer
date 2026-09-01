@@ -1,3 +1,9 @@
+= 8.7.7 =
+*Release Date = September 1, 2026*
+
+* fixed: LQIP/DCIP inputs not available immediately after Easy IO activation
+* security: ensure all CDN image URLs are properly escaped to prevent XSS
+
 = 8.7.6 =
 *Release Date - August 20, 2026*
 
