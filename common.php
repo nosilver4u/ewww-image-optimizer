@@ -8431,7 +8431,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 	}
 	// If the local file is missing and we have valid metadata, see if we can fetch via CDN.
 	if ( ! ewwwio_is_file( $file_path ) || ewww_image_optimizer_stream_wrapped( $file_path ) ) {
-		$file_path = ewww_image_optimizer_remote_fetch( (int)$id, $meta );
+		$file_path = ewww_image_optimizer_remote_fetch( (int) $id, $meta );
 		if ( ! $file_path ) {
 			ewwwio_debug_message( 'could not retrieve path' );
 			return $meta;
