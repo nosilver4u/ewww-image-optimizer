@@ -6974,7 +6974,7 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 	if ( function_exists( 'as3cf_get_attachment_url' ) ) {
 		$full_url = get_attached_file( $id );
 		if ( ewww_image_optimizer_stream_wrapped( $full_url ) ) {
-			$full_url = as3cf_get_attachment_url( $id );
+			$full_url = as3cf_get_attachment_url( (int) $id );
 		}
 		$filename = get_attached_file( $id, true );
 		ewwwio_debug_message( "amazon s3 fullsize url: $full_url" );
@@ -7050,7 +7050,7 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 				// If this is a unique size.
 				if ( ! $dup_size ) {
 					$resize_path = $base_dir . wp_basename( $data['file'] );
-					$resize_url  = as3cf_get_attachment_url( $id, $size );
+					$resize_url  = as3cf_get_attachment_url( (int) $id, $size );
 					if ( ewwwio_is_file( $resize_path ) ) {
 						continue;
 					}
