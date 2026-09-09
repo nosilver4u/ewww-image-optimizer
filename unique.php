@@ -1572,8 +1572,7 @@ function ewww_image_optimizer_install_pngout_wrapper() {
 	}
 	$sendback = ewww_image_optimizer_install_pngout();
 	wp_safe_redirect( $sendback );
-	ewwwio_memory( __FUNCTION__ );
-	exit( 0 );
+	exit;
 }
 
 /**
@@ -1739,8 +1738,7 @@ function ewww_image_optimizer_install_svgcleaner_wrapper() {
 	}
 	$sendback = ewww_image_optimizer_install_svgcleaner();
 	wp_safe_redirect( $sendback );
-	ewwwio_memory( __FUNCTION__ );
-	exit( 0 );
+	exit;
 }
 
 /**

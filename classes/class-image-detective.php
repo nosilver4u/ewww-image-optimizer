@@ -367,6 +367,7 @@ class Image_Detective extends Base {
 			$this->remove_all_page_settings();
 		}
 		\wp_safe_redirect( \remove_query_arg( array( '_action', '_wpnonce', 'post_id', 'request_uri' ) ) );
+		exit;
 	}
 
 	/**

@@ -155,7 +155,7 @@ class Background_Process_Image extends Background_Process {
 		// See if the image needs fetching from a CDN.
 		if ( ! \ewwwio_is_file( $image->file ) ) {
 			$meta      = \wp_get_attachment_metadata( $image->attachment_id );
-			$file_path = \ewww_image_optimizer_remote_fetch( $image->attachment_id, $meta );
+			$file_path = \ewww_image_optimizer_remote_fetch( (int) $image->attachment_id, $meta );
 			// Nuke the meta, otherwise this will trigger unnecessary metadata updates,
 			// which should be reserved for conversion/resize operations on the full-size image only.
 			unset( $meta );

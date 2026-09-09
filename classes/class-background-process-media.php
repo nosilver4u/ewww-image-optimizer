@@ -361,11 +361,11 @@ class Background_Process_Media extends Background_Process {
 			ewww_image_optimizer_check_table_as3cf( $meta, $id, $file_path );
 		}
 		if ( ! ewwwio_is_file( $file_path ) && class_exists( 'wpCloud\StatelessMedia\EWWW' ) && ! empty( $meta['gs_link'] ) ) {
-			$file_path = ewww_image_optimizer_remote_fetch( $id, $meta );
+			$file_path = ewww_image_optimizer_remote_fetch( (int) $id, $meta );
 		}
 		// If the local file is missing and we have valid metadata, see if we can fetch via CDN.
 		if ( ! ewwwio_is_file( $file_path ) || ewww_image_optimizer_stream_wrapped( $file_path ) ) {
-			$file_path = ewww_image_optimizer_remote_fetch( $id, $meta );
+			$file_path = ewww_image_optimizer_remote_fetch( (int) $id, $meta );
 			if ( ! $file_path ) {
 				ewwwio_debug_message( 'could not retrieve path' );
 				return;

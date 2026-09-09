@@ -4180,7 +4180,7 @@ function ewww_image_optimizer_media_rename( $old_name, $new_name ) {
  */
 function ewww_image_optimizer_exactdn_activate_ajax() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( false === current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		// Display error message if insufficient permissions.
 		ewwwio_ob_clean();
 		wp_die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
@@ -4239,7 +4239,7 @@ function ewww_image_optimizer_exactdn_activate_ajax() {
  */
 function ewww_image_optimizer_exactdn_activate_site_ajax() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( false === current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		// Display error message if insufficient permissions.
 		ewwwio_ob_clean();
 		wp_die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
@@ -4305,7 +4305,7 @@ function ewww_image_optimizer_exactdn_activate_site_ajax() {
  */
 function ewww_image_optimizer_exactdn_register_site_ajax() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	if ( false === current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
+	if ( ! current_user_can( apply_filters( 'ewww_image_optimizer_admin_permissions', '' ) ) ) {
 		// Display error message if insufficient permissions.
 		ewwwio_ob_clean();
 		wp_die( wp_json_encode( array( 'error' => esc_html__( 'Access denied.', 'ewww-image-optimizer' ) ) ) );
@@ -5090,6 +5090,10 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	if ( $jpg_quality < 50 ) {
 		$jpg_quality = 75;
 	}
+	$lossy_quality = 0;
+	if ( defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_JPG_QUALITY' ) && EWWW_IMAGE_OPTIMIZER_LOSSY_JPG_QUALITY > 0 ) {
+		$lossy_quality = EWWW_IMAGE_OPTIMIZER_LOSSY_JPG_QUALITY;
+	}
 	$png_compress = 0;
 	if ( 'image/svg+xml' === $type && 10 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ) ) {
 		$png_compress = 1;
@@ -5156,6 +5160,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	ewwwio_debug_message( "sharp_yuv: $sharp_yuv" );
 	ewwwio_debug_message( "jpg fill: $jpg_fill" );
 	ewwwio_debug_message( "jpg quality: $jpg_quality" );
+	ewwwio_debug_message( "lossy quality: $lossy_quality" );
 	ewwwio_debug_message( "async_mode: $async" );
 	$free_exec = ! ewwwio()->local->exec_check() && 'image/jpeg' === $type;
 	if (
@@ -5194,6 +5199,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		'api_key'    => $api_key,
 		'jpg_fill'   => $jpg_fill,
 		'quality'    => $jpg_quality,
+		'lossy_q'    => $lossy_quality,
 		'compress'   => $png_compress,
 		'lossy'      => $lossy,
 		'lossy_fast' => $lossy_fast,
@@ -6822,6 +6828,7 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 		require_once ABSPATH . '/wp-admin/includes/file.php';
 	}
 	$filename = false;
+	$id       = (int) $id;
 	if ( ewww_image_optimizer_s3_uploads_enabled() && ! empty( $meta['file'] ) ) {
 		$s3_upload_dir = wp_get_upload_dir();
 		$s3_upload_dir = trailingslashit( $s3_upload_dir['basedir'] );
@@ -6965,7 +6972,6 @@ function ewww_image_optimizer_remote_fetch( $id, $meta ) {
 		} // End if().
 	} // End if().
 	if ( function_exists( 'as3cf_get_attachment_url' ) ) {
-		global $as3cf;
 		$full_url = get_attached_file( $id );
 		if ( ewww_image_optimizer_stream_wrapped( $full_url ) ) {
 			$full_url = as3cf_get_attachment_url( $id );
@@ -8421,11 +8427,11 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		ewww_image_optimizer_check_table_as3cf( $meta, $id, $file_path );
 	}
 	if ( ! ewwwio_is_file( $file_path ) && class_exists( 'wpCloud\StatelessMedia\EWWW' ) && ! empty( $meta['gs_link'] ) ) {
-		$file_path = ewww_image_optimizer_remote_fetch( $id, $meta );
+		$file_path = ewww_image_optimizer_remote_fetch( (int) $id, $meta );
 	}
 	// If the local file is missing and we have valid metadata, see if we can fetch via CDN.
 	if ( ! ewwwio_is_file( $file_path ) || ewww_image_optimizer_stream_wrapped( $file_path ) ) {
-		$file_path = ewww_image_optimizer_remote_fetch( $id, $meta );
+		$file_path = ewww_image_optimizer_remote_fetch( (int)$id, $meta );
 		if ( ! $file_path ) {
 			ewwwio_debug_message( 'could not retrieve path' );
 			return $meta;

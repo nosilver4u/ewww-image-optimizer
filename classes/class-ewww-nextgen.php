@@ -357,7 +357,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 			if ( ! wp_doing_ajax() ) {
 				// Get the referring page, and send the user back there.
 				wp_safe_redirect( wp_get_referer() );
-				die;
+				exit;
 			}
 			ewwwio_ob_clean();
 			wp_die( wp_json_encode( array( 'success' => $success ) ) );
@@ -1123,8 +1123,7 @@ if ( ! class_exists( 'EWWW_Nextgen' ) ) {
 					admin_url( 'admin.php' )
 				)
 			);
-			ewwwio_memory( __METHOD__ );
-			exit();
+			exit;
 		}
 	}
 	// Initialize the plugin and the class.
