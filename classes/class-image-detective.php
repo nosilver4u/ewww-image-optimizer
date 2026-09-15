@@ -127,7 +127,7 @@ class Image_Detective extends Base {
 			return;
 		}
 		if ( \is_int( $post_identifier ) ) {
-			$eio_page_settings = \maybe_unserialize( \get_post_meta( $post_identifier, 'eio_page_settings', true ) );
+			$eio_page_settings = \get_post_meta( $post_identifier, 'eio_page_settings', true );
 			$exclusions        = $this->is_iterable( $eio_page_settings ) && isset( $eio_page_settings['ll_exclude'] ) ? $eio_page_settings['ll_exclude'] : array();
 			$new_exclusions    = $this->merge_exclusions( $exclusions, $exclusion );
 			if ( is_array( $new_exclusions ) && ! empty( $new_exclusions ) && count( $new_exclusions ) > count( $exclusions ) ) {
@@ -136,7 +136,7 @@ class Image_Detective extends Base {
 					$eio_page_settings = array();
 				}
 				$eio_page_settings['ll_exclude'] = $new_exclusions;
-				\update_post_meta( $post_identifier, 'eio_page_settings', \serialize( $eio_page_settings ) );
+				\update_post_meta( $post_identifier, 'eio_page_settings', $eio_page_settings );
 				// Set a flag to indicate that manual page rules exist, so that we don't waste time checking the db otherwise.
 				if ( ! \get_option( $this->prefix . 'll_manual_page_settings' ) ) {
 					\update_option( $this->prefix . 'll_manual_page_settings', true );
@@ -216,7 +216,7 @@ class Image_Detective extends Base {
 			return;
 		}
 		if ( \is_int( $post_identifier ) ) {
-			$eio_page_settings = \maybe_unserialize( \get_post_meta( $post_identifier, 'eio_page_settings', true ) );
+			$eio_page_settings = \get_post_meta( $post_identifier, 'eio_page_settings', true );
 			$exclusions        = $this->is_iterable( $eio_page_settings ) && isset( $eio_page_settings['scale_detection_exclude'] ) ? $eio_page_settings['scale_detection_exclude'] : array();
 			$new_exclusions    = $this->merge_exclusions( $exclusions, $exclusion );
 			if ( is_array( $new_exclusions ) && ! empty( $new_exclusions ) && count( $new_exclusions ) > count( $exclusions ) ) {
@@ -225,7 +225,7 @@ class Image_Detective extends Base {
 					$eio_page_settings = array();
 				}
 				$eio_page_settings['scale_detection_exclude'] = $new_exclusions;
-				\update_post_meta( $post_identifier, 'eio_page_settings', \serialize( $eio_page_settings ) );
+				\update_post_meta( $post_identifier, 'eio_page_settings', $eio_page_settings );
 			}
 		} elseif ( \is_string( $post_identifier ) ) {
 			$eio_page_record   = $this->get_page_settings( $post_identifier );
@@ -399,7 +399,7 @@ class Image_Detective extends Base {
 		$post_id            = 0;
 		if ( \is_singular() ) {
 			$post_id            = \get_queried_object_id();
-			$eio_page_settings  = \maybe_unserialize( \get_post_meta( $post_id, 'eio_page_settings', true ) );
+			$eio_page_settings  = \get_post_meta( $post_id, 'eio_page_settings', true );
 			$scaling_exclusions = $this->is_iterable( $eio_page_settings ) && isset( $eio_page_settings['scale_detection_exclude'] ) ? $eio_page_settings['scale_detection_exclude'] : array();
 		}
 		$request_uri = $this->parse_url( parent::$request_uri, PHP_URL_PATH );

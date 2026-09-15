@@ -465,7 +465,7 @@ class Lazy_Load extends Page_Parser {
 		if ( \is_singular() ) {
 			$post_id = \get_queried_object_id();
 			if ( ! empty( $post_id ) ) {
-				$eio_page_settings = \maybe_unserialize( \get_post_meta( $post_id, 'eio_page_settings', true ) );
+				$eio_page_settings = \get_post_meta( $post_id, 'eio_page_settings', true );
 				if ( ! empty( $eio_page_settings['ll_exclude'] ) && $this->is_iterable( $eio_page_settings['ll_exclude'] ) ) {
 					$this->debug_message( 'loading page settings for a singular page' );
 					$this->user_exclusions = array_merge( $this->user_exclusions, $eio_page_settings['ll_exclude'] );

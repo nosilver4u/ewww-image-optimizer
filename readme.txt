@@ -179,6 +179,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 *Release Date - TBD*
 
 * fixed: fatal error when fetching remote images via WP Offload Media due to strict type casting
+* security: PHP object injection, reported by Karthik Ramakrishnan
 
 = 8.7.7 =
 *Release Date - September 1, 2026*

@@ -6402,6 +6402,9 @@ function ewww_image_optimizer_update_table( $attachment, $opt_size, $orig_size, 
 		if ( is_array( $already_optimized ) && empty( $already_optimized['orig_size'] ) ) {
 			$updates['orig_size'] = $orig_size;
 		}
+		if ( empty( $already_optimized['image_size'] ) ) {
+			ewww_image_optimizer_update_savings( $opt_size, $orig_size );
+		}
 		ewwwio_debug_message( "updating existing record ({$already_optimized['id']}), path: $attachment, size: $opt_size" );
 		if ( $already_optimized['updates'] && apply_filters( 'ewww_image_optimizer_allowed_reopt', false ) ) {
 			$updates['updates'] = $already_optimized['updates'];
