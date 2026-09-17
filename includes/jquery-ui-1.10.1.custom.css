@@ -823,6 +823,11 @@ div.ewww-status-detail {
 .ewww-settings-row {
 	display: flex;
 }
+.ewww-compression-level-detail {
+	display: flex;
+	flex-direction: row;
+	gap: 30px;
+}
 /* other settings UI */
 #ewww-rescue-mode {
 	margin: 10px 0;

@@ -843,6 +843,18 @@ jQuery(document).ready(function($) {
 			}
 		}
 	);
+	$('#ewww_image_optimizer_jpg_level').on(
+		'click',
+		function() {
+			var jpgLevelSelected = $('#ewww_image_optimizer_jpg_level').find(":selected").val();
+			if (jpgLevelSelected > 20) {
+				$('#ewww_image_optimizer_lossy_jpg_quality_container').show();
+			} else {
+				$('#ewww_image_optimizer_lossy_jpg_quality_container').hide();
+			}
+			console.log(jpgLevelSelected);
+		}
+	);
 	$('#ewww-general-settings').show();
 	if($('#ewww_image_optimizer_debug').length){
 		$('#ewww-resize-settings').hide();

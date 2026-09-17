@@ -313,7 +313,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test Regular Lossy JPG optimization (API level 30).
+	 * Test Lossy JPG optimization (API level 30).
 	 */
 	function test_optimize_jpg_30() {
 		if ( empty( self::$api_key ) ) {
@@ -330,27 +330,6 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_option( 'ewww_image_optimizer_cloud_key', '' );
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		$this->assertEquals( 344098, filesize( $results[0] ) );
-		wp_delete_file( $results[0] );
-	}
-
-	/**
-	 * Test Max Lossy JPG optimization (API level 40).
-	 */
-	function test_optimize_jpg_40() {
-		if ( empty( self::$api_key ) ) {
-			self::markTestSkipped( 'No API key available.' );
-		}
-
-		update_option( 'ewww_image_optimizer_metadata_remove', true );
-		update_option( 'ewww_image_optimizer_jpg_level', 40 );
-		update_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
-		update_site_option( 'ewww_image_optimizer_metadata_remove', true );
-		update_site_option( 'ewww_image_optimizer_jpg_level', 40 );
-		update_site_option( 'ewww_image_optimizer_cloud_key', self::$api_key );
-		$results = $this->optimize_jpg();
-		update_option( 'ewww_image_optimizer_cloud_key', '' );
-		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
-		$this->assertEquals( 310924, filesize( $results[0] ) );
 		wp_delete_file( $results[0] );
 	}
 

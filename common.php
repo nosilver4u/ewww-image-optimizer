@@ -581,6 +581,8 @@ function ewww_image_optimizer_save_network_settings() {
 			update_site_option( 'ewww_image_optimizer_test_mode', $ewww_image_optimizer_test_mode );
 			$ewww_image_optimizer_metadata_remove = ( empty( $_POST['ewww_image_optimizer_metadata_remove'] ) ? false : true );
 			update_site_option( 'ewww_image_optimizer_metadata_remove', $ewww_image_optimizer_metadata_remove );
+			$ewww_image_optimizer_lossy_jpg_quality = empty( $_POST['ewww_image_optimizer_lossy_jpg_quality'] ) ? 80 : (int) $_POST['ewww_image_optimizer_lossy_jpg_quality'];
+			update_site_option( 'ewww_image_optimizer_lossy_jpg_quality', $ewww_image_optimizer_lossy_jpg_quality );
 			$ewww_image_optimizer_jpg_level = empty( $_POST['ewww_image_optimizer_jpg_level'] ) ? '' : (int) $_POST['ewww_image_optimizer_jpg_level'];
 			update_site_option( 'ewww_image_optimizer_jpg_level', $ewww_image_optimizer_jpg_level );
 			$ewww_image_optimizer_png_level = empty( $_POST['ewww_image_optimizer_png_level'] ) ? '' : (int) $_POST['ewww_image_optimizer_png_level'];
@@ -822,6 +824,13 @@ function ewww_image_optimizer_upgrade() {
 			ewww_image_optimizer_set_option( 'ewww_image_optimizer_image_detective', true );
 			delete_option( 'ewww_image_optimizer_resize_detection' );
 			delete_site_option( 'ewww_image_optimizer_resize_detection' );
+		}
+		if (
+			get_option( 'ewww_image_optimizer_version' ) <= 878 &&
+			(int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) > 30
+		) {
+			ewww_image_optimizer_set_option( 'ewww_image_optimizer_jpg_level', 30 );
+			ewww_image_optimizer_set_option( 'ewww_image_optimizer_lossy_jpg_quality', 77 );
 		}
 
 		if ( get_option( 'ewww_image_optimizer_local_mode' ) || get_site_option( 'ewww_image_optimizer_local_mode' ) ) {
@@ -5048,9 +5057,6 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		}
 	} elseif ( 'image/jpeg' === $type && ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) >= 30 ) {
 		$lossy = 1;
-		if ( 30 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) ) {
-			$lossy_fast = 1;
-		}
 	} elseif ( 'image/webp' === $type && ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_level' ) > 0 ) {
 		$lossy = 1;
 	} elseif ( 'application/pdf' === $type && 20 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) ) {
@@ -5090,10 +5096,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	if ( $jpg_quality < 50 ) {
 		$jpg_quality = 75;
 	}
-	$lossy_quality = 0;
-	if ( defined( 'EWWW_IMAGE_OPTIMIZER_LOSSY_JPG_QUALITY' ) && EWWW_IMAGE_OPTIMIZER_LOSSY_JPG_QUALITY > 0 ) {
-		$lossy_quality = EWWW_IMAGE_OPTIMIZER_LOSSY_JPG_QUALITY;
-	}
+	$lossy_jq     = max( 10, min( (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_lossy_jpg_quality' ), 99 ) );
 	$png_compress = 0;
 	if ( 'image/svg+xml' === $type && 10 === (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_svg_level' ) ) {
 		$png_compress = 1;
@@ -5160,7 +5163,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	ewwwio_debug_message( "sharp_yuv: $sharp_yuv" );
 	ewwwio_debug_message( "jpg fill: $jpg_fill" );
 	ewwwio_debug_message( "jpg quality: $jpg_quality" );
-	ewwwio_debug_message( "lossy quality: $lossy_quality" );
+	ewwwio_debug_message( "lossy quality: $lossy_jq" );
 	ewwwio_debug_message( "async_mode: $async" );
 	$free_exec = ! ewwwio()->local->exec_check() && 'image/jpeg' === $type;
 	if (
@@ -5199,7 +5202,7 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 		'api_key'    => $api_key,
 		'jpg_fill'   => $jpg_fill,
 		'quality'    => $jpg_quality,
-		'lossy_q'    => $lossy_quality,
+		'lossy_jq'   => $lossy_jq,
 		'compress'   => $png_compress,
 		'lossy'      => $lossy,
 		'lossy_fast' => $lossy_fast,
@@ -11273,6 +11276,7 @@ function ewwwio_debug_info() {
 	$ll_exclude_paths = ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_exclude' ) ? esc_html( implode( "\n", (array) ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_exclude' ) ) ) : '';
 	ewwwio_debug_message( $ll_exclude_paths );
 	ewwwio_debug_message( 'jpg level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) );
+	ewwwio_debug_message( 'lossy jpg quality: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_lossy_jpg_quality' ) );
 	ewwwio_debug_message( 'png level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_png_level' ) );
 	ewwwio_debug_message( 'gif level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_gif_level' ) );
 	ewwwio_debug_message( 'pdf level: ' . ewww_image_optimizer_get_option( 'ewww_image_optimizer_pdf_level' ) );
@@ -12711,6 +12715,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 	<?php elseif ( $easymode && 'network-singlesite' !== $network && ! apply_filters( 'ewwwio_whitelabel', false ) ) : ?>
 	<ul class='ewww-tab-nav'>
 		<li class='ewww-tab ewww-general-nav ewww-selected'><span><?php esc_html_e( 'Essential', 'ewww-image-optimizer' ); ?></span></li>
+		<li class='ewww-tab ewww-local-nav'><span><?php esc_html_e( 'Local', 'ewww-image-optimizer' ); ?></span></li>
 		<li class='ewww-tab ewww-support-nav'><span><?php esc_html_e( 'Support', 'ewww-image-optimizer' ); ?></span></li>
 		<li class='ewww-tab ewww-contribute-nav'><span><?php esc_html_e( 'Contribute', 'ewww-image-optimizer' ); ?></span></li>
 		<li class='ewww-tab ewww-plugins-nav'><span><?php esc_html_e( 'Plugins', 'ewww-image-optimizer' ); ?></span></li>
@@ -13396,7 +13401,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 						<div class='ewww-setting-detail'>
 							<label for='ewww_image_optimizer_ll_abovethefold'><strong><?php esc_html_e( 'Above the Fold', 'ewww-image-optimizer' ); ?></strong></label>
 							<?php ewwwio_help_link( 'https://docs.ewww.io/article/74-lazy-load', '5c6c36ed042863543ccd2d9b' ); ?><br>
-							<input type='number' step='1' min='0' class='small-text' id='ewww_image_optimizer_ll_abovethefold' name='ewww_image_optimizer_ll_abovethefold' value='<?php	echo defined( 'EIO_LAZY_FOLD' ) ? (int) constant( 'EIO_LAZY_FOLD' ) : (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_abovethefold' ); ?>' <?php disabled( defined( 'EIO_LAZY_FOLD' ) ); ?> />
+							<input type='number' step='1' min='0' class='small-text' id='ewww_image_optimizer_ll_abovethefold' name='ewww_image_optimizer_ll_abovethefold' value='<?php echo defined( 'EIO_LAZY_FOLD' ) ? (int) constant( 'EIO_LAZY_FOLD' ) : (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_ll_abovethefold' ); ?>' <?php disabled( defined( 'EIO_LAZY_FOLD' ) ); ?> />
 							<?php esc_html_e( 'Skip this many images from lazy loading so that above the fold images load more quickly.', 'ewww-image-optimizer' ); ?>
 							<p class='description'>
 								<?php esc_html_e( 'This will exclude images from auto-scaling, which may decrease performance if those images are not properly sized.', 'ewww-image-optimizer' ); ?>
@@ -13857,7 +13862,7 @@ AddType image/webp .webp</pre>
 							<label for='ewww_image_optimizer_jpg_level'><?php esc_html_e( 'JPG Optimization Level', 'ewww-image-optimizer' ); ?></label>
 							<?php ewwwio_help_link( 'https://docs.ewww.io/article/102-local-compression-options', '60c24b24a6d12c2cd643e9fb' ); ?>
 						</div>
-						<div class='ewww-setting-detail'>
+						<div class='ewww-setting-detail ewww-compression-level-detail'>
 							<select id='ewww_image_optimizer_jpg_level' name='ewww_image_optimizer_jpg_level'>
 								<option value='0' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ), 0 ); ?>>
 									<?php esc_html_e( 'No Compression', 'ewww-image-optimizer' ); ?>
@@ -13873,10 +13878,12 @@ AddType image/webp .webp</pre>
 								<option <?php disabled( $disable_level ); ?> value='30' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ), 30 ); ?>>
 									<?php esc_html_e( 'Premium', 'ewww-image-optimizer' ); ?> *
 								</option>
-								<option <?php disabled( $disable_level ); ?> value='40' <?php selected( ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ), 40 ); ?>>
-									<?php esc_html_e( 'Premium Plus', 'ewww-image-optimizer' ); ?> *
-								</option>
 							</select>
+							<div id='ewww_image_optimizer_lossy_jpg_quality_container' <?php echo ewww_image_optimizer_get_option( 'ewww_image_optimizer_jpg_level' ) < 30 ? 'style="display:none"' : ''; ?>>
+								<label for='ewww_image_optimizer_lossy_jpg_quality'><strong><?php esc_html_e( 'Quality', 'ewww-image-optimizer' ); ?></strong></label>
+								<?php ewwwio_help_link( 'https://docs.ewww.io/article/102-local-compression-options', '60c24b24a6d12c2cd643e9fb' ); ?>
+								<input type='number' step='1' min='1' max='100' id='ewww_image_optimizer_lossy_jpg_quality' name='ewww_image_optimizer_lossy_jpg_quality' class='small-text' value='<?php echo (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_lossy_jpg_quality' ); ?>' />
+							</div>
 						</div>
 					</div>
 					<div class='ewww-settings-row'>

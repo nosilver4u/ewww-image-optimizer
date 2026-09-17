@@ -178,6 +178,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 8.7.8 =
 *Release Date - TBD*
 
+* added: quality setting for Premium compression, Premium Plus removed/migrated to quality 77
 * fixed: fatal error when fetching remote images via WP Offload Media due to strict type casting
 * security: PHP object injection, reported by Karthik Ramakrishnan
 

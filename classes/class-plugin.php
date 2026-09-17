@@ -651,6 +651,7 @@ final class Plugin extends Base {
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_debug', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_test_mode', 'boolval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_metadata_remove', 'boolval' );
+		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_lossy_jpg_quality', 'intval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_jpg_level', 'intval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_png_level', 'intval' );
 		register_setting( 'ewww_image_optimizer_options', 'ewww_image_optimizer_gif_level', 'intval' );
@@ -728,6 +729,7 @@ final class Plugin extends Base {
 		\add_option( 'ewww_image_optimizer_maxmediawidth', 2560, '', true );
 		\add_option( 'ewww_image_optimizer_maxmediaheight', 2560, '', true );
 		\add_option( 'ewww_image_optimizer_cloud_key', false, '', true );
+		\add_option( 'ewww_image_optimizer_lossy_jpg_quality', 80, '', true );
 		\add_option( 'ewww_image_optimizer_jpg_level', '10', '', true );
 		\add_option( 'ewww_image_optimizer_png_level', '10', '', true );
 		\add_option( 'ewww_image_optimizer_gif_level', '10', '', true );
@@ -790,6 +792,7 @@ final class Plugin extends Base {
 			'ewww_image_optimizer_maxmediawidth'           => true,
 			'ewww_image_optimizer_maxmediaheight'          => true,
 			'ewww_image_optimizer_cloud_key'               => true,
+			'ewww_image_optimizer_lossy_jpg_quality'       => true,
 			'ewww_image_optimizer_jpg_level'               => true,
 			'ewww_image_optimizer_png_level'               => true,
 			'ewww_image_optimizer_gif_level'               => true,
@@ -846,6 +849,7 @@ final class Plugin extends Base {
 		\add_site_option( 'ewww_image_optimizer_metadata_remove', true );
 		\add_site_option( 'ewww_image_optimizer_maxmediawidth', 2560 );
 		\add_site_option( 'ewww_image_optimizer_maxmediaheight', 2560 );
+		\add_site_option( 'ewww_image_optimizer_lossy_jpg_quality', 80 );
 		\add_site_option( 'ewww_image_optimizer_jpg_level', '10' );
 		\add_site_option( 'ewww_image_optimizer_png_level', '10' );
 		\add_site_option( 'ewww_image_optimizer_gif_level', '10' );
