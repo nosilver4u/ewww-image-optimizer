@@ -182,6 +182,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: fatal error when fetching remote images via WP Offload Media due to strict type casting
 * fixed: multisite file modification outside upload directory
 * security: PHP object injection, reported by Karthik Ramakrishnan
+* security: prevent author+ stored XSS
 
 = 8.7.7 =
 *Release Date - September 1, 2026*

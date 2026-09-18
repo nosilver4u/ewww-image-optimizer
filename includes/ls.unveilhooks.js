@@ -164,6 +164,12 @@ For background images, use data-bg attribute:
 		if(typeof lazySizes.cfg.safeDomains !== 'object' || ! Array.isArray(lazySizes.cfg.safeDomains)) {
 			return;
 		}
+		if(typeof lazySizes.cfg.uploadDir !== 'string' || lazySizes.cfg.uploadDir.length<1) {
+			return;
+		}
+		if(src.includes(lazySizes.cfg.uploadDir)) {
+			return;
+		}
 		var safeDomains = lazySizes.cfg.safeDomains;
 		console.log(safeDomains);
 

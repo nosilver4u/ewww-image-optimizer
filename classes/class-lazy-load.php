@@ -1649,6 +1649,7 @@ class Lazy_Load extends Page_Parser {
 					array(
 						'bg_min_dpr'     => ( \defined( 'EIO_LL_BG_MIN_DPR' ) && EIO_LL_BG_MIN_DPR ? EIO_LL_BG_MIN_DPR : 1.1 ),
 						'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
+						'upload_dir'     => $this->parse_url( $this->upload_url, PHP_URL_PATH ),
 						'safe_domains'   => \apply_filters( 'eio_lazy_safe_domains', $this->allowed_domains ),
 						'skip_autoscale' => ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
 						'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
@@ -1692,6 +1693,7 @@ class Lazy_Load extends Page_Parser {
 					array(
 						'bg_min_dpr'     => ( \defined( 'EIO_LL_BG_MIN_DPR' ) && EIO_LL_BG_MIN_DPR ? EIO_LL_BG_MIN_DPR : 1.1 ),
 						'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
+						'upload_dir'     => $this->parse_url( $this->upload_url, PHP_URL_PATH ),
 						'safe_domains'   => \apply_filters( 'eio_lazy_safe_domains', $this->allowed_domains ),
 						'skip_autoscale' => ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
 						'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
