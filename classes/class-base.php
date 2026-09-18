@@ -1129,6 +1129,37 @@ class Base {
 	}
 
 	/**
+	 * Check if writing to a location is permitted.
+	 *
+	 * @param string $file The path to check.
+	 * @return bool True if it is, false if it ain't.
+	 */
+	public function is_write_permitted( $file ) {
+		$unlimited   = false;
+		$permissions = \apply_filters( 'ewww_image_optimizer_superadmin_permissions', '' );
+		if ( is_multisite() && current_user_can( $permissions ) ) {
+			$unlimited = true;
+		} elseif ( ! is_multisite() ) {
+			$unlimited = true;
+		}
+		if ( ! $unlimited ) {
+			// Retrieve the location of the WordPress upload folder.
+			$upload_dir = wp_get_upload_dir();
+			// Retrieve the path of the upload folder from the array.
+			$upload_path = trailingslashit( $upload_dir['basedir'] );
+			$blog_id     = get_current_blog_id();
+			if ( 1 === (int) $blog_id && \str_contains( $file, $upload_path . 'sites' ) ) {
+				// Blog #1 is not allowed to write to the /sites/ folder, since that is used by all the other blogs.
+				return false;
+			} elseif ( $blog_id > 1 && ! \str_contains( $file, $upload_path . 'sites/' . $blog_id ) ) {
+				// All other blogs are not allowed to write outside of their own /sites/#/ folder.
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Sets the access and modification times of a file.
 	 *
 	 * @param string $file Path to file.
