@@ -459,16 +459,19 @@ function ewww_image_optimizer_bulk_footer_output() {
 		$help_email   = $current_user->user_email;
 		$hs_debug     = '';
 		if ( ! empty( EWWW\Base::$debug_data ) ) {
-			$hs_debug = str_replace( array( "'", '<br>', '<b>', '</b>', '=>' ), array( "\'", '\n', '**', '**', '=' ), EWWW\Base::$debug_data );
+			$hs_debug = str_replace( array( "'", '<br>', '<b>', '</b>', '=>' ), array( "\'", "\n", '**', '**', '=' ), EWWW\Base::$debug_data );
 		}
+		$beacon_data = array(
+			'email' => $help_email,
+			'text'  => "\n\n---------------------------------------\nOrigin: Bulk Optimizer\n" . $hs_debug,
+		);
 		?>
 <script>!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
 <script>
 	window.Beacon('init', 'aa9c3d3b-d4bc-4e9b-b6cb-f11c9f69da87');
-	Beacon( 'prefill', {
-		email: '<?php echo esc_js( $help_email ); ?>',
-		text: '\n\n---------------------------------------\n<?php echo wp_kses_post( $hs_debug ); ?>',
-	});
+	Beacon( 'prefill',
+		<?php echo wp_json_encode( $beacon_data ); ?>
+	);
 </script>
 		<?php
 	}
