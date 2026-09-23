@@ -21,13 +21,6 @@ if (typeof eio_lazy_vars === 'undefined'){
 if (eio_lazy_vars.threshold > 50) {
 	window.lazySizesConfig.expand = eio_lazy_vars.threshold;
 }
-window.lazySizesConfig.safeDomains = [];
-if (typeof eio_lazy_vars.safe_domains === 'object' && Array.isArray(eio_lazy_vars.safe_domains)) {
-	window.lazySizesConfig.safeDomains = eio_lazy_vars.safe_domains;
-}
-if (typeof eio_lazy_vars.upload_dir === 'string') {
-	window.lazySizesConfig.uploadDir = eio_lazy_vars.upload_dir;
-}
 console.log( 'root margin: ' + window.lazySizesConfig.expand );
 for ( const [css_index, css_image] of Object.entries(swis_lazy_css_images)){
 	console.log('processing css image ' + css_index + ': ' + css_image[0].url);

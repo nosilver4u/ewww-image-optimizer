@@ -161,25 +161,38 @@ For background images, use data-bg attribute:
 		if(uniqueUrls[src]){
 			return;
 		}
-		if(typeof lazySizes.cfg.safeDomains !== 'object' || ! Array.isArray(lazySizes.cfg.safeDomains)) {
+		if(typeof eio_lazy_vars.safe_domains !== 'object' || ! Array.isArray(eio_lazy_vars.safe_domains)) {
 			return;
 		}
-		if(typeof lazySizes.cfg.uploadDir !== 'string' || lazySizes.cfg.uploadDir.length<1) {
+		if(typeof eio_lazy_vars.safe_paths !== 'object' || ! Array.isArray(eio_lazy_vars.safe_paths)) {
 			return;
 		}
-		if(src.includes(lazySizes.cfg.uploadDir)) {
-			return;
-		}
-		var safeDomains = lazySizes.cfg.safeDomains;
+		const safeDomains = eio_lazy_vars.safe_domains;
 		console.log(safeDomains);
+		const safePaths = eio_lazy_vars.safe_paths;
+		console.log(safePaths);
 
 		var validSrc = false;
 		var i = 0;
+		var k = 0;
+		try {
+			var parsedSrc = new URL(src);
+		} catch (error) {
+			console.log(error);
+			return;
+		}
 		for(; i < safeDomains.length; i++){
-			console.log('checking if ' + src + ' matches ' + 'http(s)://' + safeDomains[i] + '/');
-			if(src.startsWith('http://' + safeDomains[i] + '/')||src.startsWith('https://' + safeDomains[i] + '/')){
-				console.log('src is valid');
-				validSrc = true;
+			console.log('checking if ' + src + ' matches ' + safeDomains[i]);
+			if(parsedSrc.hostname === safeDomains[i]){
+				k = 0;
+				for(; k <safePaths.length; k++){
+					console.log('checking if ' + src + ' matches ' + safePaths[k]);
+					if (parsedSrc.pathname.startsWith(safePaths[k])) {
+						console.log('src is valid');
+						validSrc = true;
+						break;
+					}
+				}
 				break;
 			}
 		}

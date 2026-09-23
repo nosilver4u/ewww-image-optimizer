@@ -1627,7 +1627,7 @@ class Lazy_Load extends Page_Parser {
 			return;
 		}
 		$in_footer = array(
-			'strategy'  => 'async',
+			'strategy'  => 'defer',
 			'in_footer' => true,
 		);
 		if ( \defined( 'EIO_LL_FOOTER' ) && ! EIO_LL_FOOTER ) {
@@ -1641,22 +1641,27 @@ class Lazy_Load extends Page_Parser {
 		if ( \defined( \strtoupper( $this->prefix ) . 'LAZY_PRINT' ) && \constant( \strtoupper( $this->prefix ) . 'LAZY_PRINT' ) ) {
 			\wp_enqueue_script( 'eio-lazy-load-print', \plugins_url( '/includes/ls.print.js', $plugin_file ), array(), $this->version, $in_footer );
 		}
-		$threshold = \defined( 'EIO_LL_THRESHOLD' ) && EIO_LL_THRESHOLD ? EIO_LL_THRESHOLD : 0;
+		$threshold  = \defined( 'EIO_LL_THRESHOLD' ) && EIO_LL_THRESHOLD ? EIO_LL_THRESHOLD : 0;
+		$safe_paths = array(
+			$this->parse_url( \plugins_url(), PHP_URL_PATH ),
+			$this->parse_url( \get_theme_root_uri(), PHP_URL_PATH ),
+			$this->parse_url( \includes_url(), PHP_URL_PATH ),
+		);
 		\wp_add_inline_script(
 			'eio-lazy-load-pre',
-			'var eio_lazy_vars = ' .
+			'const eio_lazy_vars = ' .
 				\wp_json_encode(
 					array(
 						'bg_min_dpr'     => ( \defined( 'EIO_LL_BG_MIN_DPR' ) && EIO_LL_BG_MIN_DPR ? EIO_LL_BG_MIN_DPR : 1.1 ),
 						'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
-						'upload_dir'     => $this->parse_url( $this->upload_url, PHP_URL_PATH ),
+						'safe_paths'     => \apply_filters( 'eio_lazy_safe_paths', $safe_paths ),
 						'safe_domains'   => \apply_filters( 'eio_lazy_safe_domains', $this->allowed_domains ),
 						'skip_autoscale' => ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
 						'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
 						'use_dpr'        => (int) $this->get_option( 'exactdn_hidpi' ),
 					)
 				)
-				. ';',
+				. ';Object.freeze(eio_lazy_vars);',
 			'before'
 		);
 		return;
@@ -1686,21 +1691,26 @@ class Lazy_Load extends Page_Parser {
 			\wp_enqueue_script( 'eio-lazy-load-print', \plugins_url( '/includes/ls.print.min.js', $plugin_file ), array(), $this->version, $in_footer );
 		}
 		$threshold = \defined( 'EIO_LL_THRESHOLD' ) && EIO_LL_THRESHOLD ? EIO_LL_THRESHOLD : 0;
+		$safe_paths = array(
+			$this->parse_url( \plugins_url(), PHP_URL_PATH ),
+			$this->parse_url( \get_theme_root_uri(), PHP_URL_PATH ),
+			$this->parse_url( \includes_url(), PHP_URL_PATH ),
+		);
 		\wp_add_inline_script(
 			'eio-lazy-load',
-			'var eio_lazy_vars = ' .
+			'const eio_lazy_vars = ' .
 				\wp_json_encode(
 					array(
 						'bg_min_dpr'     => ( \defined( 'EIO_LL_BG_MIN_DPR' ) && EIO_LL_BG_MIN_DPR ? EIO_LL_BG_MIN_DPR : 1.1 ),
 						'exactdn_domain' => ( $this->parsing_exactdn ? $this->exactdn_domain : '' ),
-						'upload_dir'     => $this->parse_url( $this->upload_url, PHP_URL_PATH ),
+						'safe_paths'     => \apply_filters( 'eio_lazy_safe_paths', $safe_paths ),
 						'safe_domains'   => \apply_filters( 'eio_lazy_safe_domains', $this->allowed_domains ),
 						'skip_autoscale' => ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ? 1 : 0 ),
 						'threshold'      => (int) $threshold > 50 ? (int) $threshold : 0,
 						'use_dpr'        => (int) $this->get_option( 'exactdn_hidpi' ),
 					)
 				)
-				. ';',
+				. ';Object.freeze(eio_lazy_vars);',
 			'before'
 		);
 		return;
