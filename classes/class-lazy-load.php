@@ -1690,7 +1690,7 @@ class Lazy_Load extends Page_Parser {
 		if ( \defined( \strtoupper( $this->prefix ) . 'LAZY_PRINT' ) && \constant( \strtoupper( $this->prefix ) . 'LAZY_PRINT' ) ) {
 			\wp_enqueue_script( 'eio-lazy-load-print', \plugins_url( '/includes/ls.print.min.js', $plugin_file ), array(), $this->version, $in_footer );
 		}
-		$threshold = \defined( 'EIO_LL_THRESHOLD' ) && EIO_LL_THRESHOLD ? EIO_LL_THRESHOLD : 0;
+		$threshold  = \defined( 'EIO_LL_THRESHOLD' ) && EIO_LL_THRESHOLD ? EIO_LL_THRESHOLD : 0;
 		$safe_paths = array(
 			$this->parse_url( \plugins_url(), PHP_URL_PATH ),
 			$this->parse_url( \get_theme_root_uri(), PHP_URL_PATH ),
