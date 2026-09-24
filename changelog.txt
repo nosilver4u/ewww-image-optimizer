@@ -1,3 +1,13 @@
+= 8.8.0 =
+*Release Date - September 24, 2026*
+
+* added: quality setting for Premium compression, Premium Plus removed/migrated to quality 77
+* fixed: fatal error when fetching remote images via WP Offload Media due to strict type casting
+* fixed: multisite file modification outside upload directory
+* security: PHP object injection, reported by Karthik Ramakrishnan
+* security: further hardening of stored XSS fix, reported by Charles Vosburgh and Intrudify
+* security: prevent reflected XSS
+
 = 8.7.7 =
 *Release Date = September 1, 2026*
 
