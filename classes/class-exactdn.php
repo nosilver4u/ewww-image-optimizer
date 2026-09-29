@@ -2047,7 +2047,8 @@ class ExactDN extends Page_Parser {
 					}
 				}
 				if ( $style !== $new_style ) {
-					$element = \str_replace( $style, \esc_attr( $new_style ), $element );
+					// Do not run esc_attr here as it the CSS may already have HTML entities and we do not decode it.
+					$element = \str_replace( $style, $new_style, $element );
 				}
 				if ( $skip_autoscale ) {
 					$new_class = 'skip-autoscale';
