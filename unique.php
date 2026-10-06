@@ -545,7 +545,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					$optipng_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_optipng_level' );
 					if (
 						ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) &&
-						preg_match( '/0.7/', ewwwio()->local->test_binary( $tools['optipng'], 'optipng' ) ) &&
+						preg_match( '/(0\.7\.\d|7\.\d\.\d)/', ewwwio()->local->test_binary( $tools['optipng'], 'optipng' ) ) &&
 						! $keep_metadata
 					) {
 						$strip = '-strip all ';
@@ -755,7 +755,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					$strip         = '';
 					if (
 						ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) &&
-						preg_match( '/0.7/', ewwwio()->local->test_binary( $tools['optipng'], 'optipng' ) ) &&
+						preg_match( '/(0\.7\.\d|7\.\d\.\d)/', ewwwio()->local->test_binary( $tools['optipng'], 'optipng' ) ) &&
 						! $keep_metadata
 					) {
 						$strip = '-strip all ';
@@ -1056,7 +1056,7 @@ function ewww_image_optimizer( $file, $gallery_type = 4, $converted = false, $ne
 					$optipng_level = (int) ewww_image_optimizer_get_option( 'ewww_image_optimizer_optipng_level' );
 					if (
 						ewww_image_optimizer_get_option( 'ewww_image_optimizer_metadata_remove' ) &&
-						preg_match( '/0.7/', ewwwio()->local->test_binary( $tools['optipng'], 'optipng' ) ) &&
+						preg_match( '/(0\.7\.\d|7\.\d\.\d)/', ewwwio()->local->test_binary( $tools['optipng'], 'optipng' ) ) &&
 						! $keep_metadata
 					) {
 						$strip = '-strip all ';
