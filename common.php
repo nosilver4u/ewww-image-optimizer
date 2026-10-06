@@ -24,7 +24,10 @@ use lsolesen\pel\PelTag;
 add_action( 'init', 'ewww_image_optimizer_parser_init', 99 );
 // Check the current screen ID to see if temp debugging should still be enabled.
 add_action( 'current_screen', 'ewww_image_optimizer_current_screen', 10, 1 );
-
+// Add a checkbox to the classic media uploader to bypass resizing for this upload.
+add_action( 'load-media-new.php', 'ewww_image_optimizer_add_disable_resize_checkbox' );
+// Adds a checkbox to the sidebar of block image upload to bypass resizing.
+add_action( 'add_meta_boxes', 'ewww_image_optimizer_add_disable_resize_metabox' );
 // Ensures we update the filesize data in the meta.
 // add_filter( 'wp_update_attachment_metadata', 'ewww_image_optimizer_update_filesize_metadata', 9, 2 );
 // Skips resizing for images with 'noresize' in the filename.
@@ -272,6 +275,75 @@ function ewww_image_optimizer_buffer_start() {
 function ewww_image_optimizer_filter_page_output( $buffer ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
 	return apply_filters( 'ewww_image_optimizer_filter_page_output', $buffer );
+}
+
+/**
+ * Registers the "Disable Resizing by EWWW IO" checkbox on the media upload page.
+ */
+function ewww_image_optimizer_add_disable_resize_checkbox() {
+	add_action( 'post-upload-ui', 'ewww_image_optimizer_disable_resize_checkbox_html' );
+}
+/**
+ * Outputs the "Disable Resizing by EWWW IO" checkbox HTML.
+ */
+function ewww_image_optimizer_disable_resize_checkbox_html() {
+	?>
+	<p class="ewww-disable-resize-wrap"><label>
+		<input type="checkbox" id="ewww-disable-resize" />
+		<?php esc_html_e( 'Disable Resizing by EWWW IO', 'ewww-image-optimizer' ); ?>
+	</label></p>
+	<script>
+	jQuery( function( $ ) {
+		if ( typeof uploader === 'undefined' || ! uploader.bind ) {
+			return;
+		}
+		uploader.bind( 'BeforeUpload', function( up ) {
+			up.settings.multipart_params.ewww_disable_resize =
+				$( '#ewww-disable-resize' ).is( ':checked' ) ? 1 : 0;
+		});
+	});
+	</script>
+	<?php
+}
+
+/**
+ * Registers the "Disable Resizing by EWWW IO" meta box in the post editor sidebar.
+ */
+function ewww_image_optimizer_add_disable_resize_metabox() {
+	add_meta_box(
+		'ewww-disable-resize-metabox',
+		esc_html__( 'EWWW Image Optimizer', 'ewww-image-optimizer' ),
+		'ewww_image_optimizer_disable_resize_metabox_html',
+		array( 'post', 'page' ),
+		'side',
+		'default'
+	);
+}
+/**
+ * Puts a checkbox on the sidebar for block-editor uploads of media to disable the resizing.
+ */
+function ewww_image_optimizer_disable_resize_metabox_html() {
+	?>
+	<p><label>
+		<input type="checkbox" id="ewww-disable-resize" />
+		<?php esc_html_e( 'Disable Resizing by EWWW IO', 'ewww-image-optimizer' ); ?>
+	</label></p>
+	<script>
+	( function() {
+		if ( typeof wp === 'undefined' || ! wp.apiFetch || ! wp.apiFetch.use ) {
+			return;
+		}
+		wp.apiFetch.use( function( options, next ) {
+			var path = options.path || options.url || '';
+			var checkbox = document.getElementById( 'ewww-disable-resize' );
+			if ( checkbox && checkbox.checked && path.indexOf( '/wp/v2/media' ) !== -1 ) {
+				options.body.append( 'ewww_disable_resize', '1' );
+			}
+			return next( options );
+		});
+	})();
+	</script>
+	<?php
 }
 
 /**
@@ -7477,7 +7549,7 @@ function ewww_image_optimizer_autoconvert( $file ) {
  * @return array The new dimensions for resizing.
  */
 function ewww_image_optimizer_noresize( $dimensions, $filename ) {
-	if ( strpos( $filename, 'noresize' ) !== false ) {
+	if ( strpos( $filename, 'noresize' ) !== false || ! empty( $_REQUEST['ewww_disable_resize'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- boolean flag only
 		add_filter( 'big_image_size_threshold', '__return_false' );
 		return array( 0, 0 );
 	}
