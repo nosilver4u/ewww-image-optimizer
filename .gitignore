@@ -2,3 +2,4 @@
 ewww-image-optimizer.sublime-workspace
 ewww-image-optimizer.sublime-project
 vendor/php-stubs/*
+.DS_Store
