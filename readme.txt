@@ -180,6 +180,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 
 * fixed: regression in Easy IO handling of style attributes causes HTML entities to be double-encoded
 * fixed: PNG metadata not removed when using local optipng
+* fixed: images with fetchpriority="high" do not get skipped by Lazy Load when Picture WebP delivery is enabled
 * security: yet more hardening against stored XSS attacks, thanks to WPScan for reporting 
 
 = 8.8.0 =

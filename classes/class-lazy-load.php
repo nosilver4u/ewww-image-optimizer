@@ -619,6 +619,7 @@ class Lazy_Load extends Page_Parser {
 				}
 				$picture_tag = $picture[0];
 				$position    = $picture[1];
+				$this->debug_message( "parsing a picture element: $picture_tag" );
 				if ( ! $this->validate_image_tag( $picture_tag ) ) {
 					continue;
 				}
@@ -641,6 +642,8 @@ class Lazy_Load extends Page_Parser {
 						$this->set_attribute( $ns_img, 'data-eio', 'l', true );
 						$noscript    = '<noscript>' . $ns_img . '</noscript>';
 						$picture_tag = \str_replace( $orig_img, $image, $picture_tag ) . $noscript;
+					} else {
+						continue;
 					}
 				} else {
 					continue;
@@ -1268,7 +1271,7 @@ class Lazy_Load extends Page_Parser {
 			return false;
 		}
 		// Ignore 0-size Pinterest schema images.
-		if ( \strpos( $image, 'data-pin-description=' ) && \strpos( $image, 'width="0" height="0"' ) ) {
+		if ( \str_contains( $image, 'data-pin-description=' ) && \str_contains( $image, 'width="0" height="0"' ) ) {
 			$this->debug_message( 'data-pin-description img skipped' );
 			return false;
 		}
@@ -1279,7 +1282,7 @@ class Lazy_Load extends Page_Parser {
 			$autoscaling = false;
 		}
 		if ( ! $autoscaling ) {
-			if ( \strpos( $image, 'fetchpriority="high"' ) || \strpos( $image, "fetchpriority='high'" ) ) {
+			if ( \str_contains( $image, 'fetchpriority="high"' ) || \str_contains( $image, "fetchpriority='high'" ) ) {
 				$this->debug_message( 'no autoscaling for this image, and lcp indicated' );
 				return false;
 			}
