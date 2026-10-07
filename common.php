@@ -283,6 +283,7 @@ function ewww_image_optimizer_filter_page_output( $buffer ) {
 function ewww_image_optimizer_add_disable_resize_checkbox() {
 	add_action( 'post-upload-ui', 'ewww_image_optimizer_disable_resize_checkbox_html' );
 }
+
 /**
  * Outputs the "Disable Resizing by EWWW IO" checkbox HTML.
  */
@@ -319,6 +320,7 @@ function ewww_image_optimizer_add_disable_resize_metabox() {
 		'default'
 	);
 }
+
 /**
  * Puts a checkbox on the sidebar for block-editor uploads of media to disable the resizing.
  */
@@ -10826,63 +10828,78 @@ function ewww_image_optimizer_savings( $network = false ) {
  */
 function ewww_image_optimizer_test_webp_mime_error() {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
-	$positive_test = false;
-	$negative_test = false;
-	$test_url      = plugins_url( '/images/test.png', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ) . '?m=' . time();
+	global $ewwwio_webp_mime_error;
+	if ( isset( $ewwwio_webp_mime_error ) ) {
+		return $ewwwio_webp_mime_error;
+	}
+	$ewwwio_webp_mime_error = '';
+	$positive_test          = false;
+	$negative_test          = false;
+	$test_url               = plugins_url( '/images/test.png', EWWW_IMAGE_OPTIMIZER_PLUGIN_FILE ) . '?m=' . time();
 	add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 
 	// Run the "positive" test, which should receive a WebP in a .png wrapper.
 	$test_result = wp_remote_get( $test_url, array( 'headers' => 'Accept: image/webp' ) );
 	if ( is_wp_error( $test_result ) ) {
-		$error_message = $test_result->get_error_message();
-		ewwwio_debug_message( "webp verification request failed: $error_message" );
-		return $error_message;
+		$ewwwio_webp_mime_error = $test_result->get_error_message();
+		ewwwio_debug_message( "webp verification request failed: $ewwwio_webp_mime_error" );
+		return $ewwwio_webp_mime_error;
 	} elseif ( empty( $test_result['body'] ) ) {
 		ewwwio_debug_message( 'webp verification response empty' );
-		return __( 'WebP response was empty', 'ewww-image-optimizer' );
+		$ewwwio_webp_mime_error = __( 'WebP response was empty', 'ewww-image-optimizer' );
+		return $ewwwio_webp_mime_error;
 	} elseif ( strlen( $test_result['body'] ) < 300 ) {
 		ewwwio_debug_message( 'webp verification response too small: ' . strlen( $test_result['body'] ) );
-		return __( 'WebP response was too small', 'ewww-image-optimizer' );
+		$ewwwio_webp_mime_error = __( 'WebP response was too small', 'ewww-image-optimizer' );
+		return $ewwwio_webp_mime_error;
 	} elseif ( empty( $test_result['response']['code'] ) ) {
 		ewwwio_debug_message( 'webp test received unknown response code' );
-		return __( 'WebP response status code missing', 'ewww-image-optimizer' );
+		$ewwwio_webp_mime_error = __( 'WebP response status code missing', 'ewww-image-optimizer' );
+		return $ewwwio_webp_mime_error;
 	} elseif ( 200 !== (int) $test_result['response']['code'] ) {
 		ewwwio_debug_message( 'webp test received response code: ' . $test_result['response']['code'] );
 		/* translators: %d: the HTTP status code */
-		return sprintf( __( 'WebP response received status %d', 'ewww-image-optimizer' ), $test_result['response']['code'] );
+		$ewwwio_webp_mime_error = sprintf( __( 'WebP response received status %d', 'ewww-image-optimizer' ), $test_result['response']['code'] );
+		return $ewwwio_webp_mime_error;
 	} elseif ( '52494646' === bin2hex( substr( $test_result['body'], 0, 4 ) ) ) {
 		ewwwio_debug_message( 'webp (real-world) verification succeeded' );
 		$positive_test = true;
 	} else {
 		ewwwio_debug_message( 'webp mime check failed: ' . bin2hex( substr( $test_result['body'], 0, 3 ) ) );
-		return __( 'WebP response failed mime-type test. Purge all caches and try again.', 'ewww-image-optimizer' );
+		$ewwwio_webp_mime_error = __( 'WebP response failed mime-type test. Purge all caches and try again.', 'ewww-image-optimizer' );
+		return $ewwwio_webp_mime_error;
 	}
 	$test_url .= '1';
 	// Run the "negative" test, which should receive the original PNG image.
 	$test_result = wp_remote_get( $test_url );
 	if ( is_wp_error( $test_result ) ) {
-		$error_message = $test_result->get_error_message();
-		ewwwio_debug_message( "png verification request failed: $error_message" );
-		return $error_message;
+		$ewwwio_webp_mime_error = $test_result->get_error_message();
+		ewwwio_debug_message( "png verification request failed: $ewwwio_webp_mime_error" );
+		return $ewwwio_webp_mime_error;
 	} elseif ( empty( $test_result['body'] ) ) {
 		ewwwio_debug_message( 'png verification response empty' );
-		return __( 'PNG response was empty', 'ewww-image-optimizer' );
+		$ewwwio_webp_mime_error = __( 'PNG response was empty', 'ewww-image-optimizer' );
+		return $ewwwio_webp_mime_error;
 	} elseif ( strlen( $test_result['body'] ) < 300 ) {
 		ewwwio_debug_message( 'png verification response too small: ' . strlen( $test_result['body'] ) );
-		return __( 'PNG response was too small', 'ewww-image-optimizer' );
+		$ewwwio_webp_mime_error = __( 'PNG response was too small', 'ewww-image-optimizer' );
+		return $ewwwio_webp_mime_error;
 	} elseif ( empty( $test_result['response']['code'] ) ) {
 		ewwwio_debug_message( 'png test received unknown response code' );
-		return __( 'PNG response status code missing', 'ewww-image-optimizer' );
+		$ewwwio_webp_mime_error = __( 'PNG response status code missing', 'ewww-image-optimizer' );
+		return $ewwwio_webp_mime_error;
 	} elseif ( 200 !== (int) $test_result['response']['code'] ) {
 		ewwwio_debug_message( 'png test received response code: ' . $test_result['response']['code'] );
 		/* translators: %d: the HTTP status code */
-		return sprintf( __( 'PNG response received status %d', 'ewww-image-optimizer' ), $test_result['response']['code'] );
+		$ewwwio_webp_mime_error = sprintf( __( 'PNG response received status %d', 'ewww-image-optimizer' ), $test_result['response']['code'] );
+		return $ewwwio_webp_mime_error;
 	} elseif ( '89504e470d0a1a0a' === bin2hex( substr( $test_result['body'], 0, 8 ) ) ) {
 		ewwwio_debug_message( 'png (real-world) verification succeeded' );
 		$negative_test = true;
 	} else {
 		ewwwio_debug_message( 'png mime check failed: ' . bin2hex( substr( $test_result['body'], 0, 3 ) ) );
-		return __( 'PNG response failed mime-type test', 'ewww-image-optimizer' );
+		$ewwwio_webp_mime_error = __( 'PNG response failed mime-type test', 'ewww-image-optimizer' );
+		return $ewwwio_webp_mime_error;
 	}
 	if ( ! $positive_test || ! $negative_test ) {
 		ewwwio_debug_message( 'no idea what happened' );
