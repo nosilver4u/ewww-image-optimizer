@@ -194,7 +194,9 @@ class Background_Process_Image extends Background_Process {
 				if ( empty( $meta ) || ! \is_array( $meta ) ) {
 					$meta = \wp_get_attachment_metadata( $image->attachment_id );
 				}
-				$new_dimensions = \ewww_image_optimizer_resize_upload( $image->file );
+				if ( empty( $meta['ewww_noresize'] ) ) {
+					$new_dimensions = \ewww_image_optimizer_resize_upload( $image->file );
+				}
 				if ( ! empty( $new_dimensions ) && \is_array( $new_dimensions ) ) {
 					$meta['width']  = $new_dimensions[0];
 					$meta['height'] = $new_dimensions[1];

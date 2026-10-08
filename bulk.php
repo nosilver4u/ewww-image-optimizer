@@ -1789,7 +1789,7 @@ function ewww_image_optimizer_media_scan( $hook = '' ) {
 				continue;
 			}
 
-			$should_resize = ewww_image_optimizer_should_resize( $file_path, true );
+			$should_resize = empty( $meta['ewww_noresize'] ) && ewww_image_optimizer_should_resize( $file_path, true );
 			if (
 				! empty( $attachments_meta[ $selected_id ]['tinypng'] ) &&
 				empty( ewwwio()->force ) &&
@@ -2523,7 +2523,9 @@ function ewww_image_optimizer_bulk_loop( $hook = '', $delay = 0 ) {
 			if ( empty( $meta ) || ! is_array( $meta ) ) {
 				$meta = wp_get_attachment_metadata( $image->attachment_id );
 			}
-			$new_dimensions = ewww_image_optimizer_resize_upload( $image->file );
+			if ( empty( $meta['ewww_noresize'] ) ) {
+				$new_dimensions = ewww_image_optimizer_resize_upload( $image->file );
+			}
 			if ( ! empty( $new_dimensions ) && is_array( $new_dimensions ) ) {
 				$meta['width']  = $new_dimensions[0];
 				$meta['height'] = $new_dimensions[1];

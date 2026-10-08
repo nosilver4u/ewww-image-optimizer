@@ -339,7 +339,9 @@ function ewww_image_optimizer_disable_resize_metabox_html() {
 			var path = options.path || options.url || '';
 			var checkbox = document.getElementById( 'ewww-disable-resize' );
 			if ( checkbox && checkbox.checked && path.indexOf( '/wp/v2/media' ) !== -1 ) {
-				options.body.append( 'ewww_disable_resize', '1' );
+				if ( typeof options.body === 'object' && typeof options.body.append === 'function' ) {
+					options.body.append( 'ewww_disable_resize', '1' );
+				}
 			}
 			return next( options );
 		});
@@ -8465,6 +8467,9 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 		ewwwio_debug_message( 'attachment meta is not a usable array' );
 		return $meta;
 	}
+	if ( ! empty( $_REQUEST['ewww_disable_resize'] ) && empty( $meta['ewww_noresize'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- boolean flag only
+		$meta['ewww_noresize'] = 1;
+	}
 	ewwwio_debug_message( 'request URI: ' . EWWW\Base::$request_uri );
 	if ( empty( $meta['sizes'] ) && wp_is_rest_endpoint() && str_contains( EWWW\Base::$request_uri, 'wp/v2/media' ) && isset( $_REQUEST['generate_sub_sizes'] ) && 'false' === $_REQUEST['generate_sub_sizes'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 		ewwwio_debug_message( 'sub-sizes not generating yet, come back later' );
@@ -8532,7 +8537,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 	$ewww_image->resize = 'full';
 
 	// Resize here so long as this is not a new image AND resize existing is enabled, and imsanity isn't enabled with a max size.
-	if ( ( empty( $new_image ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) ) && ! function_exists( 'imsanity_get_max_width_height' ) ) {
+	if ( empty( $meta['ewww_noresize'] ) && empty( $new_image ) && ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) && ! function_exists( 'imsanity_get_max_width_height' ) ) {
 		ewwwio_debug_message( 'not a new image, resize existing enabled, and Imsanity not detected' );
 		$new_dimensions = ewww_image_optimizer_resize_upload( $file_path );
 		if ( is_array( $new_dimensions ) ) {
@@ -8552,7 +8557,7 @@ function ewww_image_optimizer_resize_from_meta_data( $meta, $id = null, $log = t
 	}
 
 	// Resize here if the user has used the filter to defer resizing, we have a new image OR resize existing is enabled, and imsanity isn't enabled with a max size.
-	if ( apply_filters( 'ewww_image_optimizer_defer_resizing', false ) && ( ! empty( $new_image ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) ) && ! function_exists( 'imsanity_get_max_width_height' ) ) {
+	if ( empty( $meta['ewww_noresize'] ) && apply_filters( 'ewww_image_optimizer_defer_resizing', false ) && ( ! empty( $new_image ) || ewww_image_optimizer_get_option( 'ewww_image_optimizer_resize_existing' ) ) && ! function_exists( 'imsanity_get_max_width_height' ) ) {
 		ewwwio_debug_message( 'resizing defered and ( new image or resize existing enabled ) and Imsanity not detected' );
 		$new_dimensions = ewww_image_optimizer_resize_upload( $file_path );
 		if ( is_array( $new_dimensions ) ) {
@@ -13720,7 +13725,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				elseif ( $nginx_server ) :
 					$header_error = '';
 				else :
-					if ( defined( 'PHP_SAPI' ) && false === strpos( PHP_SAPI, 'apache' ) && false === strpos( PHP_SAPI, 'litespeed' ) ) {
+					if ( defined( 'PHP_SAPI' ) && ! str_contains( PHP_SAPI, 'apache' ) && ! str_contains( PHP_SAPI, 'litespeed' ) ) {
 						$false_positive_headers = esc_html__( 'This may be a false positive. If so, the warning should go away once you implement the rewrite rules.', 'ewww-image-optimizer' );
 					}
 					if ( ! apache_mod_loaded( 'mod_rewrite' ) ) {

@@ -178,9 +178,11 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 8.8.1 =
 *Release Date - TBD*
 
+* added: option to disable resizing via maximum dimensions on media uploader and in post editor
 * fixed: regression in Easy IO handling of style attributes causes HTML entities to be double-encoded
 * fixed: PNG metadata not removed when using local optipng
 * fixed: images with fetchpriority="high" do not get skipped by Lazy Load when Picture WebP delivery is enabled
+* fixed: duplicate WebP delivery checks run on settings page
 * security: yet more hardening against stored XSS attacks, thanks to WPScan for reporting 
 
 = 8.8.0 =
