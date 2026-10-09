@@ -865,7 +865,9 @@ jQuery(document).ready(function($) {
 			$('#webp-rewrite-rules').hide();
 			$('#ewww-webp-insert').hide();
 			ewww_webp_image = document.getElementById('ewww-webp-image').src;
-			document.getElementById('ewww-webp-image').src = removeQueryArg(ewww_webp_image) + '?m=' + new Date().getTime();
+			setTimeout(() => {
+				document.getElementById('ewww-webp-image').src = removeQueryArg(ewww_webp_image) + '?m=' + new Date().getTime();
+			}, 1100);
 		});
 		return false;
 	});
@@ -881,7 +883,9 @@ jQuery(document).ready(function($) {
 			$('#ewww-webp-rewrite-status').hide();
 			$('#ewww-webp-remove').hide();
 			ewww_webp_image = document.getElementById('ewww-webp-image').src;
-			document.getElementById('ewww-webp-image').src = removeQueryArg(ewww_webp_image) + '?m' + new Date().getTime();
+			setTimeout(() => {
+				document.getElementById('ewww-webp-image').src = removeQueryArg(ewww_webp_image) + '?m' + new Date().getTime();
+			}, 1100);
 		});
 		return false;
 	});
