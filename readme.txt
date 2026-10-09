@@ -183,6 +183,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: PNG metadata not removed when using local optipng
 * fixed: images with fetchpriority="high" do not get skipped by Lazy Load when Picture WebP delivery is enabled
 * fixed: duplicate WebP delivery checks run on settings page
+* fixed: race condition with some LiteSpeed servers causes incorrect WebP test image to display
 * security: yet more hardening against stored XSS attacks, thanks to WPScan for reporting 
 
 = 8.8.0 =
