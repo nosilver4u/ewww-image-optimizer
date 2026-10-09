@@ -13751,22 +13751,22 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 				);
 			elseif ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp' ) && ( ! $webp_mime_error || $webp_rewrite_verify ) ) :
 				?>
-							<div id='ewww-webp-rewrite'>
+							<div id="ewww-webp-rewrite">
 								<div class="ewwwio-flex-space-between">
 									<div class="ewww-webp-rewrite-left-wrapper">
-										<p id='ewww-webp-rewrite-status'>
+										<p id="ewww-webp-rewrite-status">
 											<?php esc_html_e( 'WebP Rules verified successfully', 'ewww-image-optimizer' ); ?>
 										</p>
 				<?php if ( $webp_rewrite_verify ) : ?>
-										<div id='ewww-webp-rewrite-result'></div>
-										<button type='button' id='ewww-webp-remove' class='button-secondary action'><?php esc_html_e( 'Remove Rewrite Rules', 'ewww-image-optimizer' ); ?></button>
+										<div id="ewww-webp-rewrite-result"></div>
+										<button type="button" id="ewww-webp-remove" class="button-secondary action"><?php esc_html_e( 'Remove Rewrite Rules', 'ewww-image-optimizer' ); ?></button>
 				<?php endif; ?>
 									</div>
-									<img id='ewww-webp-image' src='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='>
+									<img id="ewww-webp-image" height="70" width="100" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
 								</div>
 							</div>
 			<?php else : ?>
-							<p class='ewww-webp-rewrite-info'>
+							<p class="ewww-webp-rewrite-info">
 				<?php if ( $nginx_server ) : ?>
 								<?php
 								printf(
@@ -13785,9 +13785,9 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 								?>
 				<?php endif; ?>
 							</p>
-							<div id='ewww-webp-rewrite'>
+							<div id="ewww-webp-rewrite">
 				<?php if ( ! $nginx_server && 'append' === ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' ) ) : ?>
-<pre id='webp-rewrite-rules'>&lt;IfModule mod_rewrite.c&gt;
+<pre id="webp-rewrite-rules">&lt;IfModule mod_rewrite.c&gt;
 	RewriteEngine On
 	RewriteCond %{HTTP_ACCEPT} image/webp
 	RewriteCond %{REQUEST_FILENAME} (.*)\.(jpe?g|png|gif)$
@@ -13802,7 +13802,7 @@ function ewww_image_optimizer_options( $network = 'singlesite' ) {
 &lt;/IfModule&gt;
 AddType image/webp .webp</pre>
 				<?php elseif ( ! $nginx_server && 'replace' === ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_naming_mode', 'append' ) ) : ?>
-<pre id='webp-rewrite-rules'>&lt;IfModule mod_rewrite.c&gt;
+<pre id="webp-rewrite-rules">&lt;IfModule mod_rewrite.c&gt;
 	RewriteEngine On
 	RewriteCond %{HTTP_ACCEPT} image/webp
 	RewriteCond %{REQUEST_FILENAME} (.*)\.(jpe?g|png|gif)$
@@ -13819,20 +13819,20 @@ AddType image/webp .webp</pre>
 				<?php endif; ?>
 								<div class="ewwwio-flex-space-between">
 									<div class="ewww-webp-rewrite-left-wrapper">
-										<p id='ewww-webp-rewrite-status'>
+										<p id="ewww-webp-rewrite-status">
 											<?php esc_html_e( 'The image to the right will display a WebP image with WEBP in white text, if your site is serving WebP images and your browser supports WebP.', 'ewww-image-optimizer' ); ?>
 										</p>
 				<?php if ( ! $nginx_server ) : ?>
-										<div id='ewww-webp-rewrite-result'></div>
-										<button type='button' id='ewww-webp-insert' class='button-secondary action'><?php esc_html_e( 'Insert Rewrite Rules', 'ewww-image-optimizer' ); ?></button>
-										<div id='ewww-webp-rewrite-save-settings' style='display:none;'>
-											<p class='description'>
+										<div id="ewww-webp-rewrite-result"></div>
+										<button type="button" id="ewww-webp-insert" class="button-secondary action"><?php esc_html_e( 'Insert Rewrite Rules', 'ewww-image-optimizer' ); ?></button>
+										<div id="ewww-webp-rewrite-save-settings" style="display:none;">
+											<p class="description">
 												<?php esc_html_e( 'Please save your settings before inserting rewrite rules.', 'ewww-image-optimizer' ); ?>
 											</p>
 										</div>
 				<?php endif; ?>
 									</div>
-									<img id='ewww-webp-image' src='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='>
+									<img id="ewww-webp-image" height="70" width="100" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
 								</div>
 							</div>
 			<?php endif; ?>
