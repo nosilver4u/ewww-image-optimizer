@@ -8405,6 +8405,31 @@ function ewwwio_remove_original_image( $id, $meta = null ) {
 }
 
 /**
+ * Checks if attachment meta is ready for optimization.
+ *
+ * @param array $meta The attachment metadata.
+ * @return bool True if the meta is ready, false if not.
+ */
+function ewww_image_optimizer_attachment_meta_ready( $meta ) {
+	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
+	if ( ! is_array( $meta ) || empty( $meta ) ) {
+		ewwwio_debug_message( 'attachment meta is not a usable array' );
+		return false;
+	}
+	$thumb_w = get_option( 'thumbnail_size_w' );
+	$thumb_h = get_option( 'thumbnail_size_h' );
+	if ( ! empty( $meta['width'] ) && $meta['width'] > $thumb_w && empty( $meta['sizes'] ) ) {
+		ewwwio_debug_message( "image width ({$meta['width']}) is larger than thumbnail width ($thumb_w), but meta is missing sizes" );
+		return false;
+	}
+	if ( ! empty( $meta['height'] ) && $meta['height'] > $thumb_h && empty( $meta['sizes'] ) ) {
+		ewwwio_debug_message( "image height ({$meta['height']}) is larger than thumbnail height ($thumb_h), but meta is missing sizes" );
+		return false;
+	}
+	return true;
+}
+
+/**
  * Queues an image attachment for async processing.
  *
  * @param int  $id The attachment ID number.

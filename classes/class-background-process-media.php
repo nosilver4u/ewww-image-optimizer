@@ -159,7 +159,7 @@ class Background_Process_Media extends Background_Process {
 				$missing_meta_bail = true;
 			}
 		}
-		if ( in_array( $type, $supported_types, true ) && ( empty( $meta ) || empty( $meta['sizes'] ) ) && $missing_meta_bail ) {
+		if ( in_array( $type, $supported_types, true ) && ! ewww_image_optimizer_attachment_meta_ready( $meta ) && $missing_meta_bail ) {
 			ewwwio_debug_message( "metadata is missing, requeueing (previous attempts: {$item['attempts']})" );
 			sleep( 4 );
 			return $item;

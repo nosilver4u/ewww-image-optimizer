@@ -3314,7 +3314,7 @@ class ExactDN extends Page_Parser {
 			$this->debug_message( 'no TST plugin' );
 			return $args;
 		}
-		if ( ! $meta || ! \is_array( $meta ) || empty( $meta['sizes'] ) ) {
+		if ( ! $meta || ! \is_array( $meta ) || empty( $meta['file'] ) ) {
 			$meta = \wp_get_attachment_metadata( $attachment_id );
 			if ( ! \is_array( $meta ) || empty( $meta ) ) {
 				$this->debug_message( 'unusable meta retrieved' );
