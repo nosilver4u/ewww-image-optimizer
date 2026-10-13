@@ -1,3 +1,15 @@
+= 8.9.0 =
+*Release Date - October 13, 2026*
+
+* added: option to disable resizing via maximum dimensions on media uploader and in post editor
+* fixed: regression in Easy IO handling of style attributes causes HTML entities to be double-encoded
+* fixed: PNG metadata not removed when using local optipng
+* fixed: images with fetchpriority="high" do not get skipped by Lazy Load when Picture WebP delivery is enabled
+* fixed: duplicate WebP delivery checks run on settings page
+* fixed: race condition with some LiteSpeed servers causes incorrect WebP test image to display
+* fixed: images too small for thumbnails failed to optimize automatically on upload
+* security: yet more hardening against stored XSS attacks, thanks to WPScan for reporting 
+
 = 8.8.0 =
 *Release Date - September 24, 2026*
 
