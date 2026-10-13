@@ -4726,6 +4726,8 @@ function ewww_image_optimizer_cloud_key_verify_ajax() {
 	if ( wp_http_supports( array( 'ssl' ) ) ) {
 		$url = set_url_scheme( $url, 'https' );
 	}
+	$url = apply_filters( 'ewww_image_optimizer_api_verify_url', $url );
+	ewwwio_debug_message( "verifying API key via $url" );
 	$result = ewww_image_optimizer_cloud_post_key( $url, $api_key );
 	if ( is_wp_error( $result ) ) {
 		$url           = set_url_scheme( $url, 'http' );
@@ -4870,6 +4872,8 @@ function ewww_image_optimizer_cloud_verify( $api_key, $cache = true ) {
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
 	}
+	$url = apply_filters( 'ewww_image_optimizer_api_verify_url', $url );
+	ewwwio_debug_message( "verifying API key via $url" );
 	$result = ewww_image_optimizer_cloud_post_key( $url, $api_key );
 	if ( is_wp_error( $result ) ) {
 		$url           = set_url_scheme( $url, 'http' );
@@ -4958,7 +4962,7 @@ function ewww_image_optimizer_soft_quota_exceeded() {
  * Checks the configured API key for quota information.
  *
  * @param bool $raw True to return the usage array as-is.
- * @return string A message with how many credits they have used/left and possibly a renwal date.
+ * @return string A message with how many credits they have used/left and possibly a renewal date.
  */
 function ewww_image_optimizer_cloud_quota( $raw = false ) {
 	ewwwio_debug_message( '<b>' . __FUNCTION__ . '()</b>' );
@@ -4968,6 +4972,11 @@ function ewww_image_optimizer_cloud_quota( $raw = false ) {
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
 	}
+	$url = apply_filters( 'ewww_image_optimizer_api_quota_url', $url );
+	if ( empty( $url ) || empty( $api_key ) ) {
+		return '';
+	}
+	ewwwio_debug_message( "verifying API key via $url" );
 	add_filter( 'http_headers_useragent', 'ewww_image_optimizer_cloud_useragent', PHP_INT_MAX );
 	$result = wp_remote_post(
 		$url,
@@ -5261,9 +5270,11 @@ function ewww_image_optimizer_cloud_optimizer( $file, $type, $convert = false, $
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
 	}
-	$boundary = wp_generate_password( 24, false );
+	$url = apply_filters( 'ewww_image_optimizer_api_optimize_url', $url );
+	ewwwio_debug_message( "optimizing images via $url" );
 
-	$headers = array(
+	$boundary = wp_generate_password( 24, false );
+	$headers  = array(
 		'content-type' => 'multipart/form-data; boundary=' . $boundary,
 		'timeout'      => 300,
 		'httpversion'  => '1.0',
@@ -5577,11 +5588,15 @@ function ewww_image_optimizer_cloud_retrieve_pending_image( $image, $wait = fals
 		ewwwio_debug_message( 'no ID to retrieve' );
 		return false;
 	}
-	$api_key = ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' );
-	$url     = 'http://api.exactlywww.net/v3/retrieve/?id=' . $image->retrieve;
-	$ssl     = wp_http_supports( array( 'ssl' ) );
+	$url = 'http://api.exactlywww.net/v3/retrieve/?id=' . $image->retrieve;
+	$ssl = wp_http_supports( array( 'ssl' ) );
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
+	}
+	$url = apply_filters( 'ewww_image_optimizer_api_retrieve_url', $url );
+	if ( empty( $url ) ) {
+		ewwwio_debug_message( 'no URL for retrieval' );
+		return false;
 	}
 	ewwwio_debug_message( "fetching result via $url" );
 	while ( $start_time + $max_time > time() ) {
@@ -5705,9 +5720,11 @@ function ewww_image_optimizer_cloud_autorotate( $file, $type ) {
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
 	}
-	$boundary = wp_generate_password( 24, false );
+	$url = apply_filters( 'ewww_image_optimizer_api_rotate_url', $url );
+	ewwwio_debug_message( "rotating images via $url" );
 
-	$headers = array(
+	$boundary = wp_generate_password( 24, false );
+	$headers  = array(
 		'content-type' => 'multipart/form-data; boundary=' . $boundary,
 		'timeout'      => 60,
 		'httpversion'  => '1.0',
@@ -5820,9 +5837,11 @@ function ewww_image_optimizer_cloud_reduce_png( $file, $colors ) {
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
 	}
-	$boundary = wp_generate_password( 24, false );
+	$url = apply_filters( 'ewww_image_optimizer_api_reduce_url', $url );
+	ewwwio_debug_message( "reducing PNG images via $url" );
 
-	$headers = array(
+	$boundary = wp_generate_password( 24, false );
+	$headers  = array(
 		'content-type' => 'multipart/form-data; boundary=' . $boundary,
 		'timeout'      => 30,
 		'httpversion'  => '1.0',
@@ -5927,9 +5946,15 @@ function ewww_image_optimizer_cloud_backup( $file ) {
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
 	}
-	$boundary = wp_generate_password( 24, false );
+	$url = apply_filters( 'ewww_image_optimizer_api_backup_url', $url );
+	if ( empty( $url ) ) {
+		ewwwio_debug_message( 'no URL for backup' );
+		return false;
+	}
+	ewwwio_debug_message( "backup image via $url" );
 
-	$headers = array(
+	$boundary = wp_generate_password( 24, false );
+	$headers  = array(
 		'content-type' => 'multipart/form-data; boundary=' . $boundary,
 		'timeout'      => 20,
 		'httpversion'  => '1.0',
@@ -6054,9 +6079,11 @@ function ewww_image_optimizer_cloud_resize( $file, $type, $dst_x, $dst_y, $src_x
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
 	}
-	$boundary = wp_generate_password( 24, false );
+	$url = apply_filters( 'ewww_image_optimizer_api_resize_url', $url );
+	ewwwio_debug_message( "resizing images via $url" );
 
-	$headers = array(
+	$boundary = wp_generate_password( 24, false );
+	$headers  = array(
 		'content-type' => 'multipart/form-data; boundary=' . $boundary,
 		'timeout'      => 60,
 		'httpversion'  => '1.0',
