@@ -8434,6 +8434,8 @@ function ewwwio_remove_original_image( $id, $meta = null ) {
 /**
  * Checks if attachment meta is ready for optimization.
  *
+ * NOTE: Do not use this for a PDF, as it may not work.
+ *
  * @param array $meta The attachment metadata.
  * @return bool True if the meta is ready, false if not.
  */
@@ -8445,6 +8447,13 @@ function ewww_image_optimizer_attachment_meta_ready( $meta ) {
 	}
 	$thumb_w = get_option( 'thumbnail_size_w' );
 	$thumb_h = get_option( 'thumbnail_size_h' );
+	if ( empty( $thumb_w ) && empty( $thumb_h ) && ! empty( $meta['file'] ) ) {
+		return true;
+	}
+	// Potential check for PDF uploads, but needs to be tested to be sure.
+	if ( empty( $meta['width'] ) && empty( $meta['height'] ) && ! empty( $meta['filesize'] ) ) {
+		return true;
+	}
 	if ( ! empty( $meta['width'] ) && $meta['width'] > $thumb_w && empty( $meta['sizes'] ) ) {
 		ewwwio_debug_message( "image width ({$meta['width']}) is larger than thumbnail width ($thumb_w), but meta is missing sizes" );
 		return false;
