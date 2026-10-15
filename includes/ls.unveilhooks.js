@@ -157,6 +157,16 @@ For background images, use data-bg attribute:
 
 	}
 
+	function isUnsafePath(path) {
+		var unsafePatterns = ['//', '/..'];
+		for(var i = 0; i < unsafePatterns.length; i++){
+			if(path.includes(unsafePatterns[i])){
+				console.log('unsafe!',unsafePatterns[i]);
+				return true;
+			}
+		}
+		return false;
+	}
 	function resolveURL(src) {
 		try {
 			var parsedSrc = new URL(src, document.baseURI);
@@ -165,7 +175,10 @@ For background images, use data-bg attribute:
 			return null;
 		}
 		var path = parsedSrc.pathname, prev;
-		for (var i = 0; i < 5; i++) {
+		for(var i = 0; i < 5; i++){
+			if(isUnsafePath(path)){
+				return null;
+			}
 			prev = path;
 			try {
 				path = decodeURIComponent(path);
@@ -180,6 +193,9 @@ For background images, use data-bg attribute:
 			return null;
 		}
 		path = new URL(path.replace(/[?#]/g, ''), parsedSrc.origin).pathname;
+		if(isUnsafePath(path)){
+			return null;
+		}
 		return { host: parsedSrc.host, path: path };
 	}
 
