@@ -286,8 +286,12 @@ final class Plugin extends Base {
 		$this->async_requires();
 		// EWWW_Image class for working with queued images and image records from the database.
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-ewww-image.php';
-		// Page_Settings trait for working with page-specific settings and rules.
+		// EWWW\Page_Settings trait for working with page-specific settings and rules.
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/trait-page-settings.php';
+		// EWWW\Page_Parser class for working with HTML content.
+		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-page-parser.php';
+		// EWWW\HTML_Tag class for working with HTML tags.
+		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-html-tag.php';
 		// EWWWW\Local class for optimization tool installation/validation.
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-local.php';
 		// EWWW\Admin_Notices class for managing admin notices.

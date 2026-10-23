@@ -319,7 +319,7 @@ class Page_Parser extends Base {
 		// Check for an inline max-width directive.
 		$style = $this->get_attribute( $img, 'style' );
 		if ( $style && \preg_match( '#max-width:\s?(\d+)px#', $style, $max_width_string ) ) {
-			if ( ! empty( $max_width_string[1] ) && \is_numeric( $max_width_string ) ) {
+			if ( ! empty( $max_width_string[1] ) && \is_numeric( $max_width_string[1] ) ) {
 				return (int) $max_width_string[1];
 			}
 		} elseif ( $style && \preg_match( '#width:\s?(\d+)px#', $style, $width_string ) ) {
