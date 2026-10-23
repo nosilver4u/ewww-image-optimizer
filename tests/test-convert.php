@@ -54,7 +54,7 @@ class EWWWIO_Convert_Tests extends WP_UnitTestCase {
 		$temp_upload_dir = trailingslashit( $wp_upload_dir['basedir'] ) . 'testing/';
 		wp_mkdir_p( $temp_upload_dir );
 
-		$test_jpg = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/DCClogo.jpg' );
+		$test_jpg = download_url( 'https://ewwwio-test.sfo2.digitaloceanspaces.com/unit-tests/ruler.512.jpg' );
 		ewwwio()->rename( $test_jpg, $temp_upload_dir . wp_basename( $test_jpg ) );
 		self::$test_jpg = $temp_upload_dir . wp_basename( $test_jpg );
 
