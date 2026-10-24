@@ -940,7 +940,7 @@ class Lazy_Load extends Page_Parser {
 				$image_tag->set_attribute( 'srcset', $placeholder_src );
 				$image_tag->remove_attribute( 'src' );
 			} else {
-				$image_tag->set_attribute( 'src', $placeholder_src );
+				$image_tag->set_attribute( 'src', \esc_url( $placeholder_src ) );
 				$image_tag->remove_attribute( 'srcset' );
 			}
 			$image_tag->set_attribute( 'data-srcset', $srcset );
@@ -953,7 +953,7 @@ class Lazy_Load extends Page_Parser {
 				( ! \defined( 'EIO_LL_AUTOSCALE' ) || EIO_LL_AUTOSCALE )
 			) {
 				if ( ! empty( $width_attr ) && \str_contains( $srcset_sizes, $width_attr . 'px' ) && ! $image_tag->get_attribute( 'data-max-width' ) ) {
-					$image_tag->set_attribute( 'data-max-width', $width_attr );
+					$image_tag->set_attribute( 'data-max-width', (int) $width_attr );
 				}
 				$image_tag->set_attribute( 'data-sizes', 'auto' );
 				$image_tag->remove_attribute( 'sizes' );
@@ -969,11 +969,11 @@ class Lazy_Load extends Page_Parser {
 			$image_tag->set_attribute( 'height', (int) $height_attr );
 		}
 		if ( \str_starts_with( $placeholder_src, 'data:image/svg+xml' ) && $physical_width && $physical_height ) {
-			$image_tag->set_attribute( 'data-eio-rwidth', $physical_width );
-			$image_tag->set_attribute( 'data-eio-rheight', $physical_height );
+			$image_tag->set_attribute( 'data-eio-rwidth', (int) $physical_width );
+			$image_tag->set_attribute( 'data-eio-rheight', (int) $physical_height );
 		} elseif ( $physical_width && $physical_height ) {
-			$image_tag->set_attribute( 'data-eio-rwidth', $physical_width );
-			$image_tag->set_attribute( 'data-eio-rheight', $physical_height );
+			$image_tag->set_attribute( 'data-eio-rwidth', (int) $physical_width );
+			$image_tag->set_attribute( 'data-eio-rheight', (int) $physical_height );
 		}
 		$this->debug_message( 'lazified img element:' );
 		$this->debug_message( \trim( $image_tag->html ) );
