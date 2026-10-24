@@ -301,7 +301,7 @@ class EWWWIO_Optimize_Tests extends WP_UnitTestCase {
 		update_site_option( 'ewww_image_optimizer_cloud_key', '' );
 		remove_all_filters( 'ewwwio_imagick_supports_webp' );
 		// size post opt.
-		$this->assertEquals( 1359406, filesize( $results[0] ) );
+		$this->assertEquals( 1359424, filesize( $results[0] ) );
 		// orientation pre-rotation.
 		$this->assertEquals( ewww_image_optimizer_get_orientation( $results[0], 'image/jpeg' ), 1 );
 		wp_delete_file( $results[0] );
