@@ -940,7 +940,7 @@ class Lazy_Load extends Page_Parser {
 				$image_tag->set_attribute( 'srcset', $placeholder_src );
 				$image_tag->remove_attribute( 'src' );
 			} else {
-				$image_tag->set_attribute( 'src', \esc_url( $placeholder_src ) );
+				$image_tag->set_attribute( 'src', $placeholder_src );
 				$image_tag->remove_attribute( 'srcset' );
 			}
 			$image_tag->set_attribute( 'data-srcset', $srcset );
