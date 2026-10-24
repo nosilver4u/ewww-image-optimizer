@@ -163,14 +163,14 @@ class HTML_Tag extends Base {
 						$this->attributes = array();
 						break;
 					}
-					$name_match = strtolower( $attr_matches['name'][ $key ] );
+					$name_match = strtolower( $attr_matches['name'][ $key ][0] );
 					// Make sure we don't already have this attribute.
-					if ( ! empty( $this->attributes[ $name_match[0] ] ) ) {
-						$this->debug_message( "duplicate attribute {$name_match[0]} found, parse failure" );
+					if ( ! empty( $this->attributes[ $name_match ] ) ) {
+						$this->debug_message( "duplicate attribute $name_match found, parse failure" );
 						$this->attributes = array();
 						break;
 					}
-					$this->attributes[ $name_match[0] ] = array(
+					$this->attributes[ $name_match ] = array(
 						'full'     => $attr_matches[0][ $key ][0],
 						'length'   => \strlen( $full_match[0] ),
 						'position' => \strpos( $this->html, $full_match[0] ),

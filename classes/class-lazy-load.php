@@ -781,8 +781,6 @@ class Lazy_Load extends Page_Parser {
 			return $image_tag;
 		}
 
-		// TODO: figure out how to protect attributes from being overwritten by similarly named attributes, like src and data-src.
-		// It only happens because they also have the same value, but needs protection, or I'm sure something else could break too.
 		$file = $image_tag->get_attribute( 'src' );
 		if ( empty( $file ) ) {
 			$this->debug_message( 'no src attribute found, skipping' );
