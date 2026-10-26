@@ -5499,6 +5499,14 @@ function ewww_image_optimizer_get_webp_resize_params( $file ) {
 	}
 
 	$original_image = ewwwio_get_original_image_path_from_thumb( $file, $attachment_id );
+	if ( $original_image ) {
+		// If the image was edited in WP, the edited full-size file is the right source, not the pre-edit original.
+		$edited_image = ewww_image_optimizer_get_edited_full_image( $file, $attachment_id );
+		if ( $edited_image ) {
+			ewwwio_debug_message( "image was edited, using $edited_image instead of $original_image" );
+			$original_image = $edited_image;
+		}
+	}
 	if ( $original_image && ewwwio_is_file( $original_image ) ) {
 		ewww_image_optimizer_autorotate( $original_image );
 		$orientation = (int) ewww_image_optimizer_get_orientation( $original_image, 'image/jpeg' );
@@ -5533,6 +5541,33 @@ function ewww_image_optimizer_get_webp_resize_params( $file ) {
 		return array( (int) $thumb_width, (int) $thumb_height, $crop, $original_image );
 	}
 	return $params;
+}
+
+/**
+ * Gets the path to the edited full-size image, if the image was edited in the WP image editor.
+ *
+ * @param string $thumb_file The path to a thumbnail of the image.
+ * @param int    $attachment_id The attachment ID, if known.
+ * @return string The path to the edited full-size image, or an empty string if it hasn't been edited.
+ */
+function ewww_image_optimizer_get_edited_full_image( $thumb_file, $attachment_id = 0 ) {
+	$edited = (bool) preg_match( '/-e[0-9]{13}(-[0-9]+x[0-9]+)?\.[a-z0-9]+$/i', $thumb_file );
+	if ( ! $edited && $attachment_id ) {
+		$backup_sizes = get_post_meta( $attachment_id, '_wp_attachment_backup_sizes', true );
+		$edited       = is_array( $backup_sizes ) && isset( $backup_sizes['full-orig'] );
+	}
+	if ( ! $edited ) {
+		return '';
+	}
+	if ( $attachment_id ) {
+		$full = get_attached_file( $attachment_id );
+		if ( $full && ewwwio_is_file( $full ) ) {
+			return $full;
+		}
+	}
+	// No attachment ID, so strip the dimensions from the thumb name to get the full-size file.
+	$full = preg_replace( '/-[0-9]+x[0-9]+(\.[a-z0-9]+)$/i', '$1', $thumb_file );
+	return ( $full !== $thumb_file && ewwwio_is_file( $full ) ) ? $full : '';
 }
 
 /**

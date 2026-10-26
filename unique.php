@@ -1402,6 +1402,7 @@ function ewww_image_optimizer_webp_create( $file, $orig_size, $type, $tool, $rec
 		ewww_image_optimizer_update_webp_results( $file, 0, 4 );
 		return ewww_image_optimizer_webp_error_message( 4 );
 	}
+	add_filter( 'ewwwio_editor_prevent_overwrite', '__return_false' );
 	if ( empty( $tool ) || 'image/gif' === $type ) {
 		$use_cloud_webp = false;
 		if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_cloud_key' ) ) {
