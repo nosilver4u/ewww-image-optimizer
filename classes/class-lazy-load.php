@@ -577,7 +577,6 @@ class Lazy_Load extends Page_Parser {
 					$this->debug_message( 'found a valid image tag' );
 					$this->debug_message( "original image tag: $image_tag->html" );
 					$orig_img = $image_tag->html;
-					$this->debug_message( print_r( $image_tag->get_attributes(), true ) );
 					$ns_img    = clone $image_tag;
 					$image_tag = $this->parse_img_tag( $image_tag, $file );
 					$ns_img->set_attribute( 'data-eio', 'l' );
