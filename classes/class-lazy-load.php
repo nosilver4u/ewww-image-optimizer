@@ -563,7 +563,7 @@ class Lazy_Load extends Page_Parser {
 					$this->debug_message( 'missing image tag or position' );
 					continue;
 				}
-				$image_tag = $image[0];
+				$image_tag = new HTML_Tag( $image[0] );
 				$position  = $image[1];
 				if ( $this->is_in_forbidden_block( $image_tag, $position ) ) {
 					continue;
@@ -575,17 +575,17 @@ class Lazy_Load extends Page_Parser {
 						$this->use_piip                  = false;
 					}
 					$this->debug_message( 'found a valid image tag' );
-					$this->debug_message( "original image tag: $image_tag" );
-					$orig_img  = $image_tag;
-					$ns_img    = $image_tag;
-					$image_tag = $this->parse_img_tag( $image_tag, $file, $index );
-					$this->set_attribute( $ns_img, 'data-eio', 'l', true );
-					$noscript = '<noscript>' . $ns_img . '</noscript>';
+					$this->debug_message( "original image tag: $image_tag->html" );
+					$orig_img  = $image_tag->html;
+					$ns_img    = clone $image_tag;
+					$image_tag = $this->parse_img_tag( $image_tag, $file );
+					$ns_img->set_attribute( 'data-eio', 'l' );
+					$noscript = '<noscript>' . $ns_img->html . '</noscript>';
 					if ( $position && $orig_img !== $image_tag ) {
 						$this->debug_message( "lazified image at position $position" );
 						$replacements[ $position ] = array(
 							'orig' => $orig_img,
-							'lazy' => $image_tag . $noscript,
+							'lazy' => $image_tag->html . $noscript,
 						);
 					}
 				}
@@ -625,43 +625,45 @@ class Lazy_Load extends Page_Parser {
 				}
 				$pimages = $this->get_images_from_html( $picture_tag, false );
 				if ( ! empty( $pimages[0] ) && $this->is_iterable( $pimages[0] ) && ! empty( $pimages[0][0] ) ) {
-					$image = $pimages[0][0];
-					$file  = $pimages['img_url'][0];
+					$image_tag = new HTML_Tag( $pimages[0][0] );
+					$file      = $pimages['img_url'][0];
 					$this->debug_message( "parsing an image (inside picture): $file" );
-					$this->debug_message( "the img tag: $image" );
-					if ( $this->validate_image_tag( $image ) ) {
+					$this->debug_message( "the img tag: $image_tag->html" );
+					if ( $this->validate_image_tag( $image_tag ) ) {
 						if ( ( $this->read_dimensions_from_file || $this->use_piip ) && $this->get_elapsed_time( $started_time ) > 100000 ) {
 							$this->debug_message( 'parsing exceeded 100ms, disabling file-based dimension retrieval for the rest of the page' );
 							$this->read_dimensions_from_file = false;
 							$this->use_piip                  = false;
 						}
 						$this->debug_message( 'found a valid image tag (inside picture)' );
-						$orig_img = $image;
-						$ns_img   = $image;
-						$image    = $this->parse_img_tag( $image, $file, $index );
-						$this->set_attribute( $ns_img, 'data-eio', 'l', true );
-						$noscript    = '<noscript>' . $ns_img . '</noscript>';
-						$picture_tag = \str_replace( $orig_img, $image, $picture_tag ) . $noscript;
+						$orig_img  = $image_tag->html;
+						$ns_img    = clone $image_tag;
+						$image_tag = $this->parse_img_tag( $image_tag, $file );
+						$ns_img->set_attribute( 'data-eio', 'l' );
+						$noscript    = '<noscript>' . $ns_img->html . '</noscript>';
+						$picture_tag = \str_replace( $orig_img, $image_tag->html, $picture_tag ) . $noscript;
 					} else {
+						// If we don't have a valid img tag, then we shouldn't process the picture element either.
 						continue;
 					}
 				} else {
+					// If we couldn't even find an img tag, move along, since we can't lazyload properly without an img tag.
 					continue;
 				}
 				$sources = $this->get_elements_from_html( $picture_tag, 'source' );
 				if ( $this->is_iterable( $sources ) ) {
 					foreach ( $sources as $source ) {
-						if ( false !== \strpos( $source, 'data-src' ) ) {
+						if ( \str_contains( $source, 'data-src' ) ) {
 							continue;
 						}
 						$this->debug_message( "parsing a picture source: $source" );
-						$srcset = $this->get_attribute( $source, 'srcset' );
+						$source_tag = new HTML_Tag( $source );
+						$srcset     = $source_tag->get_attribute( 'srcset' );
 						if ( $srcset ) {
 							$this->debug_message( 'found srcset in source' );
-							$lazy_source = $source;
-							$this->set_attribute( $lazy_source, 'data-srcset', $srcset );
-							$this->remove_attribute( $lazy_source, 'srcset' );
-							$picture_tag = \str_replace( $source, $lazy_source, $picture_tag );
+							$source_tag->set_attribute( 'data-srcset', $srcset );
+							$source_tag->remove_attribute( 'srcset' );
+							$picture_tag = \str_replace( $source, $source_tag->html, $picture_tag );
 						}
 					}
 					if ( $position && $picture_tag !== $pictures[ $index ][0] ) {
@@ -693,14 +695,15 @@ class Lazy_Load extends Page_Parser {
 				if ( $this->is_in_forbidden_block( $frame, $position ) ) {
 					continue;
 				}
-				$url = $this->get_attribute( $frame, 'src' );
-				if ( $url && 0 === \strpos( $url, 'http' ) && $this->validate_iframe_tag( $frame ) ) {
+				$iframe_tag = new HTML_Tag( $frame );
+				$url        = $iframe_tag->get_attribute( 'src' );
+				if ( $url && \str_starts_with( $url, 'http' ) && $this->validate_iframe_tag( $iframe_tag->html ) ) {
 					$this->debug_message( "lazifying iframe for: $url" );
-					$this->set_attribute( $frame, 'data-src', $url );
-					$this->remove_attribute( $frame, 'src' );
-					$this->set_attribute( $frame, 'class', \trim( $this->get_attribute( $frame, 'class' ) . ' lazyload' ), true );
-					if ( $frame !== $frames[ $index ][0] ) {
-						$buffer = \str_replace( $frames[ $index ][0], $frame, $buffer );
+					$iframe_tag->set_attribute( 'data-src', $url );
+					$iframe_tag->remove_attribute( 'src' );
+					$iframe_tag->set_attribute( 'class', 'lazyload', true );
+					if ( $iframe_tag->html !== $frames[ $index ][0] ) {
+						$buffer = \str_replace( $frames[ $index ][0], $iframe_tag->html, $buffer );
 					}
 				}
 			}
@@ -755,12 +758,11 @@ class Lazy_Load extends Page_Parser {
 	/**
 	 * Parse img elements to insert lazyload markup.
 	 *
-	 * @param string $image The img tag to parse.
+	 * @param string $image_tag The img tag to parse.
 	 * @param string $file The URL from the src attribute. Optional.
-	 * @param int    $index The index of the image in the list of images. Optional.
 	 * @return string The modified tag.
 	 */
-	public function parse_img_tag( $image, $file = '', $index = 0 ) {
+	public function parse_img_tag( $image_tag, $file = '' ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if (
 			! empty( $_POST['action'] ) && // phpcs:ignore WordPress.Security.NonceVerification
@@ -770,25 +772,27 @@ class Lazy_Load extends Page_Parser {
 			'vc_get_vc_grid_data' === $_POST['vc_action'] && // phpcs:ignore WordPress.Security.NonceVerification
 			'vc_media_grid' === $_POST['tag'] // phpcs:ignore WordPress.Security.NonceVerification
 		) {
-			return $image;
+			return $image_tag;
 		}
 
 		// Check to see if they added img as an exclusion.
 		if ( \in_array( 'img', $this->user_element_exclusions, true ) ) {
-			return $image;
+			return $image_tag;
 		}
 
-		if ( ! $file ) {
-			$file = $this->get_attribute( $image, 'src' );
+		$file = $image_tag->get_attribute( 'src' );
+		if ( empty( $file ) ) {
+			$this->debug_message( 'no src attribute found, skipping' );
+			return $image_tag;
 		}
 		$file = \str_replace( '&#038;', '&', \esc_url( \trim( html_entity_decode( $file ) ) ) );
-		$this->set_attribute( $image, 'data-src', $file, true );
-		$srcset = $this->get_attribute( $image, 'srcset' );
+		$image_tag->set_attribute( 'data-src', $file );
+		$srcset = $image_tag->get_attribute( 'srcset' );
 
 		$physical_width  = false;
 		$physical_height = false;
-		$width_attr      = $this->get_attribute( $image, 'width' );
-		$height_attr     = $this->get_attribute( $image, 'height' );
+		$width_attr      = $image_tag->get_attribute( 'width' );
+		$height_attr     = $image_tag->get_attribute( 'height' );
 		// Can't use a relative width or height, so unset the dimensions in favor of not breaking things.
 		if ( false !== strpos( $width_attr, '%' ) || false !== strpos( $height_attr, '%' ) ) {
 			$width_attr  = false;
@@ -917,67 +921,62 @@ class Lazy_Load extends Page_Parser {
 		}
 		$this->debug_message( "current placeholder is $placeholder_src" );
 
-		$placeholder_src = \apply_filters( 'eio_lazy_placeholder', $placeholder_src, $image );
+		$placeholder_src = \apply_filters( 'eio_lazy_placeholder', $placeholder_src, $image_tag->html );
 
 		// Check for native lazy loading images.
-		$loading_attr = $this->get_attribute( $image, 'loading' );
-		if ( ( ! \defined( 'EIO_DISABLE_NATIVE_LAZY' ) || ! EIO_DISABLE_NATIVE_LAZY ) && ! $loading_attr && $use_native_lazy ) {
-			$this->set_attribute( $image, 'loading', 'lazy' );
+		$loading_attr = $image_tag->get_attribute( 'loading' );
+		if ( ( ! \defined( 'EIO_DISABLE_NATIVE_LAZY' ) || ! EIO_DISABLE_NATIVE_LAZY ) && empty( $loading_attr ) && $use_native_lazy ) {
+			$image_tag->set_attribute( 'loading', 'lazy' );
 		}
 		// Check for the decoding attribute.
-		$decoding_attr = $this->get_attribute( $image, 'decoding' );
-		if ( ( ! \defined( 'EIO_DISABLE_DECODING_ATTR' ) || ! EIO_DISABLE_DECODING_ATTR ) && ! $decoding_attr ) {
-			$this->set_attribute( $image, 'decoding', 'async' );
+		$decoding_attr = $image_tag->get_attribute( 'decoding' );
+		if ( ( ! \defined( 'EIO_DISABLE_DECODING_ATTR' ) || ! EIO_DISABLE_DECODING_ATTR ) && empty( $decoding_attr ) ) {
+			$image_tag->set_attribute( 'decoding', 'async' );
 		}
 
 		if ( $srcset ) {
 			if ( \strpos( $placeholder_src, '64,R0lGOD' ) ) {
-				$this->set_attribute( $image, 'srcset', $placeholder_src, true );
-				$this->remove_attribute( $image, 'src' );
+				$image_tag->set_attribute( 'srcset', $placeholder_src );
+				$image_tag->remove_attribute( 'src' );
 			} else {
-				$this->set_attribute( $image, 'src', $placeholder_src, true );
-				$this->remove_attribute( $image, 'srcset' );
+				$image_tag->set_attribute( 'src', $placeholder_src );
+				$image_tag->remove_attribute( 'srcset' );
 			}
-			$this->set_attribute( $image, 'data-srcset', $srcset, true );
-			$srcset_sizes = $this->get_attribute( $image, 'sizes' );
+			$image_tag->set_attribute( 'data-srcset', $srcset );
+			$srcset_sizes = $image_tag->get_attribute( 'sizes' );
 			// Return false on this filter to disable automatic sizes calculation,
 			// or use the sizes value passed via the filter to conditionally disable it.
 			if (
-				! \str_contains( $image, 'skip-autoscale' ) &&
+				! \str_contains( $image_tag->html, 'skip-autoscale' ) &&
 				\apply_filters( 'eio_lazy_responsive', $srcset_sizes ) &&
 				( ! \defined( 'EIO_LL_AUTOSCALE' ) || EIO_LL_AUTOSCALE )
 			) {
-				if ( ! empty( $width_attr ) && \str_contains( $srcset_sizes, $width_attr . 'px' ) && ! \str_contains( $image, 'data-max-width=' ) ) {
-					$this->set_attribute( $image, 'data-max-width', $width_attr );
+				if ( ! empty( $width_attr ) && \str_contains( $srcset_sizes, $width_attr . 'px' ) && ! $image_tag->get_attribute( 'data-max-width' ) ) {
+					$image_tag->set_attribute( 'data-max-width', (int) $width_attr );
 				}
-				$this->set_attribute( $image, 'data-sizes', 'auto', true );
-				$this->remove_attribute( $image, 'sizes' );
+				$image_tag->set_attribute( 'data-sizes', 'auto' );
+				$image_tag->remove_attribute( 'sizes' );
 			}
 		} else {
-			$this->set_attribute( $image, 'src', $placeholder_src, true );
+			$image_tag->set_attribute( 'src', $placeholder_src );
 		}
 
-		$existing_class = $this->get_attribute( $image, 'class' );
-		if ( ! empty( $existing_class ) ) {
-			$this->set_attribute( $image, 'class', \trim( $existing_class . ' lazyload' ), true );
-		} else {
-			$this->set_attribute( $image, 'class', 'lazyload', true );
-		}
+		$image_tag->set_attribute( 'class', 'lazyload', true );
 		if ( $insert_dimensions ) {
 			$this->debug_message( "setting width=$width_attr and height=$height_attr" );
-			$this->set_attribute( $image, 'width', (int) $width_attr, true );
-			$this->set_attribute( $image, 'height', (int) $height_attr, true );
+			$image_tag->set_attribute( 'width', (int) $width_attr );
+			$image_tag->set_attribute( 'height', (int) $height_attr );
 		}
-		if ( 0 === \strpos( $placeholder_src, 'data:image/svg+xml' ) && $physical_width && $physical_height ) {
-			$this->set_attribute( $image, 'data-eio-rwidth', $physical_width, true );
-			$this->set_attribute( $image, 'data-eio-rheight', $physical_height, true );
+		if ( \str_starts_with( $placeholder_src, 'data:image/svg+xml' ) && $physical_width && $physical_height ) {
+			$image_tag->set_attribute( 'data-eio-rwidth', (int) $physical_width );
+			$image_tag->set_attribute( 'data-eio-rheight', (int) $physical_height );
 		} elseif ( $physical_width && $physical_height ) {
-			$this->set_attribute( $image, 'data-eio-rwidth', $physical_width, true );
-			$this->set_attribute( $image, 'data-eio-rheight', $physical_height, true );
+			$image_tag->set_attribute( 'data-eio-rwidth', (int) $physical_width );
+			$image_tag->set_attribute( 'data-eio-rheight', (int) $physical_height );
 		}
 		$this->debug_message( 'lazified img element:' );
-		$this->debug_message( \trim( $image ) );
-		return $image;
+		$this->debug_message( \trim( $image_tag->html ) );
+		return $image_tag;
 	}
 
 	/**
@@ -1007,6 +1006,7 @@ class Lazy_Load extends Page_Parser {
 				}
 				$this->debug_message( "parsing a $tag_type" );
 				if ( ! \str_contains( $element, 'background:' ) && ! \str_contains( $element, 'background-image:' ) ) {
+					// If there is no sign of an inline background image, then attempt to lazify based on external bg image setting.
 					$element = $this->lazify_element( $element );
 					if ( $element !== $elements[ $index ][0] ) {
 						$this->debug_message( "$tag_type lazified, replacing in html source" );
@@ -1014,11 +1014,17 @@ class Lazy_Load extends Page_Parser {
 					}
 					continue;
 				}
-				if ( \str_contains( $element, '--background' ) ) {
-					$this->set_attribute( $element, 'class', $this->get_attribute( $element, 'class' ) . ' lazyload', true );
-					if ( $element !== $elements[ $index ][0] ) {
+				$html_tag   = new HTML_Tag( $element );
+				$style_attr = $html_tag->get_attribute( 'style' );
+				if ( empty( $style_attr ) ) {
+					$this->debug_message( 'unable to get style attribute' );
+					continue;
+				}
+				if ( \str_contains( $style_attr, '--background' ) ) {
+					$html_tag->set_attribute( 'class', 'lazyload', true );
+					if ( $html_tag->html !== $elements[ $index ][0] ) {
 						$this->debug_message( "$tag_type with bg var lazified, replacing in html source" );
-						$buffer = \str_replace( $elements[ $index ][0], $element, $buffer );
+						$buffer = \str_replace( $elements[ $index ][0], $html_tag->html, $buffer );
 					}
 					continue;
 				}
@@ -1027,12 +1033,8 @@ class Lazy_Load extends Page_Parser {
 					continue;
 				}
 				$this->debug_message( 'element is valid' );
-				$style = $this->get_attribute( $element, 'style' );
-				if ( empty( $style ) ) {
-					continue;
-				}
-				$this->debug_message( "checking style attr for background-image: $style" );
-				$bg_image_urls = $this->get_background_image_urls( $style );
+				$this->debug_message( "checking style attr for background-image: $style_attr" );
+				$bg_image_urls = $this->get_background_image_urls( $style_attr );
 				if ( $this->is_iterable( $bg_image_urls ) ) {
 					$this->debug_message( 'bg-image urls found' );
 
@@ -1046,38 +1048,38 @@ class Lazy_Load extends Page_Parser {
 						}
 					}
 
-					$new_style = $this->remove_background_image( $style );
-					if ( $style !== $new_style ) {
+					$new_style = $this->remove_background_image( $style_attr );
+					if ( $style_attr !== $new_style ) {
 						$this->debug_message( 'style modified, continuing' );
-						$this->set_attribute( $element, 'class', $this->get_attribute( $element, 'class' ) . ' lazyload', true );
+						$html_tag->set_attribute( 'class', 'lazyload', true );
 						if ( count( $bg_image_urls ) > 1 ) {
 							$webp_image_urls = \apply_filters( 'eio_ll_multiple_bg_images_for_webp', $bg_image_urls );
 							$bg_image_urls   = \wp_json_encode( $bg_image_urls );
 							$webp_image_urls = \wp_json_encode( $webp_image_urls );
-							$this->set_attribute( $element, 'data-back', $bg_image_urls );
+							$html_tag->set_attribute( 'data-back', $bg_image_urls );
 							if ( $bg_image_urls !== $webp_image_urls ) {
-								$this->set_attribute( $element, 'data-back-webp', $webp_image_urls );
+								$html_tag->set_attribute( 'data-back-webp', $webp_image_urls );
 							}
 						} elseif ( ! empty( $bg_image_urls[0] ) ) {
 							list( $physical_width, $physical_height ) = $this->get_image_dimensions_by_url( $bg_image_urls[0] );
-							$this->set_attribute( $element, 'data-back', $bg_image_urls[0] );
+							$html_tag->set_attribute( 'data-back', $bg_image_urls[0] );
 							if ( $physical_width && $physical_height ) {
-								$this->set_attribute( $element, 'data-eio-rwidth', $physical_width, true );
-								$this->set_attribute( $element, 'data-eio-rheight', $physical_height, true );
+								$html_tag->set_attribute( 'data-eio-rwidth', $physical_width );
+								$html_tag->set_attribute( 'data-eio-rheight', $physical_height );
 							}
 							$webp_image_url = \apply_filters( 'eio_image_url_to_webp', $bg_image_urls[0] );
 							if ( $webp_image_url && $webp_image_url !== $bg_image_urls[0] ) {
-								$this->set_attribute( $element, 'data-back-webp', $webp_image_url );
+								$html_tag->set_attribute( 'data-back-webp', $webp_image_url );
 							}
 						}
-						$element = \str_replace( $style, $new_style, $element );
+						$html_tag->set_attribute( 'style', $new_style );
 					}
 				}
-				if ( $position && $element !== $elements[ $index ][0] ) {
+				if ( $position && $html_tag->html !== $elements[ $index ][0] ) {
 					$this->debug_message( "$tag_type modified, replacing in html source" );
 					$replacements[ $position ] = array(
 						'orig' => $elements[ $index ][0],
-						'lazy' => $element,
+						'lazy' => $html_tag->html,
 					);
 				}
 			}
@@ -1095,11 +1097,22 @@ class Lazy_Load extends Page_Parser {
 		if ( \defined( 'EIO_EXTERNAL_CSS_LAZY_LOAD' ) && ! EIO_EXTERNAL_CSS_LAZY_LOAD ) {
 			return $element;
 		}
-		if ( false === \strpos( $element, 'background:' ) && false === \strpos( $element, 'background-image:' ) && false === \strpos( $element, 'style=' ) ) {
-			if ( false !== \strpos( $element, 'id=' ) || false !== \strpos( $element, 'class=' ) ) {
+		// Make double-sure this element does not have an inline style attribute with background images.
+		if ( ! \str_contains( $element, 'background:' ) && ! \str_contains( $element, 'background-image:' ) && ! \str_contains( $element, 'style=' ) ) {
+			if ( \str_contains( $element, 'id=' ) || \str_contains( $element, 'class=' ) ) {
 				foreach ( $this->css_element_inclusions as $inclusion ) {
-					if ( false !== \strpos( $element, $inclusion ) && $this->validate_bgimage_tag( $element ) ) {
-						$this->set_attribute( $element, 'class', $this->get_attribute( $element, 'class' ) . ' lazyload', true );
+					if ( \str_contains( $element, $inclusion ) && $this->validate_bgimage_tag( $element ) ) {
+						$this->debug_message( 'attempting to lazify indirect element per external bg images setting' );
+						$html_tag = new HTML_Tag( $element );
+						if ( ! $html_tag->get_attributes() ) {
+							continue;
+						}
+						$html_tag->set_attribute( 'class', 'lazyload', true );
+						if ( $html_tag->html ) {
+							$element = $html_tag->html;
+						} else {
+							$this->debug_message( 'HTML_Tag had empty html, yikes!' );
+						}
 					}
 				}
 			}
@@ -1250,39 +1263,43 @@ class Lazy_Load extends Page_Parser {
 	/**
 	 * Checks if the tag is allowed to be lazy loaded.
 	 *
-	 * @param string   $image The image (img) tag.
-	 * @param int|null $index The index of the image in the list. Optional.
+	 * @param string|object $image_tag The image (img) tag object (HTML_Tag) or a string of the raw HTML.
+	 * @param int|null      $index The index of the image in the list. Optional.
 	 * @return bool True if the tag is allowed, false otherwise.
 	 */
-	public function validate_image_tag( $image, $index = null ) {
+	public function validate_image_tag( $image_tag, $index = null ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		if ( $this->is_lazy_placeholder( $image ) ) {
+		$image_html = '';
+		if ( is_object( $image_tag ) && ! empty( $image_tag->html ) ) {
+			$image_html = $image_tag->html;
+		} elseif ( is_string( $image_tag ) ) {
+			$image_html = $image_tag;
+		}
+		if ( empty( $image_html ) ) {
+			return false;
+		}
+		if ( $this->is_lazy_placeholder( $image_html ) ) {
 			return false;
 		}
 
 		// Skip inline data URIs.
-		$image_src = $this->get_attribute( $image, 'src' );
-		if ( false !== \strpos( $image_src, 'data:image' ) ) {
+		if ( false !== \strpos( $image_html, 'data:image/' ) ) {
 			$this->debug_message( 'data:image pattern detected in src' );
 			return false;
 		}
-		if ( false !== \strpos( $image, 'data:image' ) && false !== \strpos( $image, 'lazyload' ) ) {
-			$this->debug_message( 'data:image pattern detected with lazyload string' );
-			return false;
-		}
 		// Ignore 0-size Pinterest schema images.
-		if ( \str_contains( $image, 'data-pin-description=' ) && \str_contains( $image, 'width="0" height="0"' ) ) {
+		if ( \str_contains( $image_html, 'data-pin-description=' ) && \str_contains( $image_html, 'width="0" height="0"' ) ) {
 			$this->debug_message( 'data-pin-description img skipped' );
 			return false;
 		}
 		$autoscaling = true;
 		if ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ) {
 			$autoscaling = false;
-		} elseif ( false === \strpos( $image, 'srcset' ) && empty( $this->exactdn_domain ) ) {
+		} elseif ( false === \strpos( $image_html, 'srcset' ) && empty( $this->exactdn_domain ) ) {
 			$autoscaling = false;
 		}
 		if ( ! $autoscaling ) {
-			if ( \str_contains( $image, 'fetchpriority="high"' ) || \str_contains( $image, "fetchpriority='high'" ) ) {
+			if ( \str_contains( $image_html, 'fetchpriority="high"' ) || \str_contains( $image_html, "fetchpriority='high'" ) ) {
 				$this->debug_message( 'no autoscaling for this image, and lcp indicated' );
 				return false;
 			}
@@ -1323,11 +1340,17 @@ class Lazy_Load extends Page_Parser {
 			)
 		);
 		foreach ( $exclusions as $exclusion ) {
-			if ( false !== \strpos( $image, $exclusion ) ) {
+			if ( false !== \strpos( $image_html, $exclusion ) ) {
 				$this->debug_message( "img matched $exclusion" );
 				return false;
 			}
 		}
+
+		if ( ! is_object( $image_tag ) ) {
+			return true;
+		}
+
+		$image_src = $image_tag->get_attribute( 'src' );
 
 		$src_path = $this->parse_url( $image_src, PHP_URL_PATH );
 		foreach ( $this->preload_images as $preload_image ) {
@@ -1403,6 +1426,9 @@ class Lazy_Load extends Page_Parser {
 	 */
 	public function validate_bgimage_tag( $tag ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( empty( $tag ) ) {
+			return false;
+		}
 		$exclusions = $this->get_bgimage_exclusions( array() );
 		foreach ( $exclusions as $exclusion ) {
 			if ( false !== \strpos( $tag, $exclusion ) ) {
@@ -1420,6 +1446,9 @@ class Lazy_Load extends Page_Parser {
 	 */
 	public function validate_iframe_tag( $tag ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
+		if ( empty( $tag ) ) {
+			return false;
+		}
 		$exclusions = \apply_filters(
 			'eio_lazy_iframe_exclusions',
 			\array_merge(

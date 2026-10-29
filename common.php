@@ -199,10 +199,6 @@ function ewww_image_optimizer_parser_init() {
 		}
 		$buffer_start = true;
 		/**
-		 * Page Parsing class for working with HTML content.
-		 */
-		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-page-parser.php';
-		/**
 		 * ExactDN class for parsing image urls and rewriting them.
 		 */
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-exactdn.php';
@@ -216,10 +212,6 @@ function ewww_image_optimizer_parser_init() {
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_lazy_load' ) ) {
 		$buffer_start = true;
 		/**
-		 * Page Parsing class for working with HTML content.
-		 */
-		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-page-parser.php';
-		/**
 		 * Lazy Load class for parsing image urls and rewriting them to defer off-screen images.
 		 */
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-lazy-load.php';
@@ -231,20 +223,12 @@ function ewww_image_optimizer_parser_init() {
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_webp_for_cdn' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		$buffer_start = true;
 		/**
-		 * Page Parsing class for working with HTML content.
-		 */
-		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-page-parser.php';
-		/**
 		 * JS WebP class for parsing image urls and rewriting them for WebP support.
 		 */
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-js-webp.php';
 	}
 	if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_picture_webp' ) && ! ewww_image_optimizer_get_option( 'ewww_image_optimizer_exactdn' ) ) {
 		$buffer_start = true;
-		/**
-		 * Page Parsing class for working with HTML content.
-		 */
-		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-page-parser.php';
 		/**
 		 * Picture WebP class for parsing img elements and rewriting them with WebP URLs.
 		 */
@@ -4285,10 +4269,6 @@ function ewww_image_optimizer_exactdn_activate_ajax() {
 	}
 	if ( ! class_exists( 'EWWW\ExactDN' ) ) {
 		/**
-		 * Page Parsing class for working with HTML content.
-		 */
-		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-page-parser.php';
-		/**
 		 * ExactDN class for parsing image urls and rewriting them.
 		 */
 		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-exactdn.php';
@@ -4346,10 +4326,6 @@ function ewww_image_optimizer_exactdn_activate_site_ajax() {
 	update_option( 'ewww_image_optimizer_exactdn', true );
 	global $exactdn;
 	if ( ! class_exists( 'EWWW\ExactDN' ) ) {
-		/**
-		 * Page Parsing class for working with HTML content.
-		 */
-		require_once EWWW_IMAGE_OPTIMIZER_PLUGIN_PATH . 'classes/class-page-parser.php';
 		/**
 		 * ExactDN class for parsing image urls and rewriting them.
 		 */
