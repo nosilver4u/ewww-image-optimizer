@@ -3,7 +3,7 @@ Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: compress, convert, webp, resize, lazy load
 Tested up to: 7.1
-Stable tag: 8.9.0
+Stable tag: 8.9.1
 License: GPLv3
 
 Comprehensive image optimization with WebP, AVIF, Lazy Load, and more. Optimize images automatically for Faster Sites and Happy Visitors.
@@ -176,9 +176,13 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 8.9.1 =
-*Release Date - TBD*
+*Release Date - October 29, 2026*
 
+* deprecated: support for PHP versions older than 8.2 will be removed in version 9.0.0
 * fixed: some images are not auto-optimized if thumbnail dimensions are set to zero
+* fixed: WebP thumbnails for images edited within WordPress use incorrect source image
+* fixed: Force Re-optimize does not recreate WebP images when using ImageMagick
+* security: HTML attribute parsing is now stricter and more secure
 
 = 8.9.0 =
 *Release Date - October 13, 2026*

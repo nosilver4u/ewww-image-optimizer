@@ -332,10 +332,10 @@ final class Admin_Notices extends Base {
 			return;
 		}
 		// Increase the version when the next bump is coming.
-		if ( ! \defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID >= 70400 ) {
+		if ( ! \defined( 'PHP_VERSION_ID' ) || PHP_VERSION_ID >= 80200 ) {
 			return;
 		}
-		echo '<div id="ewww-image-optimizer-notice-php" class="notice notice-info"><p><a href="https://docs.ewww.io/article/55-upgrading-php" target="_blank" data-beacon-article="5ab2baa6042863478ea7c2ae">' . esc_html__( 'The next release of EWWW Image Optimizer will require PHP 8.1 or greater. Newer versions of PHP are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</a></p></div>';
+		echo '<div id="ewww-image-optimizer-notice-php" class="notice notice-info"><p><a href="https://docs.ewww.io/article/55-upgrading-php" target="_blank" data-beacon-article="5ab2baa6042863478ea7c2ae">' . esc_html__( 'The next release of EWWW Image Optimizer will require PHP 8.2 or greater. Newer versions of PHP are significantly faster and much more secure. If you are unsure how to upgrade to a supported version, please ask your webhost for instructions.', 'ewww-image-optimizer' ) . '</a></p></div>';
 	}
 
 	/**
