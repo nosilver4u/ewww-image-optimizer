@@ -1,6 +1,6 @@
 os: linux
 
-dist: jammy
+dist: focal
 
 language: php
 
