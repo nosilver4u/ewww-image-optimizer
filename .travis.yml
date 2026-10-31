@@ -1,6 +1,6 @@
 os: linux
 
-dist: noble
+dist: jammy
 
 language: php
 
@@ -28,11 +28,11 @@ env:
 
 jobs:
   include:
-    - php: 7.4
+    - php: 8.2
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
     - php: 8.4
       env: WP_VERSION=latest WP_MULTISITE=1 WPSNIFF=1
-    - php: 8.2
+    - php: 8.3
       env: WP_VERSION=6.8 WP_MULTISITE=0
 
 before_script:
