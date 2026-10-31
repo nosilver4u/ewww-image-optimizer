@@ -1,6 +1,6 @@
 os: linux
 
-dist: focal
+dist: noble
 
 language: php
 
