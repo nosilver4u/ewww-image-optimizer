@@ -580,7 +580,7 @@ class Lazy_Load extends Page_Parser {
 					$ns_img    = clone $image_tag;
 					$image_tag = $this->parse_img_tag( $image_tag, $file );
 					$ns_img->set_attribute( 'data-eio', 'l' );
-					$noscript = '<noscript>' . $ns_img->html . '</noscript>';
+					$noscript = \apply_filters( 'eio_lazy_noscript', '<noscript>' . $ns_img->html . '</noscript>', $image_tag, $file );
 					if ( $position && $orig_img !== $image_tag ) {
 						$this->debug_message( "lazified image at position $position" );
 						$replacements[ $position ] = array(
@@ -640,7 +640,7 @@ class Lazy_Load extends Page_Parser {
 						$ns_img    = clone $image_tag;
 						$image_tag = $this->parse_img_tag( $image_tag, $file );
 						$ns_img->set_attribute( 'data-eio', 'l' );
-						$noscript    = '<noscript>' . $ns_img->html . '</noscript>';
+						$noscript    = \apply_filters( 'eio_lazy_noscript', '<noscript>' . $ns_img->html . '</noscript>', $image_tag, $file );
 						$picture_tag = \str_replace( $orig_img, $image_tag->html, $picture_tag ) . $noscript;
 					} else {
 						// If we don't have a valid img tag, then we shouldn't process the picture element either.
