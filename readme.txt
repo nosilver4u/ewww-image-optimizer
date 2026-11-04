@@ -178,7 +178,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 = 8.9.2 =
 *Release Date - TBD*
 
-* added: eio_lazy_noscript filter to modify/suppress noscript fall-back elements
+* added: eio_lazy_noscript and eio_webp_noscript filters to modify/suppress noscript fall-back elements
 * changed: Add Missing Dimensions no longer fills in height/width if only one dimension is missing
 * fixed: Easy IO skips manually generated srcset attributes with relative URLs
 * fixed: Easy IO only rewrites first background image in a CSS property when parsing internal style elements

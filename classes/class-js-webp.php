@@ -335,7 +335,7 @@ class JS_Webp extends Page_Parser {
 	 * Replaces images within the Jetpack data attributes with their .webp derivatives.
 	 *
 	 * @param string $image The full text of the img element.
-	 * @return string The modified noscript tag.
+	 * @return string The modified img element.
 	 */
 	public function jetpack_replace( $image ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
@@ -373,7 +373,7 @@ class JS_Webp extends Page_Parser {
 	 * Replaces images with the WooCommerce data attributes with their .webp derivatives.
 	 *
 	 * @param string $image The full text of the img element.
-	 * @return string The modified noscript tag.
+	 * @return string The modified img element.
 	 */
 	public function woocommerce_replace( $image ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
@@ -530,7 +530,7 @@ class JS_Webp extends Page_Parser {
 						$this->set_attribute( $new_image, 'data-eio', 'j', true );
 						$this->set_attribute( $new_image, 'class', $this->get_attribute( $new_image, 'class' ) . ' ewww_webp', true );
 						$this->debug_message( "going to swap\n$image\nwith\n$new_image" );
-						$noscript = '<noscript>' . $image . '</noscript>';
+						$noscript = \apply_filters( 'eio_webp_noscript', '<noscript>' . $image . '</noscript>', $new_image, $file );
 						$buffer   = \str_replace( $image, $new_image . $noscript, $buffer );
 					}
 				} elseif ( ! empty( $file ) && \strpos( $image, ' data-lazy-src=' ) ) {
