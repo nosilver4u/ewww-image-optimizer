@@ -183,20 +183,6 @@ class HTML_Tag extends Base {
 	}
 
 	/**
-	 * Get an attribute from an HTML tag.
-	 *
-	 * @param string $name The name of the attribute to search for.
-	 * @return string The value of the attribute, or an empty string if not found.
-	 */
-	public function get_attribute( $name ) {
-		$this->get_attributes();
-		if ( ! empty( $this->attributes[ $name ] ) && isset( $this->attributes[ $name ]['value'] ) ) {
-			return $this->attributes[ $name ]['value'];
-		}
-		return '';
-	}
-
-	/**
 	 * Sort the attributes by position and make sure there are no overlaps.
 	 *
 	 * @return string The name of the first attribute found, or an empty string if there was a position/parsing conflict.
@@ -226,6 +212,43 @@ class HTML_Tag extends Base {
 			$last_attr_name = $name;
 		}
 		return $first_attr;
+	}
+
+	/**
+	 * Get an attribute from an HTML tag.
+	 *
+	 * @param string $name The name of the attribute to retrieve.
+	 * @return string The value of the attribute, or an empty string if not found.
+	 */
+	public function get_attribute( $name ) {
+		if ( empty( $name ) || ! \is_string( $name ) ) {
+			return '';
+		}
+		$name = \strtolower( $name );
+		$this->get_attributes();
+		if ( ! empty( $this->attributes[ $name ] ) && isset( $this->attributes[ $name ]['value'] ) ) {
+			return $this->attributes[ $name ]['value'];
+		}
+		return '';
+	}
+
+	/**
+	 * Check if an attribute contains a given string.
+	 *
+	 * @param string $name The name of the attribute.
+	 * @param string $value The string to search for.
+	 * @return bool True if the attribute contains the string, false otherwise.
+	 */
+	public function attribute_contains( $name, $value ) {
+		if ( empty( $name ) || empty( $value ) ) {
+			return false;
+		}
+		$name = \strtolower( $name );
+		$this->get_attributes();
+		if ( ! empty( $this->attributes[ $name ] ) && ! empty( $this->attributes[ $name ]['value'] ) ) {
+			return \str_contains( $this->attributes[ $name ]['value'], $value );
+		}
+		return false;
 	}
 
 	/**
