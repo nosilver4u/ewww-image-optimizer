@@ -383,6 +383,9 @@ class Page_Parser extends Base {
 	 */
 	public function get_background_image_urls( $attribute ) {
 		$urls = array();
+		if ( empty( $attribute ) || ! \is_string( $attribute ) ) {
+			return $urls;
+		}
 		if ( ( false !== \strpos( $attribute, 'background:' ) || false !== \strpos( $attribute, 'background-image:' ) ) && false !== \strpos( $attribute, 'url(' ) ) {
 			if ( \preg_match_all( '#url\((?P<bg_url>[^)]+)\)#', $attribute, $prop_matches ) ) {
 				if ( $this->is_iterable( $prop_matches['bg_url'] ) ) {
@@ -396,30 +399,14 @@ class Page_Parser extends Base {
 	}
 
 	/**
-	 * Get a single CSS background-image URL. For backwords compat.
+	 * Get CSS background-image rules from a CSS string.
 	 *
-	 * @param string $attribute An element's style attribute. Do not pass a full HTML element.
-	 * @return array An array containing URL(s) from the background/background-image property.
-	 */
-	public function get_background_image_url( $attribute ) {
-		if ( ( false !== \strpos( $attribute, 'background:' ) || false !== \strpos( $attribute, 'background-image:' ) ) && false !== \strpos( $attribute, 'url(' ) ) {
-			$background_urls = $this->get_background_image_urls( $attribute );
-			if ( ! empty( $background_urls[0] ) ) {
-				return $background_urls[0];
-			}
-		}
-		return '';
-	}
-
-	/**
-	 * Get CSS background-image rules from HTML.
-	 *
-	 * @param string $html The code containing potential background images.
+	 * @param string $css The CSS code containing potential background images.
 	 * @return array The URLs with background/background-image properties.
 	 */
-	public function get_background_images( $html ) {
-		if ( ( false !== \strpos( $html, 'background:' ) || false !== \strpos( $html, 'background-image:' ) ) && false !== \strpos( $html, 'url(' ) ) {
-			if ( \preg_match_all( '#background(-image)?:\s*?[^;}]*?url\([^)]+\)#', $html, $matches ) ) {
+	public function get_background_images( $css ) {
+		if ( ( \str_contains( $css, 'background:' ) || \str_contains( $css, 'background-image:' ) ) && \str_contains( $css, 'url(' ) ) {
+			if ( \preg_match_all( '#background(-image)?:\s*?[^;}]*?url\([^)]+\)[^;}]*#', $css, $matches ) ) {
 				return $matches[0];
 			}
 		}
@@ -490,21 +477,21 @@ class Page_Parser extends Base {
 	 * @return string The style attribute with any image url removed.
 	 */
 	public function remove_background_image( $attribute ) {
-		if ( false !== \strpos( $attribute, 'background:' ) && false !== \strpos( $attribute, 'url(' ) ) {
+		if ( \str_contains( $attribute, 'background:' ) && false !== \strpos( $attribute, 'url(' ) ) {
 			$new_attribute = \preg_replace( '#\s?url\([^)]+\)#', '', $attribute );
 			if ( $new_attribute !== $attribute ) {
 				return $new_attribute;
 			}
 		}
-		if ( false !== \strpos( $attribute, 'background-image:' ) && false !== \strpos( $attribute, 'url(' ) ) {
+		if ( \str_contains( $attribute, 'background-image:' ) && false !== \strpos( $attribute, 'url(' ) ) {
 			$new_attribute = \preg_replace( '#background-image:\s*(,?\s*url\([^)]+\))+;?\s*#', '', $attribute );
 			if ( $new_attribute !== $attribute ) {
 				$new_attribute = \preg_replace( '#background-image:\s*;?\s*$#', '', $new_attribute );
 				return $new_attribute;
 			}
 		}
-		if ( false !== \strpos( $attribute, 'background-image:' ) && false !== \strpos( $attribute, 'url(' ) ) {
-			$new_attribute = \preg_replace( '#,?\s*url\([^)]+\)#', '', $attribute );
+		if ( \str_contains( $attribute, 'background-image:' ) && false !== \strpos( $attribute, 'url(' ) ) {
+			$new_attribute = \preg_replace( '#(,?\s*url\([^)]+\))+#', '', $attribute );
 			if ( $new_attribute !== $attribute ) {
 				$new_attribute = \preg_replace( '#background-image:\s*;?\s*$#', '', $new_attribute );
 				return $new_attribute;

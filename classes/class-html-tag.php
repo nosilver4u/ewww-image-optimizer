@@ -351,57 +351,6 @@ class HTML_Tag extends Base {
 	}
 
 	/**
-	 * Get CSS background-image URLs.
-	 *
-	 * @param string $attribute An element's style attribute. Do not pass a full HTML element.
-	 * @return array An array containing URL(s) from the background/background-image property.
-	 */
-	public function get_background_image_urls( $attribute ) {
-		$urls = array();
-		if ( ( false !== \strpos( $attribute, 'background:' ) || false !== \strpos( $attribute, 'background-image:' ) ) && false !== \strpos( $attribute, 'url(' ) ) {
-			if ( \preg_match_all( '#url\((?P<bg_url>[^)]+)\)#', $attribute, $prop_matches ) ) {
-				if ( $this->is_iterable( $prop_matches['bg_url'] ) ) {
-					foreach ( $prop_matches['bg_url'] as $url ) {
-						$urls[] = \trim( \html_entity_decode( $url, ENT_QUOTES | ENT_HTML5 ), "'\"\t\n\r " );
-					}
-				}
-			}
-		}
-		return $urls;
-	}
-
-	/**
-	 * Get a single CSS background-image URL. For backwords compat.
-	 *
-	 * @param string $attribute An element's style attribute. Do not pass a full HTML element.
-	 * @return array An array containing URL(s) from the background/background-image property.
-	 */
-	public function get_background_image_url( $attribute ) {
-		if ( ( false !== \strpos( $attribute, 'background:' ) || false !== \strpos( $attribute, 'background-image:' ) ) && false !== \strpos( $attribute, 'url(' ) ) {
-			$background_urls = $this->get_background_image_urls( $attribute );
-			if ( ! empty( $background_urls[0] ) ) {
-				return $background_urls[0];
-			}
-		}
-		return '';
-	}
-
-	/**
-	 * Get CSS background-image rules from HTML.
-	 *
-	 * @param string $html The code containing potential background images.
-	 * @return array The URLs with background/background-image properties.
-	 */
-	public function get_background_images( $html ) {
-		if ( ( false !== \strpos( $html, 'background:' ) || false !== \strpos( $html, 'background-image:' ) ) && false !== \strpos( $html, 'url(' ) ) {
-			if ( \preg_match_all( '#background(-image)?:\s*?[^;}]*?url\([^)]+\)#', $html, $matches ) ) {
-				return $matches[0];
-			}
-		}
-		return array();
-	}
-
-	/**
 	 * Remove the background image URL from a style attribute.
 	 *
 	 * @param string $attribute The element's style attribute to modify.

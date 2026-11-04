@@ -477,9 +477,9 @@ class ExactDN extends Page_Parser {
 		$this->debug_message( "allowing images from here: $this->upload_domain" );
 		if (
 			(
-				false !== \strpos( $this->upload_domain, 'amazonaws.com' ) ||
-				false !== \strpos( $this->upload_domain, 'digitaloceanspaces.com' ) ||
-				false !== \strpos( $this->upload_domain, 'storage.googleapis.com' )
+				\str_contains( $this->upload_domain, 'amazonaws.com' ) ||
+				\str_contains( $this->upload_domain, 'digitaloceanspaces.com' ) ||
+				\str_contains( $this->upload_domain, 'storage.googleapis.com' )
 			)
 			&& ! empty( $upload_url_parts['path'] )
 		) {
@@ -624,9 +624,9 @@ class ExactDN extends Page_Parser {
 			$response = \json_decode( $result['body'], true );
 			if ( ! empty( $response['domain'] ) ) {
 				if (
-					false !== \strpos( $site_url, 'amazonaws.com' ) ||
-					false !== \strpos( $site_url, 'digitaloceanspaces.com' ) ||
-					false !== \strpos( $site_url, 'storage.googleapis.com' ) ||
+					\str_contains( $site_url, 'amazonaws.com' ) ||
+					\str_contains( $site_url, 'digitaloceanspaces.com' ) ||
+					\str_contains( $site_url, 'storage.googleapis.com' ) ||
 					$this->s3_active
 				) {
 					$this->set_exactdn_option( 'verify_method', -1, false );
@@ -1335,6 +1335,7 @@ class ExactDN extends Page_Parser {
 					$height = $height && \is_numeric( $height ) ? $height : false;
 
 					// Get width/height attributes from the URL/file if they are missing.
+					// ONLY fill in dimensions if both are missing. If it is just one, it is likely intentional and we don't want to break the layout.
 					$insert_dimensions = false;
 					if ( \apply_filters( 'eio_add_missing_width_height_attrs', $this->get_option( $this->prefix . 'add_missing_dims' ) ) && empty( $width ) && empty( $height ) ) {
 						$this->debug_message( 'missing width attr or height attr' );
@@ -1613,6 +1614,12 @@ class ExactDN extends Page_Parser {
 							unset( $placeholder_src );
 						}
 
+						if ( ! empty( $srcset_attr ) ) {
+							$new_srcset = $this->srcset_replace( $srcset_attr );
+							if ( $new_srcset && $new_srcset !== $srcset_attr ) {
+								$image_tag->set_attribute( 'srcset', $new_srcset );
+							}
+						}
 						if ( $insert_dimensions && $filename_width > 0 && $filename_height > 0 ) {
 							$this->debug_message( "filling in width = $filename_width and height = $filename_height" );
 							$image_tag->set_attribute( 'width', (int) $filename_width );
@@ -2021,7 +2028,7 @@ class ExactDN extends Page_Parser {
 				if ( $skip_autoscale ) {
 					$element_tag->set_attribute( 'class', 'skip-autoscale', true );
 				}
-				if ( $element_tag && $element_tag->html !== $elements[ $index ] ) {
+				if ( $element_tag->html && $element_tag->html !== $elements[ $index ] ) {
 					$content = \str_replace( $elements[ $index ], $element_tag->html, $content );
 				}
 			}
@@ -2042,40 +2049,42 @@ class ExactDN extends Page_Parser {
 		if ( $this->is_iterable( $elements ) ) {
 			foreach ( $elements as $eindex => $element ) {
 				$this->debug_message( 'parsing a style block, starts with: ' . \str_replace( "\n", '', \substr( $element, 0, 50 ) ) );
-				if ( false === \strpos( $element, 'background:' ) && false === \strpos( $element, 'background-image:' ) ) {
+				if ( ! \str_contains( $element, 'background:' ) && ! \str_contains( $element, 'background-image:' ) ) {
 					continue;
 				}
 				$bg_images = $this->get_background_images( $element );
 				if ( $this->is_iterable( $bg_images ) ) {
 					foreach ( $bg_images as $bindex => $bg_image ) {
 						$this->debug_message( "parsing a background CSS rule: $bg_image" );
-						$bg_image_url = $this->get_background_image_url( $bg_image );
-						$this->debug_message( "found potential background image url: $bg_image_url" );
-						if ( $this->validate_image_url( $bg_image_url ) ) {
-							/** This filter is already documented in class-exactdn.php */
-							if ( \apply_filters( 'exactdn_skip_image', false, $bg_image_url, $element ) ) {
-								continue;
-							}
-							$exactdn_bg_image_url = $this->generate_url( $bg_image_url );
-							if ( $bg_image_url !== $exactdn_bg_image_url ) {
-								$this->debug_message( "replacing $bg_image_url with $exactdn_bg_image_url" );
-								$bg_image = \str_replace( $bg_image_url, \esc_url_raw( $exactdn_bg_image_url ), $bg_image );
-								if ( $bg_image !== $bg_images[ $bindex ] ) {
-									$this->debug_message( "replacing bg url with $bg_image" );
-									$element = \str_replace( $bg_images[ $bindex ], $bg_image, $element );
+						$bg_image_urls = $this->get_background_image_urls( $bg_image );
+						foreach ( $bg_image_urls as $bg_image_url ) {
+							$this->debug_message( "found potential background image url: $bg_image_url" );
+							if ( $this->validate_image_url( $bg_image_url ) ) {
+								/** This filter is already documented in class-exactdn.php */
+								if ( \apply_filters( 'exactdn_skip_image', false, $bg_image_url, $element ) ) {
+									continue;
 								}
-								$preload_image = $this->is_image_preloaded( $exactdn_bg_image_url, $bg_image_url );
-								if ( $preload_image ) {
-									if ( $exactdn_bg_image_url !== $preload_image['url'] ) {
-										$this->debug_message( "replacing {$preload_image['url']} with $exactdn_bg_image_url" );
-										$new_preload_tag = $preload_image['tag'];
-										$this->set_attribute( $new_preload_tag, 'href', \esc_url( $exactdn_bg_image_url ), true );
-										if ( $preload_image['tag'] !== $new_preload_tag ) {
-											$content = \str_replace( $preload_image['tag'], $new_preload_tag, $content );
+								$exactdn_bg_image_url = $this->generate_url( $bg_image_url );
+								if ( $bg_image_url !== $exactdn_bg_image_url ) {
+									$this->debug_message( "replacing $bg_image_url with $exactdn_bg_image_url" );
+									$bg_image      = \str_replace( $bg_image_url, \esc_url_raw( $exactdn_bg_image_url ), $bg_image );
+									$preload_image = $this->is_image_preloaded( $exactdn_bg_image_url, $bg_image_url );
+									if ( $preload_image ) {
+										if ( $exactdn_bg_image_url !== $preload_image['url'] ) {
+											$this->debug_message( "replacing {$preload_image['url']} with $exactdn_bg_image_url" );
+											$new_preload_tag = new HTML_Tag( $preload_image['tag'] );
+											$new_preload_tag->set_attribute( 'href', \esc_url( $exactdn_bg_image_url ) );
+											if ( $new_preload_tag->html && $new_preload_tag->html !== $preload_image['tag'] ) {
+												$content = \str_replace( $preload_image['tag'], $new_preload_tag->html, $content );
+											}
 										}
 									}
 								}
 							}
+						}
+						if ( $bg_image !== $bg_images[ $bindex ] ) {
+							$this->debug_message( "replacing bg url with $bg_image" );
+							$element = \str_replace( $bg_images[ $bindex ], $bg_image, $element );
 						}
 					}
 				}
@@ -2126,14 +2135,15 @@ class ExactDN extends Page_Parser {
 		if ( $this->is_iterable( $elements ) ) {
 			foreach ( $elements as $eindex => $element ) {
 				$this->debug_message( 'parsing a slide' );
-				$thumb = $this->get_attribute( $element, 'data-thumb' );
+				$slide_tag = new HTML_Tag( $element );
+				$thumb     = $slide_tag->get_attribute( 'data-thumb' );
 				if ( $thumb ) {
 					$this->debug_message( "parsing a sr6 thumb: $thumb" );
 					if ( $this->validate_image_url( $thumb ) ) {
 						$this->debug_message( 'rewriting slide thumb...' );
-						$this->set_attribute( $element, 'data-thumb', \esc_url( $this->generate_url( $thumb ) ), true );
-						if ( $element !== $elements[ $eindex ] ) {
-							$content = \str_replace( $elements[ $eindex ], $element, $content );
+						$slide_tag->set_attribute( 'data-thumb', \esc_url( $this->generate_url( $thumb ) ) );
+						if ( $slide_tag->html !== $elements[ $eindex ] ) {
+							$content = \str_replace( $elements[ $eindex ], $slide_tag->html, $content );
 						}
 					}
 				}
@@ -2144,14 +2154,15 @@ class ExactDN extends Page_Parser {
 		if ( $this->is_iterable( $elements ) ) {
 			foreach ( $elements as $eindex => $element ) {
 				$this->debug_message( 'parsing a layer' );
-				$poster = $this->get_attribute( $element, 'data-poster' );
+				$layer_tag = new HTML_Tag( $element );
+				$poster    = $layer_tag->get_attribute( 'data-poster' );
 				if ( $poster ) {
 					$this->debug_message( "parsing a sr6 poster: $poster" );
 					if ( $this->validate_image_url( $poster ) ) {
 						$this->debug_message( 'rewriting layer poster...' );
-						$this->set_attribute( $element, 'data-poster', \esc_url( $this->generate_url( $poster ) ), true );
-						if ( $element !== $elements[ $eindex ] ) {
-							$content = \str_replace( $elements[ $eindex ], $element, $content );
+						$layer_tag->set_attribute( 'data-poster', \esc_url( $this->generate_url( $poster ) ) );
+						if ( $layer_tag->html !== $elements[ $eindex ] ) {
+							$content = \str_replace( $elements[ $eindex ], $layer_tag->html, $content );
 						}
 					}
 				}
@@ -2214,9 +2225,9 @@ class ExactDN extends Page_Parser {
 			$content = \str_replace( $this->content_path . '/plugins/onesignal-free-web-push-notifications/sdk_files/"', '?wpcontent-bypass?/plugins/onesignal-free-web-push-notifications/sdk_files/"', $content );
 			$content = \str_replace( $this->content_path . '/plugins/u-shortcodes/shortcodes/monthview/"', '?wpcontent-bypass?/plugins/u-shortcodes/shortcodes/monthview/"', $content );
 			if (
-				false !== \strpos( $this->upload_domain, 'amazonaws.com' ) ||
-				false !== \strpos( $this->upload_domain, 'digitaloceanspaces.com' ) ||
-				false !== \strpos( $this->upload_domain, 'storage.googleapis.com' )
+				\str_contains( $this->upload_domain, 'amazonaws.com' ) ||
+				\str_contains( $this->upload_domain, 'digitaloceanspaces.com' ) ||
+				\str_contains( $this->upload_domain, 'storage.googleapis.com' )
 			) {
 				$this->debug_message( 'searching for #(https?:)?//(?:www\.)?' . $escaped_upload_domain . $this->remove_path . '/#i and replacing with $1//' . $this->exactdn_domain . '/' );
 				$content = \preg_replace( '#(https?:)?//(?:www\.)?' . $escaped_upload_domain . $this->remove_path . '/#i', '$1//' . $this->exactdn_domain . '/', $content );
@@ -2837,9 +2848,9 @@ class ExactDN extends Page_Parser {
 				if (
 					'/' === \substr( $srcurl, 0, 1 ) &&
 					'/' !== \substr( $srcurl, 1, 1 ) &&
-					false === \strpos( $this->upload_domain, 'amazonaws.com' ) &&
-					false === \strpos( $this->upload_domain, 'digitaloceanspaces.com' ) &&
-					false === \strpos( $this->upload_domain, 'storage.googleapis.com' )
+					! \str_contains( $this->upload_domain, 'amazonaws.com' ) &&
+					! \str_contains( $this->upload_domain, 'digitaloceanspaces.com' ) &&
+					! \str_contains( $this->upload_domain, 'storage.googleapis.com' )
 				) {
 					$new_srcurl = '//' . $this->upload_domain . $new_srcurl;
 				}
@@ -3657,7 +3668,7 @@ class ExactDN extends Page_Parser {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if ( $this->is_iterable( $image ) ) {
 			foreach ( $image as $index => $attr ) {
-				if ( \is_string( $attr ) && 0 === \strpos( $attr, 'http' ) && $this->validate_image_url( $attr ) ) {
+				if ( \is_string( $attr ) && \str_starts_with( $attr, 'http' ) && $this->validate_image_url( $attr ) ) {
 					$image[ $index ] = $this->generate_url( $attr );
 				}
 			}

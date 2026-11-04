@@ -805,7 +805,8 @@ class Lazy_Load extends Page_Parser {
 
 		$insert_dimensions = false;
 		$this->debug_message( "width attr: $width_attr and height attr: $height_attr" );
-		if ( $this->add_missing_dimensions && ( empty( $width_attr ) || empty( $height_attr ) ) ) {
+		// ONLY fill in dimensions if both are missing. If it is just one, it is likely intentional and we don't want to break the layout.
+		if ( $this->add_missing_dimensions && empty( $width_attr ) && empty( $height_attr ) ) {
 			$this->debug_message( 'missing width attr or height attr' );
 			if ( $physical_width && \is_numeric( $physical_width ) && $physical_height && \is_numeric( $physical_height ) ) {
 				$this->debug_message( "found $physical_width and/or $physical_height to insert (maybe)" );

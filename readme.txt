@@ -175,6 +175,14 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 8.9.2 =
+*Release Date - TBD*
+
+* changed: Add Missing Dimensions no longer fills in height/width if only one dimension is missing
+* fixed: Easy IO skips manually generated srcset attributes with relative URLs
+* fixed: Easy IO only rewrites first background image in a CSS property when parsing internal style elements
+* security: improved HTML parsing extended throughout plugin
+
 = 8.9.1 =
 *Release Date - October 29, 2026*
 
@@ -182,7 +190,7 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: some images are not auto-optimized if thumbnail dimensions are set to zero
 * fixed: WebP thumbnails for images edited within WordPress use incorrect source image
 * fixed: Force Re-optimize does not recreate WebP images when using ImageMagick
-* security: HTML attribute parsing is now stricter and more secure
+* security: Lazy Load HTML attribute parsing is now stricter and more secure
 
 = 8.9.0 =
 *Release Date - October 13, 2026*
