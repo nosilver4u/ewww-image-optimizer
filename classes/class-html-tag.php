@@ -111,6 +111,7 @@ class HTML_Tag extends Base {
 						$this->attributes = array();
 						return $this->attributes;
 					}
+					$spacer     = isset( $attr_matches['space'][ $key ][0] ) && strlen( $attr_matches['space'][ $key ][0] ) > 0 ? $attr_matches['space'][ $key ][0] : ' ';
 					$name_match = strtolower( $attr_matches['name'][ $key ][0] );
 					// Make sure we don't already have this attribute.
 					if ( ! empty( $this->attributes[ $name_match ] ) ) {
@@ -122,11 +123,11 @@ class HTML_Tag extends Base {
 						'full'     => $full_match[0],
 						'position' => $full_match[1],
 						'length'   => \strlen( $full_match[0] ),
-						'space'    => isset( $attr_matches['space'][ $key ][0] ) && strlen( $attr_matches['space'][ $key ][0] ) > 0 ? $attr_matches['space'][ $key ][0] : ' ',
+						'space'    => $spacer,
 						'value'    => ! empty( $attr_matches['value'][ $key ][0] ) ? trim( $attr_matches['value'][ $key ][0] ) : '',
 					);
 					// Strip this attribute from the leftovers, so we can find unquoted attributes later.
-					$leftovers = \str_replace( $full_match[0], '', $leftovers );
+					$leftovers = \str_replace( $spacer . $full_match[0], '', $leftovers );
 				}
 			}
 		}

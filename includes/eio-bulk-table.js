@@ -1209,7 +1209,6 @@ jQuery(document).ready(function($) {
 		var original_html = $('.ewww-image-' + imageID + ' td:last-child').html();
 		$('.ewww-image-' + imageID + ' td:last-child').html(ewww_bulk.restoring);
 		$.post(ajaxurl, ewww_image_restore, function(response) {
-			var is_json = true;
 			try {
 				var ewww_response = JSON.parse(response);
 			} catch (err) {
@@ -1229,5 +1228,6 @@ jQuery(document).ready(function($) {
 	$('.ewww-aux-table').on('click', '.ewww-show-debug-meta', function() {
 		var post_id = $(this).data('id');
 		$('.ewww-debug-meta-' + post_id).toggle();
+		return false;
 	});
 });

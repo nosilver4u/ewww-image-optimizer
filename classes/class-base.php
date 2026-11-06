@@ -1023,6 +1023,7 @@ class Base {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
 		if (
 			\strpos( $image, 'base64,R0lGOD' ) ||
+			\str_contains( $image, 'data:image/png;base64' ) ||
 			\strpos( $image, 'lazy-load/images/1x1' ) ||
 			\strpos( $image, '/assets/images/lazy' ) ||
 			\strpos( $image, '/assets/images/dummy.png' ) ||

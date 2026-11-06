@@ -182,7 +182,8 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * changed: Add Missing Dimensions no longer fills in height/width if only one dimension is missing
 * fixed: Easy IO skips manually generated srcset attributes with relative URLs
 * fixed: Easy IO only rewrites first background image in a CSS property when parsing internal style elements
-* security: improved HTML parsing extended throughout plugin
+* fixed: optimization results not shown when bulk optimization is is WebP Only mode
+* security: improved HTML attribute parsing applied to all front-end filters
 
 = 8.9.1 =
 *Release Date - October 29, 2026*
