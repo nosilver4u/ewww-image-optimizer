@@ -1275,13 +1275,13 @@ class Base {
 		$upload_dir  = \realpath( $upload_dir['basedir'] );
 		$content_dir = \realpath( WP_CONTENT_DIR );
 
-		if ( false !== \strpos( $file, $upload_dir ) ) {
+		if ( $upload_dir && \str_contains( $file, $upload_dir ) ) {
 			return \wp_delete_file_from_directory( $file, $upload_dir );
 		}
-		if ( false !== \strpos( $file, $content_dir ) ) {
+		if ( $content_dir && \str_contains( $file, $content_dir ) ) {
 			return \wp_delete_file_from_directory( $file, $content_dir );
 		}
-		if ( false !== \strpos( $file, $wp_dir ) ) {
+		if ( $wp_dir && \str_contains( $file, $wp_dir ) ) {
 			return \wp_delete_file_from_directory( $file, $wp_dir );
 		}
 		return \wp_delete_file( $file );
