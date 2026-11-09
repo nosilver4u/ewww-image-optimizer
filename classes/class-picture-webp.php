@@ -307,16 +307,20 @@ class Picture_Webp extends Page_Parser {
 		$images = $this->get_images_from_html( \preg_replace( '/<(picture|noscript).*?\/\1>/s', '', $buffer ), false );
 		if ( ! empty( $images[0] ) && $this->is_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
-				if ( ! $this->validate_img_tag( $image ) ) {
+				$image_tag = new HTML_Tag( $image );
+				if ( ! $this->validate_img_tag( $image_tag ) ) {
 					continue;
 				}
-				$file = $images['img_url'][ $index ];
+				$file = $image_tag->get_attribute( 'src' );
+				if ( empty( $file ) ) {
+					continue;
+				}
 				$this->debug_message( "parsing an image: $file" );
 				$validated_path = $this->validate_image_url( $file );
 				if ( $validated_path ) {
 					// If a CDN path match was found, or .webp image existence is confirmed.
 					$this->debug_message( 'found a webp image or forced path' );
-					$srcset      = $this->get_attribute( $image, 'srcset' );
+					$srcset      = $image_tag->get_attribute( 'srcset' );
 					$srcset_webp = '';
 					if ( $srcset ) {
 						$srcset_webp = $this->srcset_replace( $srcset );
@@ -325,7 +329,7 @@ class Picture_Webp extends Page_Parser {
 					if ( empty( $srcset_webp ) ) {
 						$srcset_webp = $this->generate_url( $file, $validated_path );
 					} else {
-						$sizes = $this->get_attribute( $image, 'sizes' );
+						$sizes = $image_tag->get_attribute( 'sizes' );
 						if ( $sizes ) {
 							$sizes_attr = "sizes='$sizes'";
 						}
@@ -333,9 +337,8 @@ class Picture_Webp extends Page_Parser {
 					if ( empty( $srcset_webp ) || $srcset_webp === $file ) {
 						continue;
 					}
-					$pic_img = $image;
-					$this->set_attribute( $pic_img, 'data-eio', 'p', true );
-					$picture_tag = "<picture><source srcset=\"$srcset_webp\" $sizes_attr type=\"image/webp\">$pic_img</picture>";
+					$image_tag->set_attribute( 'data-eio', 'p' );
+					$picture_tag = "<picture><source srcset=\"$srcset_webp\" $sizes_attr type=\"image/webp\">" . $image_tag->html . '</picture>';
 					$this->debug_message( "going to swap\n$image\nwith\n$picture_tag" );
 					$buffer = \str_replace( $image, $picture_tag, $buffer );
 				}
@@ -355,19 +358,20 @@ class Picture_Webp extends Page_Parser {
 				if ( $this->is_iterable( $sources ) ) {
 					foreach ( $sources as $source ) {
 						$this->debug_message( "parsing a picture source: $source" );
+						$source_tag       = new HTML_Tag( $source );
 						$srcset_attr_name = 'srcset';
-						if ( false !== \strpos( $source, 'base64,R0lGOD' ) && false !== \strpos( $source, 'data-srcset=' ) ) {
+						if ( $source_tag->attribute_contains( $srcset_attr_name, 'base64,R0lGOD' ) && $source_tag->get_attribute( 'data-srcset' ) ) {
 							$srcset_attr_name = 'data-srcset';
-						} elseif ( ! $this->get_attribute( $source, $srcset_attr_name ) && false !== strpos( $source, 'data-srcset=' ) ) {
+						} elseif ( ! $source_tag->get_attribute( $srcset_attr_name ) && $source_tag->get_attribute( 'data-srcset' ) ) {
 							$srcset_attr_name = 'data-srcset';
 						}
 						$srcset = $this->get_attribute( $source, $srcset_attr_name );
 						if ( $srcset ) {
 							$srcset_webp = $this->srcset_replace( $srcset );
 							if ( $srcset_webp ) {
-								$source_webp = \str_replace( $srcset, $srcset_webp, $source );
-								$this->set_attribute( $source_webp, 'type', 'image/webp' );
-								$picture = \str_replace( $source, $source_webp . $source, $picture );
+								$source_tag->set_attribute( $srcset_attr_name, $srcset_webp );
+								$source_tag->set_attribute( 'type', 'image/webp' );
+								$picture = \str_replace( $source, $source_tag->html . $source, $picture );
 							}
 						}
 					}
@@ -467,21 +471,11 @@ class Picture_Webp extends Page_Parser {
 	/**
 	 * Checks if the img tag is allowed to be rewritten.
 	 *
-	 * @param string $image The img tag.
+	 * @param HTML_Tag $image_tag The img tag.
 	 * @return bool False if it flags a filter or exclusion, true otherwise.
 	 */
-	public function validate_img_tag( $image ) {
+	public function validate_img_tag( $image_tag ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		// Skip inline data URIs.
-		if ( false !== \strpos( $image, 'data:image' ) ) {
-			$this->debug_message( 'data:image pattern detected in src' );
-			return false;
-		}
-		// Ignore 0-size Pinterest schema images.
-		if ( \strpos( $image, 'data-pin-description=' ) && \strpos( $image, 'width="0" height="0"' ) ) {
-			$this->debug_message( 'data-pin-description img skipped' );
-			return false;
-		}
 
 		$exclusions = \apply_filters(
 			'ewwwio_picture_webp_exclusions',
@@ -512,14 +506,26 @@ class Picture_Webp extends Page_Parser {
 				),
 				$this->user_exclusions
 			),
-			$image
+			$image_tag->html
 		);
 		foreach ( $exclusions as $exclusion ) {
-			if ( false !== \strpos( $image, $exclusion ) ) {
+			if ( \str_contains( $image_tag->html, $exclusion ) ) {
 				$this->debug_message( "img matched $exclusion" );
 				return false;
 			}
 		}
+
+		// Skip inline data URIs.
+		if ( $image_tag->attribute_contains( 'src', 'data:image' ) ) {
+			$this->debug_message( 'data:image pattern detected in src' );
+			return false;
+		}
+		// Ignore 0-size Pinterest schema images.
+		if ( $image_tag->get_attribute( 'data-pin-description' ) && '0' === $image_tag->get_attribute( 'width' ) && '0' === $image_tag->get_attribute( 'height' ) ) {
+			$this->debug_message( 'data-pin-description img skipped' );
+			return false;
+		}
+
 		return true;
 	}
 

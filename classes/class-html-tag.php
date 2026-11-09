@@ -111,6 +111,7 @@ class HTML_Tag extends Base {
 						$this->attributes = array();
 						return $this->attributes;
 					}
+					$spacer     = isset( $attr_matches['space'][ $key ][0] ) && strlen( $attr_matches['space'][ $key ][0] ) > 0 ? $attr_matches['space'][ $key ][0] : ' ';
 					$name_match = strtolower( $attr_matches['name'][ $key ][0] );
 					// Make sure we don't already have this attribute.
 					if ( ! empty( $this->attributes[ $name_match ] ) ) {
@@ -122,11 +123,11 @@ class HTML_Tag extends Base {
 						'full'     => $full_match[0],
 						'position' => $full_match[1],
 						'length'   => \strlen( $full_match[0] ),
-						'space'    => isset( $attr_matches['space'][ $key ][0] ) && strlen( $attr_matches['space'][ $key ][0] ) > 0 ? $attr_matches['space'][ $key ][0] : ' ',
+						'space'    => $spacer,
 						'value'    => ! empty( $attr_matches['value'][ $key ][0] ) ? trim( $attr_matches['value'][ $key ][0] ) : '',
 					);
 					// Strip this attribute from the leftovers, so we can find unquoted attributes later.
-					$leftovers = \str_replace( $full_match[0], '', $leftovers );
+					$leftovers = \str_replace( $spacer . $full_match[0], '', $leftovers );
 				}
 			}
 		}
@@ -183,20 +184,6 @@ class HTML_Tag extends Base {
 	}
 
 	/**
-	 * Get an attribute from an HTML tag.
-	 *
-	 * @param string $name The name of the attribute to search for.
-	 * @return string The value of the attribute, or an empty string if not found.
-	 */
-	public function get_attribute( $name ) {
-		$this->get_attributes();
-		if ( ! empty( $this->attributes[ $name ] ) && isset( $this->attributes[ $name ]['value'] ) ) {
-			return $this->attributes[ $name ]['value'];
-		}
-		return '';
-	}
-
-	/**
 	 * Sort the attributes by position and make sure there are no overlaps.
 	 *
 	 * @return string The name of the first attribute found, or an empty string if there was a position/parsing conflict.
@@ -226,6 +213,43 @@ class HTML_Tag extends Base {
 			$last_attr_name = $name;
 		}
 		return $first_attr;
+	}
+
+	/**
+	 * Get an attribute from an HTML tag.
+	 *
+	 * @param string $name The name of the attribute to retrieve.
+	 * @return string The value of the attribute, or an empty string if not found.
+	 */
+	public function get_attribute( $name ) {
+		if ( empty( $name ) || ! \is_string( $name ) ) {
+			return '';
+		}
+		$name = \strtolower( $name );
+		$this->get_attributes();
+		if ( ! empty( $this->attributes[ $name ] ) && isset( $this->attributes[ $name ]['value'] ) ) {
+			return $this->attributes[ $name ]['value'];
+		}
+		return '';
+	}
+
+	/**
+	 * Check if an attribute contains a given string.
+	 *
+	 * @param string $name The name of the attribute.
+	 * @param string $value The string to search for.
+	 * @return bool True if the attribute contains the string, false otherwise.
+	 */
+	public function attribute_contains( $name, $value ) {
+		if ( empty( $name ) || empty( $value ) ) {
+			return false;
+		}
+		$name = \strtolower( $name );
+		$this->get_attributes();
+		if ( ! empty( $this->attributes[ $name ] ) && ! empty( $this->attributes[ $name ]['value'] ) ) {
+			return \str_contains( $this->attributes[ $name ]['value'], $value );
+		}
+		return false;
 	}
 
 	/**
@@ -325,57 +349,6 @@ class HTML_Tag extends Base {
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * Get CSS background-image URLs.
-	 *
-	 * @param string $attribute An element's style attribute. Do not pass a full HTML element.
-	 * @return array An array containing URL(s) from the background/background-image property.
-	 */
-	public function get_background_image_urls( $attribute ) {
-		$urls = array();
-		if ( ( false !== \strpos( $attribute, 'background:' ) || false !== \strpos( $attribute, 'background-image:' ) ) && false !== \strpos( $attribute, 'url(' ) ) {
-			if ( \preg_match_all( '#url\((?P<bg_url>[^)]+)\)#', $attribute, $prop_matches ) ) {
-				if ( $this->is_iterable( $prop_matches['bg_url'] ) ) {
-					foreach ( $prop_matches['bg_url'] as $url ) {
-						$urls[] = \trim( \html_entity_decode( $url, ENT_QUOTES | ENT_HTML5 ), "'\"\t\n\r " );
-					}
-				}
-			}
-		}
-		return $urls;
-	}
-
-	/**
-	 * Get a single CSS background-image URL. For backwords compat.
-	 *
-	 * @param string $attribute An element's style attribute. Do not pass a full HTML element.
-	 * @return array An array containing URL(s) from the background/background-image property.
-	 */
-	public function get_background_image_url( $attribute ) {
-		if ( ( false !== \strpos( $attribute, 'background:' ) || false !== \strpos( $attribute, 'background-image:' ) ) && false !== \strpos( $attribute, 'url(' ) ) {
-			$background_urls = $this->get_background_image_urls( $attribute );
-			if ( ! empty( $background_urls[0] ) ) {
-				return $background_urls[0];
-			}
-		}
-		return '';
-	}
-
-	/**
-	 * Get CSS background-image rules from HTML.
-	 *
-	 * @param string $html The code containing potential background images.
-	 * @return array The URLs with background/background-image properties.
-	 */
-	public function get_background_images( $html ) {
-		if ( ( false !== \strpos( $html, 'background:' ) || false !== \strpos( $html, 'background-image:' ) ) && false !== \strpos( $html, 'url(' ) ) {
-			if ( \preg_match_all( '#background(-image)?:\s*?[^;}]*?url\([^)]+\)#', $html, $matches ) ) {
-				return $matches[0];
-			}
-		}
-		return array();
 	}
 
 	/**

@@ -70,15 +70,17 @@ class Page_Parser extends Base {
 			return $images;
 		}
 		$unquoted_pattern = '';
-		$search_pattern   = '#(?P<img_tag><img\s[^\\\\>]*?>)#is';
+		$search_pattern   = '#(?P<img_tag><img\s[^\\\\>]+>)#is';
 		if ( $hyperlinks ) {
 			$this->debug_message( 'using div/figure+hyperlink(a) patterns with src required' );
-			$search_pattern   = '#(?:<div[^>]*?\s+?class\s*=\s*["\'](?P<div_class>[\w\s-]+?)["\'][^>]*?>\s*(?:<span[^>]*?></span>)?)?(?:<figure[^>]*?\s+?class\s*=\s*["\'](?P<figure_class>[\w\s-]+?)["\'][^>]*?>\s*)?(?:<a[^>]*?\s+?href\s*=\s*["\'](?P<link_url>[^\s]+?)["\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*("|\')(?P<img_url>(?!\5)[^\\\\]+?)\5[^>]*?>){1}(?:\s*</a>)?#is';
-			$unquoted_pattern = '#(?:<div[^>]*?\s+?class\s*=\s*(?P<div_class>[\w-]+?)[^>]*?>\s*(?:<span[^>]*?></span>)?)?(?:<figure[^>]*?\s+?class\s*=\s*(?P<figure_class>[\w-]+?)[^>]*?>\s*)?(?:<a[^>]*?\s+?href\s*=\s*(?P<link_url>[^"\'\\\\<>][^\s<>]+)[^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*(?P<img_url>[^"\'\\\\<>][^\s\\\\<>]+)(?:\s[^>]*?)?>){1}(?:\s*</a>)?#is';
+			$search_pattern = '#(?:<div[^>]*?\s+?class\s*=\s*["\'](?P<div_class>[\w\s-]+?)["\'][^>]*?>\s*(?:<span[^>]*?></span>)?)?(?:<figure[^>]*?\s+?class\s*=\s*["\'](?P<figure_class>[\w\s-]+?)["\'][^>]*?>\s*)?(?:<a[^>]*?\s+?href\s*=\s*["\'](?P<link_url>[^\s]+?)["\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src\s*=\s*("|\')(?P<img_url>(?!\5)[^\\\\]+?)\5[^>]*?>){1}(?:\s*</a>)?#is';
+			// New simplified search pattern.
+			$search_pattern = '#(?:(?P<div_tag><div[^\\\\>]*?>\s*)(?:<span[^\\\\>]*?></span>)?)?(?P<figure_tag><figure[^\\\\>]*?>\s*)?(?P<link_tag><a[^>]*?>\s*)?(?P<img_tag><img[^\\\\>]+>){1}(?:\s*</a>)?#is';
 		} elseif ( $src_required ) {
 			$this->debug_message( 'using plain img pattern, src still required' );
-			$search_pattern   = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*("|\')(?P<img_url>(?!\2)[^\\\\]+?)\2[^>]*?>)#is';
-			$unquoted_pattern = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*(?P<img_url>[^"\'\\\\<>][^\s\\\\<>]+)(?:\s[^>]*?)?>)#is';
+			$search_pattern = '#(?P<img_tag><img[^>]*?\s+?src\s*=\s*("|\')(?P<img_url>(?!\2)[^\\\\]+?)\2[^>]*?>)#is';
+			// New simplified search pattern.
+			$search_pattern = '#(?P<img_tag><img\s[^\\\\>]+>)#is';
 		}
 		if ( \preg_match_all( $search_pattern, $content, $images, $flags ) ) {
 			$this->debug_message( 'found ' . \count( $images[0] ) . ' image elements with quoted pattern' );
@@ -211,15 +213,20 @@ class Page_Parser extends Base {
 	/**
 	 * Match all elements by tag name in a block of HTML. Does not retrieve contents or closing tags.
 	 *
+	 * Can be used to retrieve all tags from a given section of HTML, but use with caution, as that could be resource intensive.
+	 *
 	 * @param string $content Some HTML.
-	 * @param string $tag_name The name of the elements to retrieve.
+	 * @param string $tag_name The name of the elements to retrieve. Optional.
 	 * @param int    $flags Optional. Flags passed to preg_match_all. Default 0.
 	 * @return array An array of $elements.
 	 */
-	public function get_elements_from_html( $content, $tag_name, $flags = 0 ) {
+	public function get_elements_from_html( $content, $tag_name = '', $flags = 0 ) {
 		$this->debug_message( '<b>' . __METHOD__ . '()</b>' );
-		if ( ! \ctype_alpha( \str_replace( '-', '', $tag_name ) ) ) {
+		if ( $tag_name && ! \ctype_alpha( \str_replace( '-', '', $tag_name ) ) ) {
 			return array();
+		}
+		if ( ! empty( $content ) && empty( $tag_name ) && \preg_match_all( '#<\w+(\s[^\\\\>]+?)?>#s', $content, $elements, $flags ) ) {
+			return $elements[0];
 		}
 		if ( ! empty( $content ) && \preg_match_all( '#<' . $tag_name . '\s[^\\\\>]+?>#is', $content, $elements, $flags ) ) {
 			return $elements[0];
@@ -382,6 +389,9 @@ class Page_Parser extends Base {
 	 */
 	public function get_background_image_urls( $attribute ) {
 		$urls = array();
+		if ( empty( $attribute ) || ! \is_string( $attribute ) ) {
+			return $urls;
+		}
 		if ( ( false !== \strpos( $attribute, 'background:' ) || false !== \strpos( $attribute, 'background-image:' ) ) && false !== \strpos( $attribute, 'url(' ) ) {
 			if ( \preg_match_all( '#url\((?P<bg_url>[^)]+)\)#', $attribute, $prop_matches ) ) {
 				if ( $this->is_iterable( $prop_matches['bg_url'] ) ) {
@@ -395,30 +405,14 @@ class Page_Parser extends Base {
 	}
 
 	/**
-	 * Get a single CSS background-image URL. For backwords compat.
+	 * Get CSS background-image rules from a CSS string.
 	 *
-	 * @param string $attribute An element's style attribute. Do not pass a full HTML element.
-	 * @return array An array containing URL(s) from the background/background-image property.
-	 */
-	public function get_background_image_url( $attribute ) {
-		if ( ( false !== \strpos( $attribute, 'background:' ) || false !== \strpos( $attribute, 'background-image:' ) ) && false !== \strpos( $attribute, 'url(' ) ) {
-			$background_urls = $this->get_background_image_urls( $attribute );
-			if ( ! empty( $background_urls[0] ) ) {
-				return $background_urls[0];
-			}
-		}
-		return '';
-	}
-
-	/**
-	 * Get CSS background-image rules from HTML.
-	 *
-	 * @param string $html The code containing potential background images.
+	 * @param string $css The CSS code containing potential background images.
 	 * @return array The URLs with background/background-image properties.
 	 */
-	public function get_background_images( $html ) {
-		if ( ( false !== \strpos( $html, 'background:' ) || false !== \strpos( $html, 'background-image:' ) ) && false !== \strpos( $html, 'url(' ) ) {
-			if ( \preg_match_all( '#background(-image)?:\s*?[^;}]*?url\([^)]+\)#', $html, $matches ) ) {
+	public function get_background_images( $css ) {
+		if ( ( \str_contains( $css, 'background:' ) || \str_contains( $css, 'background-image:' ) ) && \str_contains( $css, 'url(' ) ) {
+			if ( \preg_match_all( '#background(-image)?:\s*?[^;}]*?url\([^)]+\)[^;}]*#', $css, $matches ) ) {
 				return $matches[0];
 			}
 		}
@@ -489,21 +483,21 @@ class Page_Parser extends Base {
 	 * @return string The style attribute with any image url removed.
 	 */
 	public function remove_background_image( $attribute ) {
-		if ( false !== \strpos( $attribute, 'background:' ) && false !== \strpos( $attribute, 'url(' ) ) {
+		if ( \str_contains( $attribute, 'background:' ) && false !== \strpos( $attribute, 'url(' ) ) {
 			$new_attribute = \preg_replace( '#\s?url\([^)]+\)#', '', $attribute );
 			if ( $new_attribute !== $attribute ) {
 				return $new_attribute;
 			}
 		}
-		if ( false !== \strpos( $attribute, 'background-image:' ) && false !== \strpos( $attribute, 'url(' ) ) {
+		if ( \str_contains( $attribute, 'background-image:' ) && false !== \strpos( $attribute, 'url(' ) ) {
 			$new_attribute = \preg_replace( '#background-image:\s*(,?\s*url\([^)]+\))+;?\s*#', '', $attribute );
 			if ( $new_attribute !== $attribute ) {
 				$new_attribute = \preg_replace( '#background-image:\s*;?\s*$#', '', $new_attribute );
 				return $new_attribute;
 			}
 		}
-		if ( false !== \strpos( $attribute, 'background-image:' ) && false !== \strpos( $attribute, 'url(' ) ) {
-			$new_attribute = \preg_replace( '#,?\s*url\([^)]+\)#', '', $attribute );
+		if ( \str_contains( $attribute, 'background-image:' ) && false !== \strpos( $attribute, 'url(' ) ) {
+			$new_attribute = \preg_replace( '#(,?\s*url\([^)]+\))+#', '', $attribute );
 			if ( $new_attribute !== $attribute ) {
 				$new_attribute = \preg_replace( '#background-image:\s*;?\s*$#', '', $new_attribute );
 				return $new_attribute;

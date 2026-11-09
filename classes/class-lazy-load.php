@@ -557,18 +557,18 @@ class Lazy_Load extends Page_Parser {
 		$images = $this->get_images_from_html( $buffer, false, true, PREG_OFFSET_CAPTURE );
 		if ( ! empty( $images[0] ) && $this->is_iterable( $images[0] ) ) {
 			foreach ( $images[0] as $index => $image ) {
-				$file = $images['img_url'][ $index ][0];
-				$this->debug_message( "parsing an image: $file" );
 				if ( empty( $image[0] ) || empty( $image[1] ) ) {
 					$this->debug_message( 'missing image tag or position' );
 					continue;
 				}
 				$image_tag = new HTML_Tag( $image[0] );
 				$position  = $image[1];
-				if ( $this->is_in_forbidden_block( $image_tag, $position ) ) {
+				if ( $this->is_in_forbidden_block( $image[0], $position ) ) {
 					continue;
 				}
 				if ( $this->validate_image_tag( $image_tag, $index ) ) {
+					$file = $image_tag->get_attribute( 'src' );
+					$this->debug_message( "parsing an image: $file" );
 					if ( ( $this->read_dimensions_from_file || $this->use_piip ) && $this->get_elapsed_time( $started_time ) > 100000 ) {
 						$this->debug_message( 'parsing exceeded 100ms, disabling file-based dimension retrieval for the rest of the page' );
 						$this->read_dimensions_from_file = false;
@@ -580,7 +580,7 @@ class Lazy_Load extends Page_Parser {
 					$ns_img    = clone $image_tag;
 					$image_tag = $this->parse_img_tag( $image_tag, $file );
 					$ns_img->set_attribute( 'data-eio', 'l' );
-					$noscript = '<noscript>' . $ns_img->html . '</noscript>';
+					$noscript = \apply_filters( 'eio_lazy_noscript', '<noscript>' . $ns_img->html . '</noscript>', $image_tag, $file );
 					if ( $position && $orig_img !== $image_tag ) {
 						$this->debug_message( "lazified image at position $position" );
 						$replacements[ $position ] = array(
@@ -626,10 +626,10 @@ class Lazy_Load extends Page_Parser {
 				$pimages = $this->get_images_from_html( $picture_tag, false );
 				if ( ! empty( $pimages[0] ) && $this->is_iterable( $pimages[0] ) && ! empty( $pimages[0][0] ) ) {
 					$image_tag = new HTML_Tag( $pimages[0][0] );
-					$file      = $pimages['img_url'][0];
-					$this->debug_message( "parsing an image (inside picture): $file" );
 					$this->debug_message( "the img tag: $image_tag->html" );
 					if ( $this->validate_image_tag( $image_tag ) ) {
+						$file = $image_tag->get_attribute( 'src' );
+						$this->debug_message( "parsing an image (inside picture): $file" );
 						if ( ( $this->read_dimensions_from_file || $this->use_piip ) && $this->get_elapsed_time( $started_time ) > 100000 ) {
 							$this->debug_message( 'parsing exceeded 100ms, disabling file-based dimension retrieval for the rest of the page' );
 							$this->read_dimensions_from_file = false;
@@ -640,7 +640,7 @@ class Lazy_Load extends Page_Parser {
 						$ns_img    = clone $image_tag;
 						$image_tag = $this->parse_img_tag( $image_tag, $file );
 						$ns_img->set_attribute( 'data-eio', 'l' );
-						$noscript    = '<noscript>' . $ns_img->html . '</noscript>';
+						$noscript    = \apply_filters( 'eio_lazy_noscript', '<noscript>' . $ns_img->html . '</noscript>', $image_tag, $file );
 						$picture_tag = \str_replace( $orig_img, $image_tag->html, $picture_tag ) . $noscript;
 					} else {
 						// If we don't have a valid img tag, then we shouldn't process the picture element either.
@@ -805,7 +805,8 @@ class Lazy_Load extends Page_Parser {
 
 		$insert_dimensions = false;
 		$this->debug_message( "width attr: $width_attr and height attr: $height_attr" );
-		if ( $this->add_missing_dimensions && ( empty( $width_attr ) || empty( $height_attr ) ) ) {
+		// ONLY fill in dimensions if both are missing. If it is just one, it is likely intentional and we don't want to break the layout.
+		if ( $this->add_missing_dimensions && empty( $width_attr ) && empty( $height_attr ) ) {
 			$this->debug_message( 'missing width attr or height attr' );
 			if ( $physical_width && \is_numeric( $physical_width ) && $physical_height && \is_numeric( $physical_height ) ) {
 				$this->debug_message( "found $physical_width and/or $physical_height to insert (maybe)" );
@@ -1287,23 +1288,6 @@ class Lazy_Load extends Page_Parser {
 			$this->debug_message( 'data:image pattern detected in src' );
 			return false;
 		}
-		// Ignore 0-size Pinterest schema images.
-		if ( \str_contains( $image_html, 'data-pin-description=' ) && \str_contains( $image_html, 'width="0" height="0"' ) ) {
-			$this->debug_message( 'data-pin-description img skipped' );
-			return false;
-		}
-		$autoscaling = true;
-		if ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ) {
-			$autoscaling = false;
-		} elseif ( false === \strpos( $image_html, 'srcset' ) && empty( $this->exactdn_domain ) ) {
-			$autoscaling = false;
-		}
-		if ( ! $autoscaling ) {
-			if ( \str_contains( $image_html, 'fetchpriority="high"' ) || \str_contains( $image_html, "fetchpriority='high'" ) ) {
-				$this->debug_message( 'no autoscaling for this image, and lcp indicated' );
-				return false;
-			}
-		}
 		// Check for exclusions.
 		$exclusions = \apply_filters(
 			'eio_lazy_exclusions',
@@ -1351,6 +1335,29 @@ class Lazy_Load extends Page_Parser {
 		}
 
 		$image_src = $image_tag->get_attribute( 'src' );
+		if ( empty( $image_src ) ) {
+			$this->debug_message( 'no src attribute found, skipping' );
+			return false;
+		}
+
+		// Ignore 0-size Pinterest schema images.
+		if ( $image_tag->get_attribute( 'data-pin-description' ) && '0' === $image_tag->get_attribute( 'width' ) && '0' === $image_tag->get_attribute( 'height' ) ) {
+			$this->debug_message( 'data-pin-description img skipped' );
+			return false;
+		}
+
+		$autoscaling = true;
+		if ( \defined( 'EIO_LL_AUTOSCALE' ) && ! EIO_LL_AUTOSCALE ) {
+			$autoscaling = false;
+		} elseif ( ! $image_tag->get_attribute( 'srcset' ) && empty( $this->exactdn_domain ) ) {
+			$autoscaling = false;
+		}
+		if ( ! $autoscaling ) {
+			if ( $image_tag->attribute_contains( 'fetchpriority', 'high' ) ) {
+				$this->debug_message( 'no autoscaling for this image, and lcp indicated' );
+				return false;
+			}
+		}
 
 		$src_path = $this->parse_url( $image_src, PHP_URL_PATH );
 		foreach ( $this->preload_images as $preload_image ) {

@@ -6602,8 +6602,11 @@ function ewww_image_optimizer_update_webp_results( $attachment, $webp_size, $web
 		'webp_size'  => (int) $webp_size,
 		'webp_error' => (int) $webp_error,
 	);
-
+	if ( ! empty( ewwwio()->webp_only ) ) {
+		$updates['pending'] = 0;
+	}
 	$updates['path'] = ewwwio()->ensure_utf8_path( $updates['path'] );
+
 	if ( is_object( $ewww_image ) && $ewww_image instanceof EWWW_Image && $attachment === $ewww_image->file ) {
 		$ewww_image->webp_size  = (int) $webp_size;
 		$ewww_image->webp_error = (int) $webp_error;
