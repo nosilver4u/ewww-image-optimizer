@@ -3,7 +3,7 @@ Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: compress, convert, webp, resize, lazy load
 Tested up to: 7.1
-Stable tag: 8.9.1
+Stable tag: 8.9.2
 License: GPLv3
 
 Comprehensive image optimization with WebP, AVIF, Lazy Load, and more. Optimize images automatically for Faster Sites and Happy Visitors.
@@ -176,13 +176,15 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
 = 8.9.2 =
-*Release Date - TBD*
+*Release Date - November 10, 2026*
 
 * added: eio_lazy_noscript and eio_webp_noscript filters to modify/suppress noscript fall-back elements
 * changed: Add Missing Dimensions no longer fills in height/width if only one dimension is missing
 * fixed: Easy IO skips manually generated srcset attributes with relative URLs
 * fixed: Easy IO only rewrites first background image in a CSS property when parsing internal style elements
-* fixed: optimization results not shown when bulk optimization is is WebP Only mode
+* fixed: optimization results not shown when bulk optimization is in WebP Only mode
+* fixed: failure to remove local images after optimization when using S3 Uploads plugin
+* fixed: local optimization blocked on WP NET VPS hosting
 * security: improved HTML attribute parsing applied to all front-end filters
 
 = 8.9.1 =
