@@ -88,7 +88,9 @@ class EWWWIO_CLI extends WP_CLI_Command {
 				WP_CLI::error( __( 'WebP Conversion is not enabled.', 'ewww-image-optimizer' ) );
 			}
 			WP_CLI::line( __( 'Running WebP conversion only.', 'ewww-image-optimizer' ) );
-			ewwwio()->webp_only = true;
+			// The bulk scan reads this from the request, like the bulk page sets it.
+			$_REQUEST['ewww_webp_only'] = true;
+			ewwwio()->webp_only         = true;
 		}
 		/* translators: 1: type of images, like media, or nextgen 2: number of seconds */
 		WP_CLI::line( sprintf( _x( 'Optimizing %1$s with a %2$d second pause between images.', 'string will be something like "media" or "nextgen"', 'ewww-image-optimizer' ), $library, $delay ) );
